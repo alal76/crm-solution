@@ -125,7 +125,6 @@ public class ProductService : IProductService, IProductInputPort
 
     public async Task UpdateProductAsync(Product product)
     {
-        product.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(product);
         await _repository.SaveAsync();
     }

@@ -11,11 +11,11 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 // Disambiguate DTOs that exist in both CRM.Core.Dtos and CRM.Core.Interfaces
 using BillingHistoryDto = CRM.Core.Dtos.BillingHistoryDto;
 using DunningRecordDto = CRM.Core.Dtos.DunningRecordDto;
-
 namespace CRM.Api.Controllers;
 
 /// <summary>
@@ -26,7 +26,7 @@ namespace CRM.Api.Controllers;
 [Route("api/subscriptions/{subscriptionId:int}/billing")]
 [Authorize]
 [Produces("application/json")]
-public class SubscriptionBillingController : ControllerBase
+public class SubscriptionBillingController : CrmControllerBase
 {
     private const string SubscriptionNotFoundMessage = "Subscription {0} not found";
     private readonly ISubscriptionService _subscriptionService;

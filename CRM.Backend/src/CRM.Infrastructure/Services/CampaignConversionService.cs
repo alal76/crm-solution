@@ -166,7 +166,6 @@ public class CampaignConversionService : ICampaignConversionService
         if (dto.ExternalTransactionId != null)
             conversion.ExternalTransactionId = dto.ExternalTransactionId;
 
-        conversion.UpdatedAt = DateTime.UtcNow;
 
         _context.CampaignConversions.Update(conversion);
         await _context.SaveChangesAsync(cancellationToken);
@@ -188,7 +187,6 @@ public class CampaignConversionService : ICampaignConversionService
         }
 
         conversion.IsDeleted = true;
-        conversion.UpdatedAt = DateTime.UtcNow;
 
         _context.CampaignConversions.Update(conversion);
         await _context.SaveChangesAsync(cancellationToken);

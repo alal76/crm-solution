@@ -300,7 +300,6 @@ public class ReportBuilderService : IReportBuilderService
             ? JsonSerializer.Serialize(new { field = report.GroupBy }, JsonOptions)
             : null;
         entity.RowLimit = report.MaxRows;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
         return MapToDto(entity);
@@ -319,7 +318,6 @@ public class ReportBuilderService : IReportBuilderService
             return false;
 
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(ct);
 
         _logger.LogInformation("Deleted report {ReportId}", reportId);

@@ -203,7 +203,6 @@ public class ModuleUIConfigService
         if (dto.ModuleSettings != null)
             entity.ModuleSettings = dto.ModuleSettings;
 
-        entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated module UI config for {ModuleName}", moduleName);
@@ -233,7 +232,6 @@ public class ModuleUIConfigService
                     config.IsEnabled = update.IsEnabled.Value;
                 if (update.DisplayOrder.HasValue)
                     config.DisplayOrder = update.DisplayOrder.Value;
-                config.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -256,7 +254,6 @@ public class ModuleUIConfigService
             return null;
 
         entity.LinkedEntitiesConfig = JsonSerializer.Serialize(linkedEntities, _jsonOptions);
-        entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated linked entities for module {ModuleName}", moduleName);
@@ -276,7 +273,6 @@ public class ModuleUIConfigService
             return null;
 
         entity.TabsConfig = JsonSerializer.Serialize(tabs, _jsonOptions);
-        entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated tabs config for module {ModuleName}", moduleName);
@@ -300,7 +296,6 @@ public class ModuleUIConfigService
 
         // Update linked entities config
         moduleConfig.LinkedEntitiesConfig = JsonSerializer.Serialize(dto.LinkedEntities, _jsonOptions);
-        moduleConfig.UpdatedAt = DateTime.UtcNow;
 
         // Update field configurations
         var fieldIds = dto.Fields.Select(f => f.Id).ToList();
@@ -372,7 +367,6 @@ public class ModuleUIConfigService
 
         moduleConfig.LinkedEntitiesConfig = JsonSerializer.Serialize(defaultLinkedEntities, _jsonOptions);
         moduleConfig.TabsConfig = null; // Will be rebuilt from field defaults
-        moduleConfig.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Reset module {ModuleName} configuration to defaults", moduleName);
@@ -461,7 +455,6 @@ public class ModuleUIConfigService
             return null;
 
         entity.IsEnabled = enabled;
-        entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Toggled module {ModuleName} to {Enabled}", moduleName, enabled);

@@ -9,9 +9,9 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 using CommissionTierDto = CRM.Core.Dtos.CommissionTierDto;
-
 namespace CRM.Api.Controllers;
 
 /// <summary>
@@ -21,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class CommissionPlansController : ControllerBase
+public class CommissionPlansController : CrmControllerBase
 {
     private const string PlanNotFoundMessage = "Commission plan with id {0} not found";
 
@@ -51,17 +51,9 @@ public class CommissionPlansController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Getting all commission plans: page={Page}, pageSize={PageSize}", page, pageSize);
-            var result = await _service.GetAllAsync(cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting commission plans");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Getting all commission plans: page={Page}, pageSize={PageSize}", page, pageSize);
+        var result = await _service.GetAllAsync(cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -75,20 +67,12 @@ public class CommissionPlansController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Getting commission plan: id={Id}", id);
-            var result = await _service.GetByIdAsync(id, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+                _logger.LogInformation("Getting commission plan: id={Id}", id);
+        var result = await _service.GetByIdAsync(id, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting commission plan: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -102,17 +86,9 @@ public class CommissionPlansController : ControllerBase
         [FromBody] CreateCommissionPlanDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Creating new commission plan: {PlanName}", dto.Name);
-            var result = await _service.CreateAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating commission plan");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Creating new commission plan: {PlanName}", dto.Name);
+        var result = await _service.CreateAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -128,20 +104,12 @@ public class CommissionPlansController : ControllerBase
         [FromBody] UpdateCommissionPlanDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Updating commission plan: id={Id}", id);
-            var result = await _service.UpdateAsync(id, dto, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+                _logger.LogInformation("Updating commission plan: id={Id}", id);
+        var result = await _service.UpdateAsync(id, dto, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating commission plan: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -155,17 +123,9 @@ public class CommissionPlansController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Deleting commission plan: id={Id}", id);
-            await _service.DeleteAsync(id, cancellationToken);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting commission plan: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Deleting commission plan: id={Id}", id);
+        await _service.DeleteAsync(id, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>
@@ -179,20 +139,12 @@ public class CommissionPlansController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Activating commission plan: id={Id}", id);
-            var result = await _service.ActivateAsync(id, cancellationToken);
-            if (!result)
-                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+                _logger.LogInformation("Activating commission plan: id={Id}", id);
+        var result = await _service.ActivateAsync(id, cancellationToken);
+        if (!result)
+            return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
-            return Ok(new { message = "Commission plan activated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error activating commission plan: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(new { message = "Commission plan activated successfully" });
     }
 
     /// <summary>
@@ -206,20 +158,12 @@ public class CommissionPlansController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Deactivating commission plan: id={Id}", id);
-            var result = await _service.DeactivateAsync(id, cancellationToken);
-            if (!result)
-                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+                _logger.LogInformation("Deactivating commission plan: id={Id}", id);
+        var result = await _service.DeactivateAsync(id, cancellationToken);
+        if (!result)
+            return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
-            return Ok(new { message = "Commission plan deactivated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deactivating commission plan: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(new { message = "Commission plan deactivated successfully" });
     }
 
     /// <summary>
@@ -234,17 +178,9 @@ public class CommissionPlansController : ControllerBase
         int userId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Assigning commission plan to user: planId={PlanId}, userId={UserId}", id, userId);
-            await _service.AssignToUserAsync(id, userId, effectiveDate: null, cancellationToken: cancellationToken);
-            return Ok(new { message = "Commission plan assigned successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning commission plan: planId={PlanId}, userId={UserId}", id, userId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Assigning commission plan to user: planId={PlanId}, userId={UserId}", id, userId);
+        await _service.AssignToUserAsync(id, userId, effectiveDate: null, cancellationToken: cancellationToken);
+        return Ok(new { message = "Commission plan assigned successfully" });
     }
 
     /// <summary>
@@ -259,17 +195,9 @@ public class CommissionPlansController : ControllerBase
         int userId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Unassigning commission plan from user: planId={PlanId}, userId={UserId}", id, userId);
-            await _service.UnassignFromUserAsync(id, userId, cancellationToken);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unassigning commission plan: planId={PlanId}, userId={UserId}", id, userId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Unassigning commission plan from user: planId={PlanId}, userId={UserId}", id, userId);
+        await _service.UnassignFromUserAsync(id, userId, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>
@@ -283,20 +211,12 @@ public class CommissionPlansController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Getting tiers for commission plan: planId={PlanId}", id);
-            var result = await _service.GetTiersAsync(id, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+                _logger.LogInformation("Getting tiers for commission plan: planId={PlanId}", id);
+        var result = await _service.GetTiersAsync(id, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting tiers: planId={PlanId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -312,20 +232,12 @@ public class CommissionPlansController : ControllerBase
         [FromBody] CreateCommissionTierDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Adding tier to commission plan: planId={PlanId}", id);
-            var result = await _service.AddTierAsync(id, dto, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+                _logger.LogInformation("Adding tier to commission plan: planId={PlanId}", id);
+        var result = await _service.AddTierAsync(id, dto, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
-            return CreatedAtAction(nameof(GetTiers), new { id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding tier: planId={PlanId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return CreatedAtAction(nameof(GetTiers), new { id }, result);
     }
 
     /// <summary>
@@ -342,19 +254,11 @@ public class CommissionPlansController : ControllerBase
         [FromBody] UpdateCommissionTierDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Updating tier: planId={PlanId}, tierId={TierId}", id, tierId);
-            var result = await _service.UpdateTierAsync(tierId, dto, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = $"Tier with id {tierId} not found in plan {id}" });
+                _logger.LogInformation("Updating tier: planId={PlanId}, tierId={TierId}", id, tierId);
+        var result = await _service.UpdateTierAsync(tierId, dto, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = $"Tier with id {tierId} not found in plan {id}" });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating tier: planId={PlanId}, tierId={TierId}", id, tierId);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 }

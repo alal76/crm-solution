@@ -11,8 +11,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 using ITSMSLADashboardDto = CRM.Core.Dtos.ITSM.SLADashboardDto;
-
 namespace CRM.Api.Controllers.ITSM;
 
 /// <summary>
@@ -24,7 +24,7 @@ namespace CRM.Api.Controllers.ITSM;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - SLA Policies")]
-public class SLAPoliciesController : ControllerBase
+public class SLAPoliciesController : CrmControllerBase
 {
     private readonly ISLAPolicyAdminService _slaPolicyService;
     private readonly ICrmDbContext _dbContext;
@@ -52,16 +52,8 @@ public class SLAPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var policies = await _slaPolicyService.GetAllAsync(cancellationToken);
-            return Ok(policies);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving SLA policies");
-            return StatusCode(500, new { message = "Error retrieving SLA policies", error = ex.Message });
-        }
+                var policies = await _slaPolicyService.GetAllAsync(cancellationToken);
+        return Ok(policies);
     }
 
     /// <summary>
@@ -78,16 +70,8 @@ public class SLAPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetApplicable([FromQuery] string? priority, [FromQuery] string? category, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var policies = await _slaPolicyService.GetApplicablePoliciesAsync(priority, category, cancellationToken);
-            return Ok(policies);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving applicable SLA policies");
-            return StatusCode(500, new { message = "Error retrieving applicable SLA policies", error = ex.Message });
-        }
+                var policies = await _slaPolicyService.GetApplicablePoliciesAsync(priority, category, cancellationToken);
+        return Ok(policies);
     }
 
     /// <summary>
@@ -105,18 +89,10 @@ public class SLAPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var policy = await _slaPolicyService.GetByIdAsync(id, cancellationToken);
-            if (policy == null)
-                return NotFound(new { message = $"SLA policy with ID {id} not found" });
-            return Ok(policy);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving SLA policy {PolicyId}", id);
-            return StatusCode(500, new { message = "Error retrieving SLA policy", error = ex.Message });
-        }
+                var policy = await _slaPolicyService.GetByIdAsync(id, cancellationToken);
+        if (policy == null)
+            return NotFound(new { message = $"SLA policy with ID {id} not found" });
+        return Ok(policy);
     }
 
     /// <summary>
@@ -134,19 +110,11 @@ public class SLAPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateSLAPolicyDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var policy = await _slaPolicyService.CreateAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = policy.Id }, policy);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating SLA policy");
-            return StatusCode(500, new { message = "Error creating SLA policy", error = ex.Message });
-        }
+        var policy = await _slaPolicyService.CreateAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = policy.Id }, policy);
     }
 
     /// <summary>
@@ -179,11 +147,6 @@ public class SLAPoliciesController : ControllerBase
         {
             return NotFound(new { message = $"SLA policy with ID {id} not found" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating SLA policy {PolicyId}", id);
-            return StatusCode(500, new { message = "Error updating SLA policy", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -209,11 +172,6 @@ public class SLAPoliciesController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(new { message = $"SLA policy with ID {id} not found" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting SLA policy {PolicyId}", id);
-            return StatusCode(500, new { message = "Error deleting SLA policy", error = ex.Message });
         }
     }
 
@@ -242,11 +200,6 @@ public class SLAPoliciesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning SLA policy {PolicyId} to service request {RequestId}", policyId, serviceRequestId);
-            return StatusCode(500, new { message = "Error assigning SLA policy", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -268,95 +221,87 @@ public class SLAPoliciesController : ControllerBase
         [FromQuery] DateTime? endDate,
         CancellationToken ct)
     {
-        try
-        {
-            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
-            var end = endDate ?? DateTime.UtcNow;
+                var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
 
-            _logger.LogInformation("Fetching SLA dashboard data from {Start} to {End}", start, end);
+        _logger.LogInformation("Fetching SLA dashboard data from {Start} to {End}", start, end);
 
-            // Query service requests within the date range
-            var requests = await _dbContext.ServiceRequests
-                .AsNoTracking()
-                .Where(sr => !sr.IsDeleted && sr.CreatedAt >= start && sr.CreatedAt <= end)
-                .Select(sr => new
-                {
-                    sr.Id,
-                    sr.Priority,
-                    sr.Status,
-                    sr.CreatedAt,
-                    sr.ResponseDueDate,
-                    sr.ResolutionDueDate,
-                    sr.FirstResponseDate,
-                    sr.ResolvedDate,
-                    sr.ResponseSlaBreached,
-                    sr.ResolutionSlaBreached
-                })
-                .ToListAsync(ct);
-
-            var totalTickets = requests.Count;
-            var breachedCount = requests.Count(r => r.ResponseSlaBreached || r.ResolutionSlaBreached);
-            var withinSLA = totalTickets - breachedCount;
-            var complianceRate = totalTickets > 0 ? (double)withinSLA / totalTickets * 100.0 : 100.0;
-
-            // Average response time (minutes) for tickets that have a first response
-            var respondedTickets = requests
-                .Where(r => r.FirstResponseDate.HasValue)
-                .ToList();
-            var avgResponseTime = respondedTickets.Count > 0
-                ? respondedTickets.Average(r => (r.FirstResponseDate!.Value - r.CreatedAt).TotalMinutes)
-                : 0.0;
-
-            // Average resolution time (minutes) for resolved tickets
-            var resolvedTickets = requests
-                .Where(r => r.ResolvedDate.HasValue)
-                .ToList();
-            var avgResolutionTime = resolvedTickets.Count > 0
-                ? resolvedTickets.Average(r => (r.ResolvedDate!.Value - r.CreatedAt).TotalMinutes)
-                : 0.0;
-
-            // Breaches by priority
-            var breachesByPriority = requests
-                .Where(r => r.ResponseSlaBreached || r.ResolutionSlaBreached)
-                .GroupBy(r => r.Priority.ToString())
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            // Daily trend
-            var dailyTrend = requests
-                .GroupBy(r => r.CreatedAt.Date)
-                .OrderBy(g => g.Key)
-                .Select(g =>
-                {
-                    var dayTotal = g.Count();
-                    var dayBreached = g.Count(r => r.ResponseSlaBreached || r.ResolutionSlaBreached);
-                    var dayWithin = dayTotal - dayBreached;
-                    return new SLATrendPoint
-                    {
-                        Date = g.Key,
-                        ComplianceRate = dayTotal > 0 ? (double)dayWithin / dayTotal * 100.0 : 100.0,
-                        TotalTickets = dayTotal
-                    };
-                })
-                .ToList();
-
-            var dashboard = new ITSMSLADashboardDto
+        // Query service requests within the date range
+        var requests = await _dbContext.ServiceRequests
+            .AsNoTracking()
+            .Where(sr => !sr.IsDeleted && sr.CreatedAt >= start && sr.CreatedAt <= end)
+            .Select(sr => new
             {
-                TotalTickets = totalTickets,
-                WithinSLA = withinSLA,
-                BreachedSLA = breachedCount,
-                ComplianceRate = Math.Round(complianceRate, 2),
-                AvgResponseTimeMinutes = Math.Round(avgResponseTime, 2),
-                AvgResolutionTimeMinutes = Math.Round(avgResolutionTime, 2),
-                BreachesByPriority = breachesByPriority,
-                DailyTrend = dailyTrend
-            };
+                sr.Id,
+                sr.Priority,
+                sr.Status,
+                sr.CreatedAt,
+                sr.ResponseDueDate,
+                sr.ResolutionDueDate,
+                sr.FirstResponseDate,
+                sr.ResolvedDate,
+                sr.ResponseSlaBreached,
+                sr.ResolutionSlaBreached
+            })
+            .ToListAsync(ct);
 
-            return Ok(dashboard);
-        }
-        catch (Exception ex)
+        var totalTickets = requests.Count;
+        var breachedCount = requests.Count(r => r.ResponseSlaBreached || r.ResolutionSlaBreached);
+        var withinSLA = totalTickets - breachedCount;
+        var complianceRate = totalTickets > 0 ? (double)withinSLA / totalTickets * 100.0 : 100.0;
+
+        // Average response time (minutes) for tickets that have a first response
+        var respondedTickets = requests
+            .Where(r => r.FirstResponseDate.HasValue)
+            .ToList();
+        var avgResponseTime = respondedTickets.Count > 0
+            ? respondedTickets.Average(r => (r.FirstResponseDate!.Value - r.CreatedAt).TotalMinutes)
+            : 0.0;
+
+        // Average resolution time (minutes) for resolved tickets
+        var resolvedTickets = requests
+            .Where(r => r.ResolvedDate.HasValue)
+            .ToList();
+        var avgResolutionTime = resolvedTickets.Count > 0
+            ? resolvedTickets.Average(r => (r.ResolvedDate!.Value - r.CreatedAt).TotalMinutes)
+            : 0.0;
+
+        // Breaches by priority
+        var breachesByPriority = requests
+            .Where(r => r.ResponseSlaBreached || r.ResolutionSlaBreached)
+            .GroupBy(r => r.Priority.ToString())
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        // Daily trend
+        var dailyTrend = requests
+            .GroupBy(r => r.CreatedAt.Date)
+            .OrderBy(g => g.Key)
+            .Select(g =>
+            {
+                var dayTotal = g.Count();
+                var dayBreached = g.Count(r => r.ResponseSlaBreached || r.ResolutionSlaBreached);
+                var dayWithin = dayTotal - dayBreached;
+                return new SLATrendPoint
+                {
+                    Date = g.Key,
+                    ComplianceRate = dayTotal > 0 ? (double)dayWithin / dayTotal * 100.0 : 100.0,
+                    TotalTickets = dayTotal
+                };
+            })
+            .ToList();
+
+        var dashboard = new ITSMSLADashboardDto
         {
-            _logger.LogError(ex, "Error fetching SLA dashboard data");
-            return StatusCode(500, new { message = "Error fetching SLA dashboard data", error = ex.Message });
-        }
+            TotalTickets = totalTickets,
+            WithinSLA = withinSLA,
+            BreachedSLA = breachedCount,
+            ComplianceRate = Math.Round(complianceRate, 2),
+            AvgResponseTimeMinutes = Math.Round(avgResponseTime, 2),
+            AvgResolutionTimeMinutes = Math.Round(avgResolutionTime, 2),
+            BreachesByPriority = breachesByPriority,
+            DailyTrend = dailyTrend
+        };
+
+        return Ok(dashboard);
     }
 }

@@ -183,7 +183,6 @@ public class ContactInfoService : IContactInfoService
         address.SiteContactPhone = dto.SiteContactPhone;
         address.Notes = dto.Notes;
         address.UpdatedBy = updatedByUserId;
-        address.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -206,7 +205,6 @@ public class ContactInfoService : IContactInfoService
         if (address != null)
         {
             address.IsDeleted = true;
-            address.UpdatedAt = DateTime.UtcNow;
 
             // Also soft-delete all links
             var links = await _context.EntityAddressLinks
@@ -401,7 +399,6 @@ public class ContactInfoService : IContactInfoService
         phone.Notes = dto.Notes;
         phone.FormattedNumber = FormatPhoneNumber(phone);
         phone.UpdatedBy = updatedByUserId;
-        phone.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -424,7 +421,6 @@ public class ContactInfoService : IContactInfoService
         if (phone != null)
         {
             phone.IsDeleted = true;
-            phone.UpdatedAt = DateTime.UtcNow;
 
             var links = await _context.EntityPhoneLinks
                 .Where(l => l.PhoneId == phoneId)
@@ -529,7 +525,6 @@ public class ContactInfoService : IContactInfoService
                 existing.Label = dto.Label;
                 existing.DisplayName = dto.DisplayName;
                 existing.Notes = dto.Notes;
-                existing.UpdatedAt = DateTime.UtcNow;
                 existing.UpdatedBy = createdByUserId;
                 await _context.SaveChangesAsync();
                 return MapToEmailDto(existing);
@@ -643,7 +638,6 @@ public class ContactInfoService : IContactInfoService
         email.DisplayName = dto.DisplayName;
         email.Notes = dto.Notes;
         email.UpdatedBy = updatedByUserId;
-        email.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -666,7 +660,6 @@ public class ContactInfoService : IContactInfoService
         if (email != null)
         {
             email.IsDeleted = true;
-            email.UpdatedAt = DateTime.UtcNow;
 
             var links = await _context.EntityEmailLinks
                 .Where(l => l.EmailId == emailId)
@@ -874,7 +867,6 @@ public class ContactInfoService : IContactInfoService
         account.IsVerifiedAccount = dto.IsVerifiedAccount;
         account.Notes = dto.Notes;
         account.UpdatedBy = updatedByUserId;
-        account.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -897,7 +889,6 @@ public class ContactInfoService : IContactInfoService
         if (account != null)
         {
             account.IsDeleted = true;
-            account.UpdatedAt = DateTime.UtcNow;
 
             var links = await _context.EntitySocialMediaLinks
                 .Where(l => l.SocialMediaAccountId == socialMediaId)

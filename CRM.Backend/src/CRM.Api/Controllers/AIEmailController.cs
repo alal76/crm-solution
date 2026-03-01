@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -30,7 +31,7 @@ namespace CRM.Api.Controllers;
 [Route("api/ai/email")]
 [Authorize]
 [Produces("application/json")]
-public class AIEmailController : ControllerBase
+public class AIEmailController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILLMService _llmService;
@@ -65,24 +66,22 @@ public class AIEmailController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AnalyzeEmail([FromBody] EmailAnalysisRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.EmailContent))
         {
-            if (string.IsNullOrWhiteSpace(request.EmailContent))
-            {
-                return BadRequest(new { error = "Email content cannot be empty" });
-            }
+            return BadRequest(new { error = "Email content cannot be empty" });
+        }
 
-            var settings = await _llmSettingsService.GetSettingsAsync();
-            if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
+        {
+            return Ok(new EmailAnalysisResponse
             {
-                return Ok(new EmailAnalysisResponse
-                {
-                    Success = false,
-                    Error = "AI service not configured. Please configure LLM settings."
-                });
-            }
+                Success = false,
+                Error = "AI service not configured. Please configure LLM settings."
+            });
+        }
 
-            var systemPrompt = @"You are an expert email analyst for a CRM system. Analyze the provided email and extract:
+        var systemPrompt = @"You are an expert email analyst for a CRM system. Analyze the provided email and extract:
 1. Sentiment (positive, negative, neutral, mixed) with confidence score (0-100)
 2. Urgency level (low, medium, high, critical)
 3. Email classification (inquiry, complaint, follow-up, thank_you, request, information, urgent_action)
@@ -114,61 +113,55 @@ Respond ONLY with valid JSON in this exact format:
   ""summary"": ""One sentence summary of the email""
 }";
 
-            var llmRequest = new LLMRequest
-            {
-                Provider = settings.DefaultProvider,
-                Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
-                Messages = new List<LLMMessage>
-                {
-                    new() { Role = "system", Content = systemPrompt },
-                    new() { Role = "user", Content = $"Analyze this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
-                },
-                Temperature = 0.3, // Lower for more consistent analysis
-                MaxTokens = 1000,
-                JsonMode = true
-            };
-
-            var response = await _llmService.ChatAsync(llmRequest);
-
-            if (response.Success)
-            {
-                try
-                {
-                    var analysisResult = JsonSerializer.Deserialize<EmailAnalysisResult>(
-                        response.Content,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    return Ok(new EmailAnalysisResponse
-                    {
-                        Success = true,
-                        Analysis = analysisResult,
-                        Provider = response.Provider,
-                        TokensUsed = response.TotalTokens
-                    });
-                }
-                catch (JsonException ex)
-                {
-                    _logger.LogWarning(ex, "Failed to parse LLM response as JSON: {Content}", response.Content);
-                    return Ok(new EmailAnalysisResponse
-                    {
-                        Success = true,
-                        RawAnalysis = response.Content,
-                        Provider = response.Provider
-                    });
-                }
-            }
-
-            return Ok(new EmailAnalysisResponse
-            {
-                Success = false,
-                Error = response.Error ?? "Analysis failed"
-            });
-        }
-        catch (Exception ex)
+        var llmRequest = new LLMRequest
         {
-            _logger.LogError(ex, "Email analysis failed");
-            return StatusCode(500, new { error = "Email analysis failed", details = ex.Message });
+            Provider = settings.DefaultProvider,
+            Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
+            Messages = new List<LLMMessage>
+            {
+                new() { Role = "system", Content = systemPrompt },
+                new() { Role = "user", Content = $"Analyze this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
+            },
+            Temperature = 0.3, // Lower for more consistent analysis
+            MaxTokens = 1000,
+            JsonMode = true
+        };
+
+        var response = await _llmService.ChatAsync(llmRequest);
+
+        if (response.Success)
+        {
+            try
+            {
+                var analysisResult = JsonSerializer.Deserialize<EmailAnalysisResult>(
+                    response.Content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return Ok(new EmailAnalysisResponse
+                {
+                    Success = true,
+                    Analysis = analysisResult,
+                    Provider = response.Provider,
+                    TokensUsed = response.TotalTokens
+                });
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse LLM response as JSON: {Content}", response.Content);
+                return Ok(new EmailAnalysisResponse
+                {
+                    Success = true,
+                    RawAnalysis = response.Content,
+                    Provider = response.Provider
+                });
+            }
         }
+
+        return Ok(new EmailAnalysisResponse
+        {
+            Success = false,
+            Error = response.Error ?? "Analysis failed"
+        });
     }
 
     /// <summary>
@@ -187,48 +180,46 @@ Respond ONLY with valid JSON in this exact format:
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SuggestResponse([FromBody] ResponseSuggestionRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.EmailContent))
         {
-            if (string.IsNullOrWhiteSpace(request.EmailContent))
+            return BadRequest(new { error = "Email content cannot be empty" });
+        }
+
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
+        {
+            return Ok(new ResponseSuggestionResponse
             {
-                return BadRequest(new { error = "Email content cannot be empty" });
+                Success = false,
+                Error = "AI service not configured"
+            });
+        }
+
+        // Get customer context if available
+        string customerContext = "";
+        if (request.AccountId.HasValue)
+        {
+            var customer = await _context.Accounts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == request.AccountId.Value);
+
+            if (customer != null)
+            {
+                customerContext = $"\n\nCustomer Context:\n- Company: {customer.Company}\n- Account Type: {customer.AccountType}\n- Industry: {customer.Industry}";
             }
+        }
 
-            var settings = await _llmSettingsService.GetSettingsAsync();
-            if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
-            {
-                return Ok(new ResponseSuggestionResponse
-                {
-                    Success = false,
-                    Error = "AI service not configured"
-                });
-            }
+        var toneInstruction = request.Tone switch
+        {
+            "formal" => "Use a formal, professional tone with proper business language.",
+            "friendly" => "Use a warm, friendly yet professional tone.",
+            "casual" => "Use a casual, conversational tone while remaining professional.",
+            "apologetic" => "Use an empathetic, apologetic tone acknowledging any issues.",
+            "enthusiastic" => "Use an enthusiastic, positive tone showing excitement.",
+            _ => "Use an appropriate professional tone."
+        };
 
-            // Get customer context if available
-            string customerContext = "";
-            if (request.AccountId.HasValue)
-            {
-                var customer = await _context.Accounts
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.Id == request.AccountId.Value);
-
-                if (customer != null)
-                {
-                    customerContext = $"\n\nCustomer Context:\n- Company: {customer.Company}\n- Account Type: {customer.AccountType}\n- Industry: {customer.Industry}";
-                }
-            }
-
-            var toneInstruction = request.Tone switch
-            {
-                "formal" => "Use a formal, professional tone with proper business language.",
-                "friendly" => "Use a warm, friendly yet professional tone.",
-                "casual" => "Use a casual, conversational tone while remaining professional.",
-                "apologetic" => "Use an empathetic, apologetic tone acknowledging any issues.",
-                "enthusiastic" => "Use an enthusiastic, positive tone showing excitement.",
-                _ => "Use an appropriate professional tone."
-            };
-
-            var systemPrompt = $@"You are a professional email response assistant for a CRM system.
+        var systemPrompt = $@"You are a professional email response assistant for a CRM system.
 Generate {request.NumSuggestions ?? 3} different response options for the given email.
 {toneInstruction}
 
@@ -250,59 +241,53 @@ Respond with JSON in this format:
   ]
 }}";
 
-            var llmRequest = new LLMRequest
-            {
-                Provider = settings.DefaultProvider,
-                Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
-                Messages = new List<LLMMessage>
-                {
-                    new() { Role = "system", Content = systemPrompt },
-                    new() { Role = "user", Content = $"Generate responses for this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
-                },
-                Temperature = 0.7, // Higher for creative responses
-                MaxTokens = 2000,
-                JsonMode = true
-            };
-
-            var response = await _llmService.ChatAsync(llmRequest);
-
-            if (response.Success)
-            {
-                try
-                {
-                    var suggestions = JsonSerializer.Deserialize<ResponseSuggestions>(
-                        response.Content,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    return Ok(new ResponseSuggestionResponse
-                    {
-                        Success = true,
-                        Suggestions = suggestions?.Suggestions ?? new List<EmailSuggestion>(),
-                        QuickReplies = suggestions?.QuickReplies ?? new List<string>(),
-                        Provider = response.Provider
-                    });
-                }
-                catch (JsonException)
-                {
-                    return Ok(new ResponseSuggestionResponse
-                    {
-                        Success = true,
-                        RawContent = response.Content
-                    });
-                }
-            }
-
-            return Ok(new ResponseSuggestionResponse
-            {
-                Success = false,
-                Error = response.Error ?? "Suggestion generation failed"
-            });
-        }
-        catch (Exception ex)
+        var llmRequest = new LLMRequest
         {
-            _logger.LogError(ex, "Response suggestion failed");
-            return StatusCode(500, new { error = "Response suggestion failed" });
+            Provider = settings.DefaultProvider,
+            Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
+            Messages = new List<LLMMessage>
+            {
+                new() { Role = "system", Content = systemPrompt },
+                new() { Role = "user", Content = $"Generate responses for this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
+            },
+            Temperature = 0.7, // Higher for creative responses
+            MaxTokens = 2000,
+            JsonMode = true
+        };
+
+        var response = await _llmService.ChatAsync(llmRequest);
+
+        if (response.Success)
+        {
+            try
+            {
+                var suggestions = JsonSerializer.Deserialize<ResponseSuggestions>(
+                    response.Content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return Ok(new ResponseSuggestionResponse
+                {
+                    Success = true,
+                    Suggestions = suggestions?.Suggestions ?? new List<EmailSuggestion>(),
+                    QuickReplies = suggestions?.QuickReplies ?? new List<string>(),
+                    Provider = response.Provider
+                });
+            }
+            catch (JsonException)
+            {
+                return Ok(new ResponseSuggestionResponse
+                {
+                    Success = true,
+                    RawContent = response.Content
+                });
+            }
         }
+
+        return Ok(new ResponseSuggestionResponse
+        {
+            Success = false,
+            Error = response.Error ?? "Suggestion generation failed"
+        });
     }
 
     /// <summary>
@@ -321,34 +306,32 @@ Respond with JSON in this format:
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> OptimizeSubject([FromBody] SubjectOptimizationRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Subject) && string.IsNullOrWhiteSpace(request.EmailBody))
         {
-            if (string.IsNullOrWhiteSpace(request.Subject) && string.IsNullOrWhiteSpace(request.EmailBody))
-            {
-                return BadRequest(new { error = "Subject or email body is required" });
-            }
+            return BadRequest(new { error = "Subject or email body is required" });
+        }
 
-            var settings = await _llmSettingsService.GetSettingsAsync();
-            if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
+        {
+            return Ok(new SubjectOptimizationResponse
             {
-                return Ok(new SubjectOptimizationResponse
-                {
-                    Success = false,
-                    Error = "AI service not configured"
-                });
-            }
+                Success = false,
+                Error = "AI service not configured"
+            });
+        }
 
-            var purposeContext = request.Purpose switch
-            {
-                "sales" => "for a sales outreach email to maximize open rates",
-                "followup" => "for a follow-up email that encourages response",
-                "support" => "for a support response that's clear and helpful",
-                "marketing" => "for a marketing email with high engagement",
-                "internal" => "for internal communication that's clear and actionable",
-                _ => "for professional business communication"
-            };
+        var purposeContext = request.Purpose switch
+        {
+            "sales" => "for a sales outreach email to maximize open rates",
+            "followup" => "for a follow-up email that encourages response",
+            "support" => "for a support response that's clear and helpful",
+            "marketing" => "for a marketing email with high engagement",
+            "internal" => "for internal communication that's clear and actionable",
+            _ => "for professional business communication"
+        };
 
-            var systemPrompt = $@"You are an email subject line optimization expert.
+        var systemPrompt = $@"You are an email subject line optimization expert.
 Generate 5 optimized subject line variations {purposeContext}.
 
 Consider:
@@ -371,64 +354,58 @@ Respond with JSON:
   ""tips"": [""General tips for improvement""]
 }}";
 
-            var userContent = request.Subject != null
-                ? $"Original subject: {request.Subject}\n\nEmail preview: {(request.EmailBody?.Length > 500 ? request.EmailBody[..500] + "..." : request.EmailBody ?? "")}"
-                : $"Generate subject for this email:\n\n{request.EmailBody}";
+        var userContent = request.Subject != null
+            ? $"Original subject: {request.Subject}\n\nEmail preview: {(request.EmailBody?.Length > 500 ? request.EmailBody[..500] + "..." : request.EmailBody ?? "")}"
+            : $"Generate subject for this email:\n\n{request.EmailBody}";
 
-            var llmRequest = new LLMRequest
-            {
-                Provider = settings.DefaultProvider,
-                Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
-                Messages = new List<LLMMessage>
-                {
-                    new() { Role = "system", Content = systemPrompt },
-                    new() { Role = "user", Content = userContent }
-                },
-                Temperature = 0.8,
-                MaxTokens = 800,
-                JsonMode = true
-            };
-
-            var response = await _llmService.ChatAsync(llmRequest);
-
-            if (response.Success)
-            {
-                try
-                {
-                    var result = JsonSerializer.Deserialize<SubjectOptimizationResult>(
-                        response.Content,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    return Ok(new SubjectOptimizationResponse
-                    {
-                        Success = true,
-                        OriginalScore = result?.OriginalScore ?? 50,
-                        Suggestions = result?.Suggestions ?? new List<SubjectSuggestion>(),
-                        Tips = result?.Tips ?? new List<string>(),
-                        Provider = response.Provider
-                    });
-                }
-                catch (JsonException)
-                {
-                    return Ok(new SubjectOptimizationResponse
-                    {
-                        Success = true,
-                        RawContent = response.Content
-                    });
-                }
-            }
-
-            return Ok(new SubjectOptimizationResponse
-            {
-                Success = false,
-                Error = response.Error ?? "Subject optimization failed"
-            });
-        }
-        catch (Exception ex)
+        var llmRequest = new LLMRequest
         {
-            _logger.LogError(ex, "Subject optimization failed");
-            return StatusCode(500, new { error = "Subject optimization failed" });
+            Provider = settings.DefaultProvider,
+            Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
+            Messages = new List<LLMMessage>
+            {
+                new() { Role = "system", Content = systemPrompt },
+                new() { Role = "user", Content = userContent }
+            },
+            Temperature = 0.8,
+            MaxTokens = 800,
+            JsonMode = true
+        };
+
+        var response = await _llmService.ChatAsync(llmRequest);
+
+        if (response.Success)
+        {
+            try
+            {
+                var result = JsonSerializer.Deserialize<SubjectOptimizationResult>(
+                    response.Content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return Ok(new SubjectOptimizationResponse
+                {
+                    Success = true,
+                    OriginalScore = result?.OriginalScore ?? 50,
+                    Suggestions = result?.Suggestions ?? new List<SubjectSuggestion>(),
+                    Tips = result?.Tips ?? new List<string>(),
+                    Provider = response.Provider
+                });
+            }
+            catch (JsonException)
+            {
+                return Ok(new SubjectOptimizationResponse
+                {
+                    Success = true,
+                    RawContent = response.Content
+                });
+            }
         }
+
+        return Ok(new SubjectOptimizationResponse
+        {
+            Success = false,
+            Error = response.Error ?? "Subject optimization failed"
+        });
     }
 
     /// <summary>
@@ -447,26 +424,24 @@ Respond with JSON:
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ImproveEmail([FromBody] EmailImproveRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.EmailContent))
         {
-            if (string.IsNullOrWhiteSpace(request.EmailContent))
+            return BadRequest(new { error = "Email content cannot be empty" });
+        }
+
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
+        {
+            return Ok(new EmailImproveResponse
             {
-                return BadRequest(new { error = "Email content cannot be empty" });
-            }
+                Success = false,
+                Error = "AI service not configured"
+            });
+        }
 
-            var settings = await _llmSettingsService.GetSettingsAsync();
-            if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
-            {
-                return Ok(new EmailImproveResponse
-                {
-                    Success = false,
-                    Error = "AI service not configured"
-                });
-            }
+        var improvementFocus = string.Join(", ", request.ImprovementAreas ?? new[] { "clarity", "grammar", "professionalism" });
 
-            var improvementFocus = string.Join(", ", request.ImprovementAreas ?? new[] { "clarity", "grammar", "professionalism" });
-
-            var systemPrompt = $@"You are a professional email writing assistant.
+        var systemPrompt = $@"You are a professional email writing assistant.
 Improve the given email focusing on: {improvementFocus}
 
 Provide:
@@ -494,61 +469,55 @@ Respond with JSON:
   ""summary"": ""Brief summary of improvements""
 }}";
 
-            var llmRequest = new LLMRequest
-            {
-                Provider = settings.DefaultProvider,
-                Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
-                Messages = new List<LLMMessage>
-                {
-                    new() { Role = "system", Content = systemPrompt },
-                    new() { Role = "user", Content = $"Improve this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
-                },
-                Temperature = 0.5,
-                MaxTokens = 2000,
-                JsonMode = true
-            };
-
-            var response = await _llmService.ChatAsync(llmRequest);
-
-            if (response.Success)
-            {
-                try
-                {
-                    var result = JsonSerializer.Deserialize<EmailImprovementResult>(
-                        response.Content,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    return Ok(new EmailImproveResponse
-                    {
-                        Success = true,
-                        ImprovedEmail = result?.ImprovedEmail,
-                        Changes = result?.Changes ?? new List<EmailChange>(),
-                        Scores = result?.Scores,
-                        Summary = result?.Summary,
-                        Provider = response.Provider
-                    });
-                }
-                catch (JsonException)
-                {
-                    return Ok(new EmailImproveResponse
-                    {
-                        Success = true,
-                        RawContent = response.Content
-                    });
-                }
-            }
-
-            return Ok(new EmailImproveResponse
-            {
-                Success = false,
-                Error = response.Error ?? "Email improvement failed"
-            });
-        }
-        catch (Exception ex)
+        var llmRequest = new LLMRequest
         {
-            _logger.LogError(ex, "Email improvement failed");
-            return StatusCode(500, new { error = "Email improvement failed" });
+            Provider = settings.DefaultProvider,
+            Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
+            Messages = new List<LLMMessage>
+            {
+                new() { Role = "system", Content = systemPrompt },
+                new() { Role = "user", Content = $"Improve this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
+            },
+            Temperature = 0.5,
+            MaxTokens = 2000,
+            JsonMode = true
+        };
+
+        var response = await _llmService.ChatAsync(llmRequest);
+
+        if (response.Success)
+        {
+            try
+            {
+                var result = JsonSerializer.Deserialize<EmailImprovementResult>(
+                    response.Content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return Ok(new EmailImproveResponse
+                {
+                    Success = true,
+                    ImprovedEmail = result?.ImprovedEmail,
+                    Changes = result?.Changes ?? new List<EmailChange>(),
+                    Scores = result?.Scores,
+                    Summary = result?.Summary,
+                    Provider = response.Provider
+                });
+            }
+            catch (JsonException)
+            {
+                return Ok(new EmailImproveResponse
+                {
+                    Success = true,
+                    RawContent = response.Content
+                });
+            }
         }
+
+        return Ok(new EmailImproveResponse
+        {
+            Success = false,
+            Error = response.Error ?? "Email improvement failed"
+        });
     }
 
     private static string GetDefaultModelForProvider(LLMSettingsDto settings, string provider)

@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/calendar")]
 [Authorize]
-public class CalendarIntegrationController : ControllerBase
+public class CalendarIntegrationController : CrmControllerBase
 {
     private readonly ICalendarSyncService _calendarSyncService;
     private readonly ILogger<CalendarIntegrationController> _logger;

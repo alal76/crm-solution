@@ -312,7 +312,6 @@ public class WebAuthnService : IWebAuthnService
 
             // Update counter
             credential.SignatureCounter = newCounter;
-            credential.UpdatedAt = DateTime.UtcNow;
             _context.WebAuthnCredentials.Update(credential);
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -375,7 +374,6 @@ public class WebAuthnService : IWebAuthnService
             }
 
             credential.Name = newName;
-            credential.UpdatedAt = DateTime.UtcNow;
             _context.WebAuthnCredentials.Update(credential);
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -406,7 +404,6 @@ public class WebAuthnService : IWebAuthnService
             }
 
             credential.IsDeleted = true;
-            credential.UpdatedAt = DateTime.UtcNow;
             _context.WebAuthnCredentials.Update(credential);
             await _context.SaveChangesAsync(cancellationToken);
 

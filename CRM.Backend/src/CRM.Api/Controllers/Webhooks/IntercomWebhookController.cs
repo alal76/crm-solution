@@ -14,6 +14,7 @@ using CRM.Infrastructure.Providers.Intercom;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.Webhooks;
 
@@ -23,7 +24,7 @@ namespace CRM.Api.Controllers.Webhooks;
 /// </summary>
 [ApiController]
 [Route("api/webhooks/intercom")]
-public class IntercomWebhookController : ControllerBase
+public class IntercomWebhookController : CrmControllerBase
 {
     private readonly IChatPort _chatProvider;
     private readonly IActivityService _activityService;
@@ -111,11 +112,6 @@ public class IntercomWebhookController : ControllerBase
         {
             _logger.LogError(ex, "Failed to parse Intercom webhook payload");
             return BadRequest("Invalid JSON payload");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing Intercom webhook");
-            return StatusCode(500, "Internal error processing webhook");
         }
     }
 

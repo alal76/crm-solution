@@ -12,6 +12,7 @@ using CRM.Infrastructure.Services.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -22,7 +23,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class AuthController : ControllerBase
+public class AuthController : CrmControllerBase
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<AuthController> _logger;
@@ -125,11 +126,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning($"Registration validation failed: {ex.Message}");
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Registration error for {Email}", request.Email);
-            return StatusCode(500, new { message = "An error occurred during registration", detail = ex.Message });
-        }
     }
 
     /// <summary>
@@ -186,11 +182,6 @@ public class AuthController : ControllerBase
             await _authAuditService.LogLoginAttemptAsync(null, ipAddress, userAgent, false, ex.Message);
             return Unauthorized(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Login error for {Email}", request.Email);
-            return StatusCode(500, new { message = "An error occurred during login", detail = ex.Message });
-        }
     }
 
     /// <summary>
@@ -222,11 +213,6 @@ public class AuthController : ControllerBase
         {
             _logger.LogWarning($"2FA login verification failed: {ex.Message}");
             return Unauthorized(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"2FA login error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during 2FA verification" });
         }
     }
 
@@ -266,11 +252,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning("Token refresh failed: {Message}", ex.Message);
             return Unauthorized(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Token refresh error");
-            return StatusCode(500, new { message = "An error occurred during token refresh" });
-        }
     }
 
     /// <summary>
@@ -288,19 +269,11 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var response = await _authenticationService.OAuthLoginAsync(request);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"OAuth login error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during OAuth login" });
-        }
+        var response = await _authenticationService.OAuthLoginAsync(request);
+        return Ok(response);
     }
 
     /// <summary>
@@ -318,16 +291,8 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> VerifyToken([FromBody] string token)
     {
-        try
-        {
-            var isValid = await _authenticationService.VerifyTokenAsync(token);
-            return Ok(new { isValid });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Token verification error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during token verification" });
-        }
+                var isValid = await _authenticationService.VerifyTokenAsync(token);
+        return Ok(new { isValid });
     }
 
     /// <summary>
@@ -346,23 +311,15 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetCurrentUser()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            var user = await _authenticationService.GetUserByIdAsync(userId);
-            if (user == null)
-                return NotFound();
+        var user = await _authenticationService.GetUserByIdAsync(userId);
+        if (user == null)
+            return NotFound();
 
-            return Ok(new { user.Id, user.Username, user.Email, user.FirstName, user.LastName });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Get user error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred while retrieving user profile" });
-        }
+        return Ok(new { user.Id, user.Username, user.Email, user.FirstName, user.LastName });
     }
 
     /// <summary>
@@ -379,20 +336,12 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Setup2FA()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            var response = await _authenticationService.SetupTwoFactorAsync(userId);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"2FA setup error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during 2FA setup" });
-        }
+        var response = await _authenticationService.SetupTwoFactorAsync(userId);
+        return Ok(response);
     }
 
     /// <summary>
@@ -412,26 +361,18 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Verify2FA([FromBody] TwoFactorVerification request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            var isValid = await _authenticationService.VerifyTwoFactorCodeAsync(userId, request.Code);
-            if (!isValid)
-                return BadRequest(new { message = "Invalid verification code" });
+        var isValid = await _authenticationService.VerifyTwoFactorCodeAsync(userId, request.Code);
+        if (!isValid)
+            return BadRequest(new { message = "Invalid verification code" });
 
-            return Ok(new { message = "2FA verification successful" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"2FA verification error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during 2FA verification" });
-        }
+        return Ok(new { message = "2FA verification successful" });
     }
 
     /// <summary>
@@ -451,23 +392,15 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Enable2FA([FromBody] TwoFactorEnableRequest request)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            await _authenticationService.EnableTwoFactorAsync(userId, request.Secret, request.BackupCodes);
-            return Ok(new { message = "2FA enabled successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"2FA enable error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred while enabling 2FA" });
-        }
+        await _authenticationService.EnableTwoFactorAsync(userId, request.Secret, request.BackupCodes);
+        return Ok(new { message = "2FA enabled successfully" });
     }
 
     /// <summary>
@@ -484,20 +417,12 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Disable2FA()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            await _authenticationService.DisableTwoFactorAsync(userId);
-            return Ok(new { message = "2FA disabled successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"2FA disable error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred while disabling 2FA" });
-        }
+        await _authenticationService.DisableTwoFactorAsync(userId);
+        return Ok(new { message = "2FA disabled successfully" });
     }
 
     /// <summary>
@@ -529,11 +454,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning($"Password reset request failed: {ex.Message}");
             // Don't reveal if email exists
             return Ok(new { message = "If an account exists with that email, a password reset link has been sent." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Password reset request error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during password reset request" });
         }
     }
 
@@ -567,11 +487,6 @@ public class AuthController : ControllerBase
         {
             _logger.LogWarning($"Password reset failed: {ex.Message}");
             return BadRequest(new { message = "Invalid or expired reset token" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Password reset error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during password reset" });
         }
     }
 
@@ -618,11 +533,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning($"Admin password reset unauthorized: {ex.Message}");
             return Forbid();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Admin password reset error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during password reset" });
-        }
     }
 
     /// <summary>
@@ -660,11 +570,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning($"Password setup validation failed: {ex.Message}");
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Password setup error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during password setup" });
-        }
     }
 
     /// <summary>
@@ -679,16 +584,8 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPasswordRequirements()
     {
-        try
-        {
-            var requirements = await _authenticationService.GetPasswordRequirementsAsync();
-            return Ok(requirements);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Get password requirements error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred retrieving password requirements" });
-        }
+                var requirements = await _authenticationService.GetPasswordRequirementsAsync();
+        return Ok(requirements);
     }
 
     /// <summary>
@@ -708,33 +605,25 @@ public class AuthController : ControllerBase
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var userAgent = Request.Headers.UserAgent.ToString();
 
-        try
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-            {
-                return new UnauthorizedObjectResult(new { message = "User ID not found in token" });
-            }
-
-            var success = await _authenticationService.LogoutAsync(userId);
-
-            // Revoke all sessions and audit (TODO-AUTH-013, TODO-AUTH-016)
-            try { await _sessionManager.RevokeAllSessionsAsync(userId); } catch { /* non-critical */ }
-            await _authAuditService.LogLogoutAsync(userId, ipAddress, userAgent);
-
-            if (success)
-            {
-                return new OkObjectResult(new { message = "User logged out successfully" });
-            }
-            else
-            {
-                return StatusCode(500, new { message = "Failed to logout user" });
-            }
+            return new UnauthorizedObjectResult(new { message = "User ID not found in token" });
         }
-        catch (Exception ex)
+
+        var success = await _authenticationService.LogoutAsync(userId);
+
+        // Revoke all sessions and audit (TODO-AUTH-013, TODO-AUTH-016)
+        try { await _sessionManager.RevokeAllSessionsAsync(userId); } catch { /* non-critical */ }
+        await _authAuditService.LogLogoutAsync(userId, ipAddress, userAgent);
+
+        if (success)
         {
-            _logger.LogError($"Logout error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during logout" });
+            return new OkObjectResult(new { message = "User logged out successfully" });
+        }
+        else
+        {
+            return StatusCode(500, new { message = "Failed to logout user" });
         }
     }
 
@@ -804,11 +693,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning($"Change password validation failed: {ex.Message}");
             return new BadRequestObjectResult(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Change password error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during password change" });
-        }
     }
 
     // ==========================================
@@ -831,30 +715,22 @@ public class AuthController : ControllerBase
         [FromQuery] string? returnUrl = null,
         [FromQuery] string? redirectUri = null)
     {
-        try
+                var state = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        var effectiveRedirectUri = redirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/linkedin/callback";
+
+        var authorizationUrl = _linkedInOAuthProvider.GetAuthorizationUrl(state, effectiveRedirectUri);
+
+        if (!string.IsNullOrEmpty(returnUrl))
         {
-            var state = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
-            var effectiveRedirectUri = redirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/linkedin/callback";
-
-            var authorizationUrl = _linkedInOAuthProvider.GetAuthorizationUrl(state, effectiveRedirectUri);
-
-            if (!string.IsNullOrEmpty(returnUrl))
-            {
-                authorizationUrl += $"&return_url={Uri.EscapeDataString(returnUrl)}";
-            }
-
-            _logger.LogInformation("Generated LinkedIn OAuth authorization URL");
-            return Ok(new OAuthRedirectDto
-            {
-                AuthorizationUrl = authorizationUrl,
-                State = state
-            });
+            authorizationUrl += $"&return_url={Uri.EscapeDataString(returnUrl)}";
         }
-        catch (Exception ex)
+
+        _logger.LogInformation("Generated LinkedIn OAuth authorization URL");
+        return Ok(new OAuthRedirectDto
         {
-            _logger.LogError(ex, "Failed to generate LinkedIn OAuth authorization URL");
-            return StatusCode(500, new { message = "Failed to initiate LinkedIn OAuth flow" });
-        }
+            AuthorizationUrl = authorizationUrl,
+            State = state
+        });
     }
 
     /// <summary>
@@ -873,41 +749,33 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> LinkedInCallback([FromBody] OAuthCallbackDto dto, CancellationToken ct)
     {
-        try
+                if (string.IsNullOrWhiteSpace(dto.Code))
+            return BadRequest(new { message = "Authorization code is required" });
+
+        var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/linkedin/callback";
+
+        // Exchange authorization code for access token
+        var tokenResponse = await _linkedInOAuthProvider.ExchangeCodeForTokenAsync(dto.Code, effectiveRedirectUri, ct);
+
+        // Get user profile from LinkedIn
+        var profile = await _linkedInOAuthProvider.GetUserProfileAsync(tokenResponse.Access_token, ct);
+
+        if (string.IsNullOrEmpty(profile.Email))
         {
-            if (string.IsNullOrWhiteSpace(dto.Code))
-                return BadRequest(new { message = "Authorization code is required" });
-
-            var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/linkedin/callback";
-
-            // Exchange authorization code for access token
-            var tokenResponse = await _linkedInOAuthProvider.ExchangeCodeForTokenAsync(dto.Code, effectiveRedirectUri, ct);
-
-            // Get user profile from LinkedIn
-            var profile = await _linkedInOAuthProvider.GetUserProfileAsync(tokenResponse.Access_token, ct);
-
-            if (string.IsNullOrEmpty(profile.Email))
-            {
-                _logger.LogWarning("LinkedIn OAuth: No email returned for user {LinkedInId}", profile.Id);
-                return BadRequest(new { message = "LinkedIn account does not have an accessible email address" });
-            }
-
-            // Delegate to the existing OAuthLoginAsync which handles find-or-create user and JWT generation
-            var oauthRequest = new OAuthLoginRequest
-            {
-                Provider = "linkedin",
-                Token = tokenResponse.Access_token
-            };
-
-            var response = await _authenticationService.OAuthLoginAsync(oauthRequest);
-            _logger.LogInformation("LinkedIn OAuth login successful for {Email}", profile.Email);
-            return Ok(response);
+            _logger.LogWarning("LinkedIn OAuth: No email returned for user {LinkedInId}", profile.Id);
+            return BadRequest(new { message = "LinkedIn account does not have an accessible email address" });
         }
-        catch (Exception ex)
+
+        // Delegate to the existing OAuthLoginAsync which handles find-or-create user and JWT generation
+        var oauthRequest = new OAuthLoginRequest
         {
-            _logger.LogError(ex, "LinkedIn OAuth callback error");
-            return StatusCode(500, new { message = "An error occurred during LinkedIn OAuth login" });
-        }
+            Provider = "linkedin",
+            Token = tokenResponse.Access_token
+        };
+
+        var response = await _authenticationService.OAuthLoginAsync(oauthRequest);
+        _logger.LogInformation("LinkedIn OAuth login successful for {Email}", profile.Email);
+        return Ok(response);
     }
 
     // ==========================================
@@ -930,30 +798,22 @@ public class AuthController : ControllerBase
         [FromQuery] string? returnUrl = null,
         [FromQuery] string? redirectUri = null)
     {
-        try
+                var state = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        var effectiveRedirectUri = redirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/apple/callback";
+
+        var authorizationUrl = _appleOAuthProvider.GetAuthorizationUrl(state, effectiveRedirectUri);
+
+        if (!string.IsNullOrEmpty(returnUrl))
         {
-            var state = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
-            var effectiveRedirectUri = redirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/apple/callback";
-
-            var authorizationUrl = _appleOAuthProvider.GetAuthorizationUrl(state, effectiveRedirectUri);
-
-            if (!string.IsNullOrEmpty(returnUrl))
-            {
-                authorizationUrl += $"&return_url={Uri.EscapeDataString(returnUrl)}";
-            }
-
-            _logger.LogInformation("Generated Apple OAuth authorization URL");
-            return Ok(new OAuthRedirectDto
-            {
-                AuthorizationUrl = authorizationUrl,
-                State = state
-            });
+            authorizationUrl += $"&return_url={Uri.EscapeDataString(returnUrl)}";
         }
-        catch (Exception ex)
+
+        _logger.LogInformation("Generated Apple OAuth authorization URL");
+        return Ok(new OAuthRedirectDto
         {
-            _logger.LogError(ex, "Failed to generate Apple OAuth authorization URL");
-            return StatusCode(500, new { message = "Failed to initiate Apple OAuth flow" });
-        }
+            AuthorizationUrl = authorizationUrl,
+            State = state
+        });
     }
 
     /// <summary>
@@ -973,60 +833,52 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AppleCallback([FromBody] OAuthCallbackDto dto, CancellationToken ct)
     {
-        try
+                if (string.IsNullOrWhiteSpace(dto.Code))
+            return BadRequest(new { message = "Authorization code is required" });
+
+        var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/apple/callback";
+
+        // Exchange authorization code for access token (Apple uses JWT client secret)
+        var tokenResponse = await _appleOAuthProvider.ExchangeCodeForTokenAsync(dto.Code, effectiveRedirectUri, ct);
+
+        // Decode the ID token to get user info
+        AppleUserProfile? profile = null;
+        if (!string.IsNullOrEmpty(tokenResponse.Id_token))
         {
-            if (string.IsNullOrWhiteSpace(dto.Code))
-                return BadRequest(new { message = "Authorization code is required" });
-
-            var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/apple/callback";
-
-            // Exchange authorization code for access token (Apple uses JWT client secret)
-            var tokenResponse = await _appleOAuthProvider.ExchangeCodeForTokenAsync(dto.Code, effectiveRedirectUri, ct);
-
-            // Decode the ID token to get user info
-            AppleUserProfile? profile = null;
-            if (!string.IsNullOrEmpty(tokenResponse.Id_token))
-            {
-                profile = _appleOAuthProvider.DecodeIdToken(tokenResponse.Id_token);
-            }
-
-            // Apple sends user data only on first authorization — merge if present
-            if (!string.IsNullOrEmpty(dto.UserData))
-            {
-                var parsedProfile = _appleOAuthProvider.ParseUserResponse(dto.UserData, profile?.Email);
-                if (profile != null)
-                {
-                    profile.FirstName ??= parsedProfile.FirstName;
-                    profile.LastName ??= parsedProfile.LastName;
-                }
-                else
-                {
-                    profile = parsedProfile;
-                }
-            }
-
-            if (profile == null || string.IsNullOrEmpty(profile.Email))
-            {
-                _logger.LogWarning("Apple OAuth: No email could be extracted from callback");
-                return BadRequest(new { message = "Apple account did not provide an email address" });
-            }
-
-            // Delegate to the existing OAuthLoginAsync
-            var oauthRequest = new OAuthLoginRequest
-            {
-                Provider = "apple",
-                Token = tokenResponse.Id_token ?? tokenResponse.Access_token ?? string.Empty
-            };
-
-            var response = await _authenticationService.OAuthLoginAsync(oauthRequest);
-            _logger.LogInformation("Apple OAuth login successful for {Email}", profile.Email);
-            return Ok(response);
+            profile = _appleOAuthProvider.DecodeIdToken(tokenResponse.Id_token);
         }
-        catch (Exception ex)
+
+        // Apple sends user data only on first authorization — merge if present
+        if (!string.IsNullOrEmpty(dto.UserData))
         {
-            _logger.LogError(ex, "Apple OAuth callback error");
-            return StatusCode(500, new { message = "An error occurred during Apple OAuth login" });
+            var parsedProfile = _appleOAuthProvider.ParseUserResponse(dto.UserData, profile?.Email);
+            if (profile != null)
+            {
+                profile.FirstName ??= parsedProfile.FirstName;
+                profile.LastName ??= parsedProfile.LastName;
+            }
+            else
+            {
+                profile = parsedProfile;
+            }
         }
+
+        if (profile == null || string.IsNullOrEmpty(profile.Email))
+        {
+            _logger.LogWarning("Apple OAuth: No email could be extracted from callback");
+            return BadRequest(new { message = "Apple account did not provide an email address" });
+        }
+
+        // Delegate to the existing OAuthLoginAsync
+        var oauthRequest = new OAuthLoginRequest
+        {
+            Provider = "apple",
+            Token = tokenResponse.Id_token ?? tokenResponse.Access_token ?? string.Empty
+        };
+
+        var response = await _authenticationService.OAuthLoginAsync(oauthRequest);
+        _logger.LogInformation("Apple OAuth login successful for {Email}", profile.Email);
+        return Ok(response);
     }
 
     // ==========================================
@@ -1068,11 +920,6 @@ public class AuthController : ControllerBase
         {
             _logger.LogWarning("WebAuthn registration options failed: {Message}", ex.Message);
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "WebAuthn registration options error");
-            return StatusCode(500, new { message = "An error occurred generating WebAuthn registration options" });
         }
     }
 
@@ -1120,11 +967,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning("WebAuthn registration invalid: {Message}", ex.Message);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "WebAuthn registration completion error");
-            return StatusCode(500, new { message = "An error occurred completing WebAuthn registration" });
-        }
     }
 
     /// <summary>
@@ -1154,11 +996,6 @@ public class AuthController : ControllerBase
         {
             _logger.LogWarning("WebAuthn login options failed: {Message}", ex.Message);
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "WebAuthn login options error");
-            return StatusCode(500, new { message = "An error occurred generating WebAuthn login options" });
         }
     }
 
@@ -1228,11 +1065,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning("WebAuthn login unauthorized: {Message}", ex.Message);
             return Unauthorized(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "WebAuthn login completion error");
-            return StatusCode(500, new { message = "An error occurred during WebAuthn login" });
-        }
     }
 
     /// <summary>
@@ -1250,20 +1082,12 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetWebAuthnCredentials(CancellationToken ct)
     {
-        try
-        {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            var credentials = await _webAuthnService.GetCredentialsAsync(userId, ct);
-            return Ok(credentials);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving WebAuthn credentials");
-            return StatusCode(500, new { message = "An error occurred retrieving WebAuthn credentials" });
-        }
+        var credentials = await _webAuthnService.GetCredentialsAsync(userId, ct);
+        return Ok(credentials);
     }
 
     /// <summary>
@@ -1284,24 +1108,16 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveWebAuthnCredential(string credentialId, CancellationToken ct)
     {
-        try
-        {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            var success = await _webAuthnService.RemoveCredentialAsync(userId, credentialId, ct);
-            if (!success)
-                return NotFound(new { message = "Credential not found" });
+        var success = await _webAuthnService.RemoveCredentialAsync(userId, credentialId, ct);
+        if (!success)
+            return NotFound(new { message = "Credential not found" });
 
-            _logger.LogInformation("WebAuthn credential {CredentialId} removed for user {UserId}", credentialId, userId);
-            return Ok(new { message = "WebAuthn credential removed successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing WebAuthn credential");
-            return StatusCode(500, new { message = "An error occurred removing WebAuthn credential" });
-        }
+        _logger.LogInformation("WebAuthn credential {CredentialId} removed for user {UserId}", credentialId, userId);
+        return Ok(new { message = "WebAuthn credential removed successfully" });
     }
 
     // ==========================================
@@ -1322,16 +1138,8 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GenerateOAuthState([FromQuery] string? returnUrl = null)
     {
-        try
-        {
-            var state = _oauthStateService.GenerateState(returnUrl);
-            return Ok(new { state });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating OAuth state token");
-            return StatusCode(500, new { message = "An error occurred generating OAuth state" });
-        }
+                var state = _oauthStateService.GenerateState(returnUrl);
+        return Ok(new { state });
     }
 
     /// <summary>
@@ -1350,22 +1158,14 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult ValidateOAuthState([FromBody] OAuthStateValidateRequest request)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(request.State))
-                return BadRequest(new { message = "State parameter is required" });
+                if (string.IsNullOrWhiteSpace(request.State))
+            return BadRequest(new { message = "State parameter is required" });
 
-            var isValid = _oauthStateService.ValidateState(request.State, out var returnUrl);
-            if (!isValid)
-                return BadRequest(new { message = "Invalid, expired, or already consumed state token" });
+        var isValid = _oauthStateService.ValidateState(request.State, out var returnUrl);
+        if (!isValid)
+            return BadRequest(new { message = "Invalid, expired, or already consumed state token" });
 
-            return Ok(new { isValid = true, returnUrl });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error validating OAuth state token");
-            return StatusCode(500, new { message = "An error occurred validating OAuth state" });
-        }
+        return Ok(new { isValid = true, returnUrl });
     }
 
     // ==========================================
@@ -1438,11 +1238,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning(ex, "OAuth token refresh failed for provider {Provider}", dto.Provider);
             return BadRequest(new { message = $"Failed to refresh token with provider: {ex.Message}" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "OAuth token refresh error for provider {Provider}", dto.Provider);
-            return StatusCode(500, new { message = "An error occurred during OAuth token refresh" });
-        }
     }
 
     // ==========================================
@@ -1467,16 +1262,8 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Get2FAPolicies(CancellationToken ct)
     {
-        try
-        {
-            var policies = await _twoFactorPolicyService.GetAllPoliciesAsync(ct);
-            return Ok(policies);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving 2FA policies");
-            return StatusCode(500, new { message = "An error occurred retrieving 2FA policies" });
-        }
+                var policies = await _twoFactorPolicyService.GetAllPoliciesAsync(ct);
+        return Ok(policies);
     }
 
     /// <summary>
@@ -1501,21 +1288,13 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Set2FAPolicy(int groupId, [FromBody] TwoFactorPolicyDto policy, CancellationToken ct)
     {
-        try
-        {
-            if (groupId <= 0)
-                return BadRequest(new { message = "Invalid group ID" });
+                if (groupId <= 0)
+            return BadRequest(new { message = "Invalid group ID" });
 
-            await _twoFactorPolicyService.SetPolicyForGroupAsync(groupId, policy, ct);
+        await _twoFactorPolicyService.SetPolicyForGroupAsync(groupId, policy, ct);
 
-            var updated = await _twoFactorPolicyService.GetPolicyForGroupAsync(groupId, ct);
-            return Ok(updated);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting 2FA policy for group {GroupId}", groupId);
-            return StatusCode(500, new { message = "An error occurred setting 2FA policy" });
-        }
+        var updated = await _twoFactorPolicyService.GetPolicyForGroupAsync(groupId, ct);
+        return Ok(updated);
     }
 
     /// <summary>
@@ -1533,20 +1312,12 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Check2FARequired(CancellationToken ct)
     {
-        try
-        {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            var isRequired = await _twoFactorPolicyService.Is2FARequiredForUserAsync(userId, ct);
-            return Ok(new { required = isRequired });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking 2FA requirement");
-            return StatusCode(500, new { message = "An error occurred checking 2FA requirement" });
-        }
+        var isRequired = await _twoFactorPolicyService.Is2FARequiredForUserAsync(userId, ct);
+        return Ok(new { required = isRequired });
     }
 
     // ==========================================
@@ -1570,22 +1341,14 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RegenerateBackupCodes(CancellationToken ct)
     {
-        try
-        {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            var result = await _totpService.RegenerateBackupCodesAsync(userId);
+        var result = await _totpService.RegenerateBackupCodesAsync(userId);
 
-            _logger.LogInformation("Backup codes regenerated for user {UserId}, {Count} codes issued", userId, result.TotalCodes);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error regenerating backup codes");
-            return StatusCode(500, new { message = "An error occurred regenerating backup codes" });
-        }
+        _logger.LogInformation("Backup codes regenerated for user {UserId}, {Count} codes issued", userId, result.TotalCodes);
+        return Ok(result);
     }
 
     // ==========================================
@@ -1612,27 +1375,19 @@ public class AuthController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        try
-        {
-            pageSize = Math.Min(pageSize, 100);
-            page = Math.Max(page, 1);
+                pageSize = Math.Min(pageSize, 100);
+        page = Math.Max(page, 1);
 
-            var (items, total) = await _authAuditService.GetUserAuditLogsAsync(userId, page, pageSize, ct);
+        var (items, total) = await _authAuditService.GetUserAuditLogsAsync(userId, page, pageSize, ct);
 
-            return Ok(new
-            {
-                items,
-                totalCount = total,
-                page,
-                pageSize,
-                totalPages = (int)Math.Ceiling((double)total / pageSize)
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving auth audit logs");
-            return StatusCode(500, new { message = "An error occurred retrieving audit logs" });
-        }
+            items,
+            totalCount = total,
+            page,
+            pageSize,
+            totalPages = (int)Math.Ceiling((double)total / pageSize)
+        });
     }
 
     // ==========================================
@@ -1652,36 +1407,28 @@ public class AuthController : ControllerBase
         [FromBody] MagicLinkRequestDto request,
         CancellationToken ct = default)
     {
+                if (string.IsNullOrWhiteSpace(request?.Email))
+            return BadRequest(new { message = "Email is required." });
+
+        MagicLinkToken? magic = null;
         try
         {
-            if (string.IsNullOrWhiteSpace(request?.Email))
-                return BadRequest(new { message = "Email is required." });
-
-            MagicLinkToken? magic = null;
-            try
-            {
-                magic = await _magicLinkService.GenerateMagicLinkAsync(request.Email, ct);
-            }
-            catch (KeyNotFoundException)
-            {
-                // Do not reveal whether the email exists
-                return Ok(new { message = "If that email is registered, a magic link has been sent." });
-            }
-
-            // Build the link — front-end route handles the verification page
-            var baseUrl = $"{Request.Scheme}://{Request.Host}";
-            var magicLink = $"{baseUrl}/auth/magic-link?token={Uri.EscapeDataString(magic.Token)}";
-
-            await _magicLinkService.SendMagicLinkEmailAsync(request.Email, magicLink, ct);
-
-            _logger.LogInformation("Magic link sent to {Email}", request.Email);
+            magic = await _magicLinkService.GenerateMagicLinkAsync(request.Email, ct);
+        }
+        catch (KeyNotFoundException)
+        {
+            // Do not reveal whether the email exists
             return Ok(new { message = "If that email is registered, a magic link has been sent." });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating magic link for {Email}", request?.Email);
-            return StatusCode(500, new { message = "An error occurred processing the request." });
-        }
+
+        // Build the link — front-end route handles the verification page
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        var magicLink = $"{baseUrl}/auth/magic-link?token={Uri.EscapeDataString(magic.Token)}";
+
+        await _magicLinkService.SendMagicLinkEmailAsync(request.Email, magicLink, ct);
+
+        _logger.LogInformation("Magic link sent to {Email}", request.Email);
+        return Ok(new { message = "If that email is registered, a magic link has been sent." });
     }
 
     /// <summary>
@@ -1711,11 +1458,6 @@ public class AuthController : ControllerBase
             _logger.LogWarning("Magic link verification failed: {Message}", ex.Message);
             return Unauthorized(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error verifying magic link");
-            return StatusCode(500, new { message = "An error occurred verifying the magic link." });
-        }
     }
 
     // ==========================================
@@ -1732,27 +1474,19 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetOAuthLinks(CancellationToken ct = default)
     {
-        try
-        {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
-            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
-                return Unauthorized();
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
 
-            var links = await _userOAuthLinkService.GetLinksAsync(userId, ct);
+        var links = await _userOAuthLinkService.GetLinksAsync(userId, ct);
 
-            return Ok(links.Select(l => new
-            {
-                l.Id,
-                l.Provider,
-                l.ProviderEmail,
-                l.CreatedAt
-            }));
-        }
-        catch (Exception ex)
+        return Ok(links.Select(l => new
         {
-            _logger.LogError(ex, "Error retrieving OAuth links");
-            return StatusCode(500, new { message = "An error occurred retrieving OAuth links." });
-        }
+            l.Id,
+            l.Provider,
+            l.ProviderEmail,
+            l.CreatedAt
+        }));
     }
 
     /// <summary>
@@ -1788,11 +1522,6 @@ public class AuthController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return Conflict(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking OAuth provider");
-            return StatusCode(500, new { message = "An error occurred linking the OAuth provider." });
         }
     }
 
@@ -1830,11 +1559,6 @@ public class AuthController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking OAuth provider");
-            return StatusCode(500, new { message = "An error occurred unlinking the OAuth provider." });
-        }
     }
 
     // =========================================================================
@@ -1853,32 +1577,24 @@ public class AuthController : ControllerBase
         [FromQuery] string? redirectUri = null,
         CancellationToken ct = default)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(provider))
-                return BadRequest(new { message = "Provider name is required." });
+                if (string.IsNullOrWhiteSpace(provider))
+            return BadRequest(new { message = "Provider name is required." });
 
-            if (!_openIdConnectService.IsProviderConfigured(provider))
-                return BadRequest(new { message = $"OIDC provider '{provider}' is not configured." });
+        if (!_openIdConnectService.IsProviderConfigured(provider))
+            return BadRequest(new { message = $"OIDC provider '{provider}' is not configured." });
 
-            var state = Guid.NewGuid().ToString("N");
-            var nonce = Guid.NewGuid().ToString("N");
-            var codeVerifier = _openIdConnectService.GenerateCodeVerifier();
+        var state = Guid.NewGuid().ToString("N");
+        var nonce = Guid.NewGuid().ToString("N");
+        var codeVerifier = _openIdConnectService.GenerateCodeVerifier();
 
-            // Store state/nonce/verifier in session or cache for callback validation
-            HttpContext.Session.SetString($"oidc_{state}_nonce", nonce);
-            HttpContext.Session.SetString($"oidc_{state}_verifier", codeVerifier);
-            HttpContext.Session.SetString($"oidc_{state}_provider", provider);
+        // Store state/nonce/verifier in session or cache for callback validation
+        HttpContext.Session.SetString($"oidc_{state}_nonce", nonce);
+        HttpContext.Session.SetString($"oidc_{state}_verifier", codeVerifier);
+        HttpContext.Session.SetString($"oidc_{state}_provider", provider);
 
-            var authUrl = await _openIdConnectService.GetAuthorizationUrlAsync(provider, state, nonce, codeVerifier);
+        var authUrl = await _openIdConnectService.GetAuthorizationUrlAsync(provider, state, nonce, codeVerifier);
 
-            return Ok(new { authorizationUrl = authUrl, state });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error initiating OIDC authorization for {Provider}", provider);
-            return StatusCode(500, new { message = "An error occurred initiating OIDC authorization." });
-        }
+        return Ok(new { authorizationUrl = authUrl, state });
     }
 
     /// <summary>
@@ -1892,60 +1608,52 @@ public class AuthController : ControllerBase
         [FromBody] OidcCallbackDto dto,
         CancellationToken ct = default)
     {
-        try
+                if (string.IsNullOrWhiteSpace(dto.Code))
+            return BadRequest(new { message = "Authorization code is required." });
+
+        // Retrieve stored state data
+        var provider = dto.Provider;
+        string? codeVerifier = null;
+        string? nonce = null;
+
+        if (!string.IsNullOrEmpty(dto.State))
         {
-            if (string.IsNullOrWhiteSpace(dto.Code))
-                return BadRequest(new { message = "Authorization code is required." });
+            nonce = HttpContext.Session.GetString($"oidc_{dto.State}_nonce");
+            codeVerifier = HttpContext.Session.GetString($"oidc_{dto.State}_verifier");
+            var storedProvider = HttpContext.Session.GetString($"oidc_{dto.State}_provider");
 
-            // Retrieve stored state data
-            var provider = dto.Provider;
-            string? codeVerifier = null;
-            string? nonce = null;
+            if (!string.IsNullOrEmpty(storedProvider))
+                provider = storedProvider;
 
-            if (!string.IsNullOrEmpty(dto.State))
-            {
-                nonce = HttpContext.Session.GetString($"oidc_{dto.State}_nonce");
-                codeVerifier = HttpContext.Session.GetString($"oidc_{dto.State}_verifier");
-                var storedProvider = HttpContext.Session.GetString($"oidc_{dto.State}_provider");
-
-                if (!string.IsNullOrEmpty(storedProvider))
-                    provider = storedProvider;
-
-                // Clean up session
-                HttpContext.Session.Remove($"oidc_{dto.State}_nonce");
-                HttpContext.Session.Remove($"oidc_{dto.State}_verifier");
-                HttpContext.Session.Remove($"oidc_{dto.State}_provider");
-            }
-
-            if (string.IsNullOrWhiteSpace(provider))
-                return BadRequest(new { message = "Provider name is required." });
-
-            var result = await _openIdConnectService.ExchangeCodeAsync(
-                provider, dto.Code, codeVerifier, nonce, ct);
-
-            if (!result.Success)
-                return BadRequest(new { message = result.ErrorDescription ?? result.Error ?? "OIDC authentication failed." });
-
-            if (result.UserProfile == null || string.IsNullOrEmpty(result.UserProfile.Email))
-                return BadRequest(new { message = "Email not returned from OIDC provider." });
-
-            // Auto-provision or login existing user
-            var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
-            {
-                Provider = provider,
-                ProviderUserId = result.UserProfile.Sub,
-                Email = result.UserProfile.Email,
-                FirstName = result.UserProfile.GivenName,
-                LastName = result.UserProfile.FamilyName
-            });
-
-            return Ok(response);
+            // Clean up session
+            HttpContext.Session.Remove($"oidc_{dto.State}_nonce");
+            HttpContext.Session.Remove($"oidc_{dto.State}_verifier");
+            HttpContext.Session.Remove($"oidc_{dto.State}_provider");
         }
-        catch (Exception ex)
+
+        if (string.IsNullOrWhiteSpace(provider))
+            return BadRequest(new { message = "Provider name is required." });
+
+        var result = await _openIdConnectService.ExchangeCodeAsync(
+            provider, dto.Code, codeVerifier, nonce, ct);
+
+        if (!result.Success)
+            return BadRequest(new { message = result.ErrorDescription ?? result.Error ?? "OIDC authentication failed." });
+
+        if (result.UserProfile == null || string.IsNullOrEmpty(result.UserProfile.Email))
+            return BadRequest(new { message = "Email not returned from OIDC provider." });
+
+        // Auto-provision or login existing user
+        var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
         {
-            _logger.LogError(ex, "Error handling OIDC callback");
-            return StatusCode(500, new { message = "An error occurred during OIDC authentication." });
-        }
+            Provider = provider,
+            ProviderUserId = result.UserProfile.Sub,
+            Email = result.UserProfile.Email,
+            FirstName = result.UserProfile.GivenName,
+            LastName = result.UserProfile.FamilyName
+        });
+
+        return Ok(response);
     }
 
     /// <summary>
@@ -1974,16 +1682,8 @@ public class AuthController : ControllerBase
         [FromBody] BiometricAuthOptionsRequestDto? request = null,
         CancellationToken ct = default)
     {
-        try
-        {
-            var options = await _biometricAuthService.GetAuthenticationOptionsAsync(request?.UserId, ct);
-            return Ok(options);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting biometric authentication options");
-            return StatusCode(500, new { message = "An error occurred generating biometric options." });
-        }
+                var options = await _biometricAuthService.GetAuthenticationOptionsAsync(request?.UserId, ct);
+        return Ok(options);
     }
 
     /// <summary>
@@ -1999,44 +1699,36 @@ public class AuthController : ControllerBase
         [FromBody] BiometricAuthenticationResponse request,
         CancellationToken ct = default)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.CredentialId))
+            return BadRequest(new { message = "Credential ID is required." });
+
+        var result = await _biometricAuthService.ValidateAuthenticationAsync(request, ct);
+
+        if (!result.Success || !result.UserId.HasValue)
         {
-            if (string.IsNullOrWhiteSpace(request.CredentialId))
-                return BadRequest(new { message = "Credential ID is required." });
-
-            var result = await _biometricAuthService.ValidateAuthenticationAsync(request, ct);
-
-            if (!result.Success || !result.UserId.HasValue)
-            {
-                _logger.LogWarning("Biometric verification failed: {Error} ({Code})", result.Error, result.ErrorCode);
-                return Unauthorized(new { message = result.Error ?? "Biometric verification failed.", errorCode = result.ErrorCode });
-            }
-
-            // Generate auth tokens for the authenticated user
-            var response = await _authenticationService.GenerateTokensForUserAsync(result.UserId.Value);
-            if (response == null)
-                return Unauthorized(new { message = "User not found or inactive." });
-
-            // Record login analytics
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-            var userAgent = Request.Headers.UserAgent.ToString();
-            await _loginAnalyticsService.RecordLoginAttemptAsync(new LoginAttemptRecord
-            {
-                UserId = result.UserId,
-                Email = response.Email ?? "",
-                IpAddress = ipAddress,
-                UserAgent = userAgent,
-                Success = true,
-                DeviceFingerprint = request.CredentialId
-            }, ct);
-
-            return Ok(response);
+            _logger.LogWarning("Biometric verification failed: {Error} ({Code})", result.Error, result.ErrorCode);
+            return Unauthorized(new { message = result.Error ?? "Biometric verification failed.", errorCode = result.ErrorCode });
         }
-        catch (Exception ex)
+
+        // Generate auth tokens for the authenticated user
+        var response = await _authenticationService.GenerateTokensForUserAsync(result.UserId.Value);
+        if (response == null)
+            return Unauthorized(new { message = "User not found or inactive." });
+
+        // Record login analytics
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var userAgent = Request.Headers.UserAgent.ToString();
+        await _loginAnalyticsService.RecordLoginAttemptAsync(new LoginAttemptRecord
         {
-            _logger.LogError(ex, "Error verifying biometric authentication");
-            return StatusCode(500, new { message = "An error occurred verifying biometric credentials." });
-        }
+            UserId = result.UserId,
+            Email = response.Email ?? "",
+            IpAddress = ipAddress,
+            UserAgent = userAgent,
+            Success = true,
+            DeviceFingerprint = request.CredentialId
+        }, ct);
+
+        return Ok(response);
     }
 
     /// <summary>
@@ -2104,35 +1796,27 @@ public class AuthController : ControllerBase
         [FromBody] OktaSsoCallbackDto dto,
         CancellationToken ct = default)
     {
-        try
+                if (string.IsNullOrWhiteSpace(dto.Code))
+            return BadRequest(new { message = "Authorization code is required." });
+
+        var redirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/sso/okta/callback";
+        var tokens = await _oktaSsoService.ExchangeCodeForTokenAsync(dto.Code, redirectUri, ct);
+        var userInfo = await _oktaSsoService.GetUserInfoAsync(tokens.AccessToken!, ct);
+
+        if (string.IsNullOrWhiteSpace(userInfo.Email))
+            return BadRequest(new { message = "Email not returned from Okta." });
+
+        // Auto-provision or login existing user
+        var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
         {
-            if (string.IsNullOrWhiteSpace(dto.Code))
-                return BadRequest(new { message = "Authorization code is required." });
+            Provider = "okta",
+            ProviderUserId = userInfo.ProviderId,
+            Email = userInfo.Email,
+            FirstName = userInfo.GivenName,
+            LastName = userInfo.FamilyName
+        });
 
-            var redirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/sso/okta/callback";
-            var tokens = await _oktaSsoService.ExchangeCodeForTokenAsync(dto.Code, redirectUri, ct);
-            var userInfo = await _oktaSsoService.GetUserInfoAsync(tokens.AccessToken!, ct);
-
-            if (string.IsNullOrWhiteSpace(userInfo.Email))
-                return BadRequest(new { message = "Email not returned from Okta." });
-
-            // Auto-provision or login existing user
-            var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
-            {
-                Provider = "okta",
-                ProviderUserId = userInfo.ProviderId,
-                Email = userInfo.Email,
-                FirstName = userInfo.GivenName,
-                LastName = userInfo.FamilyName
-            });
-
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Okta SSO callback error");
-            return StatusCode(500, new { message = "An error occurred during Okta SSO." });
-        }
+        return Ok(response);
     }
 
     // =========================================================================

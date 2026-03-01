@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/event-attendees")]
 [Authorize]
 [Produces("application/json")]
-public class EventAttendeesController : ControllerBase
+public class EventAttendeesController : CrmControllerBase
 {
     private const string AttendeeNotFoundMessage = "Event attendee {0} not found";
     private readonly IEventAttendeeService _service;

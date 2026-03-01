@@ -223,7 +223,6 @@ public class EscalationRuleService : IEscalationRulePolicyService
                 rule.Conditions = SerializeActionConfig(dto.ActionConfig);
             }
 
-            rule.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -252,7 +251,6 @@ public class EscalationRuleService : IEscalationRulePolicyService
             }
 
             rule.IsDeleted = true;
-            rule.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -281,7 +279,6 @@ public class EscalationRuleService : IEscalationRulePolicyService
             }
 
             rule.IsActive = true;
-            rule.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -310,7 +307,6 @@ public class EscalationRuleService : IEscalationRulePolicyService
             }
 
             rule.IsActive = false;
-            rule.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -433,7 +429,6 @@ public class EscalationRuleService : IEscalationRulePolicyService
                 {
                     // Use AgeInMinutes to represent order (multiply by execution order factor)
                     rule.AgeInMinutes = (i + 1) * 10; // 10, 20, 30, ...
-                    rule.UpdatedAt = DateTime.UtcNow;
                 }
             }
 
@@ -588,7 +583,6 @@ public class EscalationRuleService : IEscalationRulePolicyService
                 if (rule.ReassignToUserId.HasValue)
                 {
                     serviceRequest.AssignedToUserId = rule.ReassignToUserId.Value;
-                    serviceRequest.UpdatedAt = DateTime.UtcNow;
                 }
                 break;
 
@@ -596,7 +590,6 @@ public class EscalationRuleService : IEscalationRulePolicyService
                 if (rule.ReassignToTeamId.HasValue)
                 {
                     serviceRequest.AssignedToGroupId = rule.ReassignToTeamId.Value;
-                    serviceRequest.UpdatedAt = DateTime.UtcNow;
                 }
                 break;
 
@@ -606,7 +599,6 @@ public class EscalationRuleService : IEscalationRulePolicyService
                 if (currentPriority > 0)
                 {
                     serviceRequest.Priority = (ServiceRequestPriority)(currentPriority - 1);
-                    serviceRequest.UpdatedAt = DateTime.UtcNow;
                 }
                 break;
 

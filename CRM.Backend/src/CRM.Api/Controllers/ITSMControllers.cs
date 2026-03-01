@@ -10,6 +10,7 @@ using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -26,7 +27,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - Problem Management")]
-public class ProblemsController : ControllerBase
+public class ProblemsController : CrmControllerBase
 {
     private readonly IProblemService _problemService;
     private readonly ILogger<ProblemsController> _logger;
@@ -60,11 +61,6 @@ public class ProblemsController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error creating problem");
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating problem");
-            return StatusCode(500, new { message = "An error occurred while creating the problem" });
         }
     }
 
@@ -209,7 +205,7 @@ public class UpdateRCADto
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - CMDB")]
-public class CMDBController : ControllerBase
+public class CMDBController : CrmControllerBase
 {
     private readonly ICMDBService _cmdbService;
 

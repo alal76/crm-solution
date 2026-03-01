@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/forum")]
 [Authorize]
-public class ForumPostsController : ControllerBase
+public class ForumPostsController : CrmControllerBase
 {
     private const string PostNotFoundMessage = "Post not found.";
 

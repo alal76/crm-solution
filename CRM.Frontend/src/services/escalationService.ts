@@ -1,4 +1,15 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// Escalation Rule Service — CRUD base generated via createCrudService factory.
+// Domain-specific methods (testRule, getApplicable) are appended via
+// object spread and preserved unchanged.
+//
+// MIGRATION NOTE: getAll now returns PaginatedResponse<EscalationRuleDto>
+// (paginated) instead of the previous flat EscalationRuleDto[].
+
 import apiClient from './apiClient';
+import { createCrudService } from './crudServiceFactory';
 
 export interface EscalationRuleDto {
   id: number;
@@ -39,30 +50,10 @@ export interface EscalationRuleTestResultDto {
   matchedConditions: string[];
 }
 
+// The five standard CRUD methods come from the factory.
+// Domain-specific methods are appended via object spread.
 const escalationService = {
-  getAll: async (): Promise<EscalationRuleDto[]> => {
-    const response = await apiClient.get<EscalationRuleDto[]>('/escalationrules');
-    return response.data;
-  },
-
-  getById: async (id: number): Promise<EscalationRuleDto> => {
-    const response = await apiClient.get<EscalationRuleDto>(`/escalationrules/${id}`);
-    return response.data;
-  },
-
-  create: async (dto: CreateEscalationRuleDto): Promise<EscalationRuleDto> => {
-    const response = await apiClient.post<EscalationRuleDto>('/escalationrules', dto);
-    return response.data;
-  },
-
-  update: async (id: number, dto: UpdateEscalationRuleDto): Promise<EscalationRuleDto> => {
-    const response = await apiClient.put<EscalationRuleDto>(`/escalationrules/${id}`, dto);
-    return response.data;
-  },
-
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`/escalationrules/${id}`);
-  },
+  ...createCrudService<EscalationRuleDto, CreateEscalationRuleDto, UpdateEscalationRuleDto>('/escalationrules'),
 
   testRule: async (ruleId: number, serviceRequestId: number): Promise<EscalationRuleTestResultDto> => {
     const response = await apiClient.post<EscalationRuleTestResultDto>(`/escalationrules/${ruleId}/test/${serviceRequestId}`);

@@ -182,7 +182,6 @@ public class CustomFieldValidationService : ICustomFieldValidationService
         if (existing != null)
         {
             existing.Value = serialized;
-            existing.UpdatedAt = DateTime.UtcNow;
         }
         else
         {

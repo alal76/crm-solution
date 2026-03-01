@@ -219,7 +219,6 @@ public class ReportService : IReportService
         entity.Category = dto.Category;
         entity.FolderId = dto.FolderId;
         entity.CustomQuery = dto.Query;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -250,7 +249,6 @@ public class ReportService : IReportService
 
         // Soft delete
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -430,7 +428,6 @@ public class ReportService : IReportService
         entity.EmailRecipientsJson = JsonSerializer.Serialize(dto.Recipients);
         entity.OutputFormat = ParseOutputFormat(dto.ExportFormat);
         entity.NextRunAt = CalculateNextRunTime(entity.Frequency, dto.Time);
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -454,7 +451,6 @@ public class ReportService : IReportService
         }
 
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -477,7 +473,6 @@ public class ReportService : IReportService
         }
 
         entity.Status = enabled ? ScheduleStatus.Active : ScheduleStatus.Paused;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -543,7 +538,6 @@ public class ReportService : IReportService
         entity.Name = dto.Name;
         entity.Description = dto.Description;
         entity.ParentFolderId = dto.ParentId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -574,7 +568,6 @@ public class ReportService : IReportService
         }
 
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -608,7 +601,6 @@ public class ReportService : IReportService
         }
 
         report.FolderId = folderId;
-        report.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -25,7 +26,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/portal/crm")]
 [Authorize]
-public class CustomerPortalController : ControllerBase
+public class CustomerPortalController : CrmControllerBase
 {
     private readonly ICrmDbContext _db;
     private readonly ILogger<CustomerPortalController> _logger;

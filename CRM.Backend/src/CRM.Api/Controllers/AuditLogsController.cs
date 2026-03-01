@@ -10,6 +10,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -42,7 +43,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/audit-logs")]
 [Authorize]
-public class AuditLogsController : ControllerBase
+public class AuditLogsController : CrmControllerBase
 {
     private readonly IAuditLogService _auditLogService;
     private readonly IAuditLogExportService? _exportService;
@@ -92,19 +93,11 @@ public class AuditLogsController : ControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await _auditLogService.GetAuditLogsAsync(
-                entityType, entityId, userId, action,
-                fromDate, toDate, pageNumber, pageSize, cancellationToken);
+                var result = await _auditLogService.GetAuditLogsAsync(
+            entityType, entityId, userId, action,
+            fromDate, toDate, pageNumber, pageSize, cancellationToken);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving audit logs");
-            return StatusCode(500, new { error = "Failed to retrieve audit logs" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -122,38 +115,30 @@ public class AuditLogsController : ControllerBase
         [FromBody] CreateAuditLogDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
+                if (dto == null)
         {
-            if (dto == null)
-            {
-                return BadRequest(new { error = "Request body is required" });
-            }
-
-            if (string.IsNullOrWhiteSpace(dto.Action))
-            {
-                return BadRequest(new { error = "Action is required" });
-            }
-
-            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            var userAgent = Request.Headers.UserAgent.ToString();
-
-            var id = await _auditLogService.LogActionAsync(
-                dto.Action,
-                dto.EntityType,
-                dto.EntityId,
-                dto.UserId,
-                dto.Details,
-                ipAddress,
-                userAgent,
-                cancellationToken);
-
-            return CreatedAtAction(nameof(GetAll), new { id }, new { id });
+            return BadRequest(new { error = "Request body is required" });
         }
-        catch (Exception ex)
+
+        if (string.IsNullOrWhiteSpace(dto.Action))
         {
-            _logger.LogError(ex, "Error creating audit log entry");
-            return StatusCode(500, new { error = "Failed to create audit log entry" });
+            return BadRequest(new { error = "Action is required" });
         }
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var userAgent = Request.Headers.UserAgent.ToString();
+
+        var id = await _auditLogService.LogActionAsync(
+            dto.Action,
+            dto.EntityType,
+            dto.EntityId,
+            dto.UserId,
+            dto.Details,
+            ipAddress,
+            userAgent,
+            cancellationToken);
+
+        return CreatedAtAction(nameof(GetAll), new { id }, new { id });
     }
 
     /// <summary>
@@ -172,16 +157,8 @@ public class AuditLogsController : ControllerBase
         int entityId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await _auditLogService.GetEntityHistoryAsync(entityType, entityId, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving entity history for {EntityType} #{EntityId}", entityType, entityId);
-            return StatusCode(500, new { error = "Failed to retrieve entity history" });
-        }
+                var result = await _auditLogService.GetEntityHistoryAsync(entityType, entityId, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -206,18 +183,10 @@ public class AuditLogsController : ControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await _auditLogService.GetUserActivityAsync(
-                userId, fromDate, toDate, pageNumber, pageSize, cancellationToken);
+                var result = await _auditLogService.GetUserActivityAsync(
+            userId, fromDate, toDate, pageNumber, pageSize, cancellationToken);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving user activity for User #{UserId}", userId);
-            return StatusCode(500, new { error = "Failed to retrieve user activity" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -239,21 +208,13 @@ public class AuditLogsController : ControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken cancellationToken = default)
     {
-        try
+                if (string.IsNullOrWhiteSpace(query))
         {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                return BadRequest(new { error = "Query parameter is required" });
-            }
+            return BadRequest(new { error = "Query parameter is required" });
+        }
 
-            var result = await _auditLogService.SearchAsync(query, pageNumber, pageSize, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching audit logs with query: {Query}", query);
-            return StatusCode(500, new { error = "Failed to search audit logs" });
-        }
+        var result = await _auditLogService.SearchAsync(query, pageNumber, pageSize, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -273,21 +234,13 @@ public class AuditLogsController : ControllerBase
         [FromQuery] DateTime toDate,
         CancellationToken cancellationToken = default)
     {
-        try
+                if (fromDate > toDate)
         {
-            if (fromDate > toDate)
-            {
-                return BadRequest(new { error = "fromDate must be before toDate" });
-            }
+            return BadRequest(new { error = "fromDate must be before toDate" });
+        }
 
-            var result = await _auditLogService.GetStatisticsAsync(fromDate, toDate, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving audit statistics from {FromDate} to {ToDate}", fromDate, toDate);
-            return StatusCode(500, new { error = "Failed to retrieve audit statistics" });
-        }
+        var result = await _auditLogService.GetStatisticsAsync(fromDate, toDate, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -310,18 +263,10 @@ public class AuditLogsController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await _auditLogService.GetEntityChangeHistoryAsync(
-                entityType, entityId, fromDate, toDate, cancellationToken);
+                var result = await _auditLogService.GetEntityChangeHistoryAsync(
+            entityType, entityId, fromDate, toDate, cancellationToken);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving change history for {EntityType} #{EntityId}", entityType, entityId);
-            return StatusCode(500, new { error = "Failed to retrieve change history" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -344,18 +289,10 @@ public class AuditLogsController : ControllerBase
         [FromQuery] string format = "csv",
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var (data, contentType, fileName) = await _auditLogService.ExportAuditLogsAsync(
-                format, entityType, fromDate, toDate, cancellationToken);
+                var (data, contentType, fileName) = await _auditLogService.ExportAuditLogsAsync(
+            format, entityType, fromDate, toDate, cancellationToken);
 
-            return File(data, contentType, fileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting audit logs in {Format} format", format);
-            return StatusCode(500, new { error = "Failed to export audit logs" });
-        }
+        return File(data, contentType, fileName);
     }
 
     /// <summary>
@@ -383,33 +320,25 @@ public class AuditLogsController : ControllerBase
         if (_exportService == null)
             return StatusCode(501, new { error = "Export service is not configured" });
 
-        try
+                var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
+
+        byte[] data;
+        string contentType;
+        string fileName;
+
+        if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
         {
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
-
-            byte[] data;
-            string contentType;
-            string fileName;
-
-            if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
-            {
-                data = await _exportService.ExportToJsonAsync(request, cancellationToken);
-                contentType = "application/json";
-                fileName = $"audit-logs-{timestamp}.json";
-            }
-            else
-            {
-                data = await _exportService.ExportToCsvAsync(request, cancellationToken);
-                contentType = "text/csv";
-                fileName = $"audit-logs-{timestamp}.csv";
-            }
-
-            return File(data, contentType, fileName);
+            data = await _exportService.ExportToJsonAsync(request, cancellationToken);
+            contentType = "application/json";
+            fileName = $"audit-logs-{timestamp}.json";
         }
-        catch (Exception ex)
+        else
         {
-            _logger.LogError(ex, "Error exporting audit logs (POST) in {Format} format", format);
-            return StatusCode(500, new { error = "Failed to export audit logs" });
+            data = await _exportService.ExportToCsvAsync(request, cancellationToken);
+            contentType = "text/csv";
+            fileName = $"audit-logs-{timestamp}.csv";
         }
+
+        return File(data, contentType, fileName);
     }
 }

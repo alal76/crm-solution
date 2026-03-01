@@ -10,6 +10,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class OrderReturnsController : ControllerBase
+public class OrderReturnsController : CrmControllerBase
 {
     private const string OrderReturnNotFoundMessage = "Order return {0} not found";
 
@@ -52,17 +53,9 @@ public class OrderReturnsController : ControllerBase
         [FromQuery] OrderReturnStatus? status = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var returns = await _returnService.GetAllAsync(orderId, accountId, status, cancellationToken);
-            var dtos = returns.Select(MapToDto);
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting order returns");
-            return StatusCode(500, new { error = "An error occurred while retrieving order returns" });
-        }
+                var returns = await _returnService.GetAllAsync(orderId, accountId, status, cancellationToken);
+        var dtos = returns.Select(MapToDto);
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -76,20 +69,12 @@ public class OrderReturnsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
-        try
+                var orderReturn = await _returnService.GetByIdAsync(id, cancellationToken);
+        if (orderReturn == null)
         {
-            var orderReturn = await _returnService.GetByIdAsync(id, cancellationToken);
-            if (orderReturn == null)
-            {
-                return NotFound(new { error = string.Format(OrderReturnNotFoundMessage, id) });
-            }
-            return Ok(MapToDto(orderReturn));
+            return NotFound(new { error = string.Format(OrderReturnNotFoundMessage, id) });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting order return {Id}", id);
-            return StatusCode(500, new { error = "An error occurred while retrieving the order return" });
-        }
+        return Ok(MapToDto(orderReturn));
     }
 
     /// <summary>
@@ -115,11 +100,6 @@ public class OrderReturnsController : ControllerBase
         {
             _logger.LogWarning(ex, "Invalid order return request");
             return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating order return");
-            return StatusCode(500, new { error = "An error occurred while creating the order return" });
         }
     }
 
@@ -147,11 +127,6 @@ public class OrderReturnsController : ControllerBase
         {
             return NotFound(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating order return {Id}", id);
-            return StatusCode(500, new { error = "An error occurred while updating the order return" });
-        }
     }
 
     /// <summary>
@@ -165,20 +140,12 @@ public class OrderReturnsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
     {
-        try
+                var deleted = await _returnService.DeleteAsync(id, cancellationToken);
+        if (!deleted)
         {
-            var deleted = await _returnService.DeleteAsync(id, cancellationToken);
-            if (!deleted)
-            {
-                return NotFound(new { error = string.Format(OrderReturnNotFoundMessage, id) });
-            }
-            return NoContent();
+            return NotFound(new { error = string.Format(OrderReturnNotFoundMessage, id) });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting order return {Id}", id);
-            return StatusCode(500, new { error = "An error occurred while deleting the order return" });
-        }
+        return NoContent();
     }
 
     /// <summary>
@@ -205,11 +172,6 @@ public class OrderReturnsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error approving order return {Id}", id);
-            return StatusCode(500, new { error = "An error occurred while approving the order return" });
         }
     }
 
@@ -243,11 +205,6 @@ public class OrderReturnsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rejecting order return {Id}", id);
-            return StatusCode(500, new { error = "An error occurred while rejecting the order return" });
-        }
     }
 
     /// <summary>
@@ -272,11 +229,6 @@ public class OrderReturnsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error marking order return {Id} as received", id);
-            return StatusCode(500, new { error = "An error occurred" });
         }
     }
 
@@ -309,11 +261,6 @@ public class OrderReturnsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing refund for order return {Id}", id);
-            return StatusCode(500, new { error = "An error occurred" });
-        }
     }
 
     /// <summary>
@@ -334,11 +281,6 @@ public class OrderReturnsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error completing order return {Id}", id);
-            return StatusCode(500, new { error = "An error occurred" });
         }
     }
 
@@ -365,11 +307,6 @@ public class OrderReturnsController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error cancelling order return {Id}", id);
-            return StatusCode(500, new { error = "An error occurred" });
-        }
     }
 
     /// <summary>
@@ -381,17 +318,9 @@ public class OrderReturnsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<OrderReturnDto>), 200)]
     public async Task<IActionResult> GetPending(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var returns = await _returnService.GetPendingReturnsAsync(cancellationToken);
-            var dtos = returns.Select(MapToDto);
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting pending order returns");
-            return StatusCode(500, new { error = "An error occurred" });
-        }
+                var returns = await _returnService.GetPendingReturnsAsync(cancellationToken);
+        var dtos = returns.Select(MapToDto);
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -408,16 +337,8 @@ public class OrderReturnsController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var stats = await _returnService.GetStatisticsAsync(fromDate, toDate, cancellationToken);
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting order return statistics");
-            return StatusCode(500, new { error = "An error occurred" });
-        }
+                var stats = await _returnService.GetStatisticsAsync(fromDate, toDate, cancellationToken);
+        return Ok(stats);
     }
 
     #region Private Methods

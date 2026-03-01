@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -41,7 +42,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AddressesController : ControllerBase
+public class AddressesController : CrmControllerBase
 {
     private const string InvalidIdMessage = "Invalid account ID or address ID. Both must be greater than 0.";
     private const string AddressNotFoundMessage = "Address not found.";
@@ -127,28 +128,18 @@ public class AddressesController : ControllerBase
         int accountId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (accountId <= 0)
-                return BadRequest(new { message = "Invalid account ID. Must be greater than 0." });
+                if (accountId <= 0)
+            return BadRequest(new { message = "Invalid account ID. Must be greater than 0." });
 
-            // Verify account exists
-            var account = await _accountService.GetAccountByIdAsync(accountId);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+        // Verify account exists
+        var account = await _accountService.GetAccountByIdAsync(accountId);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            var addresses = await _addressService.GetAddressesByAccountAsync(accountId, cancellationToken);
-            var addressDtos = addresses.Select(MapAddressToDto).ToList();
+        var addresses = await _addressService.GetAddressesByAccountAsync(accountId, cancellationToken);
+        var addressDtos = addresses.Select(MapAddressToDto).ToList();
 
-            return Ok(addressDtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving addresses for account {AccountId}", accountId);
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                new { message = "Error retrieving addresses", error = ex.Message });
-        }
+        return Ok(addressDtos);
     }
 
     /// <summary>
@@ -175,31 +166,21 @@ public class AddressesController : ControllerBase
         int addressId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = InvalidIdMessage });
+                if (accountId <= 0 || addressId <= 0)
+            return BadRequest(new { message = InvalidIdMessage });
 
-            // Verify account exists
-            var account = await _accountService.GetAccountByIdAsync(accountId);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+        // Verify account exists
+        var account = await _accountService.GetAccountByIdAsync(accountId);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            // Get address
-            var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
-            if (address == null || address.IsDeleted)
-                return NotFound(new { message = AddressNotFoundMessage });
+        // Get address
+        var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
+        if (address == null || address.IsDeleted)
+            return NotFound(new { message = AddressNotFoundMessage });
 
-            var addressDto = MapAddressToDto(address);
-            return Ok(addressDto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving address {AddressId} for account {AccountId}", addressId, accountId);
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                new { message = "Error retrieving address", error = ex.Message });
-        }
+        var addressDto = MapAddressToDto(address);
+        return Ok(addressDto);
     }
 
     /// <summary>
@@ -222,57 +203,47 @@ public class AddressesController : ControllerBase
         [FromBody] CreateAddressDto dto,
         CancellationToken cancellationToken)
     {
-        try
+                if (dto == null)
+            return BadRequest(new { message = "Request body cannot be empty." });
+
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        // Map DTO to entity
+        var address = new Address
         {
-            if (dto == null)
-                return BadRequest(new { message = "Request body cannot be empty." });
+            Label = dto.Label ?? "Primary",
+            Line1 = dto.Line1,
+            Line2 = dto.Line2,
+            Line3 = dto.Line3,
+            City = dto.City,
+            State = dto.State,
+            PostalCode = dto.PostalCode,
+            County = dto.County,
+            CountryCode = dto.CountryCode,
+            Country = dto.Country,
+            ZipCodeId = dto.ZipCodeId,
+            LocalityId = dto.LocalityId,
+            Locality = dto.Locality,
+            Latitude = dto.Latitude,
+            Longitude = dto.Longitude,
+            IsResidential = dto.IsResidential,
+            DeliveryInstructions = dto.DeliveryInstructions,
+            AccessHours = dto.AccessHours,
+            SiteContactName = dto.SiteContactName,
+            SiteContactPhone = dto.SiteContactPhone,
+            Notes = dto.Notes,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        var createdAddress = await _addressService.CreateAddressAsync(0, address, cancellationToken);
+        var addressDto = MapAddressToDto(createdAddress);
 
-            // Map DTO to entity
-            var address = new Address
-            {
-                Label = dto.Label ?? "Primary",
-                Line1 = dto.Line1,
-                Line2 = dto.Line2,
-                Line3 = dto.Line3,
-                City = dto.City,
-                State = dto.State,
-                PostalCode = dto.PostalCode,
-                County = dto.County,
-                CountryCode = dto.CountryCode,
-                Country = dto.Country,
-                ZipCodeId = dto.ZipCodeId,
-                LocalityId = dto.LocalityId,
-                Locality = dto.Locality,
-                Latitude = dto.Latitude,
-                Longitude = dto.Longitude,
-                IsResidential = dto.IsResidential,
-                DeliveryInstructions = dto.DeliveryInstructions,
-                AccessHours = dto.AccessHours,
-                SiteContactName = dto.SiteContactName,
-                SiteContactPhone = dto.SiteContactPhone,
-                Notes = dto.Notes,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            var createdAddress = await _addressService.CreateAddressAsync(0, address, cancellationToken);
-            var addressDto = MapAddressToDto(createdAddress);
-
-            return CreatedAtAction(
-                nameof(GetAddressById),
-                new { accountId = 0, addressId = createdAddress.Id },
-                addressDto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating address");
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                new { message = "Error creating address", error = ex.Message });
-        }
+        return CreatedAtAction(
+            nameof(GetAddressById),
+            new { accountId = 0, addressId = createdAddress.Id },
+            addressDto);
     }
 
     /// <summary>
@@ -301,91 +272,81 @@ public class AddressesController : ControllerBase
         [FromBody] UpdateAddressDto dto,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = InvalidIdMessage });
+                if (accountId <= 0 || addressId <= 0)
+            return BadRequest(new { message = InvalidIdMessage });
 
-            if (dto == null)
-                return BadRequest(new { message = "Request body cannot be empty." });
+        if (dto == null)
+            return BadRequest(new { message = "Request body cannot be empty." });
 
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            // Verify account exists
-            var account = await _accountService.GetAccountByIdAsync(accountId);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+        // Verify account exists
+        var account = await _accountService.GetAccountByIdAsync(accountId);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            // Get existing address
-            var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
-            if (address == null || address.IsDeleted)
-                return NotFound(new { message = AddressNotFoundMessage });
+        // Get existing address
+        var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
+        if (address == null || address.IsDeleted)
+            return NotFound(new { message = AddressNotFoundMessage });
 
-            // Update only the provided fields
-            if (!string.IsNullOrWhiteSpace(dto.Label))
-                address.Label = dto.Label;
-            if (!string.IsNullOrWhiteSpace(dto.Line1))
-                address.Line1 = dto.Line1;
-            if (dto.Line2 != null)
-                address.Line2 = dto.Line2;
-            if (dto.Line3 != null)
-                address.Line3 = dto.Line3;
-            if (!string.IsNullOrWhiteSpace(dto.City))
-                address.City = dto.City;
-            if (dto.State != null)
-                address.State = dto.State;
-            if (dto.PostalCode != null)
-                address.PostalCode = dto.PostalCode;
-            if (dto.County != null)
-                address.County = dto.County;
-            if (dto.CountryCode != null)
-                address.CountryCode = dto.CountryCode;
-            if (!string.IsNullOrWhiteSpace(dto.Country))
-                address.Country = dto.Country;
-            if (dto.ZipCodeId.HasValue)
-                address.ZipCodeId = dto.ZipCodeId;
-            if (dto.LocalityId.HasValue)
-                address.LocalityId = dto.LocalityId;
-            if (dto.Locality != null)
-                address.Locality = dto.Locality;
-            if (dto.Latitude.HasValue)
-                address.Latitude = dto.Latitude;
-            if (dto.Longitude.HasValue)
-                address.Longitude = dto.Longitude;
-            if (dto.GeocodeAccuracy != null)
-                address.GeocodeAccuracy = dto.GeocodeAccuracy;
-            if (dto.IsVerified.HasValue)
-                address.IsVerified = dto.IsVerified.Value;
-            if (dto.VerificationSource != null)
-                address.VerificationSource = dto.VerificationSource;
-            if (dto.IsResidential.HasValue)
-                address.IsResidential = dto.IsResidential;
-            if (dto.DeliveryInstructions != null)
-                address.DeliveryInstructions = dto.DeliveryInstructions;
-            if (dto.AccessHours != null)
-                address.AccessHours = dto.AccessHours;
-            if (dto.SiteContactName != null)
-                address.SiteContactName = dto.SiteContactName;
-            if (dto.SiteContactPhone != null)
-                address.SiteContactPhone = dto.SiteContactPhone;
-            if (dto.Notes != null)
-                address.Notes = dto.Notes;
+        // Update only the provided fields
+        if (!string.IsNullOrWhiteSpace(dto.Label))
+            address.Label = dto.Label;
+        if (!string.IsNullOrWhiteSpace(dto.Line1))
+            address.Line1 = dto.Line1;
+        if (dto.Line2 != null)
+            address.Line2 = dto.Line2;
+        if (dto.Line3 != null)
+            address.Line3 = dto.Line3;
+        if (!string.IsNullOrWhiteSpace(dto.City))
+            address.City = dto.City;
+        if (dto.State != null)
+            address.State = dto.State;
+        if (dto.PostalCode != null)
+            address.PostalCode = dto.PostalCode;
+        if (dto.County != null)
+            address.County = dto.County;
+        if (dto.CountryCode != null)
+            address.CountryCode = dto.CountryCode;
+        if (!string.IsNullOrWhiteSpace(dto.Country))
+            address.Country = dto.Country;
+        if (dto.ZipCodeId.HasValue)
+            address.ZipCodeId = dto.ZipCodeId;
+        if (dto.LocalityId.HasValue)
+            address.LocalityId = dto.LocalityId;
+        if (dto.Locality != null)
+            address.Locality = dto.Locality;
+        if (dto.Latitude.HasValue)
+            address.Latitude = dto.Latitude;
+        if (dto.Longitude.HasValue)
+            address.Longitude = dto.Longitude;
+        if (dto.GeocodeAccuracy != null)
+            address.GeocodeAccuracy = dto.GeocodeAccuracy;
+        if (dto.IsVerified.HasValue)
+            address.IsVerified = dto.IsVerified.Value;
+        if (dto.VerificationSource != null)
+            address.VerificationSource = dto.VerificationSource;
+        if (dto.IsResidential.HasValue)
+            address.IsResidential = dto.IsResidential;
+        if (dto.DeliveryInstructions != null)
+            address.DeliveryInstructions = dto.DeliveryInstructions;
+        if (dto.AccessHours != null)
+            address.AccessHours = dto.AccessHours;
+        if (dto.SiteContactName != null)
+            address.SiteContactName = dto.SiteContactName;
+        if (dto.SiteContactPhone != null)
+            address.SiteContactPhone = dto.SiteContactPhone;
+        if (dto.Notes != null)
+            address.Notes = dto.Notes;
 
-            address.UpdatedAt = DateTime.UtcNow;
+        address.UpdatedAt = DateTime.UtcNow;
 
-            var updatedAddress = await _addressService.UpdateAddressAsync(accountId, addressId, address, cancellationToken);
-            var addressDto = MapAddressToDto(updatedAddress);
+        var updatedAddress = await _addressService.UpdateAddressAsync(accountId, addressId, address, cancellationToken);
+        var addressDto = MapAddressToDto(updatedAddress);
 
-            return Ok(addressDto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating address {AddressId} for account {AccountId}", addressId, accountId);
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                new { message = "Error updating address", error = ex.Message });
-        }
+        return Ok(addressDto);
     }
 
     /// <summary>
@@ -411,31 +372,21 @@ public class AddressesController : ControllerBase
         int addressId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = InvalidIdMessage });
+                if (accountId <= 0 || addressId <= 0)
+            return BadRequest(new { message = InvalidIdMessage });
 
-            // Verify account exists
-            var account = await _accountService.GetAccountByIdAsync(accountId);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+        // Verify account exists
+        var account = await _accountService.GetAccountByIdAsync(accountId);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            // Delete address
-            var deleted = await _addressService.DeleteAddressAsync(accountId, addressId, cancellationToken);
-            if (!deleted)
-                return NotFound(new { message = AddressNotFoundMessage });
+        // Delete address
+        var deleted = await _addressService.DeleteAddressAsync(accountId, addressId, cancellationToken);
+        if (!deleted)
+            return NotFound(new { message = AddressNotFoundMessage });
 
-            _logger.LogInformation("Address {AddressId} deleted for account {AccountId}", addressId, accountId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting address {AddressId} for account {AccountId}", addressId, accountId);
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                new { message = "Error deleting address", error = ex.Message });
-        }
+        _logger.LogInformation("Address {AddressId} deleted for account {AccountId}", addressId, accountId);
+        return NoContent();
     }
 
     /// <summary>
@@ -462,35 +413,25 @@ public class AddressesController : ControllerBase
         int addressId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = InvalidIdMessage });
+                if (accountId <= 0 || addressId <= 0)
+            return BadRequest(new { message = InvalidIdMessage });
 
-            // Verify account exists
-            var account = await _accountService.GetAccountByIdAsync(accountId);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+        // Verify account exists
+        var account = await _accountService.GetAccountByIdAsync(accountId);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            // Set primary billing address
-            var success = await _addressService.SetPrimaryBillingAddressAsync(accountId, addressId, cancellationToken);
-            if (!success)
-                return NotFound(new { message = AddressNotFoundMessage });
+        // Set primary billing address
+        var success = await _addressService.SetPrimaryBillingAddressAsync(accountId, addressId, cancellationToken);
+        if (!success)
+            return NotFound(new { message = AddressNotFoundMessage });
 
-            // Retrieve and return the updated address
-            var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
-            var addressDto = MapAddressToDto(address!);
+        // Retrieve and return the updated address
+        var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
+        var addressDto = MapAddressToDto(address!);
 
-            _logger.LogInformation("Address {AddressId} set as primary billing for account {AccountId}", addressId, accountId);
-            return Ok(addressDto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary billing address {AddressId} for account {AccountId}", addressId, accountId);
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                new { message = "Error setting primary billing address", error = ex.Message });
-        }
+        _logger.LogInformation("Address {AddressId} set as primary billing for account {AccountId}", addressId, accountId);
+        return Ok(addressDto);
     }
 
     /// <summary>
@@ -517,34 +458,24 @@ public class AddressesController : ControllerBase
         int addressId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = InvalidIdMessage });
+                if (accountId <= 0 || addressId <= 0)
+            return BadRequest(new { message = InvalidIdMessage });
 
-            // Verify account exists
-            var account = await _accountService.GetAccountByIdAsync(accountId);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+        // Verify account exists
+        var account = await _accountService.GetAccountByIdAsync(accountId);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            // Set primary shipping address
-            var success = await _addressService.SetPrimaryShippingAddressAsync(accountId, addressId, cancellationToken);
-            if (!success)
-                return NotFound(new { message = AddressNotFoundMessage });
+        // Set primary shipping address
+        var success = await _addressService.SetPrimaryShippingAddressAsync(accountId, addressId, cancellationToken);
+        if (!success)
+            return NotFound(new { message = AddressNotFoundMessage });
 
-            // Retrieve and return the updated address
-            var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
-            var addressDto = MapAddressToDto(address!);
+        // Retrieve and return the updated address
+        var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
+        var addressDto = MapAddressToDto(address!);
 
-            _logger.LogInformation("Address {AddressId} set as primary shipping for account {AccountId}", addressId, accountId);
-            return Ok(addressDto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary shipping address {AddressId} for account {AccountId}", addressId, accountId);
-            return StatusCode(
-                StatusCodes.Status500InternalServerError,
-                new { message = "Error setting primary shipping address", error = ex.Message });
-        }
+        _logger.LogInformation("Address {AddressId} set as primary shipping for account {AccountId}", addressId, accountId);
+        return Ok(addressDto);
     }
 }

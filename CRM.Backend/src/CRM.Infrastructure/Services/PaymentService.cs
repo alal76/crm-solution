@@ -85,7 +85,6 @@ public class PaymentService : IPaymentService
         }
 
         payment.CreatedAt = DateTime.UtcNow;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         _context.Payments.Add(payment);
         await _context.SaveChangesAsync(cancellationToken);
@@ -103,7 +102,6 @@ public class PaymentService : IPaymentService
             throw new InvalidOperationException($"Payment {payment.Id} not found");
         }
 
-        payment.UpdatedAt = DateTime.UtcNow;
         _context.Payments.Update(payment);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -121,7 +119,6 @@ public class PaymentService : IPaymentService
         }
 
         payment.IsDeleted = true;
-        payment.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted payment {PaymentNumber}", payment.PaymentNumber);
@@ -217,7 +214,6 @@ public class PaymentService : IPaymentService
             {
                 invoice.Status = InvoiceStatus.PartiallyPaid;
             }
-            invoice.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -309,7 +305,6 @@ public class PaymentService : IPaymentService
             ? PaymentStatus.Refunded
             : PaymentStatus.PartiallyRefunded;
         payment.RefundDate = DateTime.UtcNow;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         // Update invoice
         if (payment.InvoiceId.HasValue)
@@ -318,7 +313,6 @@ public class PaymentService : IPaymentService
             if (invoice != null)
             {
                 invoice.AmountPaid -= amount;
-                invoice.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -360,7 +354,6 @@ public class PaymentService : IPaymentService
 
         payment.Status = PaymentStatus.Voided;
         payment.Description = $"Voided: {reason}";
-        payment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -404,7 +397,6 @@ public class PaymentService : IPaymentService
         payment.Status = PaymentStatus.Completed;
         payment.Amount = captureAmount;
         payment.ProcessedDate = DateTime.UtcNow;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -432,7 +424,6 @@ public class PaymentService : IPaymentService
         }
 
         payment.Status = status;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -451,7 +442,6 @@ public class PaymentService : IPaymentService
 
         payment.Status = PaymentStatus.Completed;
         payment.ProcessedDate = DateTime.UtcNow;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -471,7 +461,6 @@ public class PaymentService : IPaymentService
         payment.Status = PaymentStatus.Failed;
         payment.FailureReason = failureReason;
         payment.RetryCount = payment.RetryCount + 1;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -577,7 +566,6 @@ public class PaymentService : IPaymentService
         payment.BankReference = bankReference;
         payment.IsReconciled = true;
         payment.ReconciledDate = DateTime.UtcNow;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -632,13 +620,11 @@ public class PaymentService : IPaymentService
             {
                 invoice.Status = InvoiceStatus.PartiallyPaid;
             }
-            invoice.UpdatedAt = DateTime.UtcNow;
 
             appliedAllocations.Add(allocation);
         }
 
         payment.AmountApplied = appliedAllocations.Sum(a => a.Amount);
-        payment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -678,7 +664,6 @@ public class PaymentService : IPaymentService
         // Retry payment
         payment.Status = PaymentStatus.Processing;
         payment.RetryCount = payment.RetryCount + 1;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         // Simulate retry success (in production, call actual gateway)
         payment.Status = PaymentStatus.Completed;
@@ -703,7 +688,6 @@ public class PaymentService : IPaymentService
         payment.Status = PaymentStatus.Pending;
         payment.PaymentNumber = await GeneratePaymentNumberAsync(cancellationToken);
         payment.CreatedAt = DateTime.UtcNow;
-        payment.UpdatedAt = DateTime.UtcNow;
 
         _context.Payments.Add(payment);
         await _context.SaveChangesAsync(cancellationToken);

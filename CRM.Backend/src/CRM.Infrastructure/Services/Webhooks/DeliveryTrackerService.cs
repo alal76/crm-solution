@@ -169,7 +169,6 @@ public class DeliveryTrackerService : IDeliveryTracker
         delivery.ErrorMessage = result.ErrorMessage;
         delivery.DurationMs = result.DurationMs;
         delivery.DeliveredAt = result.CompletedAt;
-        delivery.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

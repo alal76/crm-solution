@@ -268,7 +268,6 @@ public class RBACService : IRBACService
             if (updateRoleDto.HierarchyLevel.HasValue)
                 role.HierarchyLevel = updateRoleDto.HierarchyLevel.Value;
 
-            role.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
 
             // Invalidate permission caches for all users with this role
@@ -299,7 +298,6 @@ public class RBACService : IRBACService
 
             // Soft delete
             role.IsDeleted = true;
-            role.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -423,7 +421,6 @@ public class RBACService : IRBACService
 
             // Soft delete
             permission.IsDeleted = true;
-            permission.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -496,7 +493,6 @@ public class RBACService : IRBACService
                 throw new KeyNotFoundException("Role-permission assignment not found");
 
             rolePermission.IsDeleted = true;
-            rolePermission.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -621,7 +617,6 @@ public class RBACService : IRBACService
                 throw new KeyNotFoundException("User-role assignment not found");
 
             userRole.IsDeleted = true;
-            userRole.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
 

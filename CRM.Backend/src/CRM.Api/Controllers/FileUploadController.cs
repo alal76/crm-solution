@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
+using CRM.Api.Infrastructure;
 
 namespace CRM.API.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class FileUploadController : ControllerBase
+public class FileUploadController : CrmControllerBase
 {
     // Size constants
     private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
@@ -105,59 +106,51 @@ public class FileUploadController : ControllerBase
     /// </summary>
     private async Task<ActionResult<FileUploadResponse>> UploadFileAsBase64(IFormFile file)
     {
-        try
+                if (file == null || file.Length == 0)
         {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest(new { message = "No file uploaded" });
-            }
-
-            if (file.Length > MaxFileSize)
-            {
-                return BadRequest(new { message = "File size exceeds 5MB limit" });
-            }
-
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!AllowedExtensions.Contains(extension))
-            {
-                return BadRequest(new { message = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
-            }
-
-            // Read file into memory and convert to base64
-            using var memoryStream = new MemoryStream();
-            await file.CopyToAsync(memoryStream);
-            var bytes = memoryStream.ToArray();
-            var base64 = Convert.ToBase64String(bytes);
-
-            // Determine MIME type
-            var mimeType = extension switch
-            {
-                ".jpg" or ".jpeg" => "image/jpeg",
-                ".png" => "image/png",
-                ".gif" => "image/gif",
-                ".webp" => "image/webp",
-                _ => "application/octet-stream"
-            };
-
-            // Create data URL
-            var dataUrl = $"data:{mimeType};base64,{base64}";
-
-            _logger.LogInformation("File uploaded as base64: {FileName}, size: {Size} bytes", file.FileName, file.Length);
-
-            return Ok(new FileUploadResponse
-            {
-                Success = true,
-                Url = dataUrl,
-                FileName = file.FileName,
-                OriginalFileName = file.FileName,
-                FileSize = file.Length
-            });
+            return BadRequest(new { message = "No file uploaded" });
         }
-        catch (Exception ex)
+
+        if (file.Length > MaxFileSize)
         {
-            _logger.LogError(ex, "Error uploading file");
-            return StatusCode(500, new { message = "Error uploading file" });
+            return BadRequest(new { message = "File size exceeds 5MB limit" });
         }
+
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+        {
+            return BadRequest(new { message = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
+        }
+
+        // Read file into memory and convert to base64
+        using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+        var bytes = memoryStream.ToArray();
+        var base64 = Convert.ToBase64String(bytes);
+
+        // Determine MIME type
+        var mimeType = extension switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream"
+        };
+
+        // Create data URL
+        var dataUrl = $"data:{mimeType};base64,{base64}";
+
+        _logger.LogInformation("File uploaded as base64: {FileName}, size: {Size} bytes", file.FileName, file.Length);
+
+        return Ok(new FileUploadResponse
+        {
+            Success = true,
+            Url = dataUrl,
+            FileName = file.FileName,
+            OriginalFileName = file.FileName,
+            FileSize = file.Length
+        });
     }
 
     /// <summary>
@@ -166,79 +159,71 @@ public class FileUploadController : ControllerBase
     /// </summary>
     private async Task<ActionResult<FileUploadResponse>> UploadFileAsBase64WithResize(IFormFile file, int width, int? height)
     {
-        try
+                if (file == null || file.Length == 0)
         {
-            if (file == null || file.Length == 0)
-            {
-                return BadRequest(new { message = "No file uploaded" });
-            }
-
-            if (file.Length > MaxFileSize)
-            {
-                return BadRequest(new { message = "File size exceeds 5MB limit" });
-            }
-
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            if (!AllowedExtensions.Contains(extension))
-            {
-                return BadRequest(new { message = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
-            }
-
-            // Read file into memory
-            using var inputStream = new MemoryStream();
-            await file.CopyToAsync(inputStream);
-            inputStream.Position = 0;
-
-            // Load and resize image
-            using var image = await Image.LoadAsync(inputStream);
-
-            int targetHeight;
-            if (height.HasValue)
-            {
-                // Fixed dimensions (square logo)
-                targetHeight = height.Value;
-            }
-            else
-            {
-                // Maintain aspect ratio based on width
-                var aspectRatio = (double)image.Height / image.Width;
-                targetHeight = (int)(width * aspectRatio);
-            }
-
-            // Resize the image
-            image.Mutate(x => x.Resize(new ResizeOptions
-            {
-                Size = new Size(width, targetHeight),
-                Mode = ResizeMode.Max,
-                Sampler = KnownResamplers.Lanczos3
-            }));
-
-            // Convert to PNG for consistent output
-            using var outputStream = new MemoryStream();
-            await image.SaveAsPngAsync(outputStream);
-            var bytes = outputStream.ToArray();
-            var base64 = Convert.ToBase64String(bytes);
-
-            // Create data URL (always PNG after resize)
-            var dataUrl = $"data:image/png;base64,{base64}";
-
-            _logger.LogInformation("File uploaded and resized to {Width}x{Height}: {FileName}, original size: {OriginalSize} bytes, new size: {NewSize} bytes",
-                width, targetHeight, file.FileName, file.Length, bytes.Length);
-
-            return Ok(new FileUploadResponse
-            {
-                Success = true,
-                Url = dataUrl,
-                FileName = file.FileName,
-                OriginalFileName = file.FileName,
-                FileSize = bytes.Length
-            });
+            return BadRequest(new { message = "No file uploaded" });
         }
-        catch (Exception ex)
+
+        if (file.Length > MaxFileSize)
         {
-            _logger.LogError(ex, "Error uploading and resizing file");
-            return StatusCode(500, new { message = "Error uploading file" });
+            return BadRequest(new { message = "File size exceeds 5MB limit" });
         }
+
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedExtensions.Contains(extension))
+        {
+            return BadRequest(new { message = "Invalid file type. Allowed: jpg, jpeg, png, gif, webp" });
+        }
+
+        // Read file into memory
+        using var inputStream = new MemoryStream();
+        await file.CopyToAsync(inputStream);
+        inputStream.Position = 0;
+
+        // Load and resize image
+        using var image = await Image.LoadAsync(inputStream);
+
+        int targetHeight;
+        if (height.HasValue)
+        {
+            // Fixed dimensions (square logo)
+            targetHeight = height.Value;
+        }
+        else
+        {
+            // Maintain aspect ratio based on width
+            var aspectRatio = (double)image.Height / image.Width;
+            targetHeight = (int)(width * aspectRatio);
+        }
+
+        // Resize the image
+        image.Mutate(x => x.Resize(new ResizeOptions
+        {
+            Size = new Size(width, targetHeight),
+            Mode = ResizeMode.Max,
+            Sampler = KnownResamplers.Lanczos3
+        }));
+
+        // Convert to PNG for consistent output
+        using var outputStream = new MemoryStream();
+        await image.SaveAsPngAsync(outputStream);
+        var bytes = outputStream.ToArray();
+        var base64 = Convert.ToBase64String(bytes);
+
+        // Create data URL (always PNG after resize)
+        var dataUrl = $"data:image/png;base64,{base64}";
+
+        _logger.LogInformation("File uploaded and resized to {Width}x{Height}: {FileName}, original size: {OriginalSize} bytes, new size: {NewSize} bytes",
+            width, targetHeight, file.FileName, file.Length, bytes.Length);
+
+        return Ok(new FileUploadResponse
+        {
+            Success = true,
+            Url = dataUrl,
+            FileName = file.FileName,
+            OriginalFileName = file.FileName,
+            FileSize = bytes.Length
+        });
     }
 
     /// <summary>
@@ -250,36 +235,28 @@ public class FileUploadController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult DeleteFile([FromQuery] string path)
     {
-        try
+                if (string.IsNullOrEmpty(path))
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                return BadRequest(new { message = "File path is required" });
-            }
-
-            // Sanitize path to prevent directory traversal
-            var safePath = path.Replace("..", "").TrimStart('/');
-            if (!safePath.StartsWith("uploads/"))
-            {
-                return BadRequest(new { message = "Invalid file path" });
-            }
-
-            var fullPath = Path.Combine(_environment.ContentRootPath, "wwwroot", safePath);
-
-            if (System.IO.File.Exists(fullPath))
-            {
-                System.IO.File.Delete(fullPath);
-                _logger.LogInformation("File deleted: {Path}", safePath);
-                return Ok(new { message = "File deleted successfully" });
-            }
-
-            return NotFound(new { message = "File not found" });
+            return BadRequest(new { message = "File path is required" });
         }
-        catch (Exception ex)
+
+        // Sanitize path to prevent directory traversal
+        var safePath = path.Replace("..", "").TrimStart('/');
+        if (!safePath.StartsWith("uploads/"))
         {
-            _logger.LogError(ex, "Error deleting file");
-            return StatusCode(500, new { message = "Error deleting file" });
+            return BadRequest(new { message = "Invalid file path" });
         }
+
+        var fullPath = Path.Combine(_environment.ContentRootPath, "wwwroot", safePath);
+
+        if (System.IO.File.Exists(fullPath))
+        {
+            System.IO.File.Delete(fullPath);
+            _logger.LogInformation("File deleted: {Path}", safePath);
+            return Ok(new { message = "File deleted successfully" });
+        }
+
+        return NotFound(new { message = "File not found" });
     }
 }
 

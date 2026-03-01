@@ -9,6 +9,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.ITSM;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers.ITSM;
 [Route("api/escalationanalytics")]
 [Produces("application/json")]
 [Tags("ITSM - Escalation Analytics")]
-public class EscalationAnalyticsController : ControllerBase
+public class EscalationAnalyticsController : CrmControllerBase
 {
     private readonly IEscalationAnalyticsService _analyticsService;
     private readonly ILogger<EscalationAnalyticsController> _logger;
@@ -50,16 +51,8 @@ public class EscalationAnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetSummary(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var summary = await _analyticsService.GetAnalyticsSummaryAsync(cancellationToken);
-            return Ok(summary);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating escalation analytics summary");
-            return StatusCode(500, new { message = "Error generating escalation analytics summary", error = ex.Message });
-        }
+                var summary = await _analyticsService.GetAnalyticsSummaryAsync(cancellationToken);
+        return Ok(summary);
     }
 
     /// <summary>
@@ -82,22 +75,14 @@ public class EscalationAnalyticsController : ControllerBase
         [FromQuery] DateTime? endDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var end = endDate ?? DateTime.UtcNow;
-            var start = startDate ?? end.AddDays(-30);
+                var end = endDate ?? DateTime.UtcNow;
+        var start = startDate ?? end.AddDays(-30);
 
-            if (start > end)
-                return BadRequest(new { message = "startDate must be before endDate" });
+        if (start > end)
+            return BadRequest(new { message = "startDate must be before endDate" });
 
-            var dashboard = await _analyticsService.GetEscalationDashboardAsync(start, end, cancellationToken);
-            return Ok(dashboard);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving escalation dashboard");
-            return StatusCode(500, new { message = "Error retrieving escalation dashboard", error = ex.Message });
-        }
+        var dashboard = await _analyticsService.GetEscalationDashboardAsync(start, end, cancellationToken);
+        return Ok(dashboard);
     }
 
     /// <summary>
@@ -118,18 +103,10 @@ public class EscalationAnalyticsController : ControllerBase
         [FromQuery] DateTime? endDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var end = endDate ?? DateTime.UtcNow;
-            var start = startDate ?? end.AddDays(-30);
+                var end = endDate ?? DateTime.UtcNow;
+        var start = startDate ?? end.AddDays(-30);
 
-            var results = await _analyticsService.GetEscalationsByCategoryAsync(start, end, cancellationToken);
-            return Ok(results);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving escalations by category");
-            return StatusCode(500, new { message = "Error retrieving escalations by category", error = ex.Message });
-        }
+        var results = await _analyticsService.GetEscalationsByCategoryAsync(start, end, cancellationToken);
+        return Ok(results);
     }
 }

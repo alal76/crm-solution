@@ -81,7 +81,6 @@ public class SubscriptionService : ISubscriptionService
         subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
         subscription.SubscriptionNumber = await GenerateSubscriptionNumberAsync(cancellationToken);
         subscription.CreatedAt = DateTime.UtcNow;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Add(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -105,7 +104,6 @@ public class SubscriptionService : ISubscriptionService
 
         ValidateSubscriptionInput(subscription);
         subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
-        subscription.UpdatedAt = DateTime.UtcNow;
         _context.Subscriptions.Update(subscription);
 
         // TODO-SALES006-022: Handle DbUpdateConcurrencyException for optimistic locking
@@ -130,7 +128,6 @@ public class SubscriptionService : ISubscriptionService
             return false;
 
         subscription.IsDeleted = true;
-        subscription.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted subscription {SubscriptionId}", id);
@@ -207,7 +204,6 @@ public class SubscriptionService : ISubscriptionService
         }
 
         subscription.SubscriptionStatus = SubscriptionStatus.Active;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -228,7 +224,6 @@ public class SubscriptionService : ISubscriptionService
         subscription.ContractNotes = string.IsNullOrEmpty(subscription.ContractNotes)
             ? $"Paused: {reason}"
             : $"{subscription.ContractNotes}; Paused: {reason}";
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -251,7 +246,6 @@ public class SubscriptionService : ISubscriptionService
         }
 
         subscription.SubscriptionStatus = SubscriptionStatus.Active;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -281,7 +275,6 @@ public class SubscriptionService : ISubscriptionService
         subscription.ContractNotes = string.IsNullOrEmpty(subscription.ContractNotes)
             ? $"Cancellation reason: {reason}"
             : $"{subscription.ContractNotes}; Cancellation reason: {reason}";
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -303,7 +296,6 @@ public class SubscriptionService : ISubscriptionService
         }
 
         subscription.SubscriptionStatus = status;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -324,7 +316,6 @@ public class SubscriptionService : ISubscriptionService
         subscription.ContractNotes = string.IsNullOrEmpty(subscription.ContractNotes)
             ? $"Suspended: {reason}"
             : $"{subscription.ContractNotes}; Suspended: {reason}";
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -342,7 +333,6 @@ public class SubscriptionService : ISubscriptionService
         }
 
         subscription.SubscriptionStatus = SubscriptionStatus.Active;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -449,7 +439,6 @@ public class SubscriptionService : ISubscriptionService
 
         subscription.BillingAddress = details.BillingAddress;
         subscription.BillingCity = details.BillingCity;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -497,7 +486,6 @@ public class SubscriptionService : ISubscriptionService
             subscription.ContractNotes = $"Plan change to {product.Name} scheduled for {(changeType == SubscriptionChangeType.EndOfPeriod ? "end of period" : "next billing cycle")}";
         }
 
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -522,7 +510,6 @@ public class SubscriptionService : ISubscriptionService
 
         subscription.MRR = (subscription.MRR ?? 0) + (addon.UnitPrice * quantity);
         subscription.ARR = subscription.MRR * 12;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -547,7 +534,6 @@ public class SubscriptionService : ISubscriptionService
 
         subscription.MRR = Math.Max(0, (subscription.MRR ?? 0) - addon.UnitPrice);
         subscription.ARR = subscription.MRR * 12;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -590,7 +576,6 @@ public class SubscriptionService : ISubscriptionService
         subscription.BillingStartDate = subscription.ContractStartDate;
         subscription.BillingEndDate = subscription.ContractEndDate;
         subscription.SubscriptionStatus = SubscriptionStatus.Active;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -622,7 +607,6 @@ public class SubscriptionService : ISubscriptionService
 
         subscription.ContractNotes = autoRenew ? "Auto-renewal enabled" : "Auto-renewal disabled";
         subscription.IsAutoRenew = autoRenew;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
         await _context.SaveChangesAsync(cancellationToken);

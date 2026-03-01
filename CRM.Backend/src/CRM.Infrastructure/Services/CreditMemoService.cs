@@ -64,7 +64,6 @@ public class CreditMemoService : ICreditMemoService
         }
 
         creditMemo.CreatedAt = DateTime.UtcNow;
-        creditMemo.UpdatedAt = DateTime.UtcNow;
 
         _context.CreditMemos.Add(creditMemo);
         await _context.SaveChangesAsync(cancellationToken);
@@ -79,7 +78,6 @@ public class CreditMemoService : ICreditMemoService
         if (existing == null || existing.IsDeleted)
             throw new InvalidOperationException($"Credit memo {creditMemo.Id} not found");
 
-        creditMemo.UpdatedAt = DateTime.UtcNow;
         _context.CreditMemos.Update(creditMemo);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -94,7 +92,6 @@ public class CreditMemoService : ICreditMemoService
             return false;
 
         cm.IsDeleted = true;
-        cm.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted credit memo {CreditMemoNumber}", cm.CreditMemoNumber);
@@ -175,7 +172,6 @@ public class CreditMemoService : ICreditMemoService
             cm.Status = CreditMemoStatus.Applied;
         cm.AppliedDate = DateTime.UtcNow;
 
-        invoice.UpdatedAt = DateTime.UtcNow;
         _context.CreditMemos.Update(cm);
         _context.Invoices.Update(invoice);
         await _context.SaveChangesAsync(cancellationToken);
@@ -192,7 +188,6 @@ public class CreditMemoService : ICreditMemoService
 
         cm.AmountApplied = 0m;
         cm.Status = CreditMemoStatus.Approved;
-        cm.UpdatedAt = DateTime.UtcNow;
 
         _context.CreditMemos.Update(cm);
         await _context.SaveChangesAsync(cancellationToken);
@@ -209,7 +204,6 @@ public class CreditMemoService : ICreditMemoService
 
         cm.Status = CreditMemoStatus.Refunded;
         cm.RefundedDate = DateTime.UtcNow;
-        cm.UpdatedAt = DateTime.UtcNow;
 
         _context.CreditMemos.Update(cm);
         await _context.SaveChangesAsync(cancellationToken);
@@ -225,7 +219,6 @@ public class CreditMemoService : ICreditMemoService
             throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
 
         lineItem.CreatedAt = DateTime.UtcNow;
-        lineItem.UpdatedAt = DateTime.UtcNow;
         lineItem.CreditMemoId = creditMemoId;
         _context.CreditMemoLineItems.Add(lineItem);
         await _context.SaveChangesAsync(cancellationToken);
@@ -240,7 +233,6 @@ public class CreditMemoService : ICreditMemoService
         if (existing == null || existing.IsDeleted)
             throw new InvalidOperationException($"Credit memo line item {lineItem.Id} not found");
 
-        lineItem.UpdatedAt = DateTime.UtcNow;
         _context.CreditMemoLineItems.Update(lineItem);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -254,7 +246,6 @@ public class CreditMemoService : ICreditMemoService
             return false;
 
         li.IsDeleted = true;
-        li.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }

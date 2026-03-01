@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
-public class UtmTrackingController : ControllerBase
+public class UtmTrackingController : CrmControllerBase
 {
     private readonly IUtmTrackingService _utmTrackingService;
     private readonly ILogger<UtmTrackingController> _logger;
@@ -49,11 +50,6 @@ public class UtmTrackingController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving tracking links for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error retrieving tracking links" });
-        }
     }
 
     /// <summary>
@@ -80,11 +76,6 @@ public class UtmTrackingController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating tracking link for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error creating tracking link" });
-        }
     }
 
     /// <summary>
@@ -98,16 +89,8 @@ public class UtmTrackingController : ControllerBase
         [FromQuery] int leadId,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            await _utmTrackingService.AssociateLeadAsync(token, leadId, cancellationToken);
-            return Ok(new { message = "Lead associated with UTM click" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error associating lead {LeadId} with token {Token}", leadId, token);
-            return StatusCode(500, new { message = "Error associating lead" });
-        }
+                await _utmTrackingService.AssociateLeadAsync(token, leadId, cancellationToken);
+        return Ok(new { message = "Lead associated with UTM click" });
     }
 
     #endregion
@@ -126,19 +109,11 @@ public class UtmTrackingController : ControllerBase
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
         var ua = Request.Headers.UserAgent.ToString();
 
-        try
-        {
-            var destinationUrl = await _utmTrackingService.ResolveAndTrackAsync(token, ip, ua, cancellationToken);
-            if (string.IsNullOrEmpty(destinationUrl))
-                return NotFound(new { message = "Tracking link not found or expired" });
+                var destinationUrl = await _utmTrackingService.ResolveAndTrackAsync(token, ip, ua, cancellationToken);
+        if (string.IsNullOrEmpty(destinationUrl))
+            return NotFound(new { message = "Tracking link not found or expired" });
 
-            return Redirect(destinationUrl);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error resolving tracking token {Token}", token);
-            return StatusCode(500, new { message = "Error processing tracking link" });
-        }
+        return Redirect(destinationUrl);
     }
 
     #endregion

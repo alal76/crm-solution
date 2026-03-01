@@ -144,7 +144,6 @@ public class ServiceRequestCategoryService : IServiceRequestCategoryService
         category.ColorCode = dto.ColorCode;
         category.DefaultResponseTimeHours = dto.DefaultResponseTimeHours;
         category.DefaultResolutionTimeHours = dto.DefaultResolutionTimeHours;
-        category.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -160,7 +159,6 @@ public class ServiceRequestCategoryService : IServiceRequestCategoryService
             return false;
 
         category.IsDeleted = true;
-        category.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted service request category: {Name}", category.Name);
@@ -175,7 +173,6 @@ public class ServiceRequestCategoryService : IServiceRequestCategoryService
             if (category != null)
             {
                 category.DisplayOrder = i;
-                category.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -285,7 +282,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
         subcategory.ResponseTimeHours = dto.ResponseTimeHours;
         subcategory.ResolutionTimeHours = dto.ResolutionTimeHours;
         subcategory.DefaultPriority = dto.DefaultPriority;
-        subcategory.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -301,7 +297,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
             return false;
 
         subcategory.IsDeleted = true;
-        subcategory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted service request subcategory: {Name}", subcategory.Name);
@@ -316,7 +311,6 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
             if (subcategory != null && subcategory.CategoryId == categoryId)
             {
                 subcategory.DisplayOrder = i;
-                subcategory.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -471,7 +465,6 @@ public class ServiceRequestCustomFieldService : IServiceRequestCustomFieldServic
         field.ValidationMessage = dto.ValidationMessage;
         field.CategoryId = dto.CategoryId;
         field.SubcategoryId = dto.SubcategoryId;
-        field.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -487,7 +480,6 @@ public class ServiceRequestCustomFieldService : IServiceRequestCustomFieldServic
             return false;
 
         field.IsDeleted = true;
-        field.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted custom field definition: {Name} ({FieldKey})", field.Name, field.FieldKey);
@@ -502,7 +494,6 @@ public class ServiceRequestCustomFieldService : IServiceRequestCustomFieldServic
             if (field != null)
             {
                 field.DisplayOrder = i;
-                field.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -722,7 +713,6 @@ public class ServiceRequestTypeService : IServiceRequestTypeService
         type.ResponseTimeHours = dto.ResponseTimeHours;
         type.ResolutionTimeHours = dto.ResolutionTimeHours;
         type.Tags = dto.Tags;
-        type.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -738,7 +728,6 @@ public class ServiceRequestTypeService : IServiceRequestTypeService
             return false;
 
         type.IsDeleted = true;
-        type.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted service request type: {Id}", id);
@@ -754,7 +743,6 @@ public class ServiceRequestTypeService : IServiceRequestTypeService
             if (type != null)
             {
                 type.DisplayOrder = i;
-                type.UpdatedAt = DateTime.UtcNow;
             }
         }
 

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -24,7 +25,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class MonitoringController : ControllerBase
+public class MonitoringController : CrmControllerBase
 {
     private readonly IMonitoringService _monitoringService;
     private readonly CrmDbContext _context;
@@ -107,29 +108,21 @@ public class MonitoringController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<EnvironmentInfo>> GetEnvironment(CancellationToken ct)
     {
-        try
-        {
-            var infra = await _monitoringService.GetInfrastructureInfoAsync(ct);
+                var infra = await _monitoringService.GetInfrastructureInfoAsync(ct);
 
-            return Ok(new EnvironmentInfo
-            {
-                DeploymentType = infra.DeploymentTypeName,
-                IsDocker = infra.Host.IsDocker,
-                IsKubernetes = infra.Host.IsKubernetes,
-                DatabaseProvider = infra.Database.ProviderName,
-                DatabaseConnected = infra.Database.IsConnected,
-                Hostname = infra.Host.Hostname,
-                Version = GetAssemblyVersion(),
-                DotNetVersion = infra.Host.DotNetVersion,
-                EnabledMonitors = infra.ActiveMonitors,
-                Timestamp = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
+        return Ok(new EnvironmentInfo
         {
-            _logger.LogError(ex, "Error getting environment info");
-            return StatusCode(500, new { message = "Error getting environment info", error = ex.Message });
-        }
+            DeploymentType = infra.DeploymentTypeName,
+            IsDocker = infra.Host.IsDocker,
+            IsKubernetes = infra.Host.IsKubernetes,
+            DatabaseProvider = infra.Database.ProviderName,
+            DatabaseConnected = infra.Database.IsConnected,
+            Hostname = infra.Host.Hostname,
+            Version = GetAssemblyVersion(),
+            DotNetVersion = infra.Host.DotNetVersion,
+            EnabledMonitors = infra.ActiveMonitors,
+            Timestamp = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -516,21 +509,13 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<MonitoringData>> GetAllMonitoringData(CancellationToken ct)
     {
-        try
-        {
-            _logger.LogInformation("Fetching all monitoring data");
-            var data = await _monitoringService.GetAllMonitoringDataAsync(ct);
+                _logger.LogInformation("Fetching all monitoring data");
+        var data = await _monitoringService.GetAllMonitoringDataAsync(ct);
 
-            // Add active sessions from database
-            data.ActiveSessions = await GetActiveSessionsFromDb(ct);
+        // Add active sessions from database
+        data.ActiveSessions = await GetActiveSessionsFromDb(ct);
 
-            return Ok(data);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting all monitoring data");
-            return StatusCode(500, new { message = "Error getting monitoring data", error = ex.Message });
-        }
+        return Ok(data);
     }
 
     /// <summary>
@@ -540,16 +525,8 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<InfrastructureInfo>> GetInfrastructure(CancellationToken ct)
     {
-        try
-        {
-            var info = await _monitoringService.GetInfrastructureInfoAsync(ct);
-            return Ok(info);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting infrastructure info");
-            return StatusCode(500, new { message = "Error getting infrastructure info" });
-        }
+                var info = await _monitoringService.GetInfrastructureInfoAsync(ct);
+        return Ok(info);
     }
 
     /// <summary>
@@ -559,16 +536,8 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<SystemMetrics>> GetSystemMetrics(CancellationToken ct)
     {
-        try
-        {
-            var metrics = await _monitoringService.GetSystemMetricsAsync(ct);
-            return Ok(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting system metrics");
-            return StatusCode(500, new { message = "Error getting system metrics" });
-        }
+                var metrics = await _monitoringService.GetSystemMetricsAsync(ct);
+        return Ok(metrics);
     }
 
     /// <summary>
@@ -578,16 +547,8 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<DatabaseMetrics>> GetDatabaseMetrics(CancellationToken ct)
     {
-        try
-        {
-            var metrics = await _monitoringService.GetDatabaseMetricsAsync(ct);
-            return Ok(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting database metrics");
-            return StatusCode(500, new { message = "Error getting database metrics" });
-        }
+                var metrics = await _monitoringService.GetDatabaseMetricsAsync(ct);
+        return Ok(metrics);
     }
 
     /// <summary>
@@ -597,16 +558,8 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<ServiceHealth>>> GetServices(CancellationToken ct)
     {
-        try
-        {
-            var services = await _monitoringService.GetServiceHealthAsync(ct);
-            return Ok(services);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service health");
-            return StatusCode(500, new { message = "Error getting service health" });
-        }
+                var services = await _monitoringService.GetServiceHealthAsync(ct);
+        return Ok(services);
     }
 
     /// <summary>
@@ -616,16 +569,8 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<ContainerHealth>>> GetContainers(CancellationToken ct)
     {
-        try
-        {
-            var containers = await _monitoringService.GetContainerHealthAsync(ct);
-            return Ok(containers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting container health");
-            return StatusCode(500, new { message = "Error getting container health" });
-        }
+                var containers = await _monitoringService.GetContainerHealthAsync(ct);
+        return Ok(containers);
     }
 
     /// <summary>
@@ -635,16 +580,8 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<PodHealth>>> GetPods(CancellationToken ct)
     {
-        try
-        {
-            var pods = await _monitoringService.GetPodHealthAsync(ct);
-            return Ok(pods);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting pod health");
-            return StatusCode(500, new { message = "Error getting pod health" });
-        }
+                var pods = await _monitoringService.GetPodHealthAsync(ct);
+        return Ok(pods);
     }
 
     /// <summary>
@@ -654,16 +591,8 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<MonitoringUserSession>>> GetSessions(CancellationToken ct)
     {
-        try
-        {
-            var sessions = await GetActiveSessionsFromDb(ct);
-            return Ok(sessions);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting active sessions");
-            return StatusCode(500, new { message = "Error getting active sessions" });
-        }
+                var sessions = await GetActiveSessionsFromDb(ct);
+        return Ok(sessions);
     }
 
     /// <summary>
@@ -673,16 +602,8 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public ActionResult<MonitoringOptions> GetConfig()
     {
-        try
-        {
-            var options = _monitoringService.GetMonitoringOptions();
-            return Ok(options);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting monitoring config");
-            return StatusCode(500, new { message = "Error getting monitoring config" });
-        }
+                var options = _monitoringService.GetMonitoringOptions();
+        return Ok(options);
     }
 
     /// <summary>
@@ -692,40 +613,32 @@ public class MonitoringController : ControllerBase
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult> GetDetailedHealth(CancellationToken ct)
     {
-        try
-        {
-            var dbHealthy = await _context.Database.CanConnectAsync(ct);
-            var options = _monitoringService.GetMonitoringOptions();
-            var system = await _monitoringService.GetSystemMetricsAsync(ct);
+                var dbHealthy = await _context.Database.CanConnectAsync(ct);
+        var options = _monitoringService.GetMonitoringOptions();
+        var system = await _monitoringService.GetSystemMetricsAsync(ct);
 
-            return Ok(new
-            {
-                status = dbHealthy ? "healthy" : "degraded",
-                timestamp = DateTime.UtcNow,
-                version = GetAssemblyVersion(),
-                database = new
-                {
-                    provider = options.DatabaseProvider,
-                    connected = dbHealthy
-                },
-                deployment = new
-                {
-                    type = options.DeploymentType,
-                    server = options.BuildServer
-                },
-                system = new
-                {
-                    cpuPercent = system.Cpu.UsagePercent,
-                    memoryMB = system.Memory.ProcessWorkingSetMB,
-                    uptime = system.Process.UptimeFormatted
-                }
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error during detailed health check");
-            return StatusCode(500, new { status = "error", message = ex.Message });
-        }
+            status = dbHealthy ? "healthy" : "degraded",
+            timestamp = DateTime.UtcNow,
+            version = GetAssemblyVersion(),
+            database = new
+            {
+                provider = options.DatabaseProvider,
+                connected = dbHealthy
+            },
+            deployment = new
+            {
+                type = options.DeploymentType,
+                server = options.BuildServer
+            },
+            system = new
+            {
+                cpuPercent = system.Cpu.UsagePercent,
+                memoryMB = system.Memory.ProcessWorkingSetMB,
+                uptime = system.Process.UptimeFormatted
+            }
+        });
     }
 
     #endregion

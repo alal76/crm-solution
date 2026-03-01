@@ -87,7 +87,6 @@ public class EventAttendeeService : IEventAttendeeService
         _logger.LogDebug("Creating attendee for activity {ActivityId}: {AttendeeName}", attendee.ActivityId, attendee.AttendeeName);
 
         attendee.CreatedAt = DateTime.UtcNow;
-        attendee.UpdatedAt = DateTime.UtcNow;
         attendee.IsDeleted = false;
 
         _context.EventAttendees.Add(attendee);
@@ -128,7 +127,6 @@ public class EventAttendeeService : IEventAttendeeService
         existing.AttendanceNotes = attendee.AttendanceNotes;
         existing.ExternalCalendarEventId = attendee.ExternalCalendarEventId;
         existing.InvitationSentAt = attendee.InvitationSentAt;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -152,7 +150,6 @@ public class EventAttendeeService : IEventAttendeeService
 
         // Soft delete
         attendee.IsDeleted = true;
-        attendee.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -194,7 +191,6 @@ public class EventAttendeeService : IEventAttendeeService
         attendee.ResponseStatus = status;
         attendee.RespondedAt = DateTime.UtcNow;
         attendee.ResponseComment = comment;
-        attendee.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -219,7 +215,6 @@ public class EventAttendeeService : IEventAttendeeService
         attendee.DidAttend = didAttend;
         attendee.AttendanceDurationMinutes = durationMinutes;
         attendee.AttendanceNotes = notes;
-        attendee.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

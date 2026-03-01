@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/subscriptions/analytics")]
 [Authorize]
 [Produces("application/json")]
-public class SubscriptionAnalyticsController : ControllerBase
+public class SubscriptionAnalyticsController : CrmControllerBase
 {
     private readonly ISubscriptionMetricsAggregator _metricsAggregator;
     private readonly ILogger<SubscriptionAnalyticsController> _logger;
@@ -42,23 +43,15 @@ public class SubscriptionAnalyticsController : ControllerBase
     public async Task<ActionResult<RevenueMetricResponse>> GetMRR(
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
+                var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
 
-            return Ok(new RevenueMetricResponse
-            {
-                MetricType = "MRR",
-                Value = mrr,
-                Description = "Monthly Recurring Revenue — sum of all active subscriptions normalized to monthly value.",
-                CalculatedAt = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
+        return Ok(new RevenueMetricResponse
         {
-            _logger.LogError(ex, "Error calculating MRR");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error calculating MRR");
-        }
+            MetricType = "MRR",
+            Value = mrr,
+            Description = "Monthly Recurring Revenue — sum of all active subscriptions normalized to monthly value.",
+            CalculatedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -71,23 +64,15 @@ public class SubscriptionAnalyticsController : ControllerBase
     public async Task<ActionResult<RevenueMetricResponse>> GetARR(
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var arr = await _metricsAggregator.CalculateARRAsync(cancellationToken);
+                var arr = await _metricsAggregator.CalculateARRAsync(cancellationToken);
 
-            return Ok(new RevenueMetricResponse
-            {
-                MetricType = "ARR",
-                Value = arr,
-                Description = "Annual Recurring Revenue = MRR × 12.",
-                CalculatedAt = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
+        return Ok(new RevenueMetricResponse
         {
-            _logger.LogError(ex, "Error calculating ARR");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error calculating ARR");
-        }
+            MetricType = "ARR",
+            Value = arr,
+            Description = "Annual Recurring Revenue = MRR × 12.",
+            CalculatedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -101,34 +86,26 @@ public class SubscriptionAnalyticsController : ControllerBase
         [FromQuery] int monthsBack = 3,
         CancellationToken cancellationToken = default)
     {
-        try
+                var history = new List<MonthlyChurnItem>();
+        for (var i = monthsBack - 1; i >= 0; i--)
         {
-            var history = new List<MonthlyChurnItem>();
-            for (var i = monthsBack - 1; i >= 0; i--)
+            var rate = await _metricsAggregator.CalculateChurnRateAsync(i, cancellationToken);
+            var targetDate = DateTime.UtcNow.AddMonths(-i);
+            history.Add(new MonthlyChurnItem
             {
-                var rate = await _metricsAggregator.CalculateChurnRateAsync(i, cancellationToken);
-                var targetDate = DateTime.UtcNow.AddMonths(-i);
-                history.Add(new MonthlyChurnItem
-                {
-                    Month = targetDate.ToString("yyyy-MM"),
-                    ChurnRate = rate
-                });
-            }
-
-            var currentChurn = history.LastOrDefault()?.ChurnRate ?? 0;
-
-            return Ok(new ChurnRateResponse
-            {
-                CurrentChurnRate = currentChurn,
-                MonthlyHistory = history,
-                CalculatedAt = DateTime.UtcNow
+                Month = targetDate.ToString("yyyy-MM"),
+                ChurnRate = rate
             });
         }
-        catch (Exception ex)
+
+        var currentChurn = history.LastOrDefault()?.ChurnRate ?? 0;
+
+        return Ok(new ChurnRateResponse
         {
-            _logger.LogError(ex, "Error calculating churn rate");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error calculating churn rate");
-        }
+            CurrentChurnRate = currentChurn,
+            MonthlyHistory = history,
+            CalculatedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -141,32 +118,24 @@ public class SubscriptionAnalyticsController : ControllerBase
     public async Task<ActionResult<GrowthMetricsResponse>> GetGrowthMetrics(
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var currentMRR = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
-            var currentARR = await _metricsAggregator.CalculateARRAsync(cancellationToken);
-            var nrr = await _metricsAggregator.CalculateNRRAsync(cancellationToken);
-            var churnRate = await _metricsAggregator.CalculateChurnRateAsync(0, cancellationToken);
-            var companyMetrics = await _metricsAggregator.CalculateCompanyMetricsAsync(null, cancellationToken);
+                var currentMRR = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
+        var currentARR = await _metricsAggregator.CalculateARRAsync(cancellationToken);
+        var nrr = await _metricsAggregator.CalculateNRRAsync(cancellationToken);
+        var churnRate = await _metricsAggregator.CalculateChurnRateAsync(0, cancellationToken);
+        var companyMetrics = await _metricsAggregator.CalculateCompanyMetricsAsync(null, cancellationToken);
 
-            return Ok(new GrowthMetricsResponse
-            {
-                CurrentMRR = currentMRR,
-                CurrentARR = currentARR,
-                NetRevenueRetention = nrr,
-                ChurnRate = churnRate,
-                ActiveSubscriptions = companyMetrics.ActiveSubscriptions,
-                TotalSubscriptions = companyMetrics.TotalSubscriptions,
-                AverageContractValue = companyMetrics.AverageContractValue,
-                CustomerLifetimeValue = companyMetrics.CustomerLifetimeValue,
-                CalculatedAt = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
+        return Ok(new GrowthMetricsResponse
         {
-            _logger.LogError(ex, "Error calculating growth metrics");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error calculating growth metrics");
-        }
+            CurrentMRR = currentMRR,
+            CurrentARR = currentARR,
+            NetRevenueRetention = nrr,
+            ChurnRate = churnRate,
+            ActiveSubscriptions = companyMetrics.ActiveSubscriptions,
+            TotalSubscriptions = companyMetrics.TotalSubscriptions,
+            AverageContractValue = companyMetrics.AverageContractValue,
+            CustomerLifetimeValue = companyMetrics.CustomerLifetimeValue,
+            CalculatedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -180,35 +149,27 @@ public class SubscriptionAnalyticsController : ControllerBase
         [FromQuery] int monthsBack = 12,
         CancellationToken cancellationToken = default)
     {
-        try
+                // TODO: Implement full cohort analysis (MRR by cohort) using historical subscription data.
+        // Cohort analysis requires querying subscriptions by their start month and tracking their MRR over time.
+        // This is a stub that returns computed monthly MRR as a single-cohort approximation.
+        var cohorts = new List<CohortItem>();
+        for (var i = monthsBack - 1; i >= 0; i--)
         {
-            // TODO: Implement full cohort analysis (MRR by cohort) using historical subscription data.
-            // Cohort analysis requires querying subscriptions by their start month and tracking their MRR over time.
-            // This is a stub that returns computed monthly MRR as a single-cohort approximation.
-            var cohorts = new List<CohortItem>();
-            for (var i = monthsBack - 1; i >= 0; i--)
+            var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
+            var targetDate = DateTime.UtcNow.AddMonths(-i);
+            cohorts.Add(new CohortItem
             {
-                var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
-                var targetDate = DateTime.UtcNow.AddMonths(-i);
-                cohorts.Add(new CohortItem
-                {
-                    CohortMonth = targetDate.ToString("yyyy-MM"),
-                    MRR = mrr,
-                    SubscriptionCount = 0 // TODO: count per cohort month
-                });
-            }
-
-            return Ok(new CohortAnalysisResponse
-            {
-                Cohorts = cohorts,
-                CalculatedAt = DateTime.UtcNow
+                CohortMonth = targetDate.ToString("yyyy-MM"),
+                MRR = mrr,
+                SubscriptionCount = 0 // TODO: count per cohort month
             });
         }
-        catch (Exception ex)
+
+        return Ok(new CohortAnalysisResponse
         {
-            _logger.LogError(ex, "Error calculating cohort analysis");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error calculating cohort analysis");
-        }
+            Cohorts = cohorts,
+            CalculatedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -221,38 +182,30 @@ public class SubscriptionAnalyticsController : ControllerBase
     public async Task<ActionResult<RevenueBreakdownResponse>> GetRevenueBreakdown(
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var companyMetrics = await _metricsAggregator.CalculateCompanyMetricsAsync(null, cancellationToken);
-            var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
-            var arr = await _metricsAggregator.CalculateARRAsync(cancellationToken);
+                var companyMetrics = await _metricsAggregator.CalculateCompanyMetricsAsync(null, cancellationToken);
+        var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
+        var arr = await _metricsAggregator.CalculateARRAsync(cancellationToken);
 
-            // TODO: Break down MRR by billing cycle (Weekly/Monthly/Quarterly/Yearly) and product
-            // when detailed subscription product data is included in the aggregator.
-            return Ok(new RevenueBreakdownResponse
-            {
-                TotalMRR = mrr,
-                TotalARR = arr,
-                ActiveSubscriptions = companyMetrics.ActiveSubscriptions,
-                // Placeholder — full breakdown requires grouping by ProductId/BillingCycle
-                BreakdownItems = new List<RevenueBreakdownItem>
-                {
-                    new()
-                    {
-                        Label = "All Active Subscriptions",
-                        MRR = mrr,
-                        ARR = arr,
-                        SubscriptionCount = companyMetrics.ActiveSubscriptions
-                    }
-                },
-                CalculatedAt = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
+        // TODO: Break down MRR by billing cycle (Weekly/Monthly/Quarterly/Yearly) and product
+        // when detailed subscription product data is included in the aggregator.
+        return Ok(new RevenueBreakdownResponse
         {
-            _logger.LogError(ex, "Error calculating revenue breakdown");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error calculating revenue breakdown");
-        }
+            TotalMRR = mrr,
+            TotalARR = arr,
+            ActiveSubscriptions = companyMetrics.ActiveSubscriptions,
+            // Placeholder — full breakdown requires grouping by ProductId/BillingCycle
+            BreakdownItems = new List<RevenueBreakdownItem>
+            {
+                new()
+                {
+                    Label = "All Active Subscriptions",
+                    MRR = mrr,
+                    ARR = arr,
+                    SubscriptionCount = companyMetrics.ActiveSubscriptions
+                }
+            },
+            CalculatedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -265,16 +218,8 @@ public class SubscriptionAnalyticsController : ControllerBase
     public async Task<ActionResult<SubscriptionAnalyticsDto>> GetDashboard(
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var metrics = await _metricsAggregator.CalculateCompanyMetricsAsync(null, cancellationToken);
-            return Ok(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving analytics dashboard");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving analytics dashboard");
-        }
+                var metrics = await _metricsAggregator.CalculateCompanyMetricsAsync(null, cancellationToken);
+        return Ok(metrics);
     }
 
     #region Response DTOs

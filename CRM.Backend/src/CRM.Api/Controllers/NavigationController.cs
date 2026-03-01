@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using CRM.Core.Dtos;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers
 {
@@ -22,7 +23,7 @@ namespace CRM.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Tags("Navigation")]
-    public class NavigationController : ControllerBase
+    public class NavigationController : CrmControllerBase
     {
         private readonly INavigationConfigService _navigationConfigService;
         private readonly ILogger<NavigationController> _logger;

@@ -159,7 +159,6 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
             throw new InvalidOperationException($"Campaign with ID {id} not found");
         CampaignMapper.UpdateEntity(campaign, dto);
         ValidateCampaign(campaign);
-        campaign.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(campaign);
         await _repository.SaveAsync();
     }
@@ -175,7 +174,6 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         // Soft delete by marking as deleted rather than hard delete
         // This preserves campaign history for metrics and reporting
         campaign.IsDeleted = true;
-        campaign.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(campaign);
         await _repository.SaveAsync();
     }

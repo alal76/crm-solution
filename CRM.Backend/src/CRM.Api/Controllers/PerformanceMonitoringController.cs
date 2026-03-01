@@ -9,6 +9,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/performance")]
 [RequireRole(UserRole.Admin)]
-public class PerformanceMonitoringController : ControllerBase
+public class PerformanceMonitoringController : CrmControllerBase
 {
     private readonly IPerformanceOptimizationService _service;
     private readonly ILogger<PerformanceMonitoringController> _logger;
@@ -38,16 +39,8 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(typeof(PerformanceDashboardDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<PerformanceDashboardDto>> GetPerformanceDashboard(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var dashboard = await _service.GetPerformanceDashboardAsync(cancellationToken);
-            return Ok(dashboard);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving performance dashboard");
-            return StatusCode(500, new { error = "Failed to retrieve dashboard" });
-        }
+                var dashboard = await _service.GetPerformanceDashboardAsync(cancellationToken);
+        return Ok(dashboard);
     }
 
     /// <summary>
@@ -58,20 +51,12 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<PerformanceStatisticsDto>> GetEndpointStatistics(string endpoint, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var stats = await _service.GetEndpointStatisticsAsync(endpoint, cancellationToken: cancellationToken);
+                var stats = await _service.GetEndpointStatisticsAsync(endpoint, cancellationToken: cancellationToken);
 
-            if (stats == null)
-                return NotFound(new { error = $"No statistics found for endpoint {endpoint}" });
+        if (stats == null)
+            return NotFound(new { error = $"No statistics found for endpoint {endpoint}" });
 
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving endpoint statistics");
-            return StatusCode(500, new { error = "Failed to retrieve statistics" });
-        }
+        return Ok(stats);
     }
 
     /// <summary>
@@ -81,16 +66,8 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<PerformanceStatisticsDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PerformanceStatisticsDto>>> GetSlowEndpoints(int count = 10, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var endpoints = await _service.GetSlowEndpointsAsync(count, cancellationToken);
-            return Ok(endpoints);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving slow endpoints");
-            return StatusCode(500, new { error = "Failed to retrieve endpoints" });
-        }
+                var endpoints = await _service.GetSlowEndpointsAsync(count, cancellationToken);
+        return Ok(endpoints);
     }
 
     /// <summary>
@@ -100,16 +77,8 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<QueryPerformanceDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<QueryPerformanceDto>>> GetQueryPerformance(int count = 10, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var queries = await _service.GetQueryPerformanceAsync(count, cancellationToken);
-            return Ok(queries);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving query performance");
-            return StatusCode(500, new { error = "Failed to retrieve query performance" });
-        }
+                var queries = await _service.GetQueryPerformanceAsync(count, cancellationToken);
+        return Ok(queries);
     }
 
     /// <summary>
@@ -119,16 +88,8 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<PerformanceRecommendationDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<PerformanceRecommendationDto>>> GetRecommendations(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var recommendations = await _service.GetPerformanceRecommendationsAsync(cancellationToken);
-            return Ok(recommendations);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving recommendations");
-            return StatusCode(500, new { error = "Failed to retrieve recommendations" });
-        }
+                var recommendations = await _service.GetPerformanceRecommendationsAsync(cancellationToken);
+        return Ok(recommendations);
     }
 
     /// <summary>
@@ -138,16 +99,8 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(typeof(CacheStatisticsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<CacheStatisticsDto>> GetCacheStatistics(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var stats = await _service.GetCacheStatisticsAsync(cancellationToken);
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving cache statistics");
-            return StatusCode(500, new { error = "Failed to retrieve cache statistics" });
-        }
+                var stats = await _service.GetCacheStatisticsAsync(cancellationToken);
+        return Ok(stats);
     }
 
     /// <summary>
@@ -157,21 +110,13 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ClearCache(string? pattern = null, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await _service.ClearCacheAsync(pattern, cancellationToken);
+                var result = await _service.ClearCacheAsync(pattern, cancellationToken);
 
-            if (!result)
-                return BadRequest(new { error = "Failed to clear cache" });
+        if (!result)
+            return BadRequest(new { error = "Failed to clear cache" });
 
-            _logger.LogInformation("Cache cleared{Pattern}", pattern != null ? $" (pattern: {pattern})" : "");
-            return Ok(new { message = "Cache cleared successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error clearing cache");
-            return StatusCode(500, new { error = "Failed to clear cache" });
-        }
+        _logger.LogInformation("Cache cleared{Pattern}", pattern != null ? $" (pattern: {pattern})" : "");
+        return Ok(new { message = "Cache cleared successfully" });
     }
 
     /// <summary>
@@ -181,20 +126,12 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(typeof(RateLimitConfigDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<RateLimitConfigDto>> GetRateLimit(string endpoint, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var config = await _service.GetRateLimitAsync(endpoint, cancellationToken);
+                var config = await _service.GetRateLimitAsync(endpoint, cancellationToken);
 
-            if (config == null)
-                return NotFound(new { error = "Rate limit configuration not found" });
+        if (config == null)
+            return NotFound(new { error = "Rate limit configuration not found" });
 
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving rate limit configuration");
-            return StatusCode(500, new { error = "Failed to retrieve rate limit" });
-        }
+        return Ok(config);
     }
 
     /// <summary>
@@ -204,21 +141,13 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateRateLimit(RateLimitConfigDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await _service.UpdateRateLimitAsync(dto, cancellationToken);
+                var result = await _service.UpdateRateLimitAsync(dto, cancellationToken);
 
-            if (!result)
-                return BadRequest(new { error = "Failed to update rate limit" });
+        if (!result)
+            return BadRequest(new { error = "Failed to update rate limit" });
 
-            _logger.LogInformation("Rate limit updated for {Endpoint}", dto.Endpoint);
-            return Ok(new { message = "Rate limit updated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating rate limit");
-            return StatusCode(500, new { error = "Failed to update rate limit" });
-        }
+        _logger.LogInformation("Rate limit updated for {Endpoint}", dto.Endpoint);
+        return Ok(new { message = "Rate limit updated" });
     }
 
     /// <summary>
@@ -228,16 +157,8 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(typeof(ErrorStatisticsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ErrorStatisticsDto>> GetErrorStatistics(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var stats = await _service.GetErrorStatisticsAsync(cancellationToken: cancellationToken);
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving error statistics");
-            return StatusCode(500, new { error = "Failed to retrieve error statistics" });
-        }
+                var stats = await _service.GetErrorStatisticsAsync(cancellationToken: cancellationToken);
+        return Ok(stats);
     }
 
     /// <summary>
@@ -247,20 +168,12 @@ public class PerformanceMonitoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> PurgeOldMetrics(int daysToKeep = 30, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (daysToKeep < 1)
-                return BadRequest(new { error = "daysToKeep must be at least 1" });
+                if (daysToKeep < 1)
+            return BadRequest(new { error = "daysToKeep must be at least 1" });
 
-            var count = await _service.PurgeOldMetricsAsync(daysToKeep, cancellationToken);
+        var count = await _service.PurgeOldMetricsAsync(daysToKeep, cancellationToken);
 
-            _logger.LogInformation("Purged {Count} old performance metrics", count);
-            return Ok(new { message = $"Purged {count} metrics older than {daysToKeep} days" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error purging old metrics");
-            return StatusCode(500, new { error = "Failed to purge metrics" });
-        }
+        _logger.LogInformation("Purged {Count} old performance metrics", count);
+        return Ok(new { message = $"Purged {count} metrics older than {daysToKeep} days" });
     }
 }

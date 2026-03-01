@@ -7,6 +7,7 @@
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/ai")]
 [Authorize]
-public class AIInsightsController : ControllerBase
+public class AIInsightsController : CrmControllerBase
 {
     private readonly IChurnPredictionService _churnService;
     private readonly INextBestActionService _nbaService;
@@ -57,16 +58,8 @@ public class AIInsightsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetChurnRisk(int id, CancellationToken ct)
     {
-        try
-        {
-            var result = await _churnService.PredictChurnAsync(id, ct);
-            return result is null ? NotFound(new { message = $"Account {id} not found" }) : Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Churn prediction failed for account {Id}", id);
-            return StatusCode(500, new { message = "Churn prediction failed", error = ex.Message });
-        }
+                var result = await _churnService.PredictChurnAsync(id, ct);
+        return result is null ? NotFound(new { message = $"Account {id} not found" }) : Ok(result);
     }
 
     // ------------------------------------------------------------------ //
@@ -80,16 +73,8 @@ public class AIInsightsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<NextBestActionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetNextBestActions(int id, CancellationToken ct)
     {
-        try
-        {
-            var result = await _nbaService.GetRecommendationsAsync(id, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Next-best-action failed for account {Id}", id);
-            return StatusCode(500, new { message = "Next best action failed", error = ex.Message });
-        }
+                var result = await _nbaService.GetRecommendationsAsync(id, ct);
+        return Ok(result);
     }
 
     // ------------------------------------------------------------------ //
@@ -105,16 +90,8 @@ public class AIInsightsController : ControllerBase
         [FromBody] EmailSentimentRequest request,
         CancellationToken ct)
     {
-        try
-        {
-            var result = await _sentimentService.AnalyzeSentimentAsync(request.Body, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Email sentiment analysis failed");
-            return StatusCode(500, new { message = "Sentiment analysis failed", error = ex.Message });
-        }
+                var result = await _sentimentService.AnalyzeSentimentAsync(request.Body, ct);
+        return Ok(result);
     }
 
     // ------------------------------------------------------------------ //
@@ -129,16 +106,8 @@ public class AIInsightsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GenerateMeetingSummary(int id, CancellationToken ct)
     {
-        try
-        {
-            var result = await _summaryService.GenerateSummaryAsync(id, ct);
-            return result is null ? NotFound(new { message = $"Interaction {id} not found" }) : Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Meeting summary failed for interaction {Id}", id);
-            return StatusCode(500, new { message = "Meeting summary failed", error = ex.Message });
-        }
+                var result = await _summaryService.GenerateSummaryAsync(id, ct);
+        return result is null ? NotFound(new { message = $"Interaction {id} not found" }) : Ok(result);
     }
 
     // ------------------------------------------------------------------ //
@@ -153,16 +122,8 @@ public class AIInsightsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDealRisk(int id, CancellationToken ct)
     {
-        try
-        {
-            var result = await _dealRiskService.CalculateRiskAsync(id, ct);
-            return result is null ? NotFound(new { message = $"Opportunity {id} not found" }) : Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Deal risk calculation failed for opportunity {Id}", id);
-            return StatusCode(500, new { message = "Deal risk calculation failed", error = ex.Message });
-        }
+                var result = await _dealRiskService.CalculateRiskAsync(id, ct);
+        return result is null ? NotFound(new { message = $"Opportunity {id} not found" }) : Ok(result);
     }
 
     // ------------------------------------------------------------------ //
@@ -176,15 +137,7 @@ public class AIInsightsController : ControllerBase
     [ProducesResponseType(typeof(RevenueForecastDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRevenueForecast([FromQuery] int months = 6, CancellationToken ct = default)
     {
-        try
-        {
-            var result = await _forecastService.ForecastRevenueAsync(months, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Revenue forecast failed");
-            return StatusCode(500, new { message = "Revenue forecast failed", error = ex.Message });
-        }
+                var result = await _forecastService.ForecastRevenueAsync(months, ct);
+        return Ok(result);
     }
 }

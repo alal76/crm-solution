@@ -119,7 +119,6 @@ public class ScriptPluginService : IScriptPluginService
         entity.ParameterSchema = dto.ParameterSchema;
         entity.ReturnValueDescription = dto.ReturnValueDescription;
         entity.IsActive = dto.IsActive;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
 
@@ -140,7 +139,6 @@ public class ScriptPluginService : IScriptPluginService
         }
 
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
 

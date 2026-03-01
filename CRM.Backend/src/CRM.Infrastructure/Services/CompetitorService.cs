@@ -66,7 +66,6 @@ public class CompetitorService : ICompetitorService
         existing.PricingTier = competitor.PricingTier;
         existing.MarketSharePercent = competitor.MarketSharePercent;
         existing.IsActive = competitor.IsActive;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated competitor {Id}: {Name}", competitor.Id, competitor.Name);
@@ -79,7 +78,6 @@ public class CompetitorService : ICompetitorService
         if (existing == null) return false;
 
         existing.IsDeleted = true;
-        existing.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Deleted competitor {Id}", id);
         return true;

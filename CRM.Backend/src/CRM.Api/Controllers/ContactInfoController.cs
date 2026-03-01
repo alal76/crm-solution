@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,9 +19,8 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ContactInfoController : ControllerBase
+public class ContactInfoController : CrmControllerBase
 {
-    private const string GenericErrorMessage = "An error occurred";
 
     private readonly IContactInfoService _contactInfoService;
     private readonly ILogger<ContactInfoController> _logger;
@@ -48,21 +48,13 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EntityContactInfoDto>> GetEntityContactInfo(string entityType, int entityId)
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
 
-            var result = await _contactInfoService.GetEntityContactInfoAsync(type, entityId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting contact info for {EntityType} {EntityId}", entityType, entityId);
-            return StatusCode(500, "An error occurred while retrieving contact information");
-        }
+        var result = await _contactInfoService.GetEntityContactInfoAsync(type, entityId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -83,11 +75,6 @@ public class ContactInfoController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sharing contact info");
-            return StatusCode(500, "An error occurred while sharing contact information");
-        }
     }
 
     #endregion
@@ -103,21 +90,13 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedAddressDto>>> GetAddresses(string entityType, int entityId)
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
 
-            var addresses = await _contactInfoService.GetAddressesAsync(type, entityId);
-            return Ok(addresses);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting addresses for {EntityType} {EntityId}", entityType, entityId);
-            return StatusCode(500, "An error occurred while retrieving addresses");
-        }
+        var addresses = await _contactInfoService.GetAddressesAsync(type, entityId);
+        return Ok(addresses);
     }
 
     /// <summary>
@@ -129,20 +108,12 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AddressDto>> GetAddress(int addressId)
     {
-        try
+                var address = await _contactInfoService.GetAddressByIdAsync(addressId);
+        if (address == null)
         {
-            var address = await _contactInfoService.GetAddressByIdAsync(addressId);
-            if (address == null)
-            {
-                return NotFound();
-            }
-            return Ok(address);
+            return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting address {AddressId}", addressId);
-            return StatusCode(500, "An error occurred while retrieving the address");
-        }
+        return Ok(address);
     }
 
     /// <summary>
@@ -153,16 +124,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<object>>> GetEntitiesSharingAddress(int addressId)
     {
-        try
-        {
-            var entities = await _contactInfoService.GetEntitiesSharingAddressAsync(addressId);
-            return Ok(entities.Select(e => new { entityType = e.EntityType.ToString(), entityId = e.EntityId, entityName = e.EntityName }));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting entities sharing address {AddressId}", addressId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var entities = await _contactInfoService.GetEntitiesSharingAddressAsync(addressId);
+        return Ok(entities.Select(e => new { entityType = e.EntityType.ToString(), entityId = e.EntityId, entityName = e.EntityName }));
     }
 
     /// <summary>
@@ -173,16 +136,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<AddressDto>> CreateAddress([FromBody] CreateAddressDto dto)
     {
-        try
-        {
-            var address = await _contactInfoService.CreateAddressAsync(dto, GetCurrentUserId());
-            return CreatedAtAction(nameof(GetAddress), new { addressId = address.Id }, address);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating address");
-            return StatusCode(500, "An error occurred while creating the address");
-        }
+                var address = await _contactInfoService.CreateAddressAsync(dto, GetCurrentUserId());
+        return CreatedAtAction(nameof(GetAddress), new { addressId = address.Id }, address);
     }
 
     /// <summary>
@@ -202,11 +157,6 @@ public class ContactInfoController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking address");
-            return StatusCode(500, "An error occurred while linking the address");
         }
     }
 
@@ -228,11 +178,6 @@ public class ContactInfoController : ControllerBase
         {
             return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating address {AddressId}", addressId);
-            return StatusCode(500, "An error occurred while updating the address");
-        }
     }
 
     /// <summary>
@@ -243,16 +188,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnlinkAddress(int linkId)
     {
-        try
-        {
-            await _contactInfoService.UnlinkAddressAsync(linkId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking address link {LinkId}", linkId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _contactInfoService.UnlinkAddressAsync(linkId);
+        return NoContent();
     }
 
     /// <summary>
@@ -263,16 +200,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteAddress(int addressId)
     {
-        try
-        {
-            await _contactInfoService.DeleteAddressAsync(addressId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting address {AddressId}", addressId);
-            return StatusCode(500, "An error occurred while deleting the address");
-        }
+                await _contactInfoService.DeleteAddressAsync(addressId);
+        return NoContent();
     }
 
     /// <summary>
@@ -284,25 +213,17 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryAddress(string entityType, int entityId, int addressId, [FromQuery] string addressTypeStr = "Primary")
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
-            if (!Enum.TryParse<AddressType>(addressTypeStr, true, out var addressType))
-            {
-                addressType = AddressType.Primary;
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
+        if (!Enum.TryParse<AddressType>(addressTypeStr, true, out var addressType))
+        {
+            addressType = AddressType.Primary;
+        }
 
-            await _contactInfoService.SetPrimaryAddressAsync(type, entityId, addressId, addressType);
-            return Ok(new { message = "Primary address updated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary address");
-            return StatusCode(500, GenericErrorMessage);
-        }
+        await _contactInfoService.SetPrimaryAddressAsync(type, entityId, addressId, addressType);
+        return Ok(new { message = "Primary address updated" });
     }
 
     #endregion
@@ -318,21 +239,13 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedPhoneDto>>> GetPhoneNumbers(string entityType, int entityId)
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
 
-            var phones = await _contactInfoService.GetPhoneNumbersAsync(type, entityId);
-            return Ok(phones);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting phones for {EntityType} {EntityId}", entityType, entityId);
-            return StatusCode(500, "An error occurred while retrieving phone numbers");
-        }
+        var phones = await _contactInfoService.GetPhoneNumbersAsync(type, entityId);
+        return Ok(phones);
     }
 
     /// <summary>
@@ -344,20 +257,12 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PhoneNumberDto>> GetPhoneNumber(int phoneId)
     {
-        try
+                var phone = await _contactInfoService.GetPhoneNumberByIdAsync(phoneId);
+        if (phone == null)
         {
-            var phone = await _contactInfoService.GetPhoneNumberByIdAsync(phoneId);
-            if (phone == null)
-            {
-                return NotFound();
-            }
-            return Ok(phone);
+            return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting phone {PhoneId}", phoneId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+        return Ok(phone);
     }
 
     /// <summary>
@@ -368,16 +273,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<object>>> GetEntitiesSharingPhone(int phoneId)
     {
-        try
-        {
-            var entities = await _contactInfoService.GetEntitiesSharingPhoneAsync(phoneId);
-            return Ok(entities.Select(e => new { entityType = e.EntityType.ToString(), entityId = e.EntityId, entityName = e.EntityName }));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting entities sharing phone {PhoneId}", phoneId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var entities = await _contactInfoService.GetEntitiesSharingPhoneAsync(phoneId);
+        return Ok(entities.Select(e => new { entityType = e.EntityType.ToString(), entityId = e.EntityId, entityName = e.EntityName }));
     }
 
     /// <summary>
@@ -388,16 +285,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PhoneNumberDto>> CreatePhoneNumber([FromBody] CreatePhoneNumberDto dto)
     {
-        try
-        {
-            var phone = await _contactInfoService.CreatePhoneNumberAsync(dto, GetCurrentUserId());
-            return CreatedAtAction(nameof(GetPhoneNumber), new { phoneId = phone.Id }, phone);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating phone number");
-            return StatusCode(500, "An error occurred while creating the phone number");
-        }
+                var phone = await _contactInfoService.CreatePhoneNumberAsync(dto, GetCurrentUserId());
+        return CreatedAtAction(nameof(GetPhoneNumber), new { phoneId = phone.Id }, phone);
     }
 
     /// <summary>
@@ -417,11 +306,6 @@ public class ContactInfoController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking phone number");
-            return StatusCode(500, "An error occurred while linking the phone number");
         }
     }
 
@@ -443,11 +327,6 @@ public class ContactInfoController : ControllerBase
         {
             return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating phone {PhoneId}", phoneId);
-            return StatusCode(500, "An error occurred while updating the phone number");
-        }
     }
 
     /// <summary>
@@ -458,16 +337,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnlinkPhoneNumber(int linkId)
     {
-        try
-        {
-            await _contactInfoService.UnlinkPhoneNumberAsync(linkId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking phone link {LinkId}", linkId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _contactInfoService.UnlinkPhoneNumberAsync(linkId);
+        return NoContent();
     }
 
     /// <summary>
@@ -478,16 +349,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeletePhoneNumber(int phoneId)
     {
-        try
-        {
-            await _contactInfoService.DeletePhoneNumberAsync(phoneId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting phone {PhoneId}", phoneId);
-            return StatusCode(500, "An error occurred while deleting the phone number");
-        }
+                await _contactInfoService.DeletePhoneNumberAsync(phoneId);
+        return NoContent();
     }
 
     /// <summary>
@@ -499,25 +362,17 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryPhone(string entityType, int entityId, int phoneId, [FromQuery] string phoneTypeStr = "Office")
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
-            if (!Enum.TryParse<PhoneType>(phoneTypeStr, true, out var phoneType))
-            {
-                phoneType = PhoneType.Office;
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
+        if (!Enum.TryParse<PhoneType>(phoneTypeStr, true, out var phoneType))
+        {
+            phoneType = PhoneType.Office;
+        }
 
-            await _contactInfoService.SetPrimaryPhoneAsync(type, entityId, phoneId, phoneType);
-            return Ok(new { message = "Primary phone updated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary phone");
-            return StatusCode(500, GenericErrorMessage);
-        }
+        await _contactInfoService.SetPrimaryPhoneAsync(type, entityId, phoneId, phoneType);
+        return Ok(new { message = "Primary phone updated" });
     }
 
     #endregion
@@ -533,21 +388,13 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedEmailDto>>> GetEmailAddresses(string entityType, int entityId)
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
 
-            var emails = await _contactInfoService.GetEmailAddressesAsync(type, entityId);
-            return Ok(emails);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting emails for {EntityType} {EntityId}", entityType, entityId);
-            return StatusCode(500, "An error occurred while retrieving email addresses");
-        }
+        var emails = await _contactInfoService.GetEmailAddressesAsync(type, entityId);
+        return Ok(emails);
     }
 
     /// <summary>
@@ -559,20 +406,12 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EmailAddressDto>> GetEmailAddress(int emailId)
     {
-        try
+                var email = await _contactInfoService.GetEmailAddressByIdAsync(emailId);
+        if (email == null)
         {
-            var email = await _contactInfoService.GetEmailAddressByIdAsync(emailId);
-            if (email == null)
-            {
-                return NotFound();
-            }
-            return Ok(email);
+            return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting email {EmailId}", emailId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+        return Ok(email);
     }
 
     /// <summary>
@@ -584,20 +423,12 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EmailAddressDto>> FindEmailByAddress([FromQuery] string email)
     {
-        try
+                var result = await _contactInfoService.FindEmailByAddressAsync(email);
+        if (result == null)
         {
-            var result = await _contactInfoService.FindEmailByAddressAsync(email);
-            if (result == null)
-            {
-                return NotFound();
-            }
-            return Ok(result);
+            return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error finding email {Email}", email);
-            return StatusCode(500, GenericErrorMessage);
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -608,16 +439,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<object>>> GetEntitiesSharingEmail(int emailId)
     {
-        try
-        {
-            var entities = await _contactInfoService.GetEntitiesSharingEmailAsync(emailId);
-            return Ok(entities.Select(e => new { entityType = e.EntityType.ToString(), entityId = e.EntityId, entityName = e.EntityName }));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting entities sharing email {EmailId}", emailId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var entities = await _contactInfoService.GetEntitiesSharingEmailAsync(emailId);
+        return Ok(entities.Select(e => new { entityType = e.EntityType.ToString(), entityId = e.EntityId, entityName = e.EntityName }));
     }
 
     /// <summary>
@@ -628,16 +451,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EmailAddressDto>> CreateEmailAddress([FromBody] CreateEmailAddressDto dto)
     {
-        try
-        {
-            var email = await _contactInfoService.CreateEmailAddressAsync(dto, GetCurrentUserId());
-            return CreatedAtAction(nameof(GetEmailAddress), new { emailId = email.Id }, email);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating email address");
-            return StatusCode(500, "An error occurred while creating the email address");
-        }
+                var email = await _contactInfoService.CreateEmailAddressAsync(dto, GetCurrentUserId());
+        return CreatedAtAction(nameof(GetEmailAddress), new { emailId = email.Id }, email);
     }
 
     /// <summary>
@@ -657,11 +472,6 @@ public class ContactInfoController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking email address");
-            return StatusCode(500, "An error occurred while linking the email address");
         }
     }
 
@@ -683,11 +493,6 @@ public class ContactInfoController : ControllerBase
         {
             return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating email {EmailId}", emailId);
-            return StatusCode(500, "An error occurred while updating the email address");
-        }
     }
 
     /// <summary>
@@ -698,16 +503,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UpdateEmailPreferences(int linkId, [FromBody] EmailPreferencesDto dto)
     {
-        try
-        {
-            await _contactInfoService.UpdateEmailPreferencesAsync(linkId, dto.DoNotEmail, dto.MarketingOptIn, dto.TransactionalOnly);
-            return Ok(new { message = "Email preferences updated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating email preferences for link {LinkId}", linkId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _contactInfoService.UpdateEmailPreferencesAsync(linkId, dto.DoNotEmail, dto.MarketingOptIn, dto.TransactionalOnly);
+        return Ok(new { message = "Email preferences updated" });
     }
 
     /// <summary>
@@ -718,16 +515,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnlinkEmailAddress(int linkId)
     {
-        try
-        {
-            await _contactInfoService.UnlinkEmailAddressAsync(linkId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking email link {LinkId}", linkId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _contactInfoService.UnlinkEmailAddressAsync(linkId);
+        return NoContent();
     }
 
     /// <summary>
@@ -738,16 +527,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteEmailAddress(int emailId)
     {
-        try
-        {
-            await _contactInfoService.DeleteEmailAddressAsync(emailId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting email {EmailId}", emailId);
-            return StatusCode(500, "An error occurred while deleting the email address");
-        }
+                await _contactInfoService.DeleteEmailAddressAsync(emailId);
+        return NoContent();
     }
 
     /// <summary>
@@ -759,25 +540,17 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryEmail(string entityType, int entityId, int emailId, [FromQuery] string emailTypeStr = "General")
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
-            if (!Enum.TryParse<EmailType>(emailTypeStr, true, out var emailType))
-            {
-                emailType = EmailType.General;
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
+        if (!Enum.TryParse<EmailType>(emailTypeStr, true, out var emailType))
+        {
+            emailType = EmailType.General;
+        }
 
-            await _contactInfoService.SetPrimaryEmailAsync(type, entityId, emailId, emailType);
-            return Ok(new { message = "Primary email updated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary email");
-            return StatusCode(500, GenericErrorMessage);
-        }
+        await _contactInfoService.SetPrimaryEmailAsync(type, entityId, emailId, emailType);
+        return Ok(new { message = "Primary email updated" });
     }
 
     #endregion
@@ -793,21 +566,13 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedSocialMediaDto>>> GetSocialMediaAccounts(string entityType, int entityId)
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
 
-            var accounts = await _contactInfoService.GetSocialMediaAccountsAsync(type, entityId);
-            return Ok(accounts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting social media for {EntityType} {EntityId}", entityType, entityId);
-            return StatusCode(500, "An error occurred while retrieving social media accounts");
-        }
+        var accounts = await _contactInfoService.GetSocialMediaAccountsAsync(type, entityId);
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -819,20 +584,12 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SocialMediaAccountDto>> GetSocialMediaAccount(int socialMediaId)
     {
-        try
+                var account = await _contactInfoService.GetSocialMediaAccountByIdAsync(socialMediaId);
+        if (account == null)
         {
-            var account = await _contactInfoService.GetSocialMediaAccountByIdAsync(socialMediaId);
-            if (account == null)
-            {
-                return NotFound();
-            }
-            return Ok(account);
+            return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting social media account {SocialMediaId}", socialMediaId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+        return Ok(account);
     }
 
     /// <summary>
@@ -843,16 +600,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<SocialMediaAccountDto>> CreateSocialMediaAccount([FromBody] CreateSocialMediaAccountDto dto)
     {
-        try
-        {
-            var account = await _contactInfoService.CreateSocialMediaAccountAsync(dto, GetCurrentUserId());
-            return CreatedAtAction(nameof(GetSocialMediaAccount), new { socialMediaId = account.Id }, account);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating social media account");
-            return StatusCode(500, "An error occurred while creating the social media account");
-        }
+                var account = await _contactInfoService.CreateSocialMediaAccountAsync(dto, GetCurrentUserId());
+        return CreatedAtAction(nameof(GetSocialMediaAccount), new { socialMediaId = account.Id }, account);
     }
 
     /// <summary>
@@ -872,11 +621,6 @@ public class ContactInfoController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking social media account");
-            return StatusCode(500, "An error occurred while linking the social media account");
         }
     }
 
@@ -898,11 +642,6 @@ public class ContactInfoController : ControllerBase
         {
             return NotFound();
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating social media account {SocialMediaId}", socialMediaId);
-            return StatusCode(500, "An error occurred while updating the social media account");
-        }
     }
 
     /// <summary>
@@ -913,16 +652,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UnlinkSocialMediaAccount(int linkId)
     {
-        try
-        {
-            await _contactInfoService.UnlinkSocialMediaAccountAsync(linkId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking social media link {LinkId}", linkId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _contactInfoService.UnlinkSocialMediaAccountAsync(linkId);
+        return NoContent();
     }
 
     /// <summary>
@@ -933,16 +664,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteSocialMediaAccount(int socialMediaId)
     {
-        try
-        {
-            await _contactInfoService.DeleteSocialMediaAccountAsync(socialMediaId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting social media account {SocialMediaId}", socialMediaId);
-            return StatusCode(500, "An error occurred while deleting the social media account");
-        }
+                await _contactInfoService.DeleteSocialMediaAccountAsync(socialMediaId);
+        return NoContent();
     }
 
     /// <summary>
@@ -954,21 +677,13 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimarySocialMedia(string entityType, int entityId, int socialMediaId)
     {
-        try
+                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
-            if (!Enum.TryParse<EntityType>(entityType, true, out var type))
-            {
-                return BadRequest($"Invalid entity type: {entityType}");
-            }
+            return BadRequest($"Invalid entity type: {entityType}");
+        }
 
-            await _contactInfoService.SetPrimarySocialMediaAsync(type, entityId, socialMediaId);
-            return Ok(new { message = "Primary social media updated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary social media");
-            return StatusCode(500, GenericErrorMessage);
-        }
+        await _contactInfoService.SetPrimarySocialMediaAsync(type, entityId, socialMediaId);
+        return Ok(new { message = "Primary social media updated" });
     }
 
     #endregion
@@ -986,33 +701,25 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateContactInfoResponse>> ValidateEmail([FromBody] ValidateEmailRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Email))
         {
-            if (string.IsNullOrWhiteSpace(request.Email))
-            {
-                return BadRequest("Email is required");
-            }
-
-            var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
-            if (validationService == null)
-            {
-                return StatusCode(500, "Validation service not available");
-            }
-
-            var result = await validationService.ValidateEmailAsync(request.Email);
-            return Ok(new ValidateContactInfoResponse
-            {
-                IsValid = result.IsValid,
-                Message = result.Message,
-                SuggestedCorrection = result.SuggestedCorrection,
-                FormattedValue = result.IsValid ? request.Email : null
-            });
+            return BadRequest("Email is required");
         }
-        catch (Exception ex)
+
+        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+        if (validationService == null)
         {
-            _logger.LogError(ex, "Error validating email");
-            return StatusCode(500, "An error occurred during email validation");
+            return StatusCode(500, "Validation service not available");
         }
+
+        var result = await validationService.ValidateEmailAsync(request.Email);
+        return Ok(new ValidateContactInfoResponse
+        {
+            IsValid = result.IsValid,
+            Message = result.Message,
+            SuggestedCorrection = result.SuggestedCorrection,
+            FormattedValue = result.IsValid ? request.Email : null
+        });
     }
 
     /// <summary>
@@ -1026,34 +733,26 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateContactInfoResponse>> ValidatePhone([FromBody] ValidatePhoneRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
-            if (string.IsNullOrWhiteSpace(request.PhoneNumber))
-            {
-                return BadRequest("Phone number is required");
-            }
-
-            var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
-            if (validationService == null)
-            {
-                return StatusCode(500, "Validation service not available");
-            }
-
-            var result = await validationService.ValidatePhoneNumberAsync(request.PhoneNumber, request.CountryCode ?? "US");
-            var formattedPhone = result.IsValid ? validationService.FormatPhoneNumber(request.PhoneNumber, request.CountryCode ?? "US") : null;
-
-            return Ok(new ValidateContactInfoResponse
-            {
-                IsValid = result.IsValid,
-                Message = result.Message,
-                FormattedValue = formattedPhone
-            });
+            return BadRequest("Phone number is required");
         }
-        catch (Exception ex)
+
+        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+        if (validationService == null)
         {
-            _logger.LogError(ex, "Error validating phone number");
-            return StatusCode(500, "An error occurred during phone number validation");
+            return StatusCode(500, "Validation service not available");
         }
+
+        var result = await validationService.ValidatePhoneNumberAsync(request.PhoneNumber, request.CountryCode ?? "US");
+        var formattedPhone = result.IsValid ? validationService.FormatPhoneNumber(request.PhoneNumber, request.CountryCode ?? "US") : null;
+
+        return Ok(new ValidateContactInfoResponse
+        {
+            IsValid = result.IsValid,
+            Message = result.Message,
+            FormattedValue = formattedPhone
+        });
     }
 
     /// <summary>
@@ -1067,46 +766,38 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateSocialMediaResponse>> ValidateSocialMedia([FromBody] ValidateSocialMediaRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.HandleOrUrl))
         {
-            if (string.IsNullOrWhiteSpace(request.HandleOrUrl))
-            {
-                return BadRequest("Handle or URL is required");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Platform))
-            {
-                return BadRequest("Platform is required");
-            }
-
-            if (!Enum.TryParse<SocialMediaPlatform>(request.Platform, true, out var platform))
-            {
-                return BadRequest($"Invalid platform: {request.Platform}. Valid values: {string.Join(", ", Enum.GetNames<SocialMediaPlatform>())}");
-            }
-
-            var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
-            if (validationService == null)
-            {
-                return StatusCode(500, "Validation service not available");
-            }
-
-            var result = await validationService.ValidateSocialMediaAccountAsync(request.HandleOrUrl, platform);
-            var handle = validationService.ExtractSocialMediaHandle(request.HandleOrUrl, platform);
-            var profileUrl = handle != null ? validationService.GenerateProfileUrl(handle, platform) : null;
-
-            return Ok(new ValidateSocialMediaResponse
-            {
-                IsValid = result.IsValid,
-                Message = result.Message,
-                ExtractedHandle = handle,
-                ProfileUrl = profileUrl
-            });
+            return BadRequest("Handle or URL is required");
         }
-        catch (Exception ex)
+
+        if (string.IsNullOrWhiteSpace(request.Platform))
         {
-            _logger.LogError(ex, "Error validating social media account");
-            return StatusCode(500, "An error occurred during social media validation");
+            return BadRequest("Platform is required");
         }
+
+        if (!Enum.TryParse<SocialMediaPlatform>(request.Platform, true, out var platform))
+        {
+            return BadRequest($"Invalid platform: {request.Platform}. Valid values: {string.Join(", ", Enum.GetNames<SocialMediaPlatform>())}");
+        }
+
+        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+        if (validationService == null)
+        {
+            return StatusCode(500, "Validation service not available");
+        }
+
+        var result = await validationService.ValidateSocialMediaAccountAsync(request.HandleOrUrl, platform);
+        var handle = validationService.ExtractSocialMediaHandle(request.HandleOrUrl, platform);
+        var profileUrl = handle != null ? validationService.GenerateProfileUrl(handle, platform) : null;
+
+        return Ok(new ValidateSocialMediaResponse
+        {
+            IsValid = result.IsValid,
+            Message = result.Message,
+            ExtractedHandle = handle,
+            ProfileUrl = profileUrl
+        });
     }
 
     #endregion
@@ -1146,11 +837,6 @@ public class ContactInfoController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error following social media account");
-            return StatusCode(500, "An error occurred while following the social media account");
-        }
     }
 
     /// <summary>
@@ -1179,11 +865,6 @@ public class ContactInfoController : ControllerBase
         {
             return NotFound(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unfollowing social media account");
-            return StatusCode(500, "An error occurred while unfollowing");
-        }
     }
 
     /// <summary>
@@ -1195,22 +876,14 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<SocialMediaFollowDto>>> GetFollowedAccounts()
     {
-        try
+                var userId = GetCurrentUserId();
+        if (userId == null)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                return Unauthorized("User not authenticated");
-            }
+            return Unauthorized("User not authenticated");
+        }
 
-            var follows = await _contactInfoService.GetUserFollowsAsync(userId.Value);
-            return Ok(follows);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting followed accounts");
-            return StatusCode(500, "An error occurred while retrieving followed accounts");
-        }
+        var follows = await _contactInfoService.GetUserFollowsAsync(userId.Value);
+        return Ok(follows);
     }
 
     /// <summary>
@@ -1246,11 +919,6 @@ public class ContactInfoController : ControllerBase
         {
             return NotFound(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating follow settings");
-            return StatusCode(500, "An error occurred while updating follow settings");
-        }
     }
 
     /// <summary>
@@ -1262,16 +930,8 @@ public class ContactInfoController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<SocialMediaFollowDto>>> GetAccountFollowers(int socialMediaId)
     {
-        try
-        {
-            var followers = await _contactInfoService.GetAccountFollowersAsync(socialMediaId);
-            return Ok(followers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting account followers");
-            return StatusCode(500, "An error occurred while retrieving followers");
-        }
+                var followers = await _contactInfoService.GetAccountFollowersAsync(socialMediaId);
+        return Ok(followers);
     }
 
     #endregion

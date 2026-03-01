@@ -12,12 +12,13 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class PriceBooksController : ControllerBase
+    public class PriceBooksController : CrmControllerBase
     {
         private readonly IPricingService _pricingService;
         private readonly ILogger<PriceBooksController> _logger;

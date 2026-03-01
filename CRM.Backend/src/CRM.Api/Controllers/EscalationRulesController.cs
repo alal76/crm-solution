@@ -9,6 +9,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [Route("api/escalation-rules")]
 [Authorize]
 [Produces("application/json")]
-public class EscalationRulesController : ControllerBase
+public class EscalationRulesController : CrmControllerBase
 {
     private readonly IEscalationRuleService _service; // TODO-SD005-003: renamed from IEscalationRuleAdminService
     private readonly ILogger<EscalationRulesController> _logger;
@@ -39,16 +40,8 @@ public class EscalationRulesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<EscalationRuleDto>> Create([FromBody] CreateEscalationRuleDto dto, CancellationToken ct)
     {
-        try
-        {
-            var result = await _service.CreateAsync(dto, ct);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating escalation rule");
-            return StatusCode(500, new { error = "Failed to create escalation rule" });
-        }
+                var result = await _service.CreateAsync(dto, ct);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     /// <summary>

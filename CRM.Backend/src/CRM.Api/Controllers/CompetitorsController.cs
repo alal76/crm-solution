@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,9 +20,8 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class CompetitorsController : ControllerBase
+public class CompetitorsController : CrmControllerBase
 {
-    private const string InternalServerErrorMessage = "Internal server error";
     private const string CompetitorNotFoundMessage = "Competitor with ID {0} not found";
     private readonly ICrmDbContext _context;
     private readonly ILogger<CompetitorsController> _logger;
@@ -39,43 +39,35 @@ public class CompetitorsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<CompetitorDto>), 200)]
     public async Task<IActionResult> GetAll([FromQuery] bool activeOnly = false, CancellationToken ct = default)
     {
-        try
-        {
-            var query = _context.Competitors.AsNoTracking().Where(c => !c.IsDeleted);
+                var query = _context.Competitors.AsNoTracking().Where(c => !c.IsDeleted);
 
-            if (activeOnly)
-                query = query.Where(c => c.IsActive);
+        if (activeOnly)
+            query = query.Where(c => c.IsActive);
 
-            var competitors = await query
-                .OrderBy(c => c.Name)
-                .Select(c => new CompetitorDto
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                    Website = c.Website,
-                    Industry = c.Industry,
-                    Strengths = c.Strengths,
-                    Weaknesses = c.Weaknesses,
-                    OurAdvantages = c.OurAdvantages,
-                    PrimaryProducts = c.PrimaryProducts,
-                    PricingTier = c.PricingTier,
-                    MarketSharePercent = c.MarketSharePercent,
-                    IsActive = c.IsActive,
-                    WinRateAgainst = c.WinRateAgainst,
-                    Notes = c.Notes,
-                    CreatedAt = c.CreatedAt,
-                    UpdatedAt = c.UpdatedAt ?? c.CreatedAt
-                })
-                .ToListAsync(ct);
+        var competitors = await query
+            .OrderBy(c => c.Name)
+            .Select(c => new CompetitorDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description,
+                Website = c.Website,
+                Industry = c.Industry,
+                Strengths = c.Strengths,
+                Weaknesses = c.Weaknesses,
+                OurAdvantages = c.OurAdvantages,
+                PrimaryProducts = c.PrimaryProducts,
+                PricingTier = c.PricingTier,
+                MarketSharePercent = c.MarketSharePercent,
+                IsActive = c.IsActive,
+                WinRateAgainst = c.WinRateAgainst,
+                Notes = c.Notes,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt ?? c.CreatedAt
+            })
+            .ToListAsync(ct);
 
-            return Ok(competitors);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving competitors");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(competitors);
     }
 
     /// <summary>
@@ -86,40 +78,32 @@ public class CompetitorsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var competitor = await _context.Competitors
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+                var competitor = await _context.Competitors
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
-            if (competitor == null)
-                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+        if (competitor == null)
+            return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
-            return Ok(new CompetitorDto
-            {
-                Id = competitor.Id,
-                Name = competitor.Name,
-                Description = competitor.Description,
-                Website = competitor.Website,
-                Industry = competitor.Industry,
-                Strengths = competitor.Strengths,
-                Weaknesses = competitor.Weaknesses,
-                OurAdvantages = competitor.OurAdvantages,
-                PrimaryProducts = competitor.PrimaryProducts,
-                PricingTier = competitor.PricingTier,
-                MarketSharePercent = competitor.MarketSharePercent,
-                IsActive = competitor.IsActive,
-                WinRateAgainst = competitor.WinRateAgainst,
-                Notes = competitor.Notes,
-                CreatedAt = competitor.CreatedAt,
-                UpdatedAt = competitor.UpdatedAt ?? competitor.CreatedAt
-            });
-        }
-        catch (Exception ex)
+        return Ok(new CompetitorDto
         {
-            _logger.LogError(ex, "Error retrieving competitor {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+            Id = competitor.Id,
+            Name = competitor.Name,
+            Description = competitor.Description,
+            Website = competitor.Website,
+            Industry = competitor.Industry,
+            Strengths = competitor.Strengths,
+            Weaknesses = competitor.Weaknesses,
+            OurAdvantages = competitor.OurAdvantages,
+            PrimaryProducts = competitor.PrimaryProducts,
+            PricingTier = competitor.PricingTier,
+            MarketSharePercent = competitor.MarketSharePercent,
+            IsActive = competitor.IsActive,
+            WinRateAgainst = competitor.WinRateAgainst,
+            Notes = competitor.Notes,
+            CreatedAt = competitor.CreatedAt,
+            UpdatedAt = competitor.UpdatedAt ?? competitor.CreatedAt
+        });
     }
 
     /// <summary>
@@ -130,40 +114,32 @@ public class CompetitorsController : ControllerBase
     [ProducesResponseType(400)]
     public async Task<IActionResult> Create([FromBody] CreateCompetitorDto request, CancellationToken ct = default)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest(new { message = "Name is required" });
+
+        var competitor = new Competitor
         {
-            if (string.IsNullOrWhiteSpace(request.Name))
-                return BadRequest(new { message = "Name is required" });
+            Name = request.Name,
+            Description = request.Description,
+            Website = request.Website,
+            Industry = request.Industry,
+            Strengths = request.Strengths,
+            Weaknesses = request.Weaknesses,
+            OurAdvantages = request.OurAdvantages,
+            PrimaryProducts = request.PrimaryProducts,
+            PricingTier = request.PricingTier,
+            MarketSharePercent = request.MarketSharePercent,
+            IsActive = request.IsActive,
+            Notes = request.Notes,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-            var competitor = new Competitor
-            {
-                Name = request.Name,
-                Description = request.Description,
-                Website = request.Website,
-                Industry = request.Industry,
-                Strengths = request.Strengths,
-                Weaknesses = request.Weaknesses,
-                OurAdvantages = request.OurAdvantages,
-                PrimaryProducts = request.PrimaryProducts,
-                PricingTier = request.PricingTier,
-                MarketSharePercent = request.MarketSharePercent,
-                IsActive = request.IsActive,
-                Notes = request.Notes,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+        _context.Competitors.Add(competitor);
+        await (_context as DbContext)!.SaveChangesAsync(ct);
 
-            _context.Competitors.Add(competitor);
-            await (_context as DbContext)!.SaveChangesAsync(ct);
-
-            _logger.LogInformation("Created competitor: {Name} (ID: {Id})", competitor.Name, competitor.Id);
-            return CreatedAtAction(nameof(GetById), new { id = competitor.Id }, new { id = competitor.Id, message = "Competitor created successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating competitor");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        _logger.LogInformation("Created competitor: {Name} (ID: {Id})", competitor.Name, competitor.Id);
+        return CreatedAtAction(nameof(GetById), new { id = competitor.Id }, new { id = competitor.Id, message = "Competitor created successfully" });
     }
 
     /// <summary>
@@ -174,48 +150,40 @@ public class CompetitorsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCompetitorDto request, CancellationToken ct = default)
     {
-        try
-        {
-            var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
-            if (competitor == null)
-                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+                var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+        if (competitor == null)
+            return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
-            if (!string.IsNullOrWhiteSpace(request.Name))
-                competitor.Name = request.Name;
-            if (request.Description != null)
-                competitor.Description = request.Description;
-            if (request.Website != null)
-                competitor.Website = request.Website;
-            if (request.Industry != null)
-                competitor.Industry = request.Industry;
-            if (request.Strengths != null)
-                competitor.Strengths = request.Strengths;
-            if (request.Weaknesses != null)
-                competitor.Weaknesses = request.Weaknesses;
-            if (request.OurAdvantages != null)
-                competitor.OurAdvantages = request.OurAdvantages;
-            if (request.PrimaryProducts != null)
-                competitor.PrimaryProducts = request.PrimaryProducts;
-            if (request.PricingTier != null)
-                competitor.PricingTier = request.PricingTier;
-            if (request.MarketSharePercent.HasValue)
-                competitor.MarketSharePercent = request.MarketSharePercent;
-            if (request.IsActive.HasValue)
-                competitor.IsActive = request.IsActive.Value;
-            if (request.Notes != null)
-                competitor.Notes = request.Notes;
+        if (!string.IsNullOrWhiteSpace(request.Name))
+            competitor.Name = request.Name;
+        if (request.Description != null)
+            competitor.Description = request.Description;
+        if (request.Website != null)
+            competitor.Website = request.Website;
+        if (request.Industry != null)
+            competitor.Industry = request.Industry;
+        if (request.Strengths != null)
+            competitor.Strengths = request.Strengths;
+        if (request.Weaknesses != null)
+            competitor.Weaknesses = request.Weaknesses;
+        if (request.OurAdvantages != null)
+            competitor.OurAdvantages = request.OurAdvantages;
+        if (request.PrimaryProducts != null)
+            competitor.PrimaryProducts = request.PrimaryProducts;
+        if (request.PricingTier != null)
+            competitor.PricingTier = request.PricingTier;
+        if (request.MarketSharePercent.HasValue)
+            competitor.MarketSharePercent = request.MarketSharePercent;
+        if (request.IsActive.HasValue)
+            competitor.IsActive = request.IsActive.Value;
+        if (request.Notes != null)
+            competitor.Notes = request.Notes;
 
-            competitor.UpdatedAt = DateTime.UtcNow;
-            await (_context as DbContext)!.SaveChangesAsync(ct);
+        competitor.UpdatedAt = DateTime.UtcNow;
+        await (_context as DbContext)!.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Updated competitor: {Id}", id);
-            return Ok(new { message = "Competitor updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating competitor {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        _logger.LogInformation("Updated competitor: {Id}", id);
+        return Ok(new { message = "Competitor updated successfully" });
     }
 
     /// <summary>
@@ -226,24 +194,16 @@ public class CompetitorsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
-            if (competitor == null)
-                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+                var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+        if (competitor == null)
+            return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
-            competitor.IsDeleted = true;
-            competitor.UpdatedAt = DateTime.UtcNow;
-            await (_context as DbContext)!.SaveChangesAsync(ct);
+        competitor.IsDeleted = true;
+        competitor.UpdatedAt = DateTime.UtcNow;
+        await (_context as DbContext)!.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Deleted competitor: {Id}", id);
-            return Ok(new { message = "Competitor deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting competitor {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        _logger.LogInformation("Deleted competitor: {Id}", id);
+        return Ok(new { message = "Competitor deleted successfully" });
     }
 
     /// <summary>
@@ -254,46 +214,38 @@ public class CompetitorsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetWinLossStats(int id, CancellationToken ct = default)
     {
-        try
+                var competitor = await _context.Competitors
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+
+        if (competitor == null)
+            return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+
+        var opportunities = await _context.OpportunityCompetitors
+            .AsNoTracking()
+            .Include(oc => oc.Opportunity)
+            .Where(oc => oc.CompetitorId == id && !oc.Opportunity.IsDeleted)
+            .ToListAsync(ct);
+
+        var wins = opportunities.Count(o => o.Opportunity.Stage == OpportunityStage.ClosedWon);
+        var losses = opportunities.Count(o => o.Opportunity.Stage == OpportunityStage.ClosedLost && o.WonAgainst == false);
+        var total = wins + losses;
+
+        var stats = new CompetitorWinLossStats
         {
-            var competitor = await _context.Competitors
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+            CompetitorId = id,
+            CompetitorName = competitor.Name,
+            TotalDeals = opportunities.Count,
+            ClosedDeals = total,
+            Wins = wins,
+            Losses = losses,
+            WinRate = total > 0 ? Math.Round((decimal)wins / total * 100, 2) : 0,
+            TotalDealValue = opportunities.Sum(o => o.Opportunity.Amount),
+            WonDealValue = opportunities.Where(o => o.Opportunity.Stage == OpportunityStage.ClosedWon).Sum(o => o.Opportunity.Amount),
+            LostDealValue = opportunities.Where(o => o.Opportunity.Stage == OpportunityStage.ClosedLost).Sum(o => o.Opportunity.Amount)
+        };
 
-            if (competitor == null)
-                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
-
-            var opportunities = await _context.OpportunityCompetitors
-                .AsNoTracking()
-                .Include(oc => oc.Opportunity)
-                .Where(oc => oc.CompetitorId == id && !oc.Opportunity.IsDeleted)
-                .ToListAsync(ct);
-
-            var wins = opportunities.Count(o => o.Opportunity.Stage == OpportunityStage.ClosedWon);
-            var losses = opportunities.Count(o => o.Opportunity.Stage == OpportunityStage.ClosedLost && o.WonAgainst == false);
-            var total = wins + losses;
-
-            var stats = new CompetitorWinLossStats
-            {
-                CompetitorId = id,
-                CompetitorName = competitor.Name,
-                TotalDeals = opportunities.Count,
-                ClosedDeals = total,
-                Wins = wins,
-                Losses = losses,
-                WinRate = total > 0 ? Math.Round((decimal)wins / total * 100, 2) : 0,
-                TotalDealValue = opportunities.Sum(o => o.Opportunity.Amount),
-                WonDealValue = opportunities.Where(o => o.Opportunity.Stage == OpportunityStage.ClosedWon).Sum(o => o.Opportunity.Amount),
-                LostDealValue = opportunities.Where(o => o.Opportunity.Stage == OpportunityStage.ClosedLost).Sum(o => o.Opportunity.Amount)
-            };
-
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving win/loss stats for competitor {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(stats);
     }
 
     /// <summary>
@@ -309,43 +261,35 @@ public class CompetitorsController : ControllerBase
         [FromBody] LinkCompetitorToOpportunityDto? dto = null,
         CancellationToken ct = default)
     {
-        try
+                var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+        if (competitor == null)
+            return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+
+        var opportunity = await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
+        if (opportunity == null)
+            return NotFound(new { message = $"Opportunity with ID {opportunityId} not found" });
+
+        // Check if already linked
+        var existing = await _context.OpportunityCompetitors
+            .FirstOrDefaultAsync(oc => oc.CompetitorId == id && oc.OpportunityId == opportunityId, ct);
+        if (existing != null)
+            return Conflict(new { message = "Competitor is already linked to this opportunity" });
+
+        var link = new OpportunityCompetitor
         {
-            var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
-            if (competitor == null)
-                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+            OpportunityId = opportunityId,
+            CompetitorId = id,
+            ThreatLevel = !string.IsNullOrEmpty(dto?.ThreatLevel) ? Enum.Parse<CompetitorThreatLevel>(dto.ThreatLevel) : CompetitorThreatLevel.Medium,
+            Status = !string.IsNullOrEmpty(dto?.Status) ? Enum.Parse<OpportunityCompetitorStatus>(dto.Status) : OpportunityCompetitorStatus.Identified,
+            CompetitorPrice = dto?.CompetitorPrice,
+            Notes = dto?.Notes
+        };
 
-            var opportunity = await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
-            if (opportunity == null)
-                return NotFound(new { message = $"Opportunity with ID {opportunityId} not found" });
+        _context.OpportunityCompetitors.Add(link);
+        await (_context as DbContext)!.SaveChangesAsync(ct);
 
-            // Check if already linked
-            var existing = await _context.OpportunityCompetitors
-                .FirstOrDefaultAsync(oc => oc.CompetitorId == id && oc.OpportunityId == opportunityId, ct);
-            if (existing != null)
-                return Conflict(new { message = "Competitor is already linked to this opportunity" });
-
-            var link = new OpportunityCompetitor
-            {
-                OpportunityId = opportunityId,
-                CompetitorId = id,
-                ThreatLevel = !string.IsNullOrEmpty(dto?.ThreatLevel) ? Enum.Parse<CompetitorThreatLevel>(dto.ThreatLevel) : CompetitorThreatLevel.Medium,
-                Status = !string.IsNullOrEmpty(dto?.Status) ? Enum.Parse<OpportunityCompetitorStatus>(dto.Status) : OpportunityCompetitorStatus.Identified,
-                CompetitorPrice = dto?.CompetitorPrice,
-                Notes = dto?.Notes
-            };
-
-            _context.OpportunityCompetitors.Add(link);
-            await (_context as DbContext)!.SaveChangesAsync(ct);
-
-            _logger.LogInformation("Linked competitor {CompetitorId} to opportunity {OpportunityId}", id, opportunityId);
-            return StatusCode(201, new { message = "Competitor linked to opportunity successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking competitor {CompetitorId} to opportunity {OpportunityId}", id, opportunityId);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        _logger.LogInformation("Linked competitor {CompetitorId} to opportunity {OpportunityId}", id, opportunityId);
+        return StatusCode(201, new { message = "Competitor linked to opportunity successfully" });
     }
 
     /// <summary>
@@ -356,25 +300,17 @@ public class CompetitorsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> UnlinkFromOpportunity(int id, int opportunityId, CancellationToken ct = default)
     {
-        try
-        {
-            var link = await _context.OpportunityCompetitors
-                .FirstOrDefaultAsync(oc => oc.CompetitorId == id && oc.OpportunityId == opportunityId, ct);
+                var link = await _context.OpportunityCompetitors
+            .FirstOrDefaultAsync(oc => oc.CompetitorId == id && oc.OpportunityId == opportunityId, ct);
 
-            if (link == null)
-                return NotFound(new { message = "Competitor is not linked to this opportunity" });
+        if (link == null)
+            return NotFound(new { message = "Competitor is not linked to this opportunity" });
 
-            _context.OpportunityCompetitors.Remove(link);
-            await (_context as DbContext)!.SaveChangesAsync(ct);
+        _context.OpportunityCompetitors.Remove(link);
+        await (_context as DbContext)!.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Unlinked competitor {CompetitorId} from opportunity {OpportunityId}", id, opportunityId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking competitor {CompetitorId} from opportunity {OpportunityId}", id, opportunityId);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        _logger.LogInformation("Unlinked competitor {CompetitorId} from opportunity {OpportunityId}", id, opportunityId);
+        return NoContent();
     }
 
     /// <summary>
@@ -385,40 +321,32 @@ public class CompetitorsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetOpportunities(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var competitor = await _context.Competitors
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+                var competitor = await _context.Competitors
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
-            if (competitor == null)
-                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+        if (competitor == null)
+            return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
-            var opportunities = await _context.OpportunityCompetitors
-                .AsNoTracking()
-                .Include(oc => oc.Opportunity)
-                .Where(oc => oc.CompetitorId == id && !oc.Opportunity.IsDeleted)
-                .Select(oc => new CompetitorOpportunityDto
-                {
-                    OpportunityId = oc.OpportunityId,
-                    OpportunityName = oc.Opportunity.Name,
-                    Stage = oc.Opportunity.Stage.ToString(),
-                    Amount = oc.Opportunity.Amount,
-                    ThreatLevel = oc.ThreatLevel.ToString(),
-                    Status = oc.Status.ToString(),
-                    CompetitorPrice = oc.CompetitorPrice,
-                    WonAgainst = oc.WonAgainst ?? false,
-                    Notes = oc.Notes
-                })
-                .ToListAsync(ct);
+        var opportunities = await _context.OpportunityCompetitors
+            .AsNoTracking()
+            .Include(oc => oc.Opportunity)
+            .Where(oc => oc.CompetitorId == id && !oc.Opportunity.IsDeleted)
+            .Select(oc => new CompetitorOpportunityDto
+            {
+                OpportunityId = oc.OpportunityId,
+                OpportunityName = oc.Opportunity.Name,
+                Stage = oc.Opportunity.Stage.ToString(),
+                Amount = oc.Opportunity.Amount,
+                ThreatLevel = oc.ThreatLevel.ToString(),
+                Status = oc.Status.ToString(),
+                CompetitorPrice = oc.CompetitorPrice,
+                WonAgainst = oc.WonAgainst ?? false,
+                Notes = oc.Notes
+            })
+            .ToListAsync(ct);
 
-            return Ok(opportunities);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving opportunities for competitor {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(opportunities);
     }
 }
 

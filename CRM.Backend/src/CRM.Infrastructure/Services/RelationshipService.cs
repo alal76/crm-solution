@@ -87,7 +87,6 @@ public class RelationshipService
             existing.Color = dto.Color;
             existing.IsActive = dto.IsActive;
             existing.DisplayOrder = dto.DisplayOrder;
-            existing.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             _logger.LogInformation("Updated existing relationship type {TypeName} with ID {Id}", existing.TypeName, existing.Id);
             return MapToDto(existing);
@@ -138,7 +137,6 @@ public class RelationshipService
         type.Color = dto.Color;
         type.IsActive = dto.IsActive;
         type.DisplayOrder = dto.DisplayOrder;
-        type.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return MapToDto(type);
@@ -372,7 +370,6 @@ public class RelationshipService
         relationship.Description = dto.Description;
         relationship.Notes = dto.Notes;
         relationship.TermsConditions = dto.TermsConditions;
-        relationship.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return await GetRelationshipAsync(id);
@@ -442,7 +439,6 @@ public class RelationshipService
         var relationship = await _context.AccountRelationships.FindAsync(dto.AccountRelationshipId);
         if (relationship != null)
         {
-            relationship.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }
 
@@ -642,7 +638,6 @@ public class RelationshipService
         if (account != null)
         {
             account.AccountHealthScore = dto.OverallHealthScore;
-            account.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();

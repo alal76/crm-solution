@@ -51,7 +51,6 @@ public class LeadQualificationService : ILeadQualificationService
         lead.NeedScore = needScore;
         lead.TimelineScore = timelineScore;
         lead.QualificationFrameworkType = QualificationFramework.BANT;
-        lead.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
 
@@ -111,7 +110,6 @@ public class LeadQualificationService : ILeadQualificationService
         lead.IdentifyPainScore = identifyPain;
         lead.ChampionScore = champion;
         lead.QualificationFrameworkType = QualificationFramework.MEDDIC;
-        lead.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
 

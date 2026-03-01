@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -25,7 +26,7 @@ namespace CRM.Api.Controllers;
 [Route("api/analytics-events")]
 [Authorize]
 [Produces("application/json")]
-public class AnalyticsEventsController : ControllerBase
+public class AnalyticsEventsController : CrmControllerBase
 {
     private readonly IAnalyticsEventService _service;
     private readonly ILogger<AnalyticsEventsController> _logger;
@@ -63,16 +64,8 @@ public class AnalyticsEventsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        try
-        {
-            var result = await _service.CreateAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating analytics event");
-            return StatusCode(500, new { error = "Failed to create analytics event", details = ex.Message });
-        }
+                var result = await _service.CreateAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     /// <summary>

@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,10 +20,9 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class LeadSourcesController : ControllerBase
+public class LeadSourcesController : CrmControllerBase
 {
     private const string LeadSourceNotFoundMessage = "Lead source with ID {0} not found";
-    private const string InternalServerErrorMessage = "Internal server error";
     private readonly ICrmDbContext _context;
     private readonly ILogger<LeadSourcesController> _logger;
 
@@ -39,41 +39,33 @@ public class LeadSourcesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<LeadSourceDto>), 200)]
     public async Task<IActionResult> GetAll([FromQuery] bool activeOnly = false, CancellationToken ct = default)
     {
-        try
-        {
-            var query = _context.LeadSources.AsNoTracking().Where(ls => !ls.IsDeleted);
+                var query = _context.LeadSources.AsNoTracking().Where(ls => !ls.IsDeleted);
 
-            if (activeOnly)
-                query = query.Where(ls => ls.IsActive);
+        if (activeOnly)
+            query = query.Where(ls => ls.IsActive);
 
-            var sources = await query
-                .OrderBy(ls => ls.Name)
-                .Select(ls => new LeadSourceDto
-                {
-                    Id = ls.Id,
-                    Name = ls.Name,
-                    Code = ls.Code,
-                    Description = ls.Description,
-                    Channel = ls.Channel,
-                    Medium = ls.Medium,
-                    CampaignName = ls.CampaignName,
-                    CostPerLead = ls.CostPerLead,
-                    TotalSpend = ls.TotalSpend,
-                    IsActive = ls.IsActive,
-                    TrackingUrl = ls.TrackingUrl,
-                    ExternalPlatformId = ls.ExternalPlatformId,
-                    CreatedAt = ls.CreatedAt,
-                    UpdatedAt = ls.UpdatedAt ?? ls.CreatedAt
-                })
-                .ToListAsync(ct);
+        var sources = await query
+            .OrderBy(ls => ls.Name)
+            .Select(ls => new LeadSourceDto
+            {
+                Id = ls.Id,
+                Name = ls.Name,
+                Code = ls.Code,
+                Description = ls.Description,
+                Channel = ls.Channel,
+                Medium = ls.Medium,
+                CampaignName = ls.CampaignName,
+                CostPerLead = ls.CostPerLead,
+                TotalSpend = ls.TotalSpend,
+                IsActive = ls.IsActive,
+                TrackingUrl = ls.TrackingUrl,
+                ExternalPlatformId = ls.ExternalPlatformId,
+                CreatedAt = ls.CreatedAt,
+                UpdatedAt = ls.UpdatedAt ?? ls.CreatedAt
+            })
+            .ToListAsync(ct);
 
-            return Ok(sources);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving lead sources");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(sources);
     }
 
     /// <summary>
@@ -84,38 +76,30 @@ public class LeadSourcesController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> GetById(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var source = await _context.LeadSources
-                .AsNoTracking()
-                .FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
+                var source = await _context.LeadSources
+            .AsNoTracking()
+            .FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
 
-            if (source == null)
-                return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
+        if (source == null)
+            return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
 
-            return Ok(new LeadSourceDto
-            {
-                Id = source.Id,
-                Name = source.Name,
-                Code = source.Code,
-                Description = source.Description,
-                Channel = source.Channel,
-                Medium = source.Medium,
-                CampaignName = source.CampaignName,
-                CostPerLead = source.CostPerLead,
-                TotalSpend = source.TotalSpend,
-                IsActive = source.IsActive,
-                TrackingUrl = source.TrackingUrl,
-                ExternalPlatformId = source.ExternalPlatformId,
-                CreatedAt = source.CreatedAt,
-                UpdatedAt = source.UpdatedAt ?? source.CreatedAt
-            });
-        }
-        catch (Exception ex)
+        return Ok(new LeadSourceDto
         {
-            _logger.LogError(ex, "Error retrieving lead source {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+            Id = source.Id,
+            Name = source.Name,
+            Code = source.Code,
+            Description = source.Description,
+            Channel = source.Channel,
+            Medium = source.Medium,
+            CampaignName = source.CampaignName,
+            CostPerLead = source.CostPerLead,
+            TotalSpend = source.TotalSpend,
+            IsActive = source.IsActive,
+            TrackingUrl = source.TrackingUrl,
+            ExternalPlatformId = source.ExternalPlatformId,
+            CreatedAt = source.CreatedAt,
+            UpdatedAt = source.UpdatedAt ?? source.CreatedAt
+        });
     }
 
     /// <summary>
@@ -126,39 +110,31 @@ public class LeadSourcesController : ControllerBase
     [ProducesResponseType(400)]
     public async Task<IActionResult> Create([FromBody] CreateLeadSourceDto request, CancellationToken ct = default)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Name))
+            return BadRequest(new { message = "Name is required" });
+
+        var source = new LeadSourceEntity
         {
-            if (string.IsNullOrWhiteSpace(request.Name))
-                return BadRequest(new { message = "Name is required" });
+            Name = request.Name,
+            Code = request.Code,
+            Description = request.Description,
+            Channel = request.Channel,
+            Medium = request.Medium,
+            CampaignName = request.CampaignName,
+            CostPerLead = request.CostPerLead,
+            TotalSpend = request.TotalSpend,
+            IsActive = request.IsActive,
+            TrackingUrl = request.TrackingUrl,
+            ExternalPlatformId = request.ExternalPlatformId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-            var source = new LeadSourceEntity
-            {
-                Name = request.Name,
-                Code = request.Code,
-                Description = request.Description,
-                Channel = request.Channel,
-                Medium = request.Medium,
-                CampaignName = request.CampaignName,
-                CostPerLead = request.CostPerLead,
-                TotalSpend = request.TotalSpend,
-                IsActive = request.IsActive,
-                TrackingUrl = request.TrackingUrl,
-                ExternalPlatformId = request.ExternalPlatformId,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+        _context.LeadSources.Add(source);
+        await (_context as DbContext)!.SaveChangesAsync(ct);
 
-            _context.LeadSources.Add(source);
-            await (_context as DbContext)!.SaveChangesAsync(ct);
-
-            _logger.LogInformation("Created lead source: {Name} (ID: {Id})", source.Name, source.Id);
-            return CreatedAtAction(nameof(GetById), new { id = source.Id }, new { id = source.Id, message = "Lead source created successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating lead source");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        _logger.LogInformation("Created lead source: {Name} (ID: {Id})", source.Name, source.Id);
+        return CreatedAtAction(nameof(GetById), new { id = source.Id }, new { id = source.Id, message = "Lead source created successfully" });
     }
 
     /// <summary>
@@ -169,46 +145,38 @@ public class LeadSourcesController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateLeadSourceDto request, CancellationToken ct = default)
     {
-        try
-        {
-            var source = await _context.LeadSources.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
-            if (source == null)
-                return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
+                var source = await _context.LeadSources.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
+        if (source == null)
+            return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
 
-            if (!string.IsNullOrWhiteSpace(request.Name))
-                source.Name = request.Name;
-            if (request.Code != null)
-                source.Code = request.Code;
-            if (request.Description != null)
-                source.Description = request.Description;
-            if (request.Channel.HasValue)
-                source.Channel = request.Channel.Value;
-            if (request.Medium != null)
-                source.Medium = request.Medium;
-            if (request.CampaignName != null)
-                source.CampaignName = request.CampaignName;
-            if (request.CostPerLead.HasValue)
-                source.CostPerLead = request.CostPerLead;
-            if (request.TotalSpend.HasValue)
-                source.TotalSpend = request.TotalSpend;
-            if (request.IsActive.HasValue)
-                source.IsActive = request.IsActive.Value;
-            if (request.TrackingUrl != null)
-                source.TrackingUrl = request.TrackingUrl;
-            if (request.ExternalPlatformId != null)
-                source.ExternalPlatformId = request.ExternalPlatformId;
+        if (!string.IsNullOrWhiteSpace(request.Name))
+            source.Name = request.Name;
+        if (request.Code != null)
+            source.Code = request.Code;
+        if (request.Description != null)
+            source.Description = request.Description;
+        if (request.Channel.HasValue)
+            source.Channel = request.Channel.Value;
+        if (request.Medium != null)
+            source.Medium = request.Medium;
+        if (request.CampaignName != null)
+            source.CampaignName = request.CampaignName;
+        if (request.CostPerLead.HasValue)
+            source.CostPerLead = request.CostPerLead;
+        if (request.TotalSpend.HasValue)
+            source.TotalSpend = request.TotalSpend;
+        if (request.IsActive.HasValue)
+            source.IsActive = request.IsActive.Value;
+        if (request.TrackingUrl != null)
+            source.TrackingUrl = request.TrackingUrl;
+        if (request.ExternalPlatformId != null)
+            source.ExternalPlatformId = request.ExternalPlatformId;
 
-            source.UpdatedAt = DateTime.UtcNow;
-            await (_context as DbContext)!.SaveChangesAsync(ct);
+        source.UpdatedAt = DateTime.UtcNow;
+        await (_context as DbContext)!.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Updated lead source: {Id}", id);
-            return Ok(new { message = "Lead source updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating lead source {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        _logger.LogInformation("Updated lead source: {Id}", id);
+        return Ok(new { message = "Lead source updated successfully" });
     }
 
     /// <summary>
@@ -219,24 +187,16 @@ public class LeadSourcesController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var source = await _context.LeadSources.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
-            if (source == null)
-                return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
+                var source = await _context.LeadSources.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
+        if (source == null)
+            return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
 
-            source.IsDeleted = true;
-            source.UpdatedAt = DateTime.UtcNow;
-            await (_context as DbContext)!.SaveChangesAsync(ct);
+        source.IsDeleted = true;
+        source.UpdatedAt = DateTime.UtcNow;
+        await (_context as DbContext)!.SaveChangesAsync(ct);
 
-            _logger.LogInformation("Deleted lead source: {Id}", id);
-            return Ok(new { message = "Lead source deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting lead source {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        _logger.LogInformation("Deleted lead source: {Id}", id);
+        return Ok(new { message = "Lead source deleted successfully" });
     }
 
     /// <summary>
@@ -246,38 +206,30 @@ public class LeadSourcesController : ControllerBase
     [ProducesResponseType(typeof(LeadSourceStatistics), 200)]
     public async Task<IActionResult> GetStatistics(CancellationToken ct = default)
     {
-        try
+                var sources = await _context.LeadSources
+            .AsNoTracking()
+            .Where(ls => !ls.IsDeleted && ls.IsActive)
+            .ToListAsync(ct);
+
+        var leads = await _context.Leads
+            .AsNoTracking()
+            .Where(l => !l.IsDeleted && l.LeadSourceId.HasValue)
+            .GroupBy(l => l.LeadSourceId)
+            .Select(g => new { SourceId = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+
+        var stats = new LeadSourceStatistics
         {
-            var sources = await _context.LeadSources
-                .AsNoTracking()
-                .Where(ls => !ls.IsDeleted && ls.IsActive)
-                .ToListAsync(ct);
+            TotalSources = sources.Count,
+            ActiveSources = sources.Count(s => s.IsActive),
+            TotalSpend = sources.Sum(s => s.TotalSpend ?? 0),
+            AverageCostPerLead = sources.Average(s => s.CostPerLead ?? 0),
+            SourceBreakdown = leads.ToDictionary(
+                l => sources.FirstOrDefault(s => s.Id == l.SourceId)?.Name ?? "Unknown",
+                l => l.Count)
+        };
 
-            var leads = await _context.Leads
-                .AsNoTracking()
-                .Where(l => !l.IsDeleted && l.LeadSourceId.HasValue)
-                .GroupBy(l => l.LeadSourceId)
-                .Select(g => new { SourceId = g.Key, Count = g.Count() })
-                .ToListAsync(ct);
-
-            var stats = new LeadSourceStatistics
-            {
-                TotalSources = sources.Count,
-                ActiveSources = sources.Count(s => s.IsActive),
-                TotalSpend = sources.Sum(s => s.TotalSpend ?? 0),
-                AverageCostPerLead = sources.Average(s => s.CostPerLead ?? 0),
-                SourceBreakdown = leads.ToDictionary(
-                    l => sources.FirstOrDefault(s => s.Id == l.SourceId)?.Name ?? "Unknown",
-                    l => l.Count)
-            };
-
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving lead source statistics");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(stats);
     }
 
     /// <summary>
@@ -291,55 +243,47 @@ public class LeadSourcesController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken ct = default)
     {
-        try
+                var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
+        var to = toDate ?? DateTime.UtcNow;
+
+        var sources = await _context.LeadSources
+            .AsNoTracking()
+            .Where(ls => !ls.IsDeleted)
+            .ToListAsync(ct);
+
+        var leads = await _context.Leads
+            .AsNoTracking()
+            .Where(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to)
+            .ToListAsync(ct);
+
+        var report = new LeadSourceReport
         {
-            var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
-            var to = toDate ?? DateTime.UtcNow;
-
-            var sources = await _context.LeadSources
-                .AsNoTracking()
-                .Where(ls => !ls.IsDeleted)
-                .ToListAsync(ct);
-
-            var leads = await _context.Leads
-                .AsNoTracking()
-                .Where(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to)
-                .ToListAsync(ct);
-
-            var report = new LeadSourceReport
+            FromDate = from,
+            ToDate = to,
+            TotalLeads = leads.Count,
+            SourceDetails = sources.Select(source =>
             {
-                FromDate = from,
-                ToDate = to,
-                TotalLeads = leads.Count,
-                SourceDetails = sources.Select(source =>
+                var sourceLeads = leads.Where(l => l.LeadSourceId == source.Id).ToList();
+                var converted = sourceLeads.Count(l => l.Status == LeadLifecycleStatus.Converted);
+                var total = sourceLeads.Count;
+
+                return new LeadSourceReportItem
                 {
-                    var sourceLeads = leads.Where(l => l.LeadSourceId == source.Id).ToList();
-                    var converted = sourceLeads.Count(l => l.Status == LeadLifecycleStatus.Converted);
-                    var total = sourceLeads.Count;
+                    SourceId = source.Id,
+                    SourceName = source.Name,
+                    Channel = source.Channel.ToString(),
+                    TotalLeads = total,
+                    ConvertedLeads = converted,
+                    ConversionRate = total > 0 ? Math.Round((decimal)converted / total * 100, 2) : 0,
+                    CostPerLead = source.CostPerLead ?? 0,
+                    TotalSpend = source.TotalSpend ?? 0,
+                    CostPerConversion = converted > 0 ? Math.Round((source.TotalSpend ?? 0) / converted, 2) : 0
+                };
+            }).OrderByDescending(s => s.TotalLeads).ToList(),
+            UnattributedLeads = leads.Count(l => !l.LeadSourceId.HasValue)
+        };
 
-                    return new LeadSourceReportItem
-                    {
-                        SourceId = source.Id,
-                        SourceName = source.Name,
-                        Channel = source.Channel.ToString(),
-                        TotalLeads = total,
-                        ConvertedLeads = converted,
-                        ConversionRate = total > 0 ? Math.Round((decimal)converted / total * 100, 2) : 0,
-                        CostPerLead = source.CostPerLead ?? 0,
-                        TotalSpend = source.TotalSpend ?? 0,
-                        CostPerConversion = converted > 0 ? Math.Round((source.TotalSpend ?? 0) / converted, 2) : 0
-                    };
-                }).OrderByDescending(s => s.TotalLeads).ToList(),
-                UnattributedLeads = leads.Count(l => !l.LeadSourceId.HasValue)
-            };
-
-            return Ok(report);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating lead source report");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(report);
     }
 }
 

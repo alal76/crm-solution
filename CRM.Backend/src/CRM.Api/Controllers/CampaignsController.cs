@@ -10,6 +10,7 @@ using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,9 +22,8 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class CampaignsController : ControllerBase
+public class CampaignsController : CrmControllerBase
 {
-    private const string InternalServerErrorMessage = "Internal server error";
     private readonly IMarketingCampaignService _campaignService;
     private readonly ILogger<CampaignsController> _logger;
 
@@ -47,16 +47,8 @@ public class CampaignsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll()
     {
-        try
-        {
-            var dtos = await _campaignService.GetAllCampaignsAsync();
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving campaigns");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var dtos = await _campaignService.GetAllCampaignsAsync();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -70,16 +62,8 @@ public class CampaignsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetActive()
     {
-        try
-        {
-            var dtos = await _campaignService.GetActiveCampaignsAsync();
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving active campaigns");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var dtos = await _campaignService.GetActiveCampaignsAsync();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -96,20 +80,12 @@ public class CampaignsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
     {
-        try
+                var campaign = await _campaignService.GetCampaignByIdAsync(id);
+        if (campaign == null)
         {
-            var campaign = await _campaignService.GetCampaignByIdAsync(id);
-            if (campaign == null)
-            {
-                return NotFound(new { message = $"Campaign with ID {id} not found" });
-            }
-            return Ok(campaign);
+            return NotFound(new { message = $"Campaign with ID {id} not found" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving campaign {CampaignId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(campaign);
     }
 
     /// <summary>
@@ -143,11 +119,6 @@ public class CampaignsController : ControllerBase
         catch (DuplicateExistsException dex)
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating campaign");
-            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -190,11 +161,6 @@ public class CampaignsController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating campaign {CampaignId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
     }
 
     /// <summary>
@@ -220,11 +186,6 @@ public class CampaignsController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting campaign {CampaignId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
     }
 
     /// <summary>
@@ -244,21 +205,13 @@ public class CampaignsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddMetric(int id, [FromBody] CampaignMetric metric)
     {
-        try
+                if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
+            return BadRequest(ModelState);
+        }
 
-            metric.CampaignId = id;
-            await _campaignService.AddCampaignMetricAsync(metric);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding metric to campaign {CampaignId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        metric.CampaignId = id;
+        await _campaignService.AddCampaignMetricAsync(metric);
+        return NoContent();
     }
 }

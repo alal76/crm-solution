@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/ai-agent-usage")]
 [Authorize]
 [Produces("application/json")]
-public class AIAgentUsageController : ControllerBase
+public class AIAgentUsageController : CrmControllerBase
 {
     private readonly IAIAgentUsageService _service;
     private readonly ILogger<AIAgentUsageController> _logger;
@@ -35,16 +36,8 @@ public class AIAgentUsageController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AIAgentUsageDto>> Create([FromBody] CreateAIAgentUsageDto dto, CancellationToken ct)
     {
-        try
-        {
-            var result = await _service.CreateAsync(dto, ct);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating AI agent usage record");
-            return StatusCode(500, new { error = "Failed to create AI agent usage record" });
-        }
+                var result = await _service.CreateAsync(dto, ct);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     [HttpGet("{id}")]

@@ -108,7 +108,6 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
 
     public async Task UpdateOpportunityAsync(Opportunity opportunity)
     {
-        opportunity.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(opportunity);
         await _repository.SaveAsync();
 
@@ -221,7 +220,6 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         if (total > 0)
         {
             opportunity.Amount = total;
-            opportunity.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAsync(opportunity);
             await _repository.SaveAsync();
         }
@@ -435,7 +433,6 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         existing.IsPrimary = updated.IsPrimary;
         existing.CommissionPlanId = updated.CommissionPlanId;
         existing.Notes = updated.Notes;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(ct);
 
@@ -453,7 +450,6 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             return false;
 
         member.IsDeleted = true;
-        member.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(ct);
 
         _logger.LogInformation("Removed team member {MemberId} from opportunity {OpportunityId}", memberId, opportunityId);
@@ -555,7 +551,6 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             return false;
 
         opportunity.ForecastCategory = category;
-        opportunity.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(ct);
 
         _logger.LogInformation("Updated forecast category for opportunity {OpportunityId} to {Category}", opportunityId, category);

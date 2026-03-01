@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -22,7 +23,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/dunning-schedules")]
 [Authorize]
-public class DunningSchedulesController : ControllerBase
+public class DunningSchedulesController : CrmControllerBase
 {
     private readonly IDunningScheduleService _service;
     private readonly ILogger<DunningSchedulesController> _logger;

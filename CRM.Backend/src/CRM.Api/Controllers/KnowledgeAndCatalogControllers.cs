@@ -11,6 +11,7 @@ using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -27,7 +28,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - Knowledge Management")]
-public class KnowledgeController : ControllerBase
+public class KnowledgeController : CrmControllerBase
 {
     private readonly IKnowledgeManagementService _knowledgeService;
 
@@ -288,7 +289,7 @@ public class KnowledgeController : ControllerBase
 [Authorize]
 [Produces("application/json")]
 [Tags("ITSM - Service Catalog")]
-public class CatalogController : ControllerBase
+public class CatalogController : CrmControllerBase
 {
     private readonly IServiceCatalogService _catalogService;
 
@@ -478,7 +479,7 @@ public class CatalogCategoryDto
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - SLA Management")]
-public class SLAController : ControllerBase
+public class SLAController : CrmControllerBase
 {
     private readonly ISLAService _slaService;
 

@@ -99,7 +99,6 @@ public class NoteService : INoteService
         _logger.LogDebug("Creating note: {Title}", note.Title);
 
         note.CreatedAt = DateTime.UtcNow;
-        note.UpdatedAt = DateTime.UtcNow;
         note.IsDeleted = false;
 
         _context.Notes.Add(note);
@@ -132,7 +131,6 @@ public class NoteService : INoteService
         existingNote.Visibility = note.Visibility;
         existingNote.IsPinned = note.IsPinned;
         existingNote.IsImportant = note.IsImportant;
-        existingNote.UpdatedAt = DateTime.UtcNow;
 
         // Update entity associations if provided
         if (note.AccountId.HasValue)
@@ -178,7 +176,6 @@ public class NoteService : INoteService
 
         // Soft delete
         note.IsDeleted = true;
-        note.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -201,7 +198,6 @@ public class NoteService : INoteService
         }
 
         note.IsPinned = !note.IsPinned;
-        note.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 

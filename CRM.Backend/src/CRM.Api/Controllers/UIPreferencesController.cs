@@ -9,6 +9,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/ui-preferences")]
-public class UIPreferencesController : ControllerBase
+public class UIPreferencesController : CrmControllerBase
 {
     private readonly IUserInterfaceService _service;
     private readonly ILogger<UIPreferencesController> _logger;
@@ -41,21 +42,13 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UIPreferenceDto>> GetUIPreferences(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var prefs = await _service.GetUserUIPreferencesAsync(userId, cancellationToken);
+                var userId = GetCurrentUserId();
+        var prefs = await _service.GetUserUIPreferencesAsync(userId, cancellationToken);
 
-            if (prefs == null)
-                return NotFound(new { error = "UI preferences not found" });
+        if (prefs == null)
+            return NotFound(new { error = "UI preferences not found" });
 
-            return Ok(prefs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving UI preferences");
-            return StatusCode(500, new { error = "Failed to retrieve UI preferences" });
-        }
+        return Ok(prefs);
     }
 
     /// <summary>
@@ -66,19 +59,11 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<UIPreferenceDto>> SaveUIPreferences(CreateUpdateUIPreferenceDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var result = await _service.SaveUIPreferencesAsync(userId, dto, cancellationToken);
+                var userId = GetCurrentUserId();
+        var result = await _service.SaveUIPreferencesAsync(userId, dto, cancellationToken);
 
-            _logger.LogInformation("UI preferences saved for user {UserId}", userId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving UI preferences");
-            return StatusCode(500, new { error = "Failed to save UI preferences" });
-        }
+        _logger.LogInformation("UI preferences saved for user {UserId}", userId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -88,22 +73,14 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ResetUIPreferences(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var result = await _service.ResetUIPreferencesAsync(userId, cancellationToken);
+                var userId = GetCurrentUserId();
+        var result = await _service.ResetUIPreferencesAsync(userId, cancellationToken);
 
-            if (!result)
-                return BadRequest(new { error = "Failed to reset preferences" });
+        if (!result)
+            return BadRequest(new { error = "Failed to reset preferences" });
 
-            _logger.LogInformation("UI preferences reset for user {UserId}", userId);
-            return Ok(new { message = "UI preferences reset to defaults" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error resetting UI preferences");
-            return StatusCode(500, new { error = "Failed to reset preferences" });
-        }
+        _logger.LogInformation("UI preferences reset for user {UserId}", userId);
+        return Ok(new { message = "UI preferences reset to defaults" });
     }
 
     /// <summary>
@@ -114,21 +91,13 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UICustomizationDto>> GetUICustomization(string moduleName, string pageName, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var customization = await _service.GetUICustomizationAsync(userId, moduleName, pageName, cancellationToken);
+                var userId = GetCurrentUserId();
+        var customization = await _service.GetUICustomizationAsync(userId, moduleName, pageName, cancellationToken);
 
-            if (customization == null)
-                return NotFound(new { error = "Customization not found" });
+        if (customization == null)
+            return NotFound(new { error = "Customization not found" });
 
-            return Ok(customization);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving UI customization");
-            return StatusCode(500, new { error = "Failed to retrieve customization" });
-        }
+        return Ok(customization);
     }
 
     /// <summary>
@@ -138,18 +107,10 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<UICustomizationDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UICustomizationDto>>> GetAllUICustomizations(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var customizations = await _service.GetAllUICustomizationsAsync(userId, cancellationToken);
+                var userId = GetCurrentUserId();
+        var customizations = await _service.GetAllUICustomizationsAsync(userId, cancellationToken);
 
-            return Ok(customizations);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving UI customizations");
-            return StatusCode(500, new { error = "Failed to retrieve customizations" });
-        }
+        return Ok(customizations);
     }
 
     /// <summary>
@@ -160,22 +121,14 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<UICustomizationDto>> SaveUICustomization(CreateUpdateUICustomizationDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (string.IsNullOrEmpty(dto.ModuleName) || string.IsNullOrEmpty(dto.PageName))
-                return BadRequest(new { error = "ModuleName and PageName are required" });
+                if (string.IsNullOrEmpty(dto.ModuleName) || string.IsNullOrEmpty(dto.PageName))
+            return BadRequest(new { error = "ModuleName and PageName are required" });
 
-            var userId = GetCurrentUserId();
-            var result = await _service.SaveUICustomizationAsync(userId, dto, cancellationToken);
+        var userId = GetCurrentUserId();
+        var result = await _service.SaveUICustomizationAsync(userId, dto, cancellationToken);
 
-            _logger.LogInformation("UI customization saved for user {UserId}, module {Module}", userId, dto.ModuleName);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving UI customization");
-            return StatusCode(500, new { error = "Failed to save customization" });
-        }
+        _logger.LogInformation("UI customization saved for user {UserId}, module {Module}", userId, dto.ModuleName);
+        return Ok(result);
     }
 
     /// <summary>
@@ -185,22 +138,14 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteUICustomization(string moduleName, string pageName, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var result = await _service.DeleteUICustomizationAsync(userId, moduleName, pageName, cancellationToken);
+                var userId = GetCurrentUserId();
+        var result = await _service.DeleteUICustomizationAsync(userId, moduleName, pageName, cancellationToken);
 
-            if (!result)
-                return BadRequest(new { error = "Failed to delete customization" });
+        if (!result)
+            return BadRequest(new { error = "Failed to delete customization" });
 
-            _logger.LogInformation("UI customization deleted for user {UserId}, module {Module}", userId, moduleName);
-            return Ok(new { message = "Customization deleted" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting UI customization");
-            return StatusCode(500, new { error = "Failed to delete customization" });
-        }
+        _logger.LogInformation("UI customization deleted for user {UserId}, module {Module}", userId, moduleName);
+        return Ok(new { message = "Customization deleted" });
     }
 
     /// <summary>
@@ -211,21 +156,13 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DashboardCustomizationDto>> GetDashboardCustomization(string dashboardName, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var dashboard = await _service.GetDashboardCustomizationAsync(userId, dashboardName, cancellationToken);
+                var userId = GetCurrentUserId();
+        var dashboard = await _service.GetDashboardCustomizationAsync(userId, dashboardName, cancellationToken);
 
-            if (dashboard == null)
-                return NotFound(new { error = "Dashboard not found" });
+        if (dashboard == null)
+            return NotFound(new { error = "Dashboard not found" });
 
-            return Ok(dashboard);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving dashboard customization");
-            return StatusCode(500, new { error = "Failed to retrieve dashboard" });
-        }
+        return Ok(dashboard);
     }
 
     /// <summary>
@@ -235,18 +172,10 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DashboardCustomizationDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DashboardCustomizationDto>>> GetAllDashboardCustomizations(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var dashboards = await _service.GetAllDashboardCustomizationsAsync(userId, cancellationToken);
+                var userId = GetCurrentUserId();
+        var dashboards = await _service.GetAllDashboardCustomizationsAsync(userId, cancellationToken);
 
-            return Ok(dashboards);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving dashboard customizations");
-            return StatusCode(500, new { error = "Failed to retrieve dashboards" });
-        }
+        return Ok(dashboards);
     }
 
     /// <summary>
@@ -257,22 +186,14 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DashboardCustomizationDto>> SaveDashboardCustomization(CreateUpdateDashboardCustomizationDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (string.IsNullOrEmpty(dto.DashboardName))
-                return BadRequest(new { error = "DashboardName is required" });
+                if (string.IsNullOrEmpty(dto.DashboardName))
+            return BadRequest(new { error = "DashboardName is required" });
 
-            var userId = GetCurrentUserId();
-            var result = await _service.SaveDashboardCustomizationAsync(userId, dto, cancellationToken);
+        var userId = GetCurrentUserId();
+        var result = await _service.SaveDashboardCustomizationAsync(userId, dto, cancellationToken);
 
-            _logger.LogInformation("Dashboard saved for user {UserId}: {DashboardName}", userId, dto.DashboardName);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving dashboard customization");
-            return StatusCode(500, new { error = "Failed to save dashboard" });
-        }
+        _logger.LogInformation("Dashboard saved for user {UserId}: {DashboardName}", userId, dto.DashboardName);
+        return Ok(result);
     }
 
     /// <summary>
@@ -282,22 +203,14 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteDashboardCustomization(string dashboardName, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var result = await _service.DeleteDashboardCustomizationAsync(userId, dashboardName, cancellationToken);
+                var userId = GetCurrentUserId();
+        var result = await _service.DeleteDashboardCustomizationAsync(userId, dashboardName, cancellationToken);
 
-            if (!result)
-                return BadRequest(new { error = "Failed to delete dashboard" });
+        if (!result)
+            return BadRequest(new { error = "Failed to delete dashboard" });
 
-            _logger.LogInformation("Dashboard deleted for user {UserId}: {DashboardName}", userId, dashboardName);
-            return Ok(new { message = "Dashboard deleted" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting dashboard customization");
-            return StatusCode(500, new { error = "Failed to delete dashboard" });
-        }
+        _logger.LogInformation("Dashboard deleted for user {UserId}: {DashboardName}", userId, dashboardName);
+        return Ok(new { message = "Dashboard deleted" });
     }
 
     /// <summary>
@@ -307,21 +220,13 @@ public class UIPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SetDefaultDashboard(string dashboardName, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var result = await _service.SetDefaultDashboardAsync(userId, dashboardName, cancellationToken);
+                var userId = GetCurrentUserId();
+        var result = await _service.SetDefaultDashboardAsync(userId, dashboardName, cancellationToken);
 
-            if (!result)
-                return BadRequest(new { error = "Failed to set default dashboard" });
+        if (!result)
+            return BadRequest(new { error = "Failed to set default dashboard" });
 
-            return Ok(new { message = "Default dashboard set" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting default dashboard");
-            return StatusCode(500, new { error = "Failed to set default dashboard" });
-        }
+        return Ok(new { message = "Default dashboard set" });
     }
 
     private int GetCurrentUserId()

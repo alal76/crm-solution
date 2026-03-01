@@ -7,6 +7,7 @@
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -16,7 +17,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class DuplicatesController : ControllerBase
+public class DuplicatesController : CrmControllerBase
 {
     private readonly IDuplicateDetectionService _duplicateDetectionService;
     private readonly IMergeService _mergeService;

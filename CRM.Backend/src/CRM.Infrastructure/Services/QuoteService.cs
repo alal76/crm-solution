@@ -121,7 +121,6 @@ public class QuoteService : IQuoteService
         _logger.LogDebug("Creating quote: {Name}", quote.Name);
 
         quote.CreatedAt = DateTime.UtcNow;
-        quote.UpdatedAt = DateTime.UtcNow;
         quote.IsDeleted = false;
 
         // Generate quote number if not provided
@@ -188,7 +187,6 @@ public class QuoteService : IQuoteService
         existingQuote.ContactId = quote.ContactId;
         existingQuote.OpportunityId = quote.OpportunityId;
         existingQuote.AssignedToUserId = quote.AssignedToUserId;
-        existingQuote.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -219,7 +217,6 @@ public class QuoteService : IQuoteService
 
         // Soft delete
         quote.IsDeleted = true;
-        quote.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -244,7 +241,6 @@ public class QuoteService : IQuoteService
         // Update status to Shared and set sent date
         quote.Status = QuoteStatus.Shared;
         quote.SentDate = DateTime.UtcNow;
-        quote.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -269,7 +265,6 @@ public class QuoteService : IQuoteService
         // Update status to Accepted
         quote.Status = QuoteStatus.Accepted;
         quote.AcceptedDate = DateTime.UtcNow;
-        quote.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -294,7 +289,6 @@ public class QuoteService : IQuoteService
         // Update status to Rejected
         quote.Status = QuoteStatus.Rejected;
         quote.RejectedDate = DateTime.UtcNow;
-        quote.UpdatedAt = DateTime.UtcNow;
 
         if (!string.IsNullOrWhiteSpace(reason))
         {
@@ -330,7 +324,6 @@ public class QuoteService : IQuoteService
         if (tracked != null)
         {
             tracked.Status = QuoteStatus.Revised;
-            tracked.UpdatedAt = DateTime.UtcNow;
         }
 
         // Create new revision

@@ -135,7 +135,6 @@ public class FormBuilderService : IFormBuilderService
         existing.AutoresponderTemplateId = form.AutoresponderTemplateId;
         existing.AllowedDomains = form.AllowedDomains;
         existing.OwnerId = form.OwnerId;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated form {FormId}: {FormName}", form.Id, form.Name);
@@ -151,7 +150,6 @@ public class FormBuilderService : IFormBuilderService
             return false;
 
         form.IsDeleted = true;
-        form.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted form {FormId}: {FormName}", formId, form.Name);
@@ -261,7 +259,6 @@ public class FormBuilderService : IFormBuilderService
 
         var previousStatus = form.Status;
         form.Status = status;
-        form.UpdatedAt = DateTime.UtcNow;
 
         // Generate embed code when publishing
         if (status == FormStatus.Published && string.IsNullOrEmpty(form.EmbedCode))
@@ -346,7 +343,6 @@ public class FormBuilderService : IFormBuilderService
         existing.CrmEntityMapping = field.CrmEntityMapping;
         existing.HasConditionalLogic = field.HasConditionalLogic;
         existing.ConditionalLogic = field.ConditionalLogic;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         return existing;
@@ -361,7 +357,6 @@ public class FormBuilderService : IFormBuilderService
             return false;
 
         field.IsDeleted = true;
-        field.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -682,7 +677,6 @@ public class FormBuilderService : IFormBuilderService
         // Mark the submission as confirmed
         submission.OptInConfirmed = true;
         submission.OptInConfirmedAt = DateTime.UtcNow;
-        submission.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -1263,7 +1257,6 @@ public class FormBuilderService : IFormBuilderService
             {
                 existingLead.Phone = lead.Phone ?? existingLead.Phone;
                 existingLead.CompanyName = lead.CompanyName ?? existingLead.CompanyName;
-                existingLead.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
                 return existingLead.Id;
             }

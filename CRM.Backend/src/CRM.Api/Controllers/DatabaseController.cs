@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -23,7 +24,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
-public class DatabaseController : ControllerBase
+public class DatabaseController : CrmControllerBase
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<DatabaseController> _logger;
@@ -47,42 +48,34 @@ public class DatabaseController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<DatabaseStatusDto>> GetDatabaseStatus()
     {
-        try
-        {
-            var providerInfo = await GetDatabaseProviderInfoAsync();
-            var connectionInfo = GetConnectionInfo();
-            var tables = await GetTableStatisticsAsync();
-            var views = await GetViewStatisticsAsync();
-            var indexes = await GetIndexStatisticsAsync();
+                var providerInfo = await GetDatabaseProviderInfoAsync();
+        var connectionInfo = GetConnectionInfo();
+        var tables = await GetTableStatisticsAsync();
+        var views = await GetViewStatisticsAsync();
+        var indexes = await GetIndexStatisticsAsync();
 
-            var status = new DatabaseStatusDto
-            {
-                CurrentProvider = providerInfo.ProviderName,
-                DatabaseEngine = providerInfo.Engine,
-                DatabaseVersion = providerInfo.Version,
-                ServerHost = connectionInfo.Host,
-                ServerPort = connectionInfo.Port,
-                DatabaseName = connectionInfo.Database,
-                UserId = connectionInfo.UserId,
-                Password = MaskPassword(connectionInfo.Password),
-                ConnectionStatus = "Connected",
-                DatabaseSize = await GetDatabaseSizeAsync(),
-                TableCount = tables.Count,
-                ViewCount = views.Count,
-                IndexCount = indexes.Count,
-                LastBackupDate = await GetLastBackupDateAsync(),
-                Tables = tables,
-                Views = views,
-                Indexes = indexes
-            };
-
-            return Ok(status);
-        }
-        catch (Exception ex)
+        var status = new DatabaseStatusDto
         {
-            _logger.LogError(ex, "Error getting database status");
-            return StatusCode(500, new { message = "Error getting database status" });
-        }
+            CurrentProvider = providerInfo.ProviderName,
+            DatabaseEngine = providerInfo.Engine,
+            DatabaseVersion = providerInfo.Version,
+            ServerHost = connectionInfo.Host,
+            ServerPort = connectionInfo.Port,
+            DatabaseName = connectionInfo.Database,
+            UserId = connectionInfo.UserId,
+            Password = MaskPassword(connectionInfo.Password),
+            ConnectionStatus = "Connected",
+            DatabaseSize = await GetDatabaseSizeAsync(),
+            TableCount = tables.Count,
+            ViewCount = views.Count,
+            IndexCount = indexes.Count,
+            LastBackupDate = await GetLastBackupDateAsync(),
+            Tables = tables,
+            Views = views,
+            Indexes = indexes
+        };
+
+        return Ok(status);
     }
 
     /// <summary>
@@ -92,16 +85,8 @@ public class DatabaseController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ForeignKeyDto>>> GetForeignKeys([FromQuery] string? tableName = null)
     {
-        try
-        {
-            var foreignKeys = await GetForeignKeyRelationshipsAsync(tableName);
-            return Ok(foreignKeys);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting foreign keys");
-            return StatusCode(500, new { message = "Error getting foreign keys" });
-        }
+                var foreignKeys = await GetForeignKeyRelationshipsAsync(tableName);
+        return Ok(foreignKeys);
     }
 
     /// <summary>
@@ -111,30 +96,22 @@ public class DatabaseController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<Dictionary<string, List<LinkedEntitySchemaDto>>>> GetLinkedEntitiesSchema()
     {
-        try
-        {
-            var foreignKeys = await GetForeignKeyRelationshipsAsync(null);
-            var grouped = foreignKeys
-                .GroupBy(fk => fk.SourceTable)
-                .ToDictionary(
-                    g => g.Key,
-                    g => g.Select(fk => new LinkedEntitySchemaDto
-                    {
-                        SourceTable = fk.SourceTable,
-                        SourceColumn = fk.SourceColumn,
-                        ReferencedTable = fk.ReferencedTable,
-                        ReferencedColumn = fk.ReferencedColumn,
-                        ConstraintName = fk.ConstraintName,
-                        OnDelete = fk.OnDelete,
-                        OnUpdate = fk.OnUpdate
-                    }).ToList());
-            return Ok(grouped);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting linked entities schema");
-            return StatusCode(500, new { message = "Error getting linked entities schema" });
-        }
+                var foreignKeys = await GetForeignKeyRelationshipsAsync(null);
+        var grouped = foreignKeys
+            .GroupBy(fk => fk.SourceTable)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(fk => new LinkedEntitySchemaDto
+                {
+                    SourceTable = fk.SourceTable,
+                    SourceColumn = fk.SourceColumn,
+                    ReferencedTable = fk.ReferencedTable,
+                    ReferencedColumn = fk.ReferencedColumn,
+                    ConstraintName = fk.ConstraintName,
+                    OnDelete = fk.OnDelete,
+                    OnUpdate = fk.OnUpdate
+                }).ToList());
+        return Ok(grouped);
     }
 
     /// <summary>
@@ -179,92 +156,84 @@ public class DatabaseController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MigrationResult>> MigrateDatabase([FromBody] DatabaseMigrationRequest request)
     {
+                var result = new MigrationResult
+        {
+            StartTime = DateTime.UtcNow,
+            Steps = new List<MigrationStep>()
+        };
+
+        // Step 1: Test connection
+        result.Steps.Add(new MigrationStep { Name = "Testing Connection", Status = "in-progress" });
+        var connTest = await TestDatabaseConnectionAsync(new DatabaseConnectionRequest
+        {
+            Provider = request.TargetProvider,
+            Host = request.Host,
+            Port = request.Port,
+            Database = request.Database,
+            UserId = request.UserId,
+            Password = request.Password
+        });
+
+        if (!connTest.Success)
+        {
+            result.Steps[0].Status = "failed";
+            result.Steps[0].Error = connTest.Message;
+            result.Success = false;
+            result.ErrorMessage = connTest.Message;
+            return Ok(result);
+        }
+        result.Steps[0].Status = "completed";
+
+        // Step 2: Create schema
+        result.Steps.Add(new MigrationStep { Name = "Creating Schema", Status = "in-progress" });
         try
         {
-            var result = new MigrationResult
-            {
-                StartTime = DateTime.UtcNow,
-                Steps = new List<MigrationStep>()
-            };
-
-            // Step 1: Test connection
-            result.Steps.Add(new MigrationStep { Name = "Testing Connection", Status = "in-progress" });
-            var connTest = await TestDatabaseConnectionAsync(new DatabaseConnectionRequest
-            {
-                Provider = request.TargetProvider,
-                Host = request.Host,
-                Port = request.Port,
-                Database = request.Database,
-                UserId = request.UserId,
-                Password = request.Password
-            });
-
-            if (!connTest.Success)
-            {
-                result.Steps[0].Status = "failed";
-                result.Steps[0].Error = connTest.Message;
-                result.Success = false;
-                result.ErrorMessage = connTest.Message;
-                return Ok(result);
-            }
-            result.Steps[0].Status = "completed";
-
-            // Step 2: Create schema
-            result.Steps.Add(new MigrationStep { Name = "Creating Schema", Status = "in-progress" });
-            try
-            {
-                await CreateSchemaOnTargetAsync(request);
-                result.Steps[1].Status = "completed";
-            }
-            catch (Exception ex)
-            {
-                result.Steps[1].Status = "failed";
-                result.Steps[1].Error = ex.Message;
-                result.Success = false;
-                result.ErrorMessage = $"Schema creation failed: {ex.Message}";
-                return Ok(result);
-            }
-
-            // Step 3: Migrate data (if requested)
-            if (request.MigrateData)
-            {
-                result.Steps.Add(new MigrationStep { Name = "Migrating Data", Status = "in-progress" });
-                try
-                {
-                    var recordCount = await MigrateDataToTargetAsync(request);
-                    result.Steps[2].Status = "completed";
-                    result.Steps[2].Details = $"Migrated {recordCount} records";
-                }
-                catch (Exception ex)
-                {
-                    result.Steps[2].Status = "failed";
-                    result.Steps[2].Error = ex.Message;
-                    result.Success = false;
-                    result.ErrorMessage = $"Data migration failed: {ex.Message}";
-                    return Ok(result);
-                }
-            }
-
-            // Step 4: Generate configuration
-            result.Steps.Add(new MigrationStep { Name = "Generating Configuration", Status = "in-progress" });
-            result.NewConnectionString = BuildConnectionString(request);
-            result.NewProvider = request.TargetProvider;
-            result.Steps[^1].Status = "completed";
-
-            result.Success = true;
-            result.EndTime = DateTime.UtcNow;
-            result.Message = "Migration completed successfully. Please update your configuration and restart the services.";
-            result.ConfigurationInstructions = GetConfigurationInstructions(request);
-
-            _logger.LogInformation("Database migration completed to {Provider}", request.TargetProvider);
-
-            return Ok(result);
+            await CreateSchemaOnTargetAsync(request);
+            result.Steps[1].Status = "completed";
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during database migration");
-            return StatusCode(500, new { message = $"Migration failed: {ex.Message}" });
+            result.Steps[1].Status = "failed";
+            result.Steps[1].Error = ex.Message;
+            result.Success = false;
+            result.ErrorMessage = $"Schema creation failed: {ex.Message}";
+            return Ok(result);
         }
+
+        // Step 3: Migrate data (if requested)
+        if (request.MigrateData)
+        {
+            result.Steps.Add(new MigrationStep { Name = "Migrating Data", Status = "in-progress" });
+            try
+            {
+                var recordCount = await MigrateDataToTargetAsync(request);
+                result.Steps[2].Status = "completed";
+                result.Steps[2].Details = $"Migrated {recordCount} records";
+            }
+            catch (Exception ex)
+            {
+                result.Steps[2].Status = "failed";
+                result.Steps[2].Error = ex.Message;
+                result.Success = false;
+                result.ErrorMessage = $"Data migration failed: {ex.Message}";
+                return Ok(result);
+            }
+        }
+
+        // Step 4: Generate configuration
+        result.Steps.Add(new MigrationStep { Name = "Generating Configuration", Status = "in-progress" });
+        result.NewConnectionString = BuildConnectionString(request);
+        result.NewProvider = request.TargetProvider;
+        result.Steps[^1].Status = "completed";
+
+        result.Success = true;
+        result.EndTime = DateTime.UtcNow;
+        result.Message = "Migration completed successfully. Please update your configuration and restart the services.";
+        result.ConfigurationInstructions = GetConfigurationInstructions(request);
+
+        _logger.LogInformation("Database migration completed to {Provider}", request.TargetProvider);
+
+        return Ok(result);
     }
 
     private async Task<DatabaseProviderInfo> GetDatabaseProviderInfoAsync()
@@ -598,32 +567,24 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<List<BackupDto>>> GetBackups()
     {
-        try
-        {
-            var backups = await _context.DatabaseBackups
-                .Where(b => !b.IsDeleted)
-                .OrderByDescending(b => b.CreatedAt)
-                .Select(b => new BackupDto
-                {
-                    Id = b.Id,
-                    BackupName = b.BackupName,
-                    FilePath = b.FilePath,
-                    FileSizeBytes = b.FileSizeBytes,
-                    SourceDatabase = b.SourceDatabase,
-                    BackupType = b.BackupType,
-                    CreatedAt = b.CreatedAt,
-                    Description = b.Description,
-                    IsCompressed = b.IsCompressed
-                })
-                .ToListAsync();
+                var backups = await _context.DatabaseBackups
+            .Where(b => !b.IsDeleted)
+            .OrderByDescending(b => b.CreatedAt)
+            .Select(b => new BackupDto
+            {
+                Id = b.Id,
+                BackupName = b.BackupName,
+                FilePath = b.FilePath,
+                FileSizeBytes = b.FileSizeBytes,
+                SourceDatabase = b.SourceDatabase,
+                BackupType = b.BackupType,
+                CreatedAt = b.CreatedAt,
+                Description = b.Description,
+                IsCompressed = b.IsCompressed
+            })
+            .ToListAsync();
 
-            return Ok(backups);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting backups");
-            return StatusCode(500, new { message = "Error getting backups" });
-        }
+        return Ok(backups);
     }
 
     /// <summary>
@@ -634,152 +595,144 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BackupDto>> CreateBackup([FromBody] CreateBackupRequest request)
     {
-        try
+                var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var backupName = request.BackupName ?? $"backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
+        var backupDir = Path.Combine(_environment.ContentRootPath, "backups");
+        Directory.CreateDirectory(backupDir);
+
+        var backupPath = "";
+        long fileSize = 0;
+        var backupInstructions = "";
+
+        switch (provider)
         {
-            var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-            var backupName = request.BackupName ?? $"backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
-            var backupDir = Path.Combine(_environment.ContentRootPath, "backups");
-            Directory.CreateDirectory(backupDir);
+            case "mysql":
+            case "mariadb":
+                // Generate mysqldump command (requires mysqldump to be available)
+                backupPath = Path.Combine(backupDir, $"{backupName}.sql");
+                var connInfo = GetConnectionInfo();
+                // Never include actual credentials in backup instructions
+                backupInstructions = $"mysqldump -h {connInfo.Host} -P {connInfo.Port} -u <username> -p <database_name> > {backupPath}";
 
-            var backupPath = "";
-            long fileSize = 0;
-            var backupInstructions = "";
+                // Try to execute mysqldump if available
+                try
+                {
+                    var connection = _context.Database.GetDbConnection();
+                    if (connection.State != System.Data.ConnectionState.Open)
+                        await connection.OpenAsync();
 
-            switch (provider)
-            {
-                case "mysql":
-                case "mariadb":
-                    // Generate mysqldump command (requires mysqldump to be available)
-                    backupPath = Path.Combine(backupDir, $"{backupName}.sql");
-                    var connInfo = GetConnectionInfo();
-                    // Never include actual credentials in backup instructions
-                    backupInstructions = $"mysqldump -h {connInfo.Host} -P {connInfo.Port} -u <username> -p <database_name> > {backupPath}";
+                    // Create SQL dump by querying table structures and data
+                    await using var writer = new StreamWriter(backupPath);
+                    await writer.WriteLineAsync($"-- CRM Database Backup - {provider}");
+                    await writer.WriteLineAsync($"-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+                    await writer.WriteLineAsync($"-- Database: {connInfo.Database}");
+                    await writer.WriteLineAsync();
 
-                    // Try to execute mysqldump if available
-                    try
+                    // Get tables using parameterized query
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                    var dbParam = cmd.CreateParameter();
+                    dbParam.ParameterName = "@dbName";
+                    dbParam.Value = connInfo.Database;
+                    cmd.Parameters.Add(dbParam);
+
+                    var tables = new List<string>();
+                    using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        var connection = _context.Database.GetDbConnection();
-                        if (connection.State != System.Data.ConnectionState.Open)
-                            await connection.OpenAsync();
-
-                        // Create SQL dump by querying table structures and data
-                        await using var writer = new StreamWriter(backupPath);
-                        await writer.WriteLineAsync($"-- CRM Database Backup - {provider}");
-                        await writer.WriteLineAsync($"-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
-                        await writer.WriteLineAsync($"-- Database: {connInfo.Database}");
-                        await writer.WriteLineAsync();
-
-                        // Get tables using parameterized query
-                        using var cmd = connection.CreateCommand();
-                        cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
-                        var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
-                        dbParam.Value = connInfo.Database;
-                        cmd.Parameters.Add(dbParam);
-
-                        var tables = new List<string>();
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                                tables.Add(reader.GetString(0));
-                        }
-
-                        await writer.WriteLineAsync($"-- Tables: {string.Join(", ", tables)}");
-                        await writer.WriteLineAsync("-- Note: Use mysqldump for complete backup with all data");
-                        fileSize = new FileInfo(backupPath).Length;
+                        while (await reader.ReadAsync())
+                            tables.Add(reader.GetString(0));
                     }
-                    catch
-                    {
-                        await System.IO.File.WriteAllTextAsync(backupPath, $"-- Backup command: {backupInstructions}");
-                        fileSize = new FileInfo(backupPath).Length;
-                    }
-                    break;
 
-                case "postgresql":
-                    backupPath = Path.Combine(backupDir, $"{backupName}.sql");
-                    var pgConn = GetConnectionInfo();
-                    backupInstructions = $"pg_dump -h {pgConn.Host} -p {pgConn.Port} -U {pgConn.UserId} -d {pgConn.Database} -f {backupPath}";
-                    await System.IO.File.WriteAllTextAsync(backupPath, $"-- PostgreSQL Backup\n-- Command: {backupInstructions}\n-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+                    await writer.WriteLineAsync($"-- Tables: {string.Join(", ", tables)}");
+                    await writer.WriteLineAsync("-- Note: Use mysqldump for complete backup with all data");
                     fileSize = new FileInfo(backupPath).Length;
-                    break;
-
-                case "sqlserver":
-                    backupPath = Path.Combine(backupDir, $"{backupName}.bak");
-                    var sqlConn = GetConnectionInfo();
-                    try
-                    {
-                        var connection = _context.Database.GetDbConnection();
-                        if (connection.State != System.Data.ConnectionState.Open)
-                            await connection.OpenAsync();
-
-                        using var cmd = connection.CreateCommand();
-                        cmd.CommandText = $"BACKUP DATABASE [{sqlConn.Database}] TO DISK = '{backupPath}' WITH FORMAT, INIT, NAME = '{backupName}'";
-                        await cmd.ExecuteNonQueryAsync();
-                        fileSize = System.IO.File.Exists(backupPath) ? new FileInfo(backupPath).Length : 0;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "SQL Server backup failed, creating backup instruction file");
-                        backupPath = Path.Combine(backupDir, $"{backupName}.sql");
-                        await System.IO.File.WriteAllTextAsync(backupPath, $"-- SQL Server Backup\n-- BACKUP DATABASE [{sqlConn.Database}] TO DISK = 'path/backup.bak'\n-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
-                        fileSize = new FileInfo(backupPath).Length;
-                    }
-                    break;
-
-                case "oracle":
-                    backupPath = Path.Combine(backupDir, $"{backupName}.dmp");
-                    var oraConn = GetConnectionInfo();
-                    backupInstructions = $"expdp {oraConn.UserId}/{oraConn.Password}@{oraConn.Host}:{oraConn.Port}/{oraConn.Database} DIRECTORY=backup_dir DUMPFILE={backupName}.dmp";
-                    await System.IO.File.WriteAllTextAsync(backupPath, $"-- Oracle Data Pump Backup\n-- Command: {backupInstructions}\n-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+                }
+                catch
+                {
+                    await System.IO.File.WriteAllTextAsync(backupPath, $"-- Backup command: {backupInstructions}");
                     fileSize = new FileInfo(backupPath).Length;
-                    break;
+                }
+                break;
 
-                default: // SQLite
-                    backupPath = Path.Combine(backupDir, $"{backupName}.db");
-                    var sourcePath = Path.Combine(_environment.ContentRootPath, "data", "crm.db");
-                    if (System.IO.File.Exists(sourcePath))
-                    {
-                        System.IO.File.Copy(sourcePath, backupPath, true);
-                        fileSize = new FileInfo(backupPath).Length;
-                    }
-                    break;
-            }
+            case "postgresql":
+                backupPath = Path.Combine(backupDir, $"{backupName}.sql");
+                var pgConn = GetConnectionInfo();
+                backupInstructions = $"pg_dump -h {pgConn.Host} -p {pgConn.Port} -U {pgConn.UserId} -d {pgConn.Database} -f {backupPath}";
+                await System.IO.File.WriteAllTextAsync(backupPath, $"-- PostgreSQL Backup\n-- Command: {backupInstructions}\n-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+                fileSize = new FileInfo(backupPath).Length;
+                break;
 
-            var backup = new DatabaseBackup
-            {
-                BackupName = backupName,
-                FilePath = backupPath,
-                FileSizeBytes = fileSize,
-                SourceDatabase = provider,
-                BackupType = request.BackupType ?? "Full",
-                Description = request.Description ?? backupInstructions,
-                IsCompressed = false,
-                CreatedAt = DateTime.UtcNow
-            };
+            case "sqlserver":
+                backupPath = Path.Combine(backupDir, $"{backupName}.bak");
+                var sqlConn = GetConnectionInfo();
+                try
+                {
+                    var connection = _context.Database.GetDbConnection();
+                    if (connection.State != System.Data.ConnectionState.Open)
+                        await connection.OpenAsync();
 
-            _context.DatabaseBackups.Add(backup);
-            await _context.SaveChangesAsync();
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = $"BACKUP DATABASE [{sqlConn.Database}] TO DISK = '{backupPath}' WITH FORMAT, INIT, NAME = '{backupName}'";
+                    await cmd.ExecuteNonQueryAsync();
+                    fileSize = System.IO.File.Exists(backupPath) ? new FileInfo(backupPath).Length : 0;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "SQL Server backup failed, creating backup instruction file");
+                    backupPath = Path.Combine(backupDir, $"{backupName}.sql");
+                    await System.IO.File.WriteAllTextAsync(backupPath, $"-- SQL Server Backup\n-- BACKUP DATABASE [{sqlConn.Database}] TO DISK = 'path/backup.bak'\n-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+                    fileSize = new FileInfo(backupPath).Length;
+                }
+                break;
 
-            _logger.LogInformation("Database backup created: {BackupName} for {Provider}", backup.BackupName, provider);
+            case "oracle":
+                backupPath = Path.Combine(backupDir, $"{backupName}.dmp");
+                var oraConn = GetConnectionInfo();
+                backupInstructions = $"expdp {oraConn.UserId}/{oraConn.Password}@{oraConn.Host}:{oraConn.Port}/{oraConn.Database} DIRECTORY=backup_dir DUMPFILE={backupName}.dmp";
+                await System.IO.File.WriteAllTextAsync(backupPath, $"-- Oracle Data Pump Backup\n-- Command: {backupInstructions}\n-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+                fileSize = new FileInfo(backupPath).Length;
+                break;
 
-            return Ok(new BackupDto
-            {
-                Id = backup.Id,
-                BackupName = backup.BackupName,
-                FilePath = backup.FilePath,
-                FileSizeBytes = backup.FileSizeBytes,
-                SourceDatabase = backup.SourceDatabase,
-                BackupType = backup.BackupType,
-                CreatedAt = backup.CreatedAt,
-                Description = backup.Description,
-                IsCompressed = backup.IsCompressed
-            });
+            default: // SQLite
+                backupPath = Path.Combine(backupDir, $"{backupName}.db");
+                var sourcePath = Path.Combine(_environment.ContentRootPath, "data", "crm.db");
+                if (System.IO.File.Exists(sourcePath))
+                {
+                    System.IO.File.Copy(sourcePath, backupPath, true);
+                    fileSize = new FileInfo(backupPath).Length;
+                }
+                break;
         }
-        catch (Exception ex)
+
+        var backup = new DatabaseBackup
         {
-            _logger.LogError(ex, "Error creating backup");
-            return StatusCode(500, new { message = "Error creating backup" });
-        }
+            BackupName = backupName,
+            FilePath = backupPath,
+            FileSizeBytes = fileSize,
+            SourceDatabase = provider,
+            BackupType = request.BackupType ?? "Full",
+            Description = request.Description ?? backupInstructions,
+            IsCompressed = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.DatabaseBackups.Add(backup);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Database backup created: {BackupName} for {Provider}", backup.BackupName, provider);
+
+        return Ok(new BackupDto
+        {
+            Id = backup.Id,
+            BackupName = backup.BackupName,
+            FilePath = backup.FilePath,
+            FileSizeBytes = backup.FileSizeBytes,
+            SourceDatabase = backup.SourceDatabase,
+            BackupType = backup.BackupType,
+            CreatedAt = backup.CreatedAt,
+            Description = backup.Description,
+            IsCompressed = backup.IsCompressed
+        });
     }
 
     /// <summary>
@@ -790,22 +743,14 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> RestoreBackup(int backupId)
     {
-        try
-        {
-            var backup = await _context.DatabaseBackups.FindAsync(backupId);
-            if (backup == null)
-                return NotFound(new { message = "Backup not found" });
+                var backup = await _context.DatabaseBackups.FindAsync(backupId);
+        if (backup == null)
+            return NotFound(new { message = "Backup not found" });
 
-            // Restore logic would go here
-            _logger.LogInformation("Database restore initiated from backup: {BackupName}", backup.BackupName);
+        // Restore logic would go here
+        _logger.LogInformation("Database restore initiated from backup: {BackupName}", backup.BackupName);
 
-            return Ok(new { message = "Restore initiated successfully", backupName = backup.BackupName });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error restoring backup");
-            return StatusCode(500, new { message = "Error restoring backup" });
-        }
+        return Ok(new { message = "Restore initiated successfully", backupName = backup.BackupName });
     }
 
     /// <summary>
@@ -815,123 +760,115 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<OptimizeResultDto>> OptimizeDatabase()
     {
-        try
+                var result = new OptimizeResultDto
         {
-            var result = new OptimizeResultDto
-            {
-                StartTime = DateTime.UtcNow,
-                Operations = new List<string>()
-            };
+            StartTime = DateTime.UtcNow,
+            Operations = new List<string>()
+        };
 
-            var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-            var connection = _context.Database.GetDbConnection();
+        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var connection = _context.Database.GetDbConnection();
 
-            if (connection.State != System.Data.ConnectionState.Open)
-                await connection.OpenAsync();
+        if (connection.State != System.Data.ConnectionState.Open)
+            await connection.OpenAsync();
 
-            switch (provider)
-            {
-                case "mysql":
-                case "mariadb":
-                    // Get all tables and optimize them
-                    var dbName = GetConnectionInfo().Database;
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        // Use parameterized query to get table names
-                        cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
-                        var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
-                        dbParam.Value = dbName;
-                        cmd.Parameters.Add(dbParam);
-
-                        var tables = new List<string>();
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                                tables.Add(reader.GetString(0));
-                        }
-
-                        // Table names from information_schema are safe to use
-                        foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
-                        {
-                            // Validate table name contains only safe characters
-                            if (!IsValidIdentifier(table))
-                                continue;
-
-                            using var optimizeCmd = connection.CreateCommand();
-                            optimizeCmd.CommandText = $"OPTIMIZE TABLE `{table}`";
-                            await optimizeCmd.ExecuteNonQueryAsync();
-                            result.Operations.Add($"OPTIMIZE TABLE {table} completed");
-                        }
-
-                        var validTables = tables.Where(IsValidIdentifier).Select(t => $"`{t}`").ToList();
-                        if (validTables.Count > 0)
-                        {
-                            using var analyzeCmd = connection.CreateCommand();
-                            analyzeCmd.CommandText = $"ANALYZE TABLE {string.Join(", ", validTables)}";
-                            await analyzeCmd.ExecuteNonQueryAsync();
-                            result.Operations.Add("ANALYZE completed - query statistics updated");
-                        }
-                    }
-                    break;
-
-                case "postgresql":
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = "VACUUM ANALYZE";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Operations.Add("VACUUM ANALYZE completed - database optimized and statistics updated");
-                    }
-                    break;
-
-                case "sqlserver":
-                    // Update statistics for all tables
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = "EXEC sp_updatestats";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Operations.Add("UPDATE STATISTICS completed - query statistics updated");
-                    }
-                    // Shrink database (use with caution in production)
-                    using (var shrinkCmd = connection.CreateCommand())
-                    {
-                        var dbNameSql = GetConnectionInfo().Database;
-                        shrinkCmd.CommandText = $"DBCC SHRINKDATABASE([{dbNameSql}])";
-                        await shrinkCmd.ExecuteNonQueryAsync();
-                        result.Operations.Add("SHRINKDATABASE completed - unused space released");
-                    }
-                    break;
-
-                case "oracle":
-                    // Oracle: Gather statistics
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = "BEGIN DBMS_STATS.GATHER_SCHEMA_STATS(USER); END;";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Operations.Add("GATHER_SCHEMA_STATS completed - statistics updated");
-                    }
-                    break;
-
-                default: // SQLite
-                    await _context.Database.ExecuteSqlRawAsync("VACUUM");
-                    result.Operations.Add("VACUUM completed - database file optimized");
-                    await _context.Database.ExecuteSqlRawAsync("ANALYZE");
-                    result.Operations.Add("ANALYZE completed - query statistics updated");
-                    break;
-            }
-
-            result.EndTime = DateTime.UtcNow;
-            result.Success = true;
-
-            _logger.LogInformation("Database optimization completed for {Provider}", provider);
-
-            return Ok(result);
-        }
-        catch (Exception ex)
+        switch (provider)
         {
-            _logger.LogError(ex, "Error optimizing database");
-            return StatusCode(500, new { message = "Error optimizing database" });
+            case "mysql":
+            case "mariadb":
+                // Get all tables and optimize them
+                var dbName = GetConnectionInfo().Database;
+                using (var cmd = connection.CreateCommand())
+                {
+                    // Use parameterized query to get table names
+                    cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                    var dbParam = cmd.CreateParameter();
+                    dbParam.ParameterName = "@dbName";
+                    dbParam.Value = dbName;
+                    cmd.Parameters.Add(dbParam);
+
+                    var tables = new List<string>();
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                            tables.Add(reader.GetString(0));
+                    }
+
+                    // Table names from information_schema are safe to use
+                    foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
+                    {
+                        // Validate table name contains only safe characters
+                        if (!IsValidIdentifier(table))
+                            continue;
+
+                        using var optimizeCmd = connection.CreateCommand();
+                        optimizeCmd.CommandText = $"OPTIMIZE TABLE `{table}`";
+                        await optimizeCmd.ExecuteNonQueryAsync();
+                        result.Operations.Add($"OPTIMIZE TABLE {table} completed");
+                    }
+
+                    var validTables = tables.Where(IsValidIdentifier).Select(t => $"`{t}`").ToList();
+                    if (validTables.Count > 0)
+                    {
+                        using var analyzeCmd = connection.CreateCommand();
+                        analyzeCmd.CommandText = $"ANALYZE TABLE {string.Join(", ", validTables)}";
+                        await analyzeCmd.ExecuteNonQueryAsync();
+                        result.Operations.Add("ANALYZE completed - query statistics updated");
+                    }
+                }
+                break;
+
+            case "postgresql":
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "VACUUM ANALYZE";
+                    await cmd.ExecuteNonQueryAsync();
+                    result.Operations.Add("VACUUM ANALYZE completed - database optimized and statistics updated");
+                }
+                break;
+
+            case "sqlserver":
+                // Update statistics for all tables
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "EXEC sp_updatestats";
+                    await cmd.ExecuteNonQueryAsync();
+                    result.Operations.Add("UPDATE STATISTICS completed - query statistics updated");
+                }
+                // Shrink database (use with caution in production)
+                using (var shrinkCmd = connection.CreateCommand())
+                {
+                    var dbNameSql = GetConnectionInfo().Database;
+                    shrinkCmd.CommandText = $"DBCC SHRINKDATABASE([{dbNameSql}])";
+                    await shrinkCmd.ExecuteNonQueryAsync();
+                    result.Operations.Add("SHRINKDATABASE completed - unused space released");
+                }
+                break;
+
+            case "oracle":
+                // Oracle: Gather statistics
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "BEGIN DBMS_STATS.GATHER_SCHEMA_STATS(USER); END;";
+                    await cmd.ExecuteNonQueryAsync();
+                    result.Operations.Add("GATHER_SCHEMA_STATS completed - statistics updated");
+                }
+                break;
+
+            default: // SQLite
+                await _context.Database.ExecuteSqlRawAsync("VACUUM");
+                result.Operations.Add("VACUUM completed - database file optimized");
+                await _context.Database.ExecuteSqlRawAsync("ANALYZE");
+                result.Operations.Add("ANALYZE completed - query statistics updated");
+                break;
         }
+
+        result.EndTime = DateTime.UtcNow;
+        result.Success = true;
+
+        _logger.LogInformation("Database optimization completed for {Provider}", provider);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -941,111 +878,103 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<StatisticsRefreshResultDto>> RefreshTableStatistics()
     {
-        try
+                var result = new StatisticsRefreshResultDto
         {
-            var result = new StatisticsRefreshResultDto
-            {
-                StartTime = DateTime.UtcNow,
-                TablesAnalyzed = new List<string>()
-            };
+            StartTime = DateTime.UtcNow,
+            TablesAnalyzed = new List<string>()
+        };
 
-            var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-            var connection = _context.Database.GetDbConnection();
+        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var connection = _context.Database.GetDbConnection();
 
-            if (connection.State != System.Data.ConnectionState.Open)
-                await connection.OpenAsync();
+        if (connection.State != System.Data.ConnectionState.Open)
+            await connection.OpenAsync();
 
-            switch (provider)
-            {
-                case "mysql":
-                case "mariadb":
-                    var dbName = GetConnectionInfo().Database;
-                    using (var cmd = connection.CreateCommand())
+        switch (provider)
+        {
+            case "mysql":
+            case "mariadb":
+                var dbName = GetConnectionInfo().Database;
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                    var dbParam = cmd.CreateParameter();
+                    dbParam.ParameterName = "@dbName";
+                    dbParam.Value = dbName;
+                    cmd.Parameters.Add(dbParam);
+
+                    var tables = new List<string>();
+                    using (var reader = await cmd.ExecuteReaderAsync())
                     {
-                        cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
-                        var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
-                        dbParam.Value = dbName;
-                        cmd.Parameters.Add(dbParam);
-
-                        var tables = new List<string>();
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                                tables.Add(reader.GetString(0));
-                        }
-
-                        foreach (var table in tables.Where(IsValidIdentifier))
-                        {
-                            using var analyzeCmd = connection.CreateCommand();
-                            analyzeCmd.CommandText = $"ANALYZE TABLE `{table}`";
-                            await analyzeCmd.ExecuteNonQueryAsync();
-                            result.TablesAnalyzed.Add(table);
-                        }
+                        while (await reader.ReadAsync())
+                            tables.Add(reader.GetString(0));
                     }
-                    result.Command = "ANALYZE TABLE";
-                    break;
 
-                case "postgresql":
-                    using (var cmd = connection.CreateCommand())
+                    foreach (var table in tables.Where(IsValidIdentifier))
                     {
-                        cmd.CommandText = "ANALYZE";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Command = "ANALYZE";
-                        result.TablesAnalyzed.Add("All tables");
+                        using var analyzeCmd = connection.CreateCommand();
+                        analyzeCmd.CommandText = $"ANALYZE TABLE `{table}`";
+                        await analyzeCmd.ExecuteNonQueryAsync();
+                        result.TablesAnalyzed.Add(table);
                     }
-                    break;
+                }
+                result.Command = "ANALYZE TABLE";
+                break;
 
-                case "sqlserver":
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = "EXEC sp_updatestats";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Command = "sp_updatestats";
-                        result.TablesAnalyzed.Add("All tables");
-                    }
-                    break;
-
-                case "oracle":
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = "BEGIN DBMS_STATS.GATHER_SCHEMA_STATS(USER); END;";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Command = "GATHER_SCHEMA_STATS";
-                        result.TablesAnalyzed.Add("All tables");
-                    }
-                    break;
-
-                default: // SQLite
-                    await _context.Database.ExecuteSqlRawAsync("ANALYZE");
+            case "postgresql":
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "ANALYZE";
+                    await cmd.ExecuteNonQueryAsync();
                     result.Command = "ANALYZE";
                     result.TablesAnalyzed.Add("All tables");
-                    break;
-            }
+                }
+                break;
 
-            result.EndTime = DateTime.UtcNow;
-            result.Success = true;
-            result.DatabaseProvider = provider;
-            result.Message = $"Statistics refreshed successfully for {result.TablesAnalyzed.Count} table(s)";
+            case "sqlserver":
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "EXEC sp_updatestats";
+                    await cmd.ExecuteNonQueryAsync();
+                    result.Command = "sp_updatestats";
+                    result.TablesAnalyzed.Add("All tables");
+                }
+                break;
 
-            // Update last statistics refresh time in system settings
-            var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            if (settings != null)
-            {
-                settings.StatisticsLastRefreshed = DateTime.UtcNow;
-                settings.UpdatedAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-            }
+            case "oracle":
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "BEGIN DBMS_STATS.GATHER_SCHEMA_STATS(USER); END;";
+                    await cmd.ExecuteNonQueryAsync();
+                    result.Command = "GATHER_SCHEMA_STATS";
+                    result.TablesAnalyzed.Add("All tables");
+                }
+                break;
 
-            _logger.LogInformation("Table statistics refreshed for {Provider}: {TableCount} tables", provider, result.TablesAnalyzed.Count);
-
-            return Ok(result);
+            default: // SQLite
+                await _context.Database.ExecuteSqlRawAsync("ANALYZE");
+                result.Command = "ANALYZE";
+                result.TablesAnalyzed.Add("All tables");
+                break;
         }
-        catch (Exception ex)
+
+        result.EndTime = DateTime.UtcNow;
+        result.Success = true;
+        result.DatabaseProvider = provider;
+        result.Message = $"Statistics refreshed successfully for {result.TablesAnalyzed.Count} table(s)";
+
+        // Update last statistics refresh time in system settings
+        var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        if (settings != null)
         {
-            _logger.LogError(ex, "Error refreshing table statistics");
-            return StatusCode(500, new { message = "Error refreshing table statistics", error = ex.Message });
+            settings.StatisticsLastRefreshed = DateTime.UtcNow;
+            settings.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
         }
+
+        _logger.LogInformation("Table statistics refreshed for {Provider}: {TableCount} tables", provider, result.TablesAnalyzed.Count);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -1055,31 +984,23 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<StatisticsScheduleDto>> GetStatisticsSchedule()
     {
-        try
+                var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+
+        var schedule = new StatisticsScheduleDto
         {
-            var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+            IsEnabled = settings?.StatisticsRefreshEnabled ?? false,
+            IntervalMinutes = settings?.StatisticsRefreshIntervalMinutes ?? 60,
+            LastRefreshed = settings?.StatisticsLastRefreshed,
+            DatabaseProvider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite"
+        };
 
-            var schedule = new StatisticsScheduleDto
-            {
-                IsEnabled = settings?.StatisticsRefreshEnabled ?? false,
-                IntervalMinutes = settings?.StatisticsRefreshIntervalMinutes ?? 60,
-                LastRefreshed = settings?.StatisticsLastRefreshed,
-                DatabaseProvider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite"
-            };
-
-            // Calculate next scheduled refresh
-            if (schedule.IsEnabled && schedule.LastRefreshed.HasValue)
-            {
-                schedule.NextScheduledRefresh = schedule.LastRefreshed.Value.AddMinutes(schedule.IntervalMinutes);
-            }
-
-            return Ok(schedule);
-        }
-        catch (Exception ex)
+        // Calculate next scheduled refresh
+        if (schedule.IsEnabled && schedule.LastRefreshed.HasValue)
         {
-            _logger.LogError(ex, "Error getting statistics schedule");
-            return StatusCode(500, new { message = "Error getting statistics schedule" });
+            schedule.NextScheduledRefresh = schedule.LastRefreshed.Value.AddMinutes(schedule.IntervalMinutes);
         }
+
+        return Ok(schedule);
     }
 
     /// <summary>
@@ -1091,29 +1012,21 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<StatisticsScheduleDto>> UpdateStatisticsSchedule([FromBody] StatisticsScheduleUpdateDto request)
     {
-        try
+                var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        if (settings == null)
         {
-            var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            if (settings == null)
-            {
-                return NotFound(new { message = "System settings not found" });
-            }
-
-            settings.StatisticsRefreshEnabled = request.IsEnabled;
-            settings.StatisticsRefreshIntervalMinutes = request.IntervalMinutes;
-            settings.UpdatedAt = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Statistics schedule updated: Enabled={Enabled}, Interval={Interval}min", request.IsEnabled, request.IntervalMinutes);
-
-            return await GetStatisticsSchedule();
+            return NotFound(new { message = "System settings not found" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating statistics schedule");
-            return StatusCode(500, new { message = "Error updating statistics schedule" });
-        }
+
+        settings.StatisticsRefreshEnabled = request.IsEnabled;
+        settings.StatisticsRefreshIntervalMinutes = request.IntervalMinutes;
+        settings.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Statistics schedule updated: Enabled={Enabled}, Interval={Interval}min", request.IsEnabled, request.IntervalMinutes);
+
+        return await GetStatisticsSchedule();
     }
 
     /// <summary>
@@ -1123,115 +1036,107 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<OptimizeResultDto>> RebuildIndexes()
     {
-        try
+                var result = new OptimizeResultDto
         {
-            var result = new OptimizeResultDto
-            {
-                StartTime = DateTime.UtcNow,
-                Operations = new List<string>()
-            };
+            StartTime = DateTime.UtcNow,
+            Operations = new List<string>()
+        };
 
-            var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-            var connection = _context.Database.GetDbConnection();
+        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var connection = _context.Database.GetDbConnection();
 
-            if (connection.State != System.Data.ConnectionState.Open)
-                await connection.OpenAsync();
+        if (connection.State != System.Data.ConnectionState.Open)
+            await connection.OpenAsync();
 
-            switch (provider)
-            {
-                case "mysql":
-                case "mariadb":
-                    // MySQL/MariaDB: Repair and rebuild indexes for each table
-                    var dbName = GetConnectionInfo().Database;
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        // Use parameterized query
-                        cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
-                        var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
-                        dbParam.Value = dbName;
-                        cmd.Parameters.Add(dbParam);
-
-                        var tables = new List<string>();
-                        using (var reader = await cmd.ExecuteReaderAsync())
-                        {
-                            while (await reader.ReadAsync())
-                                tables.Add(reader.GetString(0));
-                        }
-
-                        foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
-                        {
-                            // Validate table name
-                            if (!IsValidIdentifier(table))
-                                continue;
-
-                            using var repairCmd = connection.CreateCommand();
-                            repairCmd.CommandText = $"ALTER TABLE `{table}` ENGINE=InnoDB";
-                            await repairCmd.ExecuteNonQueryAsync();
-                            result.Operations.Add($"Rebuilt indexes for table {table}");
-                        }
-                    }
-                    break;
-
-                case "postgresql":
-                    // PostgreSQL: REINDEX DATABASE
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        var dbNamePg = GetConnectionInfo().Database;
-                        cmd.CommandText = $"REINDEX DATABASE \"{dbNamePg}\"";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Operations.Add("REINDEX DATABASE completed - all indexes rebuilt");
-                    }
-                    break;
-
-                case "sqlserver":
-                    // SQL Server: Rebuild all indexes
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = @"
-                            DECLARE @sql NVARCHAR(MAX) = '';
-                            SELECT @sql = @sql + 'ALTER INDEX ALL ON [' + SCHEMA_NAME(schema_id) + '].[' + name + '] REBUILD;'
-                            FROM sys.tables WHERE is_ms_shipped = 0;
-                            EXEC sp_executesql @sql;";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Operations.Add("All indexes rebuilt successfully");
-                    }
-                    break;
-
-                case "oracle":
-                    // Oracle: Rebuild all indexes
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = @"
-                            BEGIN
-                                FOR r IN (SELECT index_name FROM user_indexes WHERE index_type = 'NORMAL')
-                                LOOP
-                                    EXECUTE IMMEDIATE 'ALTER INDEX ' || r.index_name || ' REBUILD';
-                                END LOOP;
-                            END;";
-                        await cmd.ExecuteNonQueryAsync();
-                        result.Operations.Add("All indexes rebuilt successfully");
-                    }
-                    break;
-
-                default: // SQLite
-                    await _context.Database.ExecuteSqlRawAsync("REINDEX");
-                    result.Operations.Add("REINDEX completed - all indexes rebuilt");
-                    break;
-            }
-
-            result.EndTime = DateTime.UtcNow;
-            result.Success = true;
-
-            _logger.LogInformation("Index rebuild completed for {Provider}", provider);
-
-            return Ok(result);
-        }
-        catch (Exception ex)
+        switch (provider)
         {
-            _logger.LogError(ex, "Error rebuilding indexes");
-            return StatusCode(500, new { message = "Error rebuilding indexes" });
+            case "mysql":
+            case "mariadb":
+                // MySQL/MariaDB: Repair and rebuild indexes for each table
+                var dbName = GetConnectionInfo().Database;
+                using (var cmd = connection.CreateCommand())
+                {
+                    // Use parameterized query
+                    cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                    var dbParam = cmd.CreateParameter();
+                    dbParam.ParameterName = "@dbName";
+                    dbParam.Value = dbName;
+                    cmd.Parameters.Add(dbParam);
+
+                    var tables = new List<string>();
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                            tables.Add(reader.GetString(0));
+                    }
+
+                    foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
+                    {
+                        // Validate table name
+                        if (!IsValidIdentifier(table))
+                            continue;
+
+                        using var repairCmd = connection.CreateCommand();
+                        repairCmd.CommandText = $"ALTER TABLE `{table}` ENGINE=InnoDB";
+                        await repairCmd.ExecuteNonQueryAsync();
+                        result.Operations.Add($"Rebuilt indexes for table {table}");
+                    }
+                }
+                break;
+
+            case "postgresql":
+                // PostgreSQL: REINDEX DATABASE
+                using (var cmd = connection.CreateCommand())
+                {
+                    var dbNamePg = GetConnectionInfo().Database;
+                    cmd.CommandText = $"REINDEX DATABASE \"{dbNamePg}\"";
+                    await cmd.ExecuteNonQueryAsync();
+                    result.Operations.Add("REINDEX DATABASE completed - all indexes rebuilt");
+                }
+                break;
+
+            case "sqlserver":
+                // SQL Server: Rebuild all indexes
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        DECLARE @sql NVARCHAR(MAX) = '';
+                        SELECT @sql = @sql + 'ALTER INDEX ALL ON [' + SCHEMA_NAME(schema_id) + '].[' + name + '] REBUILD;'
+                        FROM sys.tables WHERE is_ms_shipped = 0;
+                        EXEC sp_executesql @sql;";
+                    await cmd.ExecuteNonQueryAsync();
+                    result.Operations.Add("All indexes rebuilt successfully");
+                }
+                break;
+
+            case "oracle":
+                // Oracle: Rebuild all indexes
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        BEGIN
+                            FOR r IN (SELECT index_name FROM user_indexes WHERE index_type = 'NORMAL')
+                            LOOP
+                                EXECUTE IMMEDIATE 'ALTER INDEX ' || r.index_name || ' REBUILD';
+                            END LOOP;
+                        END;";
+                    await cmd.ExecuteNonQueryAsync();
+                    result.Operations.Add("All indexes rebuilt successfully");
+                }
+                break;
+
+            default: // SQLite
+                await _context.Database.ExecuteSqlRawAsync("REINDEX");
+                result.Operations.Add("REINDEX completed - all indexes rebuilt");
+                break;
         }
+
+        result.EndTime = DateTime.UtcNow;
+        result.Success = true;
+
+        _logger.LogInformation("Index rebuild completed for {Provider}", provider);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -1241,38 +1146,30 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<SeedScriptDto>> GenerateSeedScript()
     {
-        try
+                var script = new StringBuilder();
+        script.AppendLine("-- CRM Database Seed Script");
+        script.AppendLine($"-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
+        script.AppendLine();
+
+        // Generate INSERT statements for each table
+        await GenerateInsertStatements(script, "Departments", await _context.Departments.ToListAsync());
+        await GenerateInsertStatements(script, "UserGroups", await _context.UserGroups.ToListAsync());
+        await GenerateInsertStatements(script, "UserProfiles", await _context.UserProfiles.ToListAsync());
+        await GenerateInsertStatements(script, "Users", await _context.Users.Where(u => !u.IsDeleted).ToListAsync());
+        await GenerateInsertStatements(script, "Accounts", await _context.Accounts.Where(c => !c.IsDeleted).ToListAsync());
+        await GenerateInsertStatements(script, "Contacts", await _context.Contacts.ToListAsync());
+        await GenerateInsertStatements(script, "Products", await _context.Products.Where(p => !p.IsDeleted).ToListAsync());
+        await GenerateInsertStatements(script, "Opportunities", await _context.Opportunities.Where(o => !o.IsDeleted).ToListAsync());
+        await GenerateInsertStatements(script, "MarketingCampaigns", await _context.MarketingCampaigns.Where(m => !m.IsDeleted).ToListAsync());
+
+        var result = new SeedScriptDto
         {
-            var script = new StringBuilder();
-            script.AppendLine("-- CRM Database Seed Script");
-            script.AppendLine($"-- Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");
-            script.AppendLine();
+            Script = script.ToString(),
+            GeneratedAt = DateTime.UtcNow,
+            RecordCount = await GetTotalRecordCountAsync()
+        };
 
-            // Generate INSERT statements for each table
-            await GenerateInsertStatements(script, "Departments", await _context.Departments.ToListAsync());
-            await GenerateInsertStatements(script, "UserGroups", await _context.UserGroups.ToListAsync());
-            await GenerateInsertStatements(script, "UserProfiles", await _context.UserProfiles.ToListAsync());
-            await GenerateInsertStatements(script, "Users", await _context.Users.Where(u => !u.IsDeleted).ToListAsync());
-            await GenerateInsertStatements(script, "Accounts", await _context.Accounts.Where(c => !c.IsDeleted).ToListAsync());
-            await GenerateInsertStatements(script, "Contacts", await _context.Contacts.ToListAsync());
-            await GenerateInsertStatements(script, "Products", await _context.Products.Where(p => !p.IsDeleted).ToListAsync());
-            await GenerateInsertStatements(script, "Opportunities", await _context.Opportunities.Where(o => !o.IsDeleted).ToListAsync());
-            await GenerateInsertStatements(script, "MarketingCampaigns", await _context.MarketingCampaigns.Where(m => !m.IsDeleted).ToListAsync());
-
-            var result = new SeedScriptDto
-            {
-                Script = script.ToString(),
-                GeneratedAt = DateTime.UtcNow,
-                RecordCount = await GetTotalRecordCountAsync()
-            };
-
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating seed script");
-            return StatusCode(500, new { message = "Error generating seed script" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -1349,134 +1246,126 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> ClearAllData([FromBody] ClearDataRequest request)
     {
-        try
+                if (request.ConfirmationCode != "DELETE_ALL_DATA")
+            return BadRequest(new { message = "Invalid confirmation code" });
+
+        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var connection = _context.Database.GetDbConnection();
+
+        if (connection.State != System.Data.ConnectionState.Open)
+            await connection.OpenAsync();
+
+        // Tables to clear in order (respecting foreign key constraints)
+        var tablesToClear = new[]
         {
-            if (request.ConfirmationCode != "DELETE_ALL_DATA")
-                return BadRequest(new { message = "Invalid confirmation code" });
+            "Interactions", "Notes", "CrmTasks", "Quotes", "CampaignMetrics",
+            "MarketingCampaigns", "Opportunities", "Products", "Contacts", "Accounts", "Leads"
+        };
 
-            var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
-            var connection = _context.Database.GetDbConnection();
-
-            if (connection.State != System.Data.ConnectionState.Open)
-                await connection.OpenAsync();
-
-            // Tables to clear in order (respecting foreign key constraints)
-            var tablesToClear = new[]
-            {
-                "Interactions", "Notes", "CrmTasks", "Quotes", "CampaignMetrics",
-                "MarketingCampaigns", "Opportunities", "Products", "Contacts", "Accounts", "Leads"
-            };
-
-            switch (provider)
-            {
-                case "mysql":
-                case "mariadb":
-                    // Disable foreign key checks temporarily
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = "SET FOREIGN_KEY_CHECKS = 0";
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-
-                    foreach (var table in tablesToClear)
-                    {
-                        using var delCmd = connection.CreateCommand();
-                        delCmd.CommandText = $"TRUNCATE TABLE `{table}`";
-                        try
-                        {
-                            await delCmd.ExecuteNonQueryAsync();
-                        }
-                        catch
-                        {
-                            // Table may not exist
-                        }
-                    }
-
-                    using (var cmd = connection.CreateCommand())
-                    {
-                        cmd.CommandText = "SET FOREIGN_KEY_CHECKS = 1";
-                        await cmd.ExecuteNonQueryAsync();
-                    }
-                    break;
-
-                case "postgresql":
-                    // Use TRUNCATE with CASCADE
-                    foreach (var table in tablesToClear)
-                    {
-                        using var delCmd = connection.CreateCommand();
-                        delCmd.CommandText = $"TRUNCATE TABLE \"{table}\" CASCADE";
-                        try
-                        {
-                            await delCmd.ExecuteNonQueryAsync();
-                        }
-                        catch
-                        {
-                            // Table may not exist
-                        }
-                    }
-                    break;
-
-                case "sqlserver":
-                    // Delete in reverse order due to foreign keys
-                    foreach (var table in tablesToClear)
-                    {
-                        using var delCmd = connection.CreateCommand();
-                        delCmd.CommandText = $"DELETE FROM [{table}]";
-                        try
-                        {
-                            await delCmd.ExecuteNonQueryAsync();
-                        }
-                        catch
-                        {
-                            // Table may not exist
-                        }
-                    }
-                    break;
-
-                case "oracle":
-                    // Disable constraints, truncate, re-enable
-                    foreach (var table in tablesToClear)
-                    {
-                        using var delCmd = connection.CreateCommand();
-                        delCmd.CommandText = $"DELETE FROM \"{table}\"";
-                        try
-                        {
-                            await delCmd.ExecuteNonQueryAsync();
-                        }
-                        catch
-                        {
-                            // Table may not exist
-                        }
-                    }
-                    break;
-
-                default: // SQLite
-                    foreach (var table in tablesToClear)
-                    {
-                        // Table names are hardcoded above, not user input - safe from SQL injection
-                        using var delCmd = connection.CreateCommand();
-                        delCmd.CommandText = $"DELETE FROM \"{table}\"";
-                        try
-                        {
-                            await delCmd.ExecuteNonQueryAsync();
-                        }
-                        catch
-                        {
-                            // Table may not exist
-                        }
-                    }
-                    break;
-            }
-
-            _logger.LogWarning("All data cleared from database ({Provider})", provider);
-
-            return Ok(new { message = "All data cleared successfully" });
-        }
-        catch (Exception ex)
+        switch (provider)
         {
-            _logger.LogError(ex, "Error clearing data");
-            return StatusCode(500, new { message = "Error clearing data" });
+            case "mysql":
+            case "mariadb":
+                // Disable foreign key checks temporarily
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "SET FOREIGN_KEY_CHECKS = 0";
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                foreach (var table in tablesToClear)
+                {
+                    using var delCmd = connection.CreateCommand();
+                    delCmd.CommandText = $"TRUNCATE TABLE `{table}`";
+                    try
+                    {
+                        await delCmd.ExecuteNonQueryAsync();
+                    }
+                    catch
+                    {
+                        // Table may not exist
+                    }
+                }
+
+                using (var cmd = connection.CreateCommand())
+                {
+                    cmd.CommandText = "SET FOREIGN_KEY_CHECKS = 1";
+                    await cmd.ExecuteNonQueryAsync();
+                }
+                break;
+
+            case "postgresql":
+                // Use TRUNCATE with CASCADE
+                foreach (var table in tablesToClear)
+                {
+                    using var delCmd = connection.CreateCommand();
+                    delCmd.CommandText = $"TRUNCATE TABLE \"{table}\" CASCADE";
+                    try
+                    {
+                        await delCmd.ExecuteNonQueryAsync();
+                    }
+                    catch
+                    {
+                        // Table may not exist
+                    }
+                }
+                break;
+
+            case "sqlserver":
+                // Delete in reverse order due to foreign keys
+                foreach (var table in tablesToClear)
+                {
+                    using var delCmd = connection.CreateCommand();
+                    delCmd.CommandText = $"DELETE FROM [{table}]";
+                    try
+                    {
+                        await delCmd.ExecuteNonQueryAsync();
+                    }
+                    catch
+                    {
+                        // Table may not exist
+                    }
+                }
+                break;
+
+            case "oracle":
+                // Disable constraints, truncate, re-enable
+                foreach (var table in tablesToClear)
+                {
+                    using var delCmd = connection.CreateCommand();
+                    delCmd.CommandText = $"DELETE FROM \"{table}\"";
+                    try
+                    {
+                        await delCmd.ExecuteNonQueryAsync();
+                    }
+                    catch
+                    {
+                        // Table may not exist
+                    }
+                }
+                break;
+
+            default: // SQLite
+                foreach (var table in tablesToClear)
+                {
+                    // Table names are hardcoded above, not user input - safe from SQL injection
+                    using var delCmd = connection.CreateCommand();
+                    delCmd.CommandText = $"DELETE FROM \"{table}\"";
+                    try
+                    {
+                        await delCmd.ExecuteNonQueryAsync();
+                    }
+                    catch
+                    {
+                        // Table may not exist
+                    }
+                }
+                break;
         }
+
+        _logger.LogWarning("All data cleared from database ({Provider})", provider);
+
+        return Ok(new { message = "All data cleared successfully" });
     }
 
     /// <summary>
@@ -1486,29 +1375,21 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> ReseedDatabase()
     {
-        try
-        {
-            _logger.LogInformation("Database reseed initiated");
+                _logger.LogInformation("Database reseed initiated");
 
-            // Reseed core data via CoreDataSeederService (ADR-002)
-            await _coreDataSeeder.SeedDepartmentsAsync();
-            await _coreDataSeeder.SeedSampleAccountsAsync();
-            await _coreDataSeeder.SeedSampleProductsAsync();
-            await _coreDataSeeder.SeedLookupsAsync();
-            await _coreDataSeeder.SeedSampleContactsAsync();
-            await _coreDataSeeder.SeedSystemSettingsAsync();
-            await _coreDataSeeder.SeedModuleFieldConfigurationsAsync();
-            await _coreDataSeeder.SeedAdditionalMasterDataAsync();
-            await _coreDataSeeder.SeedEnsureLookupsAsync();
-            _logger.LogInformation("Database reseeded successfully via CoreDataSeederService");
+        // Reseed core data via CoreDataSeederService (ADR-002)
+        await _coreDataSeeder.SeedDepartmentsAsync();
+        await _coreDataSeeder.SeedSampleAccountsAsync();
+        await _coreDataSeeder.SeedSampleProductsAsync();
+        await _coreDataSeeder.SeedLookupsAsync();
+        await _coreDataSeeder.SeedSampleContactsAsync();
+        await _coreDataSeeder.SeedSystemSettingsAsync();
+        await _coreDataSeeder.SeedModuleFieldConfigurationsAsync();
+        await _coreDataSeeder.SeedAdditionalMasterDataAsync();
+        await _coreDataSeeder.SeedEnsureLookupsAsync();
+        _logger.LogInformation("Database reseeded successfully via CoreDataSeederService");
 
-            return Ok(new { message = "Database reseeded successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reseeding database");
-            return StatusCode(500, new { message = "Error reseeding database", error = ex.Message });
-        }
+        return Ok(new { message = "Database reseeded successfully" });
     }
 
     /// <summary>

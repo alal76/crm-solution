@@ -10,6 +10,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/campaign-metrics")]
 [Authorize]
-public class CampaignMetricsController : ControllerBase
+public class CampaignMetricsController : CrmControllerBase
 {
     private readonly ICampaignMetricService _service;
     private readonly ILogger<CampaignMetricsController> _logger;
@@ -47,17 +48,9 @@ public class CampaignMetricsController : ControllerBase
         [FromBody] CampaignMetric metric,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Creating campaign metric for campaign: campaignId={CampaignId}", metric.CampaignId);
-            var result = await _service.CreateAsync(metric, cancellationToken);
-            return CreatedAtAction(nameof(GetMetrics), new { id = result.CampaignId }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating campaign metric");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Creating campaign metric for campaign: campaignId={CampaignId}", metric.CampaignId);
+        var result = await _service.CreateAsync(metric, cancellationToken);
+        return CreatedAtAction(nameof(GetMetrics), new { id = result.CampaignId }, result);
     }
 
     /// <summary>
@@ -71,20 +64,12 @@ public class CampaignMetricsController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Getting metrics for campaign: id={CampaignId}", id);
-            var result = await _service.GetMetricsAsync(id, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = $"Campaign with id {id} not found" });
+                _logger.LogInformation("Getting metrics for campaign: id={CampaignId}", id);
+        var result = await _service.GetMetricsAsync(id, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = $"Campaign with id {id} not found" });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting campaign metrics: id={CampaignId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -98,17 +83,9 @@ public class CampaignMetricsController : ControllerBase
         [FromBody] CampaignAnalysisDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Analyzing campaign: campaignId={CampaignId}", dto.CampaignId);
-            var result = await _service.AnalyzeAsync(dto, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error analyzing campaign");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Analyzing campaign: campaignId={CampaignId}", dto.CampaignId);
+        var result = await _service.AnalyzeAsync(dto, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -122,17 +99,9 @@ public class CampaignMetricsController : ControllerBase
         [FromBody] CampaignPreviewDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Generating campaign preview");
-            var result = await _service.PreviewAsync(dto, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating campaign preview");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Generating campaign preview");
+        var result = await _service.PreviewAsync(dto, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -147,21 +116,13 @@ public class CampaignMetricsController : ControllerBase
         [FromBody] CampaignDuplicationDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Duplicating campaign metrics: sourceCampaignId={SourceCampaignId}, targetCampaignId={TargetCampaignId}",
-                dto.SourceCampaignId, dto.TargetCampaignId);
-            var result = await _service.DuplicateAsync(dto, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = "Source campaign metrics not found" });
+                _logger.LogInformation("Duplicating campaign metrics: sourceCampaignId={SourceCampaignId}, targetCampaignId={TargetCampaignId}",
+            dto.SourceCampaignId, dto.TargetCampaignId);
+        var result = await _service.DuplicateAsync(dto, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = "Source campaign metrics not found" });
 
-            return CreatedAtAction(nameof(GetMetrics), new { id = dto.TargetCampaignId }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error duplicating campaign metrics");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return CreatedAtAction(nameof(GetMetrics), new { id = dto.TargetCampaignId }, result);
     }
 
     /// <summary>
@@ -175,16 +136,8 @@ public class CampaignMetricsController : ControllerBase
         [FromBody] CampaignRetargetingDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Retargeting campaign: campaignId={CampaignId}", dto.CampaignId);
-            var result = await _service.RetargetAsync(dto, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retargeting campaign");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Retargeting campaign: campaignId={CampaignId}", dto.CampaignId);
+        var result = await _service.RetargetAsync(dto, cancellationToken);
+        return Ok(result);
     }
 }

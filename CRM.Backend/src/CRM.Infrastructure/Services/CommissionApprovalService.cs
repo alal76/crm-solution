@@ -40,7 +40,6 @@ public class CommissionApprovalService : ICommissionApprovalService, ICommission
         commission.Status = CommissionStatus.Approved;
         commission.ApprovedById = approvedById;
         commission.ApprovedAt = DateTime.UtcNow;
-        commission.UpdatedAt = DateTime.UtcNow;
 
         var auditLog = new CommissionApprovalAudit
         {
@@ -68,7 +67,6 @@ public class CommissionApprovalService : ICommissionApprovalService, ICommission
             return false;
 
         commission.Status = CommissionStatus.Rejected;
-        commission.UpdatedAt = DateTime.UtcNow;
 
         var auditLog = new CommissionApprovalAudit
         {

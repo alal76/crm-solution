@@ -11,6 +11,7 @@ using CRM.Core.Entities;
 using CRM.Core.Ports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/config/crm")]
 [RequireRole(UserRole.Admin)]
-public class CRMConfigurationController : ControllerBase
+public class CRMConfigurationController : CrmControllerBase
 {
     private readonly ICRMConfigurationService _crmConfig;
     private readonly ILogger<CRMConfigurationController> _logger;
@@ -43,16 +44,8 @@ public class CRMConfigurationController : ControllerBase
     [ProducesResponseType(typeof(CRMConfigResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<CRMConfigResponseDto>> GetCRMConfig(CancellationToken ct)
     {
-        try
-        {
-            var config = await _crmConfig.GetCRMConfigAsync(ct);
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving CRM configuration");
-            return StatusCode(500, new { error = "Failed to retrieve CRM configuration" });
-        }
+                var config = await _crmConfig.GetCRMConfigAsync(ct);
+        return Ok(config);
     }
 
     #endregion
@@ -80,11 +73,6 @@ public class CRMConfigurationController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating AI provider {Provider}", provider);
-            return StatusCode(500, new { error = $"Failed to update AI provider '{provider}'" });
-        }
     }
 
     /// <summary>
@@ -97,16 +85,8 @@ public class CRMConfigurationController : ControllerBase
         [FromBody] AIProviderConfigDto config,
         CancellationToken ct)
     {
-        try
-        {
-            var result = await _crmConfig.TestAIProviderAsync(provider, config, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing AI provider {Provider}", provider);
-            return StatusCode(500, new { error = $"Failed to test AI provider '{provider}'" });
-        }
+                var result = await _crmConfig.TestAIProviderAsync(provider, config, ct);
+        return Ok(result);
     }
 
     #endregion
@@ -135,11 +115,6 @@ public class CRMConfigurationController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating integration {Type}/{Provider}", type, provider);
-            return StatusCode(500, new { error = $"Failed to update integration '{type}/{provider}'" });
-        }
     }
 
     /// <summary>
@@ -153,16 +128,8 @@ public class CRMConfigurationController : ControllerBase
         [FromBody] IntegrationConfigDto config,
         CancellationToken ct)
     {
-        try
-        {
-            var result = await _crmConfig.TestIntegrationAsync(type, provider, config, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing integration {Type}/{Provider}", type, provider);
-            return StatusCode(500, new { error = $"Failed to test integration '{type}/{provider}'" });
-        }
+                var result = await _crmConfig.TestIntegrationAsync(type, provider, config, ct);
+        return Ok(result);
     }
 
     #endregion
@@ -187,11 +154,6 @@ public class CRMConfigurationController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating worker configuration");
-            return StatusCode(500, new { error = "Failed to update worker configuration" });
-        }
     }
 
     #endregion
@@ -215,11 +177,6 @@ public class CRMConfigurationController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating AI agents configuration");
-            return StatusCode(500, new { error = "Failed to update AI agents configuration" });
         }
     }
 

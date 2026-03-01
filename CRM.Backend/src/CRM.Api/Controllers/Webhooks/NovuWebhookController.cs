@@ -11,6 +11,7 @@ using CRM.Core.Ports.Output.Providers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.Webhooks;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers.Webhooks;
 /// </summary>
 [ApiController]
 [Route("api/webhooks/novu")]
-public class NovuWebhookController : ControllerBase
+public class NovuWebhookController : CrmControllerBase
 {
     private readonly INotificationPort _notificationProvider;
     private readonly IActivityService _activityService;

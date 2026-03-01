@@ -111,7 +111,6 @@ public class ProviderConfigurationService : IProviderConfigurationService
 
             entity.ConfigurationData = _encryption.Encrypt(jsonData);
             entity.IsEncrypted = true;
-            entity.UpdatedAt = DateTime.UtcNow;
             entity.UpdatedByUserId = userId;
         }
         else

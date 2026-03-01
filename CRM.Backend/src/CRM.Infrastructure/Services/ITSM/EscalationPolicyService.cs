@@ -162,7 +162,6 @@ public class EscalationPolicyService : IEscalationPolicyService
                 policy.Description = dto.Description;
             }
 
-            policy.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.EscalationPolicies.Update(policy);
             await _dbContext.SaveChangesAsync();
@@ -191,7 +190,6 @@ public class EscalationPolicyService : IEscalationPolicyService
             }
 
             policy.IsDeleted = true;
-            policy.UpdatedAt = DateTime.UtcNow;
 
             var levels = await _dbContext.EscalationLevels
                 .Where(l => l.PolicyId == id && !l.IsDeleted)
@@ -200,7 +198,6 @@ public class EscalationPolicyService : IEscalationPolicyService
             foreach (var level in levels)
             {
                 level.IsDeleted = true;
-                level.UpdatedAt = DateTime.UtcNow;
             }
 
             await _dbContext.SaveChangesAsync();
@@ -295,7 +292,6 @@ public class EscalationPolicyService : IEscalationPolicyService
             level.SendEmail = dto.SendEmail;
             level.SendSms = dto.SendSms;
             level.EmailTemplateId = dto.EmailTemplateId;
-            level.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.EscalationLevels.Update(level);
             await _dbContext.SaveChangesAsync();
@@ -323,7 +319,6 @@ public class EscalationPolicyService : IEscalationPolicyService
             }
 
             level.IsDeleted = true;
-            level.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.EscalationLevels.Update(level);
             await _dbContext.SaveChangesAsync();
@@ -387,11 +382,9 @@ public class EscalationPolicyService : IEscalationPolicyService
             foreach (var existing in existingDefaults)
             {
                 existing.IsDefault = false;
-                existing.UpdatedAt = DateTime.UtcNow;
             }
 
             policy.IsDefault = true;
-            policy.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 

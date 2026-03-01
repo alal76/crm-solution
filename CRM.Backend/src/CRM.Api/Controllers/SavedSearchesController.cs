@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/saved-searches")]
 [Authorize]
-public class SavedSearchesController : ControllerBase
+public class SavedSearchesController : CrmControllerBase
 {
     private readonly ICrmDbContext _db;
     private readonly ILogger<SavedSearchesController> _logger;

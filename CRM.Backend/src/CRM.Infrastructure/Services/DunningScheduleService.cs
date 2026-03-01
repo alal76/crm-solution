@@ -145,7 +145,6 @@ public sealed class DunningScheduleService : IDunningScheduleService
             entity.StepOrder = dto.StepOrder.Value;
         }
 
-        entity.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation(
@@ -168,7 +167,6 @@ public sealed class DunningScheduleService : IDunningScheduleService
         }
 
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         _logger.LogInformation("DunningSchedule Id={Id} soft-deleted.", id);

@@ -8,6 +8,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
-public class TestResultsController : ControllerBase
+public class TestResultsController : CrmControllerBase
 {
     private readonly ILogger<TestResultsController> _logger;
     private readonly IWebHostEnvironment _env;
@@ -36,28 +37,20 @@ public class TestResultsController : ControllerBase
     [AllowAnonymous] // Allow testing dashboard access
     public async Task<IActionResult> GetLatestResults()
     {
-        try
+                // Construct path: repo-root/logs/test-results/latest-test-results.json
+        var repoRoot = _env.ContentRootPath.Split("CRM.Api").FirstOrDefault() ?? _env.ContentRootPath;
+        var logFilePath = Path.Combine(repoRoot, "logs", "test-results", "latest-test-results.json");
+
+        if (!System.IO.File.Exists(logFilePath))
         {
-            // Construct path: repo-root/logs/test-results/latest-test-results.json
-            var repoRoot = _env.ContentRootPath.Split("CRM.Api").FirstOrDefault() ?? _env.ContentRootPath;
-            var logFilePath = Path.Combine(repoRoot, "logs", "test-results", "latest-test-results.json");
-
-            if (!System.IO.File.Exists(logFilePath))
-            {
-                _logger.LogWarning("Test results file not found: {Path}", logFilePath);
-                return NotFound(new { message = "No test results available yet. Run tests to generate results." });
-            }
-
-            var json = await System.IO.File.ReadAllTextAsync(logFilePath);
-            var results = JsonSerializer.Deserialize<object>(json);
-
-            return Ok(results);
+            _logger.LogWarning("Test results file not found: {Path}", logFilePath);
+            return NotFound(new { message = "No test results available yet. Run tests to generate results." });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to retrieve test results");
-            return StatusCode(500, new { message = "Failed to retrieve test results" });
-        }
+
+        var json = await System.IO.File.ReadAllTextAsync(logFilePath);
+        var results = JsonSerializer.Deserialize<object>(json);
+
+        return Ok(results);
     }
 
     /// <summary>
@@ -69,24 +62,16 @@ public class TestResultsController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetResultsBySession(string sessionId)
     {
-        try
-        {
-            var repoRoot = _env.ContentRootPath.Split("CRM.Api").FirstOrDefault() ?? _env.ContentRootPath;
-            var logFilePath = Path.Combine(repoRoot, "logs", "test-results", $"test-results-{sessionId}.json");
+                var repoRoot = _env.ContentRootPath.Split("CRM.Api").FirstOrDefault() ?? _env.ContentRootPath;
+        var logFilePath = Path.Combine(repoRoot, "logs", "test-results", $"test-results-{sessionId}.json");
 
-            if (!System.IO.File.Exists(logFilePath))
-                return NotFound(new { message = $"Test results for session {sessionId} not found" });
+        if (!System.IO.File.Exists(logFilePath))
+            return NotFound(new { message = $"Test results for session {sessionId} not found" });
 
-            var json = await System.IO.File.ReadAllTextAsync(logFilePath);
-            var results = JsonSerializer.Deserialize<object>(json);
+        var json = await System.IO.File.ReadAllTextAsync(logFilePath);
+        var results = JsonSerializer.Deserialize<object>(json);
 
-            return Ok(results);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to retrieve test results for session {SessionId}", sessionId);
-            return StatusCode(500, new { message = "Failed to retrieve test results" });
-        }
+        return Ok(results);
     }
 
     /// <summary>
@@ -97,25 +82,17 @@ public class TestResultsController : ControllerBase
     [AllowAnonymous]
     public IActionResult GetAvailableSessions()
     {
-        try
-        {
-            var repoRoot = _env.ContentRootPath.Split("CRM.Api").FirstOrDefault() ?? _env.ContentRootPath;
-            var logsDir = Path.Combine(repoRoot, "logs", "test-results");
+                var repoRoot = _env.ContentRootPath.Split("CRM.Api").FirstOrDefault() ?? _env.ContentRootPath;
+        var logsDir = Path.Combine(repoRoot, "logs", "test-results");
 
-            if (!Directory.Exists(logsDir))
-                return Ok(new { sessions = new List<string>() });
+        if (!Directory.Exists(logsDir))
+            return Ok(new { sessions = new List<string>() });
 
-            var files = Directory.GetFiles(logsDir, "test-results-*.json")
-                .OrderByDescending(f => f)
-                .Select(f => Path.GetFileNameWithoutExtension(f).Replace("test-results-", ""))
-                .ToList();
+        var files = Directory.GetFiles(logsDir, "test-results-*.json")
+            .OrderByDescending(f => f)
+            .Select(f => Path.GetFileNameWithoutExtension(f).Replace("test-results-", ""))
+            .ToList();
 
-            return Ok(new { sessions = files, count = files.Count });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to retrieve available test sessions");
-            return StatusCode(500, new { message = "Failed to retrieve available sessions" });
-        }
+        return Ok(new { sessions = files, count = files.Count });
     }
 }

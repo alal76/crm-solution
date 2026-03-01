@@ -256,7 +256,6 @@ public class GdprService : IGdprService
                         lead.Email = $"erased-{lead.Id}@gdpr.invalid";
                         lead.Phone = null;
                         lead.IsDeleted = true;
-                        lead.UpdatedAt = DateTime.UtcNow;
                         _context.Leads.Update(lead);
                         erased = true;
                     }
@@ -275,7 +274,6 @@ public class GdprService : IGdprService
                         account.Email = $"erased-{account.Id}@gdpr.invalid";
                         account.Phone = string.Empty;
                         account.IsDeleted = true;
-                        account.UpdatedAt = DateTime.UtcNow;
                         _context.Accounts.Update(account);
                         erased = true;
                     }

@@ -10,6 +10,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/enum-management")]
 [Authorize(Roles = "Admin")]
-public class EnumManagementController : ControllerBase
+public class EnumManagementController : CrmControllerBase
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<EnumManagementController> _logger;

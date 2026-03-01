@@ -135,7 +135,6 @@ public class WorkflowService : IWorkflowService
         workflow.DefaultTimeoutHours = updates.DefaultTimeoutHours;
         workflow.Tags = updates.Tags;
         workflow.Metadata = updates.Metadata;
-        workflow.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Updated workflow definition {WorkflowId}", id);
@@ -236,7 +235,6 @@ public class WorkflowService : IWorkflowService
             return false;
 
         workflow.IsDeleted = true;
-        workflow.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted workflow definition {WorkflowId}", id);
@@ -271,7 +269,6 @@ public class WorkflowService : IWorkflowService
 
         workflow.Status = WorkflowStatus.Active;
         workflow.CurrentVersion = version.VersionNumber;
-        workflow.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation("Activated workflow {WorkflowId} version {VersionNumber}", id, version.VersionNumber);
@@ -288,7 +285,6 @@ public class WorkflowService : IWorkflowService
             return false;
 
         workflow.Status = WorkflowStatus.Paused;
-        workflow.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Paused workflow {WorkflowId}", id);
@@ -451,7 +447,6 @@ public class WorkflowService : IWorkflowService
             return false;
 
         version.CanvasLayout = canvasLayout;
-        version.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -481,7 +476,6 @@ public class WorkflowService : IWorkflowService
             version.Label = label;
         if (changeLog != null)
             version.ChangeLog = changeLog;
-        version.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated metadata for version {VersionId}: Label='{Label}'", versionId, version.Label);
@@ -509,19 +503,16 @@ public class WorkflowService : IWorkflowService
         {
             av.Status = WorkflowVersionStatus.Deprecated;
             av.DeprecatedAt = DateTime.UtcNow;
-            av.UpdatedAt = DateTime.UtcNow;
         }
 
         // Publish the version
         version.Status = WorkflowVersionStatus.Active;
         version.PublishedAt = DateTime.UtcNow;
         version.PublishedById = publishedById;
-        version.UpdatedAt = DateTime.UtcNow;
 
         // Update the workflow definition
         version.WorkflowDefinition.Status = WorkflowStatus.Active;
         version.WorkflowDefinition.CurrentVersion = version.VersionNumber;
-        version.WorkflowDefinition.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         _logger.LogInformation(
@@ -540,7 +531,6 @@ public class WorkflowService : IWorkflowService
             return false;
 
         version.IsDeleted = true;
-        version.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted draft version {VersionId} for workflow {WorkflowId}",
@@ -560,7 +550,6 @@ public class WorkflowService : IWorkflowService
         var newVersion = await CreateNewVersionAsync(workflowId, sourceVersionId);
         newVersion.Label = $"Rollback to v{sourceVersion.VersionNumber}";
         newVersion.ChangeLog = $"Rolled back from version {sourceVersion.VersionNumber} ({sourceVersion.Label})";
-        newVersion.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
@@ -718,7 +707,6 @@ public class WorkflowService : IWorkflowService
         node.RetryDelaySeconds = updates.RetryDelaySeconds;
         node.UseExponentialBackoff = updates.UseExponentialBackoff;
         node.ExecutionOrder = updates.ExecutionOrder;
-        node.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return node;
@@ -745,7 +733,6 @@ public class WorkflowService : IWorkflowService
         _context.WorkflowTransitions.RemoveRange(transitions);
 
         node.IsDeleted = true;
-        node.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted node {NodeId}", nodeId);
@@ -764,7 +751,6 @@ public class WorkflowService : IWorkflowService
             {
                 node.PositionX = x;
                 node.PositionY = y;
-                node.UpdatedAt = DateTime.UtcNow;
             }
         }
         await _context.SaveChangesAsync();
@@ -816,7 +802,6 @@ public class WorkflowService : IWorkflowService
         transition.LineStyle = updates.LineStyle;
         transition.Color = updates.Color;
         transition.AnimationStyle = updates.AnimationStyle;
-        transition.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return transition;
@@ -837,7 +822,6 @@ public class WorkflowService : IWorkflowService
             throw new InvalidOperationException(DraftVersionRequiredForTransitions);
 
         transition.IsDeleted = true;
-        transition.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted transition {TransitionId}", transitionId);

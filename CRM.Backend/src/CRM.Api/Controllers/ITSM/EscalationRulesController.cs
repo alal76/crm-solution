@@ -9,6 +9,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.ITSM;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers.ITSM;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - Escalation Rules")]
-public class EscalationRulesController : ControllerBase
+public class EscalationRulesController : CrmControllerBase
 {
     private readonly IEscalationRuleService _escalationRuleService; // TODO-SD005-003: renamed from IEscalationRuleAdminService
     private readonly ILogger<EscalationRulesController> _logger;
@@ -47,16 +48,8 @@ public class EscalationRulesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var rules = await _escalationRuleService.GetAllAsync(cancellationToken);
-            return Ok(rules);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving escalation rules");
-            return StatusCode(500, new { message = "Error retrieving escalation rules", error = ex.Message });
-        }
+                var rules = await _escalationRuleService.GetAllAsync(cancellationToken);
+        return Ok(rules);
     }
 
     /// <summary>
@@ -74,19 +67,11 @@ public class EscalationRulesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetApplicable([FromQuery] string priority, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(priority))
-                return BadRequest(new { message = "Priority parameter is required" });
+                if (string.IsNullOrWhiteSpace(priority))
+            return BadRequest(new { message = "Priority parameter is required" });
 
-            var rules = await _escalationRuleService.GetApplicableRulesAsync(priority, cancellationToken);
-            return Ok(rules);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving applicable escalation rules for priority {Priority}", priority);
-            return StatusCode(500, new { message = "Error retrieving applicable escalation rules", error = ex.Message });
-        }
+        var rules = await _escalationRuleService.GetApplicableRulesAsync(priority, cancellationToken);
+        return Ok(rules);
     }
 
     /// <summary>
@@ -104,18 +89,10 @@ public class EscalationRulesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var rule = await _escalationRuleService.GetByIdAsync(id, cancellationToken);
-            if (rule == null)
-                return NotFound(new { message = $"Escalation rule with ID {id} not found" });
-            return Ok(rule);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving escalation rule {RuleId}", id);
-            return StatusCode(500, new { message = "Error retrieving escalation rule", error = ex.Message });
-        }
+                var rule = await _escalationRuleService.GetByIdAsync(id, cancellationToken);
+        if (rule == null)
+            return NotFound(new { message = $"Escalation rule with ID {id} not found" });
+        return Ok(rule);
     }
 
     /// <summary>
@@ -133,19 +110,11 @@ public class EscalationRulesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateEscalationRuleDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var rule = await _escalationRuleService.CreateAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = rule.Id }, rule);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating escalation rule");
-            return StatusCode(500, new { message = "Error creating escalation rule", error = ex.Message });
-        }
+        var rule = await _escalationRuleService.CreateAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = rule.Id }, rule);
     }
 
     /// <summary>
@@ -178,11 +147,6 @@ public class EscalationRulesController : ControllerBase
         {
             return NotFound(new { message = $"Escalation rule with ID {id} not found" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating escalation rule {RuleId}", id);
-            return StatusCode(500, new { message = "Error updating escalation rule", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -208,11 +172,6 @@ public class EscalationRulesController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(new { message = $"Escalation rule with ID {id} not found" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting escalation rule {RuleId}", id);
-            return StatusCode(500, new { message = "Error deleting escalation rule", error = ex.Message });
         }
     }
 
@@ -240,11 +199,6 @@ public class EscalationRulesController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing escalation rule {RuleId} against service request {RequestId}", ruleId, serviceRequestId);
-            return StatusCode(500, new { message = "Error testing escalation rule", error = ex.Message });
         }
     }
 }

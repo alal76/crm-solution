@@ -10,6 +10,7 @@ using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/email")]
 [Authorize]
-public class EmailIntegrationController : ControllerBase
+public class EmailIntegrationController : CrmControllerBase
 {
     private readonly IEmailSyncService _emailSyncService;
 

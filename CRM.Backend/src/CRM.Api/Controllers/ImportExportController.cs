@@ -13,13 +13,14 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class ImportExportController : ControllerBase
+public class ImportExportController : CrmControllerBase
 {
     private const string NoValidRecordsMessage = "File contains no valid records.";
     private readonly CrmDbContext _context;
@@ -63,51 +64,43 @@ public class ImportExportController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ExportData(string entityType, [FromQuery] string format = "json")
     {
-        try
+                object? data = entityType.ToLowerInvariant() switch
         {
-            object? data = entityType.ToLowerInvariant() switch
-            {
-                "contacts" => await _context.Contacts.Include(c => c.SocialMediaLinks).ToListAsync(),
-                "accounts" => await _context.Accounts.ToListAsync(),
-                "opportunities" => await _context.Opportunities.ToListAsync(),
-                "products" => await _context.Products.ToListAsync(),
-                "quotes" => await _context.Quotes.ToListAsync(),
-                "tasks" => await _context.CrmTasks.ToListAsync(),
-                "notes" => await _context.Notes.ToListAsync(),
-                "activities" => await _context.Activities.ToListAsync(),
-                "service-requests" => await _context.ServiceRequests.ToListAsync(),
-                "leads" => await _context.Leads.ToListAsync(),
-                _ => null
-            };
+            "contacts" => await _context.Contacts.Include(c => c.SocialMediaLinks).ToListAsync(),
+            "accounts" => await _context.Accounts.ToListAsync(),
+            "opportunities" => await _context.Opportunities.ToListAsync(),
+            "products" => await _context.Products.ToListAsync(),
+            "quotes" => await _context.Quotes.ToListAsync(),
+            "tasks" => await _context.CrmTasks.ToListAsync(),
+            "notes" => await _context.Notes.ToListAsync(),
+            "activities" => await _context.Activities.ToListAsync(),
+            "service-requests" => await _context.ServiceRequests.ToListAsync(),
+            "leads" => await _context.Leads.ToListAsync(),
+            _ => null
+        };
 
-            if (data == null)
-            {
-                return BadRequest(new { message = $"Unknown entity type: {entityType}" });
-            }
-
-            if (format.ToLowerInvariant() == "csv")
-            {
-                var csv = ConvertToCsv(data);
-                var csvBytes = Encoding.UTF8.GetBytes(csv);
-                return File(csvBytes, "text/csv", $"{entityType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv");
-            }
-            else
-            {
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                    ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
-                };
-                var json = JsonSerializer.Serialize(data, options);
-                var jsonBytes = Encoding.UTF8.GetBytes(json);
-                return File(jsonBytes, "application/json", $"{entityType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json");
-            }
+        if (data == null)
+        {
+            return BadRequest(new { message = $"Unknown entity type: {entityType}" });
         }
-        catch (Exception ex)
+
+        if (format.ToLowerInvariant() == "csv")
         {
-            _logger.LogError(ex, "Error exporting {EntityType}", entityType);
-            return StatusCode(500, new { message = $"Error exporting data: {ex.Message}" });
+            var csv = ConvertToCsv(data);
+            var csvBytes = Encoding.UTF8.GetBytes(csv);
+            return File(csvBytes, "text/csv", $"{entityType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv");
+        }
+        else
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles
+            };
+            var json = JsonSerializer.Serialize(data, options);
+            var jsonBytes = Encoding.UTF8.GetBytes(json);
+            return File(jsonBytes, "application/json", $"{entityType}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.json");
         }
     }
 
@@ -119,36 +112,28 @@ public class ImportExportController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult GetImportTemplate(string entityType, [FromQuery] string format = "json")
     {
-        try
+                var template = GetTemplateForEntity(entityType);
+        if (template == null)
         {
-            var template = GetTemplateForEntity(entityType);
-            if (template == null)
-            {
-                return BadRequest(new { message = $"Unknown entity type: {entityType}" });
-            }
-
-            if (format.ToLowerInvariant() == "csv")
-            {
-                var csv = ConvertToCsv(new List<object> { template });
-                var csvBytes = Encoding.UTF8.GetBytes(csv);
-                return File(csvBytes, "text/csv", $"{entityType}_template.csv");
-            }
-            else
-            {
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                };
-                var json = JsonSerializer.Serialize(new List<object> { template }, options);
-                var jsonBytes = Encoding.UTF8.GetBytes(json);
-                return File(jsonBytes, "application/json", $"{entityType}_template.json");
-            }
+            return BadRequest(new { message = $"Unknown entity type: {entityType}" });
         }
-        catch (Exception ex)
+
+        if (format.ToLowerInvariant() == "csv")
         {
-            _logger.LogError(ex, "Error generating template for {EntityType}", entityType);
-            return StatusCode(500, new { message = $"Error generating template: {ex.Message}" });
+            var csv = ConvertToCsv(new List<object> { template });
+            var csvBytes = Encoding.UTF8.GetBytes(csv);
+            return File(csvBytes, "text/csv", $"{entityType}_template.csv");
+        }
+        else
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+            var json = JsonSerializer.Serialize(new List<object> { template }, options);
+            var jsonBytes = Encoding.UTF8.GetBytes(json);
+            return File(jsonBytes, "application/json", $"{entityType}_template.json");
         }
     }
 
@@ -342,11 +327,6 @@ public class ImportExportController : ControllerBase
         {
             _logger.LogError(ex, "Invalid JSON format in import file for {EntityType}", entityType);
             return BadRequest(new { message = "Invalid JSON format. Please ensure the file contains a valid JSON array.", error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error importing {EntityType}", entityType);
-            return StatusCode(500, new { message = $"Error importing data: {ex.Message}" });
         }
     }
 

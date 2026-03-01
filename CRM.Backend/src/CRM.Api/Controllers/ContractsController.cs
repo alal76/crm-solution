@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class ContractsController : ControllerBase
+public class ContractsController : CrmControllerBase
 {
     private const string ContractNotFoundMessage = "Contract {0} not found";
     private readonly IContractService _contractService;
@@ -54,37 +55,29 @@ public class ContractsController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        try
+                var contracts = await _contractService.GetAllAsync(accountId, status, cancellationToken);
+
+        // Apply contract type filter if specified
+        if (contractType.HasValue)
         {
-            var contracts = await _contractService.GetAllAsync(accountId, status, cancellationToken);
-
-            // Apply contract type filter if specified
-            if (contractType.HasValue)
-            {
-                contracts = contracts.Where(c => c.ContractType == contractType.Value);
-            }
-
-            var totalCount = contracts.Count();
-            var items = contracts
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(c => MapToDto(c))
-                .ToList();
-
-            return Ok(new
-            {
-                items,
-                totalCount,
-                page,
-                pageSize,
-                totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-            });
+            contracts = contracts.Where(c => c.ContractType == contractType.Value);
         }
-        catch (Exception ex)
+
+        var totalCount = contracts.Count();
+        var items = contracts
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(c => MapToDto(c))
+            .ToList();
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving contracts");
-            return StatusCode(500, new { message = "Error retrieving contracts" });
-        }
+            items,
+            totalCount,
+            page,
+            pageSize,
+            totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        });
     }
 
     /// <summary>Gets a contract by ID.</summary>
@@ -94,19 +87,11 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            return Ok(MapToDto(contract));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error retrieving contract" });
-        }
+        return Ok(MapToDto(contract));
     }
 
     /// <summary>Gets a contract by contract number.</summary>
@@ -116,19 +101,11 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByContractNumber(string contractNumber, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByContractNumberAsync(contractNumber, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = $"Contract '{contractNumber}' not found" });
+                var contract = await _contractService.GetByContractNumberAsync(contractNumber, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = $"Contract '{contractNumber}' not found" });
 
-            return Ok(MapToDto(contract));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving contract by number {ContractNumber}", contractNumber);
-            return StatusCode(500, new { message = "Error retrieving contract" });
-        }
+        return Ok(MapToDto(contract));
     }
 
     /// <summary>Creates a new contract.</summary>
@@ -138,48 +115,40 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateContractRequest request, CancellationToken cancellationToken = default)
     {
-        try
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var contract = new Contract
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Name = request.Name,
+            Description = request.Description,
+            Status = request.Status ?? ContractStatus.Draft,
+            ContractType = request.ContractType ?? ContractType.Service,
+            AccountId = request.AccountId,
+            ContactId = request.ContactId,
+            OwnerId = request.OwnerId,
+            ParentContractId = request.ParentContractId,
+            OpportunityId = request.OpportunityId,
+            QuoteId = request.QuoteId,
+            StartDate = request.StartDate ?? DateTime.UtcNow,
+            EndDate = request.EndDate ?? DateTime.UtcNow.AddYears(1),
+            SignedDate = request.SignedDate,
+            Value = request.Value ?? 0,
+            CurrencyCode = request.CurrencyCode ?? "USD",
+            BillingFrequency = request.BillingFrequency,
+            AutoRenew = request.AutoRenew ?? false,
+            RenewalNoticeDays = request.RenewalNoticeDays ?? 30,
+            Terms = request.Terms,
+            SpecialConditions = request.SpecialConditions,
+            TerminationClause = request.TerminationClause,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-            var contract = new Contract
-            {
-                Name = request.Name,
-                Description = request.Description,
-                Status = request.Status ?? ContractStatus.Draft,
-                ContractType = request.ContractType ?? ContractType.Service,
-                AccountId = request.AccountId,
-                ContactId = request.ContactId,
-                OwnerId = request.OwnerId,
-                ParentContractId = request.ParentContractId,
-                OpportunityId = request.OpportunityId,
-                QuoteId = request.QuoteId,
-                StartDate = request.StartDate ?? DateTime.UtcNow,
-                EndDate = request.EndDate ?? DateTime.UtcNow.AddYears(1),
-                SignedDate = request.SignedDate,
-                Value = request.Value ?? 0,
-                CurrencyCode = request.CurrencyCode ?? "USD",
-                BillingFrequency = request.BillingFrequency,
-                AutoRenew = request.AutoRenew ?? false,
-                RenewalNoticeDays = request.RenewalNoticeDays ?? 30,
-                Terms = request.Terms,
-                SpecialConditions = request.SpecialConditions,
-                TerminationClause = request.TerminationClause,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+        var created = await _contractService.CreateAsync(contract, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} created: {ContractName}", created.Id, created.Name);
 
-            var created = await _contractService.CreateAsync(contract, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} created: {ContractName}", created.Id, created.Name);
-
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating contract");
-            return StatusCode(500, new { message = "Error creating contract" });
-        }
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
     }
 
     /// <summary>Updates an existing contract.</summary>
@@ -189,67 +158,59 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateContractRequest request, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            // Field-by-field patching
-            if (request.Name != null)
-                contract.Name = request.Name;
-            if (request.Description != null)
-                contract.Description = request.Description;
-            if (request.Status.HasValue)
-                contract.Status = request.Status.Value;
-            if (request.ContractType.HasValue)
-                contract.ContractType = request.ContractType.Value;
-            if (request.AccountId.HasValue)
-                contract.AccountId = request.AccountId.Value;
-            if (request.ContactId.HasValue)
-                contract.ContactId = request.ContactId;
-            if (request.OwnerId.HasValue)
-                contract.OwnerId = request.OwnerId;
-            if (request.ParentContractId.HasValue)
-                contract.ParentContractId = request.ParentContractId;
-            if (request.OpportunityId.HasValue)
-                contract.OpportunityId = request.OpportunityId;
-            if (request.QuoteId.HasValue)
-                contract.QuoteId = request.QuoteId;
-            if (request.StartDate.HasValue)
-                contract.StartDate = request.StartDate.Value;
-            if (request.EndDate.HasValue)
-                contract.EndDate = request.EndDate.Value;
-            if (request.SignedDate.HasValue)
-                contract.SignedDate = request.SignedDate;
-            if (request.Value.HasValue)
-                contract.Value = request.Value.Value;
-            if (request.CurrencyCode != null)
-                contract.CurrencyCode = request.CurrencyCode;
-            if (request.BillingFrequency != null)
-                contract.BillingFrequency = request.BillingFrequency;
-            if (request.AutoRenew.HasValue)
-                contract.AutoRenew = request.AutoRenew.Value;
-            if (request.RenewalNoticeDays.HasValue)
-                contract.RenewalNoticeDays = request.RenewalNoticeDays.Value;
-            if (request.Terms != null)
-                contract.Terms = request.Terms;
-            if (request.SpecialConditions != null)
-                contract.SpecialConditions = request.SpecialConditions;
-            if (request.TerminationClause != null)
-                contract.TerminationClause = request.TerminationClause;
-            contract.UpdatedAt = DateTime.UtcNow;
+        // Field-by-field patching
+        if (request.Name != null)
+            contract.Name = request.Name;
+        if (request.Description != null)
+            contract.Description = request.Description;
+        if (request.Status.HasValue)
+            contract.Status = request.Status.Value;
+        if (request.ContractType.HasValue)
+            contract.ContractType = request.ContractType.Value;
+        if (request.AccountId.HasValue)
+            contract.AccountId = request.AccountId.Value;
+        if (request.ContactId.HasValue)
+            contract.ContactId = request.ContactId;
+        if (request.OwnerId.HasValue)
+            contract.OwnerId = request.OwnerId;
+        if (request.ParentContractId.HasValue)
+            contract.ParentContractId = request.ParentContractId;
+        if (request.OpportunityId.HasValue)
+            contract.OpportunityId = request.OpportunityId;
+        if (request.QuoteId.HasValue)
+            contract.QuoteId = request.QuoteId;
+        if (request.StartDate.HasValue)
+            contract.StartDate = request.StartDate.Value;
+        if (request.EndDate.HasValue)
+            contract.EndDate = request.EndDate.Value;
+        if (request.SignedDate.HasValue)
+            contract.SignedDate = request.SignedDate;
+        if (request.Value.HasValue)
+            contract.Value = request.Value.Value;
+        if (request.CurrencyCode != null)
+            contract.CurrencyCode = request.CurrencyCode;
+        if (request.BillingFrequency != null)
+            contract.BillingFrequency = request.BillingFrequency;
+        if (request.AutoRenew.HasValue)
+            contract.AutoRenew = request.AutoRenew.Value;
+        if (request.RenewalNoticeDays.HasValue)
+            contract.RenewalNoticeDays = request.RenewalNoticeDays.Value;
+        if (request.Terms != null)
+            contract.Terms = request.Terms;
+        if (request.SpecialConditions != null)
+            contract.SpecialConditions = request.SpecialConditions;
+        if (request.TerminationClause != null)
+            contract.TerminationClause = request.TerminationClause;
+        contract.UpdatedAt = DateTime.UtcNow;
 
-            var updated = await _contractService.UpdateAsync(contract, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} updated", id);
+        var updated = await _contractService.UpdateAsync(contract, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} updated", id);
 
-            return Ok(MapToDto(updated));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error updating contract" });
-        }
+        return Ok(MapToDto(updated));
     }
 
     /// <summary>Deletes a contract (soft delete).</summary>
@@ -259,24 +220,16 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            var result = await _contractService.DeleteAsync(id, cancellationToken);
-            if (!result)
-                return StatusCode(500, new { message = "Error deleting contract" });
-
-            _logger.LogInformation("Contract {ContractId} deleted", id);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting contract {ContractId}", id);
+        var result = await _contractService.DeleteAsync(id, cancellationToken);
+        if (!result)
             return StatusCode(500, new { message = "Error deleting contract" });
-        }
+
+        _logger.LogInformation("Contract {ContractId} deleted", id);
+        return NoContent();
     }
 
     // ========================================================================
@@ -291,25 +244,17 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Approve(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            if (contract.Status != ContractStatus.PendingApproval)
-                return BadRequest(new { message = "Contract must be in PendingApproval status to approve" });
+        if (contract.Status != ContractStatus.PendingApproval)
+            return BadRequest(new { message = "Contract must be in PendingApproval status to approve" });
 
-            var updated = await _contractService.UpdateStatusAsync(id, ContractStatus.Approved, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} approved", id);
+        var updated = await _contractService.UpdateStatusAsync(id, ContractStatus.Approved, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} approved", id);
 
-            return Ok(MapToDto(updated));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error approving contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error approving contract" });
-        }
+        return Ok(MapToDto(updated));
     }
 
     /// <summary>Rejects a contract.</summary>
@@ -320,26 +265,18 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Reject(int id, [FromBody] RejectContractRequest request, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            if (contract.Status != ContractStatus.PendingApproval)
-                return BadRequest(new { message = "Contract must be in PendingApproval status to reject" });
+        if (contract.Status != ContractStatus.PendingApproval)
+            return BadRequest(new { message = "Contract must be in PendingApproval status to reject" });
 
-            contract.RejectionReason = request.Reason;
-            var updated = await _contractService.UpdateStatusAsync(id, ContractStatus.Draft, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} rejected: {Reason}", id, request.Reason);
+        contract.RejectionReason = request.Reason;
+        var updated = await _contractService.UpdateStatusAsync(id, ContractStatus.Draft, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} rejected: {Reason}", id, request.Reason);
 
-            return Ok(MapToDto(updated));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rejecting contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error rejecting contract" });
-        }
+        return Ok(MapToDto(updated));
     }
 
     /// <summary>Activates a contract.</summary>
@@ -349,22 +286,14 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Activate(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            var result = await _contractService.ActivateAsync(id, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} activated", id);
+        var result = await _contractService.ActivateAsync(id, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} activated", id);
 
-            return Ok(MapToDto(result));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error activating contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error activating contract" });
-        }
+        return Ok(MapToDto(result));
     }
 
     /// <summary>Suspends a contract.</summary>
@@ -374,22 +303,14 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Suspend(int id, [FromBody] SuspendContractRequest? request = null, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            var result = await _contractService.SuspendAsync(id, request?.Reason ?? "No reason provided", cancellationToken);
-            _logger.LogInformation("Contract {ContractId} suspended", id);
+        var result = await _contractService.SuspendAsync(id, request?.Reason ?? "No reason provided", cancellationToken);
+        _logger.LogInformation("Contract {ContractId} suspended", id);
 
-            return Ok(MapToDto(result));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error suspending contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error suspending contract" });
-        }
+        return Ok(MapToDto(result));
     }
 
     /// <summary>Terminates a contract.</summary>
@@ -399,22 +320,14 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Terminate(int id, [FromBody] TerminateContractRequest? request = null, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            var result = await _contractService.TerminateAsync(id, request?.Reason ?? "No reason provided", null, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} terminated", id);
+        var result = await _contractService.TerminateAsync(id, request?.Reason ?? "No reason provided", null, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} terminated", id);
 
-            return Ok(MapToDto(result));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error terminating contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error terminating contract" });
-        }
+        return Ok(MapToDto(result));
     }
 
     /// <summary>Expires a contract.</summary>
@@ -424,22 +337,14 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Expire(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            var result = await _contractService.ExpireAsync(id, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} expired", id);
+        var result = await _contractService.ExpireAsync(id, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} expired", id);
 
-            return Ok(MapToDto(result));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error expiring contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error expiring contract" });
-        }
+        return Ok(MapToDto(result));
     }
 
     // ========================================================================
@@ -453,22 +358,14 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Renew(int id, [FromBody] RenewContractRequest? request = null, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            var renewed = await _contractService.InitiateRenewalAsync(id, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} renewal initiated, new contract {NewContractId}", id, renewed.Id);
+        var renewed = await _contractService.InitiateRenewalAsync(id, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} renewal initiated, new contract {NewContractId}", id, renewed.Id);
 
-            return Ok(MapToDto(renewed));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error renewing contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error renewing contract" });
-        }
+        return Ok(MapToDto(renewed));
     }
 
     /// <summary>Gets contracts due for renewal within specified days.</summary>
@@ -477,16 +374,8 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetDueForRenewal([FromQuery] int withinDays = 30, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contracts = await _contractService.GetContractsDueForRenewalAsync(withinDays, cancellationToken);
-            return Ok(contracts.Select(c => MapToDto(c)));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving contracts due for renewal");
-            return StatusCode(500, new { message = "Error retrieving contracts due for renewal" });
-        }
+                var contracts = await _contractService.GetContractsDueForRenewalAsync(withinDays, cancellationToken);
+        return Ok(contracts.Select(c => MapToDto(c)));
     }
 
     /// <summary>Gets renewal history for a contract.</summary>
@@ -495,16 +384,8 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRenewalHistory(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var history = await _contractService.GetRenewalHistoryAsync(id, cancellationToken);
-            return Ok(history.Select(c => MapToDto(c)));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving renewal history for contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error retrieving renewal history" });
-        }
+                var history = await _contractService.GetRenewalHistoryAsync(id, cancellationToken);
+        return Ok(history.Select(c => MapToDto(c)));
     }
 
     // ========================================================================
@@ -518,40 +399,32 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateAmendment(int id, [FromBody] CreateContractRequest request, CancellationToken cancellationToken = default)
     {
-        try
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+
+        var amendment = new Contract
         {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+            Name = request.Name ?? $"Amendment to {contract.Name}",
+            Description = request.Description,
+            ContractType = ContractType.Amendment,
+            AccountId = contract.AccountId,
+            ContactId = request.ContactId ?? contract.ContactId,
+            OwnerId = request.OwnerId ?? contract.OwnerId,
+            StartDate = request.StartDate ?? DateTime.UtcNow,
+            EndDate = request.EndDate ?? contract.EndDate,
+            Value = request.Value ?? 0,
+            CurrencyCode = request.CurrencyCode ?? contract.CurrencyCode,
+            Terms = request.Terms,
+            SpecialConditions = request.SpecialConditions,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
 
-            var amendment = new Contract
-            {
-                Name = request.Name ?? $"Amendment to {contract.Name}",
-                Description = request.Description,
-                ContractType = ContractType.Amendment,
-                AccountId = contract.AccountId,
-                ContactId = request.ContactId ?? contract.ContactId,
-                OwnerId = request.OwnerId ?? contract.OwnerId,
-                StartDate = request.StartDate ?? DateTime.UtcNow,
-                EndDate = request.EndDate ?? contract.EndDate,
-                Value = request.Value ?? 0,
-                CurrencyCode = request.CurrencyCode ?? contract.CurrencyCode,
-                Terms = request.Terms,
-                SpecialConditions = request.SpecialConditions,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+        var created = await _contractService.CreateAmendmentAsync(id, amendment, cancellationToken);
+        _logger.LogInformation("Amendment created for contract {ContractId}, new amendment {AmendmentId}", id, created.Id);
 
-            var created = await _contractService.CreateAmendmentAsync(id, amendment, cancellationToken);
-            _logger.LogInformation("Amendment created for contract {ContractId}, new amendment {AmendmentId}", id, created.Id);
-
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating amendment for contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error creating amendment" });
-        }
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
     }
 
     /// <summary>Gets amendments for a contract.</summary>
@@ -560,16 +433,8 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAmendments(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var amendments = await _contractService.GetAmendmentsAsync(id, cancellationToken);
-            return Ok(amendments.Select(c => MapToDto(c)));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving amendments for contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error retrieving amendments" });
-        }
+                var amendments = await _contractService.GetAmendmentsAsync(id, cancellationToken);
+        return Ok(amendments.Select(c => MapToDto(c)));
     }
 
     // ========================================================================
@@ -583,33 +448,25 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SendForSignature(int id, [FromBody] SendForSignatureRequest request, CancellationToken cancellationToken = default)
     {
-        try
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+
+        var signers = request.Signers.Select(s => new ContractSigner
         {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+            ContactId = s.ContactId,
+            Name = s.Name,
+            Email = s.Email,
+            Title = s.Title,
+            SigningOrder = s.SigningOrder
+        });
 
-            var signers = request.Signers.Select(s => new ContractSigner
-            {
-                ContactId = s.ContactId,
-                Name = s.Name,
-                Email = s.Email,
-                Title = s.Title,
-                SigningOrder = s.SigningOrder
-            });
+        var result = await _contractService.SendForSignatureAsync(id, signers, cancellationToken);
+        if (!result)
+            return StatusCode(500, new { message = "Failed to send contract for signature" });
 
-            var result = await _contractService.SendForSignatureAsync(id, signers, cancellationToken);
-            if (!result)
-                return StatusCode(500, new { message = "Failed to send contract for signature" });
-
-            _logger.LogInformation("Contract {ContractId} sent for signature", id);
-            return Ok(new { message = "Contract sent for signature", contractId = id });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error sending contract {ContractId} for signature", id);
-            return StatusCode(500, new { message = "Error sending contract for signature" });
-        }
+        _logger.LogInformation("Contract {ContractId} sent for signature", id);
+        return Ok(new { message = "Contract sent for signature", contractId = id });
     }
 
     /// <summary>Gets signature status for a contract.</summary>
@@ -618,16 +475,8 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetSignatureStatus(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var status = await _contractService.GetSignatureStatusAsync(id, cancellationToken);
-            return Ok(status);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving signature status for contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error retrieving signature status" });
-        }
+                var status = await _contractService.GetSignatureStatusAsync(id, cancellationToken);
+        return Ok(status);
     }
 
     // ========================================================================
@@ -640,16 +489,8 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetDocuments(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var documents = await _contractService.GetDocumentsAsync(id, cancellationToken);
-            return Ok(documents);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving documents for contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error retrieving documents" });
-        }
+                var documents = await _contractService.GetDocumentsAsync(id, cancellationToken);
+        return Ok(documents);
     }
 
     /// <summary>Generates a PDF for a contract.</summary>
@@ -659,20 +500,12 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GeneratePdf(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            var pdf = await _contractService.GenerateContractPdfAsync(id, cancellationToken);
-            return File(pdf, "application/pdf", $"contract-{contract.ContractNumber}.pdf");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating PDF for contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error generating contract PDF" });
-        }
+        var pdf = await _contractService.GenerateContractPdfAsync(id, cancellationToken);
+        return File(pdf, "application/pdf", $"contract-{contract.ContractNumber}.pdf");
     }
 
     // ========================================================================
@@ -685,16 +518,8 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetActiveContracts(int accountId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contracts = await _contractService.GetActiveContractsAsync(accountId, cancellationToken);
-            return Ok(contracts.Select(c => MapToDto(c)));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving active contracts for account {AccountId}", accountId);
-            return StatusCode(500, new { message = "Error retrieving active contracts" });
-        }
+                var contracts = await _contractService.GetActiveContractsAsync(accountId, cancellationToken);
+        return Ok(contracts.Select(c => MapToDto(c)));
     }
 
     /// <summary>Gets expiring contracts within a date range.</summary>
@@ -705,18 +530,10 @@ public class ContractsController : ControllerBase
         [FromQuery] int days = 30,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var fromDate = DateTime.UtcNow;
-            var toDate = DateTime.UtcNow.AddDays(days);
-            var contracts = await _contractService.GetExpiringContractsAsync(fromDate, toDate, cancellationToken);
-            return Ok(contracts.Select(c => MapToDto(c)));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving expiring contracts");
-            return StatusCode(500, new { message = "Error retrieving expiring contracts" });
-        }
+                var fromDate = DateTime.UtcNow;
+        var toDate = DateTime.UtcNow.AddDays(days);
+        var contracts = await _contractService.GetExpiringContractsAsync(fromDate, toDate, cancellationToken);
+        return Ok(contracts.Select(c => MapToDto(c)));
     }
 
     /// <summary>Gets contract statistics.</summary>
@@ -728,16 +545,8 @@ public class ContractsController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var stats = await _contractService.GetStatisticsAsync(fromDate, toDate, cancellationToken);
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving contract statistics");
-            return StatusCode(500, new { message = "Error retrieving contract statistics" });
-        }
+                var stats = await _contractService.GetStatisticsAsync(fromDate, toDate, cancellationToken);
+        return Ok(stats);
     }
 
     /// <summary>Searches contracts.</summary>
@@ -747,19 +556,11 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Search([FromQuery] string q = "", CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(q))
-                return BadRequest(new { message = "Search query is required" });
+                if (string.IsNullOrWhiteSpace(q))
+            return BadRequest(new { message = "Search query is required" });
 
-            var contracts = await _contractService.SearchAsync(q, cancellationToken);
-            return Ok(contracts.Select(c => MapToDto(c)));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching contracts with query '{Query}'", q);
-            return StatusCode(500, new { message = "Error searching contracts" });
-        }
+        var contracts = await _contractService.SearchAsync(q, cancellationToken);
+        return Ok(contracts.Select(c => MapToDto(c)));
     }
 
     /// <summary>Gets total contract value for an account.</summary>
@@ -768,16 +569,8 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTotalContractValue(int accountId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var value = await _contractService.GetTotalContractValueAsync(accountId, cancellationToken);
-            return Ok(new { accountId, totalValue = value });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving total contract value for account {AccountId}", accountId);
-            return StatusCode(500, new { message = "Error retrieving contract value" });
-        }
+                var value = await _contractService.GetTotalContractValueAsync(accountId, cancellationToken);
+        return Ok(new { accountId, totalValue = value });
     }
 
     // ========================================================================
@@ -791,17 +584,9 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateFromQuote(int quoteId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.CreateFromQuoteAsync(quoteId, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} created from quote {QuoteId}", contract.Id, quoteId);
-            return CreatedAtAction(nameof(GetById), new { id = contract.Id }, MapToDto(contract));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating contract from quote {QuoteId}", quoteId);
-            return StatusCode(500, new { message = "Error creating contract from quote" });
-        }
+                var contract = await _contractService.CreateFromQuoteAsync(quoteId, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} created from quote {QuoteId}", contract.Id, quoteId);
+        return CreatedAtAction(nameof(GetById), new { id = contract.Id }, MapToDto(contract));
     }
 
     /// <summary>Creates a contract from an order.</summary>
@@ -811,17 +596,9 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateFromOrder(int orderId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.CreateFromOrderAsync(orderId, cancellationToken);
-            _logger.LogInformation("Contract {ContractId} created from order {OrderId}", contract.Id, orderId);
-            return CreatedAtAction(nameof(GetById), new { id = contract.Id }, MapToDto(contract));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating contract from order {OrderId}", orderId);
-            return StatusCode(500, new { message = "Error creating contract from order" });
-        }
+                var contract = await _contractService.CreateFromOrderAsync(orderId, cancellationToken);
+        _logger.LogInformation("Contract {ContractId} created from order {OrderId}", contract.Id, orderId);
+        return CreatedAtAction(nameof(GetById), new { id = contract.Id }, MapToDto(contract));
     }
 
     // ========================================================================
@@ -835,35 +612,27 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> BulkUpdateStatus([FromBody] BulkStatusUpdateRequest request, CancellationToken cancellationToken = default)
     {
-        try
+                if (request.ContractIds == null || request.ContractIds.Count == 0)
+            return BadRequest(new { message = "At least one contract ID is required" });
+
+        if (!Enum.IsDefined(typeof(ContractStatus), request.Status))
+            return BadRequest(new { message = "Invalid contract status" });
+
+        var updatedCount = await _contractService.BulkUpdateStatusAsync(
+            request.ContractIds,
+            request.Status,
+            cancellationToken);
+
+        _logger.LogInformation("Bulk status update: {UpdatedCount}/{TotalCount} contracts updated to {Status}",
+            updatedCount, request.ContractIds.Count, request.Status);
+
+        return Ok(new
         {
-            if (request.ContractIds == null || request.ContractIds.Count == 0)
-                return BadRequest(new { message = "At least one contract ID is required" });
-
-            if (!Enum.IsDefined(typeof(ContractStatus), request.Status))
-                return BadRequest(new { message = "Invalid contract status" });
-
-            var updatedCount = await _contractService.BulkUpdateStatusAsync(
-                request.ContractIds,
-                request.Status,
-                cancellationToken);
-
-            _logger.LogInformation("Bulk status update: {UpdatedCount}/{TotalCount} contracts updated to {Status}",
-                updatedCount, request.ContractIds.Count, request.Status);
-
-            return Ok(new
-            {
-                totalRequested = request.ContractIds.Count,
-                successCount = updatedCount,
-                failedCount = request.ContractIds.Count - updatedCount,
-                newStatus = request.Status.ToString()
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error performing bulk status update");
-            return StatusCode(500, new { message = "Error performing bulk status update" });
-        }
+            totalRequested = request.ContractIds.Count,
+            successCount = updatedCount,
+            failedCount = request.ContractIds.Count - updatedCount,
+            newStatus = request.Status.ToString()
+        });
     }
 
     /// <summary>Request DTO for bulk status update.</summary>
@@ -899,11 +668,6 @@ public class ContractsController : ControllerBase
         {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting contract {ContractId} to {Format}", id, format);
-            return StatusCode(500, new { message = "Error exporting contract" });
-        }
     }
 
     /// <summary>Exports multiple contracts in bulk.</summary>
@@ -913,23 +677,15 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ExportBulk([FromBody] BulkExportRequest request, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (request.ContractIds == null || request.ContractIds.Length == 0)
-                return BadRequest(new { message = "At least one contract ID is required" });
+                if (request.ContractIds == null || request.ContractIds.Length == 0)
+            return BadRequest(new { message = "At least one contract ID is required" });
 
-            var result = await _contractExportService.ExportBulkAsync(
-                request.ContractIds,
-                request.Format ?? "pdf",
-                cancellationToken);
+        var result = await _contractExportService.ExportBulkAsync(
+            request.ContractIds,
+            request.Format ?? "pdf",
+            cancellationToken);
 
-            return File(result.Content, result.ContentType, result.FileName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error performing bulk export");
-            return StatusCode(500, new { message = "Error performing bulk export" });
-        }
+        return File(result.Content, result.ContentType, result.FileName);
     }
 
     /// <summary>Gets supported export formats.</summary>
@@ -959,32 +715,24 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetVersionHistory(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
-            var versions = await _contractService.GetVersionHistoryAsync(id, cancellationToken);
-            return Ok(new
-            {
-                contractId = id,
-                versions = versions.Select(v => new
-                {
-                    v.Id,
-                    v.VersionNumber,
-                    v.ChangeDescription,
-                    ModifiedByUserId = v.CreatedById,
-                    v.CreatedAt,
-                    SnapshotData = v.SnapshotJson
-                })
-            });
-        }
-        catch (Exception ex)
+        var versions = await _contractService.GetVersionHistoryAsync(id, cancellationToken);
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving version history for contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error retrieving version history" });
-        }
+            contractId = id,
+            versions = versions.Select(v => new
+            {
+                v.Id,
+                v.VersionNumber,
+                v.ChangeDescription,
+                ModifiedByUserId = v.CreatedById,
+                v.CreatedAt,
+                SnapshotData = v.SnapshotJson
+            })
+        });
     }
 
     /// <summary>Creates a version snapshot of the current contract state.</summary>
@@ -994,34 +742,26 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> CreateVersionSnapshot(int id, [FromBody] CreateVersionRequest request, CancellationToken cancellationToken = default)
     {
-        try
+                var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+        if (contract == null)
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+
+        var version = await _contractService.CreateVersionSnapshotAsync(
+            id,
+            request.ChangeDescription ?? "Manual snapshot",
+            request.ModifiedByUserId,
+            cancellationToken);
+
+        _logger.LogInformation("Created version snapshot {VersionId} for contract {ContractId}", version.Id, id);
+
+        return CreatedAtAction(nameof(GetVersionHistory), new { id }, new
         {
-            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
-            if (contract == null)
-                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
-
-            var version = await _contractService.CreateVersionSnapshotAsync(
-                id,
-                request.ChangeDescription ?? "Manual snapshot",
-                request.ModifiedByUserId,
-                cancellationToken);
-
-            _logger.LogInformation("Created version snapshot {VersionId} for contract {ContractId}", version.Id, id);
-
-            return CreatedAtAction(nameof(GetVersionHistory), new { id }, new
-            {
-                version.Id,
-                version.VersionNumber,
-                version.ChangeDescription,
-                ModifiedByUserId = version.CreatedById,
-                version.CreatedAt
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating version snapshot for contract {ContractId}", id);
-            return StatusCode(500, new { message = "Error creating version snapshot" });
-        }
+            version.Id,
+            version.VersionNumber,
+            version.ChangeDescription,
+            ModifiedByUserId = version.CreatedById,
+            version.CreatedAt
+        });
     }
 
     /// <summary>Restores a contract to a previous version.</summary>
@@ -1042,11 +782,6 @@ public class ContractsController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error restoring contract {ContractId} to version {VersionId}", id, versionId);
-            return StatusCode(500, new { message = "Error restoring version" });
         }
     }
 

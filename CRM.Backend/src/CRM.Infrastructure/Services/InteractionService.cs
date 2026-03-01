@@ -113,7 +113,6 @@ public class InteractionService : IInteractionService
         try
         {
             interaction.CreatedAt = DateTime.UtcNow;
-            interaction.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.Interactions.Add(interaction);
             await _dbContext.SaveChangesAsync();
@@ -170,7 +169,6 @@ public class InteractionService : IInteractionService
             existing.ContactId = interaction.ContactId;
             existing.OpportunityId = interaction.OpportunityId;
             existing.AssignedToUserId = interaction.AssignedToUserId;
-            existing.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -201,7 +199,6 @@ public class InteractionService : IInteractionService
             }
 
             existing.IsDeleted = true;
-            existing.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -233,7 +230,6 @@ public class InteractionService : IInteractionService
 
             existing.IsCompleted = true;
             existing.CompletedDate = DateTime.UtcNow;
-            existing.UpdatedAt = DateTime.UtcNow;
 
             if (request != null)
             {

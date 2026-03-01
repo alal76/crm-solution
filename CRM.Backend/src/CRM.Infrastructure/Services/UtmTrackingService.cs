@@ -94,7 +94,6 @@ public class UtmTrackingService : IUtmTrackingService
 
         // Increment click counter
         link.ClickCount++;
-        link.UpdatedAt = DateTime.UtcNow;
 
         // Record click event
         var click = new UtmLinkClick
@@ -132,7 +131,6 @@ public class UtmTrackingService : IUtmTrackingService
         if (click != null && click.LeadId == null)
         {
             click.LeadId = leadId;
-            click.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
         }
     }

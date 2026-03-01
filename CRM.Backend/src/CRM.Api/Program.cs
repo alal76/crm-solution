@@ -16,6 +16,7 @@ using CRM.Core.Options;
 using CRM.Core.Ports;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Data.Interceptors;
 using CRM.Infrastructure.DependencyInjection;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
@@ -458,6 +459,7 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
             options.UseSqlite(connectionString ?? "Data Source=crm.db");
             break;
     }
+    options.AddInterceptors(new AuditSaveChangesInterceptor());
 });
 
 // TODO-DB-019: Optional read-only DbContext for analytics replica

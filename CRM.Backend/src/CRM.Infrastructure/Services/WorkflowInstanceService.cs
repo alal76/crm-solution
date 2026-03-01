@@ -263,7 +263,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         instance.IsCancelled = true;
         instance.CancellationReason = reason;
         instance.CompletedAt = DateTime.UtcNow;
-        instance.UpdatedAt = DateTime.UtcNow;
 
         // Cancel pending tasks
         var pendingTasks = await _context.WorkflowTasks
@@ -274,7 +273,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         foreach (var task in pendingTasks)
         {
             task.Status = WorkflowTaskStatus.Cancelled;
-            task.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();
@@ -295,7 +293,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             return false;
 
         instance.Status = WorkflowInstanceStatus.Paused;
-        instance.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         await LogAsync(instanceId, WorkflowLogLevel.Info, "Lifecycle", "Workflow instance paused", userId: userId);
@@ -312,7 +309,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             return false;
 
         instance.Status = WorkflowInstanceStatus.Running;
-        instance.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         await LogAsync(instanceId, WorkflowLogLevel.Info, "Lifecycle", "Workflow instance resumed", userId: userId);
@@ -332,7 +328,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         instance.RetryCount++;
         instance.ErrorMessage = null;
         instance.ErrorStackTrace = null;
-        instance.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         // Re-queue the current node
@@ -382,7 +377,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
 
         // Update current node on instance
         instance.CurrentNodeId = nodeId;
-        instance.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return nodeInstance;
@@ -409,7 +403,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         nodeInstance.DurationMs = (long)(DateTime.UtcNow - nodeInstance.StartedAt!.Value).TotalMilliseconds;
         nodeInstance.OutputData = outputData != null ? JsonSerializer.Serialize(outputData) : null;
         nodeInstance.TransitionTakenId = transitionTakenId;
-        nodeInstance.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -440,7 +433,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         nodeInstance.DurationMs = (long)(DateTime.UtcNow - nodeInstance.StartedAt!.Value).TotalMilliseconds;
         nodeInstance.ErrorMessage = errorMessage;
         nodeInstance.ErrorStackTrace = stackTrace;
-        nodeInstance.UpdatedAt = DateTime.UtcNow;
 
         // Check if retry is available
         var node = nodeInstance.WorkflowNode;
@@ -466,7 +458,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             instance.ErrorMessage = errorMessage;
             instance.ErrorStackTrace = stackTrace;
             instance.CompletedAt = DateTime.UtcNow;
-            instance.UpdatedAt = DateTime.UtcNow;
 
             await LogAsync(nodeInstance.WorkflowInstanceId, WorkflowLogLevel.Error, "Execution",
                 $"Node failed permanently: {errorMessage}", node.Id);
@@ -498,7 +489,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             nodeInstance.IsSkipped = true;
             nodeInstance.SkipReason = reason;
             nodeInstance.CompletedAt = DateTime.UtcNow;
-            nodeInstance.UpdatedAt = DateTime.UtcNow;
         }
 
         // Cancel related tasks
@@ -511,7 +501,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         foreach (var task in tasks)
         {
             task.Status = WorkflowTaskStatus.Skipped;
-            task.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();
@@ -626,7 +615,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         task.LockedByWorkerId = workerId;
         task.PickedAt = DateTime.UtcNow;
         task.LockExpiresAt = DateTime.UtcNow.Add(lockDuration);
-        task.UpdatedAt = DateTime.UtcNow;
 
         try
         {
@@ -651,7 +639,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         task.Status = WorkflowTaskStatus.Completed;
         task.CompletedAt = DateTime.UtcNow;
         task.OutputData = outputData != null ? JsonSerializer.Serialize(outputData) : null;
-        task.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return true;
@@ -694,7 +681,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             task.LockExpiresAt = null;
         }
 
-        task.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }
@@ -714,7 +700,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         {
             task.Status = WorkflowTaskStatus.Pending;
             task.NextRetryAt = null;
-            task.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();
@@ -837,7 +822,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             return false;
 
         task.AssignedToId = userId;
-        task.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Task {TaskId} claimed by user {UserId}", taskId, userId);
@@ -859,7 +843,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         task.OutputData = outputData;
         task.Status = WorkflowTaskStatus.Completed;
         task.CompletedAt = DateTime.UtcNow;
-        task.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         // Log the completion
@@ -1221,7 +1204,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         {
             instance.Status = WorkflowInstanceStatus.Completed;
             instance.CompletedAt = DateTime.UtcNow;
-            instance.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             // If this is a child instance, notify parent
@@ -1451,7 +1433,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         if (nodeInst != null)
         {
             nodeInst.Status = WorkflowNodeInstanceStatus.Waiting;
-            nodeInst.UpdatedAt = DateTime.UtcNow;
         }
 
         // Start the child workflow instance
@@ -1605,7 +1586,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         // Set the node instance to Waiting with the calculated resume time
         nodeInstance.Status = WorkflowNodeInstanceStatus.Waiting;
         nodeInstance.NextRetryAt = resumeAt; // Reuse NextRetryAt as the resume timestamp
-        nodeInstance.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         await LogAsync(instanceId, WorkflowLogLevel.Info, "WaitNode",
@@ -1656,7 +1636,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
                 // Complete the wait node
                 nodeInstance.Status = WorkflowNodeInstanceStatus.Completed;
                 nodeInstance.CompletedAt = DateTime.UtcNow;
-                nodeInstance.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
 
                 await LogAsync(instance.Id, WorkflowLogLevel.Info, "WaitNode",
@@ -1702,7 +1681,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             {
                 instance.Status = WorkflowInstanceStatus.TimedOut;
                 instance.CompletedAt = DateTime.UtcNow;
-                instance.UpdatedAt = DateTime.UtcNow;
                 instance.ErrorMessage = $"Workflow timed out at {now:O} (timeout was set to {instance.TimeoutAt:O})";
                 await _context.SaveChangesAsync(cancellationToken);
 
@@ -1736,7 +1714,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             {
                 nodeInstance.Status = WorkflowNodeInstanceStatus.Failed;
                 nodeInstance.CompletedAt = DateTime.UtcNow;
-                nodeInstance.UpdatedAt = DateTime.UtcNow;
                 nodeInstance.ErrorMessage = $"Node timed out after {nodeInstance.WorkflowNode?.TimeoutMinutes} minutes";
                 await _context.SaveChangesAsync(cancellationToken);
 
@@ -1795,7 +1772,6 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         // Complete the wait node immediately
         nodeInstance.Status = WorkflowNodeInstanceStatus.Completed;
         nodeInstance.CompletedAt = DateTime.UtcNow;
-        nodeInstance.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         await LogAsync(nodeInstance.WorkflowInstanceId, WorkflowLogLevel.Info, "WaitNode",

@@ -151,7 +151,6 @@ public class RecordCommentService : IRecordCommentService
 
         comment.Content = dto.Content;
         comment.MentionedUserIds = dto.MentionedUserIds;
-        comment.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
 
@@ -191,7 +190,6 @@ public class RecordCommentService : IRecordCommentService
         }
 
         comment.IsDeleted = true;
-        comment.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(ct);
 
         _logger.LogInformation("Soft-deleted RecordComment id={Id}", id);

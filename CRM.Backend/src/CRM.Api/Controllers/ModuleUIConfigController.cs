@@ -9,13 +9,14 @@ using CRM.Core.Validation;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class ModuleUIConfigController : ControllerBase
+public class ModuleUIConfigController : CrmControllerBase
 {
     private const string ModuleConfigNotFoundMessage = "Module configuration not found for {0}";
     private readonly ModuleUIConfigService _service;
@@ -36,16 +37,8 @@ public class ModuleUIConfigController : ControllerBase
     [ProducesResponseType(typeof(List<ModuleUIConfigDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllModuleConfigs()
     {
-        try
-        {
-            var configs = await _service.GetAllModuleConfigsAsync();
-            return Ok(configs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting all module UI configurations");
-            return StatusCode(500, new { message = "An error occurred while retrieving module configurations" });
-        }
+                var configs = await _service.GetAllModuleConfigsAsync();
+        return Ok(configs);
     }
 
     /// <summary>
@@ -69,11 +62,6 @@ public class ModuleUIConfigController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error getting module UI configuration for {ModuleName}", moduleName);
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting module UI configuration for {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while retrieving module configuration" });
         }
     }
 
@@ -99,11 +87,6 @@ public class ModuleUIConfigController : ControllerBase
             _logger.LogWarning(ex, "Validation error getting complete module configuration for {ModuleName}", moduleName);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting complete module configuration for {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while retrieving module configuration" });
-        }
     }
 
     /// <summary>
@@ -125,11 +108,6 @@ public class ModuleUIConfigController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error creating module UI configuration");
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating module UI configuration");
-            return StatusCode(500, new { message = "An error occurred while creating module configuration" });
         }
     }
 
@@ -157,11 +135,6 @@ public class ModuleUIConfigController : ControllerBase
             _logger.LogWarning(ex, "Validation error updating module UI configuration for {ModuleName}", moduleName);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating module UI configuration for {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while updating module configuration" });
-        }
     }
 
     /// <summary>
@@ -182,11 +155,6 @@ public class ModuleUIConfigController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error batch updating module configurations");
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error batch updating module configurations");
-            return StatusCode(500, new { message = "An error occurred while updating module configurations" });
         }
     }
 
@@ -214,11 +182,6 @@ public class ModuleUIConfigController : ControllerBase
             _logger.LogWarning(ex, "Validation error updating linked entities for {ModuleName}", moduleName);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating linked entities for {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while updating linked entities" });
-        }
     }
 
     /// <summary>
@@ -244,11 +207,6 @@ public class ModuleUIConfigController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error updating tabs config for {ModuleName}", moduleName);
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating tabs config for {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while updating tabs configuration" });
         }
     }
 
@@ -277,11 +235,6 @@ public class ModuleUIConfigController : ControllerBase
             _logger.LogWarning(ex, "Validation error saving complete module configuration for {ModuleName}", moduleName);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving complete module configuration for {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while saving module configuration" });
-        }
     }
 
     /// <summary>
@@ -308,11 +261,6 @@ public class ModuleUIConfigController : ControllerBase
             _logger.LogWarning(ex, "Validation error resetting module {ModuleName} to defaults", moduleName);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error resetting module {ModuleName} to defaults", moduleName);
-            return StatusCode(500, new { message = "An error occurred while resetting module to defaults" });
-        }
     }
 
     /// <summary>
@@ -323,17 +271,9 @@ public class ModuleUIConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> InitializeDefaultConfigs()
     {
-        try
-        {
-            await _service.InitializeDefaultConfigsAsync();
-            _logger.LogInformation("AUDIT: ModuleUIConfigDefaultsInitialized");
-            return Ok(new { message = "Default module configurations initialized successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error initializing default module configurations");
-            return StatusCode(500, new { message = "An error occurred while initializing default configurations" });
-        }
+                await _service.InitializeDefaultConfigsAsync();
+        _logger.LogInformation("AUDIT: ModuleUIConfigDefaultsInitialized");
+        return Ok(new { message = "Default module configurations initialized successfully" });
     }
 
     /// <summary>
@@ -359,11 +299,6 @@ public class ModuleUIConfigController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error toggling module {ModuleName}", moduleName);
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error toggling module {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while toggling module" });
         }
     }
 }

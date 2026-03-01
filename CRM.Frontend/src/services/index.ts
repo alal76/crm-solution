@@ -1,3 +1,8 @@
+// ── Factory & shared types ──────────────────────────────────────────────────
+export { createCrudService } from './crudServiceFactory';
+export type { CrudService, PaginatedResponse } from './crudServiceFactory';
+
+// ── Service instances ────────────────────────────────────────────────────────
 export { default as accountService } from './accountService';
 export { default as approvalService } from './approvalService';
 export { default as brandingConfigService } from './brandingConfigService';

@@ -115,7 +115,6 @@ public class ServiceQueueService : IServiceQueueService
             if (dto.IsActive.HasValue)
                 queue.IsActive = dto.IsActive.Value;
 
-            queue.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.Set<CRM.Core.Entities.ITSM.ServiceQueue>().Update(queue);
             await _dbContext.SaveChangesAsync(ct);
@@ -142,7 +141,6 @@ public class ServiceQueueService : IServiceQueueService
                 throw new KeyNotFoundException($"Service queue with ID {id} not found");
 
             queue.IsDeleted = true;
-            queue.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.Set<CRM.Core.Entities.ITSM.ServiceQueue>().Update(queue);
             await _dbContext.SaveChangesAsync(ct);

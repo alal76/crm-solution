@@ -95,7 +95,6 @@ public class LeadRoutingService : ILeadRoutingService
         existing.SendNotification = rule.SendNotification;
         existing.NotificationTemplateId = rule.NotificationTemplateId;
         existing.NotifyManager = rule.NotifyManager;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated lead routing rule {RuleId}: {RuleName}", rule.Id, rule.Name);
@@ -111,7 +110,6 @@ public class LeadRoutingService : ILeadRoutingService
             return false;
 
         rule.IsDeleted = true;
-        rule.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted lead routing rule {RuleId}: {RuleName}", ruleId, rule.Name);
@@ -125,7 +123,6 @@ public class LeadRoutingService : ILeadRoutingService
             throw new InvalidOperationException($"Routing rule {ruleId} not found");
 
         rule.Status = RoutingRuleStatus.Active;
-        rule.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Activated lead routing rule {RuleId}: {RuleName}", ruleId, rule.Name);
@@ -139,7 +136,6 @@ public class LeadRoutingService : ILeadRoutingService
             throw new InvalidOperationException($"Routing rule {ruleId} not found");
 
         rule.Status = RoutingRuleStatus.Inactive;
-        rule.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deactivated lead routing rule {RuleId}: {RuleName}", ruleId, rule.Name);
@@ -184,7 +180,6 @@ public class LeadRoutingService : ILeadRoutingService
         existing.ValueTo = criteria.ValueTo;
         existing.LogicalOperator = criteria.LogicalOperator;
         existing.Order = criteria.Order;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         return existing;
@@ -199,7 +194,6 @@ public class LeadRoutingService : ILeadRoutingService
             return false;
 
         criteria.IsDeleted = true;
-        criteria.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -250,7 +244,6 @@ public class LeadRoutingService : ILeadRoutingService
         existing.MaxLeadsPerDay = target.MaxLeadsPerDay;
         existing.MaxLeadsPerWeek = target.MaxLeadsPerWeek;
         existing.IsActive = target.IsActive;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         return existing;
@@ -265,7 +258,6 @@ public class LeadRoutingService : ILeadRoutingService
             return false;
 
         target.IsDeleted = true;
-        target.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -785,7 +777,6 @@ public class LeadRoutingService : ILeadRoutingService
 
         // Update lead
         lead.OwnerId = assignToUserId;
-        lead.UpdatedAt = DateTime.UtcNow;
 
         // Update rule round robin position
         rule.RoundRobinPosition++;

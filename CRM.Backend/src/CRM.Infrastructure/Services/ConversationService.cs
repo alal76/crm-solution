@@ -110,7 +110,6 @@ public class ConversationService : IConversationService
         _logger.LogDebug("Creating conversation: {Subject}", conversation.Subject);
 
         conversation.CreatedAt = DateTime.UtcNow;
-        conversation.UpdatedAt = DateTime.UtcNow;
         conversation.IsDeleted = false;
 
         _context.Conversations.Add(conversation);
@@ -159,7 +158,6 @@ public class ConversationService : IConversationService
         existing.IsStarred = conversation.IsStarred;
         existing.IsMuted = conversation.IsMuted;
         existing.IsPinned = conversation.IsPinned;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -183,7 +181,6 @@ public class ConversationService : IConversationService
 
         // Soft delete
         conversation.IsDeleted = true;
-        conversation.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -206,7 +203,6 @@ public class ConversationService : IConversationService
         }
 
         conversation.Status = status;
-        conversation.UpdatedAt = DateTime.UtcNow;
 
         if (status == ConversationStatus.Resolved || status == ConversationStatus.Closed)
         {
@@ -234,7 +230,6 @@ public class ConversationService : IConversationService
         }
 
         conversation.AssignedToUserId = userId;
-        conversation.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

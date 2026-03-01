@@ -1,4 +1,16 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// SLA Policy Service — CRUD base generated via createCrudService factory.
+// Domain-specific methods (assignPolicy, getApplicable) are appended via
+// object spread and preserved unchanged.
+//
+// MIGRATION NOTE: getAll now returns PaginatedResponse<SLAPolicyDto> (paginated)
+// instead of the previous flat SLAPolicyDto[]. Callers should read .items to
+// get the entity array.
+
 import apiClient from './apiClient';
+import { createCrudService } from './crudServiceFactory';
 
 export interface SLAPolicyDto {
   id: number;
@@ -34,30 +46,10 @@ export interface SLAInstanceDto {
   status: string;
 }
 
+// The five standard CRUD methods come from the factory.
+// Domain-specific methods are appended via object spread.
 const slaService = {
-  getAll: async (): Promise<SLAPolicyDto[]> => {
-    const response = await apiClient.get<SLAPolicyDto[]>('/slapolicies');
-    return response.data;
-  },
-
-  getById: async (id: number): Promise<SLAPolicyDto> => {
-    const response = await apiClient.get<SLAPolicyDto>(`/slapolicies/${id}`);
-    return response.data;
-  },
-
-  create: async (dto: CreateSLAPolicyDto): Promise<SLAPolicyDto> => {
-    const response = await apiClient.post<SLAPolicyDto>('/slapolicies', dto);
-    return response.data;
-  },
-
-  update: async (id: number, dto: UpdateSLAPolicyDto): Promise<SLAPolicyDto> => {
-    const response = await apiClient.put<SLAPolicyDto>(`/slapolicies/${id}`, dto);
-    return response.data;
-  },
-
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`/slapolicies/${id}`);
-  },
+  ...createCrudService<SLAPolicyDto, CreateSLAPolicyDto, UpdateSLAPolicyDto>('/slapolicies'),
 
   assignPolicy: async (policyId: number, serviceRequestId: number): Promise<SLAInstanceDto> => {
     const response = await apiClient.post<SLAInstanceDto>(`/slapolicies/${policyId}/assign/${serviceRequestId}`);

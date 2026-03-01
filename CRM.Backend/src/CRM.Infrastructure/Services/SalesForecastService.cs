@@ -94,7 +94,6 @@ public class SalesForecastService : ISalesForecastService
         _logger.LogDebug("Creating forecast: {Name} for period {Period}", forecast.Name, forecast.Period);
 
         forecast.CreatedAt = DateTime.UtcNow;
-        forecast.UpdatedAt = DateTime.UtcNow;
         forecast.IsDeleted = false;
         forecast.SnapshotDate = DateTime.UtcNow;
 
@@ -147,7 +146,6 @@ public class SalesForecastService : ISalesForecastService
         existing.UserId = forecast.UserId;
         existing.TeamId = forecast.TeamId;
         existing.SalesQuotaId = forecast.SalesQuotaId;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -171,7 +169,6 @@ public class SalesForecastService : ISalesForecastService
 
         // Soft delete
         forecast.IsDeleted = true;
-        forecast.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -195,7 +192,6 @@ public class SalesForecastService : ISalesForecastService
 
         forecast.IsSubmitted = true;
         forecast.SubmittedAt = DateTime.UtcNow;
-        forecast.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -30,7 +31,7 @@ namespace CRM.Api.Controllers;
 [Route("api/ai/chatbot")]
 [Authorize]
 [Produces("application/json")]
-public class AIChatbotController : ControllerBase
+public class AIChatbotController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILLMService _llmService;

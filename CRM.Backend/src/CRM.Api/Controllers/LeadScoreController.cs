@@ -8,6 +8,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/leads")]
 [Authorize]
 [Produces("application/json")]
-public class LeadScoreController : ControllerBase
+public class LeadScoreController : CrmControllerBase
 {
     private readonly ILeadScoreHistoryService _historyService;
     private readonly ILogger<LeadScoreController> _logger;
@@ -46,17 +47,9 @@ public class LeadScoreController : ControllerBase
         [FromQuery] int limit = 20,
         CancellationToken ct = default)
     {
-        try
-        {
-            limit = Math.Clamp(limit, 1, 100);
-            var history = await _historyService.GetHistoryAsync(id, limit, ct);
-            return Ok(new { success = true, leadId = id, history });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get score history for lead {LeadId}", id);
-            return StatusCode(500, new { error = "Failed to get score history", details = ex.Message });
-        }
+                limit = Math.Clamp(limit, 1, 100);
+        var history = await _historyService.GetHistoryAsync(id, limit, ct);
+        return Ok(new { success = true, leadId = id, history });
     }
 
     /// <summary>
@@ -70,18 +63,10 @@ public class LeadScoreController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetScoreExplanation(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var explanation = await _historyService.GetExplanationAsync(id, ct);
-            if (explanation == null)
-                return NotFound(new { error = $"Lead {id} not found" });
+                var explanation = await _historyService.GetExplanationAsync(id, ct);
+        if (explanation == null)
+            return NotFound(new { error = $"Lead {id} not found" });
 
-            return Ok(explanation);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get score explanation for lead {LeadId}", id);
-            return StatusCode(500, new { error = "Failed to get score explanation", details = ex.Message });
-        }
+        return Ok(explanation);
     }
 }

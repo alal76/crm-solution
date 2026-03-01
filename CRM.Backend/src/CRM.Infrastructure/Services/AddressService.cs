@@ -190,7 +190,6 @@ public class AddressService : IAddressService
         existingAddress.SiteContactName = address.SiteContactName;
         existingAddress.SiteContactPhone = address.SiteContactPhone;
         existingAddress.Notes = address.Notes;
-        existingAddress.UpdatedAt = DateTime.UtcNow;
 
         _context.Addresses.Update(existingAddress);
         await _context.SaveChangesAsync(cancellationToken);
@@ -233,7 +232,6 @@ public class AddressService : IAddressService
 
         // Soft delete the address
         existingAddress.IsDeleted = true;
-        existingAddress.UpdatedAt = DateTime.UtcNow;
 
         _context.Addresses.Update(existingAddress);
         await _context.SaveChangesAsync(cancellationToken);
@@ -362,14 +360,12 @@ public class AddressService : IAddressService
         foreach (var link in otherPrimaryBillingAddresses)
         {
             link.IsPrimary = false;
-            link.UpdatedAt = DateTime.UtcNow;
             _context.EntityAddressLinks.Update(link);
         }
 
         // Set this as primary billing
         addressLink.AddressType = AddressType.Billing;
         addressLink.IsPrimary = true;
-        addressLink.UpdatedAt = DateTime.UtcNow;
         _context.EntityAddressLinks.Update(addressLink);
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -426,14 +422,12 @@ public class AddressService : IAddressService
         foreach (var link in otherPrimaryShippingAddresses)
         {
             link.IsPrimary = false;
-            link.UpdatedAt = DateTime.UtcNow;
             _context.EntityAddressLinks.Update(link);
         }
 
         // Set this as primary shipping
         addressLink.AddressType = AddressType.Shipping;
         addressLink.IsPrimary = true;
-        addressLink.UpdatedAt = DateTime.UtcNow;
         _context.EntityAddressLinks.Update(addressLink);
 
         await _context.SaveChangesAsync(cancellationToken);

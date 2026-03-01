@@ -318,7 +318,6 @@ public class ConfigMigrationService : IConfigMigrationService
                     if (existing != null)
                     {
                         existing.Value = cf.ValidationRulesJson;
-                        existing.UpdatedAt = DateTime.UtcNow;
                     }
                     else
                     {
@@ -361,7 +360,6 @@ public class ConfigMigrationService : IConfigMigrationService
 
                 if (!options.DryRun && existing != null)
                 {
-                    existing.UpdatedAt = DateTime.UtcNow;
                 }
 
                 result.ItemsImported++;

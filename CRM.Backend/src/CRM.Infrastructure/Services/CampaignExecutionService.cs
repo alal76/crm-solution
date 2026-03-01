@@ -145,7 +145,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         if (cooldownHours.HasValue)
             campaignWorkflow.CooldownHours = cooldownHours.Value;
 
-        campaignWorkflow.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         return campaignWorkflow;
@@ -192,7 +191,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         // Update campaign status to Active
         campaign.Status = CampaignStatus.Active;
         campaign.ActualStartDate = DateTime.UtcNow;
-        campaign.UpdatedAt = DateTime.UtcNow;
 
         // Get entry workflows
         var entryWorkflows = await _context.CampaignWorkflows
@@ -676,7 +674,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         test.Status = "Completed";
         test.WinnerVariant = winningVariant.ToUpper();
         test.TestCompletedAt = DateTime.UtcNow;
-        test.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -823,7 +820,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         if (campaign == null)
             return false;
 
-        campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -843,7 +839,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         if (campaign == null)
             return false;
 
-        campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -863,7 +858,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         if (campaign == null)
             return false;
 
-        campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -937,7 +931,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
 
         campaign.Status = CampaignStatus.Active;
         campaign.StartedAt = DateTime.UtcNow;
-        campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -960,7 +953,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
 
         campaign.Status = CampaignStatus.Cancelled;
         campaign.CompletedAt = DateTime.UtcNow;
-        campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -983,7 +975,6 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
 
         campaign.Status = CampaignStatus.Scheduled;
         campaign.ScheduledAt = dto.ScheduledDate.ToUniversalTime();
-        campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
 

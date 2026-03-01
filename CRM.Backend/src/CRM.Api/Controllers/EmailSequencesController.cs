@@ -14,13 +14,14 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers
 {
     [ApiController]
     [Route("api/email-sequences")]
     [Authorize]
-    public class EmailSequencesController : ControllerBase
+    public class EmailSequencesController : CrmControllerBase
     {
     private const string SequenceNotFoundMessage = "Email sequence {0} not found";
         private readonly IEmailSequenceService _service;
@@ -40,16 +41,8 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetAll(CancellationToken ct)
         {
-            try
-            {
-                var sequences = await _service.GetAllAsync(ct);
-                return Ok(sequences.Select(MapToDto));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving email sequences");
-                return StatusCode(500, new { message = "Error retrieving email sequences", error = ex.Message });
-            }
+                        var sequences = await _service.GetAllAsync(ct);
+            return Ok(sequences.Select(MapToDto));
         }
 
         /// <summary>
@@ -61,18 +54,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetById(int id, CancellationToken ct)
         {
-            try
-            {
-                var sequence = await _service.GetByIdAsync(id, ct);
-                if (sequence == null)
-                    return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
-                return Ok(MapToDto(sequence));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving email sequence {Id}", id);
-                return StatusCode(500, new { message = "Error retrieving email sequence", error = ex.Message });
-            }
+                        var sequence = await _service.GetByIdAsync(id, ct);
+            if (sequence == null)
+                return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
+            return Ok(MapToDto(sequence));
         }
 
         [HttpPost]
@@ -83,16 +68,8 @@ namespace CRM.Api.Controllers
         {
             if (sequence == null)
                 return BadRequest("Sequence payload required");
-            try
-            {
-                var created = await _service.CreateSequenceAsync(sequence, ct);
-                return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating email sequence");
-                return StatusCode(500, new { message = "Error creating email sequence", error = ex.Message });
-            }
+                        var created = await _service.CreateSequenceAsync(sequence, ct);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
         }
 
         /// <summary>
@@ -113,14 +90,9 @@ namespace CRM.Api.Controllers
                 var updated = await _service.UpdateAsync(sequence, ct);
                 return Ok(MapToDto(updated));
             }
-            catch (InvalidOperationException)
+        catch (InvalidOperationException)
             {
                 return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating email sequence {Id}", id);
-                return StatusCode(500, new { message = "Error updating email sequence", error = ex.Message });
             }
         }
 
@@ -133,18 +105,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            try
-            {
-                var deleted = await _service.DeleteAsync(id, ct);
-                if (!deleted)
-                    return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error deleting email sequence {Id}", id);
-                return StatusCode(500, new { message = "Error deleting email sequence", error = ex.Message });
-            }
+                        var deleted = await _service.DeleteAsync(id, ct);
+            if (!deleted)
+                return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
+            return NoContent();
         }
 
         [HttpPost("{id}/enroll")]

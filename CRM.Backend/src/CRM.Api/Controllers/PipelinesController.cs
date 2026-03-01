@@ -9,6 +9,7 @@ using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class PipelinesController : ControllerBase
+public class PipelinesController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<PipelinesController> _logger;
@@ -37,25 +38,17 @@ public class PipelinesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetPipelines()
     {
-        try
+                // Return the default sales pipeline with all stages
+        var defaultPipeline = new
         {
-            // Return the default sales pipeline with all stages
-            var defaultPipeline = new
-            {
-                Id = Guid.NewGuid(),
-                Name = "Sales Pipeline",
-                Description = "Default sales pipeline for opportunity management",
-                IsDefault = true,
-                Stages = GetDefaultPipelineStages()
-            };
+            Id = Guid.NewGuid(),
+            Name = "Sales Pipeline",
+            Description = "Default sales pipeline for opportunity management",
+            IsDefault = true,
+            Stages = GetDefaultPipelineStages()
+        };
 
-            return Ok(new[] { defaultPipeline });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving pipelines");
-            return StatusCode(500, new { message = "An error occurred while retrieving pipelines" });
-        }
+        return Ok(new[] { defaultPipeline });
     }
 
     /// <summary>
@@ -66,24 +59,16 @@ public class PipelinesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetPipeline(Guid id)
     {
-        try
+                var pipeline = new
         {
-            var pipeline = new
-            {
-                Id = id,
-                Name = "Sales Pipeline",
-                Description = "Default sales pipeline for opportunity management",
-                IsDefault = true,
-                Stages = GetDefaultPipelineStages()
-            };
+            Id = id,
+            Name = "Sales Pipeline",
+            Description = "Default sales pipeline for opportunity management",
+            IsDefault = true,
+            Stages = GetDefaultPipelineStages()
+        };
 
-            return Ok(pipeline);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving pipeline {PipelineId}", id);
-            return StatusCode(500, new { message = "An error occurred while retrieving the pipeline" });
-        }
+        return Ok(pipeline);
     }
 
     /// <summary>
@@ -94,35 +79,27 @@ public class PipelinesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPipelineStats(Guid id)
     {
-        try
-        {
-            var stats = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
-                .GroupBy(o => o.Stage)
-                .Select(g => new
-                {
-                    Stage = g.Key.ToString(),
-                    StageOrder = (int)g.Key,
-                    Count = g.Count(),
-                    TotalValue = g.Sum(o => o.Amount),
-                    AverageValue = g.Average(o => o.Amount)
-                })
-                .OrderBy(s => s.StageOrder)
-                .ToListAsync();
-
-            return Ok(new
+                var stats = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
+            .GroupBy(o => o.Stage)
+            .Select(g => new
             {
-                PipelineId = id,
-                Stats = stats,
-                TotalOpportunities = stats.Sum(s => s.Count),
-                TotalValue = stats.Sum(s => s.TotalValue)
-            });
-        }
-        catch (Exception ex)
+                Stage = g.Key.ToString(),
+                StageOrder = (int)g.Key,
+                Count = g.Count(),
+                TotalValue = g.Sum(o => o.Amount),
+                AverageValue = g.Average(o => o.Amount)
+            })
+            .OrderBy(s => s.StageOrder)
+            .ToListAsync();
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving pipeline stats");
-            return StatusCode(500, new { message = "An error occurred while retrieving pipeline statistics" });
-        }
+            PipelineId = id,
+            Stats = stats,
+            TotalOpportunities = stats.Sum(s => s.Count),
+            TotalValue = stats.Sum(s => s.TotalValue)
+        });
     }
 
     private static object[] GetDefaultPipelineStages()

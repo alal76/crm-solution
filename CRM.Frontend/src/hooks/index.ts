@@ -1,5 +1,6 @@
 // Hooks - Barrel Export
 export { useApiState } from './useApiState';
+export { useLoadingState } from './useLoadingState';
 export { usePagination } from './usePagination';
 export { useFieldConfig } from './useFieldConfig';
 

@@ -11,6 +11,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -22,10 +23,9 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class ServiceRequestsController : ControllerBase
+public class ServiceRequestsController : CrmControllerBase
 {
     private const string ServiceRequestNotFoundMessage = "Service request {0} not found";
-    private const string GenericErrorMessage = "An error occurred";
     private readonly IServiceRequestService _serviceRequestService;
     private readonly ILogger<ServiceRequestsController> _logger;
 
@@ -57,16 +57,8 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<PagedServiceRequestResult>> GetServiceRequests([FromQuery] ServiceRequestFilterDto filter)
     {
-        try
-        {
-            var result = await _serviceRequestService.GetServiceRequestsAsync(filter);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service requests");
-            return StatusCode(500, "An error occurred while retrieving service requests");
-        }
+                var result = await _serviceRequestService.GetServiceRequestsAsync(filter);
+        return Ok(result);
     }
 
     /// <summary>
@@ -83,18 +75,10 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> GetServiceRequest(int id)
     {
-        try
-        {
-            var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
-            if (request == null)
-                return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
-            return Ok(request);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service request {Id}", id);
-            return StatusCode(500, "An error occurred while retrieving the service request");
-        }
+                var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
+        if (request == null)
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        return Ok(request);
     }
 
     /// <summary>
@@ -111,18 +95,10 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> GetServiceRequestByTicketNumber(string ticketNumber)
     {
-        try
-        {
-            var request = await _serviceRequestService.GetServiceRequestByTicketNumberAsync(ticketNumber);
-            if (request == null)
-                return NotFound(string.Format(ServiceRequestNotFoundMessage, ticketNumber));
-            return Ok(request);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service request {TicketNumber}", ticketNumber);
-            return StatusCode(500, "An error occurred while retrieving the service request");
-        }
+                var request = await _serviceRequestService.GetServiceRequestByTicketNumberAsync(ticketNumber);
+        if (request == null)
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, ticketNumber));
+        return Ok(request);
     }
 
     /// <summary>
@@ -139,17 +115,9 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> CreateServiceRequest([FromBody] CreateServiceRequestDto dto)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var request = await _serviceRequestService.CreateServiceRequestAsync(dto, userId);
-            return CreatedAtAction(nameof(GetServiceRequest), new { id = request.Id }, request);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating service request");
-            return StatusCode(500, "An error occurred while creating the service request");
-        }
+                var userId = GetCurrentUserId();
+        var request = await _serviceRequestService.CreateServiceRequestAsync(dto, userId);
+        return CreatedAtAction(nameof(GetServiceRequest), new { id = request.Id }, request);
     }
 
     /// <summary>
@@ -179,11 +147,6 @@ public class ServiceRequestsController : ControllerBase
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating service request {Id}", id);
-            return StatusCode(500, "An error occurred while updating the service request");
-        }
     }
 
     /// <summary>
@@ -203,28 +166,20 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestDto>> UpdateCustomFields(int id, [FromBody] List<SetCustomFieldValueDto> values)
     {
-        try
-        {
-            var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
-            if (request == null)
-                return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+                var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
+        if (request == null)
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
 
-            var updateDto = new UpdateServiceRequestDto
-            {
-                CustomFieldValues = values
-            };
-
-            var userId = GetCurrentUserId();
-            var result = await _serviceRequestService.UpdateServiceRequestAsync(id, updateDto, userId);
-            if (result == null)
-                return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
-            return Ok(result);
-        }
-        catch (Exception ex)
+        var updateDto = new UpdateServiceRequestDto
         {
-            _logger.LogError(ex, "Error updating custom fields for service request {Id}", id);
-            return StatusCode(500, "An error occurred while updating custom fields");
-        }
+            CustomFieldValues = values
+        };
+
+        var userId = GetCurrentUserId();
+        var result = await _serviceRequestService.UpdateServiceRequestAsync(id, updateDto, userId);
+        if (result == null)
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        return Ok(result);
     }
 
     /// <summary>
@@ -241,18 +196,10 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteServiceRequest(int id)
     {
-        try
-        {
-            var result = await _serviceRequestService.DeleteServiceRequestAsync(id);
-            if (!result)
-                return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting service request {Id}", id);
-            return StatusCode(500, "An error occurred while deleting the service request");
-        }
+                var result = await _serviceRequestService.DeleteServiceRequestAsync(id);
+        if (!result)
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        return NoContent();
     }
 
     #endregion
@@ -271,16 +218,8 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetByAccount(int accountId)
     {
-        try
-        {
-            var requests = await _serviceRequestService.GetServiceRequestsByAccountAsync(accountId);
-            return Ok(requests);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service requests for account {AccountId}", accountId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var requests = await _serviceRequestService.GetServiceRequestsByAccountAsync(accountId);
+        return Ok(requests);
     }
 
     /// <summary>
@@ -295,16 +234,8 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetByContact(int contactId)
     {
-        try
-        {
-            var requests = await _serviceRequestService.GetServiceRequestsByContactAsync(contactId);
-            return Ok(requests);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service requests for contact {ContactId}", contactId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var requests = await _serviceRequestService.GetServiceRequestsByContactAsync(contactId);
+        return Ok(requests);
     }
 
     /// <summary>
@@ -319,16 +250,8 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetByAssignee(int userId)
     {
-        try
-        {
-            var requests = await _serviceRequestService.GetServiceRequestsByAssigneeAsync(userId);
-            return Ok(requests);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service requests for assignee {UserId}", userId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var requests = await _serviceRequestService.GetServiceRequestsByAssigneeAsync(userId);
+        return Ok(requests);
     }
 
     /// <summary>
@@ -344,20 +267,12 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetMyRequests()
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (!userId.HasValue)
-                return Unauthorized();
+                var userId = GetCurrentUserId();
+        if (!userId.HasValue)
+            return Unauthorized();
 
-            var requests = await _serviceRequestService.GetServiceRequestsByAssigneeAsync(userId.Value);
-            return Ok(requests);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting my service requests");
-            return StatusCode(500, GenericErrorMessage);
-        }
+        var requests = await _serviceRequestService.GetServiceRequestsByAssigneeAsync(userId.Value);
+        return Ok(requests);
     }
 
     /// <summary>
@@ -372,16 +287,8 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ServiceRequestListDto>>> GetByGroup(int groupId)
     {
-        try
-        {
-            var requests = await _serviceRequestService.GetServiceRequestsByGroupAsync(groupId);
-            return Ok(requests);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service requests for group {GroupId}", groupId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var requests = await _serviceRequestService.GetServiceRequestsByGroupAsync(groupId);
+        return Ok(requests);
     }
 
     #endregion
@@ -415,11 +322,6 @@ public class ServiceRequestsController : ControllerBase
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating status for service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -445,11 +347,6 @@ public class ServiceRequestsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error marking first response for service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -481,11 +378,6 @@ public class ServiceRequestsController : ControllerBase
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error resolving service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -513,11 +405,6 @@ public class ServiceRequestsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error closing service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -548,11 +435,6 @@ public class ServiceRequestsController : ControllerBase
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reopening service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -581,11 +463,6 @@ public class ServiceRequestsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error escalating service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -619,11 +496,6 @@ public class ServiceRequestsController : ControllerBase
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error expediting service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     #endregion
@@ -655,11 +527,6 @@ public class ServiceRequestsController : ControllerBase
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning service request {Id} to user {UserId}", id, userId);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -687,11 +554,6 @@ public class ServiceRequestsController : ControllerBase
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning service request {Id} to group {GroupId}", id, groupId);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -717,11 +579,6 @@ public class ServiceRequestsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unassigning service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -755,11 +612,6 @@ public class ServiceRequestsController : ControllerBase
         {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error submitting feedback for service request {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     #endregion
@@ -777,16 +629,8 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ServiceRequestStatisticsDto>> GetStatistics()
     {
-        try
-        {
-            var stats = await _serviceRequestService.GetStatisticsAsync();
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service request statistics");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var stats = await _serviceRequestService.GetStatisticsAsync();
+        return Ok(stats);
     }
 
     /// <summary>
@@ -800,16 +644,8 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<int>> GetOpenCount()
     {
-        try
-        {
-            var count = await _serviceRequestService.GetOpenRequestsCountAsync();
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting open requests count");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var count = await _serviceRequestService.GetOpenRequestsCountAsync();
+        return Ok(count);
     }
 
     /// <summary>
@@ -823,16 +659,8 @@ public class ServiceRequestsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<int>> GetSlaBreachedCount()
     {
-        try
-        {
-            var count = await _serviceRequestService.GetSlaBreachedCountAsync();
-            return Ok(count);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting SLA breached count");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var count = await _serviceRequestService.GetSlaBreachedCountAsync();
+        return Ok(count);
     }
 
     #endregion

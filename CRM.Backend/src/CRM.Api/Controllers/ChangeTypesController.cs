@@ -8,6 +8,7 @@ using CRM.Core.Dtos.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/change-types")]
 [Authorize]
-public class ChangeTypesController : ControllerBase
+public class ChangeTypesController : CrmControllerBase
 {
     private readonly IChangeTypeService _service;
     private readonly ILogger<ChangeTypesController> _logger;
@@ -47,17 +48,9 @@ public class ChangeTypesController : ControllerBase
         [FromQuery] bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Getting all change types, includeInactive={IncludeInactive}", includeInactive);
-            var result = await _service.GetAllAsync(includeInactive, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting change types");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Getting all change types, includeInactive={IncludeInactive}", includeInactive);
+        var result = await _service.GetAllAsync(includeInactive, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -74,20 +67,12 @@ public class ChangeTypesController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Getting change type: id={Id}", id);
-            var result = await _service.GetByIdAsync(id, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = $"Change type with id {id} not found" });
+                _logger.LogInformation("Getting change type: id={Id}", id);
+        var result = await _service.GetByIdAsync(id, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = $"Change type with id {id} not found" });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting change type {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -117,11 +102,6 @@ public class ChangeTypesController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error creating change type");
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating change type");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
 
@@ -160,11 +140,6 @@ public class ChangeTypesController : ControllerBase
             _logger.LogWarning(ex, "Validation error updating change type");
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating change type {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
     }
 
     /// <summary>
@@ -190,11 +165,6 @@ public class ChangeTypesController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting change type {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
         }
     }
 }

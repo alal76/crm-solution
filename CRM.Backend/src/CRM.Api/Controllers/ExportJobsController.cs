@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/export-jobs")]
 [Authorize]
 [Produces("application/json")]
-public class ExportJobsController : ControllerBase
+public class ExportJobsController : CrmControllerBase
 {
     private readonly IExportJobService _service;
     private readonly ILogger<ExportJobsController> _logger;
@@ -35,16 +36,8 @@ public class ExportJobsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ExportJobDto>> Create([FromBody] CreateExportJobDto dto, CancellationToken ct)
     {
-        try
-        {
-            var result = await _service.CreateAsync(dto, ct);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating export job");
-            return StatusCode(500, new { error = "Failed to create export job" });
-        }
+                var result = await _service.CreateAsync(dto, ct);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     [HttpGet("{id}")]

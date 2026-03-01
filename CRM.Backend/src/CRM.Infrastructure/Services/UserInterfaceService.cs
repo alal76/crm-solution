@@ -74,7 +74,6 @@ public class UserInterfaceService : IUserInterfaceService
         if (dto.CustomColorScheme != null)
             preference.CustomColorScheme = dto.CustomColorScheme;
 
-        preference.UpdatedAt = DateTime.UtcNow;
         preference.LastPreferenceUpdate = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -102,7 +101,6 @@ public class UserInterfaceService : IUserInterfaceService
         preference.DateFormat = "MM/dd/yyyy";
         preference.TimeFormat = "hh:mm a";
         preference.CustomColorScheme = null;
-        preference.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("UI preferences reset for user {UserId}", userId);
@@ -167,7 +165,6 @@ public class UserInterfaceService : IUserInterfaceService
         if (dto.RowsPerPage.HasValue)
             customization.RowsPerPage = dto.RowsPerPage.Value;
 
-        customization.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("UI customization saved for user {UserId}, module {Module}", userId, dto.ModuleName);
@@ -184,7 +181,6 @@ public class UserInterfaceService : IUserInterfaceService
             return true;
 
         customization.IsDeleted = true;
-        customization.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("UI customization deleted for user {UserId}, module {Module}", userId, moduleName);
@@ -252,7 +248,6 @@ public class UserInterfaceService : IUserInterfaceService
             dashboard.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
 
         dashboard.LastModified = DateTime.UtcNow;
-        dashboard.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Dashboard customization saved for user {UserId}: {DashboardName}", userId, dto.DashboardName);
@@ -269,7 +264,6 @@ public class UserInterfaceService : IUserInterfaceService
             return true;
 
         dashboard.IsDeleted = true;
-        dashboard.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Dashboard deleted for user {UserId}: {DashboardName}", userId, dashboardName);
@@ -293,7 +287,6 @@ public class UserInterfaceService : IUserInterfaceService
             other.IsDefault = false;
 
         dashboard.IsDefault = true;
-        dashboard.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
@@ -349,7 +342,6 @@ public class UserInterfaceService : IUserInterfaceService
             views.Add(viewName);
 
         customization.SavedSearches = JsonConvert.SerializeObject(views);
-        customization.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         return true;
@@ -368,7 +360,6 @@ public class UserInterfaceService : IUserInterfaceService
             var views = JsonConvert.DeserializeObject<List<string>>(customization.SavedSearches) ?? new List<string>();
             views.Remove(viewName);
             customization.SavedSearches = JsonConvert.SerializeObject(views);
-            customization.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync(cancellationToken);
         }
         catch { }

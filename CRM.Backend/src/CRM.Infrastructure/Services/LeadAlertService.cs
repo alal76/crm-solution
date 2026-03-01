@@ -170,7 +170,6 @@ public class LeadAlertService : ILeadAlertService
         if (lead != null)
         {
             lead.LastContactedAt = DateTime.UtcNow;
-            lead.UpdatedAt = DateTime.UtcNow;
             await (_context as DbContext)!.SaveChangesAsync(ct);
             _logger.LogInformation("Lead {LeadId} marked as contacted", leadId);
         }

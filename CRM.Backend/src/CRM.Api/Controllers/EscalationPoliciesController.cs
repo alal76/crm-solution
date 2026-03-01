@@ -10,6 +10,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.ITSM;
 
@@ -22,7 +23,7 @@ namespace CRM.Api.Controllers.ITSM;
 [Authorize]
 [Produces("application/json")]
 [Tags("ITSM - Escalation Policies")]
-public class EscalationPoliciesController : ControllerBase
+public class EscalationPoliciesController : CrmControllerBase
 {
     private readonly IEscalationPolicyService _escalationPolicyService;
     private readonly ILogger<EscalationPoliciesController> _logger;
@@ -57,16 +58,8 @@ public class EscalationPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<EscalationPolicyDto>>> GetPolicies([FromQuery] bool? isActive = null)
     {
-        try
-        {
-            var policies = await _escalationPolicyService.GetPoliciesAsync(isActive);
-            return Ok(policies);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting escalation policies");
-            return StatusCode(500, "An error occurred while retrieving policies");
-        }
+                var policies = await _escalationPolicyService.GetPoliciesAsync(isActive);
+        return Ok(policies);
     }
 
     /// <summary>
@@ -83,22 +76,14 @@ public class EscalationPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EscalationPolicyDto>> GetPolicyById(int id)
     {
-        try
-        {
-            var policy = await _escalationPolicyService.GetPolicyByIdAsync(id);
+                var policy = await _escalationPolicyService.GetPolicyByIdAsync(id);
 
-            if (policy == null)
-            {
-                return NotFound($"Escalation policy with ID {id} not found");
-            }
-
-            return Ok(policy);
-        }
-        catch (Exception ex)
+        if (policy == null)
         {
-            _logger.LogError(ex, "Error getting escalation policy {Id}", id);
-            return StatusCode(500, "An error occurred while retrieving the policy");
+            return NotFound($"Escalation policy with ID {id} not found");
         }
+
+        return Ok(policy);
     }
 
     /// <summary>
@@ -118,23 +103,15 @@ public class EscalationPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EscalationPolicyDto>> CreatePolicy([FromBody] CreateEscalationPolicyDto dto)
     {
-        try
+                if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var userId = GetCurrentUserId();
-            var policy = await _escalationPolicyService.CreatePolicyAsync(dto, userId ?? 1);
-
-            return CreatedAtAction(nameof(GetPolicyById), new { id = policy.Id }, policy);
+            return BadRequest(ModelState);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating escalation policy");
-            return StatusCode(500, "An error occurred while creating the policy");
-        }
+
+        var userId = GetCurrentUserId();
+        var policy = await _escalationPolicyService.CreatePolicyAsync(dto, userId ?? 1);
+
+        return CreatedAtAction(nameof(GetPolicyById), new { id = policy.Id }, policy);
     }
 
     /// <summary>
@@ -175,11 +152,6 @@ public class EscalationPoliciesController : ControllerBase
         {
             return NotFound(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating escalation policy {Id}", id);
-            return StatusCode(500, "An error occurred while updating the policy");
-        }
     }
 
     /// <summary>
@@ -198,22 +170,14 @@ public class EscalationPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeletePolicy(int id)
     {
-        try
-        {
-            var result = await _escalationPolicyService.DeletePolicyAsync(id);
+                var result = await _escalationPolicyService.DeletePolicyAsync(id);
 
-            if (!result)
-            {
-                return NotFound($"Escalation policy with ID {id} not found");
-            }
-
-            return NoContent();
-        }
-        catch (Exception ex)
+        if (!result)
         {
-            _logger.LogError(ex, "Error deleting escalation policy {Id}", id);
-            return StatusCode(500, "An error occurred while deleting the policy");
+            return NotFound($"Escalation policy with ID {id} not found");
         }
+
+        return NoContent();
     }
 
     #endregion
@@ -230,16 +194,8 @@ public class EscalationPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<EscalationLevelDto>>> GetPolicyLevels(int policyId)
     {
-        try
-        {
-            var levels = await _escalationPolicyService.GetPolicyLevelsAsync(policyId);
-            return Ok(levels);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting levels for policy {PolicyId}", policyId);
-            return StatusCode(500, "An error occurred while retrieving levels");
-        }
+                var levels = await _escalationPolicyService.GetPolicyLevelsAsync(policyId);
+        return Ok(levels);
     }
 
     /// <summary>
@@ -272,11 +228,6 @@ public class EscalationPoliciesController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding level to policy {PolicyId}", policyId);
-            return StatusCode(500, "An error occurred while adding the level");
         }
     }
 
@@ -311,11 +262,6 @@ public class EscalationPoliciesController : ControllerBase
         {
             return NotFound(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating escalation level {LevelId}", levelId);
-            return StatusCode(500, "An error occurred while updating the level");
-        }
     }
 
     /// <summary>
@@ -330,22 +276,14 @@ public class EscalationPoliciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveLevel(int levelId)
     {
-        try
-        {
-            var result = await _escalationPolicyService.DeleteLevelAsync(levelId);
+                var result = await _escalationPolicyService.DeleteLevelAsync(levelId);
 
-            if (!result)
-            {
-                return NotFound($"Escalation level with ID {levelId} not found");
-            }
-
-            return NoContent();
-        }
-        catch (Exception ex)
+        if (!result)
         {
-            _logger.LogError(ex, "Error removing escalation level {LevelId}", levelId);
-            return StatusCode(500, "An error occurred while removing the level");
+            return NotFound($"Escalation level with ID {levelId} not found");
         }
+
+        return NoContent();
     }
 
     #endregion

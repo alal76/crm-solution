@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,9 +19,8 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/service-request-settings")]
 [Authorize]
-public class ServiceRequestSettingsController : ControllerBase
+public class ServiceRequestSettingsController : CrmControllerBase
 {
-    private const string GenericErrorMessage = "An error occurred";
 
     private readonly IServiceRequestCategoryService _categoryService;
     private readonly IServiceRequestSubcategoryService _subcategoryService;
@@ -51,16 +51,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(typeof(List<ServiceRequestCategoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestCategoryDto>>> GetCategories([FromQuery] bool includeInactive = false)
     {
-        try
-        {
-            var categories = await _categoryService.GetAllCategoriesAsync(includeInactive);
-            return Ok(categories);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting categories");
-            return StatusCode(500, "An error occurred while retrieving categories");
-        }
+                var categories = await _categoryService.GetAllCategoriesAsync(includeInactive);
+        return Ok(categories);
     }
 
     /// <summary>
@@ -71,18 +63,10 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestCategoryDto>> GetCategory(int id)
     {
-        try
-        {
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-            if (category == null)
-                return NotFound($"Category {id} not found");
-            return Ok(category);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting category {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var category = await _categoryService.GetCategoryByIdAsync(id);
+        if (category == null)
+            return NotFound($"Category {id} not found");
+        return Ok(category);
     }
 
     /// <summary>
@@ -108,11 +92,6 @@ public class ServiceRequestSettingsController : ControllerBase
             _logger.LogWarning(ioEx, "Category already exists: {Name}", dto.Name);
             return Conflict(new { message = $"Category '{dto.Name}' already exists." });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating category");
-            return StatusCode(500, new { message = "An error occurred while creating the category", detail = ex.Message });
-        }
     }
 
     /// <summary>
@@ -133,11 +112,6 @@ public class ServiceRequestSettingsController : ControllerBase
         {
             return NotFound($"Category {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating category {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -148,18 +122,10 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCategory(int id)
     {
-        try
-        {
-            var result = await _categoryService.DeleteCategoryAsync(id);
-            if (!result)
-                return NotFound($"Category {id} not found");
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting category {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var result = await _categoryService.DeleteCategoryAsync(id);
+        if (!result)
+            return NotFound($"Category {id} not found");
+        return NoContent();
     }
 
     /// <summary>
@@ -169,16 +135,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderCategories([FromBody] List<int> categoryIds)
     {
-        try
-        {
-            await _categoryService.ReorderCategoriesAsync(categoryIds);
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reordering categories");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _categoryService.ReorderCategoriesAsync(categoryIds);
+        return Ok();
     }
 
     #endregion
@@ -192,16 +150,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(typeof(List<ServiceRequestSubcategoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestSubcategoryDto>>> GetSubcategories([FromQuery] bool includeInactive = false)
     {
-        try
-        {
-            var subcategories = await _subcategoryService.GetAllSubcategoriesAsync(includeInactive);
-            return Ok(subcategories);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting subcategories");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var subcategories = await _subcategoryService.GetAllSubcategoriesAsync(includeInactive);
+        return Ok(subcategories);
     }
 
     /// <summary>
@@ -212,16 +162,8 @@ public class ServiceRequestSettingsController : ControllerBase
     public async Task<ActionResult<List<ServiceRequestSubcategoryDto>>> GetSubcategoriesByCategory(
         int categoryId, [FromQuery] bool includeInactive = false)
     {
-        try
-        {
-            var subcategories = await _subcategoryService.GetSubcategoriesByCategoryAsync(categoryId, includeInactive);
-            return Ok(subcategories);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting subcategories for category {CategoryId}", categoryId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var subcategories = await _subcategoryService.GetSubcategoriesByCategoryAsync(categoryId, includeInactive);
+        return Ok(subcategories);
     }
 
     /// <summary>
@@ -232,18 +174,10 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestSubcategoryDto>> GetSubcategory(int id)
     {
-        try
-        {
-            var subcategory = await _subcategoryService.GetSubcategoryByIdAsync(id);
-            if (subcategory == null)
-                return NotFound($"Subcategory {id} not found");
-            return Ok(subcategory);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting subcategory {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var subcategory = await _subcategoryService.GetSubcategoryByIdAsync(id);
+        if (subcategory == null)
+            return NotFound($"Subcategory {id} not found");
+        return Ok(subcategory);
     }
 
     /// <summary>
@@ -254,16 +188,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestSubcategoryDto>> CreateSubcategory([FromBody] CreateServiceRequestSubcategoryDto dto)
     {
-        try
-        {
-            var subcategory = await _subcategoryService.CreateSubcategoryAsync(dto);
-            return CreatedAtAction(nameof(GetSubcategory), new { id = subcategory.Id }, subcategory);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating subcategory");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var subcategory = await _subcategoryService.CreateSubcategoryAsync(dto);
+        return CreatedAtAction(nameof(GetSubcategory), new { id = subcategory.Id }, subcategory);
     }
 
     /// <summary>
@@ -284,11 +210,6 @@ public class ServiceRequestSettingsController : ControllerBase
         {
             return NotFound($"Subcategory {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating subcategory {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -299,18 +220,10 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteSubcategory(int id)
     {
-        try
-        {
-            var result = await _subcategoryService.DeleteSubcategoryAsync(id);
-            if (!result)
-                return NotFound($"Subcategory {id} not found");
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting subcategory {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var result = await _subcategoryService.DeleteSubcategoryAsync(id);
+        if (!result)
+            return NotFound($"Subcategory {id} not found");
+        return NoContent();
     }
 
     /// <summary>
@@ -320,16 +233,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderSubcategories(int categoryId, [FromBody] List<int> subcategoryIds)
     {
-        try
-        {
-            await _subcategoryService.ReorderSubcategoriesAsync(categoryId, subcategoryIds);
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reordering subcategories");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _subcategoryService.ReorderSubcategoriesAsync(categoryId, subcategoryIds);
+        return Ok();
     }
 
     #endregion
@@ -343,16 +248,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(typeof(List<ServiceRequestCustomFieldDefinitionDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestCustomFieldDefinitionDto>>> GetCustomFields([FromQuery] bool includeInactive = false)
     {
-        try
-        {
-            var fields = await _customFieldService.GetAllFieldDefinitionsAsync(includeInactive);
-            return Ok(fields);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting custom fields");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var fields = await _customFieldService.GetAllFieldDefinitionsAsync(includeInactive);
+        return Ok(fields);
     }
 
     /// <summary>
@@ -363,16 +260,8 @@ public class ServiceRequestSettingsController : ControllerBase
     public async Task<ActionResult<List<ServiceRequestCustomFieldDefinitionDto>>> GetApplicableCustomFields(
         [FromQuery] int? categoryId, [FromQuery] int? subcategoryId)
     {
-        try
-        {
-            var fields = await _customFieldService.GetFieldDefinitionsByCategoryAsync(categoryId, subcategoryId);
-            return Ok(fields);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting applicable custom fields");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var fields = await _customFieldService.GetFieldDefinitionsByCategoryAsync(categoryId, subcategoryId);
+        return Ok(fields);
     }
 
     /// <summary>
@@ -383,18 +272,10 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestCustomFieldDefinitionDto>> GetCustomField(int id)
     {
-        try
-        {
-            var field = await _customFieldService.GetFieldDefinitionByIdAsync(id);
-            if (field == null)
-                return NotFound($"Custom field {id} not found");
-            return Ok(field);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting custom field {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var field = await _customFieldService.GetFieldDefinitionByIdAsync(id);
+        if (field == null)
+            return NotFound($"Custom field {id} not found");
+        return Ok(field);
     }
 
     /// <summary>
@@ -414,11 +295,6 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating custom field");
-            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -441,11 +317,6 @@ public class ServiceRequestSettingsController : ControllerBase
         {
             return NotFound($"Custom field {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating custom field {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -456,18 +327,10 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCustomField(int id)
     {
-        try
-        {
-            var result = await _customFieldService.DeleteFieldDefinitionAsync(id);
-            if (!result)
-                return NotFound($"Custom field {id} not found");
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting custom field {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var result = await _customFieldService.DeleteFieldDefinitionAsync(id);
+        if (!result)
+            return NotFound($"Custom field {id} not found");
+        return NoContent();
     }
 
     /// <summary>
@@ -477,16 +340,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderCustomFields([FromBody] List<int> fieldIds)
     {
-        try
-        {
-            await _customFieldService.ReorderFieldDefinitionsAsync(fieldIds);
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reordering custom fields");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _customFieldService.ReorderFieldDefinitionsAsync(fieldIds);
+        return Ok();
     }
 
     /// <summary>
@@ -496,16 +351,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<object>> GetCustomFieldCount()
     {
-        try
-        {
-            var count = await _customFieldService.GetActiveFieldCountAsync();
-            return Ok(new { activeCount = count, maxAllowed = 15 });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting custom field count");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var count = await _customFieldService.GetActiveFieldCountAsync();
+        return Ok(new { activeCount = count, maxAllowed = 15 });
     }
 
     #endregion
@@ -519,16 +366,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(typeof(List<ServiceRequestTypeDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetAllTypes([FromQuery] bool includeInactive = false)
     {
-        try
-        {
-            var types = await _typeService.GetAllTypesAsync(includeInactive);
-            return Ok(types);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service request types");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var types = await _typeService.GetAllTypesAsync(includeInactive);
+        return Ok(types);
     }
 
     /// <summary>
@@ -538,16 +377,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(typeof(List<ServiceRequestTypeGroupedDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestTypeGroupedDto>>> GetTypesGrouped([FromQuery] bool includeInactive = false)
     {
-        try
-        {
-            var grouped = await _typeService.GetTypesGroupedAsync(includeInactive);
-            return Ok(grouped);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting grouped service request types");
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var grouped = await _typeService.GetTypesGroupedAsync(includeInactive);
+        return Ok(grouped);
     }
 
     /// <summary>
@@ -557,16 +388,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(typeof(List<ServiceRequestTypeDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetTypesByCategory(int categoryId, [FromQuery] bool includeInactive = false)
     {
-        try
-        {
-            var types = await _typeService.GetTypesByCategoryAsync(categoryId, includeInactive);
-            return Ok(types);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting types for category {CategoryId}", categoryId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var types = await _typeService.GetTypesByCategoryAsync(categoryId, includeInactive);
+        return Ok(types);
     }
 
     /// <summary>
@@ -576,16 +399,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(typeof(List<ServiceRequestTypeDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetTypesBySubcategory(int subcategoryId, [FromQuery] bool includeInactive = false)
     {
-        try
-        {
-            var types = await _typeService.GetTypesBySubcategoryAsync(subcategoryId, includeInactive);
-            return Ok(types);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting types for subcategory {SubcategoryId}", subcategoryId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var types = await _typeService.GetTypesBySubcategoryAsync(subcategoryId, includeInactive);
+        return Ok(types);
     }
 
     /// <summary>
@@ -596,18 +411,10 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestTypeDto>> GetTypeById(int id)
     {
-        try
-        {
-            var type = await _typeService.GetTypeByIdAsync(id);
-            if (type == null)
-                return NotFound($"Service request type {id} not found");
-            return Ok(type);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting service request type {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var type = await _typeService.GetTypeByIdAsync(id);
+        if (type == null)
+            return NotFound($"Service request type {id} not found");
+        return Ok(type);
     }
 
     /// <summary>
@@ -627,11 +434,6 @@ public class ServiceRequestSettingsController : ControllerBase
         {
             _logger.LogWarning(dbEx, "Duplicate or constraint violation creating type {Name}", dto.Name);
             return Conflict(new { message = $"Type '{dto.Name}' already exists or violates a constraint." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating service request type");
-            return StatusCode(500, new { message = "An error occurred", detail = ex.Message });
         }
     }
 
@@ -653,11 +455,6 @@ public class ServiceRequestSettingsController : ControllerBase
         {
             return NotFound(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating service request type {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
     }
 
     /// <summary>
@@ -668,18 +465,10 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteType(int id)
     {
-        try
-        {
-            var result = await _typeService.DeleteTypeAsync(id);
-            if (!result)
-                return NotFound($"Service request type {id} not found");
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting service request type {Id}", id);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                var result = await _typeService.DeleteTypeAsync(id);
+        if (!result)
+            return NotFound($"Service request type {id} not found");
+        return NoContent();
     }
 
     /// <summary>
@@ -689,16 +478,8 @@ public class ServiceRequestSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderTypes(int subcategoryId, [FromBody] List<int> typeIds)
     {
-        try
-        {
-            await _typeService.ReorderTypesAsync(subcategoryId, typeIds);
-            return Ok();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reordering types for subcategory {SubcategoryId}", subcategoryId);
-            return StatusCode(500, GenericErrorMessage);
-        }
+                await _typeService.ReorderTypesAsync(subcategoryId, typeIds);
+        return Ok();
     }
 
     #endregion

@@ -9,13 +9,14 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class CreditMemosController : ControllerBase
+public class CreditMemosController : CrmControllerBase
 {
     private readonly ICreditMemoService _service;
     private readonly ILogger<CreditMemosController> _logger;

@@ -9,6 +9,7 @@ using CRM.Core.DTOs.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -25,7 +26,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - Webhooks")]
-public class ITSMWebhooksController : ControllerBase
+public class ITSMWebhooksController : CrmControllerBase
 {
     private readonly IWebhookNotificationService _webhookService;
     private readonly ILogger<ITSMWebhooksController> _logger;

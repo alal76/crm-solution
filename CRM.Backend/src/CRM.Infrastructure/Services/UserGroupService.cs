@@ -611,7 +611,6 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             group.AccessibleMenuItems = JsonSerializer.Serialize(validItems);
         }
 
-        group.UpdatedAt = DateTime.UtcNow;
         _context.UserGroups.Update(group);
         await _context.SaveChangesAsync(cancellationToken);
 

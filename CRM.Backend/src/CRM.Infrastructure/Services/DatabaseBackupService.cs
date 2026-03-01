@@ -780,7 +780,6 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
             schedule.MaxBackupsToKeep = request.MaxBackupsToKeep;
             schedule.CompressBackups = request.CompressBackups;
             schedule.NextBackupAt = schedule.IsEnabled ? CalculateNextRun(request.CronExpression) : null;
-            schedule.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
@@ -821,7 +820,6 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
                 throw new KeyNotFoundException($"Schedule {id} not found");
 
             schedule.IsDeleted = true;
-            schedule.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Backup schedule deleted: {Id}", id);
@@ -843,7 +841,6 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
             schedule.IsEnabled = enabled;
             schedule.NextBackupAt = enabled ? CalculateNextRun(schedule.CronExpression) : null;
-            schedule.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
 
@@ -907,7 +904,6 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
             _logger.LogError(ex, "Scheduled backup failed: {Name}", schedule.Name);
         }
 
-        schedule.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
     }
 

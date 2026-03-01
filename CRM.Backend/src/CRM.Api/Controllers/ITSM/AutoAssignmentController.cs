@@ -9,6 +9,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.ITSM;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers.ITSM;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - Auto Assignment")]
-public class AutoAssignmentController : ControllerBase
+public class AutoAssignmentController : CrmControllerBase
 {
     private readonly IAutoAssignmentService _autoAssignmentService;
     private readonly ILogger<AutoAssignmentController> _logger;
@@ -49,16 +50,8 @@ public class AutoAssignmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRules(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var rules = await _autoAssignmentService.GetRulesAsync(cancellationToken);
-            return Ok(rules);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving assignment rules");
-            return StatusCode(500, new { message = "Error retrieving assignment rules", error = ex.Message });
-        }
+                var rules = await _autoAssignmentService.GetRulesAsync(cancellationToken);
+        return Ok(rules);
     }
 
     /// <summary>
@@ -77,18 +70,10 @@ public class AutoAssignmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRuleById(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var rule = await _autoAssignmentService.GetRuleByIdAsync(id, cancellationToken);
-            if (rule == null)
-                return NotFound(new { message = $"Assignment rule {id} not found" });
-            return Ok(rule);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving assignment rule {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving assignment rule", error = ex.Message });
-        }
+                var rule = await _autoAssignmentService.GetRuleByIdAsync(id, cancellationToken);
+        if (rule == null)
+            return NotFound(new { message = $"Assignment rule {id} not found" });
+        return Ok(rule);
     }
 
     /// <summary>
@@ -119,11 +104,6 @@ public class AutoAssignmentController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating assignment rule");
-            return StatusCode(500, new { message = "Error creating assignment rule", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -143,18 +123,10 @@ public class AutoAssignmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateRule(int id, [FromBody] UpdateAssignmentRuleDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var rule = await _autoAssignmentService.UpdateRuleAsync(id, dto, cancellationToken);
-            if (rule == null)
-                return NotFound(new { message = $"Assignment rule {id} not found" });
-            return Ok(rule);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating assignment rule {Id}", id);
-            return StatusCode(500, new { message = "Error updating assignment rule", error = ex.Message });
-        }
+                var rule = await _autoAssignmentService.UpdateRuleAsync(id, dto, cancellationToken);
+        if (rule == null)
+            return NotFound(new { message = $"Assignment rule {id} not found" });
+        return Ok(rule);
     }
 
     /// <summary>
@@ -173,18 +145,10 @@ public class AutoAssignmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteRule(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var deleted = await _autoAssignmentService.DeleteRuleAsync(id, cancellationToken);
-            if (!deleted)
-                return NotFound(new { message = $"Assignment rule {id} not found" });
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting assignment rule {Id}", id);
-            return StatusCode(500, new { message = "Error deleting assignment rule", error = ex.Message });
-        }
+                var deleted = await _autoAssignmentService.DeleteRuleAsync(id, cancellationToken);
+        if (!deleted)
+            return NotFound(new { message = $"Assignment rule {id} not found" });
+        return NoContent();
     }
 
     /// <summary>
@@ -203,18 +167,10 @@ public class AutoAssignmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AssignServiceRequest(int serviceRequestId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await _autoAssignmentService.AssignServiceRequestAsync(serviceRequestId, cancellationToken);
-            if (!result.Success && result.Reason == "Service request not found")
-                return NotFound(new { message = result.Reason });
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error auto-assigning service request {ServiceRequestId}", serviceRequestId);
-            return StatusCode(500, new { message = "Error during auto-assignment", error = ex.Message });
-        }
+                var result = await _autoAssignmentService.AssignServiceRequestAsync(serviceRequestId, cancellationToken);
+        if (!result.Success && result.Reason == "Service request not found")
+            return NotFound(new { message = result.Reason });
+        return Ok(result);
     }
 
     /// <summary>
@@ -233,17 +189,9 @@ public class AutoAssignmentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SuggestAssignment(int serviceRequestId, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var result = await _autoAssignmentService.SuggestAssignmentAsync(serviceRequestId, cancellationToken);
-            if (!result.Success && result.Reason == "Service request not found")
-                return NotFound(new { message = result.Reason });
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error suggesting assignment for service request {ServiceRequestId}", serviceRequestId);
-            return StatusCode(500, new { message = "Error during suggestion", error = ex.Message });
-        }
+                var result = await _autoAssignmentService.SuggestAssignmentAsync(serviceRequestId, cancellationToken);
+        if (!result.Success && result.Reason == "Service request not found")
+            return NotFound(new { message = result.Reason });
+        return Ok(result);
     }
 }

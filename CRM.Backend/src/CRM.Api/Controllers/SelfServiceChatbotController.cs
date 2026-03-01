@@ -8,6 +8,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/itsm/chatbot")]
 [Tags("ITSM - Self-Service Chatbot")]
-public class SelfServiceChatbotController : ControllerBase
+public class SelfServiceChatbotController : CrmControllerBase
 {
     private readonly ISelfServiceChatbotService _chatbotService;
     private readonly ILogger<SelfServiceChatbotController> _logger;

@@ -80,7 +80,7 @@ const ServiceQueuesPage: React.FC = () => {
     setError(null);
     try {
       const data = await serviceQueueService.getAll();
-      setQueues(data);
+      setQueues(data.items ?? []);
     } catch (err) {
       console.error('Failed to load service queues', err);
       setError('Failed to load service queues. Please try again.');

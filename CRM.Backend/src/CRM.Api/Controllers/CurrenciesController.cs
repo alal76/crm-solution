@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Ports.Input;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class CurrenciesController : ControllerBase
+public class CurrenciesController : CrmControllerBase
 {
     private readonly ICurrencyService _currencyService;
     private readonly ILogger<CurrenciesController> _logger;
@@ -53,16 +54,8 @@ public class CurrenciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetRates([FromQuery] string @base = "USD", CancellationToken ct = default)
     {
-        try
-        {
-            var rates = await _currencyService.GetExchangeRatesAsync(@base, ct);
-            return Ok(rates);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving exchange rates for base {BaseCurrency}", @base);
-            return StatusCode(500, "Internal server error");
-        }
+                var rates = await _currencyService.GetExchangeRatesAsync(@base, ct);
+        return Ok(rates);
     }
 
     /// <summary>
@@ -76,29 +69,20 @@ public class CurrenciesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Convert([FromBody] CurrencyConversionRequest request, CancellationToken ct = default)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var rateDto = await _currencyService.GetRateAsync(request.FromCurrency, request.ToCurrency, null, ct);
-            var converted = await _currencyService.ConvertAsync(request.Amount, request.FromCurrency, request.ToCurrency, null, ct);
+        var rateDto = await _currencyService.GetRateAsync(request.FromCurrency, request.ToCurrency, null, ct);
+        var converted = await _currencyService.ConvertAsync(request.Amount, request.FromCurrency, request.ToCurrency, null, ct);
 
-            return Ok(new CurrencyConversionResponse
-            {
-                Amount = request.Amount,
-                FromCurrency = request.FromCurrency.ToUpperInvariant(),
-                ToCurrency = request.ToCurrency.ToUpperInvariant(),
-                ConvertedAmount = converted,
-                Rate = rateDto?.Rate
-            });
-        }
-        catch (Exception ex)
+        return Ok(new CurrencyConversionResponse
         {
-            _logger.LogError(ex, "Error converting {Amount} {FromCurrency} -> {ToCurrency}",
-                request.Amount, request.FromCurrency, request.ToCurrency);
-            return StatusCode(500, "Internal server error");
-        }
+            Amount = request.Amount,
+            FromCurrency = request.FromCurrency.ToUpperInvariant(),
+            ToCurrency = request.ToCurrency.ToUpperInvariant(),
+            ConvertedAmount = converted,
+            Rate = rateDto?.Rate
+        });
     }
 }
 

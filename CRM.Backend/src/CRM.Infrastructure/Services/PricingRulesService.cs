@@ -136,7 +136,6 @@ public class PricingRulesService : IPricingRulesService
     {
         var rule = MapFromCreateDto(dto);
         rule.CreatedAt = DateTime.UtcNow;
-        rule.UpdatedAt = DateTime.UtcNow;
 
         _dbContext.PricingRules.Add(rule);
         await _dbContext.SaveChangesAsync(ct);
@@ -158,7 +157,6 @@ public class PricingRulesService : IPricingRulesService
         }
 
         MapUpdateDtoToEntity(dto, rule);
-        rule.UpdatedAt = DateTime.UtcNow;
 
         _dbContext.PricingRules.Update(rule);
         await _dbContext.SaveChangesAsync(ct);
@@ -180,7 +178,6 @@ public class PricingRulesService : IPricingRulesService
 
         rule.IsDeleted = true;
         rule.IsActive = false;
-        rule.UpdatedAt = DateTime.UtcNow;
 
         _dbContext.PricingRules.Update(rule);
         await _dbContext.SaveChangesAsync(ct);

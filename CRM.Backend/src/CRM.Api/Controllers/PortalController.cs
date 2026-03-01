@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -26,7 +27,7 @@ namespace CRM.Api.Controllers;
 [Route("api/portal")]
 [AllowAnonymous] // Route-level; actual auth done via ExtractPortalUserId helper
 [FeatureGate(FeatureFlags.EnableCustomerPortal)]
-public class PortalController : ControllerBase
+public class PortalController : CrmControllerBase
 {
     private readonly IPortalService _portalService;
     private readonly IConfiguration _configuration;

@@ -74,7 +74,6 @@ public class ContractService : IContractService
 
         contract.ContractNumber = await GenerateContractNumberAsync(cancellationToken);
         contract.CreatedAt = DateTime.UtcNow;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Add(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -93,7 +92,6 @@ public class ContractService : IContractService
 
         ValidateContractInput(contract);
 
-        contract.UpdatedAt = DateTime.UtcNow;
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -108,7 +106,6 @@ public class ContractService : IContractService
             return false;
 
         contract.IsDeleted = true;
-        contract.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted contract {ContractId}", id);
@@ -253,7 +250,6 @@ public class ContractService : IContractService
         }
 
         contract.Status = status;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -272,7 +268,6 @@ public class ContractService : IContractService
 
         contract.Status = ContractStatus.Active;
         contract.ActivatedAt = DateTime.UtcNow;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -291,7 +286,6 @@ public class ContractService : IContractService
 
         contract.Status = ContractStatus.OnHold;
         contract.SuspensionReason = reason;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -311,7 +305,6 @@ public class ContractService : IContractService
         contract.Status = ContractStatus.Terminated;
         contract.TerminationReason = reason;
         contract.TerminatedAt = terminationDate ?? DateTime.UtcNow;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -329,7 +322,6 @@ public class ContractService : IContractService
         }
 
         contract.Status = ContractStatus.Expired;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -351,7 +343,6 @@ public class ContractService : IContractService
         }
 
         contract.RenewalInitiatedAt = DateTime.UtcNow;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -376,10 +367,8 @@ public class ContractService : IContractService
 
         original.Status = ContractStatus.Renewed;
         original.RenewalCompletedAt = DateTime.UtcNow;
-        original.UpdatedAt = DateTime.UtcNow;
 
         renewal.ParentContractId = contractId;
-        renewal.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(original);
         _context.Contracts.Update(renewal);
@@ -440,7 +429,6 @@ public class ContractService : IContractService
         amendment.ContractType = ContractType.Amendment;
         amendment.Status = ContractStatus.Draft;
         amendment.CreatedAt = DateTime.UtcNow;
-        amendment.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Add(amendment);
         await _context.SaveChangesAsync(cancellationToken);
@@ -470,7 +458,6 @@ public class ContractService : IContractService
         }
 
         contract.SentForSignatureAt = DateTime.UtcNow;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -489,7 +476,6 @@ public class ContractService : IContractService
 
         contract.SignedDate = DateTime.UtcNow;
         contract.SignedBy = signerId.ToString();
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -626,7 +612,6 @@ public class ContractService : IContractService
         }
 
         contract.DocumentUrl = documentPath;
-        contract.UpdatedAt = DateTime.UtcNow;
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
@@ -849,7 +834,6 @@ public class ContractService : IContractService
         foreach (var contract in contracts)
         {
             contract.Status = status;
-            contract.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -971,7 +955,6 @@ public class ContractService : IContractService
         if (root.TryGetProperty("PaymentTerms", out var payment))
             contract.PaymentTerms = payment.GetString();
 
-        contract.UpdatedAt = DateTime.UtcNow;
 
         // Create a new version recording the restore
         await CreateVersionSnapshotAsync(contractId, $"Restored from version {version.VersionNumber}", null, cancellationToken);

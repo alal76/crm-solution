@@ -10,6 +10,7 @@ using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,9 +22,8 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class ProductsController : ControllerBase
+public class ProductsController : CrmControllerBase
 {
-    private const string InternalServerErrorMessage = "Internal server error";
     private readonly IProductService _productService;
     private readonly ILogger<ProductsController> _logger;
     private readonly ICrmNotificationService _notificationService;
@@ -55,16 +55,8 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll()
     {
-        try
-        {
-            var products = await _productService.GetAllProductsAsync();
-            return Ok(products);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving products");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var products = await _productService.GetAllProductsAsync();
+        return Ok(products);
     }
 
     /// <summary>
@@ -81,18 +73,10 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
     {
-        try
-        {
-            var product = await _productService.GetProductByIdAsync(id);
-            if (product == null)
-                return NotFound(new { message = $"Product with ID {id} not found" });
-            return Ok(product);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving product {ProductId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var product = await _productService.GetProductByIdAsync(id);
+        if (product == null)
+            return NotFound(new { message = $"Product with ID {id} not found" });
+        return Ok(product);
     }
 
     /// <summary>
@@ -107,16 +91,8 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByCategory(string category)
     {
-        try
-        {
-            var products = await _productService.GetProductsByCategoryAsync(category);
-            return Ok(products);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving products for category {Category}", category);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var products = await _productService.GetProductsByCategoryAsync(category);
+        return Ok(products);
     }
 
     /// <summary>
@@ -131,16 +107,8 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByType(ProductType type)
     {
-        try
-        {
-            var products = await _productService.GetProductsByTypeAsync(type);
-            return Ok(products);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving products for type {ProductType}", type);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var products = await _productService.GetProductsByTypeAsync(type);
+        return Ok(products);
     }
 
     /// <summary>
@@ -155,26 +123,18 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetServices()
     {
-        try
+                var serviceTypes = new[]
         {
-            var serviceTypes = new[]
-            {
-                ProductType.Service,
-                ProductType.Consulting,
-                ProductType.ManagedService,
-                ProductType.ProfessionalServices,
-                ProductType.Training,
-                ProductType.SupportContract
-            };
-            var allProducts = await _productService.GetAllProductsAsync();
-            var services = allProducts.Where(p => serviceTypes.Contains(p.ProductType)).ToList();
-            return Ok(services);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving service products");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+            ProductType.Service,
+            ProductType.Consulting,
+            ProductType.ManagedService,
+            ProductType.ProfessionalServices,
+            ProductType.Training,
+            ProductType.SupportContract
+        };
+        var allProducts = await _productService.GetAllProductsAsync();
+        var services = allProducts.Where(p => serviceTypes.Contains(p.ProductType)).ToList();
+        return Ok(services);
     }
 
     /// <summary>
@@ -209,11 +169,6 @@ public class ProductsController : ControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating product");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
     }
 
     /// <summary>
@@ -233,25 +188,17 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(int id, [FromBody] Product product)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            product.Id = id;
-            await _productService.UpdateProductAsync(product);
+        product.Id = id;
+        await _productService.UpdateProductAsync(product);
 
-            // Notify connected clients about the update
-            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-            await _notificationService.NotifyRecordUpdatedAsync("Product", id, product, userId);
+        // Notify connected clients about the update
+        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+        await _notificationService.NotifyRecordUpdatedAsync("Product", id, product, userId);
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating product {ProductId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return NoContent();
     }
 
     /// <summary>
@@ -268,20 +215,12 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id)
     {
-        try
-        {
-            await _productService.DeleteProductAsync(id);
+                await _productService.DeleteProductAsync(id);
 
-            // Notify connected clients about the deletion
-            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-            await _notificationService.NotifyRecordDeletedAsync("Product", id, userId);
+        // Notify connected clients about the deletion
+        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+        await _notificationService.NotifyRecordDeletedAsync("Product", id, userId);
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting product {ProductId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return NoContent();
     }
 }

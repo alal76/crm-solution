@@ -101,7 +101,6 @@ public class EscalationRuleAdminService : IEscalationRuleService, IEscalationRul
         if (dto.IsActive.HasValue)
             rule.IsActive = dto.IsActive.Value;
 
-        rule.UpdatedAt = DateTime.UtcNow;
         await _ruleRepository.UpdateAsync(rule);
         await _ruleRepository.SaveAsync();
         _logger.LogInformation("Escalation rule updated: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);

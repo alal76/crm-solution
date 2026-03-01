@@ -613,7 +613,6 @@ public class AuditLogService : IAuditLogService
         foreach (var log in logsToDelete)
         {
             log.IsDeleted = true;
-            log.UpdatedAt = DateTime.UtcNow;
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);

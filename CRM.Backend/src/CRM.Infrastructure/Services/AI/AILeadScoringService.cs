@@ -188,7 +188,6 @@ public class AILeadScoringService : IAILeadScoringService
                     lead.Score = score.TotalScore;
                     lead.FitScore = (int)score.FitScore;
                     lead.EngagementScore = (int)score.EngagementScore;
-                    lead.UpdatedAt = DateTime.UtcNow;
                     result.Succeeded++;
                     totalScore += score.TotalScore;
                 }

@@ -87,7 +87,6 @@ public class EmailSyncService : IEmailSyncService
         if (existing == null)
         {
             integration.CreatedAt = DateTime.UtcNow;
-            integration.UpdatedAt = DateTime.UtcNow;
             integration.NextSyncAt = DateTime.UtcNow.AddMinutes(integration.SyncIntervalMinutes > 0 ? integration.SyncIntervalMinutes : _options.DefaultSyncIntervalMinutes);
             _context.EmailIntegrations.Add(integration);
         }
@@ -114,7 +113,6 @@ public class EmailSyncService : IEmailSyncService
             existing.SettingsJson = integration.SettingsJson ?? existing.SettingsJson;
             existing.SyncIntervalMinutes = integration.SyncIntervalMinutes > 0 ? integration.SyncIntervalMinutes : existing.SyncIntervalMinutes;
             existing.IsActive = integration.IsActive;
-            existing.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();
@@ -131,7 +129,6 @@ public class EmailSyncService : IEmailSyncService
 
         integration.IsDeleted = true;
         integration.IsActive = false;
-        integration.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return true;
     }

@@ -111,7 +111,6 @@ public class TerritoryService : ITerritoryService
         existing.TargetAccountCount = territory.TargetAccountCount;
         existing.IsActive = territory.IsActive;
         existing.TeamId = territory.TeamId;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated territory {TerritoryId}: {TerritoryName}", territory.Id, territory.TerritoryName);
@@ -127,7 +126,6 @@ public class TerritoryService : ITerritoryService
             return false;
 
         territory.IsDeleted = true;
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted territory {TerritoryId}: {TerritoryName}", territoryId, territory.TerritoryName);
@@ -141,7 +139,6 @@ public class TerritoryService : ITerritoryService
             throw new InvalidOperationException($"Territory {territoryId} not found");
 
         territory.IsActive = true;
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return territory;
     }
@@ -153,7 +150,6 @@ public class TerritoryService : ITerritoryService
             throw new InvalidOperationException($"Territory {territoryId} not found");
 
         territory.IsActive = false;
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return territory;
     }
@@ -355,7 +351,6 @@ public class TerritoryService : ITerritoryService
             throw new InvalidOperationException($"Territory {territoryId} not found");
 
         territory.PrimaryOwnerId = ownerId;
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return territory;
     }
@@ -380,7 +375,6 @@ public class TerritoryService : ITerritoryService
         }
 
         territory.TeamMemberIds = JsonSerializer.Serialize(existingIds);
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return territory;
     }
@@ -401,7 +395,6 @@ public class TerritoryService : ITerritoryService
         existingIds.RemoveAll(id => userIds.Contains(id));
 
         territory.TeamMemberIds = JsonSerializer.Serialize(existingIds);
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return territory;
     }
@@ -431,7 +424,6 @@ public class TerritoryService : ITerritoryService
             throw new InvalidOperationException($"Territory {territoryId} not found");
 
         territory.TeamId = teamId;
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return territory;
     }
@@ -562,7 +554,6 @@ public class TerritoryService : ITerritoryService
 
         territory.AnnualQuota = quota;
         territory.QuotaCurrency = currency;
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return territory;
     }
@@ -891,7 +882,6 @@ public class TerritoryService : ITerritoryService
         if (userId.HasValue)
             lead.OwnerId = userId;
 
-        lead.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(

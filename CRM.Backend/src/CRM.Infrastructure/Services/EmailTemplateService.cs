@@ -75,7 +75,6 @@ public class EmailTemplateService : IEmailTemplateService
     {
         template.Slug ??= GenerateSlug(template.Name);
         template.CreatedAt = DateTime.UtcNow;
-        template.UpdatedAt = DateTime.UtcNow;
         template.IsActive = true;
 
         _context.EmailTemplates.Add(template);
@@ -96,7 +95,6 @@ public class EmailTemplateService : IEmailTemplateService
             throw new InvalidOperationException(string.Format(EmailTemplateNotFoundMessage, template.Id));
         }
 
-        template.UpdatedAt = DateTime.UtcNow;
         _context.EmailTemplates.Update(template);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -116,7 +114,6 @@ public class EmailTemplateService : IEmailTemplateService
         }
 
         template.IsDeleted = true;
-        template.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted email template {TemplateId}", id);
@@ -412,7 +409,6 @@ public class EmailTemplateService : IEmailTemplateService
         template.Subject = templateVersion.Subject;
         template.HtmlBody = templateVersion.HtmlBody;
         template.PlainTextBody = templateVersion.TextBody;
-        template.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -721,7 +717,6 @@ public class EmailTemplateService : IEmailTemplateService
         }
 
         template.Slug = purpose.ToString().ToLower();
-        template.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

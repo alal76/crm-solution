@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/rollup-fields")]
 [Authorize]
-public class RollupFieldsController : ControllerBase
+public class RollupFieldsController : CrmControllerBase
 {
     private readonly IRollupFieldService _rollupSvc;
     private readonly ICrmDbContext _db;

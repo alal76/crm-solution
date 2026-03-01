@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/portal")]
 [Authorize]
-public class PortalAdminController : ControllerBase
+public class PortalAdminController : CrmControllerBase
 {
     private readonly IPortalAdminService _portalAdmin;
 

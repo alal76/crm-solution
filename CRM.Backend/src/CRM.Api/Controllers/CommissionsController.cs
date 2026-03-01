@@ -10,6 +10,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class CommissionsController : ControllerBase
+public class CommissionsController : CrmControllerBase
 {
     private const string CommissionPlanNotFoundMessage = "Commission plan {0} not found.";
     private const string CommissionNotFoundMessage = "Commission {0} not found.";
@@ -569,16 +570,8 @@ public class CommissionsController : ControllerBase
         [FromQuery] DateTime? asOfDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var forecast = await _commissionService.GetForecastAsync(userId, asOfDate, cancellationToken);
-            return Ok(forecast);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting commission forecast for user {UserId}", userId);
-            return StatusCode(500, new { message = "Error retrieving commission forecast" });
-        }
+                var forecast = await _commissionService.GetForecastAsync(userId, asOfDate, cancellationToken);
+        return Ok(forecast);
     }
 
     /// <summary>

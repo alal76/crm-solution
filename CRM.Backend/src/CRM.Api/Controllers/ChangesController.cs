@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ChangesController : ControllerBase
+public class ChangesController : CrmControllerBase
 {
     private const string ChangeNotFoundMessage = "Change with id {0} not found";
     private readonly IChangeService _service;
@@ -49,18 +50,10 @@ public class ChangesController : ControllerBase
         [FromQuery] string? status = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Getting all changes: page={Page}, pageSize={PageSize}, status={Status}",
-                page, pageSize, status);
-            var result = await _service.GetAllAsync(page, pageSize, status, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting changes");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Getting all changes: page={Page}, pageSize={PageSize}, status={Status}",
+            page, pageSize, status);
+        var result = await _service.GetAllAsync(page, pageSize, status, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -74,17 +67,9 @@ public class ChangesController : ControllerBase
         [FromBody] CreateChangeDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Creating new change: {ChangeTitle}", dto.Title);
-            var result = await _service.CreateAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating change");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Creating new change: {ChangeTitle}", dto.Title);
+        var result = await _service.CreateAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -98,20 +83,12 @@ public class ChangesController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Getting change: id={Id}", id);
-            var result = await _service.GetByIdAsync(id, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
+                _logger.LogInformation("Getting change: id={Id}", id);
+        var result = await _service.GetByIdAsync(id, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting change: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -127,20 +104,12 @@ public class ChangesController : ControllerBase
         [FromBody] UpdateChangeDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Updating change: id={Id}", id);
-            var result = await _service.UpdateAsync(id, dto, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
+                _logger.LogInformation("Updating change: id={Id}", id);
+        var result = await _service.UpdateAsync(id, dto, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating change: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -154,17 +123,9 @@ public class ChangesController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Deleting change: id={Id}", id);
-            await _service.DeleteAsync(id, cancellationToken);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting change: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Deleting change: id={Id}", id);
+        await _service.DeleteAsync(id, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>
@@ -179,20 +140,12 @@ public class ChangesController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Submitting change for approval: id={Id}", id);
-            var result = await _service.SubmitAsync(id, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
+                _logger.LogInformation("Submitting change for approval: id={Id}", id);
+        var result = await _service.SubmitAsync(id, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error submitting change: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -208,20 +161,12 @@ public class ChangesController : ControllerBase
         [FromBody] ChangeApprovalDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Approving change: id={Id}, approver={Approver}", id, dto.ApproverNotes);
-            var result = await _service.ApproveAsync(id, dto, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
+                _logger.LogInformation("Approving change: id={Id}, approver={Approver}", id, dto.ApproverNotes);
+        var result = await _service.ApproveAsync(id, dto, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error approving change: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -237,19 +182,11 @@ public class ChangesController : ControllerBase
         [FromBody] ChangeRejectionDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Rejecting change: id={Id}, reason={Reason}", id, dto.RejectionReason);
-            var result = await _service.RejectAsync(id, dto, cancellationToken);
-            if (result == null)
-                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
+                _logger.LogInformation("Rejecting change: id={Id}, reason={Reason}", id, dto.RejectionReason);
+        var result = await _service.RejectAsync(id, dto, cancellationToken);
+        if (result == null)
+            return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rejecting change: id={Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+        return Ok(result);
     }
 }
