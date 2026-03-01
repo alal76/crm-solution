@@ -297,6 +297,7 @@ public class LandingPageService : ILandingPageService
         var landingPage = await _context.LandingPages.FindAsync(landingPageId);
         if (landingPage != null)
         {
+            landingPage.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();

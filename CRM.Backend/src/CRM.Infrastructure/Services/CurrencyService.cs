@@ -72,6 +72,7 @@ public class CurrencyService : ICurrencyService
     /// <inheritdoc />
     public Task<IEnumerable<ExchangeRateDto>> GetExchangeRatesAsync(string baseCurrency = "USD", CancellationToken ct = default)
     {
+        baseCurrency ??= "USD";
         var rates = new List<ExchangeRateDto>();
         var today = DateTime.UtcNow.Date;
 

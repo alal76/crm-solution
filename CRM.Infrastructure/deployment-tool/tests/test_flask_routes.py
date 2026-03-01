@@ -1010,3 +1010,95 @@ class TestRemoteDeployment:
         while not q.empty():
             messages.append(q.get().message)
         assert any("Rolling back" in m for m in messages)
+
+
+# ===========================================================================
+# /api/generate endpoint
+# ===========================================================================
+
+
+class TestGenerateAPI:
+    """Tests for /api/generate endpoint — file generation with proper error handling."""
+
+    def test_generate_returns_400_when_no_target_host(self, client):
+        """Missing target.host should give a 400, not a 500."""
+        resp = client.post(
+            "/api/generate",
+            data=json.dumps({
+                "name": "test",
+                "platform": "on_premises",
+                "architecture": "monolithic",
+                "database_type": "mariadb",
+            }),
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert data["status"] == "error"
+        assert "host" in data["message"].lower()
+
+    def test_generate_returns_400_when_body_is_empty(self, client):
+        """No JSON body at all should return 400."""
+        resp = client.post(
+            "/api/generate",
+            data="",
+            content_type="application/json",
+        )
+        # Flask may return 400 or 415 depending on parsing
+        assert resp.status_code in (400, 415)
+
+    def test_generate_success_with_valid_config(self, client, tmp_path):
+        """Valid config with target.host should succeed and create files."""
+        resp = client.post(
+            "/api/generate",
+            data=json.dumps({
+                "name": "test-deploy",
+                "platform": "on_premises",
+                "architecture": "monolithic",
+                "database_type": "mariadb",
+                "target": {
+                    "host": "192.168.0.9",
+                    "api_port": 5000,
+                    "frontend_port": 80,
+                },
+            }),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["status"] == "ok"
+        assert "files" in data
+        assert len(data["files"]) >= 4  # compose, .env, deploy.sh, config.json
+
+    def test_generate_success_includes_deployment_host_in_env(self, client):
+        """Generated .env should reference the deployment host, not localhost."""
+        resp = client.post(
+            "/api/generate",
+            data=json.dumps({
+                "platform": "on_premises",
+                "architecture": "monolithic",
+                "database_type": "mariadb",
+                "target": {"host": "10.0.0.5"},
+            }),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = resp.get_json()
+        # Read the generated .env to verify host
+        env_file = [f for f in data["files"] if f.endswith(".env")]
+        assert env_file, "Expected .env in generated files"
+        with open(env_file[0]) as fh:
+            env_content = fh.read()
+        assert "10.0.0.5" in env_content
+        assert "localhost" not in env_content.split("CRM_DEPLOYMENT_HOST")[1].split("\n")[0]
+
+    def test_generate_azure_platform_returns_ok(self, client):
+        """Azure platform should not crash (even if files are not yet generated)."""
+        resp = client.post(
+            "/api/generate",
+            data=json.dumps({"platform": "azure", "name": "test"}),
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["status"] == "ok"

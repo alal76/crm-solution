@@ -163,6 +163,7 @@ public class TaskService : ITaskService
             existingTask.CompletedDate = DateTime.UtcNow;
         }
 
+        existingTask.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated task: {TaskId}", id);

@@ -40,8 +40,15 @@ public class EscalationRulesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<EscalationRuleDto>> Create([FromBody] CreateEscalationRuleDto dto, CancellationToken ct)
     {
-                var result = await _service.CreateAsync(dto, ct);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        try
+        {
+            var result = await _service.CreateAsync(dto, ct);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>

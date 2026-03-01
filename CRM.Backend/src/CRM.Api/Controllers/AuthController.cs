@@ -131,6 +131,10 @@ public class AuthController : CrmControllerBase
             _logger.LogWarning($"Registration validation failed: {ex.Message}");
             return BadRequest(new { message = ex.Message });
         }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -627,8 +631,15 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPasswordRequirements()
     {
-                var requirements = await _authenticationService.GetPasswordRequirementsAsync();
-        return Ok(requirements);
+        try
+        {
+            var requirements = await _authenticationService.GetPasswordRequirementsAsync();
+            return Ok(requirements);
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>

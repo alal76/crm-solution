@@ -51,8 +51,15 @@ public class ProductsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll()
     {
-                var products = await _productService.GetAllProductsAsync();
-        return Ok(products);
+        try
+        {
+            var products = await _productService.GetAllProductsAsync();
+            return Ok(products);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -69,12 +76,19 @@ public class ProductsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
     {
-                var product = await _productService.GetProductByIdAsync(id);
-        if (product == null)
+        try
         {
-            return NotFound(new { message = $"Product with ID {id} not found" });
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+            {
+                return NotFound(new { message = $"Product with ID {id} not found" });
+            }
+            return Ok(product);
         }
-        return Ok(product);
+        catch (Exception ex) // NOSONAR
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -89,8 +103,15 @@ public class ProductsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByCategory(string category)
     {
-                var products = await _productService.GetProductsByCategoryAsync(category);
-        return Ok(products);
+        try
+        {
+            var products = await _productService.GetProductsByCategoryAsync(category);
+            return Ok(products);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -105,8 +126,15 @@ public class ProductsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByType(ProductType type)
     {
-                var products = await _productService.GetProductsByTypeAsync(type);
-        return Ok(products);
+        try
+        {
+            var products = await _productService.GetProductsByTypeAsync(type);
+            return Ok(products);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -169,6 +197,10 @@ public class ProductsController : CrmControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -188,19 +220,26 @@ public class ProductsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(int id, [FromBody] Product product)
     {
-                if (!ModelState.IsValid)
-                {
-            return BadRequest(ModelState);
-                }
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-        product.Id = id;
-        await _productService.UpdateProductAsync(product);
+            product.Id = id;
+            await _productService.UpdateProductAsync(product);
 
-        // Notify connected clients about the update
-        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-        await _notificationService.NotifyRecordUpdatedAsync("Product", id, product, userId);
+            // Notify connected clients about the update
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordUpdatedAsync("Product", id, product, userId);
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -217,12 +256,19 @@ public class ProductsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id)
     {
-                await _productService.DeleteProductAsync(id);
+        try
+        {
+            await _productService.DeleteProductAsync(id);
 
-        // Notify connected clients about the deletion
-        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-        await _notificationService.NotifyRecordDeletedAsync("Product", id, userId);
+            // Notify connected clients about the deletion
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordDeletedAsync("Product", id, userId);
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 }

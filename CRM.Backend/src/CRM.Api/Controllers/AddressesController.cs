@@ -251,13 +251,20 @@ public class AddressesController : CrmControllerBase
             UpdatedAt = DateTime.UtcNow
         };
 
-        var createdAddress = await _addressService.CreateAddressAsync(0, address, cancellationToken);
-        var addressDto = MapAddressToDto(createdAddress);
+        try
+        {
+            var createdAddress = await _addressService.CreateAddressAsync(0, address, cancellationToken);
+            var addressDto = MapAddressToDto(createdAddress);
 
-        return CreatedAtAction(
-            nameof(GetAddressById),
-            new { accountId = 0, addressId = createdAddress.Id },
-            addressDto);
+            return CreatedAtAction(
+                nameof(GetAddressById),
+                new { accountId = 0, addressId = createdAddress.Id },
+                addressDto);
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>

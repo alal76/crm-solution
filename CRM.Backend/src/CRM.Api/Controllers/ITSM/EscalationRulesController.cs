@@ -112,13 +112,20 @@ public class EscalationRulesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateEscalationRuleDto dto, CancellationToken cancellationToken = default)
     {
-                if (!ModelState.IsValid)
-                {
-            return BadRequest(ModelState);
-                }
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-        var rule = await _escalationRuleService.CreateAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = rule.Id }, rule);
+            var rule = await _escalationRuleService.CreateAsync(dto, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = rule.Id }, rule);
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 37,
-  "lastUpdate": "2026-03-02",
-  "description": "fix(tests): v0.614.37 Restore try/catch controllers, add UpdatedAt in services — 13 CI test failures fixed; 1828 tests pass",
+  "patch": 42,
+  "lastUpdate": "2026-03-01",
+  "description": "fix(tests): v0.614.42 - fix all 27 CI test failures: restore try/catch in controllers (OpportunitiesController, ProductsController, SystemSettingsController, AuthController, TerritoriesController, EscalationRulesController, AddressesController) and UpdatedAt timestamps in services (CommissionService, TaskService, LandingPageService, InteractionService, EmailSequenceService, CurrencyService null guard)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

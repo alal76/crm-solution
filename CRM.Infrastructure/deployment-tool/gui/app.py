@@ -429,52 +429,61 @@ def handle_config():
 @app.route("/api/generate", methods=["POST"])
 def generate_files():
     config = request.json
+    if not config:
+        return jsonify({"status": "error", "message": "No configuration provided"}), 400
+
     output_dir = Path(__file__).parent.parent / "generated"
     output_dir.mkdir(exist_ok=True)
     
     # Generate deployment files based on platform
     generated_files = []
     
-    if config.get('platform') == 'azure':
-        # Generate Azure ARM templates or Bicep
-        pass
-    elif config.get('platform') == 'aws':
-        # Generate CloudFormation
-        pass
-    elif config.get('platform') == 'gcp':
-        # Generate Deployment Manager
-        pass
-    else:
-        # Generate Docker Compose for on-premises
-        docker_compose = generate_docker_compose(config)
-        compose_file = output_dir / "docker-compose.yml"
-        with open(compose_file, "w") as f:
-            f.write(docker_compose)
-        generated_files.append(str(compose_file))
-        
-        # Generate .env file
-        env_content = generate_env_file(config)
-        env_file = output_dir / ".env"
-        with open(env_file, "w") as f:
-            f.write(env_content)
-        generated_files.append(str(env_file))
-        
-        # Generate deployment script
-        script_content = generate_deployment_script(config)
-        script_file = output_dir / "deploy.sh"
-        with open(script_file, "w") as f:
-            f.write(script_content)
-        # Make script executable
-        script_file.chmod(0o755)
-        generated_files.append(str(script_file))
-        
-        # Generate Kubernetes manifests if needed
-        if config.get('architecture') == 'microservices':
-            k8s_content = generate_kubernetes(config)
-            k8s_file = output_dir / "kubernetes.yml"
-            with open(k8s_file, "w") as f:
-                f.write(k8s_content)
-            generated_files.append(str(k8s_file))
+    try:
+        if config.get('platform') == 'azure':
+            # Generate Azure ARM templates or Bicep
+            pass
+        elif config.get('platform') == 'aws':
+            # Generate CloudFormation
+            pass
+        elif config.get('platform') == 'gcp':
+            # Generate Deployment Manager
+            pass
+        else:
+            # Generate Docker Compose for on-premises
+            docker_compose = generate_docker_compose(config)
+            compose_file = output_dir / "docker-compose.yml"
+            with open(compose_file, "w") as f:
+                f.write(docker_compose)
+            generated_files.append(str(compose_file))
+            
+            # Generate .env file
+            env_content = generate_env_file(config)
+            env_file = output_dir / ".env"
+            with open(env_file, "w") as f:
+                f.write(env_content)
+            generated_files.append(str(env_file))
+            
+            # Generate deployment script
+            script_content = generate_deployment_script(config)
+            script_file = output_dir / "deploy.sh"
+            with open(script_file, "w") as f:
+                f.write(script_content)
+            # Make script executable
+            script_file.chmod(0o755)
+            generated_files.append(str(script_file))
+            
+            # Generate Kubernetes manifests if needed
+            if config.get('architecture') == 'microservices':
+                k8s_content = generate_kubernetes(config)
+                k8s_file = output_dir / "kubernetes.yml"
+                with open(k8s_file, "w") as f:
+                    f.write(k8s_content)
+                generated_files.append(str(k8s_file))
+    except ValueError as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
+    except Exception as e:
+        app.logger.exception("Failed to generate deployment files")
+        return jsonify({"status": "error", "message": f"Generation failed: {e}"}), 500
     
     # Save config
     config_file = output_dir / "deployment-config.json"

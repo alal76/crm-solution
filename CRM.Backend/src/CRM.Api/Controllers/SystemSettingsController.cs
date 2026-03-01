@@ -62,8 +62,16 @@ public class SystemSettingsController : CrmControllerBase
     [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> GetSettings()
     {
-                var settings = await _settingsService.GetSettingsAsync();
-        return Ok(settings);
+        try
+        {
+            var settings = await _settingsService.GetSettingsAsync();
+            return Ok(settings);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            _logger.LogError(ex, "Error retrieving system settings");
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -73,8 +81,16 @@ public class SystemSettingsController : CrmControllerBase
     [ProducesResponseType(typeof(ModuleStatusDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ModuleStatusDto>> GetModuleStatus()
     {
-                var moduleStatus = await _settingsService.GetModuleStatusAsync();
-        return Ok(moduleStatus);
+        try
+        {
+            var moduleStatus = await _settingsService.GetModuleStatusAsync();
+            return Ok(moduleStatus);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            _logger.LogError(ex, "Error retrieving module status");
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -86,23 +102,31 @@ public class SystemSettingsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SystemSettingsDto>> UpdateSettings([FromBody] UpdateSystemSettingsRequest request)
     {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-
-        var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-
-        // TODO-SYS009-004: Audit trail for settings changes
-        if (_auditLogService != null)
+        try
         {
-            await _auditLogService.LogActionAsync(
-                action: "Update",
-                entityType: "SystemSettings",
-                entityId: null,
-                userId: userId,
-                details: "System settings updated by admin");
-        }
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
 
-        return Ok(settings);
+            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+
+            // TODO-SYS009-004: Audit trail for settings changes
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogActionAsync(
+                    action: "Update",
+                    entityType: "SystemSettings",
+                    entityId: null,
+                    userId: userId,
+                    details: "System settings updated by admin");
+            }
+
+            return Ok(settings);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            _logger.LogError(ex, "Error updating system settings");
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>

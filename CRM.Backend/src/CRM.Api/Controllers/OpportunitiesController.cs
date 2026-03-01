@@ -58,9 +58,17 @@ public class OpportunitiesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetOpen()
     {
-                var opportunities = await _opportunityService.GetOpenOpportunitiesAsync();
-        var dtos = opportunities.Select(MapToDto).ToList();
-        return Ok(dtos);
+        try
+        {
+            var opportunities = await _opportunityService.GetOpenOpportunitiesAsync();
+            var dtos = opportunities.Select(MapToDto).ToList();
+            return Ok(dtos);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            _logger.LogError(ex, "Error retrieving open opportunities");
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -77,12 +85,20 @@ public class OpportunitiesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
     {
-                var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-        if (opportunity == null)
+        try
         {
-            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+            if (opportunity == null)
+            {
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+            }
+            return Ok(MapToDto(opportunity));
         }
-        return Ok(MapToDto(opportunity));
+        catch (Exception ex) // NOSONAR
+        {
+            _logger.LogError(ex, "Error retrieving opportunity {Id}", id);
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -97,9 +113,17 @@ public class OpportunitiesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByAccountId(int accountId)
     {
-                var opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(accountId);
-        var dtos = opportunities.Select(MapToDto).ToList();
-        return Ok(dtos);
+        try
+        {
+            var opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(accountId);
+            var dtos = opportunities.Select(MapToDto).ToList();
+            return Ok(dtos);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            _logger.LogError(ex, "Error retrieving opportunities for account {AccountId}", accountId);
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -114,9 +138,17 @@ public class OpportunitiesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByCustomerId(int customerId)
     {
-                var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
-        var dtos = opportunities.Select(MapToDto).ToList();
-        return Ok(dtos);
+        try
+        {
+            var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
+            var dtos = opportunities.Select(MapToDto).ToList();
+            return Ok(dtos);
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            _logger.LogError(ex, "Error retrieving opportunities for customer {CustomerId}", customerId);
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -130,8 +162,16 @@ public class OpportunitiesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTotalPipeline()
     {
-                var totalPipeline = await _opportunityService.GetTotalPipelineAsync();
-        return Ok(new { totalPipeline });
+        try
+        {
+            var totalPipeline = await _opportunityService.GetTotalPipelineAsync();
+            return Ok(new { totalPipeline });
+        }
+        catch (Exception ex) // NOSONAR
+        {
+            _logger.LogError(ex, "Error retrieving total pipeline");
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -177,6 +217,10 @@ public class OpportunitiesController : CrmControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -196,37 +240,44 @@ public class OpportunitiesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateOpportunityDto dto)
     {
-                if (!ModelState.IsValid)
-                {
-            return BadRequest(ModelState);
-                }
-
-        var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-        if (opportunity == null)
+        try
         {
-            return NotFound();
-        }
-
-        MapFromUpdateDto(dto, opportunity);
-
-        // TODO-CRM003-02: When stage changes and caller did NOT explicitly supply a new probability,
-        // auto-update probability based on the stage defaults.
-        if (dto.Stage.HasValue && !dto.Probability.HasValue)
-        {
-            var newStage = (OpportunityStage)dto.Stage.Value;
-            if (OpportunityService.StageProbabilityDefaults.TryGetValue(newStage, out var autoProb))
+            if (!ModelState.IsValid)
             {
-                opportunity.Probability = autoProb;
+                return BadRequest(ModelState);
             }
+
+            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+            if (opportunity == null)
+            {
+                return NotFound();
+            }
+
+            MapFromUpdateDto(dto, opportunity);
+
+            // TODO-CRM003-02: When stage changes and caller did NOT explicitly supply a new probability,
+            // auto-update probability based on the stage defaults.
+            if (dto.Stage.HasValue && !dto.Probability.HasValue)
+            {
+                var newStage = (OpportunityStage)dto.Stage.Value;
+                if (OpportunityService.StageProbabilityDefaults.TryGetValue(newStage, out var autoProb))
+                {
+                    opportunity.Probability = autoProb;
+                }
+            }
+
+            await _opportunityService.UpdateOpportunityAsync(opportunity);
+
+            // Notify connected clients about the update
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordUpdatedAsync("Opportunity", id, MapToDto(opportunity), userId);
+
+            return NoContent();
         }
-
-        await _opportunityService.UpdateOpportunityAsync(opportunity);
-
-        // Notify connected clients about the update
-        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-        await _notificationService.NotifyRecordUpdatedAsync("Opportunity", id, MapToDto(opportunity), userId);
-
-        return NoContent();
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
     // --- Opportunity Product Endpoints (TODO-CRM003-04) ---
 
@@ -903,12 +954,19 @@ public class OpportunitiesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id)
     {
-                await _opportunityService.DeleteOpportunityAsync(id);
+        try
+        {
+            await _opportunityService.DeleteOpportunityAsync(id);
 
-        // Notify connected clients about the deletion
-        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-        await _notificationService.NotifyRecordDeletedAsync("Opportunity", id, userId);
+            // Notify connected clients about the deletion
+            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+            await _notificationService.NotifyRecordDeletedAsync("Opportunity", id, userId);
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 }

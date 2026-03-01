@@ -171,6 +171,7 @@ public class InteractionService : IInteractionService
             existing.ContactId = interaction.ContactId;
             existing.OpportunityId = interaction.OpportunityId;
             existing.AssignedToUserId = interaction.AssignedToUserId;
+            existing.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 

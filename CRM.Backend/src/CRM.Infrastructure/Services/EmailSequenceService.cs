@@ -74,6 +74,7 @@ namespace CRM.Infrastructure.Services
             existing.ExitOnMeetingBooked = sequence.ExitOnMeetingBooked;
             existing.ExitOnBounce = sequence.ExitOnBounce;
             existing.ExitOnUnsubscribe = sequence.ExitOnUnsubscribe;
+            existing.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Updated email sequence {SequenceId}", sequence.Id);

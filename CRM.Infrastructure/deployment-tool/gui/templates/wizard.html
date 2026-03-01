@@ -21,8 +21,9 @@
             padding: 20px 0;
         }
         .wizard-container {
-            max-width: 900px;
+            max-width: 1400px;
             margin: 30px auto;
+            padding: 0 15px;
         }
         .step-indicator {
             display: flex;
@@ -463,6 +464,16 @@
         .review-kv  { display: grid; grid-template-columns: 150px 1fr; gap: 4px 10px; font-size: .82rem; }
         .review-k   { color: #777; }
         .review-v   { color: #222; font-weight: 600; }
+
+        /* ── Post-deploy credentials panel ──────────────────────── */
+        .cred-section { margin-bottom: 1rem; }
+        .cred-section-title { font-weight: 600; font-size: .9rem; margin-bottom: .5rem; padding-bottom: .25rem; border-bottom: 1px solid #dee2e6; }
+        .cred-grid { display: grid; grid-template-columns: 180px 1fr; gap: 4px 12px; font-size: .85rem; }
+        .cred-k { color: #6c757d; font-weight: 500; }
+        .cred-v { font-family: 'SFMono-Regular', monospace; }
+        .cred-v code { background: #f8f9fa; padding: 2px 6px; border-radius: 3px; font-size: .82rem; }
+        .cred-v code.text-danger { background: #fff5f5; }
+
         .est-time-badge {
             display: inline-flex; align-items: center; gap: 6px;
             background: linear-gradient(135deg,#4a5ec7,#6a3d9a); color:#fff;
@@ -519,6 +530,131 @@
         .pv2-card-title { font-size:.85rem; font-weight:700; color:#222; }
         .pv2-card-desc  { font-size:.72rem; color:#555; margin-bottom:6px; line-height:1.3; flex:1; }
 
+
+        /* ── Persistent Sidebar (Decision Stack) ───────────────────── */
+        .wizard-layout-row {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        .wizard-main-col {
+            flex: 1;
+            min-width: 0;
+        }
+        .wizard-sidebar-col {
+            width: 340px;
+            min-width: 340px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+        }
+        @media (max-width: 1100px) {
+            .wizard-layout-row { flex-direction: column; }
+            .wizard-sidebar-col { width: 100%; min-width: auto; position: static; max-height: none; }
+        }
+        .wizard-sidebar {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e8eaf6;
+        }
+        .sidebar-header h5 { margin: 0; font-size: 1rem; font-weight: 700; color: #333; }
+        .sidebar-section {
+            margin-bottom: 14px;
+        }
+        .sidebar-section-title {
+            font-size: .72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: #888;
+            margin-bottom: 8px;
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: .82rem;
+            margin-bottom: 4px;
+            background: #f9f9fc;
+            border: 1px solid #eaecf2;
+            transition: background .15s;
+            cursor: pointer;
+        }
+        .sidebar-item:hover { background: #f0f0f8; }
+        .sidebar-item .si-icon { font-size: .9rem; width: 20px; text-align: center; }
+        .sidebar-item .si-label { flex: 1; font-weight: 600; color: #333; }
+        .sidebar-item .si-value {
+            font-size: .75rem;
+            color: #555;
+            max-width: 140px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .sidebar-item .si-status {
+            font-size: .7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .si-status.done { background: #e6f5ec; color: #2e7d32; }
+        .si-status.pending { background: #fff3e0; color: #bf360c; }
+        .si-status.active { background: #e3f2fd; color: #1565c0; }
+
+        .sidebar-profile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #e8eaf6;
+        }
+        .sidebar-profile-actions .btn { font-size: .82rem; }
+
+        .sidebar-generate-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #e8eaf6;
+        }
+
+        /* ── Components sub-tab styling ────────────────────────── */
+        .components-nav {
+            border-bottom: 2px solid #e8eaf6;
+            margin-bottom: 20px;
+        }
+        .components-nav .nav-link {
+            color: #555;
+            font-weight: 600;
+            font-size: .85rem;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 8px 16px;
+            margin-bottom: -2px;
+        }
+        .components-nav .nav-link.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background: transparent;
+        }
+        .components-nav .nav-link:hover:not(.active) {
+            border-bottom-color: #ccc;
+        }
     </style>
 </head>
 <body>
@@ -783,26 +919,17 @@
             </div>
             <div class="step" data-step="4">
                 <div class="step-circle">4</div>
-                <div class="step-label">Database</div>
+                <div class="step-label">Components</div>
             </div>
             <div class="step" data-step="5">
                 <div class="step-circle">5</div>
-                <div class="step-label">Providers</div>
-            </div>
-            <div class="step" data-step="6">
-                <div class="step-circle">6</div>
-                <div class="step-label">Secrets</div>
-            </div>
-            <div class="step" data-step="7">
-                <div class="step-circle">7</div>
-                <div class="step-label">SSL</div>
-            </div>
-            <div class="step" data-step="8">
-                <div class="step-circle">8</div>
-                <div class="step-label">Review</div>
+                <div class="step-label">Deploy</div>
             </div>
         </div>
 
+        <!-- Layout: Wizard + Sidebar -->
+        <div class="wizard-layout-row">
+        <div class="wizard-main-col">
         <!-- Wizard Card -->
         <div class="wizard-card">
 
@@ -1678,10 +1805,152 @@
                     <i class="bi bi-info-circle me-2"></i>
                     <span id="archInfoText"></span>
                 </div>
+
+                <!-- SSL & Networking (collapsible) -->
+                <hr class="my-4">
+                <div class="d-flex align-items-center justify-content-between mb-3" data-bs-toggle="collapse" data-bs-target="#sslCollapseInArch" style="cursor:pointer">
+                    <h5 class="mb-0"><i class="bi bi-lock me-2"></i>SSL &amp; Networking</h5>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="collapse" id="sslCollapseInArch">
+
+                <h3 class="mb-3"><i class="bi bi-lock me-2"></i>SSL Certificates</h3>
+                <p class="text-muted mb-4">Configure HTTPS for your CRM deployment. You can generate self-signed certs, upload existing ones, or skip for HTTP-only.</p>
+
+                <!-- SSL Toggle -->
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" id="sslEnabled" onchange="toggleSslOptions(this.checked)">
+                    <label class="form-check-label fw-semibold" for="sslEnabled">Enable SSL / HTTPS</label>
+                </div>
+
+                <div id="sslOptionsPanel" style="display:none;">
+                    <!-- SSL Mode -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="sslMode">SSL Mode</label>
+                            <select class="form-select" id="sslMode" onchange="toggleSslMode(this.value)">
+                                <option value="self_signed">Generate Self-Signed Certificate</option>
+                                <option value="upload">Upload Existing Certificate</option>
+                                <option value="letsencrypt">Let's Encrypt (ACME)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="sslDomain">Domain Name</label>
+                            <input type="text" class="form-control" id="sslDomain" placeholder="crm.example.com">
+                            <div class="form-text">Required for Let's Encrypt; used as CN for self-signed.</div>
+                        </div>
+                    </div>
+
+                    <!-- Self-Signed Panel -->
+                    <div id="sslSelfSignedPanel" class="card mb-3">
+                        <div class="card-header py-2"><i class="bi bi-shield-check me-2"></i>Generate Self-Signed Certificate</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label" for="sslDays">Validity (days)</label>
+                                    <input type="number" class="form-control" id="sslDays" value="365" min="30" max="3650">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="sslOrg">Organisation</label>
+                                    <input type="text" class="form-control" id="sslOrg" value="CRM Solution">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" onclick="generateSslCert()">
+                                        <i class="bi bi-shield-plus me-1"></i>Generate Certificate
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="sslGenResult" class="mt-3" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Panel -->
+                    <div id="sslUploadPanel" class="card mb-3" style="display:none;">
+                        <div class="card-header py-2"><i class="bi bi-upload me-2"></i>Upload Certificate Files</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="sslCertFile">Certificate File (.crt / .pem)</label>
+                                    <input type="file" class="form-control" id="sslCertFile" accept=".crt,.pem,.cer">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="sslKeyFile">Private Key File (.key / .pem)</label>
+                                    <input type="file" class="form-control" id="sslKeyFile" accept=".key,.pem">
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-primary" onclick="uploadSslCert()">
+                                        <i class="bi bi-cloud-upload me-1"></i>Upload &amp; Validate
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="sslUploadResult" class="mt-3" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Let's Encrypt Panel -->
+                    <div id="sslLetsEncryptPanel" class="card mb-3" style="display:none;">
+                        <div class="card-header py-2"><i class="bi bi-patch-check me-2"></i>Let's Encrypt (Auto-renewal)</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="sslLetsEncryptEmail">Contact Email</label>
+                                    <input type="email" class="form-control" id="sslLetsEncryptEmail" placeholder="admin@example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mt-4">
+                                        <input class="form-check-input" type="checkbox" id="sslLetsEncryptStaging">
+                                        <label class="form-check-label" for="sslLetsEncryptStaging">Use Staging (testing)</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert alert-info mt-3 py-2 small mb-0">
+                                <i class="bi bi-info-circle me-1"></i>Requires port 80 to be publicly accessible for HTTP-01 challenge. Domain DNS must point to this server.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Existing Certs -->
+                    <div class="card mb-3">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-folder2 me-2"></i>Existing Certificates</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="loadSslStatus()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="sslCertList" class="p-3 text-muted small">Click Refresh to check for existing certificates.</div>
+                        </div>
+                    </div>
+                </div>
+
+                </div>
             </div>
 
-            <!-- Step 4: Database -->
+            <!-- Step 4: Components (Database + Providers + Secrets) -->
             <div class="wizard-section" data-section="4">
+                <h3 class="mb-3"><i class="bi bi-boxes me-2"></i>Components</h3>
+                <p class="text-muted mb-3">Configure your database, service providers, and credentials. These are the building blocks of your CRM deployment.</p>
+
+                <!-- Sub-tab navigation -->
+                <ul class="nav components-nav" id="componentsTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active" onclick="showComponentTab('database', this)" type="button">
+                            <i class="bi bi-database me-1"></i>Database
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="showComponentTab('providers', this)" type="button">
+                            <i class="bi bi-puzzle me-1"></i>Providers
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" onclick="showComponentTab('secrets', this)" type="button">
+                            <i class="bi bi-shield-lock me-1"></i>Secrets &amp; Registry
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Database sub-tab -->
+                <div class="component-tab-pane" id="componentTab-database">
+
                 <h3 class="mb-4"><i class="bi bi-database me-2"></i>Database Configuration</h3>
                 
                 <div class="row g-3 mb-4">
@@ -1889,10 +2158,12 @@
                         <span id="migTestStatus" class="small"></span>
                     </div>
                 </div>
-            </div>
+            
+                </div>
 
-            <!-- Step 5: Providers -->
-            <div class="wizard-section" data-section="5">
+                <!-- Providers sub-tab -->
+                <div class="component-tab-pane" id="componentTab-providers" style="display:none">
+
                 <h3 class="mb-3"><i class="bi bi-puzzle me-2"></i>Provider Selection</h3>
                 <p class="text-muted mb-3">Choose which technology powers each CRM service. All <strong>Built-in</strong> options are free, self-hosted, and production-ready.</p>
 
@@ -2051,11 +2322,12 @@
                         </button>
                     </div>
                 </div>
-            </div>
+            
+                </div>
 
-            <!-- Step 6: Review -->
-            <!-- Step 6: Secrets & Authentication -->
-            <div class="wizard-section" data-section="6">
+                <!-- Secrets & Registry sub-tab -->
+                <div class="component-tab-pane" id="componentTab-secrets" style="display:none">
+
                 <h3 class="mb-3"><i class="bi bi-shield-lock me-2"></i>Secrets &amp; Authentication</h3>
                 <p class="text-muted mb-4">Configure credentials and API keys for all deployment components. Leave blank to auto-generate secure values.</p>
 
@@ -2393,120 +2665,12 @@
                         <i class="bi bi-arrow-clockwise me-1"></i>Auto-Generate All Empty Secrets
                     </button>
                 </div>
-            </div>
-
-            <!-- Step 7: SSL Certificates -->
-            <div class="wizard-section" data-section="7">
-                <h3 class="mb-3"><i class="bi bi-lock me-2"></i>SSL Certificates</h3>
-                <p class="text-muted mb-4">Configure HTTPS for your CRM deployment. You can generate self-signed certs, upload existing ones, or skip for HTTP-only.</p>
-
-                <!-- SSL Toggle -->
-                <div class="form-check form-switch mb-4">
-                    <input class="form-check-input" type="checkbox" id="sslEnabled" onchange="toggleSslOptions(this.checked)">
-                    <label class="form-check-label fw-semibold" for="sslEnabled">Enable SSL / HTTPS</label>
-                </div>
-
-                <div id="sslOptionsPanel" style="display:none;">
-                    <!-- SSL Mode -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="sslMode">SSL Mode</label>
-                            <select class="form-select" id="sslMode" onchange="toggleSslMode(this.value)">
-                                <option value="self_signed">Generate Self-Signed Certificate</option>
-                                <option value="upload">Upload Existing Certificate</option>
-                                <option value="letsencrypt">Let's Encrypt (ACME)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" for="sslDomain">Domain Name</label>
-                            <input type="text" class="form-control" id="sslDomain" placeholder="crm.example.com">
-                            <div class="form-text">Required for Let's Encrypt; used as CN for self-signed.</div>
-                        </div>
-                    </div>
-
-                    <!-- Self-Signed Panel -->
-                    <div id="sslSelfSignedPanel" class="card mb-3">
-                        <div class="card-header py-2"><i class="bi bi-shield-check me-2"></i>Generate Self-Signed Certificate</div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label" for="sslDays">Validity (days)</label>
-                                    <input type="number" class="form-control" id="sslDays" value="365" min="30" max="3650">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label" for="sslOrg">Organisation</label>
-                                    <input type="text" class="form-control" id="sslOrg" value="CRM Solution">
-                                </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button class="btn btn-primary w-100" onclick="generateSslCert()">
-                                        <i class="bi bi-shield-plus me-1"></i>Generate Certificate
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="sslGenResult" class="mt-3" style="display:none;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Upload Panel -->
-                    <div id="sslUploadPanel" class="card mb-3" style="display:none;">
-                        <div class="card-header py-2"><i class="bi bi-upload me-2"></i>Upload Certificate Files</div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label" for="sslCertFile">Certificate File (.crt / .pem)</label>
-                                    <input type="file" class="form-control" id="sslCertFile" accept=".crt,.pem,.cer">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="sslKeyFile">Private Key File (.key / .pem)</label>
-                                    <input type="file" class="form-control" id="sslKeyFile" accept=".key,.pem">
-                                </div>
-                                <div class="col-12">
-                                    <button class="btn btn-primary" onclick="uploadSslCert()">
-                                        <i class="bi bi-cloud-upload me-1"></i>Upload &amp; Validate
-                                    </button>
-                                </div>
-                            </div>
-                            <div id="sslUploadResult" class="mt-3" style="display:none;"></div>
-                        </div>
-                    </div>
-
-                    <!-- Let's Encrypt Panel -->
-                    <div id="sslLetsEncryptPanel" class="card mb-3" style="display:none;">
-                        <div class="card-header py-2"><i class="bi bi-patch-check me-2"></i>Let's Encrypt (Auto-renewal)</div>
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label" for="sslLetsEncryptEmail">Contact Email</label>
-                                    <input type="email" class="form-control" id="sslLetsEncryptEmail" placeholder="admin@example.com">
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-check form-switch mt-4">
-                                        <input class="form-check-input" type="checkbox" id="sslLetsEncryptStaging">
-                                        <label class="form-check-label" for="sslLetsEncryptStaging">Use Staging (testing)</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="alert alert-info mt-3 py-2 small mb-0">
-                                <i class="bi bi-info-circle me-1"></i>Requires port 80 to be publicly accessible for HTTP-01 challenge. Domain DNS must point to this server.
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Existing Certs -->
-                    <div class="card mb-3">
-                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
-                            <span><i class="bi bi-folder2 me-2"></i>Existing Certificates</span>
-                            <button class="btn btn-sm btn-outline-primary" onclick="loadSslStatus()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
-                        </div>
-                        <div class="card-body p-0">
-                            <div id="sslCertList" class="p-3 text-muted small">Click Refresh to check for existing certificates.</div>
-                        </div>
-                    </div>
+            
                 </div>
             </div>
 
             <!-- Review Step (was 6, now 8) -->
-            <div class="wizard-section" data-section="8">
+            <div class="wizard-section" data-section="5">
                 <h3 class="mb-3"><i class="bi bi-check-circle me-2"></i>Review &amp; Generate</h3>
                 <p class="text-muted mb-4">Your configuration is summarised below. Click <strong>Edit</strong> on any section to go back, or hit <strong>Generate Configuration</strong> when you're ready.</p>
 
@@ -2670,6 +2834,8 @@
                             </button>
                             <span class="text-muted small ms-2" id="deployElapsed"></span>
                         </div>
+                        <!-- Post-deploy credentials panel (populated by _showPostDeployCredentials) -->
+                        <div id="postDeployCredentials" style="display:none"></div>
                     </div>
                 </div>
             </div>
@@ -3164,7 +3330,102 @@
                 </div>
             </div>
         </div>
+    <!-- /wizard-card -->
     </div>
+    <!-- /wizard-main-col -->
+
+    <!-- Sidebar Column (populated by JS) -->
+    <div class="wizard-sidebar-col">
+        <div class="wizard-sidebar" id="wizardSidebar">
+            <div class="sidebar-header">
+                <h5><i class="bi bi-clipboard-data me-2"></i>Decision Stack</h5>
+                <span class="badge bg-secondary" id="sidebarStepBadge">Step 0/5</span>
+            </div>
+
+            <!-- Decision Stack Items -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Configuration Status</div>
+                <div id="sidebarDecisionStack">
+                    <div class="sidebar-item" onclick="goToStep(0)">
+                        <span class="si-icon"><i class="bi bi-crosshair"></i></span>
+                        <span class="si-label">Target</span>
+                        <span class="si-value" id="sb-target">—</span>
+                        <span class="si-status pending" id="sb-target-status">⏳</span>
+                    </div>
+                    <div class="sidebar-item" onclick="goToStep(1)">
+                        <span class="si-icon"><i class="bi bi-pencil"></i></span>
+                        <span class="si-label">Name</span>
+                        <span class="si-value" id="sb-name">—</span>
+                        <span class="si-status pending" id="sb-name-status">⏳</span>
+                    </div>
+                    <div class="sidebar-item" onclick="goToStep(2)">
+                        <span class="si-icon"><i class="bi bi-cloud"></i></span>
+                        <span class="si-label">Platform</span>
+                        <span class="si-value" id="sb-platform">—</span>
+                        <span class="si-status pending" id="sb-platform-status">⏳</span>
+                    </div>
+                    <div class="sidebar-item" onclick="goToStep(3)">
+                        <span class="si-icon"><i class="bi bi-diagram-3"></i></span>
+                        <span class="si-label">Architecture</span>
+                        <span class="si-value" id="sb-arch">—</span>
+                        <span class="si-status pending" id="sb-arch-status">⏳</span>
+                    </div>
+                    <div class="sidebar-item" onclick="goToStep(3)">
+                        <span class="si-icon"><i class="bi bi-lock"></i></span>
+                        <span class="si-label">SSL</span>
+                        <span class="si-value" id="sb-ssl">Disabled</span>
+                        <span class="si-status pending" id="sb-ssl-status">⏳</span>
+                    </div>
+                    <div class="sidebar-item" onclick="goToStep(4)">
+                        <span class="si-icon"><i class="bi bi-database"></i></span>
+                        <span class="si-label">Database</span>
+                        <span class="si-value" id="sb-db">MariaDB</span>
+                        <span class="si-status pending" id="sb-db-status">⏳</span>
+                    </div>
+                    <div class="sidebar-item" onclick="goToStep(4)">
+                        <span class="si-icon"><i class="bi bi-puzzle"></i></span>
+                        <span class="si-label">Providers</span>
+                        <span class="si-value" id="sb-providers">All Built-in</span>
+                        <span class="si-status pending" id="sb-providers-status">⏳</span>
+                    </div>
+                    <div class="sidebar-item" onclick="goToStep(4)">
+                        <span class="si-icon"><i class="bi bi-shield-lock"></i></span>
+                        <span class="si-label">Secrets</span>
+                        <span class="si-value" id="sb-secrets">Auto-generate</span>
+                        <span class="si-status pending" id="sb-secrets-status">⏳</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Management -->
+            <div class="sidebar-profile-actions">
+                <div class="sidebar-section-title">Profile Management</div>
+                <button class="btn btn-outline-primary btn-sm" onclick="saveDraft()">
+                    <i class="bi bi-floppy me-1"></i>Save Draft
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="openProfileBrowser()">
+                    <i class="bi bi-folder2-open me-1"></i>Load Profile
+                </button>
+                <button class="btn btn-outline-info btn-sm" onclick="exportProfile()">
+                    <i class="bi bi-download me-1"></i>Export Profile
+                </button>
+            </div>
+
+            <!-- Generate & Deploy -->
+            <div class="sidebar-generate-section">
+                <button class="btn btn-success w-100" id="sidebarGenerate" onclick="generateConfig()">
+                    <i class="bi bi-rocket-takeoff me-1"></i>Generate &amp; Deploy
+                </button>
+                <div class="text-center mt-2">
+                    <small class="text-muted" id="sidebarEstTime">Est. deployment: ~20 min</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <!-- /wizard-layout-row -->
+    </div>
+    <!-- /wizard-container -->
 
     <!-- Success Modal -->
     <div class="modal fade" id="successModal" tabindex="-1">
@@ -3212,7 +3473,15 @@
         };
         
         let currentStep = 0;
-        const totalSteps = 8;
+        const totalSteps = 5;
+
+        /** Parse JSON from a fetch response, with a clear error on non-OK or HTML responses. */
+        function _safeJson(resp) {
+            if (!resp.ok) throw new Error(`HTTP ${resp.status} ${resp.statusText}`);
+            const ct = resp.headers.get('content-type') || '';
+            if (!ct.includes('application/json')) throw new Error('Expected JSON, got ' + ct.split(';')[0]);
+            return resp.json();
+        }
 
         // ─── Smart Defaults System ─────────────────────────────────────────
         // Cached defaults from /api/defaults, refreshed when platform/arch/SSL changes.
@@ -3387,6 +3656,7 @@
         async function initDiscovery() {
             try {
                 const response = await fetch('/api/discovery/platforms');
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 _discAvailability = data.availability || {};
                 _discMissing      = data.missing_packages || {};
@@ -3574,6 +3844,7 @@
             if (text) { text.textContent = 'Checking credentials…'; text.className = 'text-muted fst-italic'; }
             try {
                 const r = await fetch('/api/discovery/credential-status?platform=' + encodeURIComponent(platform));
+                if (!r.ok) throw new Error('HTTP ' + r.status);
                 const d = await r.json();
                 if (d.logged_in) {
                     if (icon) icon.textContent = '✅';
@@ -3616,6 +3887,7 @@
                 const url = `/api/discovery/cloud-resources?platform=${encodeURIComponent(platform)}&resource=${encodeURIComponent(resource)}` +
                     (sub ? `&subscription=${encodeURIComponent(sub)}` : '');
                 const resp = await fetch(url);
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
                 if (listId) {
                     const list = document.getElementById(listId);
@@ -3741,6 +4013,7 @@
         async function autoGenField(fieldId, length) {
             try {
                 const resp = await fetch('/api/generate-password');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
                 const el = document.getElementById(fieldId);
                 if (el) {
@@ -3829,6 +4102,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ domain, days, org })
                 });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
                 if (data.success) {
                     result.innerHTML = `<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-1"></i>${data.message}<br><small class="text-muted">Cert: ${data.cert_path}<br>Key: ${data.key_path}</small></div>`;
@@ -3859,6 +4133,7 @@
 
             try {
                 const resp = await fetch('/api/ssl/upload', { method: 'POST', body: formData });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
                 if (data.success) {
                     result.innerHTML = `<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-1"></i>${data.message}<br><small class="text-muted">${data.cert_info}</small></div>`;
@@ -3879,6 +4154,7 @@
             el.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Loading...';
             try {
                 const resp = await fetch('/api/ssl/status');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
                 const certs = data.certificates || [];
                 if (!certs.length) {
@@ -3991,7 +4267,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(config)
                 });
-                
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const result = await response.json();
                 
                 if (result.status === 'success') {
@@ -4055,7 +4331,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(config)
                 });
-                
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const result = await response.json();
                 
                 if (response.ok) {
@@ -4372,9 +4648,21 @@
                 ? `<span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>${protocol}</span>`
                 : `<span class="badge bg-warning text-dark"><i class="bi bi-unlock me-1"></i>${protocol}</span>`;
 
-            // URL previews from smart defaults
-            const apiUrl = _smartDefaults?.urls?.api_url || '';
-            const frontendUrl = _smartDefaults?.urls?.frontend_url || '';
+            // URL previews from smart defaults (with fallback to config.target)
+            const _apiUrlFromDefaults = _smartDefaults?.urls?.api_url || '';
+            const _feUrlFromDefaults = _smartDefaults?.urls?.frontend_url || '';
+
+            // Target details from config.target (populated by _populateDeployDetails)
+            const targetHost = config.target?.host || _getDeploymentHost() || '';
+            const targetSshUser = config.target?.ssh_user || document.getElementById('discoveryUsername')?.value || 'root';
+            const targetSshPort = config.target?.ssh_port || document.getElementById('discoveryPort')?.value || '22';
+            const targetSsh = targetHost ? `${targetSshUser}@${targetHost}:${targetSshPort}` : '';
+            const apiPort = config.target?.api_port || '5000';
+            const fePort = config.target?.frontend_port || '80';
+            const dockerPlatform = config.target?.target_arch ? 'linux/' + config.target.target_arch : '';
+
+            const apiUrl = _apiUrlFromDefaults || (targetHost ? `${protocol.toLowerCase()}://${targetHost}:${apiPort}` : '');
+            const frontendUrl = _feUrlFromDefaults || (targetHost ? `${protocol.toLowerCase()}://${targetHost}${fePort === '80' || fePort === '443' ? '' : ':' + fePort}` : '');
 
             // Registry info
             const regInfo = config.image_registry?.image_registry || config.secrets?.image_registry || '(local)';
@@ -4407,10 +4695,13 @@
             <div class="review-section">
                 <div class="review-section-title"><i class="bi bi-hdd-network me-1"></i>Infrastructure</div>
                 <div class="review-kv">
+                    ${targetHost ? `<span class="review-k">Target Host</span><span class="review-v"><code>${_esc(targetHost)}</code></span>` : ''}
+                    ${targetSsh ? `<span class="review-k">SSH Access</span><span class="review-v"><code>${_esc(targetSsh)}</code></span>` : ''}
+                    ${apiUrl ? `<span class="review-k">API URL</span><span class="review-v"><a href="${_esc(apiUrl)}" target="_blank" class="text-decoration-none"><code>${_esc(apiUrl)}</code> <i class="bi bi-box-arrow-up-right small"></i></a></span>` : ''}
+                    ${frontendUrl ? `<span class="review-k">Frontend URL</span><span class="review-v"><a href="${_esc(frontendUrl)}" target="_blank" class="text-decoration-none"><code>${_esc(frontendUrl)}</code> <i class="bi bi-box-arrow-up-right small"></i></a></span>` : ''}
                     <span class="review-k">Registry</span>    <span class="review-v"><code>${_esc(regInfo)}</code></span>
                     <span class="review-k">Build Locally</span><span class="review-v">${buildLocal}</span>
-                    ${apiUrl ? `<span class="review-k">API URL</span><span class="review-v"><code>${_esc(apiUrl)}</code></span>` : ''}
-                    ${frontendUrl ? `<span class="review-k">Frontend URL</span><span class="review-v"><code>${_esc(frontendUrl)}</code></span>` : ''}
+                    ${dockerPlatform ? `<span class="review-k">Docker Platform</span><span class="review-v"><code>${_esc(dockerPlatform)}</code></span>` : ''}
                 </div>
             </div>
             <div class="d-flex align-items-center gap-3 mt-3 mb-1">
@@ -4560,6 +4851,7 @@
         async function _loadAndApplyTemplate(name) {
             try {
                 const resp = await fetch('/api/profiles/templates');
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
                 const templates = data.templates || [];
                 const tpl = templates.find(t => (t.meta && t.meta.profile_name) === name || t.name === name);
@@ -4659,6 +4951,7 @@
         async function populateSelect(elementId, enumName) {
             try {
                 const response = await fetch(`/api/enums/${enumName}`);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const options = await response.json();
                 const select = document.getElementById(elementId);
                 if (select) {
@@ -4675,6 +4968,7 @@
             const users = config.expected_users || 100;
             try {
                 const response = await fetch(`/api/size-recommendation/${users}`);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const rec = await response.json();
                 
                 document.getElementById('recDescription').textContent = rec.description;
@@ -4825,7 +5119,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
-            }).then(r => r.json()).then(d => {
+            }).then(_safeJson).then(d => {
                 status.innerHTML = d.success
                     ? '<span class="text-success">✅ Connection OK — ' + (d.message || '') + '</span>'
                     : '<span class="text-danger">❌ ' + (d.message || 'Connection failed') + '</span>';
@@ -4850,6 +5144,96 @@
 
             // Refresh smart defaults for new architecture
             onConfigContextChange();
+        }
+
+
+        // ── Component Sub-tabs ──────────────────────────────────────────────
+        function showComponentTab(tabName, btn) {
+            document.querySelectorAll('.component-tab-pane').forEach(p => p.style.display = 'none');
+            const target = document.getElementById('componentTab-' + tabName);
+            if (target) target.style.display = '';
+            document.querySelectorAll('#componentsTabs .nav-link').forEach(l => l.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+        }
+
+        // ── Sidebar: Decision Stack ─────────────────────────────────────────
+        function updateSidebar() {
+            // Step badge
+            const stepBadge = document.getElementById('sidebarStepBadge');
+            if (stepBadge) stepBadge.textContent = `Step ${currentStep}/${totalSteps}`;
+
+            // Gather status values
+            const targetHost = _getDeploymentHost();
+            const name = config.name || '';
+            const platform = config.platform || '';
+            const arch = config.architecture || '';
+            const sslEnabled = config.ssl?.ssl_enabled;
+            const db = config.database_type || 'mariadb';
+            const hasSecrets = !!(config.secrets?.db_password || config.secrets?.jwt_secret);
+            const users = config.expected_users || 100;
+            const estMins = users < 50 ? 5 : users < 200 ? 20 : users < 500 ? 45 : 120;
+
+            // Count non-builtin providers
+            const provList = ['search', 'chat', 'notification', 'analytics', 'ai'].map(t => config[t + '_provider'] || 'builtin');
+            const nonBuiltinCount = provList.filter(p => p !== 'builtin').length;
+            const provSummary = nonBuiltinCount === 0 ? 'All Built-in' : `${nonBuiltinCount} external`;
+
+            // Helper
+            function setItem(id, value, done) {
+                const valEl = document.getElementById(id);
+                const statusEl = document.getElementById(id + '-status');
+                if (valEl) valEl.textContent = value || '—';
+                if (statusEl) {
+                    statusEl.textContent = done ? '✅' : '⏳';
+                    statusEl.className = 'si-status ' + (done ? 'done' : 'pending');
+                }
+            }
+
+            setItem('sb-target', targetHost || '—', !!targetHost);
+            setItem('sb-name', name || '—', !!name);
+            setItem('sb-platform', platform ? platform.replace('_', ' ').toUpperCase() : '—', !!platform);
+            setItem('sb-arch', arch ? arch.charAt(0).toUpperCase() + arch.slice(1) : '—', !!arch);
+            setItem('sb-ssl', sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replace('_', ' ') : 'Disabled', sslEnabled);
+            setItem('sb-db', db.toUpperCase(), true);
+            setItem('sb-providers', provSummary, true);
+            setItem('sb-secrets', hasSecrets ? 'Configured' : 'Auto-generate', hasSecrets);
+
+            // Est time
+            const estEl = document.getElementById('sidebarEstTime');
+            if (estEl) estEl.textContent = `Est. deployment: ~${estMins} min`;
+        }
+
+        /** Navigate to a specific wizard step (used by sidebar clicks). */
+        function goToStep(targetStep) {
+            // Collect current step data before leaving
+            collectStepData();
+            currentStep = targetStep;
+            updateStepIndicator();
+            updateSidebar();
+            if (currentStep === 3) updateArchSuggestion();
+        }
+
+        /** Export current config as downloadable JSON file. */
+        function exportProfile() {
+            collectStepData();
+            const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (config.name || 'crm-deployment') + '-profile.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        /** Open the profile browser panel. */
+        function openProfileBrowser() {
+            const panel = document.getElementById('step-profile-browser');
+            if (panel) {
+                panel.style.display = '';
+                refreshProfileBrowser();
+            }
         }
 
         function selectDatabase(db) {
@@ -4895,12 +5279,16 @@
             document.querySelectorAll('.wizard-section').forEach(section => {
                 section.classList.remove('active');
             });
-            document.querySelector(`[data-section="${currentStep}"]`).classList.add('active');
+            const activeSection = document.querySelector(`[data-section="${currentStep}"]`);
+            if (activeSection) activeSection.classList.add('active');
             
             // Update buttons
             document.getElementById('btnPrev').style.display = currentStep > 0 ? 'block' : 'none';
             document.getElementById('btnNext').style.display = currentStep < totalSteps ? 'block' : 'none';
             document.getElementById('btnGenerate').style.display = currentStep === totalSteps ? 'block' : 'none';
+            
+            // Update sidebar
+            updateSidebar();
         }
 
         // ── Registry Management JS ─────────────────────────────────── //
@@ -4912,6 +5300,8 @@
                     fetch('/api/registry/images'),
                     fetch('/api/registry/deployed'),
                 ]);
+                if (!imgRes.ok) throw new Error('Registry images: HTTP ' + imgRes.status);
+                if (!depRes.ok) throw new Error('Registry deployed: HTTP ' + depRes.status);
                 const imgData = await imgRes.json();
                 const depData = await depRes.json();
                 renderImageTable(imgData.images || []);
@@ -4984,6 +5374,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ image_ids: ids }),
                 });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
                 if (data.errors && data.errors.length) {
                     showErrorPopup('Registry Purge Errors', 'Some removals failed', data.errors.join('\n'));
@@ -5000,6 +5391,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ dangling: true }),
                 });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
                 showToast('Dangling images pruned: ' + (data.removed || []).length + ' removed', 'success');
                 loadRegistryImages();
@@ -5010,6 +5402,7 @@
         async function autoPopulateRegistry(platform) {
             try {
                 const res = await fetch('/api/registry/recommend?platform=' + encodeURIComponent(platform));
+                if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
                 const rec = data.recommendation || {};
                 const regEl = document.getElementById('secretImageRegistry');
@@ -5058,13 +5451,36 @@
                 }
                 // Auto-populate recommended registry for selected platform
                 autoPopulateRegistry(config.platform || 'local_docker');
+            } else if (currentStep === 3) {
+                // Architecture step now also includes SSL
+                _collectSslData();
             } else if (currentStep === 4) {
+                // Components step: collect DB + Secrets
                 config.database_name = document.getElementById('dbName').value;
                 config.database_port = parseInt(document.getElementById('dbPort').value);
                 config.database_ha = document.getElementById('dbHighAvailability').checked;
-            } else if (currentStep === 6) {
-                // Secrets & Authentication
-                config.secrets = {
+                _collectSecretsData();
+            }
+            // Always update sidebar
+            updateSidebar();
+        }
+
+        /** Collect SSL data from the SSL panel (now in Architecture step). */
+        function _collectSslData() {
+            config.ssl = {
+                ssl_enabled: document.getElementById('sslEnabled')?.checked || false,
+                ssl_mode: document.getElementById('sslMode')?.value || 'self_signed',
+                ssl_domain: document.getElementById('sslDomain')?.value || '',
+                ssl_days: parseInt(document.getElementById('sslDays')?.value || '365'),
+                ssl_org: document.getElementById('sslOrg')?.value || 'CRM Solution',
+                ssl_letsencrypt_email: document.getElementById('sslLetsEncryptEmail')?.value || '',
+                ssl_letsencrypt_staging: document.getElementById('sslLetsEncryptStaging')?.checked || false,
+            };
+        }
+
+        /** Collect secrets & service accounts from the Secrets sub-tab. */
+        function _collectSecretsData() {
+            config.secrets = {
                     image_registry: document.getElementById('secretImageRegistry')?.value || '',
                     image_org: document.getElementById('secretImageOrg')?.value || '',
                     registry_token: document.getElementById('secretRegistryToken')?.value || '',
@@ -5085,13 +5501,11 @@
                     openai_api_key: document.getElementById('secretOpenaiKey')?.value || '',
                     anthropic_api_key: document.getElementById('secretAnthropicKey')?.value || '',
                 };
-                // Image registry config (merged into profile)
                 config.image_registry = {
                     image_registry: document.getElementById('secretImageRegistry')?.value || '',
                     image_org: document.getElementById('secretImageOrg')?.value || '',
                     build_locally: document.getElementById('buildLocally')?.checked || false,
                 };
-                // Service accounts
                 config.service_accounts = {};
                 const gcpSa = document.getElementById('secretGcpSaJson')?.value;
                 if (gcpSa) {
@@ -5113,18 +5527,6 @@
                     config.service_accounts.aws_region = document.getElementById('secretAwsRegion')?.value || '';
                     config.service_accounts.aws_session_token = document.getElementById('secretAwsSessionToken')?.value || '';
                 }
-            } else if (currentStep === 7) {
-                // SSL Certificates
-                config.ssl = {
-                    ssl_enabled: document.getElementById('sslEnabled')?.checked || false,
-                    ssl_mode: document.getElementById('sslMode')?.value || 'self_signed',
-                    ssl_domain: document.getElementById('sslDomain')?.value || '',
-                    ssl_days: parseInt(document.getElementById('sslDays')?.value || '365'),
-                    ssl_org: document.getElementById('sslOrg')?.value || 'CRM Solution',
-                    ssl_letsencrypt_email: document.getElementById('sslLetsEncryptEmail')?.value || '',
-                    ssl_letsencrypt_staging: document.getElementById('sslLetsEncryptStaging')?.checked || false,
-                };
-            }
         }
 
         function validateStep() {
@@ -5150,7 +5552,7 @@
                 if (currentStep === totalSteps) { renderSummary(); }
 
                 // Apply smart defaults when entering data-entry steps
-                if ([4, 6, 7, 8].includes(currentStep)) {
+                if ([3, 4, 5].includes(currentStep)) {
                     applySmartDefaults();
                 }
             }
@@ -5399,6 +5801,11 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(config),
                 });
+                if (!response.ok) {
+                    let detail = 'HTTP ' + response.status;
+                    try { const body = await response.json(); if (body.message) detail = body.message; } catch (_) {}
+                    throw new Error(detail);
+                }
                 const result = await response.json();
                 _deploy.outputDir = result.output_dir;
                 _deploy.generatedFiles = result.files || [];
@@ -5455,6 +5862,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: '{}',
                 });
+                if (!pfResp.ok) throw new Error('HTTP ' + pfResp.status);
                 const pfData = await pfResp.json();
                 if (pfData.containers && pfData.containers.length > 0) {
                     const result = await _showContainerActionModal(pfData.containers);
@@ -5501,6 +5909,7 @@
                         containers_to_remove: _deploy.containersToRemove || [],
                     }),
                 });
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
                 const data = await resp.json();
                 if (data.error) throw new Error(data.error);
                 _deploy.jobId = data.session_id;
@@ -5707,7 +6116,7 @@
                 src.close();
                 // Fallback: poll status endpoint to determine outcome
                 fetch(`/api/deploy/${jobId}/status`)
-                    .then(r => r.json())
+                    .then(_safeJson)
                     .then(d => {
                         if (!d.running) {
                             _onDeployFinished(d.success === true);
@@ -5734,12 +6143,176 @@
                 } else {
                     _deployLog('⚠️ No deployment host configured — cannot display URLs.', 'dl-warn');
                 }
+                // Show comprehensive credentials summary
+                _showPostDeployCredentials(host, apiPort, fePort, proto);
             } else {
                 _deployLog('❌ Deployment failed. Check the logs above for details.', 'dl-error');
             }
             document.getElementById('btnCancelDeploy').style.display = 'none';
             document.getElementById('btnReDeployNow').style.display = '';
             document.getElementById('btnDeployNow').style.display = 'none';
+        }
+
+        function _showPostDeployCredentials(host, apiPort, fePort, proto) {
+            const panel = document.getElementById('postDeployCredentials');
+            if (!panel) return;
+
+            const s = config.secrets || {};
+            const db = (config.database_type || 'mariadb').toUpperCase();
+            const dbPort = config.database_port || 3306;
+            const dbHost = config.database_host || 'crm-mariadb';
+            const dbName = config.database_name || s.db_name || 'crm_db';
+            const dbUser = s.db_user || 'crm_user';
+            const dbPass = s.db_password || '(auto-generated — check .env)';
+            const dbRoot = s.db_root_password || '(auto-generated — check .env)';
+            const adminUser = s.admin_username || 'admin';
+            const adminEmail = s.admin_email || 'admin@crm.local';
+            const adminPass = s.admin_password || '(auto-generated — check .env)';
+            const jwtSecret = s.jwt_secret ? '••••••••' + s.jwt_secret.slice(-4) : '(auto-generated — check .env)';
+            const sshUser = config.target?.ssh_user || 'root';
+            const sshPort = config.target?.ssh_port || 22;
+
+            const feUrl = host ? `${proto}://${host}${fePort === '80' || fePort === '443' ? '' : ':' + fePort}` : '—';
+            const apiUrl = host ? `${proto}://${host}:${apiPort}` : '—';
+            const healthUrl = host ? `${proto}://${host}:${apiPort}/health` : '—';
+
+            // Provider info
+            const pv = type => config[type + '_provider'] || 'builtin';
+            const providerRows = [
+                { label: 'Search', provider: pv('search'), port: 7700, container: 'crm-meilisearch' },
+                { label: 'Chat', provider: pv('chat'), port: 3000, container: 'crm-chatwoot' },
+                { label: 'Notifications', provider: pv('notification'), port: 3000, container: 'crm-novu' },
+                { label: 'Analytics', provider: pv('analytics'), port: 8088, container: 'crm-superset' },
+                { label: 'Signatures', provider: pv('signature'), port: 3000, container: 'crm-docuseal' },
+                { label: 'AI / LLM', provider: pv('ai'), port: 11434, container: 'crm-ollama' },
+                { label: 'Integrations', provider: pv('integration'), port: 5678, container: 'crm-n8n' },
+            ].filter(r => r.provider !== 'builtin');
+
+            let providerHtml = '';
+            if (providerRows.length > 0) {
+                providerHtml = `
+                <div class="cred-section">
+                    <div class="cred-section-title"><i class="bi bi-puzzle me-1"></i>External Providers</div>
+                    <table class="table table-sm table-borderless mb-0">
+                        <thead><tr><th>Provider</th><th>Container</th><th>URL</th></tr></thead>
+                        <tbody>
+                            ${providerRows.map(r => `<tr>
+                                <td><strong>${r.label}</strong>: ${r.provider}</td>
+                                <td><code>${r.container}</code></td>
+                                <td><code>http://${host || 'localhost'}:${r.port}</code></td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+            }
+
+            // Redis info
+            const redisHost = s.redis_host || 'crm-redis';
+            const redisPort = s.redis_port || 6379;
+            const redisPass = s.redis_password || '(none / default)';
+
+            panel.innerHTML = `
+            <div class="card border-success mt-3">
+                <div class="card-header bg-success text-white d-flex align-items-center justify-content-between">
+                    <span><i class="bi bi-shield-lock-fill me-2"></i>Deployment Credentials &amp; Access Details</span>
+                    <button class="btn btn-sm btn-outline-light" onclick="_copyCredentials()" title="Copy to clipboard">
+                        <i class="bi bi-clipboard me-1"></i>Copy All
+                    </button>
+                </div>
+                <div class="card-body" id="credentialsContent">
+                    <div class="cred-section">
+                        <div class="cred-section-title"><i class="bi bi-globe me-1"></i>Application URLs</div>
+                        <div class="cred-grid">
+                            <span class="cred-k">Frontend</span><span class="cred-v"><a href="${_esc(feUrl)}" target="_blank">${_esc(feUrl)}</a></span>
+                            <span class="cred-k">API</span><span class="cred-v"><a href="${_esc(apiUrl)}" target="_blank">${_esc(apiUrl)}</a></span>
+                            <span class="cred-k">Health Check</span><span class="cred-v"><a href="${_esc(healthUrl)}" target="_blank">${_esc(healthUrl)}</a></span>
+                            <span class="cred-k">Protocol</span><span class="cred-v">${proto.toUpperCase()}${config.ssl?.ssl_enabled ? ' <span class="badge bg-success">SSL</span>' : ' <span class="badge bg-warning text-dark">No SSL</span>'}</span>
+                        </div>
+                    </div>
+                    <div class="cred-section">
+                        <div class="cred-section-title"><i class="bi bi-terminal me-1"></i>SSH Access</div>
+                        <div class="cred-grid">
+                            <span class="cred-k">Host</span><span class="cred-v"><code>${_esc(host || '—')}</code></span>
+                            <span class="cred-k">SSH Command</span><span class="cred-v"><code>ssh ${sshUser}@${_esc(host)} -p ${sshPort}</code></span>
+                            <span class="cred-k">Deploy Path</span><span class="cred-v"><code>/opt/crm</code></span>
+                        </div>
+                    </div>
+                    <div class="cred-section">
+                        <div class="cred-section-title"><i class="bi bi-person-badge me-1"></i>Admin Account</div>
+                        <div class="cred-grid">
+                            <span class="cred-k">Username</span><span class="cred-v"><code>${_esc(adminUser)}</code></span>
+                            <span class="cred-k">Email</span><span class="cred-v"><code>${_esc(adminEmail)}</code></span>
+                            <span class="cred-k">Password</span><span class="cred-v"><code class="text-danger">${_esc(adminPass)}</code></span>
+                        </div>
+                    </div>
+                    <div class="cred-section">
+                        <div class="cred-section-title"><i class="bi bi-database me-1"></i>Database (${db})</div>
+                        <div class="cred-grid">
+                            <span class="cred-k">Host</span><span class="cred-v"><code>${_esc(dbHost)}:${dbPort}</code></span>
+                            <span class="cred-k">Database</span><span class="cred-v"><code>${_esc(dbName)}</code></span>
+                            <span class="cred-k">User</span><span class="cred-v"><code>${_esc(dbUser)}</code></span>
+                            <span class="cred-k">Password</span><span class="cred-v"><code class="text-danger">${_esc(dbPass)}</code></span>
+                            <span class="cred-k">Root Password</span><span class="cred-v"><code class="text-danger">${_esc(dbRoot)}</code></span>
+                            <span class="cred-k">Connection String</span><span class="cred-v" style="word-break:break-all"><code>Server=${_esc(dbHost)};Port=${dbPort};Database=${_esc(dbName)};User=${_esc(dbUser)};Password=${_esc(dbPass)};</code></span>
+                        </div>
+                    </div>
+                    <div class="cred-section">
+                        <div class="cred-section-title"><i class="bi bi-hdd-stack me-1"></i>Redis Cache</div>
+                        <div class="cred-grid">
+                            <span class="cred-k">Host</span><span class="cred-v"><code>${_esc(redisHost)}:${redisPort}</code></span>
+                            <span class="cred-k">Password</span><span class="cred-v"><code>${_esc(redisPass)}</code></span>
+                        </div>
+                    </div>
+                    <div class="cred-section">
+                        <div class="cred-section-title"><i class="bi bi-key me-1"></i>Security</div>
+                        <div class="cred-grid">
+                            <span class="cred-k">JWT Secret</span><span class="cred-v"><code>${jwtSecret}</code></span>
+                            <span class="cred-k">ASPNETCORE_ENVIRONMENT</span><span class="cred-v"><code>Production</code></span>
+                        </div>
+                    </div>
+                    ${providerHtml}
+                    <div class="cred-section">
+                        <div class="cred-section-title"><i class="bi bi-docker me-1"></i>Docker</div>
+                        <div class="cred-grid">
+                            <span class="cred-k">Compose File</span><span class="cred-v"><code>/opt/crm/docker-compose.yml</code></span>
+                            <span class="cred-k">Logs</span><span class="cred-v"><code>docker compose -f /opt/crm/docker-compose.yml logs -f</code></span>
+                            <span class="cred-k">Restart</span><span class="cred-v"><code>docker compose -f /opt/crm/docker-compose.yml restart</code></span>
+                            <span class="cred-k">Stop</span><span class="cred-v"><code>docker compose -f /opt/crm/docker-compose.yml down</code></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-muted small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Store these credentials securely. Passwords shown are from the deployment configuration.
+                    If auto-generated, check the <code>.env</code> file on the target server at <code>/opt/crm/.env</code>.
+                </div>
+            </div>`;
+            panel.style.display = '';
+        }
+
+        function _copyCredentials() {
+            const el = document.getElementById('credentialsContent');
+            if (!el) return;
+            // Build a plain-text version
+            const lines = [];
+            el.querySelectorAll('.cred-section').forEach(section => {
+                const title = section.querySelector('.cred-section-title');
+                if (title) lines.push('\n=== ' + title.textContent.trim() + ' ===');
+                section.querySelectorAll('.cred-grid').forEach(grid => {
+                    const spans = grid.querySelectorAll('span');
+                    for (let i = 0; i < spans.length; i += 2) {
+                        const k = spans[i]?.textContent?.trim();
+                        const v = spans[i+1]?.textContent?.trim();
+                        if (k && v) lines.push(k + ': ' + v);
+                    }
+                });
+                section.querySelectorAll('table tbody tr').forEach(tr => {
+                    const cells = tr.querySelectorAll('td');
+                    lines.push([...cells].map(c => c.textContent.trim()).join(' | '));
+                });
+            });
+            navigator.clipboard.writeText(lines.join('\n'));
+            showToast('Credentials copied to clipboard', 'success');
         }
 
         async function cancelDeployment() {
@@ -5824,7 +6397,7 @@ function showErrorPopup(title, message, details) {
 
 function generateSecret() {
   fetch('/api/generate-password')
-    .then(r => r.json())
+    .then(_safeJson)
     .then(data => {
       const el = document.getElementById('jwt_secret');
       if (el) {
@@ -5886,7 +6459,7 @@ function runPreflight() {
   if (config.ssl && config.ssl.ssl_enabled) { checks.push({pass:true, msg:'SSL enabled (' + (config.ssl.ssl_mode || 'self_signed') + ')'}); }
   else { checks.push({pass:false, msg:'SSL not enabled — HTTP only'}); }
   // Docker connectivity check
-  fetch('/api/probe/port-check?host=localhost&port=2375').then(r => r.json()).then(d => {
+  fetch(`/api/probe/port-check?host=${encodeURIComponent(_getDeploymentHost() || 'localhost')}&port=2375`).then(_safeJson).then(d => {
     checks.push({pass: d.reachable || true, msg: 'Docker daemon: ' + (d.reachable ? 'reachable' : 'assuming local socket')});
   }).catch(() => {}).finally(() => {
     const failures = checks.filter(c => !c.pass);
@@ -5910,7 +6483,7 @@ function scanComponents() {
   if (!gridEl) return;
   gridEl.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm"></div> Scanning...</div>';
   fetch('/api/detect', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({host})})
-    .then(r => r.json())
+    .then(_safeJson)
     .then(components => renderDetectionGrid(components))
     .catch(e => { gridEl.innerHTML = `<div class="alert alert-danger">Scan failed: ${e.message}</div>`; });
 }
@@ -5944,7 +6517,7 @@ function abortDeploy() {
   const sid = _deploy.jobId;
   if (!sid) { showToast('No active deployment to abort', 'warning'); return; }
   if (!confirm('Abort the running deployment?')) { return; }
-  fetch(`/api/deploy/${sid}/stop`, {method:'POST'}).then(r => r.json()).then(d => {
+  fetch(`/api/deploy/${sid}/stop`, {method:'POST'}).then(_safeJson).then(d => {
     _deployLog('⚠️ ' + (d.message || 'Abort signal sent'), 'dl-warn');
     showToast('Deployment abort requested', 'warning');
   }).catch(e => showErrorPopup('Abort Failed', e.message));
@@ -6064,7 +6637,7 @@ function selectProfileCard(name) {
     cards.forEach(c => c.classList.add('border-primary'));
     document.getElementById('btnLoadSelectedProfile').disabled = false;
     document.getElementById('profileSelectedSummary').style.display = 'block';
-    fetch(`/api/profiles/${encodeURIComponent(name)}`).then(r => r.json()).then(p => {
+    fetch(`/api/profiles/${encodeURIComponent(name)}`).then(_safeJson).then(p => {
         document.getElementById('pbs-name').textContent = p.name || '—';
         document.getElementById('pbs-target').textContent = p.target || '—';
         document.getElementById('pbs-runtime').textContent = p.runtime || '—';
@@ -6076,6 +6649,7 @@ async function applySelectedProfile() {
     if (!_selectedProfileName) return;
     try {
         const r = await fetch(`/api/profiles/${encodeURIComponent(_selectedProfileName)}`);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
         const p = await r.json();
         // Apply to wizard fields
         if (p.name) { const el = document.getElementById('deploymentName'); if(el) el.value = p.name; }
@@ -6313,6 +6887,7 @@ async function loadSetupStatus() {
     sdkEl.innerHTML   = '<div class="text-center text-muted py-2"><div class="spinner-border spinner-border-sm me-2"></div>Checking SDKs…</div>';
     try {
         const resp = await fetch('/api/setup/status');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         renderSetupTools(data.tools || []);
         renderSetupSdks(data.sdks || []);
@@ -6436,6 +7011,13 @@ async function day2Action(action) {
     const epMap = {upgrade:'/api/day2/upgrade', rollback:'/api/day2/rollback', scale:'/api/day2/scale', rotate_secrets:'/api/day2/rotate-secret'};
     try {
         const resp = await fetch(epMap[action]||`/api/day2/${action}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        if (!resp.ok) {
+            let errMsg = 'HTTP ' + resp.status;
+            try { const errData = await resp.json(); errMsg = errData.error || errData.message || errMsg; } catch(_e) {}
+            log.textContent += '❌ Error: ' + errMsg + '\n';
+            showErrorPopup('Day-2 Action Failed', `${action} failed`, errMsg);
+            return;
+        }
         const data = await resp.json();
         log.textContent += JSON.stringify(data, null, 2) + '\n';
         if (resp.ok) {
@@ -6456,6 +7038,7 @@ async function loadDay2Containers() {
     const el = document.getElementById('d2ContainerList');
     try {
         const resp = await fetch('/api/day2/status/all');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         const containers = data.containers || [];
         if (!containers.length) { el.innerHTML = '<p class="text-muted">No containers found.</p>'; return; }

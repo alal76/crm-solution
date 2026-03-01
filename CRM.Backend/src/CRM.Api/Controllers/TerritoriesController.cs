@@ -770,6 +770,10 @@ public class TerritoriesController : CrmControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>

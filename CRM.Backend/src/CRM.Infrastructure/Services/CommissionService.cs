@@ -84,6 +84,7 @@ public class CommissionService : ICommissionService
             throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commission.Id));
         }
 
+        commission.UpdatedAt = DateTime.UtcNow;
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
 
