@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 15,
+  "patch": 16,
   "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.15 — CDT registry management: local image build step in deployer (step 2/13), 9 comprehensive starter profiles (Local/On-Prem/AWS/Azure/GCP), registry_bp blueprint (view/purge/deployed/recommend endpoints), wizard auto-populates registry per platform, build-locally toggle, registry management accordion (image table, deployed version check, purge/prune)",
+  "description": "feat(cdt): v0.614.16 — CDT landing page rewrite: profile-centric launcher replacing static marketing page, saved-profiles grid with platform icons/env badges/active indicator, quick-start templates grid (9 templates), sticky action bar (Open in Wizard / Set Active), new-profile modal with name+description+env+platform+host, auto-loads profiles+templates on page load",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

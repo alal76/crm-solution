@@ -3,227 +3,408 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM Solution - Deployment Configuration</title>
+    <title>CRM Solution — Deployment Tool</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --card-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        :root { --primary-gradient: linear-gradient(135deg,#667eea 0%,#764ba2 100%); --card-shadow: 0 6px 24px rgba(0,0,0,.08); }
+        body { background: linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%); min-height: 100vh; }
+        .hero { background: var(--primary-gradient); color: #fff; padding: 48px 0 36px; }
+        .hero h1 { font-size: 2.4rem; font-weight: 700; }
+        .hero p  { font-size: 1.1rem; opacity: .85; }
+        .profile-card {
+            background: #fff; border-radius: 14px; box-shadow: var(--card-shadow);
+            transition: transform .25s, box-shadow .25s; border: 2px solid transparent; cursor: pointer;
         }
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
+        .profile-card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,.14); }
+        .profile-card.active-profile { border-color: #198754; background: #f7fff9; }
+        .profile-card.selected { border-color: #667eea; background: #f0f2ff; }
+        .template-card {
+            background: #fff; border-radius: 12px; box-shadow: var(--card-shadow);
+            transition: transform .25s; border: 2px solid transparent; cursor: pointer;
         }
-        .hero {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 80px 0;
-            margin-bottom: 40px;
-        }
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        .hero p {
-            font-size: 1.25rem;
-            opacity: 0.9;
-        }
-        .feature-card {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            height: 100%;
-        }
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background: var(--primary-gradient);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .feature-icon i {
-            font-size: 28px;
-            color: white;
-        }
-        .btn-primary {
-            background: var(--primary-gradient);
-            border: none;
-            padding: 12px 32px;
-            font-weight: 600;
-            border-radius: 8px;
-        }
-        .btn-primary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-        .platform-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 40px;
-        }
-        .platform-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: var(--card-shadow);
-            transition: all 0.3s ease;
-        }
-        .platform-card:hover {
-            transform: scale(1.05);
-        }
-        .platform-card img {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 15px;
-        }
-        .stats-section {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            margin: 40px 0;
-            box-shadow: var(--card-shadow);
-        }
-        .stat-item {
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 700;
-            color: #667eea;
-        }
+        .template-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,0,0,.12); }
+        .template-card.selected { border-color: #667eea; background: #f0f2ff; }
+        .env-badge { font-size: .7rem; }
+        .version-chip { font-size: .75rem; font-family: monospace; background: #e9ecef; border-radius: .25rem; padding: .1rem .4rem; }
+        .no-profiles { border: 2px dashed #dee2e6; border-radius: .75rem; padding: 2.5rem; text-align: center; }
+        .action-bar { position: sticky; bottom: 0; background: rgba(255,255,255,.95); backdrop-filter: blur(8px);
+                      box-shadow: 0 -2px 12px rgba(0,0,0,.08); padding: 14px 0; z-index: 100; }
+        .platform-icon { font-size: 28px; width: 48px; height: 48px; display: flex; align-items: center;
+                         justify-content: center; border-radius: 10px; flex-shrink: 0; }
+        .platform-icon.azure { background: #e8f3fe; color: #0078d4; }
+        .platform-icon.aws   { background: #fff4e0; color: #ff9900; }
+        .platform-icon.gcp   { background: #e8f0fe; color: #4285f4; }
+        .platform-icon.local { background: #e8e8e8; color: #333; }
+        .platform-icon.k8s   { background: #e3f2fd; color: #326ce5; }
     </style>
 </head>
 <body>
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <h1><i class="bi bi-rocket-takeoff me-3"></i>CRM Deployment Wizard</h1>
-                    <p class="lead">Configure and deploy your CRM Solution with our interactive wizard. 
-                       Supports Azure, AWS, GCP, and On-Premises deployments.</p>
-                    <a href="/wizard" class="btn btn-light btn-lg mt-3">
-                        <i class="bi bi-play-circle me-2"></i>Start Configuration
-                    </a>
-                </div>
-                <div class="col-lg-4 text-center d-none d-lg-block">
-                    <i class="bi bi-cloud-arrow-up" style="font-size: 150px; opacity: 0.3;"></i>
-                </div>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1><i class="bi bi-rocket-takeoff me-2"></i>CRM Deployment Tool</h1>
+                <p class="mb-0">Select a profile to continue, or start fresh from a template.</p>
             </div>
+            <div class="d-flex gap-2">
+                <a href="/profiles" class="btn btn-outline-light btn-sm"><i class="bi bi-person-lines-fill me-1"></i>Manage Profiles</a>
+                <a href="/day2" class="btn btn-outline-light btn-sm"><i class="bi bi-gear me-1"></i>Day-2 Ops</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-4">
+    <!-- Alert area -->
+    <div id="alert-area" class="mb-3"></div>
+
+    <!-- ── Saved Profiles ────────────────────────────────────────────── -->
+    <section class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0"><i class="bi bi-folder2-open me-2"></i>Your Profiles
+                <span class="badge bg-secondary ms-1" id="profile-count">0</span></h5>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary btn-sm" onclick="loadAll()" title="Refresh"><i class="bi bi-arrow-clockwise"></i></button>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newProfileModal">
+                    <i class="bi bi-plus-lg me-1"></i>New Profile</button>
+            </div>
+        </div>
+        <div id="profiles-grid" class="row g-3">
+            <div class="col-12 text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>
         </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="container mb-5">
-        <h2 class="text-center mb-4">Deployment Features</h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-cloud"></i>
-                    </div>
-                    <h4>Multi-Cloud Support</h4>
-                    <p class="text-muted">Deploy to Azure, AWS, GCP, or your own infrastructure with optimized configurations.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-puzzle"></i>
-                    </div>
-                    <h4>Pluggable Providers</h4>
-                    <p class="text-muted">Choose from multiple search, chat, notification, and analytics providers.</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="bi bi-shield-check"></i>
-                    </div>
-                    <h4>Enterprise Ready</h4>
-                    <p class="text-muted">Production-grade configurations with SSL, monitoring, and high availability.</p>
-                </div>
-            </div>
+    <!-- ── Quick-Start Templates ─────────────────────────────────────── -->
+    <section class="mb-5">
+        <h5 class="mb-3"><i class="bi bi-lightning-charge me-2"></i>Quick-Start Templates</h5>
+        <p class="text-muted small mb-3">Pick a pre-configured template to create a new profile. All settings can be customised in the wizard.</p>
+        <div id="templates-grid" class="row g-3">
+            <div class="col-12 text-center py-3 text-muted">Loading templates&hellip;</div>
         </div>
     </section>
+</div>
 
-    <!-- Platforms Section -->
-    <section class="container mb-5">
-        <h2 class="text-center mb-4">Supported Platforms</h2>
-        <div class="platform-grid">
-            <div class="platform-card">
-                <i class="bi bi-microsoft" style="font-size: 48px; color: #00a4ef;"></i>
-                <h5 class="mt-3">Microsoft Azure</h5>
-                <small class="text-muted">AKS, Container Apps, VMs</small>
+<!-- ── Sticky Action Bar ────────────────────────────────────────────────── -->
+<div class="action-bar" id="action-bar" style="display:none">
+    <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <strong id="action-label">No selection</strong>
+            <span class="text-muted small ms-2" id="action-desc"></span>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/wizard" class="btn btn-primary" id="btnLaunchWizard">
+                <i class="bi bi-play-fill me-1"></i>Open in Wizard</a>
+            <button class="btn btn-outline-success" id="btnActivate" onclick="activateSelected()" style="display:none">
+                <i class="bi bi-check-circle me-1"></i>Set Active</button>
+        </div>
+    </div>
+</div>
+
+<!-- ── New Profile Modal ────────────────────────────────────────────────── -->
+<div class="modal fade" id="newProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Create New Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="platform-card">
-                <i class="bi bi-amazon" style="font-size: 48px; color: #ff9900;"></i>
-                <h5 class="mt-3">Amazon AWS</h5>
-                <small class="text-muted">EKS, ECS, Fargate, EC2</small>
+            <div class="modal-body">
+                <div class="alert alert-info small mb-3"><i class="bi bi-shield-lock me-1"></i>
+                    Credentials are <strong>not</strong> stored in profiles. Only infrastructure settings are saved.</div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="new-profile-name">Profile Name <span class="text-danger">*</span></label>
+                    <input type="text" id="new-profile-name" class="form-control" placeholder="e.g. prod-azure, staging-docker" maxlength="60">
+                    <div class="form-text">Letters, numbers, hyphens and underscores only.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="new-description">Description</label>
+                    <textarea id="new-description" class="form-control" rows="2" placeholder="Describe what this profile is for&hellip;"></textarea>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" for="new-env-type">Environment</label>
+                        <select id="new-env-type" class="form-select">
+                            <option value="">— Select —</option>
+                            <option value="production">Production</option>
+                            <option value="staging">Staging</option>
+                            <option value="development" selected>Development</option>
+                            <option value="testing">Testing</option>
+                            <option value="dr">Disaster Recovery</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" for="new-platform">Platform</label>
+                        <select id="new-platform" class="form-select">
+                            <option value="">— Select —</option>
+                            <option value="docker">Docker Compose</option>
+                            <option value="kubernetes">Kubernetes</option>
+                            <option value="azure">Azure</option>
+                            <option value="aws">AWS</option>
+                            <option value="gcp">GCP</option>
+                            <option value="bare-metal">Bare Metal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" for="new-crm-version">CRM Version</label>
+                        <input type="text" id="new-crm-version" class="form-control" placeholder="latest" value="latest">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="new-host">Target Host / URL</label>
+                    <input type="text" id="new-host" class="form-control" placeholder="e.g. 192.168.0.9, crm.example.com">
+                </div>
             </div>
-            <div class="platform-card">
-                <i class="bi bi-google" style="font-size: 48px; color: #4285f4;"></i>
-                <h5 class="mt-3">Google Cloud</h5>
-                <small class="text-muted">GKE, Cloud Run, GCE</small>
-            </div>
-            <div class="platform-card">
-                <i class="bi bi-server" style="font-size: 48px; color: #333;"></i>
-                <h5 class="mt-3">On-Premises</h5>
-                <small class="text-muted">Docker, Kubernetes, VMs</small>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" onclick="createProfile()"><i class="bi bi-check-lg me-1"></i>Create</button>
             </div>
         </div>
-    </section>
+    </div>
+</div>
 
-    <!-- Stats Section -->
-    <section class="container">
-        <div class="stats-section">
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="stat-item">
-                        <div class="stat-number">4</div>
-                        <div class="text-muted">Cloud Platforms</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-item">
-                        <div class="stat-number">10+</div>
-                        <div class="text-muted">Provider Types</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-item">
-                        <div class="stat-number">6</div>
-                        <div class="text-muted">Orchestration Options</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stat-item">
-                        <div class="stat-number">∞</div>
-                        <div class="text-muted">Scalability</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+<footer class="text-center text-muted small py-3">
+    CRM CDT v0.614.16 &mdash; <a href="/profiles">Profiles</a> &middot; <a href="/wizard">Wizard</a> &middot; <a href="/day2">Day-2</a>
+</footer>
 
-    <!-- Footer -->
-    <footer class="text-center py-4 mt-5">
-        <p class="text-muted">CRM Solution Deployment Tool v1.0.0 | AGPL-3.0 License</p>
-    </footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+let _profiles = [];
+let _templates = [];
+let _activeProfileName = null;
+let _selectedProfile = null;   // name of a saved profile
+let _selectedTemplate = null;  // name of a template
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+const ENV_COLORS = {
+    production: 'bg-danger', staging: 'bg-warning text-dark',
+    development: 'bg-info text-dark', testing: 'bg-secondary', dr: 'bg-dark',
+};
+function envBadge(env) {
+    return env ? '<span class="badge env-badge ' + (ENV_COLORS[env] || 'bg-secondary') + '">' + env + '</span>' : '';
+}
+
+const PLATFORM_ICONS = {
+    azure: { cls: 'azure', icon: 'bi-microsoft' },
+    aws:   { cls: 'aws',   icon: 'bi-amazon' },
+    gcp:   { cls: 'gcp',   icon: 'bi-google' },
+    docker:     { cls: 'local', icon: 'bi-box-seam' },
+    kubernetes: { cls: 'k8s',   icon: 'bi-diagram-3' },
+    'bare-metal': { cls: 'local', icon: 'bi-server' },
+};
+function platformIconFor(platform) {
+    var key = (platform || '').toLowerCase()
+        .replace('local_docker', 'docker').replace('on_prem_vm', 'docker')
+        .replace('on_prem_bare', 'kubernetes').replace('ecs_fargate', 'aws')
+        .replace('_', '-');
+    var found = Object.keys(PLATFORM_ICONS).find(function(k) { return key.indexOf(k) !== -1; });
+    var cfg = PLATFORM_ICONS[found] || { cls: 'local', icon: 'bi-cloud' };
+    return '<div class="platform-icon ' + cfg.cls + '"><i class="bi ' + cfg.icon + '"></i></div>';
+}
+
+function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ── Alerts ─────────────────────────────────────────────────────────────────
+function showAlert(msg, type, ttl) {
+    type = type || 'success'; ttl = (ttl === undefined) ? 4000 : ttl;
+    var el = document.getElementById('alert-area');
+    el.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show">' + msg +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+    if (ttl) setTimeout(function() { el.innerHTML = ''; }, ttl);
+}
+
+// ── Data Loading ───────────────────────────────────────────────────────────
+async function loadAll() {
+    try {
+        var responses = await Promise.all([
+            fetch('/api/profiles'),
+            fetch('/api/profiles/active'),
+            fetch('/api/profiles/templates'),
+        ]);
+        var pdata = await responses[0].json();
+        _profiles = Array.isArray(pdata) ? pdata : (pdata.profiles || []);
+        var adata = await responses[1].json();
+        _activeProfileName = adata.active_profile || null;
+        var tdata = await responses[2].json();
+        _templates = tdata.templates || [];
+        renderProfiles();
+        renderTemplates();
+        updateActionBar();
+    } catch (e) {
+        document.getElementById('profiles-grid').innerHTML =
+            '<div class="col-12"><div class="alert alert-danger">Failed to load: ' + esc(e.message) + '</div></div>';
+    }
+}
+
+// ── Render Profiles ────────────────────────────────────────────────────────
+function renderProfiles() {
+    var grid = document.getElementById('profiles-grid');
+    document.getElementById('profile-count').textContent = _profiles.length;
+    if (!_profiles.length) {
+        grid.innerHTML = '<div class="col-12"><div class="no-profiles">' +
+            '<i class="bi bi-folder-plus display-4 text-muted d-block mb-2"></i>' +
+            '<h6>No saved profiles yet</h6>' +
+            '<p class="text-muted small mb-3">Create a profile or pick a quick-start template below.</p>' +
+            '<button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newProfileModal">' +
+            '<i class="bi bi-plus-lg me-1"></i>Create Profile</button></div></div>';
+        return;
+    }
+    grid.innerHTML = _profiles.map(function(p) {
+        var isActive = (p.name === _activeProfileName);
+        var isSelected = (p.name === _selectedProfile);
+        var desc = p.description || p.notes || '';
+        var env  = p.environment_type || (p.target && p.target.environment_type) || '';
+        var plat = p.platform || (p.target && p.target.provider) || (p.architecture && p.architecture.container_runtime) || '';
+        var host = p.host || (p.target && p.target.domain_name) || '';
+        var ver  = p.crm_version || (p.meta && p.meta.crm_version) || '';
+        var updAt = p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '';
+        return '<div class="col-sm-6 col-lg-4 col-xxl-3">' +
+            '<div class="card profile-card h-100' + (isActive ? ' active-profile' : '') + (isSelected ? ' selected' : '') + '"' +
+            ' onclick="selectProfile(\'' + esc(p.name) + '\')">' +
+            '<div class="card-body">' +
+            '<div class="d-flex gap-2 align-items-start mb-2">' + platformIconFor(plat) +
+            '<div class="flex-fill" style="min-width:0">' +
+            '<h6 class="card-title mb-0 text-truncate">' + esc(p.name) + '</h6>' +
+            '<div class="d-flex gap-1 flex-wrap mt-1">' + envBadge(env) +
+            (plat ? '<span class="badge bg-primary env-badge">' + esc(plat) + '</span>' : '') +
+            (isActive ? '<span class="badge bg-success env-badge"><i class="bi bi-check-circle-fill me-1"></i>Active</span>' : '') +
+            '</div></div></div>' +
+            (desc ? '<p class="small text-muted mb-1 text-truncate" title="' + esc(desc) + '">' + esc(desc) + '</p>' : '') +
+            '<div class="small text-muted">' +
+            (host ? '<span class="me-2"><i class="bi bi-hdd-network me-1"></i>' + esc(host) + '</span>' : '') +
+            (ver ? '<span class="version-chip">v' + esc(ver) + '</span>' : '') + '</div>' +
+            (updAt ? '<div class="text-muted mt-1" style="font-size:.65rem">Updated ' + updAt + '</div>' : '') +
+            '</div></div></div>';
+    }).join('');
+}
+
+// ── Render Templates ───────────────────────────────────────────────────────
+function renderTemplates() {
+    var grid = document.getElementById('templates-grid');
+    if (!_templates.length) {
+        grid.innerHTML = '<div class="col-12 text-muted text-center">No templates available.</div>';
+        return;
+    }
+    grid.innerHTML = _templates.map(function(t) {
+        var name = (t.meta && t.meta.profile_name) || t.name || 'unknown';
+        var desc = (t.meta && t.meta.description) || '';
+        var plat = (t.target && t.target.provider) || (t.architecture && t.architecture.container_runtime) || '';
+        var env  = (t.target && t.target.environment_type) || '';
+        var isSelected = (name === _selectedTemplate);
+        return '<div class="col-sm-6 col-lg-4 col-xxl-3">' +
+            '<div class="card template-card h-100' + (isSelected ? ' selected' : '') + '"' +
+            ' onclick="selectTemplate(\'' + esc(name) + '\')">' +
+            '<div class="card-body">' +
+            '<div class="d-flex gap-2 align-items-start mb-2">' + platformIconFor(plat) +
+            '<div class="flex-fill" style="min-width:0">' +
+            '<h6 class="card-title mb-0 text-truncate">' + esc(name) + '</h6>' +
+            '<div class="d-flex gap-1 flex-wrap mt-1">' + envBadge(env) +
+            (plat ? '<span class="badge bg-outline-primary env-badge border">' + esc(plat) + '</span>' : '') +
+            '<span class="badge bg-light text-dark env-badge border"><i class="bi bi-lightning-charge me-1"></i>Template</span>' +
+            '</div></div></div>' +
+            (desc ? '<p class="small text-muted mb-0">' + esc(desc) + '</p>' : '') +
+            '</div></div></div>';
+    }).join('');
+}
+
+// ── Selection ──────────────────────────────────────────────────────────────
+function selectProfile(name) {
+    _selectedTemplate = null;
+    _selectedProfile = (_selectedProfile === name) ? null : name;
+    renderProfiles(); renderTemplates(); updateActionBar();
+}
+function selectTemplate(name) {
+    _selectedProfile = null;
+    _selectedTemplate = (_selectedTemplate === name) ? null : name;
+    renderProfiles(); renderTemplates(); updateActionBar();
+}
+function updateActionBar() {
+    var bar = document.getElementById('action-bar');
+    var label = document.getElementById('action-label');
+    var desc  = document.getElementById('action-desc');
+    var btnAct = document.getElementById('btnActivate');
+    var btnWiz = document.getElementById('btnLaunchWizard');
+    if (_selectedProfile) {
+        bar.style.display = '';
+        var p = _profiles.find(function(x) { return x.name === _selectedProfile; }) || {};
+        label.textContent = _selectedProfile;
+        var d = p.description || p.notes || '';
+        desc.textContent = d ? '— ' + d : '';
+        btnAct.style.display = (_selectedProfile !== _activeProfileName) ? '' : 'none';
+        btnWiz.href = '/wizard?profile=' + encodeURIComponent(_selectedProfile);
+        btnWiz.innerHTML = '<i class="bi bi-pencil-square me-1"></i>Edit in Wizard';
+    } else if (_selectedTemplate) {
+        bar.style.display = '';
+        var t = _templates.find(function(x) { return (x.meta && x.meta.profile_name || x.name) === _selectedTemplate; }) || {};
+        label.textContent = _selectedTemplate;
+        desc.textContent = (t.meta && t.meta.description) ? '— ' + t.meta.description : '';
+        btnAct.style.display = 'none';
+        btnWiz.href = '/wizard?template=' + encodeURIComponent(_selectedTemplate);
+        btnWiz.innerHTML = '<i class="bi bi-play-fill me-1"></i>Create from Template';
+    } else {
+        bar.style.display = 'none';
+    }
+}
+
+// ── Activate ───────────────────────────────────────────────────────────────
+async function activateSelected() {
+    if (!_selectedProfile) return;
+    try {
+        var r = await fetch('/api/profiles/' + encodeURIComponent(_selectedProfile) + '/activate', { method: 'POST' });
+        var d = await r.json();
+        if (d.activated) {
+            showAlert('Profile <strong>' + esc(_selectedProfile) + '</strong> is now active.');
+            _activeProfileName = _selectedProfile;
+            renderProfiles(); updateActionBar();
+        } else {
+            showAlert('Activate failed: ' + (d.error || JSON.stringify(d)), 'danger');
+        }
+    } catch (e) { showAlert('Error: ' + esc(e.message), 'danger'); }
+}
+
+// ── Create Profile ─────────────────────────────────────────────────────────
+async function createProfile() {
+    var name = document.getElementById('new-profile-name').value.trim();
+    if (!name) { showAlert('Profile name is required.', 'danger', 0); return; }
+    if (!/^[\w\-]+$/.test(name)) { showAlert('Name: letters, numbers, hyphens and underscores only.', 'danger', 0); return; }
+    var descVal = document.getElementById('new-description').value.trim();
+    var data = {
+        name: name,
+        description: descVal,
+        environment_type: document.getElementById('new-env-type').value,
+        platform: document.getElementById('new-platform').value,
+        crm_version: document.getElementById('new-crm-version').value.trim() || 'latest',
+        host: document.getElementById('new-host').value.trim(),
+        notes: descVal,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+    };
+    try {
+        var r = await fetch('/api/profiles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, data: data }),
+        });
+        var d = await r.json();
+        if (d.saved || r.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('newProfileModal')).hide();
+            ['new-profile-name', 'new-description', 'new-host'].forEach(function(id) {
+                document.getElementById(id).value = '';
+            });
+            document.getElementById('new-crm-version').value = 'latest';
+            showAlert('Profile <strong>' + esc(name) + '</strong> created.');
+            _selectedProfile = name; _selectedTemplate = null;
+            loadAll();
+        } else {
+            showAlert('Create failed: ' + (d.error || JSON.stringify(d)), 'danger', 0);
+        }
+    } catch (e) { showAlert('Error: ' + esc(e.message), 'danger', 0); }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+loadAll();
+</script>
 </body>
 </html>
