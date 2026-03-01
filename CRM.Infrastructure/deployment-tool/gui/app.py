@@ -234,6 +234,130 @@ def get_size_rec(users):
         }
     })
 
+@app.route("/api/defaults", methods=["GET"])
+def get_defaults():
+    """Return smart defaults for container names, ports, URLs, and service mappings.
+
+    Query params:
+      - architecture: monolithic | microservices  (default: monolithic)
+      - platform: on_premises | azure | aws | gcp (default: on_premises)
+      - ssl: true | false (default: false)
+      - host: hostname/IP for URL generation   (default: localhost)
+    """
+    arch = request.args.get("architecture", "monolithic")
+    platform = request.args.get("platform", "on_premises")
+    ssl_enabled = request.args.get("ssl", "false").lower() == "true"
+    host = request.args.get("host", "localhost")
+
+    protocol = "https" if ssl_enabled else "http"
+
+    # ── Core services (always present) ──────────────────────────────
+    core_services = {
+        "crm-api":       {"port": 5000, "protocol": protocol, "description": ".NET Web API"},
+        "crm-frontend":  {"port": 443 if ssl_enabled else 80, "protocol": protocol, "description": "React SPA (Nginx)"},
+    }
+
+    # ── Database services ───────────────────────────────────────────
+    database_services = {
+        "crm-mariadb":   {"port": 3306, "description": "MariaDB (primary)"},
+        "crm-redis":     {"port": 6379, "description": "Redis cache & sessions"},
+        "crm-postgres":  {"port": 5432, "description": "PostgreSQL (optional)"},
+        "crm-sqlserver": {"port": 1433, "description": "SQL Server (optional)"},
+    }
+
+    # ── Provider / component services ───────────────────────────────
+    provider_services = {
+        "crm-meilisearch": {"port": 7700, "description": "Full-text search engine"},
+        "crm-ollama":      {"port": 11434, "description": "Local LLM inference"},
+        "crm-chatwoot":    {"port": 3000, "description": "Customer chat support"},
+        "crm-novu":        {"port": 3001, "description": "Multi-channel notifications"},
+        "crm-superset":    {"port": 8088, "description": "BI & data visualization"},
+        "crm-docuseal":    {"port": 3002, "description": "E-signature workflows"},
+        "crm-n8n":         {"port": 5678, "description": "Workflow automation"},
+    }
+
+    # ── Microservices (only in microservices architecture) ──────────
+    microservices = {
+        "crm-gateway":     {"port": 5000, "protocol": protocol, "description": "YARP API Gateway"},
+        "crm-identity":    {"port": 5001, "protocol": protocol, "description": "Auth, Users, Groups"},
+        "crm-customer":    {"port": 5002, "protocol": protocol, "description": "Accounts, Contacts"},
+        "crm-sales":       {"port": 5003, "protocol": protocol, "description": "Opportunities, Quotes"},
+        "crm-marketing":   {"port": 5004, "protocol": protocol, "description": "Campaigns, Leads"},
+        "crm-servicedesk": {"port": 5005, "protocol": protocol, "description": "Tickets, Workflows"},
+        "crm-core":        {"port": 5006, "protocol": protocol, "description": "Settings, Monitoring"},
+    }
+
+    # ── Docker networks ─────────────────────────────────────────────
+    networks = {
+        "crm_crm-network":        "Main unified network",
+        "crm-core-network":       "Core stack isolation",
+        "crm-db-network":         "Database stack isolation",
+        "crm-components-network": "Components stack isolation",
+    }
+
+    # ── Registry defaults per platform ──────────────────────────────
+    registry_defaults = {
+        "on_premises":  {"registry": "registry.internal:5000", "org": "crm", "build_locally": True},
+        "azure":        {"registry": "crmacr.azurecr.io",      "org": "crm", "build_locally": False},
+        "aws":          {"registry": "<account>.dkr.ecr.<region>.amazonaws.com", "org": "crm", "build_locally": False},
+        "gcp":          {"registry": "<region>-docker.pkg.dev/<project>", "org": "crm", "build_locally": False},
+        "local_docker": {"registry": "",                        "org": "crm", "build_locally": True},
+    }
+
+    # ── Database defaults ───────────────────────────────────────────
+    database_defaults = {
+        "mariadb":    {"port": 3306, "container": "crm-mariadb",   "user": "crm_user", "db_name": "crm_db"},
+        "mysql":      {"port": 3306, "container": "crm-mysql",     "user": "crm_user", "db_name": "crm_db"},
+        "postgresql": {"port": 5432, "container": "crm-postgres",  "user": "crm_user", "db_name": "crm_db"},
+        "sqlserver":  {"port": 1433, "container": "crm-sqlserver", "user": "sa",       "db_name": "crm_db"},
+    }
+
+    # ── Secret defaults (safe placeholder hints, not real secrets) ─
+    secret_hints = {
+        "db_user":     "crm_user",
+        "db_name":     "crm_db",
+        "admin_username": "admin",
+        "admin_email":    "admin@crm.local",
+        "jwt_issuer":     "CRM.Api",
+        "jwt_audience":   "CRM.Client",
+    }
+
+    # ── Build URL helpers ───────────────────────────────────────────
+    def build_url(_svc_name, svc_info):
+        p = svc_info.get("protocol", protocol)
+        port = svc_info["port"]
+        # Omit port for standard HTTP/HTTPS
+        if (p == "https" and port == 443) or (p == "http" and port == 80):
+            return f"{p}://{host}"
+        return f"{p}://{host}:{port}"
+
+    # URLs for core access points
+    urls = {
+        "api_url":      build_url("crm-api", core_services["crm-api"]),
+        "frontend_url": build_url("crm-frontend", core_services["crm-frontend"]),
+    }
+    if arch == "microservices":
+        urls["gateway_url"] = build_url("crm-gateway", microservices["crm-gateway"])
+        for ms_name, ms_info in microservices.items():
+            urls[ms_name.replace("-", "_") + "_url"] = build_url(ms_name, ms_info)
+
+    result = {
+        "core_services": core_services,
+        "database_services": database_services,
+        "provider_services": provider_services,
+        "microservices": microservices if arch == "microservices" else {},
+        "networks": networks,
+        "registry": registry_defaults.get(platform, registry_defaults["on_premises"]),
+        "database_defaults": database_defaults,
+        "secret_hints": secret_hints,
+        "urls": urls,
+        "protocol": protocol,
+        "architecture": arch,
+        "platform": platform,
+    }
+    return jsonify(result)
+
+
 @app.route("/api/config", methods=["GET", "POST"])
 def handle_config():
     if request.method == "GET":

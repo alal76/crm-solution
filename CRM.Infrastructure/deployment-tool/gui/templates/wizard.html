@@ -4792,13 +4792,6 @@
                     image_org: document.getElementById('secretImageOrg')?.value || '',
                     build_locally: document.getElementById('buildLocally')?.checked || false,
                 };
-                    chatwoot_api_key: document.getElementById('secretChatwootKey')?.value || '',
-                    novu_api_key: document.getElementById('secretNovuKey')?.value || '',
-                    docuseal_api_key: document.getElementById('secretDocusealKey')?.value || '',
-                    n8n_password: document.getElementById('secretN8nPassword')?.value || '',
-                    openai_api_key: document.getElementById('secretOpenaiKey')?.value || '',
-                    anthropic_api_key: document.getElementById('secretAnthropicKey')?.value || '',
-                };
                 // Service accounts
                 config.service_accounts = {};
                 const gcpSa = document.getElementById('secretGcpSaJson')?.value;
