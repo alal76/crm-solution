@@ -3,7 +3,7 @@
   "minor": 614,
   "patch": 11,
   "lastUpdate": "2026-03-01",
-  "description": "fix(quality): v0.614.11 — SonarCloud mass fix: 58 TODO NOSONAR tags added across 16 service files; all known Critical/Major/Minor open issues addressed",
+  "description": "feat(cdt): v0.614.11 — Secrets/Auth & SSL wizard steps, complete docker-compose template, all provider services, SSL routes blueprint",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

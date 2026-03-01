@@ -126,6 +126,12 @@ try:
 except Exception as _e:
     print(f"[CDT] setup_bp not registered: {_e}")
 
+try:
+    from gui.routes.ssl_routes import ssl_bp
+    app.register_blueprint(ssl_bp)
+except Exception as _e:
+    print(f"[CDT] ssl_bp not registered: {_e}")
+
 
 @app.route('/health', methods=['GET'])
 def health_check():

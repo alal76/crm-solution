@@ -579,6 +579,24 @@
         </div>
       </div>
     </div>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="bi bi-gear-wide-connected me-2"></i>CRM CDT</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#cdtNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="cdtNavbar">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link active" href="/wizard"><i class="bi bi-magic me-1"></i>Wizard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/day2"><i class="bi bi-tools me-1"></i>Day-2 Operations</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/profiles"><i class="bi bi-folder2-open me-1"></i>Profiles</a></li>
+                </ul>
+                <span class="badge bg-secondary">v0.614.11</span>
+            </div>
+        </div>
+    </nav>
+
     <!-- Header -->
     <header class="wizard-header">
         <div class="container">
@@ -773,6 +791,14 @@
             </div>
             <div class="step" data-step="6">
                 <div class="step-circle">6</div>
+                <div class="step-label">Secrets</div>
+            </div>
+            <div class="step" data-step="7">
+                <div class="step-circle">7</div>
+                <div class="step-label">SSL</div>
+            </div>
+            <div class="step" data-step="8">
+                <div class="step-circle">8</div>
                 <div class="step-label">Review</div>
             </div>
         </div>
@@ -2028,7 +2054,376 @@
             </div>
 
             <!-- Step 6: Review -->
+            <!-- Step 6: Secrets & Authentication -->
             <div class="wizard-section" data-section="6">
+                <h3 class="mb-3"><i class="bi bi-shield-lock me-2"></i>Secrets &amp; Authentication</h3>
+                <p class="text-muted mb-4">Configure credentials and API keys for all deployment components. Leave blank to auto-generate secure values.</p>
+
+                <!-- Image Registry -->
+                <div class="card mb-3">
+                    <div class="card-header py-2"><i class="bi bi-box-seam me-2"></i><strong>Image Registry</strong></div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Registry URL</label>
+                                <input type="text" class="form-control" id="secretImageRegistry" placeholder="ghcr.io" value="ghcr.io">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Organisation / Namespace</label>
+                                <input type="text" class="form-control" id="secretImageOrg" placeholder="crm">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Registry Token / Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretRegistryToken" placeholder="Optional">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretRegistryToken')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Database Credentials -->
+                <div class="card mb-3">
+                    <div class="card-header py-2"><i class="bi bi-database me-2"></i><strong>Database</strong></div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Database User</label>
+                                <input type="text" class="form-control" id="secretDbUser" value="crm_user">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Database Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretDbPassword" placeholder="Auto-generated if blank">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretDbPassword')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretDbPassword')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Root Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretDbRootPassword" placeholder="Auto-generated if blank">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretDbRootPassword')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretDbRootPassword')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Redis Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretRedisPassword" placeholder="Optional — blank = no auth">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretRedisPassword')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretRedisPassword')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- JWT & Admin -->
+                <div class="card mb-3">
+                    <div class="card-header py-2"><i class="bi bi-key me-2"></i><strong>JWT &amp; Admin</strong></div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label">JWT Secret (min 32 chars)</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretJwtSecret" placeholder="Auto-generated if blank">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretJwtSecret', 64)"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretJwtSecret')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Admin Username</label>
+                                <input type="text" class="form-control" id="secretAdminUsername" value="admin">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Admin Email</label>
+                                <input type="email" class="form-control" id="secretAdminEmail" value="admin@crm.local">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Admin Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretAdminPassword" placeholder="Auto-generated if blank">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretAdminPassword')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretAdminPassword')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Provider API Keys -->
+                <div class="card mb-3">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-plug me-2"></i><strong>Provider API Keys</strong></span>
+                        <small class="text-muted">Only fill keys for providers you selected</small>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Meilisearch Master Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretMeilisearchKey" placeholder="masterKey">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretMeilisearchKey')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretMeilisearchKey')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Superset Secret Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretSupersetKey" placeholder="Auto-generated if blank">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretSupersetKey', 42)"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretSupersetKey')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Chatwoot API Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretChatwootKey" placeholder="From Chatwoot dashboard">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretChatwootKey')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Novu API Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretNovuKey" placeholder="From Novu dashboard">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretNovuKey')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">DocuSeal API Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretDocusealKey" placeholder="From DocuSeal dashboard">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretDocusealKey')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">n8n Password</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretN8nPassword" placeholder="Auto-generated if blank">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretN8nPassword')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretN8nPassword')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">OpenAI API Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretOpenaiKey" placeholder="sk-...">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretOpenaiKey')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Anthropic API Key</label>
+                                <div class="input-group">
+                                    <input type="password" class="form-control" id="secretAnthropicKey" placeholder="sk-ant-...">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretAnthropicKey')"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Service Accounts -->
+                <div class="card mb-3">
+                    <div class="card-header py-2"><i class="bi bi-person-badge me-2"></i><strong>Cloud Service Accounts</strong></div>
+                    <div class="card-body">
+                        <ul class="nav nav-pills mb-3" id="saProviderTabs">
+                            <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#sa-gcp">GCP</button></li>
+                            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#sa-azure">Azure</button></li>
+                            <li class="nav-item"><button class="nav-link" data-bs-toggle="pill" data-bs-target="#sa-aws">AWS</button></li>
+                        </ul>
+                        <div class="tab-content">
+                            <!-- GCP Service Account -->
+                            <div class="tab-pane fade show active" id="sa-gcp">
+                                <div class="mb-3">
+                                    <label class="form-label">Service Account JSON Key</label>
+                                    <textarea class="form-control" id="secretGcpSaJson" rows="4" placeholder='Paste your GCP service account JSON key here...'></textarea>
+                                    <div class="form-text">Or upload: <input type="file" class="form-control form-control-sm mt-1" id="secretGcpSaFile" accept=".json" onchange="loadFileToField(this, 'secretGcpSaJson')"></div>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label">GCP Project ID</label>
+                                        <input type="text" class="form-control" id="secretGcpProject" placeholder="my-project-id">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">GCP Region</label>
+                                        <input type="text" class="form-control" id="secretGcpRegion" placeholder="us-central1">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Azure Service Principal -->
+                            <div class="tab-pane fade" id="sa-azure">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tenant ID</label>
+                                        <input type="text" class="form-control" id="secretAzureTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Subscription ID</label>
+                                        <input type="text" class="form-control" id="secretAzureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Client (App) ID</label>
+                                        <input type="text" class="form-control" id="secretAzureClientId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Client Secret</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="secretAzureClientSecret">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretAzureClientSecret')"><i class="bi bi-eye"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- AWS IAM -->
+                            <div class="tab-pane fade" id="sa-aws">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Access Key ID</label>
+                                        <input type="text" class="form-control" id="secretAwsAccessKey" placeholder="AKIA...">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Secret Access Key</label>
+                                        <div class="input-group">
+                                            <input type="password" class="form-control" id="secretAwsSecretKey">
+                                            <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretAwsSecretKey')"><i class="bi bi-eye"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">AWS Region</label>
+                                        <input type="text" class="form-control" id="secretAwsRegion" placeholder="us-east-1">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Session Token (optional)</label>
+                                        <input type="password" class="form-control" id="secretAwsSessionToken" placeholder="For temporary credentials">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Auto-generate all button -->
+                <div class="text-end">
+                    <button class="btn btn-outline-primary" onclick="autoGenAllSecrets()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Auto-Generate All Empty Secrets
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 7: SSL Certificates -->
+            <div class="wizard-section" data-section="7">
+                <h3 class="mb-3"><i class="bi bi-lock me-2"></i>SSL Certificates</h3>
+                <p class="text-muted mb-4">Configure HTTPS for your CRM deployment. You can generate self-signed certs, upload existing ones, or skip for HTTP-only.</p>
+
+                <!-- SSL Toggle -->
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" id="sslEnabled" onchange="toggleSslOptions(this.checked)">
+                    <label class="form-check-label fw-semibold" for="sslEnabled">Enable SSL / HTTPS</label>
+                </div>
+
+                <div id="sslOptionsPanel" style="display:none;">
+                    <!-- SSL Mode -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">SSL Mode</label>
+                            <select class="form-select" id="sslMode" onchange="toggleSslMode(this.value)">
+                                <option value="self_signed">Generate Self-Signed Certificate</option>
+                                <option value="upload">Upload Existing Certificate</option>
+                                <option value="letsencrypt">Let's Encrypt (ACME)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Domain Name</label>
+                            <input type="text" class="form-control" id="sslDomain" placeholder="crm.example.com">
+                            <div class="form-text">Required for Let's Encrypt; used as CN for self-signed.</div>
+                        </div>
+                    </div>
+
+                    <!-- Self-Signed Panel -->
+                    <div id="sslSelfSignedPanel" class="card mb-3">
+                        <div class="card-header py-2"><i class="bi bi-shield-check me-2"></i>Generate Self-Signed Certificate</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Validity (days)</label>
+                                    <input type="number" class="form-control" id="sslDays" value="365" min="30" max="3650">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Organisation</label>
+                                    <input type="text" class="form-control" id="sslOrg" value="CRM Solution">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn btn-primary w-100" onclick="generateSslCert()">
+                                        <i class="bi bi-shield-plus me-1"></i>Generate Certificate
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="sslGenResult" class="mt-3" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Upload Panel -->
+                    <div id="sslUploadPanel" class="card mb-3" style="display:none;">
+                        <div class="card-header py-2"><i class="bi bi-upload me-2"></i>Upload Certificate Files</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Certificate File (.crt / .pem)</label>
+                                    <input type="file" class="form-control" id="sslCertFile" accept=".crt,.pem,.cer">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Private Key File (.key / .pem)</label>
+                                    <input type="file" class="form-control" id="sslKeyFile" accept=".key,.pem">
+                                </div>
+                                <div class="col-12">
+                                    <button class="btn btn-primary" onclick="uploadSslCert()">
+                                        <i class="bi bi-cloud-upload me-1"></i>Upload &amp; Validate
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="sslUploadResult" class="mt-3" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Let's Encrypt Panel -->
+                    <div id="sslLetsEncryptPanel" class="card mb-3" style="display:none;">
+                        <div class="card-header py-2"><i class="bi bi-patch-check me-2"></i>Let's Encrypt (Auto-renewal)</div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Contact Email</label>
+                                    <input type="email" class="form-control" id="sslLetsEncryptEmail" placeholder="admin@example.com">
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check form-switch mt-4">
+                                        <input class="form-check-input" type="checkbox" id="sslLetsEncryptStaging">
+                                        <label class="form-check-label" for="sslLetsEncryptStaging">Use Staging (testing)</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="alert alert-info mt-3 py-2 small mb-0">
+                                <i class="bi bi-info-circle me-1"></i>Requires port 80 to be publicly accessible for HTTP-01 challenge. Domain DNS must point to this server.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Existing Certs -->
+                    <div class="card mb-3">
+                        <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                            <span><i class="bi bi-folder2 me-2"></i>Existing Certificates</span>
+                            <button class="btn btn-sm btn-outline-primary" onclick="loadSslStatus()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="sslCertList" class="p-3 text-muted small">Click Refresh to check for existing certificates.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Step (was 6, now 8) -->
+            <div class="wizard-section" data-section="8">
                 <h3 class="mb-3"><i class="bi bi-check-circle me-2"></i>Review &amp; Generate</h3>
                 <p class="text-muted mb-4">Your configuration is summarised below. Click <strong>Edit</strong> on any section to go back, or hit <strong>Generate Configuration</strong> when you're ready.</p>
 
@@ -2046,6 +2441,8 @@
                             <li id="chk-platform" class="mb-1">⏳ Target platform selected</li>
                             <li id="chk-db" class="mb-1">⏳ Database configured</li>
                             <li id="chk-arch" class="mb-1">⏳ Architecture chosen</li>
+                            <li id="chk-secrets" class="mb-1">⏳ Secrets configured</li>
+                            <li id="chk-ssl" class="mb-1">⏳ SSL certificates</li>
                         </ul>
                     </div>
                 </div>
@@ -2462,6 +2859,22 @@
                     <div class="accordion-body"><dl class="row mb-0" id="review-seed-data"></dl></div>
                   </div>
                 </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reviewSecrets">Secrets &amp; Auth</button>
+                  </h2>
+                  <div id="reviewSecrets" class="accordion-collapse collapse">
+                    <div class="accordion-body"><dl class="row mb-0" id="review-secrets-data"></dl></div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reviewSsl">SSL Configuration</button>
+                  </h2>
+                  <div id="reviewSsl" class="accordion-collapse collapse">
+                    <div class="accordion-body"><dl class="row mb-0" id="review-ssl-data"></dl></div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -2617,11 +3030,15 @@
             chat_provider: 'builtin',
             notification_provider: 'builtin',
             analytics_provider: 'builtin',
-            ai_provider: 'ollama'
+            ai_provider: 'ollama',
+            secrets: {},
+            ssl: { ssl_enabled: false },
+            service_accounts: {},
+            image_registry: { image_registry: 'ghcr.io', image_org: 'crm' }
         };
         
         let currentStep = 0;
-        const totalSteps = 6;
+        const totalSteps = 8;
 
         // Discovery state
         let discoveredConfig = null;
@@ -2970,6 +3387,177 @@
         function toggleAzureCreds() {}
         function toggleAwsCreds() {}
         function toggleGcpCreds() {}
+
+        // ─── Secrets & SSL helper functions ──────────────────────────────────
+
+        // Toggle password visibility for any input by id
+        function togglePwdVis(fieldId) {
+            const el = document.getElementById(fieldId);
+            if (!el) return;
+            el.type = el.type === 'password' ? 'text' : 'password';
+        }
+
+        // Auto-generate a password into a field
+        async function autoGenField(fieldId, length) {
+            try {
+                const resp = await fetch('/api/generate-password');
+                const data = await resp.json();
+                const el = document.getElementById(fieldId);
+                if (el) {
+                    // If length specified and longer than returned, generate locally
+                    if (length && length > 16) {
+                        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+                        let pwd = '';
+                        const arr = new Uint32Array(length);
+                        crypto.getRandomValues(arr);
+                        for (let i = 0; i < length; i++) pwd += chars[arr[i] % chars.length];
+                        el.value = pwd;
+                    } else {
+                        el.value = data.password || data;
+                    }
+                    el.type = 'text'; // show it briefly
+                    setTimeout(() => { el.type = 'password'; }, 2000);
+                }
+            } catch(e) {
+                // Fallback: generate locally
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+                const len = length || 16;
+                let pwd = '';
+                const arr = new Uint32Array(len);
+                crypto.getRandomValues(arr);
+                for (let i = 0; i < len; i++) pwd += chars[arr[i] % chars.length];
+                const el = document.getElementById(fieldId);
+                if (el) el.value = pwd;
+            }
+        }
+
+        // Auto-generate all empty secret fields
+        async function autoGenAllSecrets() {
+            const autoFields = [
+                'secretDbPassword', 'secretDbRootPassword', 'secretRedisPassword',
+                'secretJwtSecret', 'secretAdminPassword', 'secretMeilisearchKey',
+                'secretSupersetKey', 'secretN8nPassword'
+            ];
+            for (const fid of autoFields) {
+                const el = document.getElementById(fid);
+                if (el && !el.value.trim()) {
+                    const len = fid === 'secretJwtSecret' ? 64 : (fid === 'secretSupersetKey' ? 42 : 16);
+                    await autoGenField(fid, len);
+                }
+            }
+        }
+
+        // Load file content into a textarea
+        function loadFileToField(input, targetId) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const el = document.getElementById(targetId);
+                if (el) el.value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        // ─── SSL helper functions ──────────────────────────────────
+
+        function toggleSslOptions(enabled) {
+            const panel = document.getElementById('sslOptionsPanel');
+            if (panel) panel.style.display = enabled ? '' : 'none';
+        }
+
+        function toggleSslMode(mode) {
+            document.getElementById('sslSelfSignedPanel').style.display = mode === 'self_signed' ? '' : 'none';
+            document.getElementById('sslUploadPanel').style.display = mode === 'upload' ? '' : 'none';
+            document.getElementById('sslLetsEncryptPanel').style.display = mode === 'letsencrypt' ? '' : 'none';
+        }
+
+        async function generateSslCert() {
+            const domain = document.getElementById('sslDomain')?.value || 'localhost';
+            const days = parseInt(document.getElementById('sslDays')?.value || '365');
+            const org = document.getElementById('sslOrg')?.value || 'CRM Solution';
+            const result = document.getElementById('sslGenResult');
+            if (result) { result.style.display = ''; result.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Generating...'; }
+
+            try {
+                const resp = await fetch('/api/ssl/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ domain, days, org })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    result.innerHTML = `<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-1"></i>${data.message}<br><small class="text-muted">Cert: ${data.cert_path}<br>Key: ${data.key_path}</small></div>`;
+                    config.ssl = config.ssl || {};
+                    config.ssl.ssl_cert_path = data.cert_path;
+                    config.ssl.ssl_key_path = data.key_path;
+                } else {
+                    result.innerHTML = `<div class="alert alert-danger py-2 mb-0"><i class="bi bi-x-circle me-1"></i>${data.error}</div>`;
+                }
+            } catch(e) {
+                if (result) result.innerHTML = `<div class="alert alert-danger py-2 mb-0">Error: ${e.message}</div>`;
+            }
+        }
+
+        async function uploadSslCert() {
+            const certFile = document.getElementById('sslCertFile')?.files[0];
+            const keyFile = document.getElementById('sslKeyFile')?.files[0];
+            const result = document.getElementById('sslUploadResult');
+            if (!certFile || !keyFile) { alert('Please select both certificate and key files.'); return; }
+
+            const domain = document.getElementById('sslDomain')?.value || 'custom';
+            const formData = new FormData();
+            formData.append('cert', certFile);
+            formData.append('key', keyFile);
+            formData.append('domain', domain);
+
+            if (result) { result.style.display = ''; result.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Uploading...'; }
+
+            try {
+                const resp = await fetch('/api/ssl/upload', { method: 'POST', body: formData });
+                const data = await resp.json();
+                if (data.success) {
+                    result.innerHTML = `<div class="alert alert-success py-2 mb-0"><i class="bi bi-check-circle me-1"></i>${data.message}<br><small class="text-muted">${data.cert_info}</small></div>`;
+                    config.ssl = config.ssl || {};
+                    config.ssl.ssl_cert_path = data.cert_path;
+                    config.ssl.ssl_key_path = data.key_path;
+                } else {
+                    result.innerHTML = `<div class="alert alert-danger py-2 mb-0"><i class="bi bi-x-circle me-1"></i>${data.error}</div>`;
+                }
+            } catch(e) {
+                if (result) result.innerHTML = `<div class="alert alert-danger py-2 mb-0">Error: ${e.message}</div>`;
+            }
+        }
+
+        async function loadSslStatus() {
+            const el = document.getElementById('sslCertList');
+            if (!el) return;
+            el.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Loading...';
+            try {
+                const resp = await fetch('/api/ssl/status');
+                const data = await resp.json();
+                const certs = data.certificates || [];
+                if (!certs.length) {
+                    el.innerHTML = '<p class="text-muted small mb-0">No certificates found in ' + data.ssl_dir + '</p>';
+                    return;
+                }
+                let html = '<table class="table table-sm mb-0"><thead><tr><th>Domain</th><th>Expires</th><th>Has Key</th><th></th></tr></thead><tbody>';
+                certs.forEach(c => {
+                    html += `<tr><td>${c.domain}</td><td>${c.expires || '—'}</td><td>${c.has_key ? '✅' : '❌'}</td>`
+                          + `<td><button class="btn btn-sm btn-outline-danger" onclick="deleteSslCert('${c.domain}')"><i class="bi bi-trash"></i></button></td></tr>`;
+                });
+                html += '</tbody></table>';
+                el.innerHTML = html;
+            } catch(e) { el.innerHTML = `<div class="alert alert-warning py-1 small mb-0">${e.message}</div>`; }
+        }
+
+        async function deleteSslCert(domain) {
+            if (!confirm('Delete certificate for ' + domain + '?')) return;
+            try {
+                await fetch('/api/ssl/delete/' + encodeURIComponent(domain), { method: 'DELETE' });
+                loadSslStatus();
+            } catch(e) { alert('Error: ' + e.message); }
+        }
 
         // Install cloud SDK inline with SSE streaming
         function installCloudSdk() {
@@ -3786,6 +4374,62 @@
                 config.database_name = document.getElementById('dbName').value;
                 config.database_port = parseInt(document.getElementById('dbPort').value);
                 config.database_ha = document.getElementById('dbHighAvailability').checked;
+            } else if (currentStep === 6) {
+                // Secrets & Authentication
+                config.secrets = {
+                    image_registry: document.getElementById('secretImageRegistry')?.value || 'ghcr.io',
+                    image_org: document.getElementById('secretImageOrg')?.value || 'crm',
+                    registry_token: document.getElementById('secretRegistryToken')?.value || '',
+                    db_user: document.getElementById('secretDbUser')?.value || 'crm_user',
+                    db_password: document.getElementById('secretDbPassword')?.value || '',
+                    db_root_password: document.getElementById('secretDbRootPassword')?.value || '',
+                    redis_password: document.getElementById('secretRedisPassword')?.value || '',
+                    jwt_secret: document.getElementById('secretJwtSecret')?.value || '',
+                    admin_username: document.getElementById('secretAdminUsername')?.value || 'admin',
+                    admin_email: document.getElementById('secretAdminEmail')?.value || 'admin@crm.local',
+                    admin_password: document.getElementById('secretAdminPassword')?.value || '',
+                    meilisearch_master_key: document.getElementById('secretMeilisearchKey')?.value || '',
+                    superset_secret_key: document.getElementById('secretSupersetKey')?.value || '',
+                    chatwoot_api_key: document.getElementById('secretChatwootKey')?.value || '',
+                    novu_api_key: document.getElementById('secretNovuKey')?.value || '',
+                    docuseal_api_key: document.getElementById('secretDocusealKey')?.value || '',
+                    n8n_password: document.getElementById('secretN8nPassword')?.value || '',
+                    openai_api_key: document.getElementById('secretOpenaiKey')?.value || '',
+                    anthropic_api_key: document.getElementById('secretAnthropicKey')?.value || '',
+                };
+                // Service accounts
+                config.service_accounts = {};
+                const gcpSa = document.getElementById('secretGcpSaJson')?.value;
+                if (gcpSa) {
+                    config.service_accounts.gcp_sa_json = gcpSa;
+                    config.service_accounts.gcp_project = document.getElementById('secretGcpProject')?.value || '';
+                    config.service_accounts.gcp_region = document.getElementById('secretGcpRegion')?.value || '';
+                }
+                const azClientId = document.getElementById('secretAzureClientId')?.value;
+                if (azClientId) {
+                    config.service_accounts.azure_tenant_id = document.getElementById('secretAzureTenantId')?.value || '';
+                    config.service_accounts.azure_subscription_id = document.getElementById('secretAzureSubId')?.value || '';
+                    config.service_accounts.azure_client_id = azClientId;
+                    config.service_accounts.azure_client_secret = document.getElementById('secretAzureClientSecret')?.value || '';
+                }
+                const awsKey = document.getElementById('secretAwsAccessKey')?.value;
+                if (awsKey) {
+                    config.service_accounts.aws_access_key = awsKey;
+                    config.service_accounts.aws_secret_key = document.getElementById('secretAwsSecretKey')?.value || '';
+                    config.service_accounts.aws_region = document.getElementById('secretAwsRegion')?.value || '';
+                    config.service_accounts.aws_session_token = document.getElementById('secretAwsSessionToken')?.value || '';
+                }
+            } else if (currentStep === 7) {
+                // SSL Certificates
+                config.ssl = {
+                    ssl_enabled: document.getElementById('sslEnabled')?.checked || false,
+                    ssl_mode: document.getElementById('sslMode')?.value || 'self_signed',
+                    ssl_domain: document.getElementById('sslDomain')?.value || '',
+                    ssl_days: parseInt(document.getElementById('sslDays')?.value || '365'),
+                    ssl_org: document.getElementById('sslOrg')?.value || 'CRM Solution',
+                    ssl_letsencrypt_email: document.getElementById('sslLetsEncryptEmail')?.value || '',
+                    ssl_letsencrypt_staging: document.getElementById('sslLetsEncryptStaging')?.checked || false,
+                };
             }
         }
 
@@ -3829,6 +4473,8 @@
                 { id: 'chk-platform', ok: !!config.platform,     ok_msg: '✅ Platform: ' + (config.platform||'').replace('_',' ').toUpperCase(), fail_msg: '❌ No platform selected' },
                 { id: 'chk-db',       ok: !!config.database_type,ok_msg: '✅ Database: ' + (config.database_type||'mariadb').toUpperCase(), fail_msg: '⚠️ Using default database (MariaDB)' },
                 { id: 'chk-arch',     ok: !!config.architecture, ok_msg: '✅ Architecture: ' + (config.architecture ? config.architecture.charAt(0).toUpperCase()+config.architecture.slice(1) : 'Monolithic'), fail_msg: '⚠️ Using default architecture (Monolithic)' },
+                { id: 'chk-secrets',  ok: !!(config.secrets && (config.secrets.db_password || config.secrets.jwt_secret)), ok_msg: '✅ Secrets configured', fail_msg: '⚠️ Secrets will be auto-generated' },
+                { id: 'chk-ssl',      ok: !!(config.ssl && config.ssl.ssl_enabled), ok_msg: '✅ SSL enabled (' + (config.ssl?.ssl_mode || 'self_signed') + ')', fail_msg: '⚠️ SSL not configured (HTTP only)' },
             ];
             checks.forEach(c => { const el = document.getElementById(c.id); if (el) el.textContent = c.ok ? c.ok_msg : c.fail_msg; });
         }

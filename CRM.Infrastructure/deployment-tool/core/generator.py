@@ -136,6 +136,29 @@ class ConfigGenerator:
                 # Store scalar under its section key so templates can reference it
                 ctx[section] = val
 
+        # Secrets section (DB password, Redis, Meilisearch, provider keys, etc.)
+        secrets = profile.get("secrets", {})
+        if isinstance(secrets, dict):
+            ctx.update(secrets)
+
+        # SSL section
+        ssl = profile.get("ssl", {})
+        if isinstance(ssl, dict):
+            ctx.update(ssl)
+
+        # Image registry section
+        registry = profile.get("image_registry", {})
+        if isinstance(registry, dict):
+            ctx.update(registry)
+        elif registry and isinstance(registry, str):
+            ctx["image_registry"] = registry
+
+        # Service accounts section
+        service_accounts = profile.get("service_accounts", {})
+        if isinstance(service_accounts, dict):
+            ctx["service_accounts"] = service_accounts
+            ctx.update(service_accounts)
+
         # Providers kept under their own key AND flattened for convenience
         providers = profile.get("providers", {})
         ctx["providers"] = providers
@@ -160,6 +183,18 @@ class ConfigGenerator:
             ctx["db_password"] = self.generate_password(20)
         if not ctx.get("jwt_secret"):
             ctx["jwt_secret"] = self.generate_token(32)
+        if not ctx.get("db_root_password"):
+            ctx["db_root_password"] = self.generate_password(24)
+
+        # Default image registry values
+        if not ctx.get("image_registry"):
+            ctx["image_registry"] = "ghcr.io"
+        if not ctx.get("image_org"):
+            ctx["image_org"] = "crm"
+
+        # SSL defaults
+        if "ssl_enabled" not in ctx:
+            ctx["ssl_enabled"] = False
 
         return ctx
 
