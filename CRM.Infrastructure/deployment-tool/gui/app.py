@@ -301,7 +301,7 @@ def get_discovery_platforms():
     availability = {}
     missing_packages: dict = {}
     _sdk_map = {
-        'azure': ['azure-identity', 'azure-mgmt-compute', 'azure-mgmt-containerinstance'],
+        'azure': ['azure-identity', 'azure-mgmt-compute'],  # azure-mgmt-containerinstance is optional (ACI discovery)
         'aws': ['boto3'],
         'gcp': ['google-cloud-compute', 'google-cloud-container'],
     }

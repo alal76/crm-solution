@@ -48,10 +48,9 @@ def _requests_available() -> bool:
     return _check_available("requests")
 
 def _azure_available() -> bool:
-    # Check for Azure SDK — any one of the key packages is sufficient as a proxy
+    # Core Azure SDK packages are sufficient — azure.mgmt.containerinstance is optional
     return (_check_available("azure.identity")
-            and _check_available("azure.mgmt.compute")
-            and _check_available("azure.mgmt.containerinstance"))
+            and _check_available("azure.mgmt.compute"))
 
 def _azure_selectable() -> bool:  # noqa: D103 — always selectable for manual config
     return True
@@ -410,9 +409,9 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
             try:
                 from prerequisites import ensure_group_installed
                 if not ensure_group_installed("azure"):
-                    raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance")
+                    raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute")
             except ImportError as orig:
-                raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance") from orig
+                raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute") from orig
 
     def _build_credential(self, config: Dict[str, Any]):
         """Build Azure credential from explicit config or fall back to DefaultAzureCredential."""
@@ -477,8 +476,16 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
         components: List[DeploymentComponent] = []
         azure_compute = _lazy_import("azure.mgmt.compute")
         compute_client = azure_compute.ComputeManagementClient(credential, subscription_id)
-        azure_container = _lazy_import("azure.mgmt.containerinstance")
-        container_client = azure_container.ContainerInstanceManagementClient(credential, subscription_id)
+        # azure.mgmt.containerinstance is optional — ACI scanning skipped if not installed
+        container_client = None
+        try:
+            azure_container = _lazy_import("azure.mgmt.containerinstance")
+            container_client = azure_container.ContainerInstanceManagementClient(credential, subscription_id)
+        except (ImportError, ModuleNotFoundError):
+            logger.warning(
+                "azure.mgmt.containerinstance not installed — Azure Container Instance "
+                "discovery skipped. Install it with: pip install azure-mgmt-containerinstance"
+            )
         for rg in resource_groups:
             components += self._scan_resource_group(compute_client, container_client, rg)
         architecture = "microservices" if len(components) > 3 else "monolithic"
@@ -554,18 +561,19 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
                     ))
         except Exception:
             pass
-        try:
-            for cg in container_client.container_groups.list_by_resource_group(rg):
-                if 'crm' in cg.name.lower():
-                    for c in cg.containers:
-                        out.append(DeploymentComponent(
-                            name=f"{cg.name}/{c.name}", type="container", status="running",
-                            image=c.image,
-                            ports=[p.port for p in c.ports] if c.ports else [],
-                            metadata={"resource_group": rg}
-                        ))
-        except Exception:
-            pass
+        if container_client is not None:
+            try:
+                for cg in container_client.container_groups.list_by_resource_group(rg):
+                    if 'crm' in cg.name.lower():
+                        for c in cg.containers:
+                            out.append(DeploymentComponent(
+                                name=f"{cg.name}/{c.name}", type="container", status="running",
+                                image=c.image,
+                                ports=[p.port for p in c.ports] if c.ports else [],
+                                metadata={"resource_group": rg}
+                            ))
+            except Exception:
+                pass
         return out
 
 
