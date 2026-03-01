@@ -592,7 +592,7 @@
                     <li class="nav-item"><a class="nav-link" href="/day2"><i class="bi bi-tools me-1"></i>Day-2 Operations</a></li>
                     <li class="nav-item"><a class="nav-link" href="/profiles"><i class="bi bi-folder2-open me-1"></i>Profiles</a></li>
                 </ul>
-                <span class="badge bg-secondary">v0.614.11</span>
+                <span class="badge bg-secondary">v0.614.15</span>
             </div>
         </div>
     </nav>
@@ -2080,6 +2080,89 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Build Locally toggle + recommendation hint -->
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="buildLocally">
+                                    <label class="form-check-label" for="buildLocally">
+                                        <strong>Build images locally</strong>
+                                        <small class="text-muted d-block">Build CRM API &amp; Frontend from source instead of pulling from a registry</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div id="registryHint" class="alert alert-info py-2 mb-0 d-none" role="alert">
+                                    <small id="registryHintText"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Registry Management (collapsible) -->
+                <div class="card mb-3">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center" style="cursor:pointer"
+                         data-bs-toggle="collapse" data-bs-target="#registryMgmtBody" aria-expanded="false">
+                        <span><i class="bi bi-hdd-stack me-2"></i><strong>Image Registry Management</strong></span>
+                        <i class="bi bi-chevron-down"></i>
+                    </div>
+                    <div class="collapse" id="registryMgmtBody">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">View local CRM images, check deployed versions, and clean up old images.</span>
+                                <button class="btn btn-sm btn-outline-primary" onclick="loadRegistryImages()">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                                </button>
+                            </div>
+
+                            <!-- Local Images Table -->
+                            <h6><i class="bi bi-layers me-1"></i>Local Images</h6>
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-hover" id="registryImagesTable">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="regSelectAll" onchange="toggleRegSelectAll(this)"></th>
+                                            <th>Repository</th>
+                                            <th>Tag</th>
+                                            <th>Image ID</th>
+                                            <th>Created</th>
+                                            <th>Size</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="registryImagesBody">
+                                        <tr><td colspan="6" class="text-center text-muted">Click Refresh to load images</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex gap-2 mb-4">
+                                <button class="btn btn-sm btn-outline-danger" onclick="purgeSelectedImages()" id="btnPurgeSelected" disabled>
+                                    <i class="bi bi-trash me-1"></i>Remove Selected
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning" onclick="purgeDanglingImages()">
+                                    <i class="bi bi-eraser me-1"></i>Prune Dangling
+                                </button>
+                            </div>
+
+                            <!-- Deployed Versions -->
+                            <h6><i class="bi bi-play-circle me-1"></i>Deployed Container Versions</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover" id="deployedVersionsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Container</th>
+                                            <th>Image</th>
+                                            <th>Running ID</th>
+                                            <th>Status</th>
+                                            <th>Update?</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="deployedVersionsBody">
+                                        <tr><td colspan="5" class="text-center text-muted">Click Refresh to check</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -3034,7 +3117,7 @@
             secrets: {},
             ssl: { ssl_enabled: false },
             service_accounts: {},
-            image_registry: { image_registry: '', image_org: '' }
+            image_registry: { image_registry: '', image_org: '', build_locally: false }
         };
         
         let currentStep = 0;
@@ -4347,6 +4430,136 @@
             document.getElementById('btnGenerate').style.display = currentStep === totalSteps ? 'block' : 'none';
         }
 
+        // ── Registry Management JS ─────────────────────────────────── //
+
+        /** Load local CRM images and deployed container versions. */
+        async function loadRegistryImages() {
+            try {
+                const [imgRes, depRes] = await Promise.all([
+                    fetch('/api/registry/images'),
+                    fetch('/api/registry/deployed'),
+                ]);
+                const imgData = await imgRes.json();
+                const depData = await depRes.json();
+                renderImageTable(imgData.images || []);
+                renderDeployedTable(depData.containers || []);
+            } catch (err) {
+                console.error('Registry load error:', err);
+            }
+        }
+
+        function renderImageTable(images) {
+            const tbody = document.getElementById('registryImagesBody');
+            if (!images.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No CRM images found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = images.map(img => `
+                <tr>
+                    <td><input type="checkbox" class="reg-img-cb" value="${img.image_id}"></td>
+                    <td><code>${img.repository}</code></td>
+                    <td><span class="badge bg-secondary">${img.tag}</span></td>
+                    <td><code>${img.image_id}</code></td>
+                    <td>${img.created}</td>
+                    <td>${img.size}</td>
+                </tr>`).join('');
+            updatePurgeBtn();
+        }
+
+        function renderDeployedTable(containers) {
+            const tbody = document.getElementById('deployedVersionsBody');
+            if (!containers.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No running CRM containers</td></tr>';
+                return;
+            }
+            tbody.innerHTML = containers.map(c => {
+                const badge = c.needs_update
+                    ? '<span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Update available</span>'
+                    : '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Up to date</span>';
+                return `<tr>
+                    <td><code>${c.container}</code></td>
+                    <td>${c.image}</td>
+                    <td><code>${c.image_id}</code></td>
+                    <td>${c.status}</td>
+                    <td>${badge}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function toggleRegSelectAll(cb) {
+            document.querySelectorAll('.reg-img-cb').forEach(c => { c.checked = cb.checked; });
+            updatePurgeBtn();
+        }
+
+        function updatePurgeBtn() {
+            const any = document.querySelectorAll('.reg-img-cb:checked').length > 0;
+            const btn = document.getElementById('btnPurgeSelected');
+            if (btn) btn.disabled = !any;
+        }
+        // Delegate change events on checkboxes
+        document.addEventListener('change', e => {
+            if (e.target.classList.contains('reg-img-cb')) updatePurgeBtn();
+        });
+
+        async function purgeSelectedImages() {
+            const ids = [...document.querySelectorAll('.reg-img-cb:checked')].map(c => c.value);
+            if (!ids.length) return;
+            if (!confirm('Remove ' + ids.length + ' image(s)? This cannot be undone.')) return;
+            try {
+                const res = await fetch('/api/registry/purge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ image_ids: ids }),
+                });
+                const data = await res.json();
+                if (data.errors && data.errors.length) {
+                    alert('Some removals failed:\n' + data.errors.join('\n'));
+                }
+                loadRegistryImages();
+            } catch (err) { alert('Purge failed: ' + err); }
+        }
+
+        async function purgeDanglingImages() {
+            if (!confirm('Remove all dangling (unused) Docker images?')) return;
+            try {
+                const res = await fetch('/api/registry/purge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dangling: true }),
+                });
+                const data = await res.json();
+                alert('Dangling images pruned.\n' + (data.removed || []).join('\n'));
+                loadRegistryImages();
+            } catch (err) { alert('Prune failed: ' + err); }
+        }
+
+        /** Auto-populate registry fields based on selected platform. */
+        async function autoPopulateRegistry(platform) {
+            try {
+                const res = await fetch('/api/registry/recommend?platform=' + encodeURIComponent(platform));
+                const data = await res.json();
+                const rec = data.recommendation || {};
+                const regEl = document.getElementById('secretImageRegistry');
+                const orgEl = document.getElementById('secretImageOrg');
+                const buildEl = document.getElementById('buildLocally');
+                const hintEl = document.getElementById('registryHint');
+                const hintText = document.getElementById('registryHintText');
+
+                // Only auto-fill if user hasn't already entered values
+                if (regEl && !regEl.value) regEl.value = rec.image_registry || '';
+                if (orgEl && !orgEl.value) orgEl.value = rec.image_org || '';
+                if (buildEl) buildEl.checked = !!rec.build_locally;
+                if (hintEl && hintText && rec.hint) {
+                    hintText.textContent = rec.hint;
+                    hintEl.classList.remove('d-none');
+                }
+            } catch (err) {
+                console.error('Registry recommend error:', err);
+            }
+        }
+
+        // ── End Registry Management JS ─────────────────────────────── //
+
         function collectStepData() {
             // Collect data from current step
             if (currentStep === 1) {
@@ -4370,6 +4583,8 @@
                     config.onprem_container_runtime = document.getElementById('onpremContainerRuntime').value;
                     config.onprem_orchestration = document.getElementById('onpremOrchestration').value;
                 }
+                // Auto-populate recommended registry for selected platform
+                autoPopulateRegistry(config.platform || 'local_docker');
             } else if (currentStep === 4) {
                 config.database_name = document.getElementById('dbName').value;
                 config.database_port = parseInt(document.getElementById('dbPort').value);
@@ -4390,6 +4605,19 @@
                     admin_password: document.getElementById('secretAdminPassword')?.value || '',
                     meilisearch_master_key: document.getElementById('secretMeilisearchKey')?.value || '',
                     superset_secret_key: document.getElementById('secretSupersetKey')?.value || '',
+                    chatwoot_api_key: document.getElementById('secretChatwootKey')?.value || '',
+                    novu_api_key: document.getElementById('secretNovuKey')?.value || '',
+                    docuseal_api_key: document.getElementById('secretDocusealKey')?.value || '',
+                    n8n_password: document.getElementById('secretN8nPassword')?.value || '',
+                    openai_api_key: document.getElementById('secretOpenaiKey')?.value || '',
+                    anthropic_api_key: document.getElementById('secretAnthropicKey')?.value || '',
+                };
+                // Image registry config (merged into profile)
+                config.image_registry = {
+                    image_registry: document.getElementById('secretImageRegistry')?.value || '',
+                    image_org: document.getElementById('secretImageOrg')?.value || '',
+                    build_locally: document.getElementById('buildLocally')?.checked || false,
+                };
                     chatwoot_api_key: document.getElementById('secretChatwootKey')?.value || '',
                     novu_api_key: document.getElementById('secretNovuKey')?.value || '',
                     docuseal_api_key: document.getElementById('secretDocusealKey')?.value || '',

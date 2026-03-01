@@ -12,6 +12,12 @@ from typing import Optional
 
 DOCKER_COMPOSE_FILE = "docker-compose.yml"
 
+# Images that may be built locally (name → Dockerfile relative to repo root)
+LOCAL_BUILD_IMAGES = {
+    "crm-api": "docker/Dockerfile.backend",
+    "crm-frontend": "docker/Dockerfile.frontend",
+}
+
 
 @dataclass
 class DeployEvent:
@@ -46,7 +52,7 @@ class DockerComposeDeployer:
         self.log_queue = log_queue if log_queue is not None else queue.Queue()
         self.dry_run = dry_run
         self._abort = threading.Event()
-        self.total_steps = 12
+        self.total_steps = 13
 
     def _emit(self, message: str, level: str = "info", step: int = 0) -> None:
         pct = int((step / self.total_steps) * 100) if self.total_steps else 0
@@ -77,18 +83,19 @@ class DockerComposeDeployer:
 
     def deploy(self) -> bool:
         steps = [
-            (1,  "Validating prerequisites", self._step_validate_prerequisites),
-            (2,  "Pulling images",           self._step_pull_images),
-            (3,  "Creating networks",        self._step_create_networks),
-            (4,  "Starting databases",       self._step_start_databases),
-            (5,  "Waiting for databases",    self._step_wait_databases),
-            (6,  "Running migrations",       self._step_run_migrations),
-            (7,  "Starting providers",       self._step_start_providers),
-            (8,  "Starting API",             self._step_start_api),
-            (9,  "Health checking API",      self._step_health_check_api),
-            (10, "Starting frontend",        self._step_start_frontend),
-            (11, "Seeding data",             self._step_configure_seed),
-            (12, "Finishing",                self._step_finish),
+            (1,  "Validating prerequisites",  self._step_validate_prerequisites),
+            (2,  "Building local images",      self._step_build_local_images),
+            (3,  "Pulling images",             self._step_pull_images),
+            (4,  "Creating networks",          self._step_create_networks),
+            (5,  "Starting databases",         self._step_start_databases),
+            (6,  "Waiting for databases",      self._step_wait_databases),
+            (7,  "Running migrations",         self._step_run_migrations),
+            (8,  "Starting providers",         self._step_start_providers),
+            (9,  "Starting API",               self._step_start_api),
+            (10, "Health checking API",        self._step_health_check_api),
+            (11, "Starting frontend",          self._step_start_frontend),
+            (12, "Seeding data",               self._step_configure_seed),
+            (13, "Finishing",                  self._step_finish),
         ]
         for step_num, step_name, step_fn in steps:
             if self._abort.is_set():
@@ -113,6 +120,64 @@ class DockerComposeDeployer:
             )
             return False
         self._emit("Docker is available", "info")
+        return True
+
+    # ------------------------------------------------------------------ #
+    #  Step 2 — Build Local Images (skipped when using a remote registry) #
+    # ------------------------------------------------------------------ #
+    def _step_build_local_images(self) -> bool:
+        """Build CRM Docker images from source when build_locally is enabled."""
+        img_reg = self.profile.get("image_registry", {})
+        build_locally = img_reg.get("build_locally", False)
+
+        if not build_locally:
+            self._emit("Skipping local build — using registry images", "info")
+            return True
+
+        # Resolve repo root: profile may override, else walk up from this file
+        repo_root = self.profile.get("target", {}).get("repo_root")
+        if not repo_root:
+            repo_root = str(Path(__file__).resolve().parent.parent.parent.parent)
+        repo_root = Path(repo_root)
+
+        if not repo_root.is_dir():
+            self._emit(f"Repo root not found: {repo_root}", "error")
+            return False
+
+        # Determine image tag — use crm_version from profile or 'latest'
+        tag = self.profile.get("target", {}).get("crm_version", "latest")
+
+        built, failed = 0, 0
+        for name, dockerfile in LOCAL_BUILD_IMAGES.items():
+            df_path = repo_root / dockerfile
+            if not df_path.is_file():
+                self._emit(f"Dockerfile not found: {df_path} — skipping {name}", "warn")
+                continue
+
+            image_tag = f"{name}:{tag}"
+            self._emit(f"Building {image_tag} from {dockerfile} …")
+            rc, _out, err = self._run(
+                [
+                    "docker", "build",
+                    "--platform", "linux/amd64",
+                    "-t", image_tag,
+                    "-f", str(df_path),
+                    ".",
+                ],
+                cwd=repo_root,
+                timeout=600,
+            )
+            if rc != 0:
+                self._emit(f"Build failed for {name}: {err[:300]}", "error")
+                failed += 1
+            else:
+                self._emit(f"Built {image_tag} successfully", "success")
+                built += 1
+
+        if failed > 0:
+            self._emit(f"{failed} image(s) failed to build", "error")
+            return False
+        self._emit(f"{built} image(s) built successfully", "success")
         return True
 
     def _step_pull_images(self) -> bool:
@@ -273,3 +338,163 @@ class DockerComposeDeployer:
             "running": running,
             "stopped": len(containers) - running,
         }
+
+
+# ════════════════════════════════════════════════════════════════════════ #
+#  Registry helper utilities (used by registry_routes blueprint)          #
+# ════════════════════════════════════════════════════════════════════════ #
+
+CRM_IMAGE_PREFIX = "crm-"
+
+
+def _run_cmd(cmd: list, timeout: int = 30) -> tuple:
+    """Run a shell command and return (rc, stdout, stderr)."""
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        return (result.returncode, result.stdout, result.stderr)
+    except Exception as exc:
+        return (1, "", str(exc))
+
+
+def list_local_images(filter_crm: bool = True) -> list:
+    """Return a list of dicts describing local Docker images.
+
+    Each dict: {repository, tag, image_id, created, size}.
+    When *filter_crm* is True only images whose repo starts with ``crm-`` are
+    returned.
+    """
+    rc, out, _ = _run_cmd(
+        ["docker", "images", "--format", "{{json .}}"]
+    )
+    if rc != 0 or not out.strip():
+        return []
+    images = []
+    for line in out.strip().splitlines():
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        repo = obj.get("Repository", "")
+        if filter_crm and not repo.startswith(CRM_IMAGE_PREFIX):
+            continue
+        images.append({
+            "repository": repo,
+            "tag": obj.get("Tag", ""),
+            "image_id": obj.get("ID", ""),
+            "created": obj.get("CreatedSince", ""),
+            "size": obj.get("Size", ""),
+        })
+    return images
+
+
+def get_deployed_image_versions() -> list:
+    """Return image info for running CRM containers.
+
+    Each dict: {container, image, image_id, status, needs_update: bool}.
+    ``needs_update`` is True when a newer local image exists that differs from
+    the running container's image ID.
+    """
+    rc, out, _ = _run_cmd(
+        ["docker", "ps", "--filter", "name=crm-", "--format", "{{json .}}"]
+    )
+    if rc != 0 or not out.strip():
+        return []
+
+    # Build a lookup: repo -> newest local image id
+    local = {}
+    for img in list_local_images(filter_crm=True):
+        key = f"{img['repository']}:{img['tag']}"
+        local[key] = img["image_id"]
+
+    result = []
+    for line in out.strip().splitlines():
+        try:
+            obj = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        container_image = obj.get("Image", "")
+        container_id = obj.get("ID", "")
+        # Get the image ID the container was started with
+        irc, iout, _ = _run_cmd(
+            ["docker", "inspect", "--format", "{{.Image}}", container_id]
+        )
+        running_image_id = iout.strip()[:12] if irc == 0 else ""
+        newest_id = local.get(container_image, "")
+        result.append({
+            "container": obj.get("Names", ""),
+            "image": container_image,
+            "image_id": running_image_id,
+            "status": obj.get("Status", ""),
+            "needs_update": bool(newest_id and newest_id != running_image_id),
+        })
+    return result
+
+
+def purge_images(image_ids: list = None, dangling_only: bool = False) -> dict:
+    """Remove specified images or dangling images.
+
+    Returns dict with 'removed' (list) and 'errors' (list).
+    """
+    removed, errors = [], []
+    if dangling_only:
+        rc, out, err = _run_cmd(["docker", "image", "prune", "-f"])
+        if rc == 0:
+            removed.append(out.strip())
+        else:
+            errors.append(err.strip())
+    elif image_ids:
+        for iid in image_ids:
+            rc, _out, err = _run_cmd(["docker", "rmi", str(iid)])
+            if rc == 0:
+                removed.append(iid)
+            else:
+                errors.append(f"{iid}: {err.strip()}")
+    return {"removed": removed, "errors": errors}
+
+
+# Recommended registry config per platform
+PLATFORM_REGISTRY_DEFAULTS = {
+    "local_docker": {
+        "registry_type": "local",
+        "image_registry": "",
+        "image_org": "",
+        "build_locally": True,
+        "hint": "Images built from source on this machine.",
+    },
+    "on_premises": {
+        "registry_type": "local",
+        "image_registry": "",
+        "image_org": "",
+        "build_locally": True,
+        "hint": "Build locally or push to a private registry (e.g. registry.internal:5000).",
+    },
+    "azure": {
+        "registry_type": "acr",
+        "image_registry": "<your-acr-name>.azurecr.io",
+        "image_org": "crm",
+        "build_locally": False,
+        "hint": "Use Azure Container Registry (ACR). Create with: az acr create -n <name> -g <rg> --sku Basic",
+    },
+    "aws": {
+        "registry_type": "ecr",
+        "image_registry": "<account-id>.dkr.ecr.<region>.amazonaws.com",
+        "image_org": "crm",
+        "build_locally": False,
+        "hint": "Use Amazon ECR. Create repos with: aws ecr create-repository --repository-name crm/<svc>",
+    },
+    "gcp": {
+        "registry_type": "gar",
+        "image_registry": "<region>-docker.pkg.dev/<project-id>",
+        "image_org": "crm",
+        "build_locally": False,
+        "hint": "Use Google Artifact Registry. Create with: gcloud artifacts repositories create crm --repository-format=docker",
+    },
+}
+
+
+def recommend_registry(platform: str) -> dict:
+    """Return recommended registry configuration for the given platform."""
+    return PLATFORM_REGISTRY_DEFAULTS.get(
+        platform,
+        PLATFORM_REGISTRY_DEFAULTS["local_docker"],
+    )

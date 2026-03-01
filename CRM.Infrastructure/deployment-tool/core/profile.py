@@ -23,6 +23,8 @@ from typing import Any, Optional
 # ---------------------------------------------------------------------------
 
 
+EXAMPLE_DOMAIN = "crm.example.com"
+
 class ProfileNotFoundError(Exception):
     """Raised when a profile with the given name does not exist."""
 
@@ -345,16 +347,17 @@ class ProfileManager:
     # ------------------------------------------------------------------
 
     def get_templates(self) -> list[dict]:
-        """Return 7 quick-start template profile dicts."""
+        """Return comprehensive quick-start template profiles for each target."""
         _now = datetime.now(timezone.utc).isoformat()
 
-        def _base(name: str) -> dict:
+        def _base(name: str, *, description: str = "") -> dict:
             return {
                 "meta": {
                     "profile_name": name,
+                    "description": description,
                     "created_at": _now,
                     "updated_at": _now,
-                    "crm_version": "0.608.1",
+                    "crm_version": "latest",
                 },
                 "target": {},
                 "architecture": {},
@@ -362,70 +365,427 @@ class ProfileManager:
                 "network": {},
                 "security": {},
                 "providers": {},
+                "secrets": {},
+                "ssl": {"ssl_enabled": False},
+                "image_registry": {},
+                "service_accounts": {},
                 "seed": {},
             }
 
         def _merge(base: dict, overrides: dict) -> dict:
             """Shallow-merge top-level sections."""
             for section, values in overrides.items():
-                base.setdefault(section, {}).update(values)
+                if isinstance(values, dict) and isinstance(base.get(section), dict):
+                    base[section].update(values)
+                else:
+                    base[section] = values
             return base
 
         templates = [
+            # ── Local Docker (developer workstation) ─────────────────
             _merge(
-                _base("local-dev"),
+                _base("local-dev", description="Local development with Docker Compose — no registry, builds images locally"),
                 {
-                    "target": {"provider": "local_docker", "environment_type": "development", "use_ssl": False},
-                    "architecture": {"mode": "monolith", "container_runtime": "docker_compose"},
+                    "target": {
+                        "provider": "local_docker",
+                        "environment_type": "development",
+                        "use_ssl": False,
+                        "domain_name": "localhost",
+                    },
+                    "architecture": {
+                        "mode": "monolith",
+                        "container_runtime": "docker_compose",
+                    },
+                    "database": {
+                        "db_provider": "mariadb",
+                        "db_host": "crm-mariadb",
+                        "db_port": 3306,
+                        "db_name": "crm_db",
+                        "db_user": "crm_user",
+                        "db_version": "10.11",
+                    },
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "ollama",
+                        "chat_provider": "builtin",
+                        "notification_provider": "builtin",
+                        "analytics_provider": "builtin",
+                        "signature_provider": "builtin",
+                        "integration_provider": "builtin",
+                    },
+                    "image_registry": {
+                        "image_registry": "",
+                        "image_org": "",
+                        "build_locally": True,
+                    },
+                    "secrets": {
+                        "admin_username": "admin",
+                        "admin_email": "admin@crm.local",
+                    },
+                },
+            ),
+            # ── On-Premises Docker (remote server) ──────────────────
+            _merge(
+                _base("on-prem-docker", description="On-premises server with Docker Compose — local registry recommended"),
+                {
+                    "target": {
+                        "provider": "on_prem_vm",
+                        "environment_type": "production",
+                        "use_ssl": True,
+                        "domain_name": "crm.internal",
+                        "host": "192.168.0.9",
+                        "ssh_port": 22,
+                        "ssh_user": "root",
+                    },
+                    "architecture": {
+                        "mode": "monolith",
+                        "container_runtime": "docker_compose",
+                    },
+                    "database": {
+                        "db_provider": "mariadb",
+                        "db_host": "crm-mariadb",
+                        "db_port": 3306,
+                        "db_name": "crm_db",
+                        "db_user": "crm_user",
+                        "db_version": "10.11",
+                    },
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "ollama",
+                        "chat_provider": "builtin",
+                        "notification_provider": "builtin",
+                        "analytics_provider": "builtin",
+                        "signature_provider": "builtin",
+                        "integration_provider": "builtin",
+                    },
+                    "image_registry": {
+                        "image_registry": "",
+                        "image_org": "",
+                        "build_locally": True,
+                    },
+                    "ssl": {"ssl_enabled": True, "ssl_mode": "self_signed"},
+                    "secrets": {
+                        "admin_username": "admin",
+                        "admin_email": "admin@crm.local",
+                    },
+                },
+            ),
+            # ── On-Premises Kubernetes ──────────────────────────────
+            _merge(
+                _base("on-prem-k8s", description="On-premises Kubernetes cluster — local registry (e.g. Harbor) recommended"),
+                {
+                    "target": {
+                        "provider": "on_prem_bare",
+                        "environment_type": "production",
+                        "use_ssl": True,
+                        "domain_name": "crm.internal",
+                    },
+                    "architecture": {
+                        "mode": "microservices",
+                        "container_runtime": "kubernetes",
+                    },
                     "database": {"db_provider": "mariadb"},
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "ollama",
+                        "chat_provider": "chatwoot",
+                        "notification_provider": "novu",
+                        "analytics_provider": "superset",
+                        "signature_provider": "docuseal",
+                        "integration_provider": "n8n",
+                    },
+                    "image_registry": {
+                        "image_registry": "registry.internal:5000",
+                        "image_org": "crm",
+                        "build_locally": False,
+                    },
+                    "ssl": {"ssl_enabled": True, "ssl_mode": "letsencrypt"},
                 },
             ),
+            # ── AWS ECS (Fargate) ────────────────────────────────────
             _merge(
-                _base("aws-ecs-monolith"),
+                _base("aws-ecs", description="AWS ECS Fargate with ECR — managed containers, RDS MariaDB, ElastiCache"),
                 {
-                    "target": {"provider": "aws", "environment_type": "production", "use_ssl": True},
-                    "architecture": {"mode": "monolith", "container_runtime": "ecs_fargate"},
-                    "database": {"db_provider": "rds_mysql"},
+                    "target": {
+                        "provider": "aws",
+                        "environment_type": "production",
+                        "use_ssl": True,
+                        "domain_name": EXAMPLE_DOMAIN,
+                        "aws_region": "us-east-1",
+                    },
+                    "architecture": {
+                        "mode": "monolith",
+                        "container_runtime": "ecs_fargate",
+                    },
+                    "database": {
+                        "db_provider": "rds_mysql",
+                        "db_host": "crm-db.cluster-xxx.us-east-1.rds.amazonaws.com",
+                        "db_port": 3306,
+                        "db_name": "crm_db",
+                        "db_user": "crm_admin",
+                    },
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "openai",
+                        "chat_provider": "builtin",
+                        "notification_provider": "novu",
+                        "analytics_provider": "superset",
+                        "signature_provider": "builtin",
+                        "integration_provider": "builtin",
+                    },
+                    "image_registry": {
+                        "image_registry": "<account-id>.dkr.ecr.us-east-1.amazonaws.com",
+                        "image_org": "crm",
+                        "build_locally": False,
+                        "registry_type": "ecr",
+                    },
+                    "ssl": {"ssl_enabled": True, "ssl_mode": "acm"},
+                    "service_accounts": {
+                        "aws": {
+                            "aws_region": "us-east-1",
+                            "aws_access_key_id": "",
+                            "aws_secret_access_key": "",
+                        }
+                    },
                 },
             ),
+            # ── AWS EKS (Kubernetes) ─────────────────────────────────
             _merge(
-                _base("aws-eks-microservices"),
+                _base("aws-eks", description="AWS EKS managed Kubernetes with ECR — full microservices deployment"),
                 {
-                    "target": {"provider": "aws", "environment_type": "production", "use_ssl": True},
-                    "architecture": {"mode": "microservices", "container_runtime": "kubernetes"},
-                    "database": {"db_provider": "rds_mysql"},
+                    "target": {
+                        "provider": "aws",
+                        "environment_type": "production",
+                        "use_ssl": True,
+                        "domain_name": EXAMPLE_DOMAIN,
+                        "aws_region": "us-east-1",
+                    },
+                    "architecture": {
+                        "mode": "microservices",
+                        "container_runtime": "kubernetes",
+                    },
+                    "database": {
+                        "db_provider": "rds_mysql",
+                        "db_host": "crm-db.cluster-xxx.us-east-1.rds.amazonaws.com",
+                        "db_port": 3306,
+                        "db_name": "crm_db",
+                        "db_user": "crm_admin",
+                    },
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "openai",
+                        "chat_provider": "chatwoot",
+                        "notification_provider": "novu",
+                        "analytics_provider": "superset",
+                        "signature_provider": "docuseal",
+                        "integration_provider": "n8n",
+                    },
+                    "image_registry": {
+                        "image_registry": "<account-id>.dkr.ecr.us-east-1.amazonaws.com",
+                        "image_org": "crm",
+                        "build_locally": False,
+                        "registry_type": "ecr",
+                    },
+                    "ssl": {"ssl_enabled": True, "ssl_mode": "acm"},
+                    "service_accounts": {
+                        "aws": {
+                            "aws_region": "us-east-1",
+                            "aws_access_key_id": "",
+                            "aws_secret_access_key": "",
+                        }
+                    },
                 },
             ),
+            # ── Azure AKS ──────────────────────────────────────────
             _merge(
-                _base("azure-aks-microservices"),
+                _base("azure-aks", description="Azure AKS managed Kubernetes with ACR — full microservices deployment"),
                 {
-                    "target": {"provider": "azure", "environment_type": "production", "use_ssl": True},
-                    "architecture": {"mode": "microservices", "container_runtime": "kubernetes"},
-                    "database": {"db_provider": "azure_mysql"},
+                    "target": {
+                        "provider": "azure",
+                        "environment_type": "production",
+                        "use_ssl": True,
+                        "domain_name": EXAMPLE_DOMAIN,
+                        "azure_region": "eastus",
+                    },
+                    "architecture": {
+                        "mode": "microservices",
+                        "container_runtime": "kubernetes",
+                    },
+                    "database": {
+                        "db_provider": "azure_mysql",
+                        "db_host": "crm-db.mysql.database.azure.com",
+                        "db_port": 3306,
+                        "db_name": "crm_db",
+                        "db_user": "crm_admin",
+                    },
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "azure_openai",
+                        "chat_provider": "chatwoot",
+                        "notification_provider": "novu",
+                        "analytics_provider": "superset",
+                        "signature_provider": "docuseal",
+                        "integration_provider": "n8n",
+                    },
+                    "image_registry": {
+                        "image_registry": "crmdevacr.azurecr.io",
+                        "image_org": "crm",
+                        "build_locally": False,
+                        "registry_type": "acr",
+                    },
+                    "ssl": {"ssl_enabled": True, "ssl_mode": "letsencrypt"},
+                    "service_accounts": {
+                        "azure": {
+                            "azure_tenant_id": "",
+                            "azure_subscription_id": "",
+                            "azure_client_id": "",
+                            "azure_client_secret": "",
+                        }
+                    },
                 },
             ),
+            # ── Azure App Service (monolith) ────────────────────────
             _merge(
-                _base("gcp-gke-microservices"),
+                _base("azure-appservice", description="Azure App Service with ACR — simple monolith deployment"),
                 {
-                    "target": {"provider": "gcp", "environment_type": "production", "use_ssl": True},
-                    "architecture": {"mode": "microservices", "container_runtime": "kubernetes"},
-                    "database": {"db_provider": "cloud_sql"},
+                    "target": {
+                        "provider": "azure",
+                        "environment_type": "production",
+                        "use_ssl": True,
+                        "domain_name": "crm.azurewebsites.net",
+                        "azure_region": "eastus",
+                    },
+                    "architecture": {
+                        "mode": "monolith",
+                        "container_runtime": "docker_compose",
+                    },
+                    "database": {
+                        "db_provider": "azure_mysql",
+                        "db_host": "crm-db.mysql.database.azure.com",
+                        "db_port": 3306,
+                        "db_name": "crm_db",
+                        "db_user": "crm_admin",
+                    },
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "azure_openai",
+                        "chat_provider": "builtin",
+                        "notification_provider": "builtin",
+                        "analytics_provider": "builtin",
+                        "signature_provider": "builtin",
+                        "integration_provider": "builtin",
+                    },
+                    "image_registry": {
+                        "image_registry": "crmdevacr.azurecr.io",
+                        "image_org": "crm",
+                        "build_locally": False,
+                        "registry_type": "acr",
+                    },
+                    "ssl": {"ssl_enabled": True, "ssl_mode": "managed"},
+                    "service_accounts": {
+                        "azure": {
+                            "azure_tenant_id": "",
+                            "azure_subscription_id": "",
+                            "azure_client_id": "",
+                            "azure_client_secret": "",
+                        }
+                    },
                 },
             ),
+            # ── GCP GKE ────────────────────────────────────────────
             _merge(
-                _base("on-prem-k8s"),
+                _base("gcp-gke", description="GCP GKE managed Kubernetes with Artifact Registry — full microservices"),
                 {
-                    "target": {"provider": "on_prem_bare", "environment_type": "production", "use_ssl": True},
-                    "architecture": {"mode": "microservices", "container_runtime": "kubernetes"},
-                    "database": {"db_provider": "mariadb"},
+                    "target": {
+                        "provider": "gcp",
+                        "environment_type": "production",
+                        "use_ssl": True,
+                        "domain_name": EXAMPLE_DOMAIN,
+                        "gcp_region": "us-central1",
+                        "gcp_project": "my-crm-project",
+                    },
+                    "architecture": {
+                        "mode": "microservices",
+                        "container_runtime": "kubernetes",
+                    },
+                    "database": {
+                        "db_provider": "cloud_sql",
+                        "db_host": "/cloudsql/my-crm-project:us-central1:crm-db",
+                        "db_port": 3306,
+                        "db_name": "crm_db",
+                        "db_user": "crm_admin",
+                    },
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "openai",
+                        "chat_provider": "chatwoot",
+                        "notification_provider": "novu",
+                        "analytics_provider": "superset",
+                        "signature_provider": "docuseal",
+                        "integration_provider": "n8n",
+                    },
+                    "image_registry": {
+                        "image_registry": "us-central1-docker.pkg.dev",
+                        "image_org": "my-crm-project/crm",
+                        "build_locally": False,
+                        "registry_type": "gar",
+                    },
+                    "ssl": {"ssl_enabled": True, "ssl_mode": "letsencrypt"},
+                    "service_accounts": {
+                        "gcp": {
+                            "gcp_project": "my-crm-project",
+                            "gcp_region": "us-central1",
+                            "gcp_sa_json": "",
+                        }
+                    },
                 },
             ),
+            # ── GCP Cloud Run (monolith) ────────────────────────────
             _merge(
-                _base("on-prem-docker"),
+                _base("gcp-cloudrun", description="GCP Cloud Run with Artifact Registry — serverless monolith"),
                 {
-                    "target": {"provider": "on_prem_vm", "environment_type": "production", "use_ssl": False},
-                    "architecture": {"mode": "monolith", "container_runtime": "docker_compose"},
-                    "database": {"db_provider": "mariadb"},
+                    "target": {
+                        "provider": "gcp",
+                        "environment_type": "production",
+                        "use_ssl": True,
+                        "domain_name": "crm-api-xxx.run.app",
+                        "gcp_region": "us-central1",
+                        "gcp_project": "my-crm-project",
+                    },
+                    "architecture": {
+                        "mode": "monolith",
+                        "container_runtime": "cloud_run",
+                    },
+                    "database": {
+                        "db_provider": "cloud_sql",
+                        "db_host": "/cloudsql/my-crm-project:us-central1:crm-db",
+                        "db_port": 3306,
+                        "db_name": "crm_db",
+                        "db_user": "crm_admin",
+                    },
+                    "providers": {
+                        "search_provider": "meilisearch",
+                        "ai_provider": "openai",
+                        "chat_provider": "builtin",
+                        "notification_provider": "builtin",
+                        "analytics_provider": "builtin",
+                        "signature_provider": "builtin",
+                        "integration_provider": "builtin",
+                    },
+                    "image_registry": {
+                        "image_registry": "us-central1-docker.pkg.dev",
+                        "image_org": "my-crm-project/crm",
+                        "build_locally": False,
+                        "registry_type": "gar",
+                    },
+                    "ssl": {"ssl_enabled": True, "ssl_mode": "managed"},
+                    "service_accounts": {
+                        "gcp": {
+                            "gcp_project": "my-crm-project",
+                            "gcp_region": "us-central1",
+                            "gcp_sa_json": "",
+                        }
+                    },
                 },
             ),
         ]

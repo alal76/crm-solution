@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 14,
-  "lastUpdate": "2026-03-01",
-  "description": "fix(quality): v0.614.14 — Fix SonarQube IDE issues: label for= attributes in wizard.html, table headers in day2.html, extract constants in day2_routes.py, refactor generator.py and discovery_models.py complexity",
+  "patch": 15,
+  "lastUpdate": "2026-03-02",
+  "description": "feat(cdt): v0.614.15 — CDT registry management: local image build step in deployer (step 2/13), 9 comprehensive starter profiles (Local/On-Prem/AWS/Azure/GCP), registry_bp blueprint (view/purge/deployed/recommend endpoints), wizard auto-populates registry per platform, build-locally toggle, registry management accordion (image table, deployed version check, purge/prune)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
