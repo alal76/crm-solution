@@ -8,10 +8,20 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background: #f8f9fa; }
-        .stat-card { transition: all 0.3s; }
+        .stat-card { transition: all 0.3s; cursor: default; }
         .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
         .log-output { font-family: monospace; font-size: 12px; background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius:.5rem; height:300px; overflow-y:auto; }
         .health-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+        .stack-controls { background:#fff; border:1px solid #dee2e6; border-radius:.5rem; padding:.75rem 1rem; margin-bottom:1rem; }
+        .container-row td { vertical-align:middle; }
+        .profile-card { transition: all .25s; border:2px solid transparent; }
+        .profile-card.active-profile { border-color:#198754 !important; background:#f0fff4; }
+        .profile-card:hover { box-shadow:0 4px 12px rgba(0,0,0,.1); }
+        .version-chip { font-size:.75rem; font-family:monospace; background:#e9ecef; border-radius:.25rem; padding:.1rem .4rem; }
+        .img-tag { font-family:monospace; font-size:.8rem; color:#0d6efd; }
+        .history-badge { font-size:.7rem; }
+        .ctrl-btn { min-width:36px; }
+        #autoRefreshToggle.active { background:#198754; border-color:#198754; }
     </style>
 </head>
 <body>
@@ -19,54 +29,167 @@
     <div class="container-fluid">
         <a class="navbar-brand" href="/"><i class="bi bi-cloud-arrow-up"></i> CRM CDT</a>
         <span class="navbar-text text-light fw-bold">Day-2 Operations</span>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-secondary" id="nav-active-profile" title="Active deployment profile"></span>
             <a href="/" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i> Wizard</a>
-            <button class="btn btn-sm btn-outline-light" onclick="loadStatus()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+            <a href="/profiles" class="btn btn-sm btn-outline-light"><i class="bi bi-person-lines-fill"></i> Profiles</a>
+            <button class="btn btn-sm btn-outline-light" id="autoRefreshToggle" onclick="toggleAutoRefresh()" title="Auto-refresh every 30s"><i class="bi bi-arrow-repeat"></i> Auto</button>
+            <button class="btn btn-sm btn-outline-light" onclick="refreshAll()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
         </div>
     </div>
 </nav>
 
 <div class="container-fluid px-4">
     <!-- Status Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-xl-3">
+    <div class="row g-3 mb-3">
+        <div class="col-6 col-xl-2">
             <div class="card stat-card text-center p-3">
-                <div class="fs-4 fw-bold text-primary" id="cards-version">—</div>
+                <div class="fs-5 fw-bold text-primary" id="cards-version">—</div>
                 <div class="text-muted small">CRM Version</div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
+        <div class="col-6 col-xl-2">
             <div class="card stat-card text-center p-3">
                 <div id="card-api-health"><span class="health-dot bg-secondary"></span></div>
                 <div class="text-muted small">API Health</div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
+        <div class="col-6 col-xl-2">
             <div class="card stat-card text-center p-3">
-                <div class="fs-4 fw-bold" id="card-containers">—</div>
-                <div class="text-muted small">Running Containers</div>
+                <div class="fs-5 fw-bold" id="card-containers">—</div>
+                <div class="text-muted small">Running / Total</div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
+        <div class="col-6 col-xl-2">
             <div class="card stat-card text-center p-3">
-                <div class="fs-6 fw-bold" id="card-refreshed">—</div>
+                <div class="fs-6 fw-semibold text-success" id="card-profile">—</div>
+                <div class="text-muted small">Active Profile</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-2">
+            <div class="card stat-card text-center p-3">
+                <div class="fs-6 fw-semibold" id="card-env-type">—</div>
+                <div class="text-muted small">Environment</div>
+            </div>
+        </div>
+        <div class="col-6 col-xl-2">
+            <div class="card stat-card text-center p-3">
+                <div class="fs-6" id="card-refreshed">—</div>
                 <div class="text-muted small">Last Refreshed</div>
             </div>
         </div>
     </div>
 
+    <!-- Stack Controls -->
+    <div class="stack-controls d-flex align-items-center gap-2 flex-wrap mb-3">
+        <span class="fw-semibold text-muted me-1"><i class="bi bi-stack"></i> Stack:</span>
+        <button class="btn btn-sm btn-success" onclick="stackAction('start')" id="btnStackStart">
+            <i class="bi bi-play-fill"></i> Start All
+        </button>
+        <button class="btn btn-sm btn-danger" onclick="stackAction('stop')" id="btnStackStop">
+            <i class="bi bi-stop-fill"></i> Stop All
+        </button>
+        <button class="btn btn-sm btn-warning" onclick="stackAction('restart')" id="btnStackRestart">
+            <i class="bi bi-arrow-repeat"></i> Restart All
+        </button>
+        <div class="vr mx-1"></div>
+        <span class="fw-semibold text-muted me-1"><i class="bi bi-bar-chart-line"></i> Health:</span>
+        <span id="stack-health-api" class="badge bg-secondary">API —</span>
+        <span id="stack-health-db" class="badge bg-secondary">DB —</span>
+        <span id="stack-health-redis" class="badge bg-secondary">Redis —</span>
+        <div class="ms-auto text-muted small" id="stack-deployed-at"></div>
+    </div>
+
     <!-- Main Tabs -->
     <ul class="nav nav-tabs mb-3" id="day2Tabs">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-upgrade"><i class="bi bi-arrow-up-circle"></i> Upgrade</button></li>
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-containers"><i class="bi bi-boxes"></i> Containers</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-versions"><i class="bi bi-tag"></i> Versions</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-profiles"><i class="bi bi-person-lines-fill"></i> Profiles</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-history"><i class="bi bi-clock-history"></i> History</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-upgrade"><i class="bi bi-arrow-up-circle"></i> Upgrade</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rollback"><i class="bi bi-arrow-counterclockwise"></i> Rollback</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-scale"><i class="bi bi-diagram-3"></i> Scale</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-secrets"><i class="bi bi-shield-lock"></i> Secrets</button></li>
-        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-containers"><i class="bi bi-boxes"></i> Containers</button></li>
     </ul>
 
     <div class="tab-content">
+        <!-- Containers Tab (now first/default) -->
+        <div class="tab-pane fade show active" id="tab-containers">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <h5 class="card-title mb-0"><i class="bi bi-boxes"></i> Container Status</h5>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="loadContainers()">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div id="containers-table"><div class="text-muted">Loading...</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Versions Tab -->
+        <div class="tab-pane fade" id="tab-versions">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-info-circle"></i> Deployment Info</h5>
+                            <table class="table table-sm" id="version-info-table">
+                                <tr><td class="text-muted">Profile</td><td id="vi-profile">—</td></tr>
+                                <tr><td class="text-muted">CRM Version</td><td id="vi-crm-version">—</td></tr>
+                                <tr><td class="text-muted">Live API Version</td><td id="vi-api-version">—</td></tr>
+                                <tr><td class="text-muted">Environment</td><td id="vi-env-type">—</td></tr>
+                                <tr><td class="text-muted">Platform</td><td id="vi-platform">—</td></tr>
+                                <tr><td class="text-muted">Deployed At</td><td id="vi-deployed-at">—</td></tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <h5 class="card-title mb-0"><i class="bi bi-tag"></i> Running Image Tags</h5>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="loadVersionInfo()">
+                                    <i class="bi bi-arrow-clockwise"></i>
+                                </button>
+                            </div>
+                            <div id="version-images-list"><div class="text-muted small">Loading...</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profiles Tab -->
+        <div class="tab-pane fade" id="tab-profiles">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0"><i class="bi bi-person-lines-fill"></i> Deployment Profiles</h5>
+                <a href="/profiles" class="btn btn-sm btn-primary"><i class="bi bi-arrow-up-right-square"></i> Manage Profiles</a>
+            </div>
+            <div id="profiles-grid" class="row g-3"><div class="text-muted">Loading profiles...</div></div>
+        </div>
+
+        <!-- History Tab -->
+        <div class="tab-pane fade" id="tab-history">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Deployment History</h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="loadHistory()">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="history-table"><div class="text-muted">Loading...</div></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Upgrade Tab -->
-        <div class="tab-pane fade show active" id="tab-upgrade">
+        <div class="tab-pane fade" id="tab-upgrade">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title"><i class="bi bi-arrow-up-circle"></i> Upgrade CRM</h5>
@@ -156,18 +279,6 @@
             </div>
         </div>
 
-        <!-- Containers Tab -->
-        <div class="tab-pane fade" id="tab-containers">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3">
-                        <h5 class="card-title mb-0"><i class="bi bi-boxes"></i> Containers</h5>
-                        <button class="btn btn-sm btn-outline-primary" onclick="loadContainers()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
-                    </div>
-                    <div id="containers-table"></div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -185,37 +296,245 @@
     </div>
 </div>
 
-<footer class="text-center text-muted small py-4 mt-4">CRM CDT v0.609.1 | <a href="https://github.com/your-org/crm-solution" target="_blank">GitHub</a></footer>
+<footer class="text-center text-muted small py-4 mt-4">CRM CDT v0.614.3 — <a href="/profiles">Profiles</a> · <a href="/day2">Day-2</a></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+// ── State ──────────────────────────────────────────────────────────────────
 let _confirmCallback = null;
+let _autoRefreshTimer = null;
 
+// ── Confirm modal ──────────────────────────────────────────────────────────
 function showConfirm(title, body, cb) {
     document.getElementById('confirmModalTitle').textContent = title;
-    document.getElementById('confirmModalBody').textContent = body;
+    document.getElementById('confirmModalBody').innerHTML = typeof body === 'string' && body.startsWith('<') ? body : body;
     _confirmCallback = cb;
+    document.getElementById('confirmModalBtn').style.display = '';
     bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmModal')).show();
 }
 document.getElementById('confirmModalBtn').addEventListener('click', () => {
     bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
     if (_confirmCallback) _confirmCallback();
 });
+document.getElementById('confirmModal').addEventListener('hide.bs.modal', () => {
+    document.getElementById('confirmModalBtn').style.display = '';
+});
 
+// ── Status + health ────────────────────────────────────────────────────────
 async function loadStatus() {
     try {
-        const r = await fetch('/api/day2/status');
+        const r = await fetch('/api/day2/status/all');
         const d = await r.json();
         document.getElementById('cards-version').textContent = d.crm_version || '—';
-        const apiDot = d.health?.api ? '<span class="health-dot bg-success"></span> Healthy' : '<span class="health-dot bg-danger"></span> Down';
-        document.getElementById('card-api-health').innerHTML = apiDot;
-        document.getElementById('card-containers').textContent = d.container_count ?? 0;
+        const h = d.health || {};
+        document.getElementById('card-api-health').innerHTML = h.api
+            ? '<span class="health-dot bg-success me-1"></span>Healthy'
+            : '<span class="health-dot bg-danger me-1"></span>Down';
+        document.getElementById('card-containers').textContent =
+            `${d.container_count ?? 0} / ${d.total_containers ?? 0}`;
+        document.getElementById('card-profile').textContent = d.profile_name || '—';
+        document.getElementById('card-env-type').textContent = d.environment_type || '—';
         document.getElementById('card-refreshed').textContent = new Date().toLocaleTimeString();
-        document.getElementById('upgrade-current-version').textContent = d.crm_version || 'unknown';
+        const navBadge = document.getElementById('nav-active-profile');
+        if (navBadge) navBadge.textContent = d.profile_name || '';
+        document.getElementById('stack-health-api').className = 'badge ' + (h.api ? 'bg-success' : 'bg-danger');
+        document.getElementById('stack-health-api').textContent = 'API ' + (h.api ? '✓' : '✗');
+        document.getElementById('stack-health-db').className = 'badge ' + (h.db ? 'bg-success' : 'bg-secondary');
+        document.getElementById('stack-health-db').textContent = 'DB ' + (h.db ? '✓' : '—');
+        document.getElementById('stack-health-redis').className = 'badge ' + (h.redis ? 'bg-success' : 'bg-secondary');
+        document.getElementById('stack-health-redis').textContent = 'Redis ' + (h.redis ? '✓' : '—');
+        if (document.getElementById('upgrade-current-version'))
+            document.getElementById('upgrade-current-version').textContent = d.crm_version || 'unknown';
         loadContainerList(d.containers || []);
     } catch(e) { console.error('Status load failed', e); }
 }
 
+// ── Container table with Start / Stop / Restart / Logs ────────────────────
+function loadContainerList(containers) {
+    const el = document.getElementById('containers-table');
+    if (!containers.length) {
+        el.innerHTML = '<div class="alert alert-info">No CRM containers found. Is Docker running?</div>';
+        return;
+    }
+    const rows = containers.map(c => {
+        const name = (c.Names || c.name || '').replace(/^\//, '');
+        const status = c.Status || c.status || '';
+        const running = status.toLowerCase().includes('up');
+        const badgeCls = running ? 'bg-success' : (status.toLowerCase().includes('exit') ? 'bg-secondary' : 'bg-warning text-dark');
+        const image = c.Image || c.image || '—';
+        const ports = c.Ports || '';
+        return `<tr class="container-row">
+            <td class="fw-semibold">${name}</td>
+            <td><span class="img-tag">${image}</span></td>
+            <td>${ports ? `<small class="text-muted">${ports}</small>` : ''}</td>
+            <td><span class="badge ${badgeCls}">${status || '—'}</span></td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-success ctrl-btn" onclick="containerAction('${name}','start')" title="Start"><i class="bi bi-play-fill"></i></button>
+                    <button class="btn btn-outline-danger ctrl-btn" onclick="containerAction('${name}','stop')" title="Stop"><i class="bi bi-stop-fill"></i></button>
+                    <button class="btn btn-outline-warning ctrl-btn" onclick="containerAction('${name}','restart')" title="Restart"><i class="bi bi-arrow-repeat"></i></button>
+                    <button class="btn btn-outline-secondary ctrl-btn" onclick="showContainerLogs('${name}')" title="Logs"><i class="bi bi-terminal"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join('');
+    el.innerHTML = `<div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light"><tr><th>Container</th><th>Image</th><th>Ports</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+    </div>`;
+}
+
+async function loadContainers() { await loadStatus(); }
+
+async function containerAction(name, action) {
+    const doIt = async () => {
+        try {
+            const r = await fetch(`/api/day2/container/${encodeURIComponent(name)}/${action}`, { method: 'POST' });
+            const d = await r.json();
+            if (!d.success) alert(`${action} failed for ${name}: ${d.output || JSON.stringify(d)}`);
+            loadStatus();
+        } catch(e) { alert('Request failed: ' + e.message); }
+    };
+    if (action === 'stop') {
+        showConfirm(`Stop ${name}`, `Stop container "${name}"? Services it provides will be unavailable.`, doIt);
+    } else { doIt(); }
+}
+
+async function showContainerLogs(name) {
+    try {
+        const r = await fetch(`/api/day2/container/${encodeURIComponent(name)}/logs?lines=200`);
+        const d = await r.json();
+        const pre = document.createElement('pre');
+        pre.style.cssText = 'max-height:400px;overflow:auto;font-size:11px;background:#1e1e1e;color:#d4d4d4;padding:.5rem;border-radius:.25rem;margin:0';
+        pre.textContent = d.logs || 'No logs available';
+        document.getElementById('confirmModalTitle').textContent = `Logs: ${name}`;
+        document.getElementById('confirmModalBody').innerHTML = '';
+        document.getElementById('confirmModalBody').appendChild(pre);
+        document.getElementById('confirmModalBtn').style.display = 'none';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmModal')).show();
+    } catch(e) { alert('Log fetch failed: ' + e.message); }
+}
+
+// ── Stack-level controls ───────────────────────────────────────────────────
+async function stackAction(action) {
+    const msgs = {
+        start: 'Start all stopped CRM containers?',
+        stop: 'Stop ALL running CRM containers? This will take down the whole stack.',
+        restart: 'Restart all running CRM containers?'
+    };
+    showConfirm(`Stack ${action.charAt(0).toUpperCase()+action.slice(1)}`, msgs[action], async () => {
+        try {
+            const r = await fetch(`/api/day2/stack/${action}`, { method: 'POST' });
+            const d = await r.json();
+            const list = d.started || d.stopped || d.restarted || [];
+            alert(d.success ? `✓ ${action}: ${list.length} container(s)` : `Errors: ${(d.errors||[]).join(', ')}`);
+            loadStatus();
+        } catch(e) { alert('Stack action failed: ' + e.message); }
+    });
+}
+
+// ── Version info tab ───────────────────────────────────────────────────────
+async function loadVersionInfo() {
+    try {
+        const r = await fetch('/api/day2/version-info');
+        const d = await r.json();
+        document.getElementById('vi-profile').textContent = d.profile_name || '—';
+        document.getElementById('vi-crm-version').innerHTML = `<span class="version-chip">${d.crm_version || '—'}</span>`;
+        document.getElementById('vi-api-version').innerHTML = d.api_version
+            ? `<span class="version-chip text-success">${d.api_version}</span>`
+            : '<span class="text-muted">unreachable</span>';
+        document.getElementById('vi-env-type').textContent = d.environment_type || '—';
+        document.getElementById('vi-platform').textContent = d.platform || '—';
+        document.getElementById('vi-deployed-at').textContent = d.deployed_at ? new Date(d.deployed_at).toLocaleString() : '—';
+        if (d.deployed_at)
+            document.getElementById('stack-deployed-at').textContent = 'Deployed: ' + new Date(d.deployed_at).toLocaleString();
+        const imgs = d.images || {};
+        const imgEl = document.getElementById('version-images-list');
+        const keys = Object.keys(imgs);
+        if (!keys.length) { imgEl.innerHTML = '<div class="text-muted small">No running CRM containers detected.</div>'; return; }
+        imgEl.innerHTML = `<table class="table table-sm">
+            <thead><tr><th>Container</th><th>Image</th><th>Status</th></tr></thead>
+            <tbody>${keys.map(k => `<tr>
+                <td class="fw-semibold">${k}</td>
+                <td><span class="img-tag">${imgs[k].image}</span></td>
+                <td><small class="text-muted">${imgs[k].status}</small></td>
+            </tr>`).join('')}</tbody></table>`;
+    } catch(e) { console.warn('Version info failed', e); }
+}
+
+// ── Profiles inline summary ────────────────────────────────────────────────
+async function loadProfilesSummary() {
+    const grid = document.getElementById('profiles-grid');
+    try {
+        const [pr, ar] = await Promise.all([fetch('/api/profiles'), fetch('/api/profiles/active')]);
+        const pdata = await pr.json();
+        const profiles = Array.isArray(pdata) ? pdata : (pdata.profiles || []);
+        const { active_profile } = await ar.json();
+        if (!profiles.length) {
+            grid.innerHTML = '<div class="col"><div class="alert alert-info">No saved profiles. <a href="/">Create one in the wizard.</a></div></div>';
+            return;
+        }
+        grid.innerHTML = profiles.map(p => {
+            const isActive = p.name === active_profile;
+            return `<div class="col-md-4 col-lg-3">
+                <div class="card profile-card ${isActive ? 'active-profile' : ''}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h6 class="card-title mb-1">${p.name}</h6>
+                            ${isActive ? '<span class="badge bg-success">Active</span>' : ''}
+                        </div>
+                        <div class="text-muted small mb-1">${p.environment_type || p.platform || '—'}</div>
+                        <div class="text-muted small">v${p.crm_version || '?'} · ${p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '—'}</div>
+                    </div>
+                    <div class="card-footer d-flex gap-1">
+                        ${!isActive
+                            ? `<button class="btn btn-sm btn-success flex-fill" onclick="activateProfileInline('${p.name}')"><i class="bi bi-check-circle"></i> Activate</button>`
+                            : '<span class="btn btn-sm btn-outline-success flex-fill disabled">Current</span>'}
+                        <a href="/profiles" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch(e) { grid.innerHTML = `<div class="alert alert-danger">Load failed: ${e.message}</div>`; }
+}
+
+async function activateProfileInline(name) {
+    try {
+        const r = await fetch(`/api/profiles/${encodeURIComponent(name)}/activate`, { method: 'POST' });
+        const d = await r.json();
+        if (d.activated) { loadStatus(); loadProfilesSummary(); }
+        else alert('Activate failed: ' + (d.error || JSON.stringify(d)));
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── Deployment history ─────────────────────────────────────────────────────
+async function loadHistory() {
+    const el = document.getElementById('history-table');
+    try {
+        const r = await fetch('/api/day2/run-history?limit=25');
+        const d = await r.json();
+        const runs = d.runs || [];
+        if (!runs.length) { el.innerHTML = '<div class="alert alert-info">No deployment history found.</div>'; return; }
+        el.innerHTML = `<div class="table-responsive"><table class="table table-sm table-hover">
+            <thead class="table-light"><tr><th>Time</th><th>Profile</th><th>Version</th><th>Platform</th><th>Status</th><th>Duration</th></tr></thead>
+            <tbody>${[...runs].reverse().map(row => {
+                const ts = row.started_at || row.timestamp || row.created_at || '';
+                const ok = (row.status || row.result || '').toString().toLowerCase().includes('success');
+                return `<tr>
+                    <td class="text-nowrap"><small>${ts ? new Date(ts).toLocaleString() : '—'}</small></td>
+                    <td>${row.profile_name || row.profile || '—'}</td>
+                    <td><span class="version-chip">${row.crm_version || row.version || '—'}</span></td>
+                    <td>${row.platform || '—'}</td>
+                    <td><span class="badge history-badge ${ok ? 'bg-success' : 'bg-danger'}">${row.status || row.result || '—'}</span></td>
+                    <td>${row.duration_seconds != null ? row.duration_seconds + 's' : '—'}</td>
+                </tr>`;
+            }).join('')}</tbody></table></div>`;
+    } catch(e) { el.innerHTML = `<div class="alert alert-danger">Load failed: ${e.message}</div>`; }
+}
+
+// ── Upgrade / Rollback / Scale / Secrets (unchanged logic) ────────────────
 async function loadVersions() {
     try {
         const r = await fetch('/api/day2/versions');
@@ -254,26 +573,6 @@ async function deleteSnapshot(id) {
         await fetch(`/api/day2/snapshots/${id}`, {method:'DELETE'});
         loadSnapshots();
     });
-}
-
-function loadContainerList(containers) {
-    const el = document.getElementById('containers-table');
-    if (!containers.length) { el.innerHTML = '<div class="alert alert-info">No CRM containers found.</div>'; return; }
-    el.innerHTML = `<table class="table table-sm table-hover"><thead><tr><th>Name</th><th>Image</th><th>Status</th><th>Actions</th></tr></thead><tbody>${
-        containers.map(c => `<tr><td>${c.Names||c.name||'—'}</td><td><small>${c.Image||c.image||'—'}</small></td><td><span class="badge bg-${(c.Status||'').includes('Up') ? 'success' : 'secondary'}">${c.Status||c.status||'—'}</span></td><td>
-            <button class="btn btn-sm btn-outline-primary me-1" onclick="restartContainer('${c.Names||c.name}')"><i class="bi bi-arrow-repeat"></i></button>
-        </td></tr>`).join('')
-    }</tbody></table>`;
-}
-
-async function loadContainers() { await loadStatus(); }
-
-async function restartContainer(name) {
-    if (!confirm(`Restart ${name}?`)) return;
-    try {
-        const r = await fetch('/api/day2/status');
-        alert('Restart initiated (use docker restart manually if not automated)');
-    } catch(e) { alert('Error: ' + e.message); }
 }
 
 const SCALE_SERVICES = ['crm-api', 'crm-frontend'];
@@ -328,7 +627,6 @@ async function startUpgrade() {
         const d = await r.json();
         const jobId = d.job_id;
         log.textContent += `Job started: ${jobId}\n`;
-        // Poll for status
         const poll = setInterval(async () => {
             try {
                 const sr = await fetch(`/api/day2/upgrade/${jobId}/status`);
@@ -342,17 +640,47 @@ async function startUpgrade() {
                     prog.classList.remove('progress-bar-animated');
                     log.textContent += sd.result?.success ? '\n✓ Upgrade successful\n' : '\n✗ Upgrade failed\n';
                 }
-            } catch(e) { clearInterval(poll); }
+            } catch(e2) { clearInterval(poll); }
         }, 2000);
     } catch(e) { log.textContent += 'Error: ' + e.message; }
 }
 
-// Init on load
+// ── Auto-refresh ───────────────────────────────────────────────────────────
+function toggleAutoRefresh() {
+    const btn = document.getElementById('autoRefreshToggle');
+    if (_autoRefreshTimer) {
+        clearInterval(_autoRefreshTimer);
+        _autoRefreshTimer = null;
+        btn.classList.remove('active', 'btn-outline-success');
+        btn.classList.add('btn-outline-light');
+        btn.title = 'Auto-refresh: OFF — click to enable';
+    } else {
+        _autoRefreshTimer = setInterval(refreshAll, 30000);
+        btn.classList.add('active', 'btn-outline-success');
+        btn.classList.remove('btn-outline-light');
+        btn.title = 'Auto-refresh: ON (30s) — click to disable';
+    }
+}
+
+function refreshAll() { loadStatus(); loadVersionInfo(); }
+
+// ── Lazy-load tabs ─────────────────────────────────────────────────────────
+document.querySelectorAll('#day2Tabs button[data-bs-toggle="tab"]').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', e => {
+        const t = e.target.getAttribute('data-bs-target');
+        if (t === '#tab-profiles') loadProfilesSummary();
+        else if (t === '#tab-versions') loadVersionInfo();
+        else if (t === '#tab-history') loadHistory();
+        else if (t === '#tab-rollback') loadSnapshots();
+    });
+});
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────
 loadStatus();
+loadVersionInfo();
 loadVersions();
-loadSnapshots();
 buildScaleList();
-setInterval(loadStatus, 30000);
+toggleAutoRefresh(); // start auto-refresh on
 </script>
 </body>
 </html>

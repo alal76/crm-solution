@@ -4,6 +4,8 @@ import sys
 import json
 import time
 import threading
+import subprocess
+import shutil
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
@@ -135,3 +137,281 @@ def day2_rotate_secret():
     else:
         result = rotator.rotate_jwt_secret()
     return jsonify(result.to_dict())
+
+
+# ---------------------------------------------------------------------------
+# Container-level controls
+# ---------------------------------------------------------------------------
+
+def _docker_cmd(*args, timeout: int = 30):
+    """Run a docker command and return (ok, stdout, stderr)."""
+    if not shutil.which("docker"):
+        return False, "", "docker not found in PATH"
+    try:
+        result = subprocess.run(
+            ["docker", *args], capture_output=True, text=True, timeout=timeout
+        )
+        return result.returncode == 0, result.stdout.strip(), result.stderr.strip()
+    except subprocess.TimeoutExpired:
+        return False, "", "Command timed out"
+    except Exception as exc:
+        return False, "", str(exc)
+
+
+def _safe_name(name: str) -> str:
+    """Strip leading slashes docker sometimes prepends to Names."""
+    return name.lstrip("/").split(",")[0].strip()
+
+
+@day2_bp.route("/api/day2/container/<name>/start", methods=["POST"])
+def container_start(name: str):
+    ok, out, err = _docker_cmd("start", _safe_name(name))
+    return jsonify({"success": ok, "output": out or err})
+
+
+@day2_bp.route("/api/day2/container/<name>/stop", methods=["POST"])
+def container_stop(name: str):
+    ok, out, err = _docker_cmd("stop", "--time", "10", _safe_name(name))
+    return jsonify({"success": ok, "output": out or err})
+
+
+@day2_bp.route("/api/day2/container/<name>/restart", methods=["POST"])
+def container_restart(name: str):
+    ok, out, err = _docker_cmd("restart", "--time", "10", _safe_name(name))
+    return jsonify({"success": ok, "output": out or err})
+
+
+@day2_bp.route("/api/day2/container/<name>/logs", methods=["GET"])
+def container_logs_tail(name: str):
+    lines = request.args.get("lines", "150")
+    ok, out, err = _docker_cmd(
+        "logs", "--tail", str(lines), "--timestamps", _safe_name(name)
+    )
+    return jsonify({"success": ok, "logs": out if ok else err})
+
+
+@day2_bp.route("/api/day2/container/<name>/inspect", methods=["GET"])
+def container_inspect(name: str):
+    ok, out, _ = _docker_cmd("inspect", _safe_name(name))
+    if not ok:
+        return jsonify({"error": "container not found"}), 404
+    try:
+        data = json.loads(out)
+        return jsonify({"container": data[0] if data else {}})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Stack-level controls
+# ---------------------------------------------------------------------------
+
+@day2_bp.route("/api/day2/stack/stop", methods=["POST"])
+def stack_stop():
+    """Stop all running crm-* containers gracefully."""
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "--filter", "name=crm", "-q"],
+            capture_output=True, text=True, timeout=10
+        )
+        ids = [x.strip() for x in r.stdout.strip().splitlines() if x.strip()]
+        if not ids:
+            return jsonify({"success": True, "stopped": [], "message": "No running CRM containers."})
+        stopped, errors = [], []
+        for cid in ids:
+            ok, _, err = _docker_cmd("stop", "--time", "15", cid)
+            (stopped if ok else errors).append(cid)
+        return jsonify({"success": not errors, "stopped": stopped, "errors": errors})
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+@day2_bp.route("/api/day2/stack/start", methods=["POST"])
+def stack_start():
+    """Start all stopped crm-* containers."""
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "-a", "--filter", "name=crm",
+             "--filter", "status=exited", "-q"],
+            capture_output=True, text=True, timeout=10
+        )
+        ids = [x.strip() for x in r.stdout.strip().splitlines() if x.strip()]
+        if not ids:
+            return jsonify({"success": True, "started": [], "message": "No stopped CRM containers found."})
+        started, errors = [], []
+        for cid in ids:
+            ok, _, err = _docker_cmd("start", cid)
+            (started if ok else errors).append(cid)
+        return jsonify({"success": not errors, "started": started, "errors": errors})
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+@day2_bp.route("/api/day2/stack/restart", methods=["POST"])
+def stack_restart():
+    """Restart all running crm-* containers."""
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "--filter", "name=crm", "-q"],
+            capture_output=True, text=True, timeout=10
+        )
+        ids = [x.strip() for x in r.stdout.strip().splitlines() if x.strip()]
+        if not ids:
+            return jsonify({"success": True, "restarted": [], "message": "No running CRM containers."})
+        restarted, errors = [], []
+        for cid in ids:
+            ok, _, err = _docker_cmd("restart", "--time", "10", cid)
+            (restarted if ok else errors).append(cid)
+        return jsonify({"success": not errors, "restarted": restarted, "errors": errors})
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Enhanced status with all (stopped + running) containers
+# ---------------------------------------------------------------------------
+
+@day2_bp.route("/api/day2/status/all", methods=["GET"])
+def day2_status_all():
+    """Return all CRM containers (running and stopped) with rich metadata."""
+    import urllib.request
+    containers = []
+    try:
+        fmt = "{{json .}}"
+        r = subprocess.run(
+            ["docker", "ps", "-a", "--filter", "name=crm", "--format", fmt],
+            capture_output=True, text=True, timeout=15
+        )
+        for line in r.stdout.strip().splitlines():
+            if line.strip():
+                try:
+                    c = json.loads(line)
+                    containers.append(c)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+    # API health check
+    api_healthy = False
+    try:
+        urllib.request.urlopen("http://localhost:5000/health", timeout=3)
+        api_healthy = True
+    except Exception:
+        pass
+
+    profile = _get_profile()
+    meta = profile.get("meta", {})
+
+    # Fetch active profile name
+    active_name_file = Path.home() / ".crm-cdt" / "active_profile_name.txt"
+    active_name = active_name_file.read_text().strip() if active_name_file.exists() else None
+
+    return jsonify({
+        "crm_version": meta.get("crm_version", "unknown"),
+        "profile_name": active_name or meta.get("profile_name", "—"),
+        "environment_type": profile.get("target", {}).get("environment_type",
+                            profile.get("environment_type", "—")),
+        "containers": containers,
+        "container_count": sum(1 for c in containers if "Up" in str(c.get("Status", ""))),
+        "total_containers": len(containers),
+        "health": {
+            "api": api_healthy,
+            "db": any("mariadb" in str(c).lower() or "mysql" in str(c).lower() for c in containers),
+            "redis": any("redis" in str(c).lower() for c in containers),
+        },
+    })
+
+
+# ---------------------------------------------------------------------------
+# Detailed version info
+# ---------------------------------------------------------------------------
+
+@day2_bp.route("/api/day2/version-info", methods=["GET"])
+def day2_version_info():
+    """Return profile metadata + running image tags for all CRM containers."""
+    import urllib.request
+    profile = _get_profile()
+    meta = profile.get("meta", {})
+
+    # Running container images
+    images: dict = {}
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "--filter", "name=crm", "--format",
+             "{{.Names}}\t{{.Image}}\t{{.CreatedAt}}\t{{.Status}}"],
+            capture_output=True, text=True, timeout=10
+        )
+        for line in r.stdout.strip().splitlines():
+            parts = line.split("\t")
+            if len(parts) >= 2:
+                cname = parts[0].lstrip("/")
+                images[cname] = {
+                    "image": parts[1],
+                    "created": parts[2] if len(parts) > 2 else "",
+                    "status": parts[3] if len(parts) > 3 else "",
+                }
+    except Exception:
+        pass
+
+    # Live API version
+    api_version: str | None = None
+    try:
+        with urllib.request.urlopen("http://localhost:5000/api/version", timeout=3) as resp:
+            vdata = json.loads(resp.read().decode())
+            api_version = vdata.get("version") or vdata.get("Version")
+    except Exception:
+        try:
+            with urllib.request.urlopen("http://localhost:5000/health", timeout=3) as resp:
+                hdata = json.loads(resp.read().decode())
+                api_version = hdata.get("version")
+        except Exception:
+            pass
+
+    active_name_file = Path.home() / ".crm-cdt" / "active_profile_name.txt"
+    active_name = active_name_file.read_text().strip() if active_name_file.exists() else None
+
+    return jsonify({
+        "profile_name": active_name or meta.get("profile_name", "—"),
+        "crm_version": meta.get("crm_version", api_version or "unknown"),
+        "api_version": api_version,
+        "environment_type": profile.get("target", {}).get("environment_type", "—"),
+        "deployed_at": meta.get("updated_at", meta.get("created_at", "—")),
+        "platform": profile.get("platform", profile.get("target", {}).get("platform", "—")),
+        "images": images,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Deployment run history
+# ---------------------------------------------------------------------------
+
+@day2_bp.route("/api/day2/run-history", methods=["GET"])
+def day2_run_history():
+    """Return last N deployment run history entries."""
+    limit = int(request.args.get("limit", 25))
+    # Try RunHistoryManager (SQLite)
+    try:
+        from core.profile import RunHistoryManager  # noqa: PLC0415
+        hist = RunHistoryManager()
+        rows = hist.list_runs(limit=limit)
+        serial = []
+        for r in rows:
+            if hasattr(r, "_asdict"):
+                serial.append(r._asdict())
+            elif hasattr(r, "__dict__"):
+                serial.append(vars(r))
+            else:
+                serial.append(dict(r))
+        return jsonify({"runs": serial})
+    except Exception:
+        pass
+    # Fallback: deploy_history.json
+    history_file = Path.home() / ".crm-cdt" / "deploy_history.json"
+    if history_file.exists():
+        try:
+            entries = json.loads(history_file.read_text())
+            return jsonify({"runs": entries[-limit:]})
+        except Exception:
+            pass
+    return jsonify({"runs": []})

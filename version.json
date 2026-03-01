@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 4,
+  "patch": 5,
   "lastUpdate": "2026-03-01",
-  "description": "security: v0.614.4 - fix 5 SonarCloud hotspots: XSS in EmailTemplatesPage (wrap with DOMPurify createSafeHtml), ReDoS in FormBuilderService/WorkflowTriggerService/CustomFieldValidationService (add 1s regex timeout + catch RegexMatchTimeoutException), hardcoded credential removed from LoginPage (use REACT_APP_QUICK_LOGIN_* env vars)",
+  "description": "feat(infra/cdt): v0.614.5 — profiles management UI, enhanced Day-2 monitoring, container start/stop/restart controls",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

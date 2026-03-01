@@ -8,6 +8,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from flask import Blueprint, request, jsonify
 from core.profile import ProfileManager, RunHistoryManager, ProfileNotFoundError, ProfileExistsError
 from core.vault import VaultManager, VaultLockedError
+import json
+import copy
 import secrets
 import string
 
@@ -218,5 +220,81 @@ def generate_password():
         )
         password = "".join(secrets.choice(alphabet) for _ in range(16))
         return jsonify({"password": password})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+# ---------------------------------------------------------------------------
+# Active-profile routes
+# ---------------------------------------------------------------------------
+
+_ACTIVE_PROFILE_FILE = Path.home() / ".crm-cdt" / "last_profile.json"
+_ACTIVE_META_FILE = Path.home() / ".crm-cdt" / "active_profile_name.txt"
+
+# Keys whose values should be blanked on export
+_CREDENTIAL_KEYS = {
+    "db_password", "admin_password", "redis_password", "jwt_secret",
+    "api_key", "secret_key", "master_password", "private_key",
+    "client_secret", "access_key", "secret", "token", "password",
+}
+
+
+def _strip_credentials(data: dict) -> dict:
+    """Deep-copy *data* blanking any value whose key contains a credential keyword."""
+    cleaned = copy.deepcopy(data)
+
+    def _clean(obj):
+        if isinstance(obj, dict):
+            for k in obj.keys():
+                if any(ck in k.lower() for ck in _CREDENTIAL_KEYS):
+                    obj[k] = ""
+                else:
+                    _clean(obj[k])
+        elif isinstance(obj, list):
+            for item in obj:
+                _clean(item)
+
+    _clean(cleaned)
+    return cleaned
+
+
+@profile_bp.route("/api/profiles/active", methods=["GET"])
+def get_active_profile():
+    """Return the name of the currently-active deployment profile."""
+    name = None
+    if _ACTIVE_META_FILE.exists():
+        try:
+            name = _ACTIVE_META_FILE.read_text(encoding="utf-8").strip() or None
+        except OSError:
+            name = None
+    return jsonify({"active_profile": name})
+
+
+@profile_bp.route("/api/profiles/<name>/activate", methods=["POST"])
+def activate_profile(name: str):
+    """Set *name* as the active deployment profile."""
+    try:
+        data = profile_manager.load(name)
+    except ProfileNotFoundError:
+        return jsonify({"error": f"Profile '{name}' not found."}), 404
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+    try:
+        _ACTIVE_PROFILE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _ACTIVE_PROFILE_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        _ACTIVE_META_FILE.write_text(name, encoding="utf-8")
+        return jsonify({"activated": name})
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@profile_bp.route("/api/profiles/<name>/export", methods=["GET"])
+def export_profile_sanitized(name: str):
+    """Return a credential-free snapshot of profile *name* for sharing."""
+    try:
+        data = profile_manager.load(name)
+        return jsonify(_strip_credentials(data))
+    except ProfileNotFoundError:
+        return jsonify({"error": f"Profile '{name}' not found."}), 404
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500

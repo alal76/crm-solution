@@ -179,6 +179,12 @@ def wizard():
 def day2_page():
     return render_template("day2.html")
 
+
+@app.route("/profiles", methods=["GET"])
+def profiles_page():
+    return render_template("profiles.html")
+
+
 @app.route("/api/enums/<enum_name>", methods=["GET"])
 def get_enum(enum_name):
     if enum_name not in ENUM_MAP:
