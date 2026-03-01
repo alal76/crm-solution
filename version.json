@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 20,
+  "patch": 21,
   "lastUpdate": "2026-03-01",
-  "description": "fix(quality): v0.614.20 SonarCloud: 276 files \u2014 add curly braces to bare if/else, remove unread _logger injections, define string constants for duplicate literals, merge nested ifs, fix GitHub workflow glob, fix nested ternary, fix boolean literals",
+  "description": "fix(quality): v0.614.21 SonarCloud: 276 files \u2014 add curly braces to bare if/else, remove unread _logger injections, define string constants for duplicate literals, merge nested ifs, fix GitHub workflow glob, fix nested ternary, fix boolean literals",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
