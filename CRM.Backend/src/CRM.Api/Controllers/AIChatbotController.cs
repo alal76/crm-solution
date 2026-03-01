@@ -209,7 +209,7 @@ public class AIChatbotController : CrmControllerBase
 
             // Get account-specific context if accounts are selected
             var accountInfo = "";
-            if (request.AccountIds?.Any() == true)
+            if (request.AccountIds?.Any() is true)
             {
                 accountInfo = await GetAccountContextAsync(request.AccountIds);
             }
@@ -231,7 +231,7 @@ public class AIChatbotController : CrmControllerBase
             }
 
             // Add conversation history if available (limited to last 10 exchanges for context window management)
-            if (request.ConversationHistory?.Any() == true)
+            if (request.ConversationHistory?.Any() is true)
             {
                 var recentHistory = request.ConversationHistory
                     .Where(m => !string.IsNullOrEmpty(m.Content) && (m.Role == "user" || m.Role == "assistant"))

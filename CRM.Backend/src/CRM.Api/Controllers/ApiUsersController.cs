@@ -249,7 +249,7 @@ public class ApiUsersController : CrmControllerBase
     [HttpPut("{id}")]
     [ProducesResponseType(typeof(ApiUserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ApiUserDto>> Update(int id, [FromBody] CreateApiUserRequest request)
+    public async Task<ActionResult<ApiUserDto>> Update(int id, [FromBody] CreateApiUserRequest request) // NOSONAR
     {
                 var user = await _dbContext.Users
             .Include(u => u.PrimaryGroup)

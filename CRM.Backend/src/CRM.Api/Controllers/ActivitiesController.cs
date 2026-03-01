@@ -32,6 +32,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class ActivitiesController : CrmControllerBase
 {
+    private const string ActivityEntityType = "Activity";
+
     private readonly CrmDbContext _context;
     private readonly NormalizationService _normalization;
 
@@ -161,12 +163,12 @@ public class ActivitiesController : CrmControllerBase
 
         foreach (var a in activities)
         {
-            var nt = await _normalization.GetTagsAsync("Activity", a.Id);
+            var nt = await _normalization.GetTagsAsync(ActivityEntityType, a.Id);
             if (!string.IsNullOrWhiteSpace(nt))
             {
                 a.Tags = nt;
             }
-            var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
+            var cf = await _normalization.GetCustomFieldsAsync(ActivityEntityType, a.Id);
             if (!string.IsNullOrWhiteSpace(cf))
             {
                 a.CustomFields = cf;
@@ -203,12 +205,12 @@ public class ActivitiesController : CrmControllerBase
             return NotFound();
         }
 
-        var nt = await _normalization.GetTagsAsync("Activity", activity.Id);
+        var nt = await _normalization.GetTagsAsync(ActivityEntityType, activity.Id);
         if (!string.IsNullOrWhiteSpace(nt))
         {
             activity.Tags = nt;
         }
-        var cf = await _normalization.GetCustomFieldsAsync("Activity", activity.Id);
+        var cf = await _normalization.GetCustomFieldsAsync(ActivityEntityType, activity.Id);
         if (!string.IsNullOrWhiteSpace(cf))
         {
             activity.CustomFields = cf;
@@ -308,12 +310,12 @@ public class ActivitiesController : CrmControllerBase
 
         foreach (var a in activities)
         {
-            var nt = await _normalization.GetTagsAsync("Activity", a.Id);
+            var nt = await _normalization.GetTagsAsync(ActivityEntityType, a.Id);
             if (!string.IsNullOrWhiteSpace(nt))
             {
                 a.Tags = nt;
             }
-            var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
+            var cf = await _normalization.GetCustomFieldsAsync(ActivityEntityType, a.Id);
             if (!string.IsNullOrWhiteSpace(cf))
             {
                 a.CustomFields = cf;
@@ -372,12 +374,12 @@ public class ActivitiesController : CrmControllerBase
 
         foreach (var a in activities)
         {
-            var nt = await _normalization.GetTagsAsync("Activity", a.Id);
+            var nt = await _normalization.GetTagsAsync(ActivityEntityType, a.Id);
             if (!string.IsNullOrWhiteSpace(nt))
             {
                 a.Tags = nt;
             }
-            var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
+            var cf = await _normalization.GetCustomFieldsAsync(ActivityEntityType, a.Id);
             if (!string.IsNullOrWhiteSpace(cf))
             {
                 a.CustomFields = cf;
@@ -410,12 +412,12 @@ public class ActivitiesController : CrmControllerBase
 
         foreach (var a in activities)
         {
-            var nt = await _normalization.GetTagsAsync("Activity", a.Id);
+            var nt = await _normalization.GetTagsAsync(ActivityEntityType, a.Id);
             if (!string.IsNullOrWhiteSpace(nt))
             {
                 a.Tags = nt;
             }
-            var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
+            var cf = await _normalization.GetCustomFieldsAsync(ActivityEntityType, a.Id);
             if (!string.IsNullOrWhiteSpace(cf))
             {
                 a.CustomFields = cf;

@@ -25,6 +25,9 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class AuthController : CrmControllerBase
 {
+    private const string UnknownValue = "unknown";
+    private const string NameIdentifierClaimType = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier";
+
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<AuthController> _logger;
     private readonly LinkedInOAuthProvider _linkedInOAuthProvider;
@@ -147,7 +150,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownValue;
         var userAgent = Request.Headers.UserAgent.ToString();
 
         try
@@ -321,7 +324,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetCurrentUser()
     {
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -350,7 +353,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Setup2FA()
     {
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -382,7 +385,7 @@ public class AuthController : CrmControllerBase
             return BadRequest(ModelState);
                 }
 
-        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -419,7 +422,7 @@ public class AuthController : CrmControllerBase
             return BadRequest(ModelState);
                 }
 
-        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -443,7 +446,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Disable2FA()
     {
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -642,10 +645,10 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Logout()
     {
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownValue;
         var userAgent = Request.Headers.UserAgent.ToString();
 
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return new UnauthorizedObjectResult(new { message = "User ID not found in token" });
@@ -687,7 +690,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownValue;
         var userAgent = Request.Headers.UserAgent.ToString();
 
         try
@@ -697,7 +700,7 @@ public class AuthController : CrmControllerBase
                 return new BadRequestObjectResult(ModelState);
             }
 
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
                 return new UnauthorizedObjectResult(new { message = "User ID not found in token" });
@@ -724,7 +727,7 @@ public class AuthController : CrmControllerBase
         }
         catch (UnauthorizedAccessException ex)
         {
-            var userIdClaim2 = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            var userIdClaim2 = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
             int.TryParse(userIdClaim2?.Value, out var uid2);
             await _authAuditService.LogPasswordChangeAsync(uid2 > 0 ? uid2 : (int?)null ?? 0, ipAddress, userAgent, false, ex.Message);
             _logger.LogWarning($"Change password failed: {ex.Message}");
@@ -949,7 +952,7 @@ public class AuthController : CrmControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
                 return Unauthorized();
@@ -992,7 +995,7 @@ public class AuthController : CrmControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
                 return Unauthorized();
@@ -1134,7 +1137,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetWebAuthnCredentials(CancellationToken ct)
     {
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -1162,7 +1165,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveWebAuthnCredential(string credentialId, CancellationToken ct)
     {
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -1380,7 +1383,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Check2FARequired(CancellationToken ct)
     {
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -1411,7 +1414,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RegenerateBackupCodes(CancellationToken ct)
     {
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -1550,7 +1553,7 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetOAuthLinks(CancellationToken ct = default)
     {
-                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+                var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
         {
             return Unauthorized();
@@ -1588,7 +1591,7 @@ public class AuthController : CrmControllerBase
                 return BadRequest(new { message = "Provider and ProviderUserId are required." });
             }
 
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
                 return Unauthorized();
@@ -1624,7 +1627,7 @@ public class AuthController : CrmControllerBase
     {
         try
         {
-            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
                 return Unauthorized();
@@ -1818,7 +1821,7 @@ public class AuthController : CrmControllerBase
         }
 
         // Record login analytics
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownValue;
         var userAgent = Request.Headers.UserAgent.ToString();
         await _loginAnalyticsService.RecordLoginAttemptAsync(new LoginAttemptRecord
         {
@@ -1980,7 +1983,7 @@ public class AuthController : CrmControllerBase
             return Unauthorized();
         }
 
-        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownValue;
         var userAgent = Request.Headers.UserAgent.ToString();
 
         var device = await _trustedDeviceService.TrustDeviceAsync(
@@ -2090,7 +2093,7 @@ public class AuthController : CrmControllerBase
         var result = await _riskAssessmentService.AssessLoginRiskAsync(new RiskAssessmentRequest
         {
             UserId = request.UserId,
-            IpAddress = request.IpAddress ?? HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            IpAddress = request.IpAddress ?? HttpContext.Connection.RemoteIpAddress?.ToString() ?? UnknownValue,
             UserAgent = request.UserAgent ?? Request.Headers.UserAgent.ToString(),
             DeviceFingerprint = request.DeviceId
         }, ct);
@@ -2227,7 +2230,7 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
         var geoResult = await _geoLocationService.LookupAsync(request.IpAddress, ct);
-        var isNew = await _loginAnalyticsService.IsNewLocationAsync(request.UserId, geoResult?.CountryCode ?? "unknown", geoResult?.City ?? "unknown", ct);
+        var isNew = await _loginAnalyticsService.IsNewLocationAsync(request.UserId, geoResult?.CountryCode ?? UnknownValue, geoResult?.City ?? UnknownValue, ct);
 
         return Ok(new GeoLocationCheckResult
         {
@@ -2245,7 +2248,7 @@ public class AuthController : CrmControllerBase
 
     private int? GetCurrentUserId() // NOSONAR
     {
-        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
         {
             return userId;

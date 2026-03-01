@@ -280,7 +280,7 @@ public class AddressesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateAddress(
+    public async Task<IActionResult> UpdateAddress( // NOSONAR
         int accountId,
         int addressId,
         [FromBody] UpdateAddressDto dto,

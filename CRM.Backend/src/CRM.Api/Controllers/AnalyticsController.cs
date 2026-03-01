@@ -23,6 +23,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class AnalyticsController : CrmControllerBase
 {
+    private const string AnalyticsUnavailableMessage = "Analytics provider is unavailable.";
+
     private readonly IProviderFactory<IAnalyticsPort> _analyticsFactory;
 
     public AnalyticsController(IProviderFactory<IAnalyticsPort> analyticsFactory)
@@ -75,7 +77,7 @@ public class AnalyticsController : CrmControllerBase
                 var provider = _analyticsFactory.GetProvider();
         if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = AnalyticsUnavailableMessage });
         }
 
         var userId = GetCurrentUserId();
@@ -107,7 +109,7 @@ public class AnalyticsController : CrmControllerBase
                 var provider = _analyticsFactory.GetProvider();
         if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = AnalyticsUnavailableMessage });
         }
 
         var dashboard = await provider.GetDashboardAsync(id, cancellationToken);
@@ -131,7 +133,7 @@ public class AnalyticsController : CrmControllerBase
                 var provider = _analyticsFactory.GetProvider();
         if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = AnalyticsUnavailableMessage });
         }
 
         if (!provider.SupportsEmbedding)
@@ -173,7 +175,7 @@ public class AnalyticsController : CrmControllerBase
                 var provider = _analyticsFactory.GetProvider();
         if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = AnalyticsUnavailableMessage });
         }
 
         var charts = await provider.GetChartsAsync(dashboardId, cancellationToken);
@@ -192,7 +194,7 @@ public class AnalyticsController : CrmControllerBase
                 var provider = _analyticsFactory.GetProvider();
         if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = AnalyticsUnavailableMessage });
         }
 
         if (!provider.SupportsEmbedding)

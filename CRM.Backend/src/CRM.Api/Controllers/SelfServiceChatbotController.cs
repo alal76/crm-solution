@@ -40,7 +40,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     public async Task<ActionResult<ChatSessionDto>> StartSession()
     {
         int? userId = null;
-        if (User.Identity?.IsAuthenticated == true)
+        if (User.Identity?.IsAuthenticated is true)
         {
             // Extract user ID from claims
             var userIdClaim = User.FindFirst("userId");
@@ -63,7 +63,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     public async Task<ActionResult<ChatbotResponseDto>> SendMessage([FromBody] ChatbotMessageDto message)
     {
         int? userId = null;
-        if (User.Identity?.IsAuthenticated == true)
+        if (User.Identity?.IsAuthenticated is true)
         {
             var userIdClaim = User.FindFirst("userId");
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
@@ -121,7 +121,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     public async Task<ActionResult<ChatbotResponseDto>> ExecuteQuickAction(string actionId)
     {
         int? userId = null;
-        if (User.Identity?.IsAuthenticated == true)
+        if (User.Identity?.IsAuthenticated is true)
         {
             var userIdClaim = User.FindFirst("userId");
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
@@ -175,7 +175,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     public async Task<ActionResult<IncidentStatusResponseDto>> CheckIncidentStatus(string incidentNumber)
     {
         int? userId = null;
-        if (User.Identity?.IsAuthenticated == true)
+        if (User.Identity?.IsAuthenticated is true)
         {
             var userIdClaim = User.FindFirst("userId");
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))

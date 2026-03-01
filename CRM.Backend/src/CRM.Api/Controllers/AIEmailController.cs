@@ -33,6 +33,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class AIEmailController : CrmControllerBase
 {
+    private const string SystemRole = "system";
+
     private readonly CrmDbContext _context;
     private readonly ILLMService _llmService;
     private readonly ILLMSettingsService _llmSettingsService;
@@ -119,7 +121,7 @@ Respond ONLY with valid JSON in this exact format:
             Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
             Messages = new List<LLMMessage>
             {
-                new() { Role = "system", Content = systemPrompt },
+                new() { Role = SystemRole, Content = systemPrompt },
                 new() { Role = "user", Content = $"Analyze this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
             },
             Temperature = 0.3, // Lower for more consistent analysis
@@ -247,7 +249,7 @@ Respond with JSON in this format:
             Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
             Messages = new List<LLMMessage>
             {
-                new() { Role = "system", Content = systemPrompt },
+                new() { Role = SystemRole, Content = systemPrompt },
                 new() { Role = "user", Content = $"Generate responses for this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
             },
             Temperature = 0.7, // Higher for creative responses
@@ -354,8 +356,11 @@ Respond with JSON:
   ""tips"": [""General tips for improvement""]
 }}";
 
+        var emailBodyPreview = request.EmailBody?.Length > 500
+            ? request.EmailBody[..500] + "..."
+            : request.EmailBody ?? "";
         var userContent = request.Subject != null
-            ? $"Original subject: {request.Subject}\n\nEmail preview: {(request.EmailBody?.Length > 500 ? request.EmailBody[..500] + "..." : request.EmailBody ?? "")}"
+            ? $"Original subject: {request.Subject}\n\nEmail preview: {emailBodyPreview}"
             : $"Generate subject for this email:\n\n{request.EmailBody}";
 
         var llmRequest = new LLMRequest
@@ -364,7 +369,7 @@ Respond with JSON:
             Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
             Messages = new List<LLMMessage>
             {
-                new() { Role = "system", Content = systemPrompt },
+                new() { Role = SystemRole, Content = systemPrompt },
                 new() { Role = "user", Content = userContent }
             },
             Temperature = 0.8,
@@ -475,7 +480,7 @@ Respond with JSON:
             Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
             Messages = new List<LLMMessage>
             {
-                new() { Role = "system", Content = systemPrompt },
+                new() { Role = SystemRole, Content = systemPrompt },
                 new() { Role = "user", Content = $"Improve this email:\n\nSubject: {request.Subject ?? "(No subject)"}\n\n{request.EmailContent}" }
             },
             Temperature = 0.5,

@@ -21,6 +21,9 @@ namespace CRM.Api.Controllers;
 [Route("api/auth-diagnostics")]
 public class AuthDiagnosticsController : CrmControllerBase
 {
+    private const string BuiltInProviderName = "BuiltIn";
+    private const string WarningLevel = "warning";
+
     private readonly ILogger<AuthDiagnosticsController> _logger;
     private readonly IHostEnvironment _environment;
     private readonly IConfiguration _configuration;
@@ -97,7 +100,7 @@ public class AuthDiagnosticsController : CrmControllerBase
         var useExternalNotifications = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications);
         if (useExternalNotifications)
         {
-            var notificationsType = (_configuration["Providers:Notifications:Type"] ?? "BuiltIn").ToLowerInvariant();
+            var notificationsType = (_configuration["Providers:Notifications:Type"] ?? BuiltInProviderName).ToLowerInvariant();
             var novuApiKey = _configuration["Providers:Notifications:Novu:ApiKey"];
             var sendGridApiKey = _configuration["Providers:Notifications:SendGrid:ApiKey"];
             var twilioSid = _configuration["Providers:Notifications:Twilio:AccountSid"];
@@ -107,7 +110,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-NOTIFICATIONS-NO-CONFIG",
                     "External notifications enabled without provider config",
-                    "warning",
+                    WarningLevel,
                     $"UseExternalNotifications is true, but provider config is missing (Type={notificationsType}).",
                     "Set Providers:Notifications:Type and corresponding provider credentials (Novu/SendGrid/Twilio), or disable UseExternalNotifications.");
             }
@@ -116,7 +119,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-NOTIFICATIONS-NOVU-MISSING",
                     "Novu selected but ApiKey missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Notifications:Type is Novu, but ApiKey is empty.",
                     "Set Providers:Notifications:Novu:ApiKey or switch provider type.");
             }
@@ -125,7 +128,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-NOTIFICATIONS-SENDGRID-MISSING",
                     "SendGrid selected but ApiKey missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Notifications:Type is SendGrid, but ApiKey is empty.",
                     "Set Providers:Notifications:SendGrid:ApiKey or switch provider type.");
             }
@@ -134,7 +137,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-NOTIFICATIONS-TWILIO-MISSING",
                     "Twilio selected but AccountSid missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Notifications:Type is Twilio, but AccountSid is empty.",
                     "Set Providers:Notifications:Twilio:AccountSid or switch provider type.");
             }
@@ -143,7 +146,7 @@ public class AuthDiagnosticsController : CrmControllerBase
         var useExternalSearch = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSearch);
         if (useExternalSearch)
         {
-            var searchType = (_configuration["Providers:Search:Type"] ?? "BuiltIn").ToLowerInvariant();
+            var searchType = (_configuration["Providers:Search:Type"] ?? BuiltInProviderName).ToLowerInvariant();
             var meiliUrl = _configuration["Providers:Search:Meilisearch:Url"];
             var algoliaAppId = _configuration["Providers:Search:Algolia:ApplicationId"];
 
@@ -152,7 +155,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-SEARCH-MEILI-MISSING",
                     "Meilisearch selected but Url missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Search:Type is Meilisearch, but Url is empty.",
                     "Set Providers:Search:Meilisearch:Url or switch provider type.");
             }
@@ -161,7 +164,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-SEARCH-ALGOLIA-MISSING",
                     "Algolia selected but ApplicationId missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Search:Type is Algolia, but ApplicationId is empty.",
                     "Set Providers:Search:Algolia:ApplicationId or switch provider type.");
             }
@@ -170,7 +173,7 @@ public class AuthDiagnosticsController : CrmControllerBase
         var useExternalChat = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalChat);
         if (useExternalChat)
         {
-            var chatType = (_configuration["Providers:Chat:Type"] ?? "BuiltIn").ToLowerInvariant();
+            var chatType = (_configuration["Providers:Chat:Type"] ?? BuiltInProviderName).ToLowerInvariant();
             var chatwootBaseUrl = _configuration["Providers:Chat:Chatwoot:BaseUrl"];
             var intercomAppId = _configuration["Providers:Chat:Intercom:AppId"];
 
@@ -179,7 +182,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-CHAT-CHATWOOT-MISSING",
                     "Chatwoot selected but BaseUrl missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Chat:Type is Chatwoot, but BaseUrl is empty.",
                     "Set Providers:Chat:Chatwoot:BaseUrl or switch provider type.");
             }
@@ -188,7 +191,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-CHAT-INTERCOM-MISSING",
                     "Intercom selected but AppId missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Chat:Type is Intercom, but AppId is empty.",
                     "Set Providers:Chat:Intercom:AppId or switch provider type.");
             }
@@ -197,7 +200,7 @@ public class AuthDiagnosticsController : CrmControllerBase
         var useExternalAnalytics = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAnalytics);
         if (useExternalAnalytics)
         {
-            var analyticsType = (_configuration["Providers:Analytics:Type"] ?? "BuiltIn").ToLowerInvariant();
+            var analyticsType = (_configuration["Providers:Analytics:Type"] ?? BuiltInProviderName).ToLowerInvariant();
             var supersetBaseUrl = _configuration["Providers:Analytics:Superset:BaseUrl"];
             var powerBiTenant = _configuration["Providers:Analytics:PowerBI:TenantId"];
 
@@ -206,7 +209,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-ANALYTICS-SUPERSET-MISSING",
                     "Superset selected but BaseUrl missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Analytics:Type is Superset, but BaseUrl is empty.",
                     "Set Providers:Analytics:Superset:BaseUrl or switch provider type.");
             }
@@ -215,7 +218,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-ANALYTICS-POWERBI-MISSING",
                     "Power BI selected but TenantId missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Analytics:Type is PowerBI, but TenantId is empty.",
                     "Set Providers:Analytics:PowerBI:TenantId or switch provider type.");
             }
@@ -224,7 +227,7 @@ public class AuthDiagnosticsController : CrmControllerBase
         var useExternalSignatures = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSignatures);
         if (useExternalSignatures)
         {
-            var signatureType = (_configuration["Providers:Signatures:Type"] ?? "BuiltIn").ToLowerInvariant();
+            var signatureType = (_configuration["Providers:Signatures:Type"] ?? BuiltInProviderName).ToLowerInvariant();
             var docusealUrl = _configuration["Providers:Signatures:DocuSeal:Url"];
             var docusignAccount = _configuration["Providers:Signatures:DocuSign:AccountId"];
 
@@ -233,7 +236,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-SIGNATURES-DOCUSEAL-MISSING",
                     "DocuSeal selected but Url missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Signatures:Type is DocuSeal, but Url is empty.",
                     "Set Providers:Signatures:DocuSeal:Url or switch provider type.");
             }
@@ -242,7 +245,7 @@ public class AuthDiagnosticsController : CrmControllerBase
                 AddIssue(
                     "EXT-SIGNATURES-DOCUSIGN-MISSING",
                     "DocuSign selected but AccountId missing",
-                    "warning",
+                    WarningLevel,
                     "Providers:Signatures:Type is DocuSign, but AccountId is empty.",
                     "Set Providers:Signatures:DocuSign:AccountId or switch provider type.");
             }
@@ -301,7 +304,7 @@ public class AuthDiagnosticsController : CrmControllerBase
 
         if (validations.TryGetValue(aiType, out var validation) && validation.IsMissing())
         {
-            addIssue(validation.Id, validation.Title, "warning", validation.Detail, validation.Recommendation);
+            addIssue(validation.Id, validation.Title, WarningLevel, validation.Detail, validation.Recommendation);
         }
     }
 }
