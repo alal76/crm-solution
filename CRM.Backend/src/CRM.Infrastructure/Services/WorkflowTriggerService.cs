@@ -182,7 +182,6 @@ public class WorkflowTriggerService : IWorkflowTriggerService
         if (dto.MaxRetries.HasValue)
             trigger.MaxRetries = dto.MaxRetries.Value;
 
-        trigger.UpdatedAt = DateTime.UtcNow;
 
         // Recalculate next scheduled time if cron changed
         if (dto.CronExpression != null && trigger.TriggerType == WorkflowTriggerType.Scheduled)
@@ -209,7 +208,6 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             return false;
 
         trigger.IsDeleted = true;
-        trigger.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -234,7 +232,6 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             throw new KeyNotFoundException($"Workflow trigger {id} not found.");
 
         trigger.IsActive = true;
-        trigger.UpdatedAt = DateTime.UtcNow;
 
         // Update next scheduled time for scheduled triggers
         if (trigger.TriggerType == WorkflowTriggerType.Scheduled && !string.IsNullOrEmpty(trigger.CronExpression))
@@ -261,7 +258,6 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             throw new KeyNotFoundException($"Workflow trigger {id} not found.");
 
         trigger.IsActive = false;
-        trigger.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -505,7 +501,6 @@ public class WorkflowTriggerService : IWorkflowTriggerService
         if (trigger != null)
         {
             trigger.NextScheduledAt = nextTime;
-            trigger.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
         }
     }
@@ -521,7 +516,6 @@ public class WorkflowTriggerService : IWorkflowTriggerService
 
         trigger.LastTriggeredAt = DateTime.UtcNow;
         trigger.ExecutionCount++;
-        trigger.UpdatedAt = DateTime.UtcNow;
 
         // Update next scheduled time for scheduled triggers
         if (trigger.TriggerType == WorkflowTriggerType.Scheduled && !string.IsNullOrEmpty(trigger.CronExpression))

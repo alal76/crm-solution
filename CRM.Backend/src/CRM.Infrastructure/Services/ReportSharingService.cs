@@ -71,7 +71,6 @@ public class ReportSharingService : IReportSharingService
                 {
                     // Update existing share
                     existingShare.Permission = permission.ToString();
-                    existingShare.UpdatedAt = DateTime.UtcNow;
                     updatedShareCount++;
                 }
                 else
@@ -173,7 +172,6 @@ public class ReportSharingService : IReportSharingService
             return false;
 
         share.IsDeleted = true;
-        share.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -119,7 +119,6 @@ public class BrandingConfigService : IBrandingConfigService
                 throw new ArgumentException("Solution name can only contain letters, numbers, and spaces", nameof(solutionName));
 
             config.SolutionName = normalizedSolutionName;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.Set<BrandingConfig>().Update(config);
             await _context.SaveChangesAsync(cancellationToken);
@@ -185,7 +184,6 @@ public class BrandingConfigService : IBrandingConfigService
             config.CustomLogoFileName = request.FileName;
             config.LastLogoUploadedAt = DateTime.UtcNow;
             config.LastLogoUploadedById = userId;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.Set<BrandingConfig>().Update(config);
             await _context.SaveChangesAsync(cancellationToken);
@@ -261,7 +259,6 @@ public class BrandingConfigService : IBrandingConfigService
             config.FaviconFileName = request.FileName;
             config.LastFaviconUploadedAt = DateTime.UtcNow;
             config.LastFaviconUploadedById = userId;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.Set<BrandingConfig>().Update(config);
             await _context.SaveChangesAsync(cancellationToken);
@@ -305,7 +302,6 @@ public class BrandingConfigService : IBrandingConfigService
 
             config.CustomLogoPath = null;
             config.CustomLogoFileName = null;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.Set<BrandingConfig>().Update(config);
             await _context.SaveChangesAsync(cancellationToken);
@@ -338,7 +334,6 @@ public class BrandingConfigService : IBrandingConfigService
             config.FaviconPath = null;
             config.FaviconFileName = null;
             config.FaviconDataUrl = null;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.Set<BrandingConfig>().Update(config);
             await _context.SaveChangesAsync(cancellationToken);
@@ -461,7 +456,6 @@ public class BrandingConfigService : IBrandingConfigService
             var previousState = config.IsCustomBrandingEnabled;
 
             config.IsCustomBrandingEnabled = isEnabled;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.Set<BrandingConfig>().Update(config);
             await _context.SaveChangesAsync(cancellationToken);

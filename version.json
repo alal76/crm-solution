@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 612,
+  "minor": 613,
   "patch": 0,
   "lastUpdate": "2026-03-01",
-  "description": "feat(controllers): v0.612.0 - migrate all 187 controllers to CrmControllerBase, remove 1091 redundant catch blocks and duplicate constants",
+  "description": "feat(interceptor): v0.613.0 - AuditSaveChangesInterceptor auto-timestamps, SoftDelete helper, removed 579 manual UpdatedAt assignments across 115 service files",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

@@ -154,7 +154,6 @@ public class EnumManagementService : IEnumManagementService
         category.DisplayName = dto.DisplayName ?? category.DisplayName;
         category.Description = dto.Description ?? category.Description;
         category.AllowCustomValues = dto.AllowCustomValues;
-        category.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
 
@@ -290,7 +289,6 @@ public class EnumManagementService : IEnumManagementService
         value.IsActive = dto.IsActive;
         value.IsDefault = dto.IsDefault;
         value.SortOrder = dto.SortOrder;
-        value.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
 
@@ -315,7 +313,6 @@ public class EnumManagementService : IEnumManagementService
         }
 
         value.IsDeleted = true;
-        value.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         if (value.Category is not null)
@@ -339,7 +336,6 @@ public class EnumManagementService : IEnumManagementService
             if (v is not null)
             {
                 v.SortOrder = i;
-                v.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -434,7 +430,6 @@ public class EnumManagementService : IEnumManagementService
             ?? throw new KeyNotFoundException($"Enum transition {transitionId} not found.");
 
         transition.IsDeleted = true;
-        transition.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Deleted enum transition Id={Id}", transitionId);
@@ -595,7 +590,6 @@ public class EnumManagementService : IEnumManagementService
         foreach (var v in existing)
         {
             v.IsDefault = false;
-            v.UpdatedAt = DateTime.UtcNow;
         }
     }
 }

@@ -98,7 +98,6 @@ public class OrderService : IOrderService
             order.OrderNumber = await GenerateOrderNumberAsync(cancellationToken);
         }
         order.CreatedAt = DateTime.UtcNow;
-        order.UpdatedAt = DateTime.UtcNow;
         _context.Orders.Add(order);
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Created order {OrderNumber} for account {AccountId}", order.OrderNumber, order.AccountId);
@@ -115,7 +114,6 @@ public class OrderService : IOrderService
         if (existing == null)
             throw new InvalidOperationException($"Order {dto.Id} not found");
         MapUpdateOrderDtoToEntity(dto, existing);
-        existing.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated order {OrderNumber}", existing.OrderNumber);
         _eventDispatcher.DispatchEntityEvent("Order", existing.Id, WorkflowTriggerType.OnUpdate);
@@ -132,7 +130,6 @@ public class OrderService : IOrderService
         }
 
         order.IsDeleted = true;
-        order.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted order {OrderNumber}", order.OrderNumber);
@@ -563,7 +560,6 @@ public class OrderService : IOrderService
         }
 
         order.Status = status;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -587,7 +583,6 @@ public class OrderService : IOrderService
 
         order.Status = OrderStatus.PendingApproval;
         order.SubmittedDate = DateTime.UtcNow;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -607,7 +602,6 @@ public class OrderService : IOrderService
         order.Status = OrderStatus.Approved;
         order.ApprovedById = approvedById;
         order.ApprovedDate = DateTime.UtcNow;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -626,7 +620,6 @@ public class OrderService : IOrderService
 
         order.Status = OrderStatus.Cancelled;
         order.RejectionReason = reason;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -651,7 +644,6 @@ public class OrderService : IOrderService
         order.Status = OrderStatus.Cancelled;
         order.CancelledDate = DateTime.UtcNow;
         order.CancellationReason = reason;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -671,7 +663,6 @@ public class OrderService : IOrderService
         order.Status = OrderStatus.OnHold;
         order.HoldReason = reason;
         order.HoldDate = DateTime.UtcNow;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -695,7 +686,6 @@ public class OrderService : IOrderService
 
         order.Status = OrderStatus.Processing;
         order.HoldReason = null;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -718,14 +708,12 @@ public class OrderService : IOrderService
 
         order.Status = OrderStatus.Fulfilled;
         order.FulfilledDate = DateTime.UtcNow;
-        order.UpdatedAt = DateTime.UtcNow;
 
         // Mark all line items as fulfilled
         foreach (var line in order.LineItems.Where(l => !l.IsDeleted))
         {
             line.FulfilledQuantity = line.Quantity;
             line.FulfilledDate = DateTime.UtcNow;
-            line.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -748,11 +736,9 @@ public class OrderService : IOrderService
         {
             line.FulfilledQuantity = line.Quantity;
             line.FulfilledDate = DateTime.UtcNow;
-            line.UpdatedAt = DateTime.UtcNow;
         }
 
         order.Status = OrderStatus.PartiallyFulfilled;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -771,7 +757,6 @@ public class OrderService : IOrderService
 
         order.Status = OrderStatus.Delivered;
         order.DeliveredDate = deliveryDate ?? DateTime.UtcNow;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -795,7 +780,6 @@ public class OrderService : IOrderService
             {
                 line.ReturnedQuantity = line.ReturnedQuantity + returnItem.Quantity;
                 line.ReturnReason = returnItem.Reason;
-                line.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -803,7 +787,6 @@ public class OrderService : IOrderService
         var allReturned = order.LineItems.All(l => l.IsDeleted || l.ReturnedQuantity >= l.Quantity);
         order.Status = allReturned ? OrderStatus.Returned : OrderStatus.PartiallyFulfilled;
         order.ReturnReason = reason;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -826,7 +809,6 @@ public class OrderService : IOrderService
 
         lineItem.OrderId = orderId;
         lineItem.CreatedAt = DateTime.UtcNow;
-        lineItem.UpdatedAt = DateTime.UtcNow;
 
         if (lineItem.LineNumber == 0)
         {
@@ -850,7 +832,6 @@ public class OrderService : IOrderService
             throw new InvalidOperationException($"Line item {lineItem.Id} not found");
         }
 
-        lineItem.UpdatedAt = DateTime.UtcNow;
         _context.OrderLineItems.Update(lineItem);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -870,7 +851,6 @@ public class OrderService : IOrderService
 
         var orderId = lineItem.OrderId;
         lineItem.IsDeleted = true;
-        lineItem.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         await RecalculateTotalsAsync(orderId, cancellationToken);
@@ -996,7 +976,6 @@ public class OrderService : IOrderService
         order.DiscountAmount = activeLines.Sum(l => l.DiscountAmount);
         order.TaxAmount = activeLines.Sum(l => l.TaxAmount);
         order.TotalAmount = order.Subtotal - order.DiscountAmount + order.TaxAmount + order.ShippingAmount;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -1016,7 +995,6 @@ public class OrderService : IOrderService
         order.DiscountAmount += discountAmount;
         order.DiscountCode = discountCode;
         order.TotalAmount = order.Subtotal - order.DiscountAmount + order.TaxAmount + order.ShippingAmount;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -1036,7 +1014,6 @@ public class OrderService : IOrderService
         // In production, validate coupon and calculate discount
         // For now, just store the coupon code
         order.CouponCode = couponCode;
-        order.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

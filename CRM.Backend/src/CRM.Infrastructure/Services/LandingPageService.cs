@@ -83,7 +83,6 @@ public class LandingPageService : ILandingPageService
     {
         landingPage.CreatedByUserId = userId;
         landingPage.CreatedAt = DateTime.UtcNow;
-        landingPage.UpdatedAt = DateTime.UtcNow;
         landingPage.Status = LandingPageStatus.Draft;
 
         // Ensure slug is unique
@@ -131,7 +130,6 @@ public class LandingPageService : ILandingPageService
         existing.ScheduledPublishAt = landingPage.ScheduledPublishAt;
         existing.ScheduledUnpublishAt = landingPage.ScheduledUnpublishAt;
         existing.SettingsJson = landingPage.SettingsJson;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         // Slug can only be changed if still in draft
         if (existing.Status == LandingPageStatus.Draft && !string.IsNullOrEmpty(landingPage.Slug) && landingPage.Slug != existing.Slug)
@@ -159,7 +157,6 @@ public class LandingPageService : ILandingPageService
 
         landingPage.IsDeleted = true;
         landingPage.IsActive = false;
-        landingPage.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted landing page {Id}", id);
@@ -178,7 +175,6 @@ public class LandingPageService : ILandingPageService
         landingPage.Status = LandingPageStatus.Published;
         landingPage.PublishedAt = DateTime.UtcNow;
         landingPage.IsActive = true;
-        landingPage.UpdatedAt = DateTime.UtcNow;
 
         // Compile HTML content
         landingPage.HtmlContent = await CompileToHtmlAsync(id);
@@ -199,7 +195,6 @@ public class LandingPageService : ILandingPageService
         }
 
         landingPage.Status = LandingPageStatus.Draft;
-        landingPage.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -295,7 +290,6 @@ public class LandingPageService : ILandingPageService
             block.LandingPageId = landingPageId;
             block.SortOrder = sortOrder++;
             block.CreatedAt = DateTime.UtcNow;
-            block.UpdatedAt = DateTime.UtcNow;
             _context.LandingPageBlocks.Add(block);
         }
 
@@ -303,7 +297,6 @@ public class LandingPageService : ILandingPageService
         var landingPage = await _context.LandingPages.FindAsync(landingPageId);
         if (landingPage != null)
         {
-            landingPage.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();
@@ -315,7 +308,6 @@ public class LandingPageService : ILandingPageService
     public async Task<LandingPageVisit> RecordVisitAsync(LandingPageVisit visit)
     {
         visit.CreatedAt = DateTime.UtcNow;
-        visit.UpdatedAt = DateTime.UtcNow;
         visit.VisitedAt = DateTime.UtcNow;
 
         _context.LandingPageVisits.Add(visit);
@@ -350,7 +342,6 @@ public class LandingPageService : ILandingPageService
         }
 
         landingPage.Conversions++;
-        landingPage.UpdatedAt = DateTime.UtcNow;
 
         // Update the visit record if visitor ID is provided
         if (!string.IsNullOrEmpty(visitorId))

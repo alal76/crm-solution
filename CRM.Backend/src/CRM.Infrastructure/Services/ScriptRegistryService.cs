@@ -99,7 +99,6 @@ public class ScriptRegistryService : IScriptRegistryService
 
         var prevState = script.LifecycleState.ToString();
         script.LifecycleState = toState;
-        script.UpdatedAt = DateTime.UtcNow;
 
         _context.ScriptAuditLogs.Add(new ScriptAuditLog
         {

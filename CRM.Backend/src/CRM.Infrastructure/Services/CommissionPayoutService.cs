@@ -39,7 +39,6 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
 
         commission.Status = CommissionStatus.Paid;
         commission.PaidDate = paidDate ?? DateTime.UtcNow;
-        commission.UpdatedAt = DateTime.UtcNow;
 
         if (!string.IsNullOrEmpty(reference))
         {
@@ -66,7 +65,6 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
         commission.ClawbackDate = DateTime.UtcNow;
         commission.ClawbackReason = reason;
         commission.CommissionAmount -= clawbackAmount;
-        commission.UpdatedAt = DateTime.UtcNow;
 
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
@@ -139,7 +137,6 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
 
         commission.Status = CommissionStatus.Paid;
         commission.PaidDate = DateTime.UtcNow;
-        commission.UpdatedAt = DateTime.UtcNow;
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
 

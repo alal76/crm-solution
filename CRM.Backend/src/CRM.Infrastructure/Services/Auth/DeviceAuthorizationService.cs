@@ -149,7 +149,6 @@ public class DeviceAuthorizationService : IDeviceAuthorizationService
 
         // Mark as used
         deviceAuth.IsUsed = true;
-        deviceAuth.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Generate tokens
@@ -215,7 +214,6 @@ public class DeviceAuthorizationService : IDeviceAuthorizationService
         deviceAuth.IsAuthorized = true;
         deviceAuth.AuthorizedUserId = userId;
         deviceAuth.AuthorizedAt = DateTime.UtcNow;
-        deviceAuth.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -237,7 +235,6 @@ public class DeviceAuthorizationService : IDeviceAuthorizationService
         }
 
         deviceAuth.IsDenied = true;
-        deviceAuth.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -257,7 +254,6 @@ public class DeviceAuthorizationService : IDeviceAuthorizationService
         foreach (var code in expired)
         {
             code.IsDeleted = true;
-            code.UpdatedAt = DateTime.UtcNow;
         }
 
         if (expired.Count > 0)

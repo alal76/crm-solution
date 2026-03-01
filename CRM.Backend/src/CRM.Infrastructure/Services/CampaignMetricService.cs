@@ -33,7 +33,6 @@ public class CampaignMetricService : ICampaignMetricService
         _logger.LogInformation("Creating campaign metric for campaign {CampaignId}", metric.CampaignId);
 
         metric.CreatedAt = DateTime.UtcNow;
-        metric.UpdatedAt = DateTime.UtcNow;
         metric.IsDeleted = false;
 
         _context.CampaignMetrics.Add(metric);
@@ -277,7 +276,6 @@ public class CampaignMetricService : ICampaignMetricService
         foreach (var recipient in recipientsToRetarget)
         {
             recipient.Status = "Retargeted";
-            recipient.UpdatedAt = DateTime.UtcNow;
             result.NewRecipientsCount++;
         }
 

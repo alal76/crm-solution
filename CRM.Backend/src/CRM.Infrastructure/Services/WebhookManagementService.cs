@@ -109,7 +109,6 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
         if (dto.TimeoutSeconds.HasValue)
             webhook.TimeoutSeconds = dto.TimeoutSeconds.Value;
 
-        webhook.UpdatedAt = DateTime.UtcNow;
         _context.WebhookSubscriptions.Update(webhook);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -126,7 +125,6 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             return false;
 
         webhook.IsDeleted = true;
-        webhook.UpdatedAt = DateTime.UtcNow;
         _context.WebhookSubscriptions.Update(webhook);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -147,7 +145,6 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             throw new InvalidOperationException($"Webhook {id} not found");
 
         webhook.IsActive = !webhook.IsActive;
-        webhook.UpdatedAt = DateTime.UtcNow;
         _context.WebhookSubscriptions.Update(webhook);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -251,7 +248,6 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
         delivery.Success = false;
         delivery.AttemptNumber += 1;
-        delivery.UpdatedAt = DateTime.UtcNow;
         _context.WebhookDeliveries.Update(delivery);
         await _context.SaveChangesAsync(cancellationToken);
 

@@ -94,7 +94,6 @@ public class SalesQuotaService : ISalesQuotaService
         _logger.LogDebug("Creating quota: {Name} for period {Period}", quota.Name, quota.Period);
 
         quota.CreatedAt = DateTime.UtcNow;
-        quota.UpdatedAt = DateTime.UtcNow;
         quota.IsDeleted = false;
 
         _context.SalesQuotas.Add(quota);
@@ -140,7 +139,6 @@ public class SalesQuotaService : ISalesQuotaService
         existing.UserId = quota.UserId;
         existing.TeamId = quota.TeamId;
         existing.Notes = quota.Notes;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -164,7 +162,6 @@ public class SalesQuotaService : ISalesQuotaService
 
         // Soft delete
         quota.IsDeleted = true;
-        quota.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -218,7 +215,6 @@ public class SalesQuotaService : ISalesQuotaService
 
         quota.ActualAmount = actualAmount;
         quota.LastRefreshedAt = DateTime.UtcNow;
-        quota.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

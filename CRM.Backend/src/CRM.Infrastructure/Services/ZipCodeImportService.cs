@@ -704,7 +704,6 @@ public class ZipCodeImportService : IZipCodeImportService
             var settings = await _context.SystemSettings.FirstOrDefaultAsync(cancellationToken);
             if (settings != null)
             {
-                settings.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
             }
 

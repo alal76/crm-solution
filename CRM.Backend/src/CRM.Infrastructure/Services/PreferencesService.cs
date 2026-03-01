@@ -72,7 +72,6 @@ public class PreferencesService : IPreferencesService
         {
             account.Preferences = CreateDefaultPreferences();
             account.Preferences.CreatedAt = DateTime.UtcNow;
-            account.Preferences.UpdatedAt = DateTime.UtcNow;
             account.Preferences.IsDeleted = false;
 
             _context.Preferences.Add(account.Preferences);
@@ -185,7 +184,6 @@ public class PreferencesService : IPreferencesService
         }
 
         ApplyDto(account.Preferences, dto);
-        account.Preferences.UpdatedAt = DateTime.UtcNow;
 
         if (account.PreferencesId == null)
         {
@@ -230,7 +228,6 @@ public class PreferencesService : IPreferencesService
         }
 
         ApplyDto(contact.Preferences, dto);
-        contact.Preferences.UpdatedAt = DateTime.UtcNow;
         contact.UseCustomPreferences = true;
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -313,7 +310,6 @@ public class PreferencesService : IPreferencesService
             if (!isReferenced && contact.Preferences != null)
             {
                 contact.Preferences.IsDeleted = true;
-                contact.Preferences.UpdatedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync(cancellationToken);
             }
         }
@@ -347,7 +343,6 @@ public class PreferencesService : IPreferencesService
         }
 
         ApplyDto(account.Preferences, dto);
-        account.Preferences.UpdatedAt = DateTime.UtcNow;
 
         if (account.PreferencesId == null)
         {

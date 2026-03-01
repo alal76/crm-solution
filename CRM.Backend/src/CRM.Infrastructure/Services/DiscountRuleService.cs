@@ -96,7 +96,6 @@ public class DiscountRuleService : IDiscountRuleService
         if (dto.IsCumulative.HasValue)
             rule.IsCumulative = dto.IsCumulative.Value;
 
-        rule.UpdatedAt = DateTime.UtcNow;
         await _ruleRepository.UpdateAsync(rule);
         _logger.LogInformation("Discount rule updated: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
 

@@ -137,7 +137,6 @@ public class AdminConfigurationService : IAdminConfigurationService
             if (dto.IsActive.HasValue)
                 rule.IsActive = dto.IsActive.Value;
 
-            rule.UpdatedAt = DateTime.UtcNow;
 
             _context.CommissionRules.Update(rule);
             await _context.SaveChangesAsync(cancellationToken);
@@ -164,7 +163,6 @@ public class AdminConfigurationService : IAdminConfigurationService
                 return false;
 
             rule.IsDeleted = true;
-            rule.UpdatedAt = DateTime.UtcNow;
 
             _context.CommissionRules.Update(rule);
             await _context.SaveChangesAsync(cancellationToken);
@@ -287,7 +285,6 @@ public class AdminConfigurationService : IAdminConfigurationService
             if (dto.IsCumulative.HasValue)
                 rule.CumulativeWithOther = dto.IsCumulative.Value;
 
-            rule.UpdatedAt = DateTime.UtcNow;
 
             _context.DiscountRules.Update(rule);
             await _context.SaveChangesAsync(cancellationToken);
@@ -314,7 +311,6 @@ public class AdminConfigurationService : IAdminConfigurationService
                 return false;
 
             rule.IsDeleted = true;
-            rule.UpdatedAt = DateTime.UtcNow;
 
             _context.DiscountRules.Update(rule);
             await _context.SaveChangesAsync(cancellationToken);
@@ -426,7 +422,6 @@ public class AdminConfigurationService : IAdminConfigurationService
             if (request.IsActive.HasValue)
                 policy.IsActive = request.IsActive.Value;
 
-            policy.UpdatedAt = DateTime.UtcNow;
 
             _context.SLAPolicies.Update(policy);
             await _context.SaveChangesAsync(cancellationToken);
@@ -453,7 +448,6 @@ public class AdminConfigurationService : IAdminConfigurationService
                 return false;
 
             policy.IsDeleted = true;
-            policy.UpdatedAt = DateTime.UtcNow;
 
             _context.SLAPolicies.Update(policy);
             await _context.SaveChangesAsync(cancellationToken);
@@ -578,7 +572,6 @@ public class AdminConfigurationService : IAdminConfigurationService
             if (request.IsActive.HasValue)
                 rule.IsActive = request.IsActive.Value;
 
-            rule.UpdatedAt = DateTime.UtcNow;
 
             _context.ITSMEscalationRules.Update(rule);
             await _context.SaveChangesAsync(cancellationToken);
@@ -605,7 +598,6 @@ public class AdminConfigurationService : IAdminConfigurationService
                 return false;
 
             rule.IsDeleted = true;
-            rule.UpdatedAt = DateTime.UtcNow;
 
             _context.ITSMEscalationRules.Update(rule);
             await _context.SaveChangesAsync(cancellationToken);
@@ -728,7 +720,6 @@ public class AdminConfigurationService : IAdminConfigurationService
             if (request.IsActive.HasValue)
                 queue.IsActive = request.IsActive.Value;
 
-            queue.UpdatedAt = DateTime.UtcNow;
 
             _context.ServiceQueues.Update(queue);
             await _context.SaveChangesAsync(cancellationToken);
@@ -755,7 +746,6 @@ public class AdminConfigurationService : IAdminConfigurationService
                 return false;
 
             queue.IsDeleted = true;
-            queue.UpdatedAt = DateTime.UtcNow;
 
             _context.ServiceQueues.Update(queue);
             await _context.SaveChangesAsync(cancellationToken);

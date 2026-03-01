@@ -53,7 +53,6 @@ namespace CRM.Infrastructure.Services
 
         public async Task<ProductBundle> UpdateBundleAsync(ProductBundle bundle, CancellationToken cancellationToken = default)
         {
-            bundle.UpdatedAt = DateTime.UtcNow;
             _context.ProductBundles.Update(bundle);
             await _context.SaveChangesAsync(cancellationToken);
             return bundle;
@@ -65,7 +64,6 @@ namespace CRM.Infrastructure.Services
             if (entity == null)
                 return false;
             entity.IsDeleted = true;
-            entity.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }

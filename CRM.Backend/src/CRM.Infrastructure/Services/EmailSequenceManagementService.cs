@@ -98,7 +98,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         if (dto.DefaultReplyTo != null)
             sequence.ReplyToEmail = dto.DefaultReplyTo;
 
-        sequence.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequences.Update(sequence);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -115,7 +114,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             return false;
 
         sequence.IsDeleted = true;
-        sequence.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequences.Update(sequence);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -178,7 +176,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         step.DelayHours = dto.DelayHours;
         step.DelayMinutes = dto.DelayMinutes;
         step.SpecificTime = dto.SpecificTime?.ToString(@"hh\:mm");
-        step.UpdatedAt = DateTime.UtcNow;
 
         _context.EmailSequenceSteps.Update(step);
         await _context.SaveChangesAsync(cancellationToken);
@@ -196,7 +193,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             return false;
 
         step.IsDeleted = true;
-        step.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequenceSteps.Update(step);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -216,7 +212,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             if (step != null)
             {
                 step.StepOrder = i + 1;
-                step.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -284,7 +279,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             return false;
 
         enrollment.Status = EnrollmentStatus.Paused;
-        enrollment.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequenceEnrollments.Update(enrollment);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -300,7 +294,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             return false;
 
         enrollment.Status = EnrollmentStatus.Active;
-        enrollment.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequenceEnrollments.Update(enrollment);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -317,7 +310,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
 
         enrollment.IsDeleted = true;
         enrollment.Status = EnrollmentStatus.Removed;
-        enrollment.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequenceEnrollments.Update(enrollment);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -355,7 +347,6 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             throw new InvalidOperationException($"Email sequence {sequenceId} not found");
 
         sequence.Status = EmailSequenceStatus.Active;
-        sequence.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequences.Update(sequence);
         await _context.SaveChangesAsync(cancellationToken);
 

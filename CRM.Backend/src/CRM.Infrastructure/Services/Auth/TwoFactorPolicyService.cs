@@ -163,7 +163,6 @@ public class TwoFactorPolicyService : ITwoFactorPolicyService
         // Persist the Required flag to the UserGroup entity
         group.RequireTwoFactor = policy.Required;
         group.EnforceTwoFactor = policy.Required;
-        group.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(ct);
 

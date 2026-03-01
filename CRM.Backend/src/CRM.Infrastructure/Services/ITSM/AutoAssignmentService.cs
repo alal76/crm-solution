@@ -66,7 +66,6 @@ public class AutoAssignmentService : IAutoAssignmentService
             }
 
             sr.AssignedToUserId = suggestion.AssignedUserId;
-            sr.UpdatedAt = DateTime.UtcNow;
             await _dbContext.SaveChangesAsync(ct);
 
             _logger.LogInformation(

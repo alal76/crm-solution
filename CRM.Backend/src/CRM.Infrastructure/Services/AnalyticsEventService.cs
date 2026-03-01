@@ -173,7 +173,6 @@ public class AnalyticsEventService : IAnalyticsEventService
         }
 
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Soft-deleted analytics event {Id}", id);

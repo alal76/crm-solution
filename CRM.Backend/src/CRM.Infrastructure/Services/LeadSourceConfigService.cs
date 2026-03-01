@@ -75,7 +75,6 @@ public class LeadSourceConfigService : ILeadSourceConfigService
         existing.Description = source.Description;
         existing.Category = source.Category;
         existing.CampaignId = source.CampaignId;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(ct);
         _logger.LogInformation("Updated lead source config {Id}: {Name}", id, source.Name);
@@ -88,7 +87,6 @@ public class LeadSourceConfigService : ILeadSourceConfigService
         if (existing == null) return false;
 
         existing.IsDeleted = true;
-        existing.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(ct);
         _logger.LogInformation("Deleted lead source config {Id}", id);
         return true;

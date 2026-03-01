@@ -89,7 +89,6 @@ public class CommissionRuleService : ICommissionRuleService
         if (dto.IsActive.HasValue)
             rule.IsActive = dto.IsActive.Value;
 
-        rule.UpdatedAt = DateTime.UtcNow;
         await _ruleRepository.UpdateAsync(rule);
         _logger.LogInformation("Commission rule updated: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
 

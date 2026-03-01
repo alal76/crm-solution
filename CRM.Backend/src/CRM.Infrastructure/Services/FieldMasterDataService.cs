@@ -116,7 +116,6 @@ public class FieldMasterDataService : IFieldMasterDataService
         link.ValidationMessage = dto.ValidationMessage;
         link.SortOrder = dto.SortOrder;
         link.IsActive = dto.IsActive;
-        link.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -133,7 +132,6 @@ public class FieldMasterDataService : IFieldMasterDataService
             return false;
 
         link.IsDeleted = true;
-        link.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted master data link {LinkId}", id);

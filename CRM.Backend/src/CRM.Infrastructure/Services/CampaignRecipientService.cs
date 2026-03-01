@@ -111,7 +111,6 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             return false;
 
         recipient.IsDeleted = true;
-        recipient.UpdatedAt = DateTime.UtcNow;
         _context.CampaignRecipients.Update(recipient);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -289,7 +288,6 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         foreach (var recipient in nonConverters)
         {
             recipient.Status = "Retargeted";
-            recipient.UpdatedAt = DateTime.UtcNow;
         }
 
         _context.CampaignRecipients.UpdateRange(nonConverters);

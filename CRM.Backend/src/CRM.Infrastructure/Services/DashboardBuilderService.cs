@@ -286,7 +286,6 @@ public class DashboardBuilderService : IDashboardBuilderService
         entity.Name = dashboard.Name;
         entity.Description = dashboard.Description;
         entity.IsDefault = dashboard.IsDefault;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         // Remove existing widgets and replace with new set
         _context.DashboardWidgets.RemoveRange(entity.Widgets);
@@ -329,13 +328,11 @@ public class DashboardBuilderService : IDashboardBuilderService
             return false;
 
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         // Soft-delete child widgets as well
         foreach (var w in entity.Widgets)
         {
             w.IsDeleted = true;
-            w.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync(ct);

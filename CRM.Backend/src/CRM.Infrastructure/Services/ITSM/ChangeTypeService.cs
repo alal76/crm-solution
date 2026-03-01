@@ -154,7 +154,6 @@ public class ChangeTypeService : IChangeTypeService
             if (dto.IsActive.HasValue)
                 entity.IsActive = dto.IsActive.Value;
 
-            entity.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync(ct);
 
@@ -183,7 +182,6 @@ public class ChangeTypeService : IChangeTypeService
             }
 
             entity.IsDeleted = true;
-            entity.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync(ct);
 

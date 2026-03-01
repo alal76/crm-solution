@@ -141,7 +141,6 @@ public class ActivityService : IActivityService
         if (activity.ActivityDate == default)
             activity.ActivityDate = DateTime.UtcNow;
         activity.CreatedAt = DateTime.UtcNow;
-        activity.UpdatedAt = DateTime.UtcNow;
         _context.Activities.Add(activity);
         await _context.SaveChangesAsync();
         _logger.LogDebug("Created activity {Id} of type {Type}", activity.Id, activity.ActivityType);

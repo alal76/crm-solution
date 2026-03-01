@@ -789,7 +789,6 @@ public class MergeService : IMergeService
         lead.MergedIntoId = null;
         lead.MergeGroupId = null;
         lead.MergedAt = null;
-        lead.UpdatedAt = DateTime.UtcNow;
     }
 
     private async Task RestoreContactFromSnapshotAsync(
@@ -852,7 +851,6 @@ public class MergeService : IMergeService
         account.MergedIntoId = null;
         account.MergeGroupId = null;
         account.MergedAt = null;
-        account.UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>

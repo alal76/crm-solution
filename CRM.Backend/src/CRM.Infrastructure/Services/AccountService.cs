@@ -579,7 +579,6 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         if (dto.IntegrationPartnerType != null)
             account.IntegrationPartnerType = dto.IntegrationPartnerType;
 
-        account.UpdatedAt = DateTime.UtcNow;
         account.LastActivityDate = DateTime.UtcNow;
 
         await _accountRepository.UpdateAsync(account);
@@ -707,7 +706,6 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             return false;
 
         account.IsDeleted = true;
-        account.UpdatedAt = DateTime.UtcNow;
 
         await _accountRepository.UpdateAsync(account);
         await _accountRepository.SaveAsync();
@@ -815,7 +813,6 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         link.IsDeleted = true;
         link.RelationshipEndDate = DateTime.UtcNow;
-        link.UpdatedAt = DateTime.UtcNow;
 
         await _accountContactRepository.UpdateAsync(link);
         await _accountContactRepository.SaveAsync();
@@ -885,7 +882,6 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             link.IsPrimaryContact = dto.IsPrimaryContact.Value;
         }
 
-        link.UpdatedAt = DateTime.UtcNow;
         await _accountContactRepository.UpdateAsync(link);
         await _accountContactRepository.SaveAsync();
 

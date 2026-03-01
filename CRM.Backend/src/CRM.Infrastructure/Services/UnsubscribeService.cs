@@ -83,7 +83,6 @@ public class UnsubscribeService : IUnsubscribeService
             existing.ReasonNote = dto.ReasonNote;
             existing.ReceiveProductUpdates = dto.ReceiveProductUpdates;
             existing.UnsubscribedAt = DateTime.UtcNow;
-            existing.UpdatedAt = DateTime.UtcNow;
         }
         else
         {
@@ -110,7 +109,6 @@ public class UnsubscribeService : IUnsubscribeService
         foreach (var enrollment in activeEnrollments)
         {
             enrollment.IsUnsubscribed = true;
-            enrollment.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -133,7 +131,6 @@ public class UnsubscribeService : IUnsubscribeService
         if (record != null)
         {
             record.ReceiveProductUpdates = dto.ReceiveProductUpdates;
-            record.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
         }
 

@@ -293,7 +293,6 @@ public class WebhookNotificationService : IWebhookNotificationService
         if (dto.TimeoutSeconds.HasValue) subscription.TimeoutSeconds = dto.TimeoutSeconds.Value;
         if (dto.RetryCount.HasValue) subscription.RetryCount = dto.RetryCount.Value;
 
-        subscription.UpdatedAt = DateTime.UtcNow;
         // Note: modifiedByUserId tracked via logs for now
 
         _logger.LogInformation("Updated webhook subscription {Id} by user {UserId}", id, modifiedByUserId);
@@ -308,7 +307,6 @@ public class WebhookNotificationService : IWebhookNotificationService
             return Task.FromResult(false);
 
         subscription.IsDeleted = true;
-        subscription.UpdatedAt = DateTime.UtcNow;
 
         _logger.LogInformation("Deleted webhook subscription {Id}", id);
         return Task.FromResult(true);

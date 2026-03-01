@@ -324,7 +324,6 @@ public class LLMSettingsService : ILLMSettingsService
             existing.ValueType = valueType;
             existing.Category = category;
             existing.IsEncrypted = isEncrypted;
-            existing.UpdatedAt = DateTime.UtcNow;
             if (description != null)
                 existing.Description = description;
         }

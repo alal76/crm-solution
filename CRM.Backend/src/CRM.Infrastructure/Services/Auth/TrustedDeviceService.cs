@@ -126,7 +126,6 @@ public class TrustedDeviceService : ITrustedDeviceService
         if (device == null) return false;
 
         device.IsDeleted = true;
-        device.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Revoked trusted device {DeviceId} for user {UserId}", deviceId, userId);
@@ -143,7 +142,6 @@ public class TrustedDeviceService : ITrustedDeviceService
         foreach (var device in devices)
         {
             device.IsDeleted = true;
-            device.UpdatedAt = DateTime.UtcNow;
         }
 
         await _db.SaveChangesAsync(ct);

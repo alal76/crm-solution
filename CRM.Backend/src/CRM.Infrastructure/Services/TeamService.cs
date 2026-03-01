@@ -73,7 +73,6 @@ public class TeamService : ITeamService
     public async Task<Team> CreateAsync(Team team, CancellationToken cancellationToken = default)
     {
         team.CreatedAt = DateTime.UtcNow;
-        team.UpdatedAt = DateTime.UtcNow;
         team.IsActive = true;
 
         _context.Teams.Add(team);
@@ -98,7 +97,6 @@ public class TeamService : ITeamService
         existing.IsActive = team.IsActive;
         existing.ManagerId = team.ManagerId;
         existing.ParentTeamId = team.ParentTeamId;
-        existing.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Updated team {TeamId}", team.Id);
@@ -112,7 +110,6 @@ public class TeamService : ITeamService
             return false;
 
         team.IsDeleted = true;
-        team.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted team {TeamId}", id);
@@ -167,7 +164,6 @@ public class TeamService : ITeamService
 
         member.IsDeleted = true;
         member.EndDate = DateTime.UtcNow;
-        member.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Removed user {UserId} from team {TeamId}", userId, teamId);
@@ -186,7 +182,6 @@ public class TeamService : ITeamService
 
         member.Role = newRole.ToString();
         member.IsTeamLead = newRole == TeamRole.Lead || newRole == TeamRole.Manager;
-        member.UpdatedAt = DateTime.UtcNow;
 
         _context.TeamMembers.Update(member);
         await _context.SaveChangesAsync(cancellationToken);
@@ -236,7 +231,6 @@ public class TeamService : ITeamService
         }
 
         team.ManagerId = managerId;
-        team.UpdatedAt = DateTime.UtcNow;
 
         _context.Teams.Update(team);
         await _context.SaveChangesAsync(cancellationToken);
@@ -273,7 +267,6 @@ public class TeamService : ITeamService
         }
 
         territory.TeamId = teamId;
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Assigned territory {TerritoryId} to team {TeamId}", territoryId, teamId);
@@ -289,7 +282,6 @@ public class TeamService : ITeamService
             return false;
 
         territory.TeamId = null;
-        territory.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Removed territory {TerritoryId} from team {TeamId}", territoryId, teamId);
@@ -353,7 +345,6 @@ public class TeamService : ITeamService
         }
 
         account.AssignedToUserId = assigneeId;
-        account.UpdatedAt = DateTime.UtcNow;
         _context.Accounts.Update(account);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -388,7 +379,6 @@ public class TeamService : ITeamService
         }
 
         account.AssignedToUserId = null;
-        account.UpdatedAt = DateTime.UtcNow;
         _context.Accounts.Update(account);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -638,7 +628,6 @@ public class TeamService : ITeamService
         }
 
         team.ParentTeamId = parentTeamId;
-        team.UpdatedAt = DateTime.UtcNow;
 
         _context.Teams.Update(team);
         await _context.SaveChangesAsync(cancellationToken);

@@ -705,7 +705,6 @@ public class CoreDataSeederService : ICoreDataSeederService
         else if (string.IsNullOrEmpty(settings.NavOrderConfig))
         {
             settings.NavOrderConfig = navConfig;
-            settings.UpdatedAt = DateTime.UtcNow;
             settings.LastModified = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Updated system settings NavOrderConfig");

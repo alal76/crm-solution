@@ -36,7 +36,6 @@ public class TerritoryAssignmentService : ITerritoryAssignmentService
         // Assign lead to territory owner
         lead.OwnerId = territory.OwnerUserId;
         lead.Region = territory.Name;
-        lead.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Assigned lead {LeadId} to territory {TerritoryId} (owner: {OwnerId})", 
@@ -134,7 +133,6 @@ public class TerritoryAssignmentService : ITerritoryAssignmentService
         existing.Industries = territory.Industries;
         existing.MinCompanySize = territory.MinCompanySize;
         existing.MaxCompanySize = territory.MaxCompanySize;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated territory {Id}: {Name}", territory.Id, territory.Name);
@@ -153,7 +151,6 @@ public class TerritoryAssignmentService : ITerritoryAssignmentService
         if (existing == null) return false;
 
         existing.IsDeleted = true;
-        existing.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Deleted territory {Id}", id);
         return true;

@@ -127,7 +127,6 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
             if (dto.IsActive.HasValue)
                 policy.IsActive = dto.IsActive.Value;
 
-            policy.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.SLAPolicies.Update(policy);
             await _dbContext.SaveChangesAsync(ct);
@@ -154,7 +153,6 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
                 throw new KeyNotFoundException($"SLA policy with ID {id} not found");
 
             policy.IsDeleted = true;
-            policy.UpdatedAt = DateTime.UtcNow;
 
             _dbContext.SLAPolicies.Update(policy);
             await _dbContext.SaveChangesAsync(ct);

@@ -147,7 +147,6 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
         if (dto.DefaultOverlayPercent.HasValue)
             plan.DefaultOverlayPercent = dto.DefaultOverlayPercent.Value;
 
-        plan.UpdatedAt = DateTime.UtcNow;
         _context.CommissionPlans.Update(plan);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -164,7 +163,6 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             return false;
 
         plan.IsDeleted = true;
-        plan.UpdatedAt = DateTime.UtcNow;
         _context.CommissionPlans.Update(plan);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -185,7 +183,6 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             return false;
 
         plan.IsActive = true;
-        plan.UpdatedAt = DateTime.UtcNow;
         _context.CommissionPlans.Update(plan);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -202,7 +199,6 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             return false;
 
         plan.IsActive = false;
-        plan.UpdatedAt = DateTime.UtcNow;
         _context.CommissionPlans.Update(plan);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -232,7 +228,6 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
         foreach (var assignment in previousAssignments)
         {
             assignment.IsDeleted = true;
-            assignment.UpdatedAt = DateTime.UtcNow;
         }
 
         var newAssignment = new CommissionPlanAssignment
@@ -260,7 +255,6 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             return false;
 
         assignment.IsDeleted = true;
-        assignment.UpdatedAt = DateTime.UtcNow;
         _context.CommissionPlanAssignments.Update(assignment);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -367,7 +361,6 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
         if (dto.Sequence.HasValue)
             tier.Sequence = dto.Sequence.Value;
 
-        tier.UpdatedAt = DateTime.UtcNow;
         _context.CommissionTiers.Update(tier);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -384,7 +377,6 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             return false;
 
         tier.IsDeleted = true;
-        tier.UpdatedAt = DateTime.UtcNow;
         _context.CommissionTiers.Update(tier);
         await _context.SaveChangesAsync(cancellationToken);
 

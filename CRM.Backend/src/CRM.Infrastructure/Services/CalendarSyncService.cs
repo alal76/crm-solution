@@ -194,7 +194,6 @@ public class CalendarSyncService : ICalendarSyncService
         integration.CalendarId = "primary"; // Google primary calendar
         integration.CalendarName = "Primary Calendar";
         integration.IsActive = true;
-        integration.UpdatedAt = DateTime.UtcNow;
         integration.NextSyncAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -262,7 +261,6 @@ public class CalendarSyncService : ICalendarSyncService
         integration.CalendarId = "primary"; // Microsoft primary calendar
         integration.CalendarName = "Calendar";
         integration.IsActive = true;
-        integration.UpdatedAt = DateTime.UtcNow;
         integration.NextSyncAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -305,7 +303,6 @@ public class CalendarSyncService : ICalendarSyncService
         // Soft delete
         integration.IsDeleted = true;
         integration.IsActive = false;
-        integration.UpdatedAt = DateTime.UtcNow;
 
         // Remove event mappings
         var mappings = await _context.CalendarEventMappings
@@ -328,7 +325,6 @@ public class CalendarSyncService : ICalendarSyncService
 
         integration.SyncDirection = direction;
         integration.SyncIntervalMinutes = Math.Max(5, Math.Min(intervalMinutes, 1440)); // 5 min to 24 hours
-        integration.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
         return integration;
@@ -612,7 +608,6 @@ public class CalendarSyncService : ICalendarSyncService
                     activity.ActivityDate = startTime;
                     activity.DurationMinutes = durationMinutes > 0 ? durationMinutes : 60;
                     activity.Details = detailsJson;
-                    activity.UpdatedAt = DateTime.UtcNow;
 
                     mapping.ExternalETag = googleEvent.Etag;
                     mapping.LastSyncedAt = DateTime.UtcNow;
@@ -708,7 +703,6 @@ public class CalendarSyncService : ICalendarSyncService
                     activity.ActivityDate = startTime;
                     activity.DurationMinutes = durationMinutes > 0 ? durationMinutes : 60;
                     activity.Details = detailsJson;
-                    activity.UpdatedAt = DateTime.UtcNow;
 
                     mapping.ExternalETag = outlookEvent.ChangeKey;
                     mapping.LastSyncedAt = DateTime.UtcNow;
@@ -1027,7 +1021,6 @@ public class CalendarSyncService : ICalendarSyncService
                     break;
             }
 
-            integration.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             return true;

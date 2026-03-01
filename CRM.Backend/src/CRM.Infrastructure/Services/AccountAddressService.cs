@@ -108,7 +108,6 @@ public class AccountAddressService : IAccountAddressService
             foreach (var link in otherPrimaries)
             {
                 link.IsPrimary = false;
-                link.UpdatedAt = DateTime.UtcNow;
             }
         }
 
@@ -143,7 +142,6 @@ public class AccountAddressService : IAccountAddressService
         }
 
         link.IsDeleted = true;
-        link.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Address {AddressId} removed from account {AccountId}", addressId, accountId);
@@ -168,7 +166,6 @@ public class AccountAddressService : IAccountAddressService
         existing.State = address.State;
         existing.PostalCode = address.PostalCode;
         existing.Country = address.Country;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -197,12 +194,10 @@ public class AccountAddressService : IAccountAddressService
         foreach (var other in otherPrimaries)
         {
             other.IsPrimary = false;
-            other.UpdatedAt = DateTime.UtcNow;
         }
 
         // Set this as primary
         link.IsPrimary = true;
-        link.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

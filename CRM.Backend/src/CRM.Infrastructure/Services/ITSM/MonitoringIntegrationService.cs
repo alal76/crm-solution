@@ -278,7 +278,6 @@ public class MonitoringIntegrationService : IMonitoringIntegrationService
         if (dto.DefaultAssignmentGroupId.HasValue) integration.DefaultAssignmentGroupId = dto.DefaultAssignmentGroupId;
         if (dto.DefaultCategory != null) integration.DefaultCategory = dto.DefaultCategory;
 
-        integration.UpdatedAt = DateTime.UtcNow;
 
         _logger.LogInformation("Updated monitoring integration {Id}", id);
         return Task.FromResult<MonitoringIntegrationDto?>(integration);

@@ -99,7 +99,6 @@ public class ModuleFieldConfigurationService
         if (dto.Options != null)
             entity.Options = dto.Options;
 
-        entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated field configuration {Id}", id);
@@ -132,7 +131,6 @@ public class ModuleFieldConfigurationService
             if (orderItem != null)
             {
                 field.DisplayOrder = orderItem.DisplayOrder;
-                field.UpdatedAt = DateTime.UtcNow;
             }
         }
 

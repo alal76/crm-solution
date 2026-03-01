@@ -5177,4 +5177,14 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
         providerStrategy.ApplyPostConfiguration(modelBuilder);
     }
+
+    /// <summary>
+    /// Soft-deletes an entity by setting IsDeleted = true without removing it from the database.
+    /// UpdatedAt is set automatically by <see cref="Interceptors.AuditSaveChangesInterceptor"/>.
+    /// </summary>
+    public void SoftDelete<T>(T entity) where T : BaseEntity
+    {
+        entity.IsDeleted = true;
+        Entry(entity).State = EntityState.Modified;
+    }
 }

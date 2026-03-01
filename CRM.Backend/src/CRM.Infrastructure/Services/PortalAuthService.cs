@@ -69,7 +69,6 @@ public class PortalAuthService : IPortalAuthService
         }
 
         user.LastLoginAt = DateTime.UtcNow;
-        user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         var expiresAt = DateTime.UtcNow.AddMinutes(_jwtExpirationMinutes);
@@ -147,7 +146,6 @@ public class PortalAuthService : IPortalAuthService
 
         user.PasswordResetToken = Guid.NewGuid().ToString("N");
         user.PasswordResetExpiry = DateTime.UtcNow.AddHours(2);
-        user.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
         _logger.LogInformation("Password reset token generated for portal user {Email}", email);
@@ -172,7 +170,6 @@ public class PortalAuthService : IPortalAuthService
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
         user.PasswordResetToken = null;
         user.PasswordResetExpiry = null;
-        user.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
         return true;
@@ -190,7 +187,6 @@ public class PortalAuthService : IPortalAuthService
         user.IsEmailVerified = true;
         user.EmailVerifiedAt = DateTime.UtcNow;
         user.EmailVerificationToken = null;
-        user.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync(ct);
         return true;

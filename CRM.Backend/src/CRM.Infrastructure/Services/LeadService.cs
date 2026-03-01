@@ -158,7 +158,6 @@ public class LeadService : ILeadService
         var previousFitScore = lead.FitScore;
 
         applyChanges(lead);
-        lead.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
@@ -187,7 +186,6 @@ public class LeadService : ILeadService
             return false;
 
         lead.IsDeleted = true;
-        lead.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnDelete);
@@ -219,7 +217,6 @@ public class LeadService : ILeadService
         _context.Set<Opportunity>().Add(opportunity);
 
         lead.Status = LeadLifecycleStatus.Converted;
-        lead.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -314,7 +311,6 @@ public class LeadService : ILeadService
             return false;
 
         lead.OwnerId = ownerId;
-        lead.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
@@ -382,7 +378,6 @@ public class LeadService : ILeadService
             return false;
 
         lead.NurtureCampaignId = campaignId;
-        lead.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
 
@@ -422,7 +417,6 @@ public class LeadService : ILeadService
             return false;
 
         lead.NurtureCampaignId = null;
-        lead.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(ct);
 

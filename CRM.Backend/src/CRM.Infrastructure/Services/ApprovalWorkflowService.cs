@@ -89,7 +89,6 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         existing.AllowParallelApproval = matrix.AllowParallelApproval;
         existing.AutoEscalateHours = matrix.AutoEscalateHours;
         existing.ReminderHours = matrix.ReminderHours;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated approval matrix {MatrixId}: {MatrixName}", matrix.Id, matrix.Name);
@@ -105,7 +104,6 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             return false;
 
         matrix.IsDeleted = true;
-        matrix.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted approval matrix {MatrixId}", matrixId);
@@ -118,7 +116,6 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             ?? throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrixId));
 
         matrix.IsActive = true;
-        matrix.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return matrix;
     }
@@ -129,7 +126,6 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             ?? throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrixId));
 
         matrix.IsActive = false;
-        matrix.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return matrix;
     }
@@ -200,7 +196,6 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         existing.SendEmailOnPending = level.SendEmailOnPending;
         existing.NotificationTemplateId = level.NotificationTemplateId;
         existing.IncludeQuoteDetails = level.IncludeQuoteDetails;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         return existing;
@@ -215,7 +210,6 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             return false;
 
         level.IsDeleted = true;
-        level.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
@@ -291,7 +285,6 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         existing.Name = group.Name;
         existing.Description = group.Description;
         existing.IsActive = group.IsActive;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         return existing;
@@ -306,7 +299,6 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             return false;
 
         group.IsDeleted = true;
-        group.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
         return true;
     }

@@ -98,7 +98,6 @@ public class DepartmentService : IDepartmentService
         _logger.LogDebug("Creating department: {Name}", department.Name);
 
         department.CreatedAt = DateTime.UtcNow;
-        department.UpdatedAt = DateTime.UtcNow;
         department.IsDeleted = false;
 
         _context.Departments.Add(department);
@@ -129,7 +128,6 @@ public class DepartmentService : IDepartmentService
         existing.DepartmentCode = department.DepartmentCode;
         existing.IsActive = department.IsActive;
         existing.ParentDepartmentId = department.ParentDepartmentId;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -153,7 +151,6 @@ public class DepartmentService : IDepartmentService
 
         // Soft delete
         department.IsDeleted = true;
-        department.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

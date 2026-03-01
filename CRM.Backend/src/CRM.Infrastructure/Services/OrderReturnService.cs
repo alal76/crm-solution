@@ -162,7 +162,6 @@ public class OrderReturnService : IOrderReturnService
             orderReturn.RefundTransactionId = dto.RefundTransactionId;
         }
 
-        orderReturn.UpdatedAt = DateTime.UtcNow;
         _context.OrderReturns.Update(orderReturn);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -179,7 +178,6 @@ public class OrderReturnService : IOrderReturnService
         }
 
         orderReturn.IsDeleted = true;
-        orderReturn.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Order return deleted: {Id}", id);
@@ -210,7 +208,6 @@ public class OrderReturnService : IOrderReturnService
         {
             orderReturn.Notes = (orderReturn.Notes ?? "") + $"\nApproval note: {notes}";
         }
-        orderReturn.UpdatedAt = DateTime.UtcNow;
 
         _context.OrderReturns.Update(orderReturn);
         await _context.SaveChangesAsync(cancellationToken);
@@ -230,7 +227,6 @@ public class OrderReturnService : IOrderReturnService
         orderReturn.Status = OrderReturnStatus.Rejected;
         orderReturn.ProcessedById = rejectedById;
         orderReturn.Notes = (orderReturn.Notes ?? "") + $"\nRejection reason: {reason}";
-        orderReturn.UpdatedAt = DateTime.UtcNow;
 
         _context.OrderReturns.Update(orderReturn);
         await _context.SaveChangesAsync(cancellationToken);
@@ -253,7 +249,6 @@ public class OrderReturnService : IOrderReturnService
         {
             orderReturn.ReturnTrackingNumber = trackingNumber;
         }
-        orderReturn.UpdatedAt = DateTime.UtcNow;
 
         _context.OrderReturns.Update(orderReturn);
         await _context.SaveChangesAsync(cancellationToken);
@@ -273,7 +268,6 @@ public class OrderReturnService : IOrderReturnService
         orderReturn.Status = OrderReturnStatus.Refunded;
         orderReturn.RefundedAt = DateTime.UtcNow;
         orderReturn.RefundTransactionId = transactionId;
-        orderReturn.UpdatedAt = DateTime.UtcNow;
 
         _context.OrderReturns.Update(orderReturn);
         await _context.SaveChangesAsync(cancellationToken);
@@ -292,7 +286,6 @@ public class OrderReturnService : IOrderReturnService
 
         orderReturn.Status = OrderReturnStatus.Completed;
         orderReturn.CompletedAt = DateTime.UtcNow;
-        orderReturn.UpdatedAt = DateTime.UtcNow;
 
         _context.OrderReturns.Update(orderReturn);
         await _context.SaveChangesAsync(cancellationToken);
@@ -311,7 +304,6 @@ public class OrderReturnService : IOrderReturnService
 
         orderReturn.Status = OrderReturnStatus.Cancelled;
         orderReturn.Notes = (orderReturn.Notes ?? "") + $"\nCancellation reason: {reason}";
-        orderReturn.UpdatedAt = DateTime.UtcNow;
 
         _context.OrderReturns.Update(orderReturn);
         await _context.SaveChangesAsync(cancellationToken);
@@ -447,7 +439,6 @@ public class OrderReturnService : IOrderReturnService
         // Now that we have the Id, generate the human-readable number.
         creditNote.CreditNoteNumber = $"CN-{DateTime.UtcNow.Year}-{creditNote.Id:D5}";
         orderReturn.CreditNoteId = creditNote.Id;
-        orderReturn.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

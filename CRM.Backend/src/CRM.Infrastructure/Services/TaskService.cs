@@ -107,7 +107,6 @@ public class TaskService : ITaskService
         _logger.LogDebug("Creating task: {Subject}", task.Subject);
 
         task.CreatedAt = DateTime.UtcNow;
-        task.UpdatedAt = DateTime.UtcNow;
         task.IsDeleted = false;
 
         if (task.Status == default)
@@ -157,7 +156,6 @@ public class TaskService : ITaskService
         existingTask.ContactId = task.ContactId;
         existingTask.OpportunityId = task.OpportunityId;
         existingTask.CampaignId = task.CampaignId;
-        existingTask.UpdatedAt = DateTime.UtcNow;
 
         // Handle status change to Completed
         if (task.Status == CrmTaskStatus.Completed && existingTask.CompletedDate == null)
@@ -187,7 +185,6 @@ public class TaskService : ITaskService
 
         // Soft delete
         task.IsDeleted = true;
-        task.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -211,7 +208,6 @@ public class TaskService : ITaskService
 
         task.Status = CrmTaskStatus.Completed;
         task.CompletedDate = DateTime.UtcNow;
-        task.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 

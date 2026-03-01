@@ -110,7 +110,6 @@ public class PortalAdminService : IPortalAdminService
         if (user == null) return false;
 
         user.IsActive = true;
-        user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
         return true;
     }
@@ -123,7 +122,6 @@ public class PortalAdminService : IPortalAdminService
         if (user == null) return false;
 
         user.IsActive = false;
-        user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
         return true;
     }

@@ -556,7 +556,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         if (dto.ExpeditedAt.HasValue)
             entity.ExpeditedAt = dto.ExpeditedAt;
         entity.LastModifiedByUserId = modifiedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         // Check SLA breaches
         if (!entity.FirstResponseDate.HasValue && entity.ResponseDueDate < DateTime.UtcNow)
@@ -588,7 +587,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             return false;
 
         entity.IsDeleted = true;
-        entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Soft deleted service request {TicketNumber}", entity.TicketNumber);
@@ -663,7 +661,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var oldStatus = entity.Status;
         entity.Status = newStatus;
         entity.LastModifiedByUserId = modifiedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         // Handle status-specific logic
         if (newStatus == ServiceRequestStatus.Resolved && !entity.ResolvedDate.HasValue)
@@ -692,7 +689,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         {
             entity.FirstResponseDate = DateTime.UtcNow;
             entity.LastModifiedByUserId = userId;
-            entity.UpdatedAt = DateTime.UtcNow;
 
             // Check if SLA was breached
             if (entity.ResponseDueDate.HasValue && entity.FirstResponseDate > entity.ResponseDueDate)
@@ -724,7 +720,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.RootCause = rootCause;
         entity.ResolvedDate = DateTime.UtcNow;
         entity.LastModifiedByUserId = resolvedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         // Check if resolution SLA was breached
         if (entity.ResolutionDueDate.HasValue && entity.ResolvedDate > entity.ResolutionDueDate)
@@ -752,7 +747,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.Status = ServiceRequestStatus.Closed;
         entity.ClosedDate = DateTime.UtcNow;
         entity.LastModifiedByUserId = closedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -774,7 +768,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             ? $"Reopened: {reason}"
             : $"{entity.InternalNotes}\n\nReopened: {reason}";
         entity.LastModifiedByUserId = reopenedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -795,7 +788,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             ? $"Escalated (Level {entity.EscalationLevel}): {reason}"
             : $"{entity.InternalNotes}\n\nEscalated (Level {entity.EscalationLevel}): {reason}";
         entity.LastModifiedByUserId = escalatedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -815,7 +807,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.ExpeditedByUserId = expeditedByUserId;
         entity.ExpeditedAt = DateTime.UtcNow;
         entity.LastModifiedByUserId = expeditedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         // Bump priority to at least High when expedited
         if (entity.Priority < ServiceRequestPriority.High)
@@ -842,7 +833,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         entity.AssignedToUserId = userId;
         entity.LastModifiedByUserId = assignedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         if (entity.Status == ServiceRequestStatus.New)
         {
@@ -864,7 +854,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.AssignedToGroupId = groupId;
         entity.AssignedToUserId = null; // Clear individual assignment when assigning to group
         entity.LastModifiedByUserId = assignedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -881,7 +870,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.AssignedToUserId = null;
         entity.AssignedToGroupId = null;
         entity.LastModifiedByUserId = modifiedByUserId;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 
@@ -973,7 +961,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         entity.SatisfactionRating = rating;
         entity.CustomerFeedback = feedback;
-        entity.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
 

@@ -65,7 +65,6 @@ public class CommissionService : ICommissionService
     public async Task<Commission> CreateAsync(Commission commission, CancellationToken cancellationToken = default)
     {
         commission.CreatedAt = DateTime.UtcNow;
-        commission.UpdatedAt = DateTime.UtcNow;
         commission.IsDeleted = false;
 
         _context.Commissions.Add(commission);
@@ -85,7 +84,6 @@ public class CommissionService : ICommissionService
             throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commission.Id));
         }
 
-        commission.UpdatedAt = DateTime.UtcNow;
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -100,7 +98,6 @@ public class CommissionService : ICommissionService
             return false;
 
         commission.IsDeleted = true;
-        commission.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted commission {CommissionId}", id);
@@ -233,7 +230,6 @@ public class CommissionService : ICommissionService
             commission.Amount = calc.FinalAmount;
         }
 
-        commission.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Recalculated commission {CommissionId}", commissionId);
@@ -266,7 +262,6 @@ public class CommissionService : ICommissionService
     public async Task<CommissionPlan> CreatePlanAsync(CommissionPlan plan, CancellationToken cancellationToken = default)
     {
         plan.CreatedAt = DateTime.UtcNow;
-        plan.UpdatedAt = DateTime.UtcNow;
 
         _context.CommissionPlans.Add(plan);
         await _context.SaveChangesAsync(cancellationToken);
@@ -285,7 +280,6 @@ public class CommissionService : ICommissionService
             throw new InvalidOperationException(string.Format(CommissionPlanNotFoundMessage, plan.Id));
         }
 
-        plan.UpdatedAt = DateTime.UtcNow;
         _context.CommissionPlans.Update(plan);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -300,7 +294,6 @@ public class CommissionService : ICommissionService
             return false;
 
         plan.IsDeleted = true;
-        plan.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted commission plan {PlanId}", planId);
@@ -328,7 +321,6 @@ public class CommissionService : ICommissionService
         foreach (var assignment in previousAssignments)
         {
             assignment.IsDeleted = true;
-            assignment.UpdatedAt = DateTime.UtcNow;
         }
 
         // Create new assignment
@@ -373,7 +365,6 @@ public class CommissionService : ICommissionService
         }
 
         commission.Status = status;
-        commission.UpdatedAt = DateTime.UtcNow;
 
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
@@ -393,7 +384,6 @@ public class CommissionService : ICommissionService
         commission.Status = CommissionStatus.Approved;
         commission.ApprovedById = approvedById;
         commission.ApprovedAt = DateTime.UtcNow;
-        commission.UpdatedAt = DateTime.UtcNow;
 
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
@@ -414,7 +404,6 @@ public class CommissionService : ICommissionService
         commission.Notes = string.IsNullOrEmpty(commission.Notes)
             ? $"Rejected: {reason}"
             : $"{commission.Notes}; Rejected: {reason}";
-        commission.UpdatedAt = DateTime.UtcNow;
 
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
@@ -433,7 +422,6 @@ public class CommissionService : ICommissionService
 
         commission.Status = CommissionStatus.Paid;
         commission.PaidAt = paidDate ?? DateTime.UtcNow;
-        commission.UpdatedAt = DateTime.UtcNow;
 
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
@@ -454,7 +442,6 @@ public class CommissionService : ICommissionService
         commission.Notes = string.IsNullOrEmpty(commission.Notes)
             ? $"Clawback: {reason}"
             : $"{commission.Notes}; Clawback: {reason}";
-        commission.UpdatedAt = DateTime.UtcNow;
 
         _context.Commissions.Update(commission);
         await _context.SaveChangesAsync(cancellationToken);
@@ -517,7 +504,6 @@ public class CommissionService : ICommissionService
 
         statement.Status = CommissionStatementStatus.Finalized;
         statement.FinalizedAt = DateTime.UtcNow;
-        statement.UpdatedAt = DateTime.UtcNow;
 
         _context.CommissionStatements.Update(statement);
         await _context.SaveChangesAsync(cancellationToken);
@@ -707,7 +693,6 @@ public class CommissionService : ICommissionService
 
         tier.CommissionPlanId = planId;
         tier.CreatedAt = DateTime.UtcNow;
-        tier.UpdatedAt = DateTime.UtcNow;
 
         _context.CommissionTiers.Add(tier);
         await _context.SaveChangesAsync(cancellationToken);
@@ -726,7 +711,6 @@ public class CommissionService : ICommissionService
             throw new InvalidOperationException($"Commission tier {tier.Id} not found");
         }
 
-        tier.UpdatedAt = DateTime.UtcNow;
         _context.CommissionTiers.Update(tier);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -741,7 +725,6 @@ public class CommissionService : ICommissionService
             return false;
 
         tier.IsDeleted = true;
-        tier.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Removed commission tier {TierId}", tierId);

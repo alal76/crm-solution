@@ -261,7 +261,6 @@ public class PortalService : IPortalService
             if (tracked != null)
             {
                 tracked.ViewCount++;
-                tracked.UpdatedAt = DateTime.UtcNow;
                 await _db.SaveChangesAsync(ct);
             }
         }
@@ -302,7 +301,6 @@ public class PortalService : IPortalService
             user.DisplayName = dto.DisplayName;
 
         // TODO: Phone field to be added to PortalUser entity in a future migration (PORTAL-019)
-        user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
         return MapUser(user);
     }
@@ -317,7 +315,6 @@ public class PortalService : IPortalService
             throw new InvalidOperationException("Current password is incorrect.");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-        user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
         _logger.LogInformation("Portal user {Id} changed their password", portalUserId);
     }
@@ -417,7 +414,6 @@ public class PortalService : IPortalService
         }
 
         sr.Status = ServiceRequestStatus.Cancelled;
-        sr.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Portal user {UserId} cancelled ticket {TicketNumber}",

@@ -92,7 +92,6 @@ public class CommunicationService : ICommunicationService
                 foreach (var ch in existingDefaults)
                 {
                     ch.IsDefault = false;
-                    ch.UpdatedAt = DateTime.UtcNow;
                 }
             }
 
@@ -172,7 +171,6 @@ public class CommunicationService : ICommunicationService
                 foreach (var ch in existingDefaults)
                 {
                     ch.IsDefault = false;
-                    ch.UpdatedAt = DateTime.UtcNow;
                 }
             }
 
@@ -203,7 +201,6 @@ public class CommunicationService : ICommunicationService
             channel.SocialAccountId = dto.SocialAccountId ?? channel.SocialAccountId;
             channel.SocialUsername = dto.SocialUsername ?? channel.SocialUsername;
             channel.PageAccessToken = dto.PageAccessToken ?? channel.PageAccessToken;
-            channel.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -234,7 +231,6 @@ public class CommunicationService : ICommunicationService
             }
 
             channel.IsDeleted = true;
-            channel.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 
@@ -291,7 +287,6 @@ public class CommunicationService : ICommunicationService
             channel.LastConnectedAt = success ? DateTime.UtcNow : channel.LastConnectedAt;
             channel.Status = success ? ChannelStatus.Connected : ChannelStatus.Error;
             channel.LastError = error;
-            channel.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync();
 

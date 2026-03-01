@@ -70,7 +70,6 @@ namespace CRM.Infrastructure.Services
             existing.ExitOnMeetingBooked = sequence.ExitOnMeetingBooked;
             existing.ExitOnBounce = sequence.ExitOnBounce;
             existing.ExitOnUnsubscribe = sequence.ExitOnUnsubscribe;
-            existing.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Updated email sequence {SequenceId}", sequence.Id);
@@ -85,7 +84,6 @@ namespace CRM.Infrastructure.Services
                 return false;
 
             sequence.IsDeleted = true;
-            sequence.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Soft-deleted email sequence {SequenceId}", id);
             return true;
@@ -96,7 +94,6 @@ namespace CRM.Infrastructure.Services
             if (sequence == null)
                 throw new ArgumentNullException(nameof(sequence));
             sequence.CreatedAt = DateTime.UtcNow;
-            sequence.UpdatedAt = DateTime.UtcNow;
 
             // Ensure child step entities have valid timestamps (default DateTime.MinValue is rejected by MariaDB)
             // Also ensure Template is non-null to satisfy DB NOT NULL constraint
@@ -105,7 +102,6 @@ namespace CRM.Infrastructure.Services
                 foreach (var step in sequence.Steps)
                 {
                     step.CreatedAt = DateTime.UtcNow;
-                    step.UpdatedAt = DateTime.UtcNow;
                     step.Template ??= step.Subject ?? step.Body ?? string.Empty;
                 }
             }
@@ -146,7 +142,6 @@ namespace CRM.Infrastructure.Services
             _context.EmailSequenceEnrollments.Add(enrollment);
             sequence.TotalEnrolled++;
             sequence.ActiveEnrollments++;
-            sequence.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
             return enrollment;
@@ -158,7 +153,6 @@ namespace CRM.Infrastructure.Services
             if (sequence == null)
                 return false;
             sequence.Status = EmailSequenceStatus.Active;
-            sequence.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Started email sequence {SequenceId}", sequenceId);
             return true;
@@ -170,7 +164,6 @@ namespace CRM.Infrastructure.Services
             if (sequence == null)
                 return false;
             sequence.Status = EmailSequenceStatus.Paused;
-            sequence.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Stopped (paused) email sequence {SequenceId}", sequenceId);
             return true;
@@ -207,7 +200,6 @@ namespace CRM.Infrastructure.Services
                 return false;
 
             sequence.Status = EmailSequenceStatus.Active;
-            sequence.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Resumed email sequence {SequenceId}", sequenceId);
             return true;
@@ -221,7 +213,6 @@ namespace CRM.Infrastructure.Services
                 return false;
 
             sequence.Status = EmailSequenceStatus.Paused;
-            sequence.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Paused email sequence {SequenceId}", sequenceId);
             return true;
@@ -236,7 +227,6 @@ namespace CRM.Infrastructure.Services
 
             sequence.Status = EmailSequenceStatus.Archived;
             sequence.IsActive = false;
-            sequence.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Completed email sequence {SequenceId}", sequenceId);
             return true;
@@ -268,14 +258,12 @@ namespace CRM.Infrastructure.Services
             enrollment.CompletedAt = DateTime.UtcNow;
             enrollment.ExitReason = SequenceExitCondition.OnUnsubscribe;
             enrollment.IsDeleted = true;
-            enrollment.UpdatedAt = DateTime.UtcNow;
 
             var sequence = await _context.EmailSequences
                 .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
             if (sequence != null && sequence.ActiveEnrollments > 0)
             {
                 sequence.ActiveEnrollments -= 1;
-                sequence.UpdatedAt = DateTime.UtcNow;
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -331,7 +319,6 @@ namespace CRM.Infrastructure.Services
 
             enrollment.CurrentStepId = stepId;
             enrollment.LastStepExecutedAt = DateTime.UtcNow;
-            enrollment.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }

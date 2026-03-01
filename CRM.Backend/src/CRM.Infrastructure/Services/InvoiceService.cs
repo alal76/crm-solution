@@ -81,7 +81,6 @@ public class InvoiceService : IInvoiceService
         }
 
         invoice.CreatedAt = DateTime.UtcNow;
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         _context.Invoices.Add(invoice);
         await _context.SaveChangesAsync(cancellationToken);
@@ -135,7 +134,6 @@ public class InvoiceService : IInvoiceService
         existing.SubscriptionId = invoice.SubscriptionId;
         existing.Notes = invoice.Notes;
         existing.InternalNotes = invoice.InternalNotes;
-        existing.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Updated invoice {InvoiceNumber}", existing.InvoiceNumber);
@@ -152,7 +150,6 @@ public class InvoiceService : IInvoiceService
         }
 
         invoice.IsDeleted = true;
-        invoice.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Deleted invoice {InvoiceNumber}", invoice.InvoiceNumber);
@@ -307,7 +304,6 @@ public class InvoiceService : IInvoiceService
 
         invoice.Status = InvoiceStatus.Sent;
         invoice.SentDate = DateTime.UtcNow;
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -331,7 +327,6 @@ public class InvoiceService : IInvoiceService
             {
                 invoice.Status = InvoiceStatus.Viewed;
             }
-            invoice.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Invoice {InvoiceNumber} marked as viewed", invoice.InvoiceNumber);
@@ -354,7 +349,6 @@ public class InvoiceService : IInvoiceService
         }
 
         invoice.Status = status;
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -377,7 +371,6 @@ public class InvoiceService : IInvoiceService
         }
 
         invoice.Status = InvoiceStatus.Approved;
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -402,7 +395,6 @@ public class InvoiceService : IInvoiceService
         invoice.Status = InvoiceStatus.Voided;
         invoice.VoidedDate = DateTime.UtcNow;
         invoice.VoidReason = reason;
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -421,7 +413,6 @@ public class InvoiceService : IInvoiceService
 
         invoice.Status = InvoiceStatus.Paid;
         invoice.PaidDate = DateTime.UtcNow;
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -467,7 +458,6 @@ public class InvoiceService : IInvoiceService
         {
             invoice.Status = InvoiceStatus.PartiallyPaid;
         }
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -571,7 +561,6 @@ public class InvoiceService : IInvoiceService
 
         lineItem.InvoiceId = invoiceId;
         lineItem.CreatedAt = DateTime.UtcNow;
-        lineItem.UpdatedAt = DateTime.UtcNow;
 
         if (lineItem.LineNumber == 0)
         {
@@ -596,7 +585,6 @@ public class InvoiceService : IInvoiceService
             throw new InvalidOperationException($"Line item {lineItem.Id} not found");
         }
 
-        lineItem.UpdatedAt = DateTime.UtcNow;
         _context.InvoiceLineItems.Update(lineItem);
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -617,7 +605,6 @@ public class InvoiceService : IInvoiceService
 
         var invoiceId = lineItem.InvoiceId;
         lineItem.IsDeleted = true;
-        lineItem.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         // Recalculate totals
@@ -657,7 +644,6 @@ public class InvoiceService : IInvoiceService
         invoice.DiscountAmount = activeLines.Sum(l => l.DiscountAmount);
         invoice.TaxAmount = activeLines.Sum(l => l.TaxAmount);
         invoice.TotalAmount = invoice.Subtotal - invoice.DiscountAmount + invoice.TaxAmount + invoice.ShippingAmount + invoice.FeesAmount;
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -676,7 +662,6 @@ public class InvoiceService : IInvoiceService
 
         invoice.DiscountAmount += discountAmount;
         invoice.TotalAmount = invoice.Subtotal - invoice.DiscountAmount + invoice.TaxAmount + invoice.ShippingAmount + invoice.FeesAmount;
-        invoice.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
 

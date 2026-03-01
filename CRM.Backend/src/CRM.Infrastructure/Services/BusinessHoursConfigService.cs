@@ -122,7 +122,6 @@ public class BusinessHoursConfigService : IBusinessHoursConfigService
             config.IsDefault = request.IsDefault;
             config.ScheduleJson = request.ScheduleJson;
             config.HolidaysJson = request.HolidaysJson;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.BusinessHoursConfigs.Update(config);
             await _context.SaveChangesAsync(ct);
@@ -149,7 +148,6 @@ public class BusinessHoursConfigService : IBusinessHoursConfigService
                 return false;
 
             config.IsDeleted = true;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.BusinessHoursConfigs.Update(config);
             await _context.SaveChangesAsync(ct);
@@ -179,7 +177,6 @@ public class BusinessHoursConfigService : IBusinessHoursConfigService
             await ClearExistingDefaultAsync(ct);
 
             config.IsDefault = true;
-            config.UpdatedAt = DateTime.UtcNow;
 
             _context.BusinessHoursConfigs.Update(config);
             await _context.SaveChangesAsync(ct);
@@ -205,7 +202,6 @@ public class BusinessHoursConfigService : IBusinessHoursConfigService
         foreach (var b in existing)
         {
             b.IsDefault = false;
-            b.UpdatedAt = DateTime.UtcNow;
             _context.BusinessHoursConfigs.Update(b);
         }
         // Deferred — caller must call SaveChangesAsync

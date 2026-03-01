@@ -86,7 +86,6 @@ public class WebToLeadFormService : IWebToLeadFormService
         existing.IsActive = form.IsActive;
         existing.DefaultOwnerId = form.DefaultOwnerId;
         existing.CustomStyling = form.CustomStyling;
-        existing.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(ct);
         _logger.LogInformation("Updated web-to-lead form {Id}: {Name}", id, form.Name);
@@ -99,7 +98,6 @@ public class WebToLeadFormService : IWebToLeadFormService
         if (existing == null) return false;
 
         existing.IsDeleted = true;
-        existing.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(ct);
         _logger.LogInformation("Deleted web-to-lead form {Id}", id);
         return true;
@@ -164,7 +162,6 @@ public class WebToLeadFormService : IWebToLeadFormService
             throw new ArgumentException("Form not found", nameof(formId));
 
         form.EmbedKey = GenerateEmbedKey();
-        form.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync(ct);
         return form.EmbedKey;
     }

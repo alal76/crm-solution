@@ -53,7 +53,6 @@ namespace CRM.Infrastructure.Services
 
         public async Task<PriceBook> UpdatePriceBookAsync(PriceBook priceBook, CancellationToken cancellationToken = default)
         {
-            priceBook.UpdatedAt = DateTime.UtcNow;
             _context.PriceBooks.Update(priceBook);
             await _context.SaveChangesAsync(cancellationToken);
             return priceBook;
@@ -65,7 +64,6 @@ namespace CRM.Infrastructure.Services
             if (entity == null)
                 return false;
             entity.IsDeleted = true;
-            entity.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }
