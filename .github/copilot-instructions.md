@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - CRM Solution
 
 > **Last Updated:** March 1, 2026  
-> **Current Version:** 0.614.0  
+> **Current Version:** 0.614.11  
 > **Load this file at the start of every agent session**
 
 Copilot usage
