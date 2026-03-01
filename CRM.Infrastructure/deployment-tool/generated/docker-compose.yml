@@ -58,6 +58,7 @@ services:
       Providers__Notifications__Type: Novu
       Providers__Notifications__Novu__ApiKey: ${NOVU_API_KEY}
       Providers__Notifications__Novu__ApplicationId: ${NOVU_APPLICATION_ID}
+      Providers__Notifications__Novu__BaseUrl: http://localhost:3001
       FeatureManagement__UseExternalAnalytics: 'true'
       Providers__Analytics__Type: Superset
       Providers__Analytics__Superset__Url: http://localhost:8088
@@ -215,7 +216,7 @@ services:
     environment:
       POSTGRES_DB: docuseal
       POSTGRES_USER: docuseal
-      POSTGRES_PASSWORD: docuseal
+      POSTGRES_PASSWORD: ${DOCUSEAL_DB_PASSWORD}
     volumes:
     - docuseal_data:/var/lib/postgresql/data
     networks:

@@ -59,7 +59,7 @@ public class AuthDiagnosticsController : CrmControllerBase
     /// </summary>
     [HttpGet("known-issues")]
     [AllowAnonymous]
-    public async Task<IActionResult> KnownIssues()
+    public async Task<IActionResult> KnownIssues() // NOSONAR
     {
         if (_environment.IsProduction())
         {

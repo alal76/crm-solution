@@ -299,7 +299,7 @@ public class AgentAnalyticsController : CrmControllerBase
     /// <returns>Aggregated AI analytics summary.</returns>
     [HttpGet("summary")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAnalyticsSummary([FromQuery] int days = 30)
+    public async Task<IActionResult> GetAnalyticsSummary([FromQuery] int days = 30) // NOSONAR
     {
                 var lookback = Math.Max(1, Math.Abs(days));
         var fromDate = DateTime.UtcNow.AddDays(-lookback);

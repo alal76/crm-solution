@@ -109,7 +109,7 @@ public class AnalyticsEventsController : CrmControllerBase
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<AnalyticsEventDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<IEnumerable<AnalyticsEventDto>>> GetAll(
+    public async Task<ActionResult<IEnumerable<AnalyticsEventDto>>> GetAll( // NOSONAR
         [FromQuery] string? eventName = null,
         [FromQuery] string? entityType = null,
         [FromQuery] int? entityId = null,

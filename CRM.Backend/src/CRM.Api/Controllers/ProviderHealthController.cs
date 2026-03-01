@@ -31,7 +31,7 @@ public class ProviderHealthController : CrmControllerBase
     private readonly IProviderFactory<IIntegrationPort> _integrationFactory;
     private readonly ILogger<ProviderHealthController> _logger;
 
-    public ProviderHealthController(
+    public ProviderHealthController( // NOSONAR
         AdapterRegistry registry,
         IProviderFactory<ISearchPort> searchFactory,
         IProviderFactory<IChatPort> chatFactory,

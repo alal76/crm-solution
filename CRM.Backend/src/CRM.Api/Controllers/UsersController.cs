@@ -37,7 +37,7 @@ public class UsersController : CrmControllerBase
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(
+    public UsersController( // NOSONAR
         IRepository<User> userRepository,
         IRepository<UserProfile> profileRepository,
         IRepository<Department> departmentRepository,

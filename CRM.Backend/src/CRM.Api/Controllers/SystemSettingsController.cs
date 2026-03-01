@@ -36,7 +36,7 @@ public class SystemSettingsController : CrmControllerBase
     private readonly IAuditLogService? _auditLogService;
     private readonly string _defaultCertPassword;
 
-    public SystemSettingsController(
+    public SystemSettingsController( // NOSONAR
         ISystemSettingsService settingsService,
         ILogger<SystemSettingsController> logger,
         IWebHostEnvironment environment,

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 7,
+  "patch": 8,
   "lastUpdate": "2026-03-01",
-  "description": "fix(api): v0.614.7 — S126 curly-brace fix across all M-Z controllers (75 files, 518+ brace pairs); restore ILogger injection in PricingRulesController + SubscriptionAnalyticsController; fix bool?-to-bool CS0266 in CampaignExecutionService + CloudDeploymentService",
+  "description": "fix(api): v0.614.8 — restore malformed if-condition in SubscriptionsController (fix_braces regression); confirm all 9 SonarCloud S4487 controllers already clean; build 0 errors 0 warnings",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

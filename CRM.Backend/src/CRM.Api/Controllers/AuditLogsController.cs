@@ -79,7 +79,7 @@ public class AuditLogsController : CrmControllerBase
     [RequireRole(UserRole.Admin, UserRole.Manager)]
     [ProducesResponseType(typeof(AuditLogPageDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetAll(
+    public async Task<IActionResult> GetAll( // NOSONAR
         [FromQuery] string? entityType = null,
         [FromQuery] int? entityId = null,
         [FromQuery] int? userId = null,

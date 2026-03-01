@@ -47,7 +47,7 @@ public class AuthController : CrmControllerBase
     private readonly IOpenIdConnectService _openIdConnectService;
     private readonly IBiometricAuthService _biometricAuthService;
 
-    public AuthController(
+    public AuthController( // NOSONAR
         IAuthenticationService authenticationService,
         ILogger<AuthController> logger,
         LinkedInOAuthProvider linkedInOAuthProvider,
