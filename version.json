@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 3,
+  "patch": 4,
   "lastUpdate": "2026-03-01",
-  "description": "fix(infra/cdt): v0.614.3 - wire actual deployment execution in wizard; align JS with blueprint API (session_id, profile wrapper, /stop, /download); fix race condition in _active_deploys; emit success flag in SSE done sentinel",
+  "description": "security: v0.614.4 - fix 5 SonarCloud hotspots: XSS in EmailTemplatesPage (wrap with DOMPurify createSafeHtml), ReDoS in FormBuilderService/WorkflowTriggerService/CustomFieldValidationService (add 1s regex timeout + catch RegexMatchTimeoutException), hardcoded credential removed from LoginPage (use REACT_APP_QUICK_LOGIN_* env vars)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
