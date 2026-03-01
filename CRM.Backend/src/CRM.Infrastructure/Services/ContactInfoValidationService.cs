@@ -172,12 +172,12 @@ public class ContactInfoValidationService : IContactInfoValidationService
         countryCode = countryCode.ToUpperInvariant();
 
         // Remove common formatting characters for validation
-        var normalized = Regex.Replace(phoneNumber.Trim(), @"[\s\-\.\(\)]", "");
+        var normalized = Regex.Replace(phoneNumber.Trim(), @"[\s\-\.\(\)]", "", RegexOptions.None, TimeSpan.FromSeconds(1));
 
         // Check if we have a pattern for this country
         if (PhonePatterns.TryGetValue(countryCode, out var pattern))
         {
-            if (!Regex.IsMatch(phoneNumber.Trim(), pattern.Pattern, RegexOptions.IgnoreCase))
+            if (!Regex.IsMatch(phoneNumber.Trim(), pattern.Pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1)))
             {
                 return Task.FromResult(ValidationResult.Failure(
                     $"Invalid phone number format for {countryCode}. Expected format: {pattern.Format}"));
@@ -186,7 +186,7 @@ public class ContactInfoValidationService : IContactInfoValidationService
         else
         {
             // Generic validation for unknown countries - just check it looks like a phone number
-            if (!Regex.IsMatch(normalized, @"^\+?\d{7,15}$"))
+            if (!Regex.IsMatch(normalized, @"^\+?\d{7,15}$", RegexOptions.None, TimeSpan.FromSeconds(1)))
             {
                 return Task.FromResult(ValidationResult.Failure(
                     "Invalid phone number format. Please include country code and 7-15 digits."));
@@ -231,7 +231,7 @@ public class ContactInfoValidationService : IContactInfoValidationService
         if (handleOrUrl.Contains("://") || handleOrUrl.Contains(".com") || handleOrUrl.Contains(".me"))
         {
             // Try to extract handle from URL
-            var urlMatch = Regex.Match(handleOrUrl, patterns.UrlPattern, RegexOptions.IgnoreCase);
+            var urlMatch = Regex.Match(handleOrUrl, patterns.UrlPattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
             if (!urlMatch.Success || urlMatch.Groups.Count < 2)
             {
                 return Task.FromResult(ValidationResult.Failure(
@@ -246,7 +246,7 @@ public class ContactInfoValidationService : IContactInfoValidationService
         }
 
         // Validate handle format
-        if (!Regex.IsMatch(handle, patterns.HandlePattern))
+        if (!Regex.IsMatch(handle, patterns.HandlePattern, RegexOptions.None, TimeSpan.FromSeconds(1)))
         {
             return Task.FromResult(ValidationResult.Failure(
                 $"Invalid {platform} handle format. Handle: @{handle}"));
@@ -267,7 +267,7 @@ public class ContactInfoValidationService : IContactInfoValidationService
     {
         // Remove all non-digits except leading +
         var hasPlus = phoneNumber.TrimStart().StartsWith("+");
-        var digits = Regex.Replace(phoneNumber, @"[^\d]", "");
+        var digits = Regex.Replace(phoneNumber, @"[^\d]", "", RegexOptions.None, TimeSpan.FromSeconds(1));
 
         // Format based on country
         switch (countryCode.ToUpperInvariant())
@@ -331,7 +331,7 @@ public class ContactInfoValidationService : IContactInfoValidationService
             return url.TrimStart('@');
         }
 
-        var match = Regex.Match(url, patterns.UrlPattern, RegexOptions.IgnoreCase);
+        var match = Regex.Match(url, patterns.UrlPattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
         if (match.Success && match.Groups.Count >= 2)
         {
             return match.Groups[1].Value;

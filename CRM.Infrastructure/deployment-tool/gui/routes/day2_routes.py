@@ -400,7 +400,7 @@ def day2_run_history():
     try:
         from core.profile import RunHistoryManager  # noqa: PLC0415
         hist = RunHistoryManager()
-        rows = hist.list_runs(limit=limit)
+        rows = hist.list_runs()[:limit]
         serial = []
         for r in rows:
             if hasattr(r, "_asdict"):

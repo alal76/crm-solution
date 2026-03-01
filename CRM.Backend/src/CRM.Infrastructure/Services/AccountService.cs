@@ -1716,7 +1716,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             return true;
         }
 
-        var phoneRegex = new System.Text.RegularExpressions.Regex(@"^\+?[0-9\s\-\(\)]+$");
+        var phoneRegex = new System.Text.RegularExpressions.Regex(@"^\+?[0-9\s\-\(\)]+$", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         return phoneRegex.IsMatch(phoneNumber);
     }
 }

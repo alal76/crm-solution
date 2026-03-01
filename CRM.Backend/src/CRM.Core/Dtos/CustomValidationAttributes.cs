@@ -17,7 +17,7 @@ namespace CRM.Core.Dtos;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class CurrencyCodeAttribute : ValidationAttribute
 {
-    private static readonly Regex _currencyCodeRegex = new("^[A-Z]{3}$", RegexOptions.Compiled);
+    private static readonly Regex _currencyCodeRegex = new("^[A-Z]{3}$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CurrencyCodeAttribute"/> class.
@@ -49,7 +49,7 @@ public class CurrencyCodeAttribute : ValidationAttribute
 public class PhoneNumberAttribute : ValidationAttribute
 {
     // E.164 format: +[1-9]{1}[0-9]{1,14}
-    private static readonly Regex _e164Regex = new("^\\+[1-9]\\d{1,14}$", RegexOptions.Compiled);
+    private static readonly Regex _e164Regex = new("^\\+[1-9]\\d{1,14}$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PhoneNumberAttribute"/> class.
@@ -71,7 +71,7 @@ public class PhoneNumberAttribute : ValidationAttribute
             return false;
 
         // Allow flexible input - clean and validate
-        var cleaned = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"[^\d+]", "");
+        var cleaned = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"[^\d+]", "", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         if (!cleaned.StartsWith("+"))
             cleaned = "+" + cleaned;
 
@@ -233,7 +233,7 @@ public class UrlAttribute : ValidationAttribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Parameter)]
 public class IsoDateAttribute : ValidationAttribute
 {
-    private static readonly Regex _isoDateRegex = new(@"^\d{4}-\d{2}-\d{2}$", RegexOptions.Compiled);
+    private static readonly Regex _isoDateRegex = new(@"^\d{4}-\d{2}-\d{2}$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IsoDateAttribute"/> class.

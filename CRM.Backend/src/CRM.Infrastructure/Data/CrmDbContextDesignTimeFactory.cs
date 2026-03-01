@@ -12,7 +12,8 @@ namespace CRM.Infrastructure.Data;
 
 /// <summary>
 /// Design-time factory for CrmDbContext — used by EF Core migration tooling.
-/// Connection string is read from the environment or falls back to a local default.
+/// Connection string is read exclusively from the <c>ConnectionStrings__DefaultConnection</c>
+/// environment variable. Throws <see cref="InvalidOperationException"/> if not set.
 /// </summary>
 public class CrmDbContextDesignTimeFactory : IDesignTimeDbContextFactory<CrmDbContext>
 {
@@ -21,17 +22,20 @@ public class CrmDbContextDesignTimeFactory : IDesignTimeDbContextFactory<CrmDbCo
         var connectionString =
             Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
-        // Design-time fallback: migrations MUST have ConnectionStrings__DefaultConnection set.
-        // A deliberately invalid connection string is used so EF tooling fails fast
-        // with a clear connection error rather than silently using a hardcoded credential.
-        const string MigrationFallback =
-            "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=MIGRATION-REQUIRES-ENV-VAR;";
+        // Design-time migrations REQUIRE ConnectionStrings__DefaultConnection to be set.
+        // No fallback is provided — fail fast with a clear message rather than using any hardcoded value.
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "The environment variable 'ConnectionStrings__DefaultConnection' must be set before running EF Core migrations. " +
+                "Example: export ConnectionStrings__DefaultConnection='Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=<yourpassword>;'");
+        }
 
         var configuration = new ConfigurationBuilder()
             .AddEnvironmentVariables()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = connectionString ?? MigrationFallback,
+                ["ConnectionStrings:DefaultConnection"] = connectionString,
             })
             .Build();
 

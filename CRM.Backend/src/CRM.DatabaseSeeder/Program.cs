@@ -1296,7 +1296,7 @@ internal class Program
         var connStr = configuration.GetConnectionString("DefaultConnection") ?? "";
         if (connStr.Contains("Password=", StringComparison.OrdinalIgnoreCase))
         {
-            return System.Text.RegularExpressions.Regex.Replace(connStr, @"Password=[^;]+", "Password=****");
+            return System.Text.RegularExpressions.Regex.Replace(connStr, @"Password=[^;]+", "Password=****", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         }
         return connStr;
     }

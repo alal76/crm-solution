@@ -118,11 +118,11 @@ def test_compare_profiles():
         assert env_diff["b"] == "production"
 
 
-def test_get_templates_returns_7():
-    """get_templates() returns exactly 7 templates."""
+def test_get_templates_returns_9():
+    """get_templates() returns exactly 9 templates."""
     mgr = ProfileManager()  # uses default dir; we only call get_templates()
     templates = mgr.get_templates()
-    assert len(templates) == 7
+    assert len(templates) == 9
 
 
 def test_template_names():
@@ -131,4 +131,4 @@ def test_template_names():
     templates = mgr.get_templates()
     names = [t["meta"]["profile_name"] for t in templates]
     assert "local-dev" in names
-    assert "aws-eks-microservices" in names
+    assert "aws-eks" in names

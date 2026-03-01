@@ -817,7 +817,7 @@ public class LandingPageService : ILandingPageService
     public async Task<string> GenerateSlugAsync(string name)
     {
         // Convert to lowercase and replace spaces/special chars with hyphens
-        var slug = Regex.Replace(name.ToLower(), @"[^a-z0-9]+", "-").Trim('-');
+        var slug = Regex.Replace(name.ToLower(), @"[^a-z0-9]+", "-", RegexOptions.None, TimeSpan.FromSeconds(1)).Trim('-');
 
         // Ensure uniqueness
         var baseSlug = slug;

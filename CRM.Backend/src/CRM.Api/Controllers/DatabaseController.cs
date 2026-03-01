@@ -344,7 +344,7 @@ public class DatabaseController : CrmControllerBase
 
     private string ExtractSqliteDbPath(string connectionString)
     {
-        var match = System.Text.RegularExpressions.Regex.Match(connectionString, @"Data Source=([^;]+)");
+        var match = System.Text.RegularExpressions.Regex.Match(connectionString, @"Data Source=([^;]+)", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         return match.Success ? match.Groups[1].Value : "crm.db";
     }
 
@@ -353,7 +353,7 @@ public class DatabaseController : CrmControllerBase
         foreach (var param in paramNames)
         {
             var pattern = $@"(?:^|;)\s*{param}\s*=\s*([^;]+)";
-            var match = System.Text.RegularExpressions.Regex.Match(connectionString, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            var match = System.Text.RegularExpressions.Regex.Match(connectionString, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
             if (match.Success)
             {
                 return match.Groups[1].Value.Trim();
@@ -2131,7 +2131,7 @@ Then restart the API container:
         }
 
         // Allow only alphanumeric characters and underscores
-        return System.Text.RegularExpressions.Regex.IsMatch(identifier, @"^[a-zA-Z_][a-zA-Z0-9_]*$");
+        return System.Text.RegularExpressions.Regex.IsMatch(identifier, @"^[a-zA-Z_][a-zA-Z0-9_]*$", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
     }
 
     /// <summary>
@@ -2149,7 +2149,7 @@ Then restart the API container:
         }
 
         // Basic hostname validation
-        if (!System.Text.RegularExpressions.Regex.IsMatch(request.Host, @"^[a-zA-Z0-9.\-_]+$"))
+        if (!System.Text.RegularExpressions.Regex.IsMatch(request.Host, @"^[a-zA-Z0-9.\-_]+$", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1)))
         {
             error = "Hostname contains invalid characters";
             return false;

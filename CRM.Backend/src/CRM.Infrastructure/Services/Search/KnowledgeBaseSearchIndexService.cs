@@ -455,7 +455,7 @@ public class KnowledgeBaseSearchIndexService : IKnowledgeBaseSearchIndexService
         }
 
         // Remove HTML tags
-        var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", " ");
+            var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", " ", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         // Decode common HTML entities
         text = text.Replace("&amp;", "&")
                    .Replace("&lt;", "<")
@@ -463,7 +463,7 @@ public class KnowledgeBaseSearchIndexService : IKnowledgeBaseSearchIndexService
                    .Replace("&nbsp;", " ")
                    .Replace("&quot;", "\"");
         // Collapse whitespace
-        text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ").Trim();
+        text = System.Text.RegularExpressions.Regex.Replace(text, @"\s+", " ", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1)).Trim();
         return text;
     }
 }

@@ -89,8 +89,10 @@ def start_deploy():
         emit_progress(session_id, 5, "initializing")
         try:
             success = bool(deployer.deploy())
-            emit_log(session_id, "SUCCESS", "Deployment finished")
-            emit_done(session_id, success=True, result={"session_id": session_id})
+            level = "SUCCESS" if success else "ERROR"
+            msg = "Deployment finished" if success else "Deployment failed"
+            emit_log(session_id, level, msg)
+            emit_done(session_id, success=success, result={"session_id": session_id})
         except Exception as exc:  # noqa: BLE001
             emit_log(session_id, "ERROR", f"Deployment error: {exc}")
             emit_done(session_id, success=False, result={"error": str(exc)})

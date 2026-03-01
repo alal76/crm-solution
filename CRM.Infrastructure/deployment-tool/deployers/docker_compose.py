@@ -81,6 +81,43 @@ class DockerComposeDeployer:
         except Exception as e:
             return (1, "", str(e))
 
+    def _run_streaming(
+        self, cmd: list, cwd: Path = None, timeout: int = 600, prefix: str = ""
+    ) -> int:
+        """Run a command and stream stdout/stderr lines to the log queue.
+
+        Returns the exit code (0 = success).
+        """
+        if self.dry_run:
+            self._emit(f"[DRY-RUN] Would run: {' '.join(str(c) for c in cmd)}")
+            return 0
+        try:
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                cwd=str(cwd or self.work_dir),
+            )
+            deadline = time.time() + timeout
+            last_emit = time.time()
+            for line in proc.stdout:
+                stripped = line.rstrip()
+                # Emit meaningful lines (skip blank / overly repetitive)
+                if stripped and time.time() - last_emit > 0.5:
+                    tag = f"[{prefix}] " if prefix else ""
+                    self._emit(f"{tag}{stripped}", "info")
+                    last_emit = time.time()
+                if time.time() > deadline:
+                    proc.kill()
+                    self._emit(f"Command timed out after {timeout}s", "error")
+                    return 1
+            proc.wait(timeout=30)
+            return proc.returncode
+        except Exception as e:
+            self._emit(f"Streaming exec error: {e}", "error")
+            return 1
+
     def deploy(self) -> bool:
         steps = [
             (1,  "Validating prerequisites",  self._step_validate_prerequisites),
@@ -156,7 +193,7 @@ class DockerComposeDeployer:
 
             image_tag = f"{name}:{tag}"
             self._emit(f"Building {image_tag} from {dockerfile} …")
-            rc, _out, err = self._run(
+            rc = self._run_streaming(
                 [
                     "docker", "build",
                     "--platform", "linux/amd64",
@@ -166,9 +203,10 @@ class DockerComposeDeployer:
                 ],
                 cwd=repo_root,
                 timeout=600,
+                prefix=name,
             )
             if rc != 0:
-                self._emit(f"Build failed for {name}: {err[:300]}", "error")
+                self._emit(f"Build failed for {name} (exit code {rc})", "error")
                 failed += 1
             else:
                 self._emit(f"Built {image_tag} successfully", "success")

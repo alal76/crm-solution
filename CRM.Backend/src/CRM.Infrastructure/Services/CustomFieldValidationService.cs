@@ -355,7 +355,7 @@ public class CustomFieldValidationService : ICustomFieldValidationService
         }
 
         // Email validation
-        if (definition.DataType == CustomFieldDataType.Email && !Regex.IsMatch(value!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+        if (definition.DataType == CustomFieldDataType.Email && !Regex.IsMatch(value!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.None, TimeSpan.FromSeconds(1)))
         {
             result.IsValid = false;
             result.Errors.Add($"'{definition.Label}' must be a valid email address.");

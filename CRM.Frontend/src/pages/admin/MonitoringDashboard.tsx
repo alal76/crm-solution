@@ -99,7 +99,7 @@ const EXTERNAL_RESOURCES = [
     color: '#5CDD8B',
     port: 3001,
     path: '/dashboard',
-    credentials: { username: 'admin', password: '[see environment config]' },
+    credentials: { username: 'admin', authNote: '[see environment config]' },
     status: 'deployed' as const,
   },
   {
@@ -109,7 +109,7 @@ const EXTERNAL_RESOURCES = [
     color: '#20A7C9',
     port: 8088,
     path: '/superset/dashboard/crm-overview/',
-    credentials: { username: 'admin', password: '[see environment config]' },
+    credentials: { username: 'admin', authNote: '[see environment config]' },
     status: 'deployed' as const,
   },
   {
@@ -128,7 +128,7 @@ const EXTERNAL_RESOURCES = [
     icon: <DatabaseIcon />,
     color: '#003545',
     port: 3306,
-    credentials: { username: 'crm_user', password: '[see environment config]', database: 'crm_db' },
+    credentials: { username: 'crm_user', authNote: '[see environment config]', database: 'crm_db' },
     status: 'deployed' as const,
   },
   {
@@ -157,7 +157,7 @@ const EXTERNAL_RESOURCES = [
     color: '#512BD4',
     port: 5000,
     path: '/health',
-    credentials: { email: 'admin@crm.local', password: '[see environment config]' },
+    credentials: { email: 'admin@crm.local', authNote: '[see environment config]' },
     status: 'deployed' as const,
   },
   {

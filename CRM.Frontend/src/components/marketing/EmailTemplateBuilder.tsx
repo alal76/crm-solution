@@ -85,7 +85,7 @@ export default function EmailTemplateBuilder({
   // ── Stats ───────────────────────────────────────────────────────────────────
 
   const charCount = value.length;
-  const wordCount = countWords(value.replace(/<[^>]*>/g, ' '));
+  const wordCount = countWords(value.replace(/<[^>]+>/gu, ' '));
 
   // ── Render ──────────────────────────────────────────────────────────────────
 

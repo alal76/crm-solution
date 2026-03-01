@@ -476,7 +476,7 @@ public class SlackNotificationProvider : INotificationPort
     private static string StripHtml(string html)
     {
         if (string.IsNullOrWhiteSpace(html)) return string.Empty;
-        return System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", string.Empty).Trim();
+        return System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", string.Empty, System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1)).Trim();
     }
 
     /// <summary>Truncates a string to avoid exceeding Slack's field limits.</summary>

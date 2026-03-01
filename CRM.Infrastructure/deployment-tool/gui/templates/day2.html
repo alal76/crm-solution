@@ -310,7 +310,7 @@ let _autoRefreshTimer = null;
 // ── Confirm modal ──────────────────────────────────────────────────────────
 function showConfirm(title, body, cb) {
     document.getElementById('confirmModalTitle').textContent = title;
-    document.getElementById('confirmModalBody').innerHTML = typeof body === 'string' && body.startsWith('<') ? body : body;
+    document.getElementById('confirmModalBody').innerHTML = body;
     _confirmCallback = cb;
     document.getElementById('confirmModalBtn').style.display = '';
     bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmModal')).show();
@@ -604,8 +604,8 @@ async function applyScale(svc) {
 }
 
 async function rotateSecret(type) {
-    const labels = {jwt: 'JWT Secret', db_password: 'Database Password', all: 'ALL secrets'};
-    showConfirm('Rotate Secret', `Rotate ${labels[type] || type}? This may cause brief downtime.`, async () => {
+    const secretLabels = {jwt: 'JWT Secret', db_pass: 'Database Password', all: 'ALL secrets'};
+    showConfirm('Rotate Secret', `Rotate ${secretLabels[type] || type}? This may cause brief downtime.`, async () => {
         const r = await fetch('/api/day2/rotate-secret', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({secret_type: type})});
         const d = await r.json();
         const resultEl = document.getElementById('rotation-result');

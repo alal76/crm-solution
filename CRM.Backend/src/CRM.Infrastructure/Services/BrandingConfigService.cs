@@ -34,7 +34,7 @@ public class BrandingConfigService : IBrandingConfigService
     private const int MinLogoDimension = 200;
     private const int MaxLogoDimension = 500;
     private static readonly int[] AllowedFaviconDimensions = { 32, 64 };
-    private static readonly Regex SolutionNameRegex = new("^[A-Za-z0-9 ]+$", RegexOptions.Compiled);
+    private static readonly Regex SolutionNameRegex = new("^[A-Za-z0-9 ]+$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     public BrandingConfigService(
         ICrmDbContext context,

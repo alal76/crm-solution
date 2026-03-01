@@ -101,7 +101,7 @@ public class EmailToTicketService : IEmailToTicketService
             // Check for ignored subject patterns
             foreach (var pattern in _config.IgnoreSubjectPatterns)
             {
-                if (Regex.IsMatch(email.Subject, pattern, RegexOptions.IgnoreCase))
+                if (Regex.IsMatch(email.Subject, pattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1)))
                 {
                     _logger.LogInformation("Email subject matches ignore pattern: {Pattern}", pattern);
                     return new EmailParseResult
@@ -245,7 +245,7 @@ public class EmailToTicketService : IEmailToTicketService
         }
 
         // Clean up extra whitespace
-        cleaned = Regex.Replace(cleaned, @"\n{3,}", "\n\n");
+        cleaned = Regex.Replace(cleaned, @"\n{3,}", "\n\n", RegexOptions.None, TimeSpan.FromSeconds(1));
         cleaned = cleaned.Trim();
 
         return cleaned;

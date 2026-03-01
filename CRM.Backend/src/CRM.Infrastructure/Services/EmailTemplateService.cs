@@ -189,7 +189,7 @@ public class EmailTemplateService : IEmailTemplateService
             result.UsedVariables = variables;
 
             // Check for unclosed variable tags
-            var unclosed = Regex.Matches(templateContent, @"\{\{(?![^{}]*\}\})");
+            var unclosed = Regex.Matches(templateContent, @"\{\{(?![^{}]*\}\})", RegexOptions.None, TimeSpan.FromSeconds(1));
             foreach (Match match in unclosed)
             {
                 result.Errors.Add(new TemplateValidationError
@@ -737,8 +737,8 @@ public class EmailTemplateService : IEmailTemplateService
         var slug = name.ToLower()
             .Replace(" ", "-")
             .Replace("_", "-");
-        slug = Regex.Replace(slug, @"[^a-z0-9\-]", "");
-        slug = Regex.Replace(slug, @"-+", "-");
+        slug = Regex.Replace(slug, @"[^a-z0-9\-]", "", RegexOptions.None, TimeSpan.FromSeconds(1));
+        slug = Regex.Replace(slug, @"-+", "-", RegexOptions.None, TimeSpan.FromSeconds(1));
         return slug.Trim('-');
     }
 

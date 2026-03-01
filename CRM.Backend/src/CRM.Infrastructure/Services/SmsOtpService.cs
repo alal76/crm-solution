@@ -278,7 +278,7 @@ public class SmsOtpService : ISmsOtpService
     private static string NormalizePhoneNumber(string phoneNumber)
     {
         // Remove common formatting characters
-        var normalized = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"[\s\-\.\(\)]", "");
+            var normalized = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"[\s\-\.\(\)]", "", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         // Add + if not present and doesn't start with +1
         if (!normalized.StartsWith("+"))
         {
@@ -290,7 +290,7 @@ public class SmsOtpService : ISmsOtpService
     private static bool IsValidPhoneNumber(string phoneNumber)
     {
         // Basic validation: phone number should be 10-15 digits (E.164 format)
-        var digitsOnly = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"\D", "");
+        var digitsOnly = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"\D", "", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         return digitsOnly.Length >= 10 && digitsOnly.Length <= 15;
     }
 

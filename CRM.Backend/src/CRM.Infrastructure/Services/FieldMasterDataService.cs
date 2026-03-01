@@ -276,7 +276,7 @@ public class FieldMasterDataService : IFieldMasterDataService
         {
             try
             {
-                if (!Regex.IsMatch(value, link.ValidationPattern, RegexOptions.IgnoreCase))
+                if (!Regex.IsMatch(value, link.ValidationPattern, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1)))
                 {
                     return (false, link.ValidationMessage ?? $"Value does not match required pattern");
                 }

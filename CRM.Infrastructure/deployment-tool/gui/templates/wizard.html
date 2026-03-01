@@ -2515,6 +2515,41 @@
                     <!-- Populated by JavaScript on step entry -->
                 </div>
 
+                <!-- Service Reference: containers, ports, URLs -->
+                <div class="card border-0 bg-light mb-3">
+                    <div class="card-body py-3">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="mb-0"><i class="bi bi-hdd-stack me-2"></i>Service Reference
+                                <span id="protocolBadge" class="badge bg-warning text-dark ms-2">HTTP</span>
+                            </h6>
+                            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#serviceRefCollapse">
+                                <i class="bi bi-chevron-expand"></i> Toggle
+                            </button>
+                        </div>
+                        <div class="collapse show" id="serviceRefCollapse">
+                            <div class="small mb-2 text-muted">Container names, ports, and URLs for your deployment:</div>
+                            <!-- URL preview row -->
+                            <div class="row g-2 mb-2">
+                                <div class="col-md-4">
+                                    <label for="previewApiUrl" class="form-label small fw-semibold mb-0">API URL</label>
+                                    <input type="text" class="form-control form-control-sm" id="previewApiUrl" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="previewFrontendUrl" class="form-label small fw-semibold mb-0">Frontend URL</label>
+                                    <input type="text" class="form-control form-control-sm" id="previewFrontendUrl" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="previewGatewayUrl" class="form-label small fw-semibold mb-0">Gateway URL</label>
+                                    <input type="text" class="form-control form-control-sm" id="previewGatewayUrl" readonly placeholder="(microservices only)">
+                                </div>
+                            </div>
+                            <div id="serviceReferenceTable">
+                                <!-- Populated by _renderServiceReference() -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Deployment checklist -->
                 <div class="card border-0 bg-light mb-3">
                     <div class="card-body py-3">
@@ -3123,6 +3158,171 @@
         let currentStep = 0;
         const totalSteps = 8;
 
+        // ─── Smart Defaults System ─────────────────────────────────────────
+        // Cached defaults from /api/defaults, refreshed when platform/arch/SSL changes.
+        let _smartDefaults = null;
+
+        /**
+         * Fetch smart defaults from backend based on current config state.
+         * Caches the result in _smartDefaults for reuse across steps.
+         */
+        async function loadSmartDefaults() {
+            try {
+                const params = new URLSearchParams({
+                    architecture: config.architecture || 'monolithic',
+                    platform:     config.platform || 'on_premises',
+                    ssl:          config.ssl?.ssl_enabled ? 'true' : 'false',
+                    host:         _getDeploymentHost(),
+                });
+                const resp = await fetch('/api/defaults?' + params.toString());
+                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                _smartDefaults = await resp.json();
+                return _smartDefaults;
+            } catch (err) {
+                console.error('[CDT] Failed to load smart defaults:', err);
+                return null;
+            }
+        }
+
+        /** Derive the deployment host from various config fields. */
+        function _getDeploymentHost() {
+            if (config.platform === 'on_premises') {
+                return document.getElementById('discoveryHost')?.value || '192.168.0.9';
+            }
+            // Cloud: use domain name if provided, else generic host
+            const sslDomain = document.getElementById('sslDomain')?.value;
+            if (sslDomain) return sslDomain;
+            return 'localhost';
+        }
+
+        /**
+         * Apply smart defaults to pre-fill form fields that are currently empty.
+         * Only fills blank fields — never overwrites user-entered values.
+         * Called on step transitions and after platform/arch selection.
+         */
+        function applySmartDefaults() {
+            if (!_smartDefaults) return;
+            const d = _smartDefaults;
+
+            // Database defaults
+            const dbDefs = d.database_defaults?.[config.database_type];
+            if (dbDefs) {
+                _fillIfEmpty('dbName',  dbDefs.db_name);
+                _fillIfEmpty('dbPort',  dbDefs.port);
+                _fillIfEmpty('secretDbUser', dbDefs.user);
+            }
+
+            // Registry defaults
+            if (d.registry) {
+                _fillIfEmpty('secretImageRegistry', d.registry.registry);
+                _fillIfEmpty('secretImageOrg',      d.registry.org);
+                const bldEl = document.getElementById('buildLocally');
+                if (bldEl && !bldEl.dataset.userSet) bldEl.checked = !!d.registry.build_locally;
+            }
+
+            // Secret hints (safe defaults for non-sensitive fields)
+            if (d.secret_hints) {
+                _fillIfEmpty('secretDbUser',        d.secret_hints.db_user);
+                _fillIfEmpty('secretAdminUsername',  d.secret_hints.admin_username);
+                _fillIfEmpty('secretAdminEmail',     d.secret_hints.admin_email);
+            }
+
+            // Protocol / SSL auto-config
+            if (d.protocol) {
+                _updateProtocolIndicators(d.protocol, d.urls);
+            }
+
+            // Populate service reference table
+            _renderServiceReference(d);
+        }
+
+        /** Fill an input by id only if it's currently empty. */
+        function _fillIfEmpty(id, value) {
+            const el = document.getElementById(id);
+            if (el && !el.value && value !== undefined && value !== null) {
+                el.value = value;
+            }
+        }
+
+        /** Update any protocol-related UI indicators. */
+        function _updateProtocolIndicators(protocol, urls) {
+            const badge = document.getElementById('protocolBadge');
+            if (badge) {
+                badge.textContent = protocol.toUpperCase();
+                badge.className = 'badge ' + (protocol === 'https' ? 'bg-success' : 'bg-warning text-dark');
+            }
+            // Update URL preview fields
+            if (urls) {
+                _fillIfEmpty('previewApiUrl',      urls.api_url || '');
+                _fillIfEmpty('previewFrontendUrl',  urls.frontend_url || '');
+                if (urls.gateway_url) {
+                    _fillIfEmpty('previewGatewayUrl', urls.gateway_url);
+                }
+            }
+        }
+
+        /** Render service name/port reference into the summary step. */
+        function _renderServiceReference(defaults) {
+            const container = document.getElementById('serviceReferenceTable');
+            if (!container) return;
+
+            let html = '<table class="table table-sm table-bordered mb-0">';
+            html += '<thead><tr><th>Container</th><th>Port</th><th>Description</th></tr></thead><tbody>';
+
+            // Core services
+            for (const [name, info] of Object.entries(defaults.core_services || {})) {
+                html += '<tr><td><code>' + name + '</code></td><td>' + info.port + '</td><td>' + info.description + '</td></tr>';
+            }
+
+            // Microservices (if applicable)
+            for (const [name, info] of Object.entries(defaults.microservices || {})) {
+                html += '<tr class="table-info"><td><code>' + name + '</code></td><td>' + info.port + '</td><td>' + info.description + '</td></tr>';
+            }
+
+            // Database
+            const dbKey = config.database_type || 'mariadb';
+            const dbInfo = defaults.database_defaults?.[dbKey];
+            if (dbInfo) {
+                html += '<tr class="table-warning"><td><code>' + dbInfo.container + '</code></td><td>' + dbInfo.port + '</td><td>Database (' + dbKey + ')</td></tr>';
+            }
+            html += '<tr class="table-warning"><td><code>crm-redis</code></td><td>6379</td><td>Redis cache</td></tr>';
+
+            // Provider services (only active ones)
+            const provMap = {
+                'meilisearch': 'crm-meilisearch',
+                'ollama': 'crm-ollama',
+                'chatwoot': 'crm-chatwoot',
+                'novu': 'crm-novu',
+                'superset': 'crm-superset',
+                'docuseal': 'crm-docuseal',
+                'n8n': 'crm-n8n',
+            };
+            const activeProviders = [
+                config.search_provider, config.chat_provider, config.notification_provider,
+                config.analytics_provider, config.ai_provider
+            ];
+            for (const [provKey, containerName] of Object.entries(provMap)) {
+                if (activeProviders.includes(provKey)) {
+                    const pInfo = defaults.provider_services?.[containerName];
+                    if (pInfo) {
+                        html += '<tr class="table-success"><td><code>' + containerName + '</code></td><td>' + pInfo.port + '</td><td>' + pInfo.description + '</td></tr>';
+                    }
+                }
+            }
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        /**
+         * Hook: called whenever platform or architecture changes.
+         * Refreshes defaults and re-applies them.
+         */
+        async function onConfigContextChange() {
+            await loadSmartDefaults();
+            applySmartDefaults();
+        }
+
         // Discovery state
         let discoveredConfig = null;
 
@@ -3545,8 +3745,12 @@
         // ─── SSL helper functions ──────────────────────────────────
 
         function toggleSslOptions(enabled) {
+            config.ssl.ssl_enabled = enabled;
             const panel = document.getElementById('sslOptionsPanel');
             if (panel) panel.style.display = enabled ? '' : 'none';
+
+            // Refresh smart defaults for protocol change
+            onConfigContextChange();
         }
 
         function toggleSslMode(mode) {
@@ -3586,7 +3790,7 @@
             const certFile = document.getElementById('sslCertFile')?.files[0];
             const keyFile = document.getElementById('sslKeyFile')?.files[0];
             const result = document.getElementById('sslUploadResult');
-            if (!certFile || !keyFile) { alert('Please select both certificate and key files.'); return; }
+            if (!certFile || !keyFile) { showErrorPopup('Missing Files', 'Please select both certificate and key files.'); return; }
 
             const domain = document.getElementById('sslDomain')?.value || 'custom';
             const formData = new FormData();
@@ -3639,7 +3843,7 @@
             try {
                 await fetch('/api/ssl/delete/' + encodeURIComponent(domain), { method: 'DELETE' });
                 loadSslStatus();
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { showErrorPopup('SSL Delete Error', 'Failed to delete certificate for ' + domain, e.message); }
         }
 
         // Install cloud SDK inline with SSE streaming
@@ -4006,6 +4210,10 @@
 
             loadRecommendation();
             updateArchSuggestion();
+
+            // Refresh smart defaults for preset's arch/db/providers
+            onConfigContextChange();
+            showToast?.('Preset "' + (p.name || preset) + '" applied', 'success');
         }
 
         // ── Welcome modal ─────────────────────────────────────────────────────
@@ -4024,8 +4232,7 @@
                 const ds = document.getElementById('deploymentDescription'); if (ds) config.description = ds.value;
                 const eu = document.getElementById('expectedUsers');    if (eu) config.expected_users = parseInt(eu.value)||100;
                 localStorage.setItem(DRAFT_KEY, JSON.stringify({ config, step: currentStep }));
-                const toast = document.getElementById('draftToast');
-                if (toast) { toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2200); }
+                showToast?.('Draft saved successfully', 'success');
             } catch(e) { console.warn('Draft save failed:', e); }
         }
 
@@ -4100,15 +4307,21 @@
             const badge = v => v === 'builtin' ? '<span class="badge bg-secondary">Built-in</span>'
                               : `<span class="badge bg-primary">${v}</span>`;
 
-            const preflight = [];
-            if (config.name) preflight.push('✅ Deployment name set');
-            else preflight.push('❌ Deployment name missing');
-            if (config.platform) preflight.push('✅ Platform: ' + pl);
-            else preflight.push('❌ No platform selected');
-            if (config.database_type) preflight.push('✅ Database: ' + db);
-            else preflight.push('⚠️ Using default database (MariaDB)');
-            if (config.architecture) preflight.push('✅ Architecture: ' + arch);
-            else preflight.push('⚠️ Using default architecture (Monolithic)');
+            // SSL & protocol info
+            const sslEnabled = config.ssl?.ssl_enabled;
+            const protocol = sslEnabled ? 'HTTPS' : 'HTTP';
+            const sslMode = sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replace('_', ' ') : 'Disabled';
+            const sslBadge = sslEnabled
+                ? `<span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>${protocol}</span>`
+                : `<span class="badge bg-warning text-dark"><i class="bi bi-unlock me-1"></i>${protocol}</span>`;
+
+            // URL previews from smart defaults
+            const apiUrl = _smartDefaults?.urls?.api_url || '';
+            const frontendUrl = _smartDefaults?.urls?.frontend_url || '';
+
+            // Registry info
+            const regInfo = config.image_registry?.image_registry || config.secrets?.image_registry || '(local)';
+            const buildLocal = config.image_registry?.build_locally ? 'Yes' : 'No';
 
             return `
             <div class="review-section">
@@ -4120,6 +4333,7 @@
                     <span class="review-k">Platform</span>   <span class="review-v">${pl}</span>
                     <span class="review-k">Architecture</span><span class="review-v">${arch}</span>
                     <span class="review-k">Database</span>   <span class="review-v">${db} (port ${config.database_port || 3306})</span>
+                    <span class="review-k">SSL / Protocol</span><span class="review-v">${sslBadge} ${sslMode}</span>
                 </div>
             </div>
             <div class="review-section">
@@ -4131,6 +4345,15 @@
                     <span class="review-k">Analytics</span>    <span class="review-v">${badge(pv('analytics'))}</span>
                     <span class="review-k">Signatures</span>   <span class="review-v">${badge(pv('signature'))}</span>
                     <span class="review-k">AI / LLM</span>     <span class="review-v">${badge(pv('ai'))}</span>
+                </div>
+            </div>
+            <div class="review-section">
+                <div class="review-section-title"><i class="bi bi-hdd-network me-1"></i>Infrastructure</div>
+                <div class="review-kv">
+                    <span class="review-k">Registry</span>    <span class="review-v"><code>${_esc(regInfo)}</code></span>
+                    <span class="review-k">Build Locally</span><span class="review-v">${buildLocal}</span>
+                    ${apiUrl ? `<span class="review-k">API URL</span><span class="review-v"><code>${_esc(apiUrl)}</code></span>` : ''}
+                    ${frontendUrl ? `<span class="review-k">Frontend URL</span><span class="review-v"><code>${_esc(frontendUrl)}</code></span>` : ''}
                 </div>
             </div>
             <div class="d-flex align-items-center gap-3 mt-3 mb-1">
@@ -4241,6 +4464,9 @@
 
             // ─── 4. Show info banner ──────────────────────────────────────────
             _showTemplateBanner(sourceName, meta.description || data.description || '', isTemplate);
+
+            // ─── 5. Load smart defaults for the template's platform/arch ──────
+            onConfigContextChange();
         }
 
         /** Safely set a form field value by id. */
@@ -4307,6 +4533,9 @@
             loadEnums();
             updateStepIndicator();
             
+            // Load smart defaults on startup
+            loadSmartDefaults();
+
             // Update recommendation and arch suggestion on user count change
             document.getElementById('expectedUsers').addEventListener('change', function() {
                 config.expected_users = parseInt(this.value);
@@ -4428,6 +4657,9 @@
 
             // Sync cloud-native DB options in Step 4
             syncCloudDbOptions(platform);
+
+            // Refresh smart defaults for new platform
+            onConfigContextChange();
         }
 
         /**
@@ -4558,6 +4790,9 @@
                 : 'Microservices deployment provides better scalability and is recommended for 100+ users.';
             document.getElementById('archInfoText').textContent = infoText;
             document.getElementById('archInfo').style.display = 'block';
+
+            // Refresh smart defaults for new architecture
+            onConfigContextChange();
         }
 
         function selectDatabase(db) {
@@ -4567,10 +4802,17 @@
             });
             document.querySelector(`[value="${db}"]`).closest('.option-card').classList.add('selected');
             
-            // Update default port
+            // Update default port and db name from smart defaults
             const portMap = { 'mariadb': 3306, 'mysql': 3306, 'postgresql': 5432, 'sqlserver': 1433 };
             document.getElementById('dbPort').value = portMap[db] || 3306;
             config.database_port = portMap[db] || 3306;
+
+            // Also fill db name from smart defaults
+            const dbDefs = _smartDefaults?.database_defaults?.[db];
+            if (dbDefs) {
+                _fillIfEmpty('dbName', dbDefs.db_name);
+                _fillIfEmpty('secretDbUser', dbDefs.user);
+            }
         }
 
         function selectProvider(type, provider) {
@@ -4687,10 +4929,10 @@
                 });
                 const data = await res.json();
                 if (data.errors && data.errors.length) {
-                    alert('Some removals failed:\n' + data.errors.join('\n'));
+                    showErrorPopup('Registry Purge Errors', 'Some removals failed', data.errors.join('\n'));
                 }
                 loadRegistryImages();
-            } catch (err) { alert('Purge failed: ' + err); }
+            } catch (err) { showErrorPopup('Registry Purge Failed', 'Could not purge selected images', String(err)); }
         }
 
         async function purgeDanglingImages() {
@@ -4702,9 +4944,9 @@
                     body: JSON.stringify({ dangling: true }),
                 });
                 const data = await res.json();
-                alert('Dangling images pruned.\n' + (data.removed || []).join('\n'));
+                showToast('Dangling images pruned: ' + (data.removed || []).length + ' removed', 'success');
                 loadRegistryImages();
-            } catch (err) { alert('Prune failed: ' + err); }
+            } catch (err) { showErrorPopup('Prune Failed', 'Could not prune dangling images', String(err)); }
         }
 
         /** Auto-populate registry fields based on selected platform. */
@@ -4830,11 +5072,11 @@
 
         function validateStep() {
             if (currentStep === 2 && !config.platform) {
-                alert('Please select a target platform.');
+                showErrorPopup('Platform Required', 'Please select a target platform before proceeding.');
                 return false;
             }
             if (currentStep === 3 && !config.architecture) {
-                alert('Please select a deployment architecture.');
+                showErrorPopup('Architecture Required', 'Please select a deployment architecture before proceeding.');
                 return false;
             }
             return true;
@@ -4849,6 +5091,11 @@
                 updateStepIndicator();
                 if (currentStep === 3) { updateArchSuggestion(); }
                 if (currentStep === totalSteps) { renderSummary(); }
+
+                // Apply smart defaults when entering data-entry steps
+                if ([4, 6, 7, 8].includes(currentStep)) {
+                    applySmartDefaults();
+                }
             }
         }
 
@@ -4859,7 +5106,11 @@
             }
         }
 
-        function renderSummary() {
+        async function renderSummary() {
+            // Ensure smart defaults are loaded before rendering
+            if (!_smartDefaults) await loadSmartDefaults();
+            applySmartDefaults();
+
             const summary = document.getElementById('configSummary');
             if (summary) summary.innerHTML = buildReviewSummary();
             // Update preflight checklist
@@ -4990,7 +5241,7 @@
                 }
             } catch (e) {
                 _deployLog('Error generating configuration: ' + e.message, 'dl-error');
-                alert('Error generating configuration: ' + e.message);
+                showErrorPopup('Generation Failed', 'Error generating configuration files.', e.message);
             } finally {
                 if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Generate &amp; Deploy'; }
             }
@@ -5120,13 +5371,71 @@
         }
 
         function downloadGeneratedFiles() {
-            if (!_deploy.jobId) { alert('No deployment session active. Run a deployment first.'); return; }
+            if (!_deploy.jobId) { showErrorPopup('No Session', 'No deployment session active. Generate configuration or run a deployment first.'); return; }
             window.open(`/api/download?session_id=${encodeURIComponent(_deploy.jobId)}`, '_blank');
         }
     </script>
 <script>
 // ---- CDT Additions ----
-window.crmSessionId = null;
+
+// ── Toast notification system ────────────────────────────────────────────────
+function showToast(message, level) {
+    level = level || 'info';
+    let container = document.getElementById('cdt-toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'cdt-toast-container';
+        container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:8px;max-width:400px;';
+        document.body.appendChild(container);
+    }
+    const bgMap = { success:'#198754', error:'#dc3545', warning:'#ffc107', info:'#0d6efd' };
+    const colorMap = { warning:'#000' };
+    const iconMap = { success:'bi-check-circle-fill', error:'bi-x-circle-fill', warning:'bi-exclamation-triangle-fill', info:'bi-info-circle-fill' };
+    const toast = document.createElement('div');
+    toast.className = 'cdt-toast';
+    toast.style.cssText = `background:${bgMap[level]||bgMap.info};color:${colorMap[level]||'#fff'};padding:12px 18px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:8px;font-size:.875rem;opacity:0;transition:opacity .3s,transform .3s;transform:translateX(40px);`;
+    toast.innerHTML = `<i class="bi ${iconMap[level]||iconMap.info}"></i><span style="flex:1">${message}</span><button style="background:none;border:none;color:inherit;font-size:1.1rem;cursor:pointer;padding:0 0 0 8px;" onclick="this.parentElement.remove()">&times;</button>`;
+    container.appendChild(toast);
+    requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)'; setTimeout(() => toast.remove(), 300); }, 4000);
+}
+
+// ── Error popup modal ──────────────────────────────────────────────────────
+function showErrorPopup(title, message, details) {
+    let modal = document.getElementById('cdtErrorModal');
+    if (!modal) {
+        const div = document.createElement('div');
+        div.innerHTML = `
+        <div class="modal fade" id="cdtErrorModal" tabindex="-1">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger">
+              <div class="modal-header bg-danger text-white py-2">
+                <h6 class="modal-title" id="cdtErrorTitle"><i class="bi bi-exclamation-triangle-fill me-2"></i>Error</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body">
+                <p id="cdtErrorMessage" class="mb-2"></p>
+                <div id="cdtErrorDetails" style="display:none">
+                  <hr><pre class="bg-light p-2 rounded small" style="max-height:200px;overflow:auto;" id="cdtErrorDetailsText"></pre>
+                </div>
+              </div>
+              <div class="modal-footer py-1">
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+        document.body.appendChild(div.firstElementChild);
+        modal = document.getElementById('cdtErrorModal');
+    }
+    document.getElementById('cdtErrorTitle').innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' + (title || 'Error');
+    document.getElementById('cdtErrorMessage').textContent = message || 'An error occurred.';
+    const detailsEl = document.getElementById('cdtErrorDetails');
+    const detailsText = document.getElementById('cdtErrorDetailsText');
+    if (details) { detailsEl.style.display = 'block'; detailsText.textContent = typeof details === 'string' ? details : JSON.stringify(details, null, 2); }
+    else { detailsEl.style.display = 'none'; }
+    new bootstrap.Modal(modal).show();
+}
 
 function generateSecret() {
   fetch('/api/generate-password')
@@ -5137,7 +5446,7 @@ function generateSecret() {
         el.value = data.password || data;
         updateStrengthMeter('jwt_secret', el.value);
       }
-    }).catch(console.error);
+    }).catch(e => showToast('Failed to generate secret: ' + e.message, 'error'));
 }
 
 function updateStrengthMeter(fieldId, value) {
@@ -5158,38 +5467,55 @@ function updateStrengthMeter(fieldId, value) {
 }
 
 function downloadConfig() {
-  const sid = window.crmSessionId;
-  if (!sid) { alert('No session active'); return; }
-  fetch(`/api/wizard/session/${sid}/review`)
-    .then(r => r.json())
-    .then(data => {
-      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'crm-deployment-review.json';
-      a.click();
-    }).catch(console.error);
+  // Use active deploy session or download the current wizard config
+  if (_deploy.jobId) {
+    window.open(`/api/download?session_id=${encodeURIComponent(_deploy.jobId)}`, '_blank');
+    return;
+  }
+  // Fallback: download the in-memory config as JSON
+  try {
+    const blob = new Blob([JSON.stringify(config, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'crm-deployment-config.json';
+    a.click();
+    showToast('Config downloaded', 'success');
+  } catch (e) { showErrorPopup('Download Failed', e.message); }
 }
 
 function runPreflight() {
-  const sid = window.crmSessionId;
   const resultDiv = document.getElementById('preflight_results');
-  if (!sid || !resultDiv) return;
-  resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Running checks...';
-  fetch(`/api/wizard/session/${sid}/review`)
-    .then(r => r.json())
-    .then(data => {
-      let html = data.ready
-        ? '<div class="alert alert-success"><i class="bi bi-check-circle"></i> All pre-deploy checks passed!</div>'
-        : '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Issues found:</div>';
-      if (data.issues && data.issues.length) {
-        html += '<ul class="list-unstyled ms-3">' + data.issues.map(i => `<li class="text-danger"><i class="bi bi-x-circle"></i> ${i}</li>`).join('') + '</ul>';
-      }
-      if (data.warnings && data.warnings.length) {
-        html += '<ul class="list-unstyled ms-3">' + data.warnings.map(w => `<li class="text-warning"><i class="bi bi-exclamation-triangle"></i> ${w}</li>`).join('') + '</ul>';
-      }
-      resultDiv.innerHTML = html;
-    }).catch(e => { resultDiv.innerHTML = `<div class="alert alert-danger">Check failed: ${e.message}</div>`; });
+  if (!resultDiv) { return; }
+  resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Running pre-flight checks...';
+  // Run preflight against the current in-memory config (no session needed)
+  const checks = [];
+  if (!config.name) { checks.push({pass:false, msg:'Deployment name not set'}); }
+  if (!config.platform) { checks.push({pass:false, msg:'No platform selected'}); }
+  else { checks.push({pass:true, msg:'Platform: ' + config.platform}); }
+  if (!config.architecture) { checks.push({pass:false, msg:'Architecture not selected'}); }
+  else { checks.push({pass:true, msg:'Architecture: ' + config.architecture}); }
+  if (config.secrets && config.secrets.db_password) { checks.push({pass:true, msg:'Database password configured'}); }
+  else { checks.push({pass:false, msg:'Database password not set (will be auto-generated)'}); }
+  if (config.secrets && config.secrets.jwt_secret) { checks.push({pass:true, msg:'JWT secret configured'}); }
+  else { checks.push({pass:false, msg:'JWT secret not set (will be auto-generated)'}); }
+  if (config.ssl && config.ssl.ssl_enabled) { checks.push({pass:true, msg:'SSL enabled (' + (config.ssl.ssl_mode || 'self_signed') + ')'}); }
+  else { checks.push({pass:false, msg:'SSL not enabled — HTTP only'}); }
+  // Docker connectivity check
+  fetch('/api/probe/port-check?host=localhost&port=2375').then(r => r.json()).then(d => {
+    checks.push({pass: d.reachable || true, msg: 'Docker daemon: ' + (d.reachable ? 'reachable' : 'assuming local socket')});
+  }).catch(() => {}).finally(() => {
+    const failures = checks.filter(c => !c.pass);
+    let html = failures.length === 0
+      ? '<div class="alert alert-success py-2"><i class="bi bi-check-circle-fill me-1"></i> All pre-flight checks passed!</div>'
+      : `<div class="alert alert-warning py-2"><i class="bi bi-exclamation-triangle-fill me-1"></i> ${failures.length} issue(s) found</div>`;
+    html += '<ul class="list-unstyled ms-2 mt-2">';
+    checks.forEach(c => {
+      const icon = c.pass ? 'bi-check-circle text-success' : 'bi-exclamation-circle text-warning';
+      html += `<li class="mb-1"><i class="bi ${icon} me-1"></i> ${c.msg}</li>`;
+    });
+    html += '</ul>';
+    resultDiv.innerHTML = html;
+  });
 }
 
 function scanComponents() {
@@ -5230,13 +5556,13 @@ function renderDetectionGrid(components) {
 }
 
 function abortDeploy() {
-  const sid = window.crmSessionId;
-  if (!sid) return;
-  if (!confirm('Abort the running deployment?')) return;
+  const sid = _deploy.jobId;
+  if (!sid) { showToast('No active deployment to abort', 'warning'); return; }
+  if (!confirm('Abort the running deployment?')) { return; }
   fetch(`/api/deploy/${sid}/stop`, {method:'POST'}).then(r => r.json()).then(d => {
-    const log = document.getElementById('log-output');
-    if (log) log.textContent += '\n[ABORTED] ' + d.message;
-  });
+    _deployLog('⚠️ ' + (d.message || 'Abort signal sent'), 'dl-warn');
+    showToast('Deployment abort requested', 'warning');
+  }).catch(e => showErrorPopup('Abort Failed', e.message));
 }
 
 function downloadLogs() {
@@ -5251,7 +5577,7 @@ function downloadLogs() {
 
 function resetWizard() {
   if (confirm('Start a new deployment? Current session will be cleared.')) {
-    window.crmSessionId = null;
+    _deploy.jobId = null;
     window.location.reload();
   }
 }
@@ -5371,7 +5697,7 @@ async function applySelectedProfile() {
         if (p.environment) { const el = document.getElementById('environment'); if(el) el.value = p.environment; }
         document.getElementById('step-profile-browser').style.display = 'none';
         showToast?.('Profile loaded', 'success');
-    } catch(e) { alert('Failed to load profile: ' + e.message); }
+    } catch(e) { showErrorPopup('Profile Load Error', 'Failed to load profile', e.message); }
 }
 function closeProfileBrowser() {
     document.getElementById('step-profile-browser').style.display = 'none';
@@ -5704,26 +6030,38 @@ async function day2Action(action) {
     if (action === 'rollback') { payload.version  = document.getElementById('d2RollbackVersion')?.value; }
     if (action === 'scale')    { payload.service  = document.getElementById('d2ScaleService')?.value; payload.replicas = parseInt(document.getElementById('d2ScaleReplicas')?.value||'2'); }
     if (action === 'rotate_secrets') {
+        payload.secret_type = 'all';
         payload.secrets = [];
-        if (document.getElementById('d2SecretJwt')?.checked)   payload.secrets.push('jwt');
-        if (document.getElementById('d2SecretDb')?.checked)    payload.secrets.push('db');
-        if (document.getElementById('d2SecretAdmin')?.checked) payload.secrets.push('admin');
+        if (document.getElementById('d2SecretJwt')?.checked)   { payload.secrets.push('jwt'); payload.secret_type = 'jwt'; }
+        if (document.getElementById('d2SecretDb')?.checked)    { payload.secrets.push('db'); payload.secret_type = 'db_password'; }
+        if (document.getElementById('d2SecretAdmin')?.checked) { payload.secrets.push('admin'); }
+        if (payload.secrets.length > 1) { payload.secret_type = 'all'; }
     }
-    const epMap = {upgrade:'/api/day2/upgrade', rollback:'/api/day2/rollback', scale:'/api/day2/scale', rotate_secrets:'/api/day2/rotate-secrets'};
+    const epMap = {upgrade:'/api/day2/upgrade', rollback:'/api/day2/rollback', scale:'/api/day2/scale', rotate_secrets:'/api/day2/rotate-secret'};
     try {
         const resp = await fetch(epMap[action]||`/api/day2/${action}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
         const data = await resp.json();
-        log.textContent += JSON.stringify(data, null, 2) + '\n' + (resp.ok ? '✅ Done\n' : '❌ Error\n');
-    } catch(e) { log.textContent += `ERROR: ${e.message}\n`; }
+        log.textContent += JSON.stringify(data, null, 2) + '\n';
+        if (resp.ok) {
+            log.textContent += '✅ Done\n';
+            showToast(`${action} completed successfully`, 'success');
+        } else {
+            log.textContent += '❌ Error\n';
+            showErrorPopup('Day-2 Action Failed', `${action} failed`, data.error || data.message || JSON.stringify(data));
+        }
+    } catch(e) {
+        log.textContent += `ERROR: ${e.message}\n`;
+        showErrorPopup('Day-2 Action Failed', `Failed to execute ${action}`, e.message);
+    }
     log.scrollTop = log.scrollHeight;
 }
 
 async function loadDay2Containers() {
     const el = document.getElementById('d2ContainerList');
     try {
-        const resp = await fetch('/api/day2/containers');
+        const resp = await fetch('/api/day2/status/all');
         const data = await resp.json();
-        const containers = data.containers || data || [];
+        const containers = data.containers || [];
         if (!containers.length) { el.innerHTML = '<p class="text-muted">No containers found.</p>'; return; }
         let html = '<div class="list-group">';
         containers.forEach(c => {
@@ -5734,7 +6072,7 @@ async function loadDay2Containers() {
         });
         html += '</div>';
         el.innerHTML = '<button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Containers()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>' + html;
-    } catch(e) { el.innerHTML = `<div class="alert alert-warning">Could not load: ${e.message}</div>`; }
+    } catch(e) { el.innerHTML = `<div class="alert alert-warning">Could not load containers: ${e.message}</div>`; showToast('Container load failed: ' + e.message, 'error'); }
 }
 function openCrmUrl() {
     const url = document.getElementById('btn-open-crm')?.dataset?.href || '/';

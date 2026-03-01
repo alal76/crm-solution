@@ -952,7 +952,7 @@ public class FormBuilderService : IFormBuilderService
                 }
 
                 // Check for excessive links
-                var urlCount = Regex.Matches(strValue, @"https?://").Count;
+                var urlCount = Regex.Matches(strValue, @"https?://", RegexOptions.None, TimeSpan.FromSeconds(1)).Count;
                 if (urlCount > 3)
                 {
                     score += 10 * urlCount;
@@ -1255,8 +1255,8 @@ public class FormBuilderService : IFormBuilderService
 
     private string GenerateFormKey(string name)
     {
-        var key = Regex.Replace(name.ToLower(), @"[^a-z0-9]", "-");
-        key = Regex.Replace(key, @"-+", "-").Trim('-');
+        var key = Regex.Replace(name.ToLower(), @"[^a-z0-9]", "-", RegexOptions.None, TimeSpan.FromSeconds(1));
+        key = Regex.Replace(key, @"-+", "-", RegexOptions.None, TimeSpan.FromSeconds(1)).Trim('-');
         return $"{key}-{DateTime.UtcNow.Ticks % 10000}";
     }
 

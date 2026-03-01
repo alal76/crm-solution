@@ -165,10 +165,10 @@ public class ConditionExpressionParser : IConditionExpressionParser
     // Token patterns
     private static readonly Regex TokenPattern = new(
         @"(\(|\)|\bAND\b|\bOR\b|\bNOT\b|[A-Za-z_][A-Za-z0-9_]*|[=!<>]=?|'[^']*'|""[^""]*""|\d+[hmdw]?|\S+)",
-        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     // Time unit patterns (e.g., "4h" = 4 hours, "30m" = 30 minutes)
-    private static readonly Regex TimeUnitPattern = new(@"^(\d+)([hmdw])$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex TimeUnitPattern = new(@"^(\d+)([hmdw])$", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     /// <inheritdoc />
     public ExpressionNode Parse(string expression)

@@ -79,12 +79,12 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
     private readonly ILogger<FormulaFieldEngine> _logger;
 
     // Regex to match field references like {FieldName} or {Object.FieldName}
-    private static readonly Regex FieldReferenceRegex = new(@"\{([A-Za-z_][A-Za-z0-9_.]*)\}", RegexOptions.Compiled);
+    private static readonly Regex FieldReferenceRegex = new(@"\{([A-Za-z_][A-Za-z0-9_.]*)\}", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     // Regex to match IF(...) expressions
     private static readonly Regex IfExpressionRegex = new(
         @"IF\s*\(\s*(.+?)\s*,\s*(.+?)\s*,\s*(.+?)\s*\)",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
     // Supported functions
     private static readonly HashSet<string> SupportedFunctions = new(StringComparer.OrdinalIgnoreCase)
@@ -351,7 +351,7 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
             var value = match.Groups[1].Value.Trim();
             var defaultValue = match.Groups[2].Value.Trim();
             return (value == "0" || string.IsNullOrEmpty(value) || value == "null") ? defaultValue : value;
-        }, RegexOptions.IgnoreCase);
+        }, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // ABS(value)
         formula = Regex.Replace(formula, @"ABS\s*\(\s*(.+?)\s*\)", match =>
@@ -361,7 +361,7 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
                 return Math.Abs(val).ToString(CultureInfo.InvariantCulture);
             }
             return match.Value;
-        }, RegexOptions.IgnoreCase);
+        }, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // ROUND(value, decimals)
         formula = Regex.Replace(formula, @"ROUND\s*\(\s*(.+?)\s*,\s*(\d+)\s*\)", match =>
@@ -370,31 +370,31 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
                 int.TryParse(match.Groups[2].Value.Trim(), out var dec))
                 return Math.Round(val, dec).ToString(CultureInfo.InvariantCulture);
             return match.Value;
-        }, RegexOptions.IgnoreCase);
+        }, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // UPPER(value)
         formula = Regex.Replace(formula, @"UPPER\s*\(\s*'(.+?)'\s*\)", match =>
-            $"'{match.Groups[1].Value.ToUpperInvariant()}'", RegexOptions.IgnoreCase);
+            $"'{match.Groups[1].Value.ToUpperInvariant()}'", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // LOWER(value)
         formula = Regex.Replace(formula, @"LOWER\s*\(\s*'(.+?)'\s*\)", match =>
-            $"'{match.Groups[1].Value.ToLowerInvariant()}'", RegexOptions.IgnoreCase);
+            $"'{match.Groups[1].Value.ToLowerInvariant()}'", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // TRIM(value)
         formula = Regex.Replace(formula, @"TRIM\s*\(\s*'(.+?)'\s*\)", match =>
-            $"'{match.Groups[1].Value.Trim()}'", RegexOptions.IgnoreCase);
+            $"'{match.Groups[1].Value.Trim()}'", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // LEN(value)
         formula = Regex.Replace(formula, @"LEN\s*\(\s*'(.+?)'\s*\)", match =>
-            match.Groups[1].Value.Length.ToString(), RegexOptions.IgnoreCase);
+            match.Groups[1].Value.Length.ToString(), RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // TODAY()
         formula = Regex.Replace(formula, @"TODAY\s*\(\s*\)", _ =>
-            $"'{DateTime.UtcNow:yyyy-MM-dd}'", RegexOptions.IgnoreCase);
+            $"'{DateTime.UtcNow:yyyy-MM-dd}'", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // NOW()
         formula = Regex.Replace(formula, @"NOW\s*\(\s*\)", _ =>
-            $"'{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss}'", RegexOptions.IgnoreCase);
+            $"'{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss}'", RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         // CONCAT('a', 'b', ...)
         formula = Regex.Replace(formula, @"CONCAT\s*\((.+?)\)", match =>
@@ -403,7 +403,7 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
                 .Select(a => a.Trim().Trim('\'', '"'))
                 .ToArray();
             return $"'{string.Join("", args)}'";
-        }, RegexOptions.IgnoreCase);
+        }, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
         return formula;
     }

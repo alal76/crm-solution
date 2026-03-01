@@ -501,7 +501,7 @@ public class TeamsNotificationProvider : INotificationPort
     private static string StripHtml(string html)
     {
         if (string.IsNullOrWhiteSpace(html)) return string.Empty;
-        return System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", string.Empty).Trim();
+        return System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", string.Empty, System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1)).Trim();
     }
 
     private NotificationResult NotConfiguredResult(string channel) =>

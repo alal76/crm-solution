@@ -102,10 +102,20 @@ class ConfigGenerator:
 
     @staticmethod
     def _docker_escape(value: str) -> str:
-        """Escape ``$`` as ``$$`` for Docker Compose variable interpolation."""
+        """Escape a value for safe embedding inside YAML double-quoted strings
+        and Docker Compose variable interpolation.
+
+        Handles:
+        - ``\\`` → ``\\\\``  (backslash)
+        - ``"``  → ``\\"``   (double-quote, for YAML double-quoted scalars)
+        - ``$``  → ``$$``    (Docker Compose interpolation prevention)
+        """
         if not isinstance(value, str):
             return str(value)
-        return value.replace("$", "$$")
+        value = value.replace("\\", "\\\\")
+        value = value.replace('"', '\\"')
+        value = value.replace("$", "$$")
+        return value
 
     def _template_globals(self) -> dict:
         return {

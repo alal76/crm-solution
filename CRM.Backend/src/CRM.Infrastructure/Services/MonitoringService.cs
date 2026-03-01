@@ -1117,7 +1117,7 @@ public class MonitoringService : IMonitoringService
         {
             var match = System.Text.RegularExpressions.Regex.Match(
                 connectionString, @"Server=([^;]+)",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
             return match.Success ? match.Groups[1].Value : "unknown";
         }
 
@@ -1125,7 +1125,7 @@ public class MonitoringService : IMonitoringService
         {
             var match = System.Text.RegularExpressions.Regex.Match(
                 connectionString, @"Host=([^;]+)",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
             return match.Success ? match.Groups[1].Value : "unknown";
         }
 

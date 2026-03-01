@@ -170,7 +170,7 @@ public sealed class ScriptPluginLoader
     /// <returns>Sanitized PascalCase identifier safe for use as a <see cref="KernelPlugin"/> name.</returns>
     private static string SanitizeName(string name)
     {
-        var words = Regex.Split(name.Trim(), @"[^a-zA-Z0-9]+")
+        var words = Regex.Split(name.Trim(), @"[^a-zA-Z0-9]+", RegexOptions.None, TimeSpan.FromSeconds(1))
             .Where(static w => w.Length > 0)
             .Select(static w => char.ToUpperInvariant(w[0]) + w[1..]);
 

@@ -10,7 +10,7 @@ namespace CRM.Infrastructure.Validation;
 
 public static class ThemeColorValidator
 {
-    private static readonly Regex HexColorRegex = new("^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", RegexOptions.Compiled);
+    private static readonly Regex HexColorRegex = new("^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     public static void ValidateHexColor(string value, string fieldName)
     {

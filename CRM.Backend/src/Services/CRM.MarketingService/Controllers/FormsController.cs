@@ -874,7 +874,7 @@ public class FormsController : ControllerBase
             .Replace(" ", "-")
             .Replace("_", "-");
         // Remove special characters
-        key = System.Text.RegularExpressions.Regex.Replace(key, @"[^a-z0-9\-]", "");
+        key = System.Text.RegularExpressions.Regex.Replace(key, @"[^a-z0-9\-]", "", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         return $"{key}-{DateTime.UtcNow:yyyyMMdd}";
     }
 

@@ -113,6 +113,9 @@ build_result.log
 # Generated environment files with potential secrets
 .env.generated
 
+# Deployment tool generated configs — contain actual passwords, never commit
+CRM.Infrastructure/deployment-tool/generated/
+
 # Infrastructure configuration (contains local overrides)
 config/infrastructure.env
 

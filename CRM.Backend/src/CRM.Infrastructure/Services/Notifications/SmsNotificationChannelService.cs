@@ -20,7 +20,7 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
     private readonly ILogger<SmsNotificationChannelService> _logger;
     
     // E.164 format regex: +[country code][subscriber number]
-    private static readonly Regex E164Regex = new(@"^\+[1-9]\d{1,14}$", RegexOptions.Compiled);
+    private static readonly Regex E164Regex = new(@"^\+[1-9]\d{1,14}$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     public SmsNotificationChannelService(ILogger<SmsNotificationChannelService> logger)
     {

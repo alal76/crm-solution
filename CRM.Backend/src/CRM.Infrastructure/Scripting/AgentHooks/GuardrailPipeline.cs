@@ -27,15 +27,15 @@ public class GuardrailPipeline
 
     // Built-in PII patterns
     private static readonly Regex SsnPattern =
-        new Regex(@"\b\d{3}-\d{2}-\d{4}\b", RegexOptions.Compiled);
+        new Regex(@"\b\d{3}-\d{2}-\d{4}\b", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
 
     private static readonly Regex CreditCardPattern =
-        new Regex(@"\b(?:\d{4}[- ]?){3}\d{4}\b", RegexOptions.Compiled);
+        new Regex(@"\b(?:\d{4}[- ]?){3}\d{4}\b", RegexOptions.Compiled, TimeSpan.FromSeconds(5));
 
     private static readonly Regex PromptInjectionPattern =
         new Regex(
             @"(?i)(ignore previous|system prompt|jailbreak|DAN mode|pretend you are)",
-            RegexOptions.Compiled);
+            RegexOptions.Compiled, TimeSpan.FromSeconds(5));
 
     public GuardrailPipeline(ILogger<GuardrailPipeline> logger, IEnumerable<IGuardrailHook>? hooks = null)
     {

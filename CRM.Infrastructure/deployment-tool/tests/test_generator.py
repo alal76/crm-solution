@@ -191,3 +191,119 @@ def test_generation_result_to_dict():
     assert "success" in d
     assert "output_dir" in d
     assert "errors" in d
+
+
+# ---- docker_escape tests ------------------------------------------------- #
+
+
+def test_docker_escape_dollar_sign():
+    """Dollar signs are doubled to prevent Docker Compose interpolation."""
+    from core.generator import ConfigGenerator
+
+    assert ConfigGenerator._docker_escape("abc$def") == "abc$$def"
+
+
+def test_docker_escape_backslash():
+    """Backslashes are escaped for safe YAML double-quoted embedding."""
+    from core.generator import ConfigGenerator
+
+    assert ConfigGenerator._docker_escape("a\\b") == "a\\\\b"
+
+
+def test_docker_escape_double_quote():
+    """Double quotes are escaped for YAML double-quoted scalar safety."""
+    from core.generator import ConfigGenerator
+
+    assert ConfigGenerator._docker_escape('a"b') == 'a\\"b'
+
+
+def test_docker_escape_complex_password():
+    """A password with YAML-unsafe chars like [ ! # { > is escaped correctly."""
+    from core.generator import ConfigGenerator
+
+    pwd = 'f(w[!b^?G4k2.f]x'
+    escaped = ConfigGenerator._docker_escape(pwd)
+    # No dollar, backslash, or double-quote in this password, so unchanged
+    assert escaped == pwd
+
+
+def test_docker_escape_all_special():
+    """Combined $, \\ and \" are all escaped."""
+    from core.generator import ConfigGenerator
+
+    raw = 'p$a\\s"s'
+    expected = 'p$$a\\\\s\\"s'
+    assert ConfigGenerator._docker_escape(raw) == expected
+
+
+def test_docker_escape_non_string():
+    """Non-string input is converted to string."""
+    from core.generator import ConfigGenerator
+
+    assert ConfigGenerator._docker_escape(12345) == "12345"
+
+
+# ---- Template YAML quoting tests ----------------------------------------- #
+
+
+def test_generated_compose_env_values_are_quoted():
+    """All environment values in generated docker-compose.yml are YAML double-quoted."""
+    from core.generator import ConfigGenerator
+
+    g = ConfigGenerator()
+    profile = _sample_profile()
+    # Add a password with YAML-unsafe chars
+    profile["database"]["db_password"] = "p@ss#w[o]rd!"
+    result = g.generate(profile)
+    assert result.success
+
+    compose_content = (result.output_dir / "docker-compose.yml").read_text()
+    # Every line under environment that starts with "      - " should be quoted
+    import re
+    env_lines = re.findall(r'^\s+- (.+)$', compose_content, re.MULTILINE)
+    for line in env_lines:
+        # Skip non-env lines (like depends_on list items)
+        if "=" not in line and "CMD" not in line:
+            continue
+        if "=" in line:
+            assert line.startswith('"') and line.endswith('"'), \
+                f"Env value not quoted: {line!r}"
+
+
+def test_generated_compose_redis_command_list_form():
+    """Redis command uses YAML list form to avoid shell parsing issues."""
+    from core.generator import ConfigGenerator
+
+    g = ConfigGenerator()
+    profile = _sample_profile()
+    profile["database"]["redis_password"] = "r3d!s#p@ss"
+    result = g.generate(profile)
+    assert result.success
+
+    compose_content = (result.output_dir / "docker-compose.yml").read_text()
+    assert '["redis-server"' in compose_content, \
+        "Redis command should use YAML list form"
+
+
+def test_generated_env_secrets_are_quoted():
+    """Secret values in generated .env file are double-quoted."""
+    from core.generator import ConfigGenerator
+
+    g = ConfigGenerator()
+    profile = _sample_profile()
+    profile["database"]["db_password"] = "p#hash!val"
+    result = g.generate(profile)
+    assert result.success
+
+    env_content = (result.output_dir / ".env").read_text()
+    # DB_PASSWORD should be quoted to prevent # being treated as comment
+    for line in env_content.splitlines():
+        if line.startswith("DB_PASSWORD="):
+            assert line.startswith('DB_PASSWORD="'), \
+                f"DB_PASSWORD not quoted: {line!r}"
+            assert line.endswith('"'), \
+                f"DB_PASSWORD not properly closed: {line!r}"
+            break
+    else:
+        pytest.fail("DB_PASSWORD line not found in .env")
+

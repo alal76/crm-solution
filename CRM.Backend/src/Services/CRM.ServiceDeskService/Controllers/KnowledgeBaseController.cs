@@ -858,9 +858,9 @@ public class KnowledgeBaseController : ControllerBase
             .Replace(" ", "-")
             .Replace("_", "-");
         // Remove special characters
-        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\-]", "");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"[^a-z0-9\-]", "", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         // Remove duplicate hyphens
-        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-");
+        slug = System.Text.RegularExpressions.Regex.Replace(slug, @"-+", "-", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         return slug.Trim('-');
     }
 

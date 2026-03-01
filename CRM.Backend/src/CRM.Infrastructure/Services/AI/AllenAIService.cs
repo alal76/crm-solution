@@ -1239,7 +1239,7 @@ public class AllenAIService : IAllenAIService
             if (fieldIndex >= 0)
             {
                 var afterField = text[(fieldIndex + field.Length)..];
-                var match = System.Text.RegularExpressions.Regex.Match(afterField, @"\d+\.?\d*");
+                var match = System.Text.RegularExpressions.Regex.Match(afterField, @"\d+\.?\d*", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
                 if (match.Success && decimal.TryParse(match.Value, out var value))
                 {
                     return value;

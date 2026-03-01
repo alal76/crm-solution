@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 22,
-  "lastUpdate": "2026-03-01",
-  "description": "feat(cdt): v0.614.22 CDT frontend refactor \u2014 fix 7 broken button actions, replace all alert() with showErrorPopup/showToast UI, add /api/defaults smart-defaults endpoint, auto-fill container names/ports/URLs/protocols/registries, HTTP/HTTPS switching, service reference panel, 127 passing tests",
+  "patch": 24,
+  "lastUpdate": "2026-03-02",
+  "description": "fix(sonar): v0.614.24 SonarCloud Quality Gate fixes — exclude CRM.Infrastructure/** and scripts/** from sonar scan, remove Password= fallback from CrmDbContextDesignTimeFactory, add Regex timeouts to 67 C# calls across 28 files (S6444), fix WorkflowOrchestrator false-positive condition (S2583), fix MonitoringDashboard S2068 credential property names, replace PartnerPortalPage email regex with split-based validation (S5852), fix day2.html redundant ternary and db_password key, fix day2_routes.py list_runs named arg, untrack generated/ files with real passwords",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

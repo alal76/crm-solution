@@ -384,7 +384,7 @@ public class ZipCodeService : IZipCodeService
         if (PostalCodeFormats.TryGetValue(normalizedCountryCode, out var format))
         {
             result.ExpectedFormat = format.Format;
-            result.FormatValid = Regex.IsMatch(normalizedPostalCode, format.Regex, RegexOptions.IgnoreCase);
+            result.FormatValid = Regex.IsMatch(normalizedPostalCode, format.Regex, RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
             if (!result.FormatValid)
             {

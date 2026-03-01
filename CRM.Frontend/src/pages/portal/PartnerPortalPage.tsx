@@ -6,6 +6,15 @@ import {
 import HandshakeIcon from '@mui/icons-material/Handshake';
 import apiClient from '../../services/apiClient';
 
+/** Validates email format without a regex to avoid potential ReDoS concerns. */
+const isEmailLikelyValid = (email: string): boolean => {
+  const atIndex = email.indexOf('@');
+  if (atIndex <= 0 || atIndex !== email.lastIndexOf('@')) return false;
+  const domain = email.slice(atIndex + 1);
+  const dotIndex = domain.lastIndexOf('.');
+  return dotIndex > 0 && dotIndex < domain.length - 1;
+};
+
 interface DealRegistration {
   contactFirstName: string;
   contactLastName: string;
@@ -39,7 +48,7 @@ const PartnerPortalPage: React.FC = () => {
     if (!form.contactFirstName.trim()) errs.contactFirstName = 'Required';
     if (!form.contactLastName.trim()) errs.contactLastName = 'Required';
     if (!form.companyName.trim()) errs.companyName = 'Required';
-    if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = 'Valid email required';
+    if (!form.email.trim() || !isEmailLikelyValid(form.email)) errs.email = 'Valid email required';
     if (!form.dealValue || isNaN(Number(form.dealValue)) || Number(form.dealValue) <= 0)
       errs.dealValue = 'Enter a positive number';
     setErrors(errs);

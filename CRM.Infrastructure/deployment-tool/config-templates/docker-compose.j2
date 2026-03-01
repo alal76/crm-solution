@@ -10,73 +10,73 @@ services:
     container_name: crm-api
     restart: unless-stopped
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:5000
-      - ConnectionStrings__DefaultConnection=Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};Password={{ docker_escape(db_password) }};
-      - Jwt__Secret={{ docker_escape(jwt_secret) }}
-      - Jwt__Issuer=CRM.Api
-      - Jwt__Audience=CRM.Client
-      - Redis__ConnectionString=crm-redis:6379{{ ':' + docker_escape(redis_password) if redis_password else '' }}
-      - ADMIN_EMAIL={{ admin_email | default(admin_admin_email | default('admin@crm.local')) }}
-      - ADMIN_PASSWORD={{ docker_escape(admin_password | default(admin_admin_password | default('Admin@123'))) }}
-      - ADMIN_USERNAME={{ admin_username | default(admin_admin_username | default('admin')) }}
-      - RateLimiting__EnableEndpointRateLimiting={{ rate_limiting_enabled | default('true') }}
+      - "ASPNETCORE_ENVIRONMENT=Production"
+      - "ASPNETCORE_URLS=http://+:5000"
+      - "ConnectionStrings__DefaultConnection=Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};Password={{ docker_escape(db_password) }};"
+      - "Jwt__Secret={{ docker_escape(jwt_secret) }}"
+      - "Jwt__Issuer=CRM.Api"
+      - "Jwt__Audience=CRM.Client"
+      - "Redis__ConnectionString=crm-redis:6379{{ ':' + docker_escape(redis_password) if redis_password else '' }}"
+      - "ADMIN_EMAIL={{ admin_email | default(admin_admin_email | default('admin@crm.local')) }}"
+      - "ADMIN_PASSWORD={{ docker_escape(admin_password | default(admin_admin_password | default('Admin@123'))) }}"
+      - "ADMIN_USERNAME={{ admin_username | default(admin_admin_username | default('admin')) }}"
+      - "RateLimiting__EnableEndpointRateLimiting={{ rate_limiting_enabled | default('true') }}"
 {% if providers.get('search_provider') == 'meilisearch' %}
-      - FeatureManagement__UseExternalSearch=true
-      - Providers__Search__Type=Meilisearch
-      - Providers__Search__Meilisearch__Url=http://crm-meilisearch:7700
-      - Providers__Search__Meilisearch__ApiKey={{ meilisearch_master_key | default('masterKey') }}
+      - "FeatureManagement__UseExternalSearch=true"
+      - "Providers__Search__Type=Meilisearch"
+      - "Providers__Search__Meilisearch__Url=http://crm-meilisearch:7700"
+      - "Providers__Search__Meilisearch__ApiKey={{ docker_escape(meilisearch_master_key | default('masterKey')) }}"
 {% endif %}
 {% if providers.get('chat_provider') == 'chatwoot' %}
-      - FeatureManagement__UseExternalChat=true
-      - Providers__Chat__Type=Chatwoot
-      - Providers__Chat__Chatwoot__BaseUrl=http://crm-chatwoot:3000
-      - Providers__Chat__Chatwoot__ApiKey={{ chatwoot_api_key | default('') }}
-      - Providers__Chat__Chatwoot__AccountId={{ chatwoot_account_id | default('1') }}
+      - "FeatureManagement__UseExternalChat=true"
+      - "Providers__Chat__Type=Chatwoot"
+      - "Providers__Chat__Chatwoot__BaseUrl=http://crm-chatwoot:3000"
+      - "Providers__Chat__Chatwoot__ApiKey={{ docker_escape(chatwoot_api_key | default('')) }}"
+      - "Providers__Chat__Chatwoot__AccountId={{ chatwoot_account_id | default('1') }}"
 {% endif %}
 {% if providers.get('notification_provider') == 'novu' %}
-      - FeatureManagement__UseExternalNotifications=true
-      - Providers__Notifications__Type=Novu
-      - Providers__Notifications__Novu__ApiKey={{ novu_api_key | default('') }}
-      - Providers__Notifications__Novu__BaseUrl=http://crm-novu:3000
+      - "FeatureManagement__UseExternalNotifications=true"
+      - "Providers__Notifications__Type=Novu"
+      - "Providers__Notifications__Novu__ApiKey={{ docker_escape(novu_api_key | default('')) }}"
+      - "Providers__Notifications__Novu__BaseUrl=http://crm-novu:3000"
 {% endif %}
 {% if providers.get('analytics_provider') == 'superset' %}
-      - FeatureManagement__UseExternalAnalytics=true
-      - Providers__Analytics__Type=Superset
-      - Providers__Analytics__Superset__Url=http://crm-superset:8088
+      - "FeatureManagement__UseExternalAnalytics=true"
+      - "Providers__Analytics__Type=Superset"
+      - "Providers__Analytics__Superset__Url=http://crm-superset:8088"
 {% endif %}
 {% if providers.get('signature_provider') == 'docuseal' %}
-      - FeatureManagement__UseExternalSignatures=true
-      - Providers__Signatures__Type=DocuSeal
-      - Providers__Signatures__DocuSeal__Url=http://crm-docuseal:3000
-      - Providers__Signatures__DocuSeal__ApiKey={{ docuseal_api_key | default('') }}
+      - "FeatureManagement__UseExternalSignatures=true"
+      - "Providers__Signatures__Type=DocuSeal"
+      - "Providers__Signatures__DocuSeal__Url=http://crm-docuseal:3000"
+      - "Providers__Signatures__DocuSeal__ApiKey={{ docker_escape(docuseal_api_key | default('')) }}"
 {% endif %}
 {% if providers.get('integration_provider') == 'n8n' %}
-      - FeatureManagement__UseExternalIntegrations=true
-      - Providers__Integrations__Type=N8n
-      - Providers__Integrations__N8n__BaseUrl=http://crm-n8n:5678
-      - Providers__Integrations__N8n__ApiKey={{ n8n_api_key | default('') }}
+      - "FeatureManagement__UseExternalIntegrations=true"
+      - "Providers__Integrations__Type=N8n"
+      - "Providers__Integrations__N8n__BaseUrl=http://crm-n8n:5678"
+      - "Providers__Integrations__N8n__ApiKey={{ docker_escape(n8n_api_key | default('')) }}"
 {% endif %}
 {% if providers.get('ai_provider') == 'ollama' %}
-      - FeatureManagement__UseExternalAI=true
-      - Providers__AI__Type=Ollama
-      - Providers__AI__Ollama__Url=http://crm-ollama:11434
-      - Providers__AI__Ollama__Model={{ ollama_model | default('llama3.1:8b') }}
+      - "FeatureManagement__UseExternalAI=true"
+      - "Providers__AI__Type=Ollama"
+      - "Providers__AI__Ollama__Url=http://crm-ollama:11434"
+      - "Providers__AI__Ollama__Model={{ ollama_model | default('llama3.1:8b') }}"
 {% elif providers.get('ai_provider') == 'openai' %}
-      - FeatureManagement__UseExternalAI=true
-      - Providers__AI__Type=OpenAI
-      - Providers__AI__OpenAI__ApiKey={{ openai_api_key | default('') }}
-      - Providers__AI__OpenAI__Model={{ openai_model | default('gpt-4o') }}
+      - "FeatureManagement__UseExternalAI=true"
+      - "Providers__AI__Type=OpenAI"
+      - "Providers__AI__OpenAI__ApiKey={{ docker_escape(openai_api_key | default('')) }}"
+      - "Providers__AI__OpenAI__Model={{ openai_model | default('gpt-4o') }}"
 {% elif providers.get('ai_provider') == 'azure_openai' %}
-      - FeatureManagement__UseExternalAI=true
-      - Providers__AI__Type=AzureOpenAI
-      - Providers__AI__AzureOpenAI__Endpoint={{ azure_openai_endpoint | default('') }}
-      - Providers__AI__AzureOpenAI__ApiKey={{ azure_openai_api_key | default('') }}
-      - Providers__AI__AzureOpenAI__DeploymentName={{ azure_openai_deployment | default('gpt-4o') }}
+      - "FeatureManagement__UseExternalAI=true"
+      - "Providers__AI__Type=AzureOpenAI"
+      - "Providers__AI__AzureOpenAI__Endpoint={{ azure_openai_endpoint | default('') }}"
+      - "Providers__AI__AzureOpenAI__ApiKey={{ docker_escape(azure_openai_api_key | default('')) }}"
+      - "Providers__AI__AzureOpenAI__DeploymentName={{ azure_openai_deployment | default('gpt-4o') }}"
 {% elif providers.get('ai_provider') == 'anthropic' %}
-      - FeatureManagement__UseExternalAI=true
-      - Providers__AI__Type=Anthropic
-      - Providers__AI__Anthropic__ApiKey={{ anthropic_api_key | default('') }}
+      - "FeatureManagement__UseExternalAI=true"
+      - "Providers__AI__Type=Anthropic"
+      - "Providers__AI__Anthropic__ApiKey={{ docker_escape(anthropic_api_key | default('')) }}"
 {% endif %}
     ports:
       - "{{ api_port | default('5000') }}:5000"
@@ -122,10 +122,10 @@ services:
     container_name: crm-mariadb
     restart: unless-stopped
     environment:
-      - MYSQL_ROOT_PASSWORD={{ docker_escape(db_root_password | default(generate_password(24))) }}
-      - MYSQL_DATABASE={{ db_name | default('crm_db') }}
-      - MYSQL_USER={{ db_user | default('crm_user') }}
-      - MYSQL_PASSWORD={{ docker_escape(db_password) }}
+      - "MYSQL_ROOT_PASSWORD={{ docker_escape(db_root_password | default(generate_password(24))) }}"
+      - "MYSQL_DATABASE={{ db_name | default('crm_db') }}"
+      - "MYSQL_USER={{ db_user | default('crm_user') }}"
+      - "MYSQL_PASSWORD={{ docker_escape(db_password) }}"
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
@@ -141,7 +141,7 @@ services:
     container_name: crm-redis
     restart: unless-stopped
 {% if redis_password %}
-    command: redis-server --requirepass {{ docker_escape(redis_password) }}
+    command: ["redis-server", "--requirepass", "{{ docker_escape(redis_password) }}"]
 {% endif %}
     volumes:
       - redis_data:/data
@@ -154,8 +154,8 @@ services:
     container_name: crm-meilisearch
     restart: unless-stopped
     environment:
-      - MEILI_MASTER_KEY={{ meilisearch_master_key | default('masterKey') }}
-      - MEILI_ENV={{ 'production' if not is_development else 'development' }}
+      - "MEILI_MASTER_KEY={{ docker_escape(meilisearch_master_key | default('masterKey')) }}"
+      - "MEILI_ENV={{ 'production' if not is_development else 'development' }}"
     volumes:
       - meilisearch_data:/meili_data
     networks:
@@ -179,11 +179,11 @@ services:
     container_name: crm-chatwoot
     restart: unless-stopped
     environment:
-      - SECRET_KEY_BASE={{ docker_escape(chatwoot_secret_key | default(generate_password(64))) }}
-      - FRONTEND_URL=http://localhost:3000
-      - RAILS_ENV=production
-      - DATABASE_URL=postgres://{{ db_user | default('crm_user') }}:{{ docker_escape(db_password) }}@crm-postgres:5432/chatwoot
-      - REDIS_URL=redis://crm-redis:6379
+      - "SECRET_KEY_BASE={{ docker_escape(chatwoot_secret_key | default(generate_password(64))) }}"
+      - "FRONTEND_URL=http://localhost:3000"
+      - "RAILS_ENV=production"
+      - "DATABASE_URL=postgres://{{ db_user | default('crm_user') }}:{{ docker_escape(db_password) }}@crm-postgres:5432/chatwoot"
+      - "REDIS_URL=redis://crm-redis:6379"
     depends_on:
       - crm-redis
     volumes:
@@ -198,10 +198,10 @@ services:
     container_name: crm-novu
     restart: unless-stopped
     environment:
-      - NODE_ENV=production
-      - REDIS_HOST=crm-redis
-      - JWT_SECRET={{ docker_escape(novu_jwt_secret | default(generate_token(32))) }}
-      - API_KEY={{ docker_escape(novu_api_key | default('')) }}
+      - "NODE_ENV=production"
+      - "REDIS_HOST=crm-redis"
+      - "JWT_SECRET={{ docker_escape(novu_jwt_secret | default(generate_token(32))) }}"
+      - "API_KEY={{ docker_escape(novu_api_key | default('')) }}"
     depends_on:
       - crm-redis
     networks:
@@ -214,8 +214,8 @@ services:
     container_name: crm-superset
     restart: unless-stopped
     environment:
-      - SUPERSET_SECRET_KEY={{ docker_escape(superset_secret_key | default(generate_password(42))) }}
-      - SUPERSET_SQLALCHEMY_DATABASE_URI=mysql://{{ db_user | default('crm_user') }}:{{ docker_escape(db_password) }}@crm-mariadb:3306/superset
+      - "SUPERSET_SECRET_KEY={{ docker_escape(superset_secret_key | default(generate_password(42))) }}"
+      - "SUPERSET_SQLALCHEMY_DATABASE_URI=mysql://{{ db_user | default('crm_user') }}:{{ docker_escape(db_password) }}@crm-mariadb:3306/superset"
     volumes:
       - superset_data:/app/superset_home
     networks:
@@ -228,7 +228,7 @@ services:
     container_name: crm-docuseal
     restart: unless-stopped
     environment:
-      - SECRET_KEY_BASE={{ docker_escape(docuseal_secret_key | default(generate_password(64))) }}
+      - "SECRET_KEY_BASE={{ docker_escape(docuseal_secret_key | default(generate_password(64))) }}"
     volumes:
       - docuseal_data:/data
     networks:
@@ -241,10 +241,10 @@ services:
     container_name: crm-n8n
     restart: unless-stopped
     environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_BASIC_AUTH_USER={{ n8n_username | default('admin') }}
-      - N8N_BASIC_AUTH_PASSWORD={{ docker_escape(n8n_password | default(generate_password(16))) }}
-      - WEBHOOK_URL=http://crm-n8n:5678/
+      - "N8N_BASIC_AUTH_ACTIVE=true"
+      - "N8N_BASIC_AUTH_USER={{ n8n_username | default('admin') }}"
+      - "N8N_BASIC_AUTH_PASSWORD={{ docker_escape(n8n_password | default(generate_password(16))) }}"
+      - "WEBHOOK_URL=http://crm-n8n:5678/"
     volumes:
       - n8n_data:/home/node/.n8n
     networks:

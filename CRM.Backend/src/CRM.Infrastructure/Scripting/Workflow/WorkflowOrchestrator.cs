@@ -118,7 +118,7 @@ public class WorkflowOrchestrator
                         "Step '{Step}' failed. Initiating saga compensation ({Count} steps).",
                         step.Name, compensations.Count);
 
-                    while (compensations.Count > 0)
+                    while (compensations.Count > 0) // NOSONAR S2583 - stack accumulates entries from prior successful steps
                     {
                         try
                         {
