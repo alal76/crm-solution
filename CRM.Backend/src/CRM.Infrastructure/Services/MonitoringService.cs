@@ -1194,7 +1194,7 @@ public class MonitoringService : IMonitoringService
                 CreateNoWindow = true
             };
 
-            using var process = Process.Start(psi);
+            using var process = Process.Start(psi); // NOSONAR - fixed 'docker' executable name, no user-controlled input in executable path
             if (process == null)
             {
                 return containers;
@@ -1272,7 +1272,7 @@ public class MonitoringService : IMonitoringService
                 CreateNoWindow = true
             };
 
-            using var process = Process.Start(psi);
+            using var process = Process.Start(psi); // NOSONAR - fixed 'kubectl' executable name, no user-controlled input in executable path
             if (process == null)
             {
                 return pods;

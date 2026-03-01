@@ -129,11 +129,11 @@ public class DatabaseInitializer
         return new Dictionary<DatabaseProvider, string>
         {
             [DatabaseProvider.SQLite] = "Data Source=crm.db",
-            [DatabaseProvider.SqlServer] = "Server=localhost;Database=CrmDatabase;User Id=sa;Password=YourPassword;TrustServerCertificate=True;",
-            [DatabaseProvider.PostgreSQL] = "Host=localhost;Port=5432;Database=crm_database;Username=postgres;Password=YourPassword;",
-            [DatabaseProvider.MySQL] = "Server=localhost;Port=3306;Database=crm_database;User=root;Password=YourPassword;",
-            [DatabaseProvider.MariaDB] = "Server=localhost;Port=3306;Database=crm_database;User=root;Password=YourPassword;",
-            [DatabaseProvider.Oracle] = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id=crm;Password=YourPassword;"
+            [DatabaseProvider.SqlServer] = "Server=localhost;Database=CrmDatabase;User Id=sa;Password=YourPassword;TrustServerCertificate=True;", // NOSONAR - template placeholder, not a real credential
+            [DatabaseProvider.PostgreSQL] = "Host=localhost;Port=5432;Database=crm_database;Username=postgres;Password=YourPassword;", // NOSONAR - template placeholder, not a real credential
+            [DatabaseProvider.MySQL] = "Server=localhost;Port=3306;Database=crm_database;User=root;Password=YourPassword;", // NOSONAR - template placeholder, not a real credential
+            [DatabaseProvider.MariaDB] = "Server=localhost;Port=3306;Database=crm_database;User=root;Password=YourPassword;", // NOSONAR - template placeholder, not a real credential
+            [DatabaseProvider.Oracle] = "Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST=localhost)(PORT=1521))(CONNECT_DATA=(SERVICE_NAME=XEPDB1)));User Id=crm;Password=YourPassword;" // NOSONAR - template placeholder, not a real credential
         };
     }
 

@@ -126,7 +126,7 @@ const getOperatorsForType = (type: FilterField['type']): FilterOperator[] => {
   }
 };
 
-const generateId = (): string => Math.random().toString(36).substring(2, 9);
+const generateId = (): string => Math.random().toString(36).substring(2, 9); // NOSONAR - non-security use: UI element ID generation
 
 export const EventFilterBuilder: React.FC<EventFilterBuilderProps> = ({
   filterGroups,

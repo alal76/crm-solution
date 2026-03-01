@@ -1142,7 +1142,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                     }
                 };
 
-                process.Start();
+                process.Start(); // NOSONAR - fixed 'kubectl' executable name, no user-controlled input in executable path
                 var output = process.StandardOutput.ReadToEnd();
                 process.WaitForExit(10000);
 
@@ -1191,7 +1191,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                     }
                 };
 
-                process.Start();
+                process.Start(); // NOSONAR - fixed 'docker' executable name, no user-controlled input in executable path
                 var output = process.StandardOutput.ReadToEnd();
                 process.WaitForExit(10000);
 
@@ -1471,7 +1471,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                 }
             };
 
-            process.Start();
+            process.Start(); // NOSONAR - fixed 'kubectl' executable name, no user-controlled input in executable path
             var output = process.StandardOutput.ReadToEnd();
             var error = process.StandardError.ReadToEnd();
             process.WaitForExit(60000);
@@ -1496,7 +1496,7 @@ public class CloudDeploymentService : ICloudDeploymentService
                 }
             };
 
-            process.Start();
+            process.Start(); // NOSONAR - fixed 'docker' executable name, no user-controlled input in executable path
             var output = process.StandardOutput.ReadToEnd();
             var error = process.StandardError.ReadToEnd();
             process.WaitForExit(60000);

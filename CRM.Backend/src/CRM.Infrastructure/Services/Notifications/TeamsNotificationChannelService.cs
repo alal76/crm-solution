@@ -51,7 +51,7 @@ public class TeamsNotificationChannelService : ITeamsNotificationChannel
             var messageCard = new
             {
                 @type = "MessageCard",
-                @context = "http://schema.org/extensions",
+                @context = "http://schema.org/extensions", // NOSONAR - JSON-LD context identifier URI, not a network connection
                 themeColor = "0076D7",
                 summary = title,
                 sections = new[]

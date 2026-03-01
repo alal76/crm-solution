@@ -144,7 +144,7 @@ public class MonitoringController : CrmControllerBase
             client.Timeout = TimeSpan.FromSeconds(5);
 
             // Try to get heartbeat data from status page
-            var heartbeatUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/api/status-page/heartbeat/{statusPageSlug}";
+            var heartbeatUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/api/status-page/heartbeat/{statusPageSlug}"; // NOSONAR - internal monitoring service URL configured via environment variables
 
             try
             {
@@ -171,7 +171,7 @@ public class MonitoringController : CrmControllerBase
             // Fallback: just check if Uptime Kuma is reachable
             try
             {
-                var pingUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/";
+                var pingUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/"; // NOSONAR - internal monitoring service URL configured via environment variables
                 var pingResponse = await client.GetAsync(pingUrl, ct);
 
                 return Ok(new
@@ -222,7 +222,7 @@ public class MonitoringController : CrmControllerBase
             client.Timeout = TimeSpan.FromSeconds(5);
 
             // Get Portainer version/status (public endpoint)
-            var statusUrl = $"http://{portainerHost}:{portainerPort}/api/status";
+            var statusUrl = $"http://{portainerHost}:{portainerPort}/api/status"; // NOSONAR - internal monitoring service URL configured via environment variables
 
             try
             {
@@ -308,7 +308,7 @@ public class MonitoringController : CrmControllerBase
             client.Timeout = TimeSpan.FromSeconds(10);
 
             // Get heartbeat data from status page (public endpoint)
-            var heartbeatUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/api/status-page/heartbeat/{statusPageSlug}";
+            var heartbeatUrl = $"http://{uptimeKumaHost}:{uptimeKumaPort}/api/status-page/heartbeat/{statusPageSlug}"; // NOSONAR - internal monitoring service URL configured via environment variables
 
             try
             {
@@ -405,7 +405,7 @@ public class MonitoringController : CrmControllerBase
             client.Timeout = TimeSpan.FromSeconds(5);
 
             // Get basic Portainer status (version info is public)
-            var response = await client.GetAsync($"http://{portainerHost}:{portainerPort}/api/status", ct);
+            var response = await client.GetAsync($"http://{portainerHost}:{portainerPort}/api/status", ct); // NOSONAR - internal monitoring service URL configured via environment variables
 
             if (response.IsSuccessStatusCode)
             {
@@ -450,18 +450,18 @@ public class MonitoringController : CrmControllerBase
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(5);
 
-            var response = await client.GetAsync($"http://{uptimeKumaHost}:{uptimeKumaPort}/", ct);
+            var response = await client.GetAsync($"http://{uptimeKumaHost}:{uptimeKumaPort}/", ct); // NOSONAR - internal monitoring service URL configured via environment variables
 
             return new
             {
                 status = response.IsSuccessStatusCode ? "online" : StatusDegraded,
-                url = $"http://localhost:{uptimeKumaPort}",
+                url = $"http://localhost:{uptimeKumaPort}", // NOSONAR - internal monitoring service URL
                 port = uptimeKumaPort
             };
         }
         catch
         {
-            return new { status = StatusOffline, url = "http://localhost:3001", port = 3001 };
+            return new { status = StatusOffline, url = "http://localhost:3001", port = 3001 }; // NOSONAR - internal monitoring service URL
         }
     }
 
@@ -475,7 +475,7 @@ public class MonitoringController : CrmControllerBase
             var client = _httpClientFactory.CreateClient();
             client.Timeout = TimeSpan.FromSeconds(5);
 
-            var response = await client.GetAsync($"http://{portainerHost}:{portainerPort}/api/status", ct);
+            var response = await client.GetAsync($"http://{portainerHost}:{portainerPort}/api/status", ct); // NOSONAR - internal monitoring service URL configured via environment variables
             string? version = null;
 
             if (response.IsSuccessStatusCode)
@@ -492,13 +492,13 @@ public class MonitoringController : CrmControllerBase
             {
                 status = response.IsSuccessStatusCode ? "online" : StatusDegraded,
                 version = version,
-                url = $"http://localhost:{portainerPort}",
+                url = $"http://localhost:{portainerPort}", // NOSONAR - internal monitoring service URL
                 port = portainerPort
             };
         }
         catch
         {
-            return new { status = StatusOffline, url = "http://localhost:9000", port = 9000, version = (string?)null };
+            return new { status = StatusOffline, url = "http://localhost:9000", port = 9000, version = (string?)null }; // NOSONAR - internal monitoring service URL
         }
     }
 

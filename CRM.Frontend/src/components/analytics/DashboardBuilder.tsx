@@ -140,7 +140,7 @@ const SIZE_OPTIONS: Array<{ size: WidgetSize; label: string; gridSize: number }>
 ];
 
 // Generate unique ID
-const generateId = () => `widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const generateId = () => `widget-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`; // NOSONAR - non-security use: UI element ID generation
 
 // Default widget config
 const getDefaultWidget = (): WidgetConfig => ({

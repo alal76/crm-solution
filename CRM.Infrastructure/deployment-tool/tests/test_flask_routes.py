@@ -437,3 +437,391 @@ class TestDefaultsIntegration:
         assert data["urls"]["api_url"] == "http://localhost:5000"
         assert data["urls"]["frontend_url"] == "http://localhost"
         assert data["registry"]["build_locally"] is True
+
+
+# ===========================================================================
+# /api/deploy/preflight — Container Pre-flight Check
+# ===========================================================================
+
+
+class TestDeployPreflight:
+    """Tests for /api/deploy/preflight endpoint."""
+
+    def test_preflight_returns_200(self, client):
+        resp = client.post("/api/deploy/preflight", json={})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "containers" in data
+        assert isinstance(data["containers"], list)
+
+    def test_preflight_container_fields(self, client):
+        """Each container in the response should have name, image, status, state, group."""
+        resp = client.post("/api/deploy/preflight", json={})
+        data = resp.get_json()
+        for c in data["containers"]:
+            assert "name" in c
+            assert "image" in c
+            assert "status" in c
+            assert "state" in c
+            assert "group" in c
+
+    def test_preflight_group_field_values(self, client):
+        """If containers are present, group should be one of the known values."""
+        resp = client.post("/api/deploy/preflight", json={})
+        data = resp.get_json()
+        valid_groups = {"app", "database", "provider", "other"}
+        for c in data["containers"]:
+            assert c["group"] in valid_groups
+
+
+# ===========================================================================
+# DockerComposeDeployer — Container Action Tests
+# ===========================================================================
+
+
+class TestDeployerContainerAction:
+    """Tests for the container_action parameter on DockerComposeDeployer."""
+
+    def test_deployer_accepts_container_action_param(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, container_action="reuse", dry_run=True)
+        assert d.container_action == "reuse"
+
+    def test_deployer_default_container_action_is_recreate(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
+        assert d.container_action == "recreate"
+
+    def test_deployer_has_14_steps(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
+        assert d.total_steps == 14
+
+    def test_deployer_accepts_containers_to_remove(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, containers_to_remove=["crm-api", "crm-frontend"], dry_run=True)
+        assert d.containers_to_remove == ["crm-api", "crm-frontend"]
+
+    def test_deployer_default_containers_to_remove_is_empty(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
+        assert d.containers_to_remove == []
+
+    def test_handle_existing_containers_reuse_skips_cleanup(self):
+        """When container_action=reuse and no removal list, step should skip cleanup."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), {}, log_queue=q, container_action="reuse", dry_run=True)
+        result = d._step_handle_existing_containers()
+        assert result is True
+        # Check that the reuse message was emitted
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("Reusing" in m for m in messages)
+
+    def test_handle_existing_containers_recreate_runs_cleanup(self):
+        """When container_action=recreate (dry_run), step should attempt cleanup."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), {}, log_queue=q, container_action="recreate", dry_run=True)
+        result = d._step_handle_existing_containers()
+        assert result is True
+
+    def test_handle_existing_containers_specific_list(self):
+        """When containers_to_remove is given, only those should be targeted."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(
+            Path("/tmp"), {}, log_queue=q, container_action="recreate",
+            containers_to_remove=["crm-api", "crm-frontend"], dry_run=True,
+        )
+        result = d._step_handle_existing_containers()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("crm-api" in m and "crm-frontend" in m for m in messages)
+
+
+# ===========================================================================
+# classify_container — Container Group Classification
+# ===========================================================================
+
+
+class TestClassifyContainer:
+    """Tests for classify_container helper."""
+
+    def test_app_containers(self):
+        from deployers.docker_compose import classify_container
+        assert classify_container("crm-api") == "app"
+        assert classify_container("crm-frontend") == "app"
+
+    def test_database_containers(self):
+        from deployers.docker_compose import classify_container
+        assert classify_container("crm-mariadb") == "database"
+        assert classify_container("crm-redis") == "database"
+
+    def test_provider_containers(self):
+        from deployers.docker_compose import classify_container
+        assert classify_container("crm-meilisearch") == "provider"
+        assert classify_container("crm-ollama") == "provider"
+        assert classify_container("crm-n8n") == "provider"
+
+    def test_unknown_container_returns_other(self):
+        from deployers.docker_compose import classify_container
+        assert classify_container("crm-unknown-thing") == "other"
+        assert classify_container("my-random-container") == "other"
+
+
+# ===========================================================================
+# DockerComposeDeployer — Reuse-aware compose-up skip logic
+# ===========================================================================
+
+
+class TestReuseSkipsComposeUp:
+    """When containers are reused, compose-up steps must skip them."""
+
+    def test_services_to_start_filters_reused(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
+        d._reused_containers = {"crm-mariadb", "crm-redis"}
+        result = d._services_to_start(["crm-mariadb", "crm-redis"])
+        assert result == []
+
+    def test_services_to_start_keeps_non_reused(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
+        d._reused_containers = {"crm-mariadb"}
+        result = d._services_to_start(["crm-mariadb", "crm-redis"])
+        assert result == ["crm-redis"]
+
+    def test_db_step_skips_when_all_reused(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), {}, log_queue=q, dry_run=True)
+        d._reused_containers = {"crm-mariadb", "crm-redis"}
+        assert d._step_start_databases() is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("verified running" in m.lower() for m in messages)
+        assert any("ensuring reused" in m.lower() for m in messages)
+
+    def test_api_step_skips_when_reused(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), {}, log_queue=q, dry_run=True)
+        d._reused_containers = {"crm-api"}
+        assert d._step_start_api() is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("verified running" in m.lower() for m in messages)
+
+    def test_frontend_step_skips_when_reused(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), {}, log_queue=q, dry_run=True)
+        d._reused_containers = {"crm-frontend"}
+        assert d._step_start_frontend() is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("verified running" in m.lower() for m in messages)
+
+    def test_providers_step_skips_when_all_reused(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        profile = {"providers": {"search_provider": "meilisearch", "ai_provider": "ollama"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        d._reused_containers = {"crm-meilisearch", "crm-ollama"}
+        assert d._step_start_providers() is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("verified running" in m.lower() for m in messages)
+
+    def test_ensure_reused_running_called_for_reused_only(self):
+        """_ensure_reused_running should only attempt to start reused containers."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), {}, log_queue=q, dry_run=True)
+        d._reused_containers = {"crm-mariadb"}
+        d._ensure_reused_running(["crm-mariadb", "crm-redis"])
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        # Should mention crm-mariadb (reused) but not crm-redis (not reused)
+        ensuring_msg = [m for m in messages if "ensuring reused" in m.lower()]
+        assert len(ensuring_msg) == 1
+        assert "crm-mariadb" in ensuring_msg[0]
+        assert "crm-redis" not in ensuring_msg[0]
+
+    def test_ensure_reused_running_noop_when_none_reused(self):
+        """_ensure_reused_running should be a no-op when no containers are reused."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), {}, log_queue=q, dry_run=True)
+        d._reused_containers = set()
+        result = d._ensure_reused_running(["crm-mariadb"])
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert not any("ensuring" in m.lower() for m in messages)
+
+    def test_reused_containers_set_initialized_empty(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
+        assert d._reused_containers == set()
+
+
+# ===========================================================================
+# Architecture Detection & Target Docker Platform
+# ===========================================================================
+
+
+class TestArchitectureDetection:
+    """Tests for ARM vs AMD64 detection and _target_docker_platform resolution."""
+
+    def test_system_info_returns_machine_arch(self, client):
+        """GET /api/system/info should include machine_arch and docker_platform."""
+        resp = client.get("/api/system/info")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        bs = data.get("build_server", {})
+        assert "machine_arch" in bs
+        assert "docker_platform" in bs
+        assert bs["machine_arch"]  # should not be empty
+        assert bs["docker_platform"].startswith("linux/")
+
+    def test_system_info_arch_consistency(self, client):
+        """Build server machine_arch should match the docker_platform suffix."""
+        resp = client.get("/api/system/info")
+        data = resp.get_json()
+        bs = data["build_server"]
+        arch = bs["machine_arch"].lower()
+        plat = bs["docker_platform"]
+        # arm64/aarch64 → linux/arm64, x86_64/amd64 → linux/amd64
+        if arch in ("arm64", "aarch64"):
+            assert plat == "linux/arm64"
+        elif arch in ("x86_64", "amd64"):
+            assert plat == "linux/amd64"
+
+    def test_target_arch_local(self, client):
+        """POST /api/target/arch with localhost should return local machine arch."""
+        resp = client.post(
+            "/api/target/arch",
+            json={"host": "localhost", "ssh_user": "root", "ssh_port": 22},
+        )
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["source"] == "local"
+        assert data["machine_arch"]  # should not be empty
+        assert data["docker_platform"].startswith("linux/")
+
+    def test_target_arch_empty_host_is_local(self, client):
+        """POST /api/target/arch with empty host should fallback to local."""
+        resp = client.post("/api/target/arch", json={"host": ""})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert data["source"] == "local"
+
+    def test_target_arch_127001_is_local(self, client):
+        """POST /api/target/arch with 127.0.0.1 should be local."""
+        resp = client.post("/api/target/arch", json={"host": "127.0.0.1"})
+        assert resp.status_code == 200
+        assert resp.get_json()["source"] == "local"
+
+    def test_target_arch_remote_graceful_failure(self, client):
+        """POST /api/target/arch with unreachable host should return default amd64."""
+        resp = client.post(
+            "/api/target/arch",
+            json={"host": "192.0.2.1", "ssh_user": "root", "ssh_port": 22},
+        )
+        assert resp.status_code == 200
+        data = resp.get_json()
+        # Should fallback gracefully (either paramiko not installed or SSH timeout)
+        assert data["docker_platform"] == "linux/amd64"
+
+    def test_deployer_target_docker_platform_default_amd64(self):
+        """Deployer with no target_arch in profile should default to linux/amd64."""
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
+        assert d._target_docker_platform == "linux/amd64"
+
+    def test_deployer_target_docker_platform_arm64(self):
+        """Deployer with target.target_arch='arm64' should resolve to linux/arm64."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"target_arch": "arm64"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_docker_platform == "linux/arm64"
+
+    def test_deployer_target_docker_platform_aarch64(self):
+        """Deployer with target.target_arch='aarch64' should resolve to linux/arm64."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"target_arch": "aarch64"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_docker_platform == "linux/arm64"
+
+    def test_deployer_target_docker_platform_x86_64(self):
+        """Deployer with target.target_arch='x86_64' should resolve to linux/amd64."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"target_arch": "x86_64"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_docker_platform == "linux/amd64"
+
+    def test_deployer_target_docker_platform_from_top_level(self):
+        """Deployer should also read target_arch from top-level profile key."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target_arch": "arm64"}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_docker_platform == "linux/arm64"
+
+    def test_deployer_target_docker_platform_machine_arch_key(self):
+        """Deployer should accept machine_arch in target dict."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"machine_arch": "aarch64"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_docker_platform == "linux/arm64"
+
+    def test_deployer_deploy_header_includes_docker_platform(self):
+        """Deployment header should include the Docker platform line."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        profile = {"target": {"target_arch": "arm64"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        d.deploy()
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        docker_plat_msgs = [m for m in messages if "Docker platform" in m and "linux/arm64" in m]
+        assert len(docker_plat_msgs) >= 1, f"Expected docker platform in header, got: {messages[:20]}"
+
+    def test_deployer_build_step_uses_target_platform(self):
+        """Step 3 build should use _target_docker_platform, not hardcoded amd64."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        profile = {
+            "target": {"target_arch": "arm64"},
+            "image_registry": {"build_locally": True},
+        }
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        d._step_build_local_images()
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        plat_msgs = [m for m in messages if "linux/arm64" in m]
+        assert len(plat_msgs) >= 1, f"Expected linux/arm64 in build logs, got: {messages}"

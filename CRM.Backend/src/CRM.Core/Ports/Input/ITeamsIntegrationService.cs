@@ -146,7 +146,7 @@ public record AdaptiveCardPayload
                 new AdaptiveCardAttachment
                 {
                     ContentType = "application/vnd.microsoft.card.adaptive",
-                    Content = new { schema = "http://adaptivecards.io/schemas/adaptive-card.json", type = "AdaptiveCard", version = "1.4", body, actions }
+                    Content = new { schema = "http://adaptivecards.io/schemas/adaptive-card.json", type = "AdaptiveCard", version = "1.4", body, actions } // NOSONAR - MS Adaptive Cards schema identifier URI, not a network connection
                 }
             }
         };

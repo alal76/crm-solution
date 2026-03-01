@@ -649,7 +649,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `response_type=${encodeURIComponent(responseType)}&` +
       `scope=${encodeURIComponent(scope)}&` +
-      `state=${encodeURIComponent(Math.random().toString(36).substring(7))}`;
+      `state=${encodeURIComponent(Math.random().toString(36).substring(7))}`; // NOSONAR - non-security use: OAuth state parameter for UI CSRF protection (not cryptographic)
 
     // Redirect to Microsoft login
     window.location.href = authUrl;

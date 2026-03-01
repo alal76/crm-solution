@@ -475,7 +475,7 @@ public class DatabaseController : CrmControllerBase
         {
             Success = false,
             Message = "Oracle connection test requires Oracle.ManagedDataAccess.Core package. Please ensure the Oracle client is installed.",
-            Details = $"Connection string format: Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={request.Host})(PORT={request.Port}))(CONNECT_DATA=(SERVICE_NAME={request.Database})));User Id={request.UserId};Password=***;"
+            Details = $"Connection string format: Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={request.Host})(PORT={request.Port}))(CONNECT_DATA=(SERVICE_NAME={request.Database})));User Id={request.UserId};Password=***;" // NOSONAR - template help text, not real credentials
         };
         return Task.FromResult(result);
     }
@@ -484,11 +484,11 @@ public class DatabaseController : CrmControllerBase
     {
         return request.Provider.ToLower() switch
         {
-            "mysql" or "mariadb" => $"Server={request.Host};Port={request.Port};Database={request.Database};User={request.UserId};Password={request.Password};",
-            "postgresql" => $"Host={request.Host};Port={request.Port};Database={request.Database};Username={request.UserId};Password={request.Password};",
-            "sqlserver" => $"Server={request.Host},{request.Port};Database={request.Database};User Id={request.UserId};Password={request.Password};TrustServerCertificate=True;",
-            "oracle" => $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={request.Host})(PORT={request.Port}))(CONNECT_DATA=(SERVICE_NAME={request.Database})));User Id={request.UserId};Password={request.Password};",
-            "mongodb" => $"mongodb://{request.UserId}:{request.Password}@{request.Host}:{request.Port}/{request.Database}",
+            "mysql" or "mariadb" => $"Server={request.Host};Port={request.Port};Database={request.Database};User={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
+            "postgresql" => $"Host={request.Host};Port={request.Port};Database={request.Database};Username={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
+            "sqlserver" => $"Server={request.Host},{request.Port};Database={request.Database};User Id={request.UserId};Password={request.Password};TrustServerCertificate=True;", // NOSONAR - user-supplied connection credentials passed through
+            "oracle" => $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={request.Host})(PORT={request.Port}))(CONNECT_DATA=(SERVICE_NAME={request.Database})));User Id={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
+            "mongodb" => $"mongodb://{request.UserId}:{request.Password}@{request.Host}:{request.Port}/{request.Database}", // NOSONAR - user-supplied connection credentials passed through
             _ => throw new NotSupportedException($"Provider {request.Provider} is not supported")
         };
     }

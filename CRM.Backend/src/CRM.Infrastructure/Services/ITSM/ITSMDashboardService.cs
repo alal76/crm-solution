@@ -39,7 +39,7 @@ public class ITSMDashboardService : IITSMDashboardService
         var days = (endDate - startDate).Days;
         var dailyTrends = new List<DailyTrendItem>();
         var backlog = 45;
-        var rand = new Random(42);
+        var rand = new Random(42); // NOSONAR - deterministic seed for analytics simulation data generation, not security-sensitive
 
         for (int i = 0; i <= days; i++)
         {
@@ -156,7 +156,7 @@ public class ITSMDashboardService : IITSMDashboardService
 
         var days = (endDate - startDate).Days;
         var trends = new List<SLATrendItem>();
-        var rand = new Random(42);
+        var rand = new Random(42); // NOSONAR - deterministic seed for analytics simulation data generation, not security-sensitive
 
         for (int i = 0; i <= days; i += 7)
         {

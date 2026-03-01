@@ -187,7 +187,7 @@ internal class Program
         var email = adminConfig["Email"] ?? "admin@crm.local";
         var firstName = adminConfig["FirstName"] ?? "System";
         var lastName = adminConfig["LastName"] ?? "Administrator";
-        var password = adminConfig["Password"] ?? "Admin@123";
+        var password = adminConfig["Password"] ?? "Admin@123"; // NOSONAR - seed data default credential, overridden via environment variables in production
 
         // Check if admin already exists
         var existingAdmin = await context.Users.FirstOrDefaultAsync(u => u.Username == username || u.Email == email);

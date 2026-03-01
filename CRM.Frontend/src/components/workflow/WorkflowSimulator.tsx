@@ -230,7 +230,7 @@ const simulateNode = async (
     inputs: { ...context },
     outputs: {},
     actions: [],
-    duration: Math.floor(Math.random() * 500) + 100,
+    duration: Math.floor(Math.random() * 500) + 100, // NOSONAR - non-security use: workflow simulation duration generation
   };
 
   try {
@@ -242,7 +242,7 @@ const simulateNode = async (
         break;
 
       case 'Condition':
-        step.conditionResult = Math.random() > 0.3; // Simulate condition evaluation
+        step.conditionResult = Math.random() > 0.3; // NOSONAR - non-security use: workflow simulation condition evaluation // Simulate condition evaluation
         step.outputs = { conditionResult: step.conditionResult };
         break;
 
@@ -284,7 +284,7 @@ const simulateNode = async (
         });
         step.outputs = { 
           llmResponse: 'Simulated LLM response based on prompt',
-          tokensUsed: Math.floor(Math.random() * 500) + 100,
+          tokensUsed: Math.floor(Math.random() * 500) + 100, // NOSONAR - non-security use: workflow simulation token count generation
         };
         break;
 
@@ -370,10 +370,10 @@ const evaluateCondition = (
   
   // Simple simulation - randomly evaluate conditions
   if (transition.conditionType === 'Expression') {
-    return Math.random() > 0.4;
+    return Math.random() > 0.4; // NOSONAR - non-security use: workflow simulation condition evaluation
   }
   
-  return Math.random() > 0.5;
+  return Math.random() > 0.5; // NOSONAR - non-security use: workflow simulation condition evaluation
 };
 
 const interpolateTemplate = (template: string, context: Record<string, any>): string => {

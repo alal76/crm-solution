@@ -80,7 +80,7 @@ const FIELD_DEFS: Record<SegmentRule['field'], FieldDef> = {
 const FIELD_KEYS = Object.keys(FIELD_DEFS) as SegmentRule['field'][];
 
 function makeId(): string {
-  return Math.random().toString(36).slice(2, 10);
+  return Math.random().toString(36).slice(2, 10); // NOSONAR - non-security use: UI element ID generation
 }
 
 function emptyRule(): SegmentRule {

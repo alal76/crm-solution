@@ -249,7 +249,7 @@ public class KnowledgeBaseSearchIndexService : IKnowledgeBaseSearchIndexService
         _httpClientFactory = httpClientFactory;
         _config = new KnowledgeBaseIndexConfig();
 
-        _meilisearchUrl = configuration["Providers:Search:Meilisearch:Url"] ?? "http://crm-meilisearch:7700";
+        _meilisearchUrl = configuration["Providers:Search:Meilisearch:Url"] ?? "http://crm-meilisearch:7700"; // NOSONAR - internal Docker service URL, configurable via environment variables
         _meilisearchApiKey = configuration["Providers:Search:Meilisearch:ApiKey"] ?? "masterKey";
     }
 

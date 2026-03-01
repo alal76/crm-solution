@@ -27,7 +27,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
 {
     private readonly ILogger<SelfServiceChatbotService> _logger;
     private readonly Dictionary<string, ChatSessionData> _sessions = new();
-    private static readonly Regex IncidentNumberPattern = new(@"INC-?(\d+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex IncidentNumberPattern = new(@"INC-?(\d+)", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     public SelfServiceChatbotService(ILogger<SelfServiceChatbotService> logger)
     {

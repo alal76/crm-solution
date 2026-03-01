@@ -230,7 +230,7 @@ at CRM.Tests.Entities.EntityValidationTests.Lead_FullName_WithEmptyFirstName() i
     const category = categories[i % categories.length];
     const prefix = testPrefixes[i % testPrefixes.length];
     const entity = entities[i % entities.length];
-    const duration = Math.random() * 50 + 0.1;
+    const duration = Math.random() * 50 + 0.1; // NOSONAR - non-security use: UI test result display simulation
     additionalTests.push({
       id: `auto-${i}`,
       testName: `${prefix}_${entity}_Test${i}`,

@@ -39,6 +39,25 @@ class DeployEvent:
         }
 
 
+# Container group classification
+CONTAINER_GROUPS = {
+    "app": ["crm-api", "crm-frontend"],
+    "database": ["crm-mariadb", "crm-redis"],
+    "provider": [
+        "crm-meilisearch", "crm-ollama", "crm-chatwoot",
+        "crm-novu", "crm-superset", "crm-docuseal", "crm-n8n",
+    ],
+}
+
+
+def classify_container(name: str) -> str:
+    """Return the group name for a given container name."""
+    for group, members in CONTAINER_GROUPS.items():
+        if name in members:
+            return group
+    return "other"
+
+
 class DockerComposeDeployer:
     def __init__(
         self,
@@ -46,13 +65,71 @@ class DockerComposeDeployer:
         profile: dict,
         log_queue: Optional[queue.Queue] = None,
         dry_run: bool = False,
+        container_action: str = "recreate",
+        containers_to_remove: Optional[list] = None,
     ):
         self.work_dir = Path(work_dir)
         self.profile = profile
         self.log_queue = log_queue if log_queue is not None else queue.Queue()
         self.dry_run = dry_run
+        self.container_action = container_action  # "reuse" | "recreate"
+        self.containers_to_remove = containers_to_remove or []
+        self._reused_containers: set = set()  # populated in Step 2
         self._abort = threading.Event()
-        self.total_steps = 13
+        self.total_steps = 14
+        self._step_start_time: float = 0.0
+
+        # Resolve target server label for logging context
+        target = profile.get("target", {})
+        self._target_host = target.get("domain_name") or target.get("host") or "localhost"
+        self._target_platform = profile.get("platform", profile.get("architecture", "docker_compose"))
+        if isinstance(self._target_platform, dict):
+            self._target_platform = self._target_platform.get("container_runtime", "docker_compose")
+        self._target_ssh_user = target.get("ssh_user", "")
+        self._target_ssh_port = target.get("ssh_port", 22)
+
+        # Resolve Docker build platform from profile (arm64 vs amd64)
+        raw_arch = (
+            target.get("target_arch")
+            or target.get("machine_arch")
+            or profile.get("target_arch")
+            or ""
+        ).lower()
+        _arch_map = {"arm64": "linux/arm64", "aarch64": "linux/arm64",
+                     "x86_64": "linux/amd64", "amd64": "linux/amd64"}
+        self._target_docker_platform = _arch_map.get(raw_arch, "linux/amd64")
+
+    def _services_to_start(self, requested: list[str]) -> list[str]:
+        """Filter out services whose containers are being reused."""
+        return [s for s in requested if s not in self._reused_containers]
+
+    def _ensure_reused_running(self, containers: list[str]) -> bool:
+        """Ensure reused containers are running via ``docker start`` (idempotent).
+
+        ``docker start`` is a no-op for already-running containers and starts
+        stopped/exited ones — unlike ``docker compose up`` which tries to
+        recreate them under a new compose project and hits name conflicts.
+        """
+        reused = [c for c in containers if c in self._reused_containers]
+        if not reused:
+            return True
+        self._emit(f"[{self._target_host}] Ensuring reused container(s) are running: {', '.join(reused)}", "info")
+        for name in reused:
+            # Check current state first
+            rc_insp, state_out, _ = self._run(
+                ["docker", "inspect", "-f", "{{.State.Status}}", name], timeout=10
+            )
+            state = state_out.strip() if rc_insp == 0 else "unknown"
+            if state == "running":
+                self._emit(f"  {name}: already running — no action needed", "info")
+                continue
+            self._emit(f"  {name}: state={state} — issuing docker start", "info")
+            rc, _, err = self._run(["docker", "start", name], timeout=30)
+            if rc != 0 and not self.dry_run:
+                self._emit(f"  Could not start {name}: {err.strip()}", "warn")
+            else:
+                self._emit(f"  {name}: started successfully", "info")
+        return True
 
     def _emit(self, message: str, level: str = "info", step: int = 0) -> None:
         pct = int((step / self.total_steps) * 100) if self.total_steps else 0
@@ -63,9 +140,12 @@ class DockerComposeDeployer:
     def abort(self) -> None:
         self._abort.set()
 
-    def _run(self, cmd: list, cwd: Path = None, timeout: int = 300) -> tuple:
+    def _run(self, cmd: list, cwd: Path = None, timeout: int = 300, log_command: bool = False) -> tuple:
+        cmd_str = " ".join(str(c) for c in cmd)
+        if log_command:
+            self._emit(f"[{self._target_host}] Running: {cmd_str}", "info")
         if self.dry_run:
-            self._emit(f"[DRY-RUN] Would run: {' '.join(str(c) for c in cmd)}")
+            self._emit(f"[DRY-RUN] [{self._target_host}] Would run: {cmd_str}")
             return (0, "", "")
         try:
             result = subprocess.run(
@@ -121,46 +201,187 @@ class DockerComposeDeployer:
     def deploy(self) -> bool:
         steps = [
             (1,  "Validating prerequisites",  self._step_validate_prerequisites),
-            (2,  "Building local images",      self._step_build_local_images),
-            (3,  "Pulling images",             self._step_pull_images),
-            (4,  "Creating networks",          self._step_create_networks),
-            (5,  "Starting databases",         self._step_start_databases),
-            (6,  "Waiting for databases",      self._step_wait_databases),
-            (7,  "Running migrations",         self._step_run_migrations),
-            (8,  "Starting providers",         self._step_start_providers),
-            (9,  "Starting API",               self._step_start_api),
-            (10, "Health checking API",        self._step_health_check_api),
-            (11, "Starting frontend",          self._step_start_frontend),
-            (12, "Seeding data",               self._step_configure_seed),
-            (13, "Finishing",                  self._step_finish),
+            (2,  "Checking existing containers", self._step_handle_existing_containers),
+            (3,  "Building local images",      self._step_build_local_images),
+            (4,  "Pulling images",             self._step_pull_images),
+            (5,  "Creating networks",          self._step_create_networks),
+            (6,  "Starting databases",         self._step_start_databases),
+            (7,  "Waiting for databases",      self._step_wait_databases),
+            (8,  "Running migrations",         self._step_run_migrations),
+            (9,  "Starting providers",         self._step_start_providers),
+            (10, "Starting API",               self._step_start_api),
+            (11, "Health checking API",        self._step_health_check_api),
+            (12, "Starting frontend",          self._step_start_frontend),
+            (13, "Seeding data",               self._step_configure_seed),
+            (14, "Finishing",                  self._step_finish),
         ]
+
+        # ── Deployment header ──
+        self._emit("═" * 60, "info")
+        self._emit(f"CRM Deployment starting on {self._target_host}", "info")
+        self._emit(f"  Platform:         {self._target_platform}", "info")
+        self._emit(f"  Docker platform:  {self._target_docker_platform}", "info")
+        self._emit(f"  Working directory: {self.work_dir}", "info")
+        self._emit(f"  Compose file:     {DOCKER_COMPOSE_FILE}", "info")
+        self._emit(f"  Container action: {self.container_action}", "info")
+        if self.containers_to_remove:
+            self._emit(f"  Containers to remove: {', '.join(self.containers_to_remove)}", "info")
+        if self._target_ssh_user:
+            self._emit(f"  SSH user:         {self._target_ssh_user}", "info")
+            self._emit(f"  SSH port:         {self._target_ssh_port}", "info")
+        self._emit(f"  Dry run:          {self.dry_run}", "info")
+        self._emit("═" * 60, "info")
+
+        deploy_start = time.time()
         for step_num, step_name, step_fn in steps:
             if self._abort.is_set():
                 self._emit("Deployment aborted by user", "warn", step_num)
                 return False
-            self._emit(f"Step {step_num}/{self.total_steps}: {step_name}", "info", step_num)
+            self._step_start_time = time.time()
+            self._emit(
+                f"Step {step_num}/{self.total_steps}: {step_name} "
+                f"[{self._target_host}]",
+                "info", step_num,
+            )
             try:
                 ok = step_fn()
+                elapsed = time.time() - self._step_start_time
                 if not ok:
-                    self._emit(f"Step {step_num} failed: {step_name}", "error", step_num)
+                    self._emit(
+                        f"Step {step_num} FAILED: {step_name} "
+                        f"(took {elapsed:.1f}s) [{self._target_host}]",
+                        "error", step_num,
+                    )
                     return False
+                self._emit(
+                    f"Step {step_num} completed in {elapsed:.1f}s",
+                    "info", step_num,
+                )
             except Exception as e:
-                self._emit(f"Step {step_num} exception: {e}", "error", step_num)
+                elapsed = time.time() - self._step_start_time
+                self._emit(
+                    f"Step {step_num} exception after {elapsed:.1f}s: {e} [{self._target_host}]",
+                    "error", step_num,
+                )
                 return False
+
+        total_elapsed = time.time() - deploy_start
+        self._emit(
+            f"All {self.total_steps} steps completed in {total_elapsed:.1f}s on {self._target_host}",
+            "success",
+        )
         return True
 
     def _step_validate_prerequisites(self) -> bool:
-        rc, _, _ = self._run(["docker", "info"])
+        self._emit(f"[{self._target_host}] Checking Docker availability…", "info")
+        rc, out, err = self._run(["docker", "info"], log_command=True)
         if rc != 0:
             self._emit(
-                "Docker not available. Install Docker Desktop or Docker Engine.", "error"
+                f"[{self._target_host}] Docker not available. "
+                "Install Docker Desktop or Docker Engine.", "error"
             )
+            if err:
+                self._emit(f"  Error: {err.strip()[:300]}", "error")
             return False
-        self._emit("Docker is available", "info")
+
+        # Extract Docker version for the log
+        rc_v, ver_out, _ = self._run(["docker", "version", "--format", "{{.Server.Version}}"], timeout=10)
+        docker_ver = ver_out.strip() if rc_v == 0 else "unknown"
+        self._emit(f"[{self._target_host}] Docker is available (version {docker_ver})", "info")
+
+        # Log Docker Compose version too
+        rc_c, comp_out, _ = self._run(["docker", "compose", "version", "--short"], timeout=10)
+        compose_ver = comp_out.strip() if rc_c == 0 else "unknown"
+        self._emit(f"[{self._target_host}] Docker Compose version: {compose_ver}", "info")
+
+        # Check disk space on the target
+        rc_d, df_out, _ = self._run(["df", "-h", str(self.work_dir)], timeout=10)
+        if rc_d == 0 and df_out.strip():
+            lines = df_out.strip().splitlines()
+            if len(lines) >= 2:
+                self._emit(f"[{self._target_host}] Disk space: {lines[-1].strip()}", "info")
+
         return True
 
     # ------------------------------------------------------------------ #
-    #  Step 2 — Build Local Images (skipped when using a remote registry) #
+    #  Step 2 — Handle Existing Containers                                #
+    # ------------------------------------------------------------------ #
+    def _step_handle_existing_containers(self) -> bool:
+        """Stop and remove existing CRM containers selected for recreation.
+
+        Uses ``docker rm -f`` directly by container name so it works
+        regardless of which compose project originally created them.
+
+        When container_action is ``reuse`` and no explicit removal list was
+        supplied, all existing containers are kept as-is.
+        """
+        # Discover all existing CRM containers once
+        self._emit(f"[{self._target_host}] Scanning for existing CRM containers…", "info")
+        rc, out, _ = self._run(
+            ["docker", "ps", "-a", "--filter", "name=crm-", "--format", "{{.Names}}\t{{.Status}}\t{{.Image}}"],
+            log_command=True,
+        )
+        existing = set()
+        if rc == 0 and out.strip():
+            for line in out.strip().splitlines():
+                parts = line.split("\t")
+                name = parts[0].strip() if parts else ""
+                status = parts[1].strip() if len(parts) > 1 else "unknown"
+                image = parts[2].strip() if len(parts) > 2 else "unknown"
+                if name:
+                    existing.add(name)
+                    self._emit(f"  Found: {name}  image={image}  status={status}", "info")
+        self._emit(f"[{self._target_host}] Discovered {len(existing)} existing CRM container(s)", "info")
+
+        if self.container_action == "reuse" and not self.containers_to_remove:
+            self._reused_containers = existing
+            self._emit(f"[{self._target_host}] Reusing all {len(existing)} existing container(s) (no cleanup)", "info")
+            return True
+
+        # If a specific list was provided, use it; otherwise recreate all
+        to_remove = list(self.containers_to_remove) if self.containers_to_remove else []
+        if not to_remove and self.container_action == "recreate":
+            to_remove = list(existing)
+
+        # Everything that exists but is NOT being removed → reuse it
+        self._reused_containers = existing - set(to_remove)
+        if self._reused_containers:
+            self._emit(
+                f"[{self._target_host}] Reusing {len(self._reused_containers)} container(s): "
+                f"{', '.join(sorted(self._reused_containers))}",
+                "info",
+            )
+
+        if not to_remove:
+            self._emit(f"[{self._target_host}] No containers to remove", "info")
+            return True
+
+        self._emit(
+            f"[{self._target_host}] Removing {len(to_remove)} container(s): {', '.join(to_remove)}",
+            "info",
+        )
+
+        # Force-remove each container by name (works across compose projects)
+        removed, failed = 0, 0
+        for name in to_remove:
+            self._emit(f"  [{self._target_host}] docker rm -f {name}", "info")
+            rc, _, err = self._run(["docker", "rm", "-f", name], timeout=15)
+            if rc == 0 or self.dry_run:
+                removed += 1
+                self._emit(f"  {name}: removed", "info")
+            else:
+                failed += 1
+                self._emit(f"  {name}: FAILED — {err.strip()}", "warn")
+
+        self._emit(
+            f"[{self._target_host}] Removed {removed} container(s)"
+            + (f", {failed} failed" if failed else ""),
+            "info",
+        )
+        return True
+
+    # ------------------------------------------------------------------ #
+    #  Step 3 — Build Local Images (skipped when using a remote registry) #
     # ------------------------------------------------------------------ #
     def _step_build_local_images(self) -> bool:
         """Build CRM Docker images from source when build_locally is enabled."""
@@ -168,7 +389,11 @@ class DockerComposeDeployer:
         build_locally = img_reg.get("build_locally", False)
 
         if not build_locally:
-            self._emit("Skipping local build — using registry images", "info")
+            registry = img_reg.get("image_registry", "Docker Hub / default")
+            self._emit(
+                f"[{self._target_host}] Skipping local build — using registry images from {registry}",
+                "info",
+            )
             return True
 
         # Resolve repo root: profile may override, else walk up from this file
@@ -178,25 +403,34 @@ class DockerComposeDeployer:
         repo_root = Path(repo_root)
 
         if not repo_root.is_dir():
-            self._emit(f"Repo root not found: {repo_root}", "error")
+            self._emit(f"[{self._target_host}] Repo root not found: {repo_root}", "error")
             return False
 
         # Determine image tag — use crm_version from profile or 'latest'
         tag = self.profile.get("target", {}).get("crm_version", "latest")
 
+        self._emit(f"[{self._target_host}] Build configuration:", "info")
+        self._emit(f"  Repo root:   {repo_root}", "info")
+        self._emit(f"  Image tag:   {tag}", "info")
+        self._emit(f"  Platform:    {self._target_docker_platform}", "info")
+        self._emit(f"  Images to build: {', '.join(LOCAL_BUILD_IMAGES.keys())}", "info")
+
         built, failed = 0, 0
         for name, dockerfile in LOCAL_BUILD_IMAGES.items():
             df_path = repo_root / dockerfile
             if not df_path.is_file():
-                self._emit(f"Dockerfile not found: {df_path} — skipping {name}", "warn")
+                self._emit(f"[{self._target_host}] Dockerfile not found: {df_path} — skipping {name}", "warn")
                 continue
 
             image_tag = f"{name}:{tag}"
-            self._emit(f"Building {image_tag} from {dockerfile} …")
+            self._emit(f"[{self._target_host}] ── Building {image_tag} ──", "info")
+            self._emit(f"  Dockerfile: {df_path}", "info")
+            self._emit(f"  Context:    {repo_root}", "info")
+            build_start = time.time()
             rc = self._run_streaming(
                 [
                     "docker", "build",
-                    "--platform", "linux/amd64",
+                    "--platform", self._target_docker_platform,
                     "-t", image_tag,
                     "-f", str(df_path),
                     ".",
@@ -205,67 +439,214 @@ class DockerComposeDeployer:
                 timeout=600,
                 prefix=name,
             )
+            build_elapsed = time.time() - build_start
             if rc != 0:
-                self._emit(f"Build failed for {name} (exit code {rc})", "error")
+                self._emit(
+                    f"[{self._target_host}] Build FAILED for {name} (exit code {rc}, took {build_elapsed:.1f}s)",
+                    "error",
+                )
                 failed += 1
             else:
-                self._emit(f"Built {image_tag} successfully", "success")
+                self._emit(
+                    f"[{self._target_host}] Built {image_tag} successfully in {build_elapsed:.1f}s",
+                    "success",
+                )
                 built += 1
 
         if failed > 0:
-            self._emit(f"{failed} image(s) failed to build", "error")
+            self._emit(f"[{self._target_host}] {failed} image(s) failed to build", "error")
             return False
-        self._emit(f"{built} image(s) built successfully", "success")
+        self._emit(f"[{self._target_host}] {built} image(s) built successfully", "success")
         return True
 
     def _step_pull_images(self) -> bool:
-        rc, _, err = self._run(
-            ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "pull"], timeout=600
-        )
+        build_locally = self.profile.get("image_registry", {}).get("build_locally", False)
+        if build_locally:
+            # Only pull non-locally-built services (databases, providers, etc.)
+            self._emit(f"[{self._target_host}] build_locally=True — pulling only non-local images", "info")
+            pull_cmd = [
+                "docker", "compose", "-f", DOCKER_COMPOSE_FILE,
+                "pull", "--ignore-buildable",
+            ]
+            # Enumerate services that are NOT locally built
+            rc_cfg, stdout_cfg, _ = self._run(
+                ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "config", "--services"]
+            )
+            if rc_cfg == 0 and stdout_cfg.strip():
+                all_services = stdout_cfg.strip().splitlines()
+                local_names = set(LOCAL_BUILD_IMAGES.keys())
+                remote_services = [s for s in all_services if s not in local_names]
+                if remote_services:
+                    self._emit(
+                        f"[{self._target_host}] Pulling {len(remote_services)} remote image(s): "
+                        f"{', '.join(remote_services)}",
+                        "info",
+                    )
+                    pull_cmd = [
+                        "docker", "compose", "-f", DOCKER_COMPOSE_FILE,
+                        "pull",
+                    ] + remote_services
+                else:
+                    self._emit(f"[{self._target_host}] All images built locally — skipping pull", "info")
+                    return True
+        else:
+            self._emit(f"[{self._target_host}] Pulling all images from registry", "info")
+            pull_cmd = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "pull"]
+
+        pull_start = time.time()
+        rc, out, err = self._run(pull_cmd, timeout=600, log_command=True)
+        pull_elapsed = time.time() - pull_start
         if rc != 0 and not self.dry_run:
-            self._emit(f"Pull failed (non-fatal): {err}", "warn")
+            self._emit(
+                f"[{self._target_host}] Pull failed (non-fatal, took {pull_elapsed:.1f}s): {err.strip()[:300]}",
+                "warn",
+            )
+        else:
+            self._emit(f"[{self._target_host}] Image pull completed in {pull_elapsed:.1f}s", "info")
         return True
 
     def _step_create_networks(self) -> bool:
-        self._run(
-            ["docker", "network", "create", "crm-network", "--driver", "bridge"]
+        self._emit(f"[{self._target_host}] Creating Docker network 'crm-network' (bridge driver)", "info")
+        rc, _, err = self._run(
+            ["docker", "network", "create", "crm-network", "--driver", "bridge"],
+            log_command=True,
         )
+        if rc != 0:
+            if "already exists" in (err or ""):
+                self._emit(f"[{self._target_host}] Network crm-network already exists — reusing", "info")
+            else:
+                self._emit(f"[{self._target_host}] Network creation note: {err.strip()}", "warn")
+        else:
+            self._emit(f"[{self._target_host}] Network crm-network created", "info")
         return True
 
     def _step_start_databases(self) -> bool:
-        rc, _, _ = self._run(
+        all_db = ["crm-mariadb", "crm-redis"]
+        self._ensure_reused_running(all_db)
+        services = self._services_to_start(all_db)
+        if not services:
+            self._emit(f"[{self._target_host}] All database containers are reused — verified running", "info")
+            return True
+        self._emit(f"[{self._target_host}] Starting database services: {', '.join(services)}", "info")
+        rc, out, err = self._run(
             [
                 "docker", "compose", "-f", DOCKER_COMPOSE_FILE,
-                "up", "-d", "crm-mariadb", "crm-redis",
-            ],
+                "up", "-d",
+            ] + services,
             timeout=120,
+            log_command=True,
         )
+        if rc != 0 and not self.dry_run:
+            self._emit(f"[{self._target_host}] Database start failed (rc={rc})", "error")
+            if err:
+                for line in err.strip().splitlines()[-10:]:
+                    self._emit(f"  stderr: {line}", "error")
+            if out:
+                for line in out.strip().splitlines()[-5:]:
+                    self._emit(f"  stdout: {line}", "error")
+        else:
+            self._emit(f"[{self._target_host}] Database services started", "info")
         return rc == 0 or self.dry_run
 
     def _step_wait_databases(self) -> bool:
         if self.dry_run:
             return True
-        for _ in range(24):
-            rc, _, _ = self._run(
-                ["docker", "exec", "crm-mariadb", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+
+        self._emit(f"[{self._target_host}] Checking database container health…", "info")
+
+        # Quick check: is crm-mariadb actually running?
+        rc, out, _ = self._run(
+            ["docker", "inspect", "-f", "{{.State.Status}}", "crm-mariadb"], timeout=10
+        )
+        container_state = out.strip() if rc == 0 else "unknown"
+        self._emit(f"[{self._target_host}] crm-mariadb container state: {container_state}", "info")
+
+        if container_state not in ("running",):
+            self._emit(
+                f"[{self._target_host}] crm-mariadb is '{container_state}' — attempting docker start",
+                "warn",
+            )
+            self._run(["docker", "start", "crm-mariadb"], timeout=15, log_command=True)
+            # Re-check state after start
+            rc2, out2, _ = self._run(
+                ["docker", "inspect", "-f", "{{.State.Status}}", "crm-mariadb"], timeout=10
+            )
+            new_state = out2.strip() if rc2 == 0 else "unknown"
+            self._emit(f"[{self._target_host}] crm-mariadb state after start: {new_state}", "info")
+
+        # Also check Redis
+        rc_r, out_r, _ = self._run(
+            ["docker", "inspect", "-f", "{{.State.Status}}", "crm-redis"], timeout=10
+        )
+        redis_state = out_r.strip() if rc_r == 0 else "unknown"
+        self._emit(f"[{self._target_host}] crm-redis container state: {redis_state}", "info")
+
+        max_attempts = 24
+        self._emit(
+            f"[{self._target_host}] Pinging MariaDB (max {max_attempts} attempts, 5s interval)…",
+            "info",
+        )
+        for attempt in range(1, max_attempts + 1):
+            if self._abort.is_set():
+                self._emit(f"[{self._target_host}] Database wait aborted by user", "warn")
+                return False
+
+            rc, out, err = self._run(
+                [
+                    "docker", "exec", "crm-mariadb",
+                    "mysqladmin", "ping", "-h", "localhost", "--silent",
+                ],
+                timeout=10,
             )
             if rc == 0:
-                self._emit("Database ready", "info")
+                self._emit(
+                    f"[{self._target_host}] MariaDB ready after {attempt} attempt(s)",
+                    "success",
+                )
                 return True
+
+            detail = (err or out or "").strip()[:120]
+            self._emit(
+                f"[{self._target_host}] Waiting for MariaDB… attempt {attempt}/{max_attempts}"
+                + (f" ({detail})" if detail else ""),
+                "info",
+            )
             time.sleep(5)
-        self._emit("Database health check timed out", "warn")
+
+        self._emit(
+            f"[{self._target_host}] MariaDB health check timed out after {max_attempts * 5}s",
+            "error",
+        )
         return False
 
     def _step_run_migrations(self) -> bool:
         if self.dry_run:
+            self._emit(f"[{self._target_host}] [DRY-RUN] Would run EF Core migrations", "info")
             return True
-        rc, _, err = self._run(
+        self._emit(
+            f"[{self._target_host}] Running EF Core database migrations via crm-api container…",
+            "info",
+        )
+        mig_start = time.time()
+        rc, out, err = self._run(
             ["docker", "compose", "run", "--rm", "crm-api", "dotnet", "ef", "database", "update"],
             timeout=120,
+            log_command=True,
         )
+        mig_elapsed = time.time() - mig_start
         if rc != 0:
-            self._emit(f"Migration warning: {err}", "warn")
+            self._emit(
+                f"[{self._target_host}] Migration warning (took {mig_elapsed:.1f}s): {(err or '').strip()[:300]}",
+                "warn",
+            )
+            if out:
+                for line in out.strip().splitlines()[-5:]:
+                    self._emit(f"  migration stdout: {line}", "warn")
             return False
+        self._emit(
+            f"[{self._target_host}] Migrations completed in {mig_elapsed:.1f}s",
+            "success",
+        )
         return True
 
     def _step_start_providers(self) -> bool:
@@ -285,43 +666,117 @@ class DockerComposeDeployer:
             extras.append("crm-docuseal")
         if providers.get("integration_provider") == "n8n":
             extras.append("crm-n8n")
-        if extras:
-            self._emit(f"Starting provider services: {', '.join(extras)}", "info")
-            self._run(
-                ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d"] + extras,
-                timeout=120,
-            )
+        if not extras:
+            self._emit(f"[{self._target_host}] No external providers selected — skipping", "info")
+            return True
+        all_requested = list(extras)
+        self._emit(
+            f"[{self._target_host}] Requested providers: {', '.join(all_requested)}",
+            "info",
+        )
+        self._ensure_reused_running(all_requested)
+        extras = self._services_to_start(all_requested)
+        if not extras:
+            self._emit(f"[{self._target_host}] All provider containers are reused — verified running", "info")
+            return True
+        self._emit(f"[{self._target_host}] Starting provider services: {', '.join(extras)}", "info")
+        rc, out, err = self._run(
+            ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d"] + extras,
+            timeout=120,
+            log_command=True,
+        )
+        if rc != 0 and not self.dry_run:
+            self._emit(f"[{self._target_host}] Provider start warning (rc={rc})", "warn")
+            if err:
+                for line in err.strip().splitlines()[-5:]:
+                    self._emit(f"  stderr: {line}", "warn")
         else:
-            self._emit("No external providers selected — skipping", "info")
+            self._emit(f"[{self._target_host}] Provider services started", "info")
         return True
 
     def _step_start_api(self) -> bool:
-        rc, _, _ = self._run(
+        if "crm-api" in self._reused_containers:
+            self._ensure_reused_running(["crm-api"])
+            self._emit(f"[{self._target_host}] crm-api container is reused — verified running", "info")
+            return True
+        self._emit(f"[{self._target_host}] Starting crm-api container…", "info")
+        rc, out, err = self._run(
             ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "crm-api"],
             timeout=120,
+            log_command=True,
         )
+        if rc != 0 and not self.dry_run:
+            self._emit(f"[{self._target_host}] API start failed (rc={rc})", "error")
+            if err:
+                for line in err.strip().splitlines()[-10:]:
+                    self._emit(f"  stderr: {line}", "error")
+            if out:
+                for line in out.strip().splitlines()[-5:]:
+                    self._emit(f"  stdout: {line}", "error")
+        else:
+            self._emit(f"[{self._target_host}] crm-api container started", "info")
         return rc == 0 or self.dry_run
 
     def _step_health_check_api(self) -> bool:
         if self.dry_run:
+            self._emit(f"[{self._target_host}] [DRY-RUN] Would health check API", "info")
             return True
         import urllib.request
 
-        for _ in range(12):
+        # Determine the health URL based on target
+        api_port = self.profile.get("target", {}).get("api_port", "5000")
+        health_url = f"http://{self._target_host}:{api_port}/health"
+        self._emit(
+            f"[{self._target_host}] Health checking API at {health_url} (max 12 attempts, 5s interval)",
+            "info",
+        )
+
+        max_attempts = 12
+        for attempt in range(1, max_attempts + 1):
+            if self._abort.is_set():
+                self._emit(f"[{self._target_host}] Health check aborted by user", "warn")
+                return False
             try:
-                urllib.request.urlopen("http://localhost:5000/health", timeout=5)  # noqa: S310
-                self._emit("API is healthy", "info")
+                urllib.request.urlopen(health_url, timeout=5)  # noqa: S310
+                self._emit(
+                    f"[{self._target_host}] API is healthy after {attempt} attempt(s)",
+                    "success",
+                )
                 return True
-            except Exception:
+            except Exception as exc:
+                detail = str(exc)[:120]
+                self._emit(
+                    f"[{self._target_host}] Health check attempt {attempt}/{max_attempts}: {detail}",
+                    "info",
+                )
                 time.sleep(5)
-        self._emit("API health check timed out — continuing anyway", "warn")
+        self._emit(
+            f"[{self._target_host}] API health check timed out after {max_attempts * 5}s — continuing anyway",
+            "warn",
+        )
         return False
 
     def _step_start_frontend(self) -> bool:
-        rc, _, _ = self._run(
+        if "crm-frontend" in self._reused_containers:
+            self._ensure_reused_running(["crm-frontend"])
+            self._emit(f"[{self._target_host}] crm-frontend container is reused — verified running", "info")
+            return True
+        self._emit(f"[{self._target_host}] Starting crm-frontend container…", "info")
+        rc, out, err = self._run(
             ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "crm-frontend"],
             timeout=120,
+            log_command=True,
         )
+        if rc != 0 and not self.dry_run:
+            self._emit(f"[{self._target_host}] Frontend start failed (rc={rc})", "error")
+            if err:
+                for line in err.strip().splitlines()[-10:]:
+                    self._emit(f"  stderr: {line}", "error")
+            if out:
+                for line in out.strip().splitlines()[-5:]:
+                    self._emit(f"  stdout: {line}", "error")
+        else:
+            self._emit(f"[{self._target_host}] crm-frontend container started", "info")
         return rc == 0 or self.dry_run
 
     def _step_configure_seed(self) -> bool:
@@ -329,31 +784,45 @@ class DockerComposeDeployer:
         if seed.get("seed_master_data") and not self.dry_run:
             import urllib.request
 
+            api_port = self.profile.get("target", {}).get("api_port", "5000")
+            seed_url = f"http://{self._target_host}:{api_port}/api/admin/seed/master-data"
+            self._emit(f"[{self._target_host}] Seeding master data via POST {seed_url}", "info")
             try:
-                req = urllib.request.Request(
-                    "http://localhost:5000/api/admin/seed/master-data", method="POST"
-                )
-                urllib.request.urlopen(req, timeout=30)
-                self._emit("Master data seeded", "success")
+                req = urllib.request.Request(seed_url, method="POST")
+                urllib.request.urlopen(req, timeout=30)  # noqa: S310
+                self._emit(f"[{self._target_host}] Master data seeded successfully", "success")
             except Exception as e:
-                self._emit(f"Seed warning: {e}", "warn")
+                self._emit(f"[{self._target_host}] Seed warning: {e}", "warn")
         else:
-            self._emit("Seed skipped (dry-run or not requested)", "info")
+            reason = "dry-run" if self.dry_run else "not requested"
+            self._emit(f"[{self._target_host}] Seed skipped ({reason})", "info")
         return True
 
     def _step_finish(self) -> bool:
         domain = self.profile.get("target", {}).get("domain_name", "localhost")
+        # Show final container status for the log
+        rc, ps_out, _ = self._run(
+            ["docker", "ps", "--filter", "name=crm-", "--format", "table {{.Names}}\t{{.Status}}\t{{.Ports}}"],
+            timeout=10,
+        )
+        if rc == 0 and ps_out.strip():
+            self._emit(f"[{self._target_host}] Final container status:", "info")
+            for line in ps_out.strip().splitlines():
+                self._emit(f"  {line}", "info")
+
+        ssl_enabled = self.profile.get("ssl", {}).get("ssl_enabled", False)
+        protocol = "https" if ssl_enabled else "http"
         self._emit(
-            f"Deployment complete! CRM is available at http://{domain}",
+            f"[{self._target_host}] Deployment complete! CRM is available at {protocol}://{domain}",
             "success",
             self.total_steps,
         )
         return True
 
     def rollback(self) -> bool:
-        self._emit("Rolling back — stopping all containers", "warn")
-        rc, _, _ = self._run(["docker", "compose", "down"])
-        self._emit("Rollback complete", "info")
+        self._emit(f"[{self._target_host}] Rolling back — stopping all containers", "warn")
+        rc, _, _ = self._run(["docker", "compose", "down"], log_command=True)
+        self._emit(f"[{self._target_host}] Rollback complete", "info")
         return rc == 0 or self.dry_run
 
     def status(self) -> dict:

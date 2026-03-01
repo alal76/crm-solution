@@ -2578,6 +2578,62 @@
                         <span class="deploy-status-badge ds-idle" id="deployStatusBadge">Idle</span>
                     </div>
                     <div class="deploy-panel-body">
+                        <!-- ── Deployment Details Banner ─────────────────────────── -->
+                        <div id="deployDetailsPanel" class="deploy-details-panel" style="display:none">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="deploy-details-title"><i class="bi bi-info-circle-fill me-1"></i>Deployment Details</span>
+                                <button class="btn btn-sm btn-link text-light p-0" type="button" data-bs-toggle="collapse" data-bs-target="#deployDetailsBody" aria-expanded="true" title="Toggle details">
+                                    <i class="bi bi-chevron-compact-up"></i>
+                                </button>
+                            </div>
+                            <div class="collapse show" id="deployDetailsBody">
+                                <div class="row g-0">
+                                    <!-- Target Environment column -->
+                                    <div class="col-md-4 deploy-details-col">
+                                        <div class="deploy-details-group-title"><i class="bi bi-crosshair me-1"></i>Target Environment</div>
+                                        <div class="deploy-details-kv">
+                                            <span class="ddk">Host</span><span class="ddv" id="dd-target-host">—</span>
+                                            <span class="ddk">SSH User</span><span class="ddv" id="dd-target-ssh">—</span>
+                                            <span class="ddk">Platform</span><span class="ddv" id="dd-target-platform">—</span>
+                                            <span class="ddk">Environment</span><span class="ddv" id="dd-target-env">—</span>
+                                            <span class="ddk">Architecture</span><span class="ddv" id="dd-target-arch">—</span>
+                                            <span class="ddk">Docker Platform</span><span class="ddv" id="dd-target-docker-plat">—</span>
+                                            <span class="ddk">SSL</span><span class="ddv" id="dd-target-ssl">—</span>
+                                        </div>
+                                    </div>
+                                    <!-- Build Server column -->
+                                    <div class="col-md-4 deploy-details-col">
+                                        <div class="deploy-details-group-title"><i class="bi bi-pc-display me-1"></i>Build Server</div>
+                                        <div class="deploy-details-kv">
+                                            <span class="ddk">Hostname</span><span class="ddv" id="dd-build-hostname">—</span>
+                                            <span class="ddk">OS</span><span class="ddv" id="dd-build-os">—</span>
+                                            <span class="ddk">Machine Arch</span><span class="ddv" id="dd-build-arch">—</span>
+                                            <span class="ddk">Docker Platform</span><span class="ddv" id="dd-build-docker-plat">—</span>
+                                            <span class="ddk">Python</span><span class="ddv" id="dd-build-python">—</span>
+                                            <span class="ddk">Docker</span><span class="ddv" id="dd-build-docker">—</span>
+                                            <span class="ddk">Compose</span><span class="ddv" id="dd-build-compose">—</span>
+                                        </div>
+                                    </div>
+                                    <!-- Deployment Config column -->
+                                    <div class="col-md-4 deploy-details-col">
+                                        <div class="deploy-details-group-title"><i class="bi bi-gear-wide-connected me-1"></i>Deployment Config</div>
+                                        <div class="deploy-details-kv">
+                                            <span class="ddk">CRM Version</span><span class="ddv" id="dd-crm-version">—</span>
+                                            <span class="ddk">Database</span><span class="ddv" id="dd-cfg-database">—</span>
+                                            <span class="ddk">Build Locally</span><span class="ddv" id="dd-cfg-build-local">—</span>
+                                            <span class="ddk">Registry</span><span class="ddv" id="dd-cfg-registry">—</span>
+                                            <span class="ddk">Providers</span><span class="ddv" id="dd-cfg-providers">—</span>
+                                            <span class="ddk">Deploy Name</span><span class="ddv" id="dd-cfg-name">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Architecture mismatch warning -->
+                                <div id="archMismatchWarning" class="arch-mismatch-warning" style="display:none">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                    <span id="archMismatchText">Architecture mismatch detected — build images may not run on target.</span>
+                                </div>
+                            </div>
+                        </div>
                         <!-- Generated files list -->
                         <div id="generatedFilesInline" class="px-3 py-2 border-bottom bg-light" style="display:none">
                             <p class="small mb-1 fw-semibold"><i class="bi bi-folder2-open me-1"></i>Generated files:</p>
@@ -5125,6 +5181,130 @@
             checks.forEach(c => { const el = document.getElementById(c.id); if (el) el.textContent = c.ok ? c.ok_msg : c.fail_msg; });
         }
 
+        // ── Deployment details panel population ──────────────────────────────────────
+        let _systemInfoCache = null;
+
+        async function _populateDeployDetails() {
+            const panel = document.getElementById('deployDetailsPanel');
+            if (!panel) return;
+
+            // ── Target environment ──
+            const host = _getDeploymentHost();
+            const sshUser = document.getElementById('discoveryUsername')?.value || 'root';
+            const sshPort = document.getElementById('discoveryPort')?.value || '22';
+            const platform = (config.platform || 'unknown').replace('_', ' ').toUpperCase();
+            const arch = config.architecture ? config.architecture.charAt(0).toUpperCase() + config.architecture.slice(1) : 'Monolithic';
+            const sslEnabled = config.ssl?.ssl_enabled;
+            const sslMode = sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replace('_', ' ') : 'Disabled';
+            const protocol = sslEnabled ? 'HTTPS' : 'HTTP';
+            const aspEnv = sslEnabled || platform.includes('PREM') ? 'Production' : 'Development';
+
+            _setText('dd-target-host', `${host}:${sshPort}`);
+            _setText('dd-target-ssh', `${sshUser}@${host}`);
+            _setText('dd-target-platform', platform);
+            _setText('dd-target-env', `${aspEnv} (${protocol})`);
+            _setText('dd-target-arch', arch);
+            _setText('dd-target-ssl', `${sslMode}${sslEnabled ? ' ✅' : ' ⚠️'}`);
+
+            // ── Target docker platform — detect from target arch via SSH or default ──
+            const _archDockerMap = {'arm64': 'linux/arm64', 'aarch64': 'linux/arm64', 'x86_64': 'linux/amd64', 'amd64': 'linux/amd64'};
+            let targetDockerPlatform = '';
+            let targetMachineArch = (config.target?.target_arch || config.target_arch || '').toLowerCase();
+
+            // Probe remote target architecture via SSH
+            try {
+                const archResp = await fetch('/api/target/arch', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ host, ssh_user: sshUser, ssh_port: parseInt(sshPort) }),
+                });
+                if (archResp.ok) {
+                    const archData = await archResp.json();
+                    targetMachineArch = archData.machine_arch || targetMachineArch;
+                    targetDockerPlatform = archData.docker_platform || '';
+                    _setText('dd-target-arch', `${arch} (${targetMachineArch} via ${archData.source || 'probe'})`);
+                }
+            } catch (e) {
+                console.warn('Target arch detection failed:', e);
+            }
+            if (!targetDockerPlatform) {
+                targetDockerPlatform = _archDockerMap[targetMachineArch] || '';
+            }
+
+            // ── Deployment config ──
+            const db = (config.database_type || 'mariadb').toUpperCase();
+            const buildLocal = config.image_registry?.build_locally ? 'Yes' : 'No';
+            const registry = config.image_registry?.image_registry || config.secrets?.image_registry || '(local)';
+            const pv = type => config[type + '_provider'] || 'builtin';
+            const activeProviders = ['search','chat','notification','analytics','signature','ai']
+                .map(t => { const v = pv(t); return v !== 'builtin' ? v : null; })
+                .filter(Boolean);
+            const providerText = activeProviders.length > 0 ? activeProviders.join(', ') : 'All built-in';
+
+            _setText('dd-cfg-database', `${db} (port ${config.database_port || 3306})`);
+            _setText('dd-cfg-build-local', buildLocal);
+            _setText('dd-cfg-registry', registry);
+            _setText('dd-cfg-providers', providerText);
+            _setText('dd-cfg-name', config.name || '—');
+
+            // ── Build server info (fetched once, cached) ──
+            try {
+                if (!_systemInfoCache) {
+                    const resp = await fetch('/api/system/info');
+                    if (resp.ok) _systemInfoCache = await resp.json();
+                }
+                if (_systemInfoCache) {
+                    const bs = _systemInfoCache.build_server;
+                    _setText('dd-build-hostname', bs.hostname || '—');
+                    _setText('dd-build-os', bs.os || '—');
+                    _setText('dd-build-arch', bs.machine_arch || '—');
+                    _setText('dd-build-docker-plat', bs.docker_platform || '—');
+                    _setText('dd-build-python', bs.python || '—');
+                    _setText('dd-build-docker', bs.docker || '—');
+                    _setText('dd-build-compose', bs.docker_compose || '—');
+                    _setText('dd-crm-version', _systemInfoCache.crm_version || '—');
+
+                    // If target arch not explicitly set, try to infer from target host
+                    const buildPlat = bs.docker_platform || 'linux/amd64';
+                    if (!targetDockerPlatform) {
+                        // If deploying to same host as build server, use build arch;
+                        // otherwise default to linux/amd64 (common server arch)
+                        const isLocalDeploy = host === 'localhost' || host === '127.0.0.1' || host === bs.hostname;
+                        targetDockerPlatform = isLocalDeploy ? buildPlat : 'linux/amd64';
+                    }
+                    _setText('dd-target-docker-plat', targetDockerPlatform);
+
+                    // Store target_arch in config so deployer picks it up
+                    if (!config.target) config.target = {};
+                    config.target.target_arch = targetDockerPlatform.split('/')[1] || 'amd64';
+
+                    // ── Architecture mismatch detection ──
+                    const warnEl = document.getElementById('archMismatchWarning');
+                    if (warnEl) {
+                        if (buildPlat !== targetDockerPlatform) {
+                            const txt = document.getElementById('archMismatchText');
+                            if (txt) txt.textContent = `⚠ Cross-compilation: Build server is ${buildPlat} but target is ${targetDockerPlatform}. Docker buildx will use QEMU emulation — builds may be slower.`;
+                            warnEl.style.display = '';
+                        } else {
+                            warnEl.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('Failed to fetch system info:', e);
+                // Fallback: set target docker platform without build server info
+                if (!targetDockerPlatform) targetDockerPlatform = 'linux/amd64';
+                _setText('dd-target-docker-plat', targetDockerPlatform);
+            }
+
+            panel.style.display = '';
+        }
+
+        function _setText(id, val) {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        }
+
         // ── state for the current deploy job ──────────────────────────────────────────────
         const _deploy = {
             jobId: null,
@@ -5223,6 +5403,9 @@
                     panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
 
+                // Populate deployment details banner
+                await _populateDeployDetails();
+
                 // Log first message
                 const box = document.getElementById('deployLog');
                 if (box) box.innerHTML = '';
@@ -5250,12 +5433,38 @@
         async function startDeployment() {
             if (_deploy.evtSource) { _deploy.evtSource.close(); }
 
+            // ── Pre-flight: check for existing containers ──────────────
+            try {
+                const pfResp = await fetch('/api/deploy/preflight', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: '{}',
+                });
+                const pfData = await pfResp.json();
+                if (pfData.containers && pfData.containers.length > 0) {
+                    const result = await _showContainerActionModal(pfData.containers);
+                    if (result.action === 'cancel') return;
+                    _deploy.containerAction = result.action;
+                    _deploy.containersToRemove = result.containersToRemove || [];
+                } else {
+                    _deploy.containerAction = 'recreate';
+                    _deploy.containersToRemove = [];
+                }
+            } catch (e) {
+                // If preflight fails, default to recreate and proceed
+                _deploy.containerAction = 'recreate';
+                _deploy.containersToRemove = [];
+            }
+
             // Reset UI
             const box = document.getElementById('deployLog');
             if (box) box.innerHTML = '';
             _deployLog('Starting deployment…', 'dl-info');
             _setDeployStatus('running');
             _setDeployPhase('generate');
+
+            // Refresh deployment details panel
+            _populateDeployDetails();
 
             document.getElementById('btnDeployNow').style.display = 'none';
             document.getElementById('btnCancelDeploy').style.display = '';
@@ -5273,6 +5482,8 @@
                         profile: config,
                         session_id: sessionId,
                         dry_run: config.dry_run || false,
+                        container_action: _deploy.containerAction || 'recreate',
+                        containers_to_remove: _deploy.containersToRemove || [],
                     }),
                 });
                 const data = await resp.json();
@@ -5286,6 +5497,159 @@
                 _setDeployStatus('failed');
                 _onDeployFinished(false);
             }
+        }
+
+        /**
+         * Show a Bootstrap modal listing existing containers grouped by category
+         * (Application, Infrastructure, Providers).  Each group has its own
+         * Reuse / Recreate toggle.  Returns a Promise resolving to:
+         *   { action: 'recreate'|'reuse'|'cancel', containersToRemove: string[] }
+         *
+         * When the user picks per-group options, action is set to 'recreate'
+         * and containersToRemove lists only the containers in "recreate" groups.
+         */
+        function _showContainerActionModal(containers) {
+            return new Promise((resolve) => {
+
+                // ── Group labels & icons ────────────────────────────
+                const GROUP_META = {
+                    app:      { label: 'Application',    icon: 'bi-window-stack',   color: 'primary'  },
+                    database: { label: 'Infrastructure',  icon: 'bi-database-fill',  color: 'info'     },
+                    provider: { label: 'Providers',       icon: 'bi-plug-fill',      color: 'secondary'},
+                    other:    { label: 'Other',           icon: 'bi-box',            color: 'dark'     },
+                };
+
+                // Bucket containers by group
+                const groups = {};
+                containers.forEach(c => {
+                    const g = c.group || 'other';
+                    if (!groups[g]) groups[g] = [];
+                    groups[g].push(c);
+                });
+
+                // ── Build modal (or reuse existing) ─────────────────
+                let modal = document.getElementById('cdtContainerActionModal');
+                if (modal) modal.remove();
+
+                const groupOrder = ['app', 'database', 'provider', 'other'];
+                let bodyHtml = `
+                    <p class="mb-3">The following CRM containers already exist on this host.
+                       Choose <strong>Reuse</strong> to keep a group as-is, or
+                       <strong>Recreate</strong> to remove &amp; redeploy.</p>`;
+
+                groupOrder.forEach(gKey => {
+                    const items = groups[gKey];
+                    if (!items || items.length === 0) return;
+                    const meta = GROUP_META[gKey] || GROUP_META.other;
+                    bodyHtml += `
+                    <div class="card mb-3 border-${meta.color}">
+                      <div class="card-header d-flex align-items-center justify-content-between bg-${meta.color} bg-opacity-10 py-2 px-3">
+                        <span><i class="bi ${meta.icon} me-2 text-${meta.color}"></i><strong>${meta.label}</strong>
+                          <span class="badge bg-${meta.color} ms-1">${items.length}</span>
+                        </span>
+                        <div class="btn-group btn-group-sm" role="group">
+                          <input type="radio" class="btn-check" name="grp_${gKey}" id="grp_${gKey}_reuse"
+                                 value="reuse" autocomplete="off">
+                          <label class="btn btn-outline-success btn-sm" for="grp_${gKey}_reuse">
+                            <i class="bi bi-recycle me-1"></i>Reuse
+                          </label>
+                          <input type="radio" class="btn-check" name="grp_${gKey}" id="grp_${gKey}_recreate"
+                                 value="recreate" autocomplete="off" checked>
+                          <label class="btn btn-outline-primary btn-sm" for="grp_${gKey}_recreate">
+                            <i class="bi bi-arrow-repeat me-1"></i>Recreate
+                          </label>
+                        </div>
+                      </div>
+                      <div class="card-body py-1 px-3">
+                        <table class="table table-sm table-borderless mb-0 small">
+                          <tbody>
+                            ${items.map(c => {
+                                const sc = (c.state || '').toLowerCase() === 'running' ? 'text-success' : 'text-muted';
+                                return `<tr>
+                                  <td class="fw-semibold" style="width:30%">${c.name}</td>
+                                  <td><code>${c.image}</code></td>
+                                  <td class="${sc}" style="width:22%">${c.status}</td>
+                                </tr>`;
+                            }).join('')}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>`;
+                });
+
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = `
+                <div class="modal fade" id="cdtContainerActionModal" tabindex="-1" data-bs-backdrop="static">
+                  <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+                      <div class="modal-header bg-warning text-dark py-2">
+                        <h6 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Existing Containers Detected</h6>
+                      </div>
+                      <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
+                        ${bodyHtml}
+                      </div>
+                      <div class="modal-footer py-2 d-flex justify-content-between">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="cdtCABtnCancel">
+                          <i class="bi bi-x-circle me-1"></i>Cancel Deployment
+                        </button>
+                        <div>
+                          <button type="button" class="btn btn-sm btn-success me-1" id="cdtCABtnReuseAll">
+                            <i class="bi bi-recycle me-1"></i>Reuse All
+                          </button>
+                          <button type="button" class="btn btn-sm btn-primary me-1" id="cdtCABtnRecreateAll">
+                            <i class="bi bi-arrow-repeat me-1"></i>Recreate All
+                          </button>
+                          <button type="button" class="btn btn-sm btn-dark" id="cdtCABtnApply">
+                            <i class="bi bi-check2-circle me-1"></i>Apply Selections
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>`;
+                document.body.appendChild(wrapper.firstElementChild);
+                modal = document.getElementById('cdtContainerActionModal');
+
+                const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
+
+                function getContainersToRemove() {
+                    const toRemove = [];
+                    groupOrder.forEach(gKey => {
+                        const items = groups[gKey];
+                        if (!items) return;
+                        const radio = modal.querySelector(`input[name="grp_${gKey}"]:checked`);
+                        if (radio && radio.value === 'recreate') {
+                            items.forEach(c => toRemove.push(c.name));
+                        }
+                    });
+                    return toRemove;
+                }
+
+                function cleanup(result) {
+                    bsModal.hide();
+                    modal.addEventListener('hidden.bs.modal', () => modal.remove(), { once: true });
+                    resolve(result);
+                }
+
+                modal.querySelector('#cdtCABtnCancel').addEventListener('click', () => {
+                    cleanup({ action: 'cancel', containersToRemove: [] });
+                });
+                modal.querySelector('#cdtCABtnReuseAll').addEventListener('click', () => {
+                    cleanup({ action: 'reuse', containersToRemove: [] });
+                });
+                modal.querySelector('#cdtCABtnRecreateAll').addEventListener('click', () => {
+                    const all = containers.map(c => c.name);
+                    cleanup({ action: 'recreate', containersToRemove: all });
+                });
+                modal.querySelector('#cdtCABtnApply').addEventListener('click', () => {
+                    const toRemove = getContainersToRemove();
+                    // If nothing to remove, treat as reuse-all
+                    const action = toRemove.length > 0 ? 'recreate' : 'reuse';
+                    cleanup({ action, containersToRemove: toRemove });
+                });
+
+                bsModal.show();
+            });
         }
 
         function _streamDeployLogs(jobId) {
@@ -5871,6 +6235,17 @@ function togglePasswordVisibility(id) {
             .deploy-panel-header { background:#1e2235; color:#fff; padding:12px 18px; display:flex; align-items:center; gap:10px; }
             .deploy-panel-header .dp-title { font-weight:700; font-size:.95rem; flex:1; }
             .deploy-panel-body { padding:0; }
+
+            /* ── Deployment details banner ─────────────────────────────── */
+            .deploy-details-panel { background:linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding:14px 18px 10px; border-bottom:1px solid #334155; }
+            .deploy-details-title { color:#94a3b8; font-weight:700; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; }
+            .deploy-details-col { padding:0 12px; }
+            .deploy-details-col:not(:last-child) { border-right:1px solid #334155; }
+            .deploy-details-group-title { color:#60a5fa; font-weight:600; font-size:.72rem; text-transform:uppercase; letter-spacing:.3px; margin-bottom:6px; }
+            .deploy-details-kv { display:grid; grid-template-columns:auto 1fr; gap:2px 10px; font-size:.68rem; line-height:1.5; }
+            .deploy-details-kv .ddk { color:#64748b; font-weight:600; white-space:nowrap; }
+            .deploy-details-kv .ddv { color:#e2e8f0; word-break:break-all; font-family:'JetBrains Mono',Consolas,monospace; font-size:.65rem; }
+            .arch-mismatch-warning { background:#78350f; color:#fbbf24; padding:8px 14px; font-size:.72rem; font-weight:600; border-radius:6px; margin-top:10px; display:flex; align-items:center; }
             .deploy-log-wrap { background:#1a1b2e; padding:12px 14px; height:320px; overflow-y:auto; font-family:'JetBrains Mono',Consolas,monospace; font-size:.72rem; line-height:1.5; color:#cdd6f4; }
             .deploy-log-wrap .dl-info    { color:#89dceb; }
             .deploy-log-wrap .dl-warn    { color:#f9e2af; }

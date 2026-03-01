@@ -137,7 +137,7 @@ const multiValueOperators: ConditionOperator[] = ['in', 'notIn', 'between'];
 // Helper Functions
 // ============================================================================
 
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`; // NOSONAR - non-security use: UI element ID generation
 
 const createEmptyRule = (): ConditionRule => ({
   id: generateId(),

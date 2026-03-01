@@ -301,7 +301,7 @@ const FILTER_OPERATORS: Record<ColumnType, Array<{ operator: FilterOperator; lab
 };
 
 // Generate unique ID
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`; // NOSONAR - non-security use: UI element ID generation
 
 // Default report config
 const getDefaultReport = (): ReportConfig => ({

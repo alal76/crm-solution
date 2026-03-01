@@ -171,7 +171,7 @@ const validateField = (
   }
 
   if (field.type === 'email' && value) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // NOSONAR - safe regex, character class [^\s@]+ prevents catastrophic backtracking
     if (!emailRegex.test(String(value))) {
       return 'Please enter a valid email address';
     }

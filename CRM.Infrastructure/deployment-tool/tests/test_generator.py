@@ -307,3 +307,48 @@ def test_generated_env_secrets_are_quoted():
     else:
         pytest.fail("DB_PASSWORD line not found in .env")
 
+
+def test_build_locally_uses_local_image_names():
+    """When build_locally=True, compose uses local image names (no registry prefix)."""
+    from core.generator import ConfigGenerator
+
+    g = ConfigGenerator()
+    profile = _sample_profile()
+    profile["image_registry"] = {
+        "image_registry": "registry.internal:5000",
+        "image_org": "crm",
+        "build_locally": True,
+    }
+    result = g.generate(profile)
+    assert result.success
+
+    compose_content = (result.output_dir / "docker-compose.yml").read_text()
+    # Should use local image names, NOT registry-prefixed
+    assert "registry.internal" not in compose_content, \
+        "Registry prefix should not appear when build_locally=True"
+    assert "image: crm-api:" in compose_content, \
+        "crm-api should use local image name"
+    assert "image: crm-frontend:" in compose_content, \
+        "crm-frontend should use local image name"
+
+
+def test_registry_prefix_used_when_not_building_locally():
+    """When build_locally=False with registry configured, compose uses registry-prefixed names."""
+    from core.generator import ConfigGenerator
+
+    g = ConfigGenerator()
+    profile = _sample_profile()
+    profile["image_registry"] = {
+        "image_registry": "registry.internal:5000",
+        "image_org": "crm",
+        "build_locally": False,
+    }
+    result = g.generate(profile)
+    assert result.success
+
+    compose_content = (result.output_dir / "docker-compose.yml").read_text()
+    assert "image: registry.internal:5000/crm/crm-api:" in compose_content, \
+        "crm-api should use registry-prefixed name when build_locally=False"
+    assert "image: registry.internal:5000/crm/crm-frontend:" in compose_content, \
+        "crm-frontend should use registry-prefixed name when build_locally=False"
+

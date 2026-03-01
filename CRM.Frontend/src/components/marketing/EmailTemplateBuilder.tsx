@@ -85,7 +85,7 @@ export default function EmailTemplateBuilder({
   // ── Stats ───────────────────────────────────────────────────────────────────
 
   const charCount = value.length;
-  const wordCount = countWords(value.replace(/<[^>]+>/gu, ' '));
+  const wordCount = countWords(value.replace(/<[^>]+>/gu, ' ')); // NOSONAR - safe regex using negated character class, no backtracking risk
 
   // ── Render ──────────────────────────────────────────────────────────────────
 

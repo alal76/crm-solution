@@ -37,11 +37,112 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from flask import Blueprint, request, jsonify, Response, stream_with_context
 from core.generator import ConfigGenerator
-from deployers.docker_compose import DockerComposeDeployer
+from deployers.docker_compose import DockerComposeDeployer, classify_container
 from deployers.kubernetes import KubernetesDeployer
 
 deploy_bp = Blueprint("deploy", __name__)
 _active_deploys: dict = {}
+
+
+@deploy_bp.route("/api/deploy/preflight", methods=["POST"])
+def deploy_preflight():
+    """Check for existing CRM containers before deployment.
+
+    Returns a list of existing containers so the UI can ask the user
+    whether to *reuse* or *recreate* them.
+    """
+    import subprocess  # noqa: PLC0415
+
+    try:
+        result = subprocess.run(
+            ["docker", "ps", "-a", "--filter", "name=crm-", "--format", "{{json .}}"],
+            capture_output=True, text=True, timeout=15,
+        )
+    except Exception as exc:
+        return jsonify({"error": f"Docker not available: {exc}"}), 500
+
+    containers = []
+    if result.returncode == 0 and result.stdout.strip():
+        for line in result.stdout.strip().splitlines():
+            try:
+                obj = json.loads(line)
+                name = obj.get("Names", "")
+                containers.append({
+                    "name": name,
+                    "image": obj.get("Image", ""),
+                    "status": obj.get("Status", ""),
+                    "state": obj.get("State", ""),
+                    "ports": obj.get("Ports", ""),
+                    "group": classify_container(name),
+                })
+            except json.JSONDecodeError:
+                continue
+
+    return jsonify({"containers": containers})
+
+
+@deploy_bp.route("/api/target/arch", methods=["POST"])
+def detect_target_arch():
+    """Detect the CPU architecture of the deployment target.
+
+    For local targets, uses platform.machine().
+    For remote (SSH) targets, runs ``uname -m`` over SSH.
+
+    Body (JSON):
+      { "host": "<hostname>", "ssh_user": "root", "ssh_port": 22 }
+
+    Returns:
+      { "machine_arch": "x86_64"|"aarch64"|..., "docker_platform": "linux/amd64"|"linux/arm64"|... }
+    """
+    import platform as _platform  # noqa: PLC0415
+    body = request.get_json(silent=True) or {}
+    host = body.get("host", "localhost")
+    ssh_user = body.get("ssh_user", "root")
+    ssh_port = int(body.get("ssh_port", 22))
+
+    _arch_map = {
+        "arm64": "linux/arm64", "aarch64": "linux/arm64",
+        "x86_64": "linux/amd64", "amd64": "linux/amd64",
+    }
+
+    # Local deployment — use build machine arch
+    if host in ("localhost", "127.0.0.1", ""):
+        raw = _platform.machine()
+        return jsonify({
+            "machine_arch": raw,
+            "docker_platform": _arch_map.get(raw.lower(), f"linux/{raw}"),
+            "source": "local",
+        })
+
+    # Remote deployment — SSH uname -m
+    try:
+        import paramiko  # noqa: PLC0415
+    except ImportError:
+        return jsonify({
+            "machine_arch": "unknown",
+            "docker_platform": "linux/amd64",
+            "source": "default (paramiko not installed)",
+        })
+
+    try:
+        client = paramiko.SSHClient()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        client.connect(hostname=host, username=ssh_user, port=ssh_port, timeout=10)
+        _, stdout, _ = client.exec_command("uname -m", timeout=10)
+        raw = stdout.read().decode().strip()
+        client.close()
+        return jsonify({
+            "machine_arch": raw,
+            "docker_platform": _arch_map.get(raw.lower(), f"linux/{raw}"),
+            "source": "ssh",
+        })
+    except Exception as exc:  # noqa: BLE001
+        return jsonify({
+            "machine_arch": "unknown",
+            "docker_platform": "linux/amd64",
+            "source": f"default (SSH error: {exc})",
+            "error": str(exc),
+        })
 
 
 @deploy_bp.route("/api/deploy", methods=["POST"])
@@ -50,6 +151,8 @@ def start_deploy():
     profile = data.get("profile", {})
     session_id = data.get("session_id", f"dep_{int(time.time())}")
     dry_run = data.get("dry_run", False)
+    container_action = data.get("container_action", "recreate")  # reuse | recreate
+    containers_to_remove = data.get("containers_to_remove", [])  # explicit list
 
     gen = ConfigGenerator()
     try:
@@ -70,7 +173,9 @@ def start_deploy():
         )
     else:
         deployer = DockerComposeDeployer(
-            result.output_dir or Path("/tmp"), profile, log_q, dry_run=dry_run
+            result.output_dir or Path("/tmp"), profile, log_q, dry_run=dry_run,
+            container_action=container_action,
+            containers_to_remove=containers_to_remove,
         )
 
     # Register session BEFORE starting background task to avoid race condition

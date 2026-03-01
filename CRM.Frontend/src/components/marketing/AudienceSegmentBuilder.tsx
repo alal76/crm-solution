@@ -96,7 +96,7 @@ const OPERATORS_BY_TYPE: Record<string, { value: SegmentRule['operator']; label:
 };
 
 function generateId(): string {
-  return `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; // NOSONAR - non-security use: UI element ID generation
 }
 
 function getFieldDef(fieldValue: string): FieldDef | undefined {
@@ -159,7 +159,7 @@ const AudienceSegmentBuilder: React.FC<AudienceSegmentBuilderProps> = ({
     // Mock calculation
     const base = 5000;
     const reduction = filledRules.length * 800;
-    return Math.max(base - reduction + Math.floor(Math.random() * 200), 150);
+    return Math.max(base - reduction + Math.floor(Math.random() * 200), 150); // NOSONAR - non-security use: UI audience size estimation simulation
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [segments.length, segments.map((s) => `${s.field}:${s.operator}:${s.value}`).join(',')]);
 

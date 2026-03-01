@@ -254,6 +254,7 @@ class ConfigGenerator:
         # Default image registry — empty means local images (no registry prefix)
         ctx.setdefault("image_registry", "")
         ctx.setdefault("image_org", "")
+        ctx.setdefault("build_locally", False)
 
         # SSL defaults
         ctx.setdefault("ssl_enabled", False)

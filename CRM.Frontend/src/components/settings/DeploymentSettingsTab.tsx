@@ -1396,7 +1396,7 @@ echo "Frontend URL: http://localhost:3000"
       setDeploymentLogs(prev => [...prev, logMessage]);
       
       // Simulate step execution (1-3 seconds per step)
-      const stepDuration = 1000 + Math.random() * 2000;
+      const stepDuration = 1000 + Math.random() * 2000; // NOSONAR - non-security use: UI deployment simulation step timing
       await new Promise(resolve => setTimeout(resolve, stepDuration));
       
       // Update step to completed

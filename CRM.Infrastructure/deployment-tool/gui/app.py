@@ -358,6 +358,67 @@ def get_defaults():
     return jsonify(result)
 
 
+@app.route("/api/system/info", methods=["GET"])
+def system_info():
+    """Return build server environment info for the deployment details panel."""
+    import platform as _platform
+    import socket
+    import subprocess as _sp
+
+    # Build server hostname, OS & architecture
+    hostname = socket.gethostname()
+    machine_arch = _platform.machine()  # e.g. 'arm64', 'x86_64', 'aarch64'
+    os_info = f"{_platform.system()} {_platform.release()} ({machine_arch})"
+    python_ver = _platform.python_version()
+
+    # Map machine arch to Docker platform string
+    _arch_map = {"arm64": "linux/arm64", "aarch64": "linux/arm64", "x86_64": "linux/amd64", "amd64": "linux/amd64"}
+    docker_platform = _arch_map.get(machine_arch.lower(), f"linux/{machine_arch}")
+
+    # Docker version
+    docker_ver = "not installed"
+    try:
+        r = _sp.run(["docker", "--version"], capture_output=True, text=True, timeout=5)
+        if r.returncode == 0:
+            docker_ver = r.stdout.strip()
+    except Exception:
+        pass
+
+    # Docker Compose version
+    compose_ver = "not installed"
+    try:
+        r = _sp.run(["docker", "compose", "version", "--short"], capture_output=True, text=True, timeout=5)
+        if r.returncode == 0:
+            compose_ver = r.stdout.strip()
+    except Exception:
+        pass
+
+    # CRM solution version from version.json
+    crm_version = "unknown"
+    ver_file = Path(__file__).parent.parent.parent.parent / "version.json"
+    if ver_file.exists():
+        try:
+            vj = json.loads(ver_file.read_text())
+            crm_version = f"{vj.get('major', 0)}.{vj.get('minor', 0)}.{vj.get('patch', 0)}"
+        except Exception:
+            pass
+
+    return jsonify({
+        "build_server": {
+            "hostname": hostname,
+            "os": os_info,
+            "machine_arch": machine_arch,
+            "docker_platform": docker_platform,
+            "python": python_ver,
+            "docker": docker_ver,
+            "docker_compose": compose_ver,
+        },
+        "crm_version": crm_version,
+        "cdt_version": crm_version,
+        "timestamp": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+    })
+
+
 @app.route("/api/config", methods=["GET", "POST"])
 def handle_config():
     if request.method == "GET":

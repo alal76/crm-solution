@@ -127,7 +127,7 @@ export interface AdvancedFilterBuilderProps {
 }
 
 // Generate unique ID
-const generateId = () => Math.random().toString(36).substring(2, 11);
+const generateId = () => Math.random().toString(36).substring(2, 11); // NOSONAR - non-security use: UI element ID generation
 
 // Create empty condition
 const createEmptyCondition = (): FilterCondition => ({

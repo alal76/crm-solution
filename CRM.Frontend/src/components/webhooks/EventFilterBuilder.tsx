@@ -146,7 +146,7 @@ const CONDITION_OPERATORS: { value: EventFilterCondition['operator']; label: str
   { value: 'in', label: 'In (comma-separated)' },
 ];
 
-const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`; // NOSONAR - non-security use: UI element ID generation
 
 const emptyConfig: EventFilterConfig = { groups: [], logic: 'AND' };
 

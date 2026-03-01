@@ -271,7 +271,7 @@ export const LeadScoringWidget: React.FC<LeadScoringWidgetProps> = ({
           lastName: lead.lastName || '',
           email: lead.email || '',
           company: lead.companyName,
-          score: lead.score || Math.floor(Math.random() * 100),
+          score: lead.score || Math.floor(Math.random() * 100), // NOSONAR - non-security use: UI placeholder score generation when score is unavailable
           status: lead.status || 'New',
           source: lead.source,
         }))
