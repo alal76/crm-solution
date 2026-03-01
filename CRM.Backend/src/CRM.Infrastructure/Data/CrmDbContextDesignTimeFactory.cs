@@ -21,12 +21,17 @@ public class CrmDbContextDesignTimeFactory : IDesignTimeDbContextFactory<CrmDbCo
         var connectionString =
             Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
+        // Design-time fallback: migrations MUST have ConnectionStrings__DefaultConnection set.
+        // A deliberately invalid connection string is used so EF tooling fails fast
+        // with a clear connection error rather than silently using a hardcoded credential.
+        const string MigrationFallback =
+            "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=MIGRATION-REQUIRES-ENV-VAR;";
+
         var configuration = new ConfigurationBuilder()
             .AddEnvironmentVariables()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = connectionString
-                    ?? "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;AllowPublicKeyRetrieval=True;", // NOSONAR
+                ["ConnectionStrings:DefaultConnection"] = connectionString ?? MigrationFallback,
             })
             .Build();
 
