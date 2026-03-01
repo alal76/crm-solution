@@ -24,14 +24,11 @@ namespace CRM.Api.Controllers;
 public class PricingRulesController : CrmControllerBase
 {
     private readonly IPricingRulesService _service;
-    private readonly ILogger<PricingRulesController> _logger;
 
     public PricingRulesController(
-        IPricingRulesService service,
-        ILogger<PricingRulesController> logger)
+        IPricingRulesService service)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     // ─── GET /api/pricingrules ───────────────────────────────────────────────
@@ -56,7 +53,9 @@ public class PricingRulesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
                 var created = await _service.CreateRuleAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(GetActiveRules), new { id = created.Id }, created);
@@ -75,14 +74,20 @@ public class PricingRulesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         if (id != dto.Id)
+        {
             return BadRequest(new { error = "Route id and body id must match" });
+        }
 
                 var updated = await _service.UpdateRuleAsync(id, dto, cancellationToken);
         if (updated == null)
+        {
             return NotFound(new { error = $"Pricing rule {id} not found" });
+        }
 
         return Ok(updated);
     }
@@ -97,7 +102,9 @@ public class PricingRulesController : CrmControllerBase
     {
                 var deleted = await _service.DeleteRuleAsync(id, cancellationToken);
         if (!deleted)
+        {
             return NotFound(new { error = $"Pricing rule {id} not found" });
+        }
 
         return NoContent();
     }
@@ -116,13 +123,19 @@ public class PricingRulesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         if (request.ProductId <= 0)
+        {
             return BadRequest(new { error = "ProductId must be a positive integer" });
+        }
 
         if (request.Quantity <= 0)
+        {
             return BadRequest(new { error = "Quantity must be at least 1" });
+        }
 
                 var breakdown = await _service.GetPriceBreakdownAsync(request, cancellationToken);
         return Ok(breakdown);

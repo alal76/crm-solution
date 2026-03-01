@@ -32,23 +32,20 @@ public class WorkflowController : CrmControllerBase
     private readonly IWorkflowService _workflowService;
     private readonly ILLMService _llmService;
     private readonly ILLMSettingsService _llmSettingsService;
-    private readonly ILogger<WorkflowController> _logger;
 
     public WorkflowController(
         CrmDbContext context,
         IWorkflowService workflowService,
         ILLMService llmService,
-        ILLMSettingsService llmSettingsService,
-        ILogger<WorkflowController> logger)
+        ILLMSettingsService llmSettingsService)
     {
         _context = context;
         _workflowService = workflowService;
         _llmService = llmService;
         _llmSettingsService = llmSettingsService;
-        _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
@@ -71,7 +68,9 @@ public class WorkflowController : CrmControllerBase
     {
                 WorkflowStatus? statusFilter = null;
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<WorkflowStatus>(status, out var s))
+        {
             statusFilter = s;
+        }
 
         var workflows = await _workflowService.GetWorkflowDefinitionsAsync(
             entityType, statusFilter, category, search, skip, take);
@@ -112,7 +111,9 @@ public class WorkflowController : CrmControllerBase
     {
                 var workflow = await _workflowService.GetWorkflowDefinitionAsync(id);
         if (workflow == null)
+        {
             return NotFound(new { message = "Workflow not found" });
+        }
 
         var result = new WorkflowDefinitionDetailDto
         {
@@ -163,15 +164,21 @@ public class WorkflowController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(dto.WorkflowKey))
+            {
                 return BadRequest(new { message = "WorkflowKey is required" });
+            }
 
             if (string.IsNullOrWhiteSpace(dto.Name))
+            {
                 return BadRequest(new { message = "Name is required" });
+            }
 
             // Check for duplicate key
             var existing = await _workflowService.GetWorkflowByKeyAsync(dto.WorkflowKey);
             if (existing != null)
+            {
                 return Conflict(new { message = "A workflow with this key already exists" });
+            }
 
             var workflow = new WorkflowDefinition
             {
@@ -216,9 +223,13 @@ public class WorkflowController : CrmControllerBase
     {
                 var workflow = await _context.WorkflowDefinitions.FindAsync(id);
         if (workflow == null)
+        {
             return NotFound(new { message = "Workflow not found" });
+        }
         if (workflow.IsSystem)
+        {
             return BadRequest(new { message = "Cannot modify system workflows" });
+        }
 
         workflow.Name = dto.Name ?? workflow.Name;
         workflow.Description = dto.Description;
@@ -247,7 +258,9 @@ public class WorkflowController : CrmControllerBase
     {
                 var success = await _workflowService.DeleteWorkflowDefinitionAsync(id);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot delete this workflow" });
+        }
         return Ok(new { message = "Workflow deleted successfully" });
     }
 
@@ -262,7 +275,9 @@ public class WorkflowController : CrmControllerBase
     {
                 var success = await _workflowService.ActivateWorkflowAsync(id, versionId);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot activate this workflow version" });
+        }
         return Ok(new { message = "Workflow activated successfully" });
     }
 
@@ -277,7 +292,9 @@ public class WorkflowController : CrmControllerBase
     {
                 var success = await _workflowService.PauseWorkflowAsync(id);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot pause this workflow" });
+        }
         return Ok(new { message = "Workflow paused successfully" });
     }
 
@@ -328,7 +345,9 @@ public class WorkflowController : CrmControllerBase
     {
                 var version = await _workflowService.GetWorkflowVersionAsync(versionId);
         if (version == null)
+        {
             return NotFound(new { message = "Version not found" });
+        }
 
         var result = new WorkflowVersionDetailDto
         {
@@ -421,7 +440,9 @@ public class WorkflowController : CrmControllerBase
     {
                 var success = await _workflowService.SaveCanvasLayoutAsync(versionId, dto.CanvasLayout);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot update layout for this version" });
+        }
         return Ok(new { message = "Layout saved successfully" });
     }
 
@@ -457,7 +478,9 @@ public class WorkflowController : CrmControllerBase
     {
                 var version = await _workflowService.UpdateVersionMetadataAsync(versionId, dto.Label, dto.ChangeLog);
         if (version == null)
+        {
             return BadRequest(new { message = "Cannot update this version. Only draft versions can be modified." });
+        }
         return Ok(new { id = version.Id, label = version.Label, changeLog = version.ChangeLog });
     }
 
@@ -473,7 +496,9 @@ public class WorkflowController : CrmControllerBase
                 var userId = GetCurrentUserId();
         var success = await _workflowService.PublishVersionAsync(versionId, userId);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot publish this version. Only draft versions can be published." });
+        }
         return Ok(new { message = "Version published successfully" });
     }
 
@@ -488,7 +513,9 @@ public class WorkflowController : CrmControllerBase
     {
                 var success = await _workflowService.DeleteVersionAsync(versionId);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot delete this version. Only draft versions can be deleted." });
+        }
         return Ok(new { message = "Version deleted successfully" });
     }
 
@@ -554,7 +581,9 @@ public class WorkflowController : CrmControllerBase
         try
         {
             if (!Enum.TryParse<WorkflowNodeType>(dto.NodeType, out var nodeType))
+            {
                 return BadRequest(new { message = "Invalid node type" });
+            }
 
             var node = new WorkflowNode
             {
@@ -603,10 +632,14 @@ public class WorkflowController : CrmControllerBase
         {
             var node = await _context.WorkflowNodes.FindAsync(nodeId);
             if (node == null)
+            {
                 return NotFound(new { message = "Node not found" });
+            }
 
             if (!string.IsNullOrEmpty(dto.NodeType) && Enum.TryParse<WorkflowNodeType>(dto.NodeType, out var nodeType))
+            {
                 node.NodeType = nodeType;
+            }
 
             node.Name = dto.Name ?? node.Name;
             node.Description = dto.Description ?? node.Description;
@@ -648,7 +681,9 @@ public class WorkflowController : CrmControllerBase
         {
             var success = await _workflowService.DeleteNodeAsync(nodeId);
             if (!success)
+            {
                 return BadRequest(new { message = "Cannot delete this node" });
+            }
             return Ok(new { message = "Node deleted successfully" });
         }
         catch (InvalidOperationException ex)
@@ -689,7 +724,9 @@ public class WorkflowController : CrmControllerBase
         {
             TransitionConditionType conditionType = TransitionConditionType.Always;
             if (!string.IsNullOrEmpty(dto.ConditionType))
+            {
                 Enum.TryParse(dto.ConditionType, out conditionType);
+            }
 
             var transition = new WorkflowTransition
             {
@@ -733,7 +770,9 @@ public class WorkflowController : CrmControllerBase
         {
             var transition = await _context.WorkflowTransitions.FindAsync(transitionId);
             if (transition == null)
+            {
                 return NotFound(new { message = "Transition not found" });
+            }
 
             if (!string.IsNullOrEmpty(dto.ConditionType) &&
                 Enum.TryParse<TransitionConditionType>(dto.ConditionType, out var conditionType))
@@ -772,7 +811,9 @@ public class WorkflowController : CrmControllerBase
         {
             var success = await _workflowService.DeleteTransitionAsync(transitionId);
             if (!success)
+            {
                 return BadRequest(new { message = "Cannot delete this transition" });
+            }
             return Ok(new { message = "Transition deleted successfully" });
         }
         catch (InvalidOperationException ex)

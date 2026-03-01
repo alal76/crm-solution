@@ -27,18 +27,15 @@ public class LeadsController : CrmControllerBase
     private readonly ILeadService _leadService;
     private readonly ILeadAgingAlertService _leadAgingAlertService;
     private readonly ILeadQualificationService _qualificationService;
-    private readonly ILogger<LeadsController> _logger;
 
     public LeadsController(
         ILeadService leadService,
         ILeadAgingAlertService leadAgingAlertService,
-        ILeadQualificationService qualificationService,
-        ILogger<LeadsController> logger)
+        ILeadQualificationService qualificationService)
     {
         _leadService = leadService;
         _leadAgingAlertService = leadAgingAlertService;
         _qualificationService = qualificationService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -71,7 +68,9 @@ public class LeadsController : CrmControllerBase
     {
                 var lead = await _leadService.GetByIdAsync(id);
         if (lead == null)
+        {
             return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
+        }
         return Ok(lead);
     }
 
@@ -124,37 +123,67 @@ public class LeadsController : CrmControllerBase
                 var updated = await _leadService.UpdateAsync(id, lead =>
         {
             if (!string.IsNullOrEmpty(request.FirstName))
+            {
                 lead.FirstName = request.FirstName;
+            }
             if (!string.IsNullOrEmpty(request.LastName))
+            {
                 lead.LastName = request.LastName;
+            }
             if (!string.IsNullOrEmpty(request.Email))
+            {
                 lead.Email = request.Email;
+            }
             if (!string.IsNullOrEmpty(request.Phone))
+            {
                 lead.Phone = request.Phone;
+            }
             if (!string.IsNullOrEmpty(request.CompanyName))
+            {
                 lead.CompanyName = request.CompanyName;
+            }
             if (!string.IsNullOrEmpty(request.Title))
+            {
                 lead.Title = request.Title;
+            }
             if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<LeadLifecycleStatus>(request.Status, out var status))
+            {
                 lead.Status = status;
+            }
             if (!string.IsNullOrEmpty(request.Source) && Enum.TryParse<LeadSource>(request.Source, out var src))
+            {
                 lead.Source = src;
+            }
             if (!string.IsNullOrEmpty(request.Region))
+            {
                 lead.Region = request.Region;
+            }
             if (!string.IsNullOrEmpty(request.Website))
+            {
                 lead.Website = request.Website;
+            }
             if (!string.IsNullOrEmpty(request.Notes))
+            {
                 lead.QualificationNotes = request.Notes;
+            }
             if (request.Score.HasValue)
+            {
                 lead.Score = request.Score.Value;
+            }
             if (request.OwnerId.HasValue)
+            {
                 lead.OwnerId = request.OwnerId.Value;
+            }
             if (request.CampaignId.HasValue)
+            {
                 lead.CampaignId = request.CampaignId.Value;
+            }
         });
 
         if (!updated)
+        {
             return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
+        }
 
         return Ok(new { message = "Lead updated successfully" });
     }
@@ -170,7 +199,9 @@ public class LeadsController : CrmControllerBase
     {
                 var deleted = await _leadService.DeleteAsync(id);
         if (!deleted)
+        {
             return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
+        }
         return Ok(new { message = "Lead deleted successfully" });
     }
 
@@ -212,7 +243,9 @@ public class LeadsController : CrmControllerBase
         [FromQuery] string? company = null)
     {
                 if (string.IsNullOrWhiteSpace(email) && (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName)))
+                {
             return BadRequest(new { message = "Provide at least 'email' or both 'firstName' and 'lastName'." });
+                }
 
         var (isDuplicate, existingLeadId, matchedOn) = await _leadService.CheckDuplicateAsync(email, firstName, lastName, company);
         return Ok(new CheckDuplicateLeadResponse
@@ -233,7 +266,9 @@ public class LeadsController : CrmControllerBase
     public async Task<IActionResult> GetByStatus(string status)
     {
                 if (!Enum.TryParse<LeadLifecycleStatus>(status, true, out var leadStatus))
+                {
             return BadRequest(new { message = $"Invalid status: {status}" });
+                }
 
         var leads = await _leadService.GetByStatusAsync(leadStatus);
         return Ok(leads);
@@ -315,7 +350,9 @@ public class LeadsController : CrmControllerBase
     {
                 var result = await _leadService.AssignToNurtureCampaignAsync(id, request.CampaignId, ct);
         if (!result)
+        {
             return NotFound(new { message = $"Lead {id} or campaign {request.CampaignId} not found." });
+        }
 
         return Ok(new { message = "Lead enrolled in nurture campaign.", leadId = id, campaignId = request.CampaignId });
     }
@@ -331,7 +368,9 @@ public class LeadsController : CrmControllerBase
     {
                 var lead = await _leadService.GetByIdAsync(id);
         if (lead == null)
+        {
             return NotFound(new { message = $"Lead {id} not found." });
+        }
 
         var campaign = await _leadService.GetNurtureCampaignAsync(id, ct);
         var result = campaign != null
@@ -355,7 +394,9 @@ public class LeadsController : CrmControllerBase
     {
                 var result = await _leadService.RemoveFromNurtureCampaignAsync(id, campaignId, ct);
         if (!result)
+        {
             return NotFound(new { message = $"Lead {id} is not enrolled in campaign {campaignId}." });
+        }
 
         return Ok(new { message = "Lead removed from nurture campaign.", leadId = id, campaignId });
     }

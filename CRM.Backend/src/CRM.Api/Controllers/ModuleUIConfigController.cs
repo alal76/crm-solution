@@ -54,7 +54,9 @@ public class ModuleUIConfigController : CrmControllerBase
             UiConfigurationValidator.ValidateModuleName(moduleName);
             var config = await _service.GetModuleConfigAsync(moduleName);
             if (config == null)
+            {
                 return NotFound(new { message = string.Format(ModuleConfigNotFoundMessage, moduleName) });
+            }
 
             return Ok(config);
         }
@@ -78,7 +80,9 @@ public class ModuleUIConfigController : CrmControllerBase
             UiConfigurationValidator.ValidateModuleName(moduleName);
             var config = await _service.GetCompleteModuleConfigAsync(moduleName);
             if (config == null)
+            {
                 return NotFound(new { message = string.Format(ModuleConfigNotFoundMessage, moduleName) });
+            }
 
             return Ok(config);
         }
@@ -125,7 +129,9 @@ public class ModuleUIConfigController : CrmControllerBase
             UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.UpdateModuleConfigAsync(moduleName, dto);
             if (result == null)
+            {
                 return NotFound(new { message = string.Format(ModuleConfigNotFoundMessage, moduleName) });
+            }
 
             _logger.LogInformation("AUDIT: ModuleUIConfigUpdated {ModuleName}", moduleName);
             return Ok(result);
@@ -172,7 +178,9 @@ public class ModuleUIConfigController : CrmControllerBase
             UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.UpdateLinkedEntitiesAsync(moduleName, linkedEntities);
             if (result == null)
+            {
                 return NotFound(new { message = string.Format(ModuleConfigNotFoundMessage, moduleName) });
+            }
 
             _logger.LogInformation("AUDIT: ModuleUIConfigLinkedEntitiesUpdated {ModuleName} {Count}", moduleName, linkedEntities.Count);
             return Ok(result);
@@ -198,7 +206,9 @@ public class ModuleUIConfigController : CrmControllerBase
             UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.UpdateTabsConfigAsync(moduleName, tabs);
             if (result == null)
+            {
                 return NotFound(new { message = string.Format(ModuleConfigNotFoundMessage, moduleName) });
+            }
 
             _logger.LogInformation("AUDIT: ModuleUIConfigTabsUpdated {ModuleName} {Count}", moduleName, tabs.Count);
             return Ok(result);
@@ -224,7 +234,9 @@ public class ModuleUIConfigController : CrmControllerBase
             UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.SaveCompleteModuleConfigAsync(moduleName, dto);
             if (result == null)
+            {
                 return NotFound(new { message = string.Format(ModuleConfigNotFoundMessage, moduleName) });
+            }
 
             _logger.LogInformation("AUDIT: ModuleUIConfigCompleteSaved {ModuleName} Tabs={TabCount} Fields={FieldCount} Links={LinkCount}",
                 moduleName, dto.Tabs.Count, dto.Fields.Count, dto.LinkedEntities.Count);
@@ -251,7 +263,9 @@ public class ModuleUIConfigController : CrmControllerBase
             UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.ResetModuleToDefaultsAsync(moduleName);
             if (result == null)
+            {
                 return NotFound(new { message = string.Format(ModuleConfigNotFoundMessage, moduleName) });
+            }
 
             _logger.LogInformation("AUDIT: ModuleUIConfigResetToDefaults {ModuleName}", moduleName);
             return Ok(result);
@@ -290,7 +304,9 @@ public class ModuleUIConfigController : CrmControllerBase
             UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.ToggleModuleAsync(moduleName, enabled);
             if (result == null)
+            {
                 return NotFound(new { message = string.Format(ModuleConfigNotFoundMessage, moduleName) });
+            }
 
             _logger.LogInformation("AUDIT: ModuleUIConfigToggled {ModuleName} {Enabled}", moduleName, enabled);
             return Ok(result);

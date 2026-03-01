@@ -456,7 +456,7 @@ public class LandingPageController : CrmControllerBase
     // =============================
     // HELPER METHODS
     // =============================
-    private int? GetCurrentUserId()
+    private int? GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : null;

@@ -28,18 +28,15 @@ public class UserProfilesController : CrmControllerBase
     private readonly IRepository<UserProfile> _profileRepository;
     private readonly IRepository<Department> _departmentRepository;
     private readonly IRepository<User> _userRepository;
-    private readonly ILogger<UserProfilesController> _logger;
 
     public UserProfilesController(
         IRepository<UserProfile> profileRepository,
         IRepository<Department> departmentRepository,
-        IRepository<User> userRepository,
-        ILogger<UserProfilesController> logger)
+        IRepository<User> userRepository)
     {
         _profileRepository = profileRepository;
         _departmentRepository = departmentRepository;
         _userRepository = userRepository;
-        _logger = logger;
     }
 
     /// <summary>
@@ -70,18 +67,26 @@ public class UserProfilesController : CrmControllerBase
             ?? User.FindFirst("sub")?.Value;
 
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
             return Unauthorized(new { message = "User not authenticated" });
+        }
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = "User not found" });
+        }
 
         if (!user.UserProfileId.HasValue)
+        {
             return NotFound(new { message = "User has no profile assigned" });
+        }
 
         var profile = await _profileRepository.GetByIdAsync(user.UserProfileId.Value);
         if (profile == null || profile.IsDeleted)
+        {
             return NotFound(new { message = ProfileNotFoundMessage });
+        }
 
         return Ok(MapToDto(profile));
     }
@@ -112,7 +117,9 @@ public class UserProfilesController : CrmControllerBase
     {
                 var profile = await _profileRepository.GetByIdAsync(id);
         if (profile == null || profile.IsDeleted)
+        {
             return NotFound(new { message = ProfileNotFoundMessage });
+        }
 
         return Ok(MapToDto(profile));
     }
@@ -126,15 +133,21 @@ public class UserProfilesController : CrmControllerBase
     public async Task<ActionResult<UserProfileDto>> CreateProfile([FromBody] CreateUserProfileDto createDto)
     {
                 if (string.IsNullOrWhiteSpace(createDto.Name))
+                {
             return BadRequest(new { message = "Profile name is required" });
+                }
 
         if (createDto.DepartmentId <= 0)
+        {
             return BadRequest(new { message = "Valid department ID is required" });
+        }
 
         // Verify department exists
         var department = await _departmentRepository.GetByIdAsync(createDto.DepartmentId);
         if (department == null || department.IsDeleted)
+        {
             return BadRequest(new { message = "Department not found" });
+        }
 
         var profile = new UserProfile
         {
@@ -174,7 +187,9 @@ public class UserProfilesController : CrmControllerBase
     {
                 var profile = await _profileRepository.GetByIdAsync(id);
         if (profile == null || profile.IsDeleted)
+        {
             return NotFound(new { message = ProfileNotFoundMessage });
+        }
 
         profile.Name = updateDto.Name;
         profile.Description = updateDto.Description;
@@ -209,7 +224,9 @@ public class UserProfilesController : CrmControllerBase
     {
                 var profile = await _profileRepository.GetByIdAsync(id);
         if (profile == null || profile.IsDeleted)
+        {
             return NotFound(new { message = ProfileNotFoundMessage });
+        }
 
         profile.IsDeleted = true;
         profile.UpdatedAt = DateTime.UtcNow;

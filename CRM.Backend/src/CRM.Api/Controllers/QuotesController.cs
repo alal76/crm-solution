@@ -69,26 +69,38 @@ public class QuotesController : CrmControllerBase
             .AsQueryable();
 
         if (accountId.HasValue)
+        {
             query = query.Where(q => q.AccountId == accountId);
+        }
 
         if (opportunityId.HasValue)
+        {
             query = query.Where(q => q.OpportunityId == opportunityId);
+        }
 
         if (status.HasValue)
+        {
             query = query.Where(q => q.Status == status);
+        }
 
         if (expired == true)
+        {
             query = query.Where(q => q.ExpirationDate < DateTime.UtcNow && q.Status == QuoteStatus.Shared);
+        }
 
         var quotes = await query.OrderByDescending(q => q.CreatedAt).ToListAsync();
         foreach (var q in quotes)
         {
             var nt = await _normalization.GetTagsAsync("Quote", q.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 q.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Quote", q.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 q.CustomFields = cf;
+            }
         }
         return Ok(quotes.Select(MapToDto));
     }
@@ -117,14 +129,20 @@ public class QuotesController : CrmControllerBase
             .FirstOrDefaultAsync(q => q.Id == id);
 
         if (quote == null)
+        {
             return NotFound();
+        }
 
         var nt = await _normalization.GetTagsAsync("Quote", quote.Id);
         if (!string.IsNullOrWhiteSpace(nt))
+        {
             quote.Tags = nt;
+        }
         var cf = await _normalization.GetCustomFieldsAsync("Quote", quote.Id);
         if (!string.IsNullOrWhiteSpace(cf))
+        {
             quote.CustomFields = cf;
+        }
 
         return Ok(MapToDto(quote));
     }
@@ -149,14 +167,20 @@ public class QuotesController : CrmControllerBase
             .FirstOrDefaultAsync(q => q.QuoteNumber == quoteNumber);
 
         if (quote == null)
+        {
             return NotFound();
+        }
 
         var nt = await _normalization.GetTagsAsync("Quote", quote.Id);
         if (!string.IsNullOrWhiteSpace(nt))
+        {
             quote.Tags = nt;
+        }
         var cf = await _normalization.GetCustomFieldsAsync("Quote", quote.Id);
         if (!string.IsNullOrWhiteSpace(cf))
+        {
             quote.CustomFields = cf;
+        }
 
         return Ok(MapToDto(quote));
     }
@@ -221,11 +245,15 @@ public class QuotesController : CrmControllerBase
     public async Task<IActionResult> UpdateQuote(int id, Quote quote)
     {
         if (id != quote.Id)
+        {
             return BadRequest();
+        }
 
         var existingQuote = await _context.Quotes.FindAsync(id);
         if (existingQuote == null)
+        {
             return NotFound();
+        }
 
         // Prevent editing accepted/rejected quotes
         if (existingQuote.Status == QuoteStatus.Accepted || existingQuote.Status == QuoteStatus.Rejected)
@@ -260,7 +288,9 @@ public class QuotesController : CrmControllerBase
     {
         var quote = await _context.Quotes.FindAsync(id);
         if (quote == null)
+        {
             return NotFound();
+        }
 
         // Only allow deleting draft quotes
         if (quote.Status != QuoteStatus.Draft)
@@ -291,7 +321,9 @@ public class QuotesController : CrmControllerBase
     {
         var quote = await _context.Quotes.FindAsync(id);
         if (quote == null)
+        {
             return NotFound();
+        }
 
         quote.Status = QuoteStatus.Shared;
         quote.SentDate = DateTime.UtcNow;
@@ -319,7 +351,9 @@ public class QuotesController : CrmControllerBase
     {
         var quote = await _context.Quotes.FindAsync(id);
         if (quote == null)
+        {
             return NotFound();
+        }
 
         if (quote.Status == QuoteStatus.Shared)
         {
@@ -349,7 +383,9 @@ public class QuotesController : CrmControllerBase
     {
         var quote = await _context.Quotes.FindAsync(id);
         if (quote == null)
+        {
             return NotFound();
+        }
 
         quote.Status = QuoteStatus.Accepted;
         quote.AcceptedDate = DateTime.UtcNow;
@@ -385,7 +421,9 @@ public class QuotesController : CrmControllerBase
     {
         var quote = await _context.Quotes.FindAsync(id);
         if (quote == null)
+        {
             return NotFound();
+        }
 
         quote.Status = QuoteStatus.Rejected;
         quote.RejectedDate = DateTime.UtcNow;
@@ -418,7 +456,9 @@ public class QuotesController : CrmControllerBase
     {
         var originalQuote = await _context.Quotes.FindAsync(id);
         if (originalQuote == null)
+        {
             return NotFound();
+        }
 
         // Create a new quote as revision
         var revision = new Quote
@@ -563,7 +603,9 @@ public class QuotesController : CrmControllerBase
     {
         var quote = await _context.Quotes.FindAsync(quoteId);
         if (quote == null)
+        {
             return NotFound("Quote not found");
+        }
 
         var lineItems = await _context.Set<QuoteLineItem>()
             .Where(li => li.QuoteId == quoteId && !li.IsDeleted)
@@ -594,7 +636,9 @@ public class QuotesController : CrmControllerBase
             .FirstOrDefaultAsync(li => li.Id == lineItemId && li.QuoteId == quoteId && !li.IsDeleted);
 
         if (lineItem == null)
+        {
             return NotFound();
+        }
 
         return Ok(lineItem);
     }
@@ -621,7 +665,9 @@ public class QuotesController : CrmControllerBase
             .FirstOrDefaultAsync(q => q.Id == quoteId);
 
         if (quote == null)
+        {
             return NotFound("Quote not found");
+        }
 
         // Auto-assign line number
         var maxLineNumber = quote.QuoteLineItems?.Where(li => !li.IsDeleted).Max(li => (int?)li.LineNumber) ?? 0;
@@ -681,13 +727,17 @@ public class QuotesController : CrmControllerBase
     public async Task<IActionResult> UpdateLineItem(int quoteId, int lineItemId, [FromBody] QuoteLineItem lineItem)
     {
         if (lineItemId != lineItem.Id)
+        {
             return BadRequest("Line item ID mismatch");
+        }
 
         var existingItem = await _context.Set<QuoteLineItem>()
             .FirstOrDefaultAsync(li => li.Id == lineItemId && li.QuoteId == quoteId);
 
         if (existingItem == null)
+        {
             return NotFound();
+        }
 
         // Update fields
         existingItem.ProductId = lineItem.ProductId;
@@ -748,7 +798,9 @@ public class QuotesController : CrmControllerBase
             .FirstOrDefaultAsync(li => li.Id == lineItemId && li.QuoteId == quoteId);
 
         if (lineItem == null)
+        {
             return NotFound();
+        }
 
         // Soft delete
         lineItem.IsDeleted = true;
@@ -789,7 +841,9 @@ public class QuotesController : CrmControllerBase
     {
         var quote = await _context.Quotes.FindAsync(quoteId);
         if (quote == null)
+        {
             return NotFound("Quote not found");
+        }
 
         var lineItems = await _context.Set<QuoteLineItem>()
             .Where(li => li.QuoteId == quoteId && !li.IsDeleted)

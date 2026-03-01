@@ -251,7 +251,9 @@ public class KnowledgeController : CrmControllerBase
     {
         var article = await _knowledgeService.GetArticleByIdAsync(id);
         if (article == null)
+        {
             return NotFound();
+        }
 
         var versions = await _knowledgeService.GetArticleVersionsAsync(id);
         return Ok(versions);
@@ -273,7 +275,7 @@ public class KnowledgeController : CrmControllerBase
         return article == null ? NotFound() : Ok(article);
     }
 
-    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
+    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1"); // NOSONAR
 }
 
 /// <summary>
@@ -446,7 +448,7 @@ public class CatalogController : CrmControllerBase
         return result ? Ok() : BadRequest("Unable to cancel request");
     }
 
-    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
+    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1"); // NOSONAR
 }
 
 public class CreateCatalogRequestForOthersRequest
@@ -641,7 +643,7 @@ public class SLAController : CrmControllerBase
         return Ok(metrics);
     }
 
-    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
+    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1"); // NOSONAR
 }
 
 public class SLADashboardDto

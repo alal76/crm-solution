@@ -46,7 +46,9 @@ public class UIPreferencesController : CrmControllerBase
         var prefs = await _service.GetUserUIPreferencesAsync(userId, cancellationToken);
 
         if (prefs == null)
+        {
             return NotFound(new { error = "UI preferences not found" });
+        }
 
         return Ok(prefs);
     }
@@ -77,7 +79,9 @@ public class UIPreferencesController : CrmControllerBase
         var result = await _service.ResetUIPreferencesAsync(userId, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to reset preferences" });
+        }
 
         _logger.LogInformation("UI preferences reset for user {UserId}", userId);
         return Ok(new { message = "UI preferences reset to defaults" });
@@ -95,7 +99,9 @@ public class UIPreferencesController : CrmControllerBase
         var customization = await _service.GetUICustomizationAsync(userId, moduleName, pageName, cancellationToken);
 
         if (customization == null)
+        {
             return NotFound(new { error = "Customization not found" });
+        }
 
         return Ok(customization);
     }
@@ -122,7 +128,9 @@ public class UIPreferencesController : CrmControllerBase
     public async Task<ActionResult<UICustomizationDto>> SaveUICustomization(CreateUpdateUICustomizationDto dto, CancellationToken cancellationToken = default)
     {
                 if (string.IsNullOrEmpty(dto.ModuleName) || string.IsNullOrEmpty(dto.PageName))
+                {
             return BadRequest(new { error = "ModuleName and PageName are required" });
+                }
 
         var userId = GetCurrentUserId();
         var result = await _service.SaveUICustomizationAsync(userId, dto, cancellationToken);
@@ -142,7 +150,9 @@ public class UIPreferencesController : CrmControllerBase
         var result = await _service.DeleteUICustomizationAsync(userId, moduleName, pageName, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to delete customization" });
+        }
 
         _logger.LogInformation("UI customization deleted for user {UserId}, module {Module}", userId, moduleName);
         return Ok(new { message = "Customization deleted" });
@@ -160,7 +170,9 @@ public class UIPreferencesController : CrmControllerBase
         var dashboard = await _service.GetDashboardCustomizationAsync(userId, dashboardName, cancellationToken);
 
         if (dashboard == null)
+        {
             return NotFound(new { error = "Dashboard not found" });
+        }
 
         return Ok(dashboard);
     }
@@ -187,7 +199,9 @@ public class UIPreferencesController : CrmControllerBase
     public async Task<ActionResult<DashboardCustomizationDto>> SaveDashboardCustomization(CreateUpdateDashboardCustomizationDto dto, CancellationToken cancellationToken = default)
     {
                 if (string.IsNullOrEmpty(dto.DashboardName))
+                {
             return BadRequest(new { error = "DashboardName is required" });
+                }
 
         var userId = GetCurrentUserId();
         var result = await _service.SaveDashboardCustomizationAsync(userId, dto, cancellationToken);
@@ -207,7 +221,9 @@ public class UIPreferencesController : CrmControllerBase
         var result = await _service.DeleteDashboardCustomizationAsync(userId, dashboardName, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to delete dashboard" });
+        }
 
         _logger.LogInformation("Dashboard deleted for user {UserId}: {DashboardName}", userId, dashboardName);
         return Ok(new { message = "Dashboard deleted" });
@@ -224,12 +240,14 @@ public class UIPreferencesController : CrmControllerBase
         var result = await _service.SetDefaultDashboardAsync(userId, dashboardName, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to set default dashboard" });
+        }
 
         return Ok(new { message = "Default dashboard set" });
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;

@@ -25,17 +25,14 @@ namespace CRM.Api.Controllers.ITSM;
 public class AutoAssignmentController : CrmControllerBase
 {
     private readonly IAutoAssignmentService _autoAssignmentService;
-    private readonly ILogger<AutoAssignmentController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoAssignmentController"/> class.
     /// </summary>
     public AutoAssignmentController(
-        IAutoAssignmentService autoAssignmentService,
-        ILogger<AutoAssignmentController> logger)
+        IAutoAssignmentService autoAssignmentService)
     {
         _autoAssignmentService = autoAssignmentService ?? throw new ArgumentNullException(nameof(autoAssignmentService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -72,7 +69,9 @@ public class AutoAssignmentController : CrmControllerBase
     {
                 var rule = await _autoAssignmentService.GetRuleByIdAsync(id, cancellationToken);
         if (rule == null)
+        {
             return NotFound(new { message = $"Assignment rule {id} not found" });
+        }
         return Ok(rule);
     }
 
@@ -95,7 +94,9 @@ public class AutoAssignmentController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
+            {
                 return BadRequest(new { message = "Rule name is required" });
+            }
 
             var rule = await _autoAssignmentService.CreateRuleAsync(dto, cancellationToken);
             return CreatedAtAction(nameof(GetRuleById), new { id = rule.Id }, rule);
@@ -125,7 +126,9 @@ public class AutoAssignmentController : CrmControllerBase
     {
                 var rule = await _autoAssignmentService.UpdateRuleAsync(id, dto, cancellationToken);
         if (rule == null)
+        {
             return NotFound(new { message = $"Assignment rule {id} not found" });
+        }
         return Ok(rule);
     }
 
@@ -147,7 +150,9 @@ public class AutoAssignmentController : CrmControllerBase
     {
                 var deleted = await _autoAssignmentService.DeleteRuleAsync(id, cancellationToken);
         if (!deleted)
+        {
             return NotFound(new { message = $"Assignment rule {id} not found" });
+        }
         return NoContent();
     }
 
@@ -169,7 +174,9 @@ public class AutoAssignmentController : CrmControllerBase
     {
                 var result = await _autoAssignmentService.AssignServiceRequestAsync(serviceRequestId, cancellationToken);
         if (!result.Success && result.Reason == "Service request not found")
+        {
             return NotFound(new { message = result.Reason });
+        }
         return Ok(result);
     }
 
@@ -191,7 +198,9 @@ public class AutoAssignmentController : CrmControllerBase
     {
                 var result = await _autoAssignmentService.SuggestAssignmentAsync(serviceRequestId, cancellationToken);
         if (!result.Success && result.Reason == "Service request not found")
+        {
             return NotFound(new { message = result.Reason });
+        }
         return Ok(result);
     }
 }

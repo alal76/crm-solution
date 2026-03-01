@@ -62,7 +62,9 @@ public class FieldMasterDataController : CrmControllerBase
     {
         var link = await _service.GetLinkByIdAsync(id);
         if (link == null)
+        {
             return NotFound();
+        }
         return Ok(link);
     }
 
@@ -121,7 +123,9 @@ public class FieldMasterDataController : CrmControllerBase
     {
         var result = await _service.DeleteLinkAsync(id);
         if (!result)
+        {
             return NotFound();
+        }
         return NoContent();
     }
 

@@ -42,7 +42,9 @@ public class LeadSourcesController : CrmControllerBase
                 var query = _context.LeadSources.AsNoTracking().Where(ls => !ls.IsDeleted);
 
         if (activeOnly)
+        {
             query = query.Where(ls => ls.IsActive);
+        }
 
         var sources = await query
             .OrderBy(ls => ls.Name)
@@ -81,7 +83,9 @@ public class LeadSourcesController : CrmControllerBase
             .FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
 
         if (source == null)
+        {
             return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
+        }
 
         return Ok(new LeadSourceDto
         {
@@ -111,7 +115,9 @@ public class LeadSourcesController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CreateLeadSourceDto request, CancellationToken ct = default)
     {
                 if (string.IsNullOrWhiteSpace(request.Name))
+                {
             return BadRequest(new { message = "Name is required" });
+                }
 
         var source = new LeadSourceEntity
         {
@@ -147,30 +153,54 @@ public class LeadSourcesController : CrmControllerBase
     {
                 var source = await _context.LeadSources.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
         if (source == null)
+        {
             return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Name))
+        {
             source.Name = request.Name;
+        }
         if (request.Code != null)
+        {
             source.Code = request.Code;
+        }
         if (request.Description != null)
+        {
             source.Description = request.Description;
+        }
         if (request.Channel.HasValue)
+        {
             source.Channel = request.Channel.Value;
+        }
         if (request.Medium != null)
+        {
             source.Medium = request.Medium;
+        }
         if (request.CampaignName != null)
+        {
             source.CampaignName = request.CampaignName;
+        }
         if (request.CostPerLead.HasValue)
+        {
             source.CostPerLead = request.CostPerLead;
+        }
         if (request.TotalSpend.HasValue)
+        {
             source.TotalSpend = request.TotalSpend;
+        }
         if (request.IsActive.HasValue)
+        {
             source.IsActive = request.IsActive.Value;
+        }
         if (request.TrackingUrl != null)
+        {
             source.TrackingUrl = request.TrackingUrl;
+        }
         if (request.ExternalPlatformId != null)
+        {
             source.ExternalPlatformId = request.ExternalPlatformId;
+        }
 
         source.UpdatedAt = DateTime.UtcNow;
         await (_context as DbContext)!.SaveChangesAsync(ct);
@@ -189,7 +219,9 @@ public class LeadSourcesController : CrmControllerBase
     {
                 var source = await _context.LeadSources.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
         if (source == null)
+        {
             return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
+        }
 
         source.IsDeleted = true;
         source.UpdatedAt = DateTime.UtcNow;

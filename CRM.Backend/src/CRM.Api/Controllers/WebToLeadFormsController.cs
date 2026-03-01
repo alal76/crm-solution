@@ -46,7 +46,9 @@ public class WebToLeadFormsController : CrmControllerBase
     {
         var form = await _service.GetByIdAsync(id, cancellationToken);
         if (form == null)
+        {
             return NotFound();
+        }
         return Ok(form);
     }
 
@@ -59,7 +61,9 @@ public class WebToLeadFormsController : CrmControllerBase
     {
         var form = await _service.GetByEmbedKeyAsync(embedKey, cancellationToken);
         if (form == null)
+        {
             return NotFound();
+        }
         return Ok(form);
     }
 
@@ -70,7 +74,9 @@ public class WebToLeadFormsController : CrmControllerBase
     public async Task<ActionResult<WebToLeadForm>> Create([FromBody] WebToLeadForm form, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var created = await _service.CreateAsync(form, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
@@ -83,14 +89,20 @@ public class WebToLeadFormsController : CrmControllerBase
     public async Task<ActionResult<WebToLeadForm>> Update(int id, [FromBody] WebToLeadForm form, CancellationToken cancellationToken)
     {
         if (id != form.Id)
+        {
             return BadRequest("ID mismatch");
+        }
 
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var updated = await _service.UpdateAsync(id, form, cancellationToken);
         if (updated == null)
+        {
             return NotFound();
+        }
         return Ok(updated);
     }
 
@@ -102,7 +114,9 @@ public class WebToLeadFormsController : CrmControllerBase
     {
         var success = await _service.DeleteAsync(id, cancellationToken);
         if (!success)
+        {
             return NotFound();
+        }
         return NoContent();
     }
 
@@ -124,7 +138,9 @@ public class WebToLeadFormsController : CrmControllerBase
             };
             var result = await _service.ProcessSubmissionAsync(submission, cancellationToken);
             if (!result.Success)
+            {
                 return result.ErrorMessage?.Contains("not found") == true ? NotFound(result.ErrorMessage) : BadRequest(result.ErrorMessage);
+            }
             return Ok(new { leadId = result.LeadId, message = "Lead created successfully" });
         }
         catch (ArgumentException ex)
@@ -141,7 +157,9 @@ public class WebToLeadFormsController : CrmControllerBase
     {
         var form = await _service.GetByIdAsync(id, cancellationToken);
         if (form == null)
+        {
             return NotFound();
+        }
 
         var baseUrl = $"{Request.Scheme}://{Request.Host}";
         var embedCode = $@"<iframe src=""{baseUrl}/forms/{form.EmbedKey}"" width=""100%"" height=""600"" frameborder=""0""></iframe>";

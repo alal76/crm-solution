@@ -335,7 +335,9 @@ public class SystemSettingsController : CrmControllerBase
         [FromForm] string? password)
     {
                 if (certificate == null || certificate.Length == 0)
+                {
             return BadRequest(new { message = "Certificate file is required" });
+                }
 
         var certDir = Path.Combine(Directory.GetCurrentDirectory(), "ssl");
         Directory.CreateDirectory(certDir);

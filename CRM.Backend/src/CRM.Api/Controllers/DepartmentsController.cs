@@ -24,14 +24,11 @@ public class DepartmentsController : CrmControllerBase
     private const string DepartmentNotFoundMessage = "Department not found";
 
     private readonly IRepository<Department> _departmentRepository;
-    private readonly ILogger<DepartmentsController> _logger;
 
     public DepartmentsController(
-        IRepository<Department> departmentRepository,
-        ILogger<DepartmentsController> logger)
+        IRepository<Department> departmentRepository)
     {
         _departmentRepository = departmentRepository;
-        _logger = logger;
     }
 
     /// <summary>
@@ -70,7 +67,9 @@ public class DepartmentsController : CrmControllerBase
     {
                 var department = await _departmentRepository.GetByIdAsync(id);
         if (department == null || department.IsDeleted)
+        {
             return NotFound(new { message = DepartmentNotFoundMessage });
+        }
 
         var dto = new DepartmentDetailDto
         {
@@ -116,7 +115,9 @@ public class DepartmentsController : CrmControllerBase
     public async Task<ActionResult<DepartmentDto>> CreateDepartment([FromBody] CreateDepartmentDto createDto)
     {
                 if (string.IsNullOrWhiteSpace(createDto.Name))
+                {
             return BadRequest(new { message = "Department name is required" });
+                }
 
         var department = new Department
         {
@@ -156,7 +157,9 @@ public class DepartmentsController : CrmControllerBase
     {
                 var department = await _departmentRepository.GetByIdAsync(id);
         if (department == null || department.IsDeleted)
+        {
             return NotFound(new { message = DepartmentNotFoundMessage });
+        }
 
         department.Name = updateDto.Name;
         department.Description = updateDto.Description;
@@ -192,7 +195,9 @@ public class DepartmentsController : CrmControllerBase
     {
                 var department = await _departmentRepository.GetByIdAsync(id);
         if (department == null || department.IsDeleted)
+        {
             return NotFound(new { message = DepartmentNotFoundMessage });
+        }
 
         department.IsDeleted = true;
         department.UpdatedAt = DateTime.UtcNow;

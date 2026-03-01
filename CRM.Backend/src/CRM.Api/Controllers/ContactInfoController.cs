@@ -23,15 +23,13 @@ public class ContactInfoController : CrmControllerBase
 {
 
     private readonly IContactInfoService _contactInfoService;
-    private readonly ILogger<ContactInfoController> _logger;
 
-    public ContactInfoController(IContactInfoService contactInfoService, ILogger<ContactInfoController> logger)
+    public ContactInfoController(IContactInfoService contactInfoService)
     {
         _contactInfoService = contactInfoService;
-        _logger = logger;
     }
 
-    private int? GetCurrentUserId()
+    private int? GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst("userId") ?? User.FindFirst("sub");
         return int.TryParse(userIdClaim?.Value, out var userId) ? userId : null;

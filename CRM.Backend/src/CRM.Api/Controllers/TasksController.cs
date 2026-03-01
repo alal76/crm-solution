@@ -58,17 +58,29 @@ public class TasksController : CrmControllerBase
             .AsQueryable();
 
         if (accountId.HasValue)
+        {
             query = query.Where(t => t.AccountId == accountId);
+        }
         if (opportunityId.HasValue)
+        {
             query = query.Where(t => t.OpportunityId == opportunityId);
+        }
         if (assignedToUserId.HasValue)
+        {
             query = query.Where(t => t.AssignedToUserId == assignedToUserId);
+        }
         if (status.HasValue)
+        {
             query = query.Where(t => t.Status == status);
+        }
         if (priority.HasValue)
+        {
             query = query.Where(t => t.Priority == priority);
+        }
         if (overdue == true)
+        {
             query = query.Where(t => t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed);
+        }
 
         var tasks = await query.OrderByDescending(t => t.DueDate).ToListAsync();
         var dtos = tasks.Select(MapToDto).ToList();
@@ -96,7 +108,9 @@ public class TasksController : CrmControllerBase
             .Include(t => t.SubTasks)
             .FirstOrDefaultAsync(t => t.Id == id);
         if (task == null)
+        {
             return NotFound();
+        }
         return Ok(MapToDto(task));
     }
 
@@ -114,7 +128,9 @@ public class TasksController : CrmControllerBase
     public async Task<ActionResult<CrmTaskDto>> CreateTask([FromBody] CreateCrmTaskDto dto)
     {
         if (string.IsNullOrWhiteSpace(dto.Title))
+        {
             return BadRequest("Title is required.");
+        }
         var task = MapFromCreateDto(dto);
         task.CreatedAt = DateTime.UtcNow;
         task.UpdatedAt = DateTime.UtcNow;
@@ -141,7 +157,9 @@ public class TasksController : CrmControllerBase
     {
         var task = await _context.CrmTasks.FindAsync(id);
         if (task == null)
+        {
             return NotFound();
+        }
         MapFromUpdateDto(dto, task);
         task.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -163,7 +181,9 @@ public class TasksController : CrmControllerBase
     {
         var task = await _context.CrmTasks.FindAsync(id);
         if (task == null)
+        {
             return NotFound();
+        }
         _context.CrmTasks.Remove(task);
         await _context.SaveChangesAsync();
         _logger.LogInformation("Task {TaskId} deleted", id);
@@ -185,7 +205,9 @@ public class TasksController : CrmControllerBase
     {
         var task = await _context.CrmTasks.FindAsync(id);
         if (task == null)
+        {
             return NotFound();
+        }
         task.Status = CrmTaskStatus.Completed;
         task.CompletedDate = DateTime.UtcNow;
         task.UpdatedAt = DateTime.UtcNow;
@@ -303,49 +325,93 @@ public class TasksController : CrmControllerBase
     private static void MapFromUpdateDto(UpdateCrmTaskDto dto, CrmTask task)
     {
         if (dto.Title != null)
+        {
             task.Subject = dto.Title;
+        }
         if (dto.Description != null)
+        {
             task.Description = dto.Description;
+        }
         if (dto.Status.HasValue)
+        {
             task.Status = (CrmTaskStatus)dto.Status.Value;
+        }
         if (dto.Priority.HasValue)
+        {
             task.Priority = (CrmTaskPriority)dto.Priority.Value;
+        }
         if (dto.DueDate != null)
+        {
             task.DueDate = DateTime.Parse(dto.DueDate);
+        }
         if (dto.CompletedDate != null)
+        {
             task.CompletedDate = DateTime.Parse(dto.CompletedDate);
+        }
         if (dto.AssignedToUserId.HasValue)
+        {
             task.AssignedToUserId = dto.AssignedToUserId;
+        }
         if (dto.ReminderDate != null)
+        {
             task.ReminderDate = string.IsNullOrWhiteSpace(dto.ReminderDate) ? null : DateTime.Parse(dto.ReminderDate);
+        }
         if (dto.HasReminder.HasValue)
+        {
             task.HasReminder = dto.HasReminder.Value;
+        }
         if (dto.PercentComplete.HasValue)
+        {
             task.PercentComplete = dto.PercentComplete.Value;
+        }
         if (dto.ActualMinutes.HasValue)
+        {
             task.ActualMinutes = dto.ActualMinutes;
+        }
         if (dto.IsRecurring.HasValue)
+        {
             task.IsRecurring = dto.IsRecurring.Value;
+        }
         if (dto.RecurrencePattern != null)
+        {
             task.RecurrencePattern = dto.RecurrencePattern;
+        }
         if (dto.RecurrenceEndDate != null)
+        {
             task.RecurrenceEndDate = string.IsNullOrWhiteSpace(dto.RecurrenceEndDate) ? null : DateTime.Parse(dto.RecurrenceEndDate);
+        }
         if (dto.ParentTaskId.HasValue)
+        {
             task.ParentTaskId = dto.ParentTaskId;
+        }
         if (dto.ContactId.HasValue)
+        {
             task.ContactId = dto.ContactId;
+        }
         if (dto.CampaignId.HasValue)
+        {
             task.CampaignId = dto.CampaignId;
+        }
         if (dto.AssignedToGroupId.HasValue)
+        {
             task.AssignedToGroupId = dto.AssignedToGroupId;
+        }
         if (dto.Tags != null)
+        {
             task.Tags = dto.Tags;
+        }
         if (dto.Category != null)
+        {
             task.Category = dto.Category;
+        }
         if (dto.Attachments != null)
+        {
             task.Attachments = dto.Attachments;
+        }
         if (dto.CustomFields != null)
+        {
             task.CustomFields = dto.CustomFields;
+        }
     }
 
     /// <summary>
@@ -368,7 +434,9 @@ public class TasksController : CrmControllerBase
         {
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
                 return Unauthorized();
+            }
 
             // Get the user's groups
             var userGroupIds = await _context.UserGroupMembers

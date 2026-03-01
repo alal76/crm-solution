@@ -23,14 +23,11 @@ namespace CRM.API.Controllers;
 public class CloudDeploymentController : CrmControllerBase
 {
     private readonly ICloudDeploymentService _deploymentService;
-    private readonly ILogger<CloudDeploymentController> _logger;
 
     public CloudDeploymentController(
-        ICloudDeploymentService deploymentService,
-        ILogger<CloudDeploymentController> logger)
+        ICloudDeploymentService deploymentService)
     {
         _deploymentService = deploymentService;
-        _logger = logger;
     }
 
     #region Cloud Providers

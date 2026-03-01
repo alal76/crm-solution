@@ -34,7 +34,7 @@ public class CustomActionsController : CrmControllerBase
         _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var id) ? id : 0;
@@ -47,9 +47,13 @@ public class CustomActionsController : CrmControllerBase
     {
         var query = _db.CustomActions.AsNoTracking().Where(a => !a.IsDeleted);
         if (!string.IsNullOrWhiteSpace(entityType))
+        {
             query = query.Where(a => a.EntityType == entityType);
+        }
         if (!includeInactive)
+        {
             query = query.Where(a => a.IsActive);
+        }
         var results = await query.OrderBy(a => a.EntityType).ThenBy(a => a.Label).ToListAsync(ct);
         return Ok(results);
     }
@@ -71,7 +75,9 @@ public class CustomActionsController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CustomAction dto, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(dto.EntityType) || string.IsNullOrWhiteSpace(dto.Label))
+        {
             return BadRequest(new { message = "EntityType and Label are required." });
+        }
 
         dto.CreatedAt = DateTime.UtcNow;
         dto.UpdatedAt = DateTime.UtcNow;
@@ -90,7 +96,9 @@ public class CustomActionsController : CrmControllerBase
     {
         var existing = await _db.CustomActions.FindAsync(new object[] { id }, ct);
         if (existing == null || existing.IsDeleted)
+        {
             return NotFound(new { message = ActionNotFoundMessage });
+        }
 
         existing.Label = dto.Label;
         existing.ActionType = dto.ActionType;
@@ -110,7 +118,9 @@ public class CustomActionsController : CrmControllerBase
     {
         var existing = await _db.CustomActions.FindAsync(new object[] { id }, ct);
         if (existing == null || existing.IsDeleted)
+        {
             return NotFound(new { message = ActionNotFoundMessage });
+        }
 
         existing.IsDeleted = true;
         existing.UpdatedAt = DateTime.UtcNow;

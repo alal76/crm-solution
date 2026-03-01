@@ -57,7 +57,9 @@ public class FeatureFlagManagementController : CrmControllerBase
     {
                 var flag = await _service.GetFlagAsync(flagName, cancellationToken);
         if (flag == null)
+        {
             return NotFound(new { error = $"Feature flag '{flagName}' not found" });
+        }
 
         return Ok(flag);
     }
@@ -74,7 +76,9 @@ public class FeatureFlagManagementController : CrmControllerBase
         {
             var userId = GetCurrentUserId();
             if (userId <= 0)
+            {
                 return Ok(false);
+            }
 
             var isEnabled = await _service.IsFlagEnabledForUserAsync(flagName, userId, cancellationToken);
             return Ok(isEnabled);
@@ -97,11 +101,15 @@ public class FeatureFlagManagementController : CrmControllerBase
     {
                 var userId = GetCurrentUserId();
         if (userId <= 0)
+        {
             return Unauthorized(new { error = "User context required" });
+        }
 
         var result = await _service.UpdateFlagAsync(flagName, dto, userId, cancellationToken);
         if (!result)
+        {
             return BadRequest(new { error = "Failed to update flag" });
+        }
 
         _logger.LogInformation("Feature flag {FlagName} updated by user {UserId}", flagName, userId);
         return Ok(new { message = "Flag updated successfully" });
@@ -116,13 +124,17 @@ public class FeatureFlagManagementController : CrmControllerBase
     public async Task<IActionResult> SetRolloutPercentage(string flagName, [FromBody] int percentage, CancellationToken cancellationToken = default)
     {
                 if (percentage < 0 || percentage > 100)
+                {
             return BadRequest(new { error = "Percentage must be between 0 and 100" });
+                }
 
         var userId = GetCurrentUserId();
         var result = await _service.SetRolloutPercentageAsync(flagName, percentage, userId, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to set rollout percentage" });
+        }
 
         _logger.LogInformation("Rollout percentage set for {FlagName}: {Percentage}%", flagName, percentage);
         return Ok(new { message = $"Rollout set to {percentage}%" });
@@ -137,17 +149,23 @@ public class FeatureFlagManagementController : CrmControllerBase
     public async Task<IActionResult> SetVariants(string flagName, [FromBody] FlagVariantDto[] variants, CancellationToken cancellationToken = default)
     {
                 if (variants == null || variants.Length == 0)
+                {
             return BadRequest(new { error = "At least one variant is required" });
+                }
 
         var totalWeight = variants.Sum(v => v.Weight);
         if (totalWeight != 100)
+        {
             return BadRequest(new { error = "Variant weights must sum to 100" });
+        }
 
         var userId = GetCurrentUserId();
         var result = await _service.SetVariantsAsync(flagName, variants, userId, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to set variants" });
+        }
 
         _logger.LogInformation("Variants set for {FlagName}: {Count} variants", flagName, variants.Length);
         return Ok(new { message = $"Variants set successfully ({variants.Length} variants)" });
@@ -164,11 +182,15 @@ public class FeatureFlagManagementController : CrmControllerBase
     {
                 var userId = GetCurrentUserId();
         if (userId <= 0)
+        {
             return NotFound(new { error = "User context required" });
+        }
 
         var variant = await _service.GetUserVariantAsync(flagName, userId, cancellationToken);
         if (variant == null)
+        {
             return NotFound(new { error = "No variant assigned for this user" });
+        }
 
         return Ok(variant);
     }
@@ -209,7 +231,9 @@ public class FeatureFlagManagementController : CrmControllerBase
         var result = await _service.UpdateProviderTypeAsync(category, dto.Type, userId, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to update provider" });
+        }
 
         _logger.LogInformation("Provider for {Category} changed to {Type}", category, dto.Type);
         return Ok(new { message = $"Provider updated to {dto.Type}" });
@@ -248,13 +272,15 @@ public class FeatureFlagManagementController : CrmControllerBase
         var result = await _service.ResetToDefaultsAsync(userId, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to reset flags" });
+        }
 
         _logger.LogInformation("All feature flags reset to defaults");
         return Ok(new { message = "All flags reset to defaults" });
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;

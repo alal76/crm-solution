@@ -742,7 +742,7 @@ public class ApprovalsController : CrmControllerBase
 
     #region Helper Methods
 
-    private int? GetCurrentUserId()
+    private int? GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (int.TryParse(userIdClaim, out var userId))

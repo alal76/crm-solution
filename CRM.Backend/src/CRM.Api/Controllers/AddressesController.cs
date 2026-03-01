@@ -129,12 +129,16 @@ public class AddressesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
                 if (accountId <= 0)
+                {
             return BadRequest(new { message = "Invalid account ID. Must be greater than 0." });
+                }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         var addresses = await _addressService.GetAddressesByAccountAsync(accountId, cancellationToken);
         var addressDtos = addresses.Select(MapAddressToDto).ToList();
@@ -167,17 +171,23 @@ public class AddressesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
                 if (accountId <= 0 || addressId <= 0)
+                {
             return BadRequest(new { message = InvalidIdMessage });
+                }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Get address
         var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
         if (address == null || address.IsDeleted)
+        {
             return NotFound(new { message = AddressNotFoundMessage });
+        }
 
         var addressDto = MapAddressToDto(address);
         return Ok(addressDto);
@@ -204,10 +214,14 @@ public class AddressesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
                 if (dto == null)
+                {
             return BadRequest(new { message = "Request body cannot be empty." });
+                }
 
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         // Map DTO to entity
         var address = new Address
@@ -273,73 +287,131 @@ public class AddressesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
                 if (accountId <= 0 || addressId <= 0)
+                {
             return BadRequest(new { message = InvalidIdMessage });
+                }
 
         if (dto == null)
+        {
             return BadRequest(new { message = "Request body cannot be empty." });
+        }
 
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Get existing address
         var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
         if (address == null || address.IsDeleted)
+        {
             return NotFound(new { message = AddressNotFoundMessage });
+        }
 
         // Update only the provided fields
         if (!string.IsNullOrWhiteSpace(dto.Label))
+        {
             address.Label = dto.Label;
+        }
         if (!string.IsNullOrWhiteSpace(dto.Line1))
+        {
             address.Line1 = dto.Line1;
+        }
         if (dto.Line2 != null)
+        {
             address.Line2 = dto.Line2;
+        }
         if (dto.Line3 != null)
+        {
             address.Line3 = dto.Line3;
+        }
         if (!string.IsNullOrWhiteSpace(dto.City))
+        {
             address.City = dto.City;
+        }
         if (dto.State != null)
+        {
             address.State = dto.State;
+        }
         if (dto.PostalCode != null)
+        {
             address.PostalCode = dto.PostalCode;
+        }
         if (dto.County != null)
+        {
             address.County = dto.County;
+        }
         if (dto.CountryCode != null)
+        {
             address.CountryCode = dto.CountryCode;
+        }
         if (!string.IsNullOrWhiteSpace(dto.Country))
+        {
             address.Country = dto.Country;
+        }
         if (dto.ZipCodeId.HasValue)
+        {
             address.ZipCodeId = dto.ZipCodeId;
+        }
         if (dto.LocalityId.HasValue)
+        {
             address.LocalityId = dto.LocalityId;
+        }
         if (dto.Locality != null)
+        {
             address.Locality = dto.Locality;
+        }
         if (dto.Latitude.HasValue)
+        {
             address.Latitude = dto.Latitude;
+        }
         if (dto.Longitude.HasValue)
+        {
             address.Longitude = dto.Longitude;
+        }
         if (dto.GeocodeAccuracy != null)
+        {
             address.GeocodeAccuracy = dto.GeocodeAccuracy;
+        }
         if (dto.IsVerified.HasValue)
+        {
             address.IsVerified = dto.IsVerified.Value;
+        }
         if (dto.VerificationSource != null)
+        {
             address.VerificationSource = dto.VerificationSource;
+        }
         if (dto.IsResidential.HasValue)
+        {
             address.IsResidential = dto.IsResidential;
+        }
         if (dto.DeliveryInstructions != null)
+        {
             address.DeliveryInstructions = dto.DeliveryInstructions;
+        }
         if (dto.AccessHours != null)
+        {
             address.AccessHours = dto.AccessHours;
+        }
         if (dto.SiteContactName != null)
+        {
             address.SiteContactName = dto.SiteContactName;
+        }
         if (dto.SiteContactPhone != null)
+        {
             address.SiteContactPhone = dto.SiteContactPhone;
+        }
         if (dto.Notes != null)
+        {
             address.Notes = dto.Notes;
+        }
 
         address.UpdatedAt = DateTime.UtcNow;
 
@@ -373,17 +445,23 @@ public class AddressesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
                 if (accountId <= 0 || addressId <= 0)
+                {
             return BadRequest(new { message = InvalidIdMessage });
+                }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Delete address
         var deleted = await _addressService.DeleteAddressAsync(accountId, addressId, cancellationToken);
         if (!deleted)
+        {
             return NotFound(new { message = AddressNotFoundMessage });
+        }
 
         _logger.LogInformation("Address {AddressId} deleted for account {AccountId}", addressId, accountId);
         return NoContent();
@@ -414,17 +492,23 @@ public class AddressesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
                 if (accountId <= 0 || addressId <= 0)
+                {
             return BadRequest(new { message = InvalidIdMessage });
+                }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Set primary billing address
         var success = await _addressService.SetPrimaryBillingAddressAsync(accountId, addressId, cancellationToken);
         if (!success)
+        {
             return NotFound(new { message = AddressNotFoundMessage });
+        }
 
         // Retrieve and return the updated address
         var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
@@ -459,17 +543,23 @@ public class AddressesController : CrmControllerBase
         CancellationToken cancellationToken)
     {
                 if (accountId <= 0 || addressId <= 0)
+                {
             return BadRequest(new { message = InvalidIdMessage });
+                }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Set primary shipping address
         var success = await _addressService.SetPrimaryShippingAddressAsync(accountId, addressId, cancellationToken);
         if (!success)
+        {
             return NotFound(new { message = AddressNotFoundMessage });
+        }
 
         // Retrieve and return the updated address
         var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);

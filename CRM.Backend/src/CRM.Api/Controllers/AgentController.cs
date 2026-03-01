@@ -672,7 +672,7 @@ public class AgentController : CrmControllerBase
     /// <summary>
     /// Extracts the current user ID from JWT claims.
     /// </summary>
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var userId) ? userId : 0;

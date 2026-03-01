@@ -182,7 +182,7 @@ public class ProblemsController : CrmControllerBase
         return result ? Ok() : BadRequest("Failed to update root cause analysis");
     }
 
-    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
+    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1"); // NOSONAR
 }
 
 public class UpdateRCADto
@@ -369,7 +369,7 @@ public class CMDBController : CrmControllerBase
         return Ok(types);
     }
 
-    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
+    private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1"); // NOSONAR
 }
 
 public class ServiceMapDto

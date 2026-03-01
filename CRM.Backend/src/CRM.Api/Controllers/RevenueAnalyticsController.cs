@@ -96,7 +96,9 @@ public class RevenueAnalyticsController : CrmControllerBase
     public async Task<IActionResult> CreateSnapshot([FromBody] CreateRevenueSnapshotDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var snapshot = await _revenueService.CreateSnapshotAsync(dto, ct);
         return CreatedAtAction(nameof(GetMetrics), new { }, snapshot);

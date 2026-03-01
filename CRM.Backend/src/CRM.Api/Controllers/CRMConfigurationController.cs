@@ -25,14 +25,11 @@ namespace CRM.Api.Controllers;
 public class CRMConfigurationController : CrmControllerBase
 {
     private readonly ICRMConfigurationService _crmConfig;
-    private readonly ILogger<CRMConfigurationController> _logger;
 
     public CRMConfigurationController(
-        ICRMConfigurationService crmConfig,
-        ILogger<CRMConfigurationController> logger)
+        ICRMConfigurationService crmConfig)
     {
         _crmConfig = crmConfig;
-        _logger = logger;
     }
 
     #region CRM Configuration

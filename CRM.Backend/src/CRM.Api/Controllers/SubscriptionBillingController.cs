@@ -69,7 +69,9 @@ public class SubscriptionBillingController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var invoices = await _invoiceService.GetAllAsync(subscription.AccountId, null, cancellationToken);
             var subscriptionInvoices = invoices
@@ -117,7 +119,9 @@ public class SubscriptionBillingController : CrmControllerBase
         {
             var invoice = await _invoiceService.GetByIdAsync(invoiceId, cancellationToken);
             if (invoice == null || invoice.SubscriptionId != subscriptionId)
+            {
                 return NotFound($"Invoice {invoiceId} not found for subscription {subscriptionId}");
+            }
 
             return Ok(MapToInvoiceDto(invoice));
         }
@@ -144,7 +148,9 @@ public class SubscriptionBillingController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var invoice = await _subscriptionService.GenerateInvoiceAsync(subscriptionId, cancellationToken);
             return CreatedAtAction(nameof(GetInvoice), new { subscriptionId, invoiceId = invoice.Id }, MapToInvoiceDto(invoice));
@@ -173,7 +179,9 @@ public class SubscriptionBillingController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var upcomingDate = DateTime.UtcNow.AddDays(days);
             var invoices = await _invoiceService.GetInvoicesDueAsync(DateTime.UtcNow, upcomingDate, cancellationToken);
@@ -212,7 +220,9 @@ public class SubscriptionBillingController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var payments = await _paymentService.GetAllAsync(subscription.AccountId, null, null, cancellationToken);
             var subscriptionPayments = payments
@@ -247,15 +257,21 @@ public class SubscriptionBillingController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var invoice = await _invoiceService.GetByIdAsync(request.InvoiceId, cancellationToken);
             if (invoice == null || invoice.SubscriptionId != subscriptionId)
+            {
                 return NotFound($"Invoice {request.InvoiceId} not found for subscription {subscriptionId}");
+            }
 
             // Parse payment method string → enum; default to Other for manual entries
             var paymentMethodEnum = Enum.TryParse<PaymentMethod>(request.PaymentMethod ?? "Other", ignoreCase: true, out var pm)
@@ -304,7 +320,9 @@ public class SubscriptionBillingController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var records = await _dbContext.BillingHistories
                 .Where(b => b.SubscriptionId == subscriptionId && !b.IsDeleted)
@@ -343,7 +361,9 @@ public class SubscriptionBillingController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var records = await _dbContext.DunningRecords
                 .Where(d => d.SubscriptionId == subscriptionId && !d.IsDeleted)
@@ -378,11 +398,15 @@ public class SubscriptionBillingController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             // Find the active dunning record
             var dunning = await _dbContext.DunningRecords
@@ -391,9 +415,11 @@ public class SubscriptionBillingController : CrmControllerBase
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (dunning == null)
+            {
                 return NotFound($"No active dunning record found for subscription {subscriptionId}");
+            }
 
-            // TODO: Wire to IDunningManager.RetryAsync(dunning.Id, cancellationToken) once enabled
+            // TODO: Wire to IDunningManager.RetryAsync(dunning.Id, cancellationToken) once enabled // NOSONAR
             // For now, mark the next retry date as now to trigger the background processor
             dunning.NextRetryDate = DateTime.UtcNow;
             dunning.RetryAttempt++;
@@ -440,7 +466,9 @@ public class SubscriptionBillingController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var invoices = await _invoiceService.GetAllAsync(subscription.AccountId, null, cancellationToken);
             var subInvoices = invoices.Where(i => i.SubscriptionId == subscriptionId).ToList();
@@ -497,15 +525,21 @@ public class SubscriptionBillingController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var invoice = await _invoiceService.GetByIdAsync(request.InvoiceId, cancellationToken);
             if (invoice == null || invoice.SubscriptionId != subscriptionId)
+            {
                 return NotFound($"Invoice {request.InvoiceId} not found for subscription {subscriptionId}");
+            }
 
             var updated = await _invoiceService.ApplyDiscountAsync(request.InvoiceId, request.CreditAmount, request.Reason, cancellationToken);
             return Ok(MapToInvoiceDto(updated));
@@ -589,7 +623,9 @@ public class SubscriptionBillingController : CrmControllerBase
     private ActionResult HandleServiceException(Exception ex)
     {
         if (ex is InvalidOperationException ioe && ioe.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
             return NotFound(ioe.Message);
+        }
 
         return BadRequest(ex.Message);
     }

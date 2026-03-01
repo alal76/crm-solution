@@ -25,15 +25,13 @@ namespace CRM.Api.Controllers.ITSM;
 public class ServiceQueuesController : CrmControllerBase
 {
     private readonly IServiceQueueService _serviceQueueService;
-    private readonly ILogger<ServiceQueuesController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ServiceQueuesController"/> class.
     /// </summary>
-    public ServiceQueuesController(IServiceQueueService serviceQueueService, ILogger<ServiceQueuesController> logger)
+    public ServiceQueuesController(IServiceQueueService serviceQueueService)
     {
         _serviceQueueService = serviceQueueService ?? throw new ArgumentNullException(nameof(serviceQueueService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>

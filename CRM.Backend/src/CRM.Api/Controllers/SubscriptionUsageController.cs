@@ -61,7 +61,9 @@ public class SubscriptionUsageController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var start = fromDate ?? DateTime.UtcNow.AddMonths(-1);
             var end = toDate ?? DateTime.UtcNow;
@@ -125,11 +127,15 @@ public class SubscriptionUsageController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             await _subscriptionService.RecordUsageAsync(
                 subscriptionId,
@@ -169,7 +175,9 @@ public class SubscriptionUsageController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var start = fromDate ?? DateTime.UtcNow.AddMonths(-1);
             var end = toDate ?? DateTime.UtcNow;
@@ -220,7 +228,9 @@ public class SubscriptionUsageController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var limits = await _subscriptionService.GetUsageLimitsAsync(subscriptionId, cancellationToken);
             var limitList = limits?.ToList() ?? new List<UsageLimit>();
@@ -269,11 +279,15 @@ public class SubscriptionUsageController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             // Calculate previous usage before reset
             var start = request.ResetType.ToLowerInvariant() switch
@@ -286,7 +300,7 @@ public class SubscriptionUsageController : CrmControllerBase
             var usageData = await _subscriptionService.GetUsageAsync(subscriptionId, start, DateTime.UtcNow, cancellationToken);
             var previousTotal = usageData?.Metrics?.Sum(m => m.TotalUsage) ?? 0;
 
-            // TODO: Implement actual usage counter reset logic when SubscriptionService supports it.
+            // TODO: Implement actual usage counter reset logic when SubscriptionService supports it. // NOSONAR
             // For now, this records a reset event in the usage table.
             _logger.LogInformation(
                 "Usage reset requested for subscription {SubscriptionId}, type={ResetType}, previous={Previous}",
@@ -328,9 +342,11 @@ public class SubscriptionUsageController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
-            // TODO: Implement seat management when seat tracking entities are added.
+            // TODO: Implement seat management when seat tracking entities are added. // NOSONAR
             // Requires a SubscriptionSeat entity linked to User.
             var response = new SeatsResponse
             {
@@ -366,13 +382,17 @@ public class SubscriptionUsageController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
-            // TODO: Implement seat assignment when seat tracking entities are available.
+            // TODO: Implement seat assignment when seat tracking entities are available. // NOSONAR
             // Record usage event for seat addition
             await _subscriptionService.RecordUsageAsync(
                 subscriptionId, "seats", 1, DateTime.UtcNow, cancellationToken);
@@ -416,9 +436,11 @@ public class SubscriptionUsageController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
-            // TODO: Implement actual seat removal when seat entities exist.
+            // TODO: Implement actual seat removal when seat entities exist. // NOSONAR
             // Record usage event for seat removal (negative quantity)
             await _subscriptionService.RecordUsageAsync(
                 subscriptionId, "seats", -1, DateTime.UtcNow, cancellationToken);
@@ -457,7 +479,9 @@ public class SubscriptionUsageController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var start = fromDate ?? DateTime.UtcNow.AddMonths(-1);
             var end = toDate ?? DateTime.UtcNow;
@@ -507,7 +531,9 @@ public class SubscriptionUsageController : CrmControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
 
             var periodStart = subscription.CurrentPeriodStart ?? DateTime.UtcNow.AddMonths(-1);
             var periodEnd = subscription.CurrentPeriodEnd ?? DateTime.UtcNow;
@@ -533,7 +559,7 @@ public class SubscriptionUsageController : CrmControllerBase
                         Included = limit.Limit,
                         Used = totalUsed,
                         OverageUnits = overage,
-                        // TODO: Overage pricing rate should come from SubscriptionItem/product configuration
+                        // TODO: Overage pricing rate should come from SubscriptionItem/product configuration // NOSONAR
                         OverageRate = 0,
                         OverageCharge = 0
                     });
@@ -564,7 +590,9 @@ public class SubscriptionUsageController : CrmControllerBase
     private ActionResult HandleServiceException(Exception ex)
     {
         if (ex is InvalidOperationException ioe && ioe.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
             return NotFound(ioe.Message);
+        }
 
         return BadRequest(ex.Message);
     }

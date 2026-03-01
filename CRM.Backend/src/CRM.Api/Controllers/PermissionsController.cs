@@ -22,12 +22,10 @@ namespace CRM.Api.Controllers;
 public class PermissionsController : CrmControllerBase
 {
     private readonly IRBACService _rbacService;
-    private readonly ILogger<PermissionsController> _logger;
 
-    public PermissionsController(IRBACService rbacService, ILogger<PermissionsController> logger)
+    public PermissionsController(IRBACService rbacService)
     {
         _rbacService = rbacService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -51,7 +49,9 @@ public class PermissionsController : CrmControllerBase
     {
                 var permission = await _rbacService.GetPermissionByIdAsync(permissionId, cancellationToken);
         if (permission == null)
+        {
             return NotFound();
+        }
 
         return Ok(permission);
     }
@@ -78,7 +78,9 @@ public class PermissionsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var result = await _rbacService.CreatePermissionAsync(createPermissionDto, cancellationToken);
             return CreatedAtAction(nameof(GetPermissionById), new { permissionId = result.Id }, result);

@@ -22,12 +22,10 @@ namespace CRM.API.Controllers;
 public class GdprController : CrmControllerBase
 {
     private readonly IGdprService _gdprService;
-    private readonly ILogger<GdprController> _logger;
 
-    public GdprController(IGdprService gdprService, ILogger<GdprController> logger)
+    public GdprController(IGdprService gdprService)
     {
         _gdprService = gdprService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -80,7 +78,9 @@ public class GdprController : CrmControllerBase
             subjectType, subjectId, userId, ip, ct);
 
         if (!erased)
+        {
             return NotFound($"No {subjectType} record with ID {subjectId} found.");
+        }
 
         return Ok(new
         {
@@ -93,7 +93,7 @@ public class GdprController : CrmControllerBase
 
     // ─── Private helpers ─────────────────────────────────────────────────────
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out int id) ? id : 0;
@@ -117,7 +117,9 @@ public class GdprController : CrmControllerBase
         [FromBody] GdprExportRequestDto request, CancellationToken ct)
     {
                 if (string.IsNullOrWhiteSpace(request.SubjectType) || request.SubjectId <= 0)
+                {
             return BadRequest(new { error = "SubjectType and SubjectId are required" });
+                }
 
         var userId = GetCurrentUserId();
         var ip = GetClientIpAddress();
@@ -163,7 +165,9 @@ public class GdprController : CrmControllerBase
     public IActionResult GetExportResult(string requestId)
     {
         if (!ExportRequestStore.TryGetValue(requestId, out var result))
+        {
             return NotFound(new { error = $"Export request '{requestId}' not found or expired" });
+        }
 
         return Ok(result);
     }

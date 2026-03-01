@@ -66,7 +66,9 @@ public class TestResultsController : CrmControllerBase
         var logFilePath = Path.Combine(repoRoot, "logs", "test-results", $"test-results-{sessionId}.json");
 
         if (!System.IO.File.Exists(logFilePath))
+        {
             return NotFound(new { message = $"Test results for session {sessionId} not found" });
+        }
 
         var json = await System.IO.File.ReadAllTextAsync(logFilePath);
         var results = JsonSerializer.Deserialize<object>(json);
@@ -86,7 +88,9 @@ public class TestResultsController : CrmControllerBase
         var logsDir = Path.Combine(repoRoot, "logs", "test-results");
 
         if (!Directory.Exists(logsDir))
+        {
             return Ok(new { sessions = new List<string>() });
+        }
 
         var files = Directory.GetFiles(logsDir, "test-results-*.json")
             .OrderByDescending(f => f)

@@ -23,12 +23,10 @@ namespace CRM.Api.Controllers;
 public class CatalogCategoriesController : CrmControllerBase
 {
     private readonly ICatalogCategoryService _service;
-    private readonly ILogger<CatalogCategoriesController> _logger;
 
-    public CatalogCategoriesController(ICatalogCategoryService service, ILogger<CatalogCategoriesController> logger)
+    public CatalogCategoriesController(ICatalogCategoryService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpPost]

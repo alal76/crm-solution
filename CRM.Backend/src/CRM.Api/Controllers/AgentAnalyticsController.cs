@@ -28,7 +28,6 @@ public class AgentAnalyticsController : CrmControllerBase
     #region Fields
 
     private readonly ICrmDbContext _dbContext;
-    private readonly ILogger<AgentAnalyticsController> _logger;
 
     #endregion
 
@@ -39,10 +38,9 @@ public class AgentAnalyticsController : CrmControllerBase
     /// </summary>
     /// <param name="dbContext">The CRM database context.</param>
     /// <param name="logger">The logger instance.</param>
-    public AgentAnalyticsController(ICrmDbContext dbContext, ILogger<AgentAnalyticsController> logger)
+    public AgentAnalyticsController(ICrmDbContext dbContext)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     #endregion

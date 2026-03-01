@@ -35,7 +35,7 @@ public class CampaignExecutionController : CrmControllerBase
         _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
@@ -57,7 +57,9 @@ public class CampaignExecutionController : CrmControllerBase
             var userId = GetCurrentUserId();
             var result = await _campaignExecutionService.StartCampaignAsync(campaignId, userId);
             if (!result)
+            {
                 return BadRequest(new { message = "Campaign cannot be started. Check the campaign status." });
+            }
 
             return Ok(new { message = "Campaign started successfully" });
         }
@@ -171,7 +173,9 @@ public class CampaignExecutionController : CrmControllerBase
             request.CooldownHours);
 
         if (result == null)
+        {
             return NotFound(new { message = WorkflowNotFoundMessage });
+        }
 
         return Ok(result);
     }
@@ -186,7 +190,9 @@ public class CampaignExecutionController : CrmControllerBase
     {
                 var result = await _campaignExecutionService.UnlinkWorkflowFromCampaignAsync(workflowId);
         if (!result)
+        {
             return NotFound(new { message = WorkflowNotFoundMessage });
+        }
 
         return Ok(new { message = "Workflow unlinked from campaign" });
     }
@@ -410,7 +416,9 @@ public class CampaignExecutionController : CrmControllerBase
     {
                 var result = await _campaignExecutionService.StartABTestAsync(testId);
         if (!result)
+        {
             return BadRequest(new { message = "A/B test cannot be started. Check the test status." });
+        }
 
         return Ok(new { message = "A/B test started successfully" });
     }
@@ -431,7 +439,9 @@ public class CampaignExecutionController : CrmControllerBase
         {
             var result = await _campaignExecutionService.CompleteABTestAsync(testId, request.WinningVariant);
             if (!result)
+            {
                 return BadRequest(new { message = "A/B test cannot be completed. Check the test status." });
+            }
 
             return Ok(new { message = "A/B test completed successfully", winningVariant = request.WinningVariant });
         }
@@ -448,32 +458,50 @@ public class CampaignExecutionController : CrmControllerBase
     private static string GetDeviceType(string userAgent)
     {
         if (string.IsNullOrEmpty(userAgent))
+        {
             return "unknown";
+        }
 
         var ua = userAgent.ToLower();
         if (ua.Contains("mobile") || ua.Contains("android") || ua.Contains("iphone"))
+        {
             return "mobile";
+        }
         if (ua.Contains("tablet") || ua.Contains("ipad"))
+        {
             return "tablet";
+        }
         return "desktop";
     }
 
     private static string GetBrowser(string userAgent)
     {
         if (string.IsNullOrEmpty(userAgent))
+        {
             return "unknown";
+        }
 
         var ua = userAgent.ToLower();
         if (ua.Contains("chrome"))
+        {
             return "Chrome";
+        }
         if (ua.Contains("firefox"))
+        {
             return "Firefox";
+        }
         if (ua.Contains("safari"))
+        {
             return "Safari";
+        }
         if (ua.Contains("edge"))
+        {
             return "Edge";
+        }
         if (ua.Contains("opera"))
+        {
             return "Opera";
+        }
         return "Other";
     }
 

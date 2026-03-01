@@ -23,12 +23,10 @@ namespace CRM.Api.Controllers;
 public class ImportJobsController : CrmControllerBase
 {
     private readonly IImportJobService _service;
-    private readonly ILogger<ImportJobsController> _logger;
 
-    public ImportJobsController(IImportJobService service, ILogger<ImportJobsController> logger)
+    public ImportJobsController(IImportJobService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpPost]

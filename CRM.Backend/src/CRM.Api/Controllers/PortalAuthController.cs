@@ -41,11 +41,15 @@ public class PortalAuthController : CrmControllerBase
         [FromBody] PortalLoginDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var result = await _portalAuth.LoginAsync(dto, ct);
         if (result == null)
+        {
             return Unauthorized(new { message = "Invalid email or password." });
+        }
 
         return Ok(result);
     }
@@ -60,7 +64,9 @@ public class PortalAuthController : CrmControllerBase
         [FromBody] PortalRegisterDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         try
         {
@@ -82,7 +88,9 @@ public class PortalAuthController : CrmControllerBase
         [FromBody] ForgotPasswordRequestDto dto, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(dto?.Email))
+        {
             return BadRequest(new { message = "Email is required." });
+        }
 
         await _portalAuth.ForgotPasswordAsync(dto.Email, ct);
         // Always return OK to avoid revealing whether the email is registered
@@ -98,11 +106,15 @@ public class PortalAuthController : CrmControllerBase
         [FromBody] ResetPasswordRequestDto dto, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(dto?.Token) || string.IsNullOrWhiteSpace(dto?.NewPassword))
+        {
             return BadRequest(new { message = "Token and NewPassword are required." });
+        }
 
         var success = await _portalAuth.ResetPasswordAsync(dto.Token, dto.NewPassword, ct);
         if (!success)
+        {
             return BadRequest(new { message = "Invalid or expired reset token." });
+        }
 
         return Ok(new { message = "Password has been reset successfully." });
     }
@@ -116,11 +128,15 @@ public class PortalAuthController : CrmControllerBase
         [FromQuery] string token, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(token))
+        {
             return BadRequest(new { message = "Verification token is required." });
+        }
 
         var success = await _portalAuth.VerifyEmailAsync(token, ct);
         if (!success)
+        {
             return BadRequest(new { message = "Invalid or already-used verification token." });
+        }
 
         return Ok(new { message = "Email verified successfully." });
     }

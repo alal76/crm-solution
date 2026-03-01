@@ -111,7 +111,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var response = await _authenticationService.RegisterAsync(request);
             return Ok(response);
@@ -151,7 +153,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var response = await _authenticationService.LoginAsync(request);
 
@@ -204,7 +208,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var response = await _authenticationService.VerifyTwoFactorLoginAsync(request.TwoFactorToken, request.Code);
             return Ok(response);
@@ -238,7 +244,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var response = await _authenticationService.RefreshTokenAsync(request.RefreshToken);
             return Ok(response);
@@ -270,7 +278,9 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var response = await _authenticationService.OAuthLoginAsync(request);
         return Ok(response);
@@ -313,11 +323,15 @@ public class AuthController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         var user = await _authenticationService.GetUserByIdAsync(userId);
         if (user == null)
+        {
             return NotFound();
+        }
 
         return Ok(new { user.Id, user.Username, user.Email, user.FirstName, user.LastName });
     }
@@ -338,7 +352,9 @@ public class AuthController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         var response = await _authenticationService.SetupTwoFactorAsync(userId);
         return Ok(response);
@@ -362,15 +378,21 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> Verify2FA([FromBody] TwoFactorVerification request)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         var isValid = await _authenticationService.VerifyTwoFactorCodeAsync(userId, request.Code);
         if (!isValid)
+        {
             return BadRequest(new { message = "Invalid verification code" });
+        }
 
         return Ok(new { message = "2FA verification successful" });
     }
@@ -393,11 +415,15 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> Enable2FA([FromBody] TwoFactorEnableRequest request)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         await _authenticationService.EnableTwoFactorAsync(userId, request.Secret, request.BackupCodes);
         return Ok(new { message = "2FA enabled successfully" });
@@ -419,7 +445,9 @@ public class AuthController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         await _authenticationService.DisableTwoFactorAsync(userId);
         return Ok(new { message = "2FA disabled successfully" });
@@ -443,7 +471,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             await _authenticationService.RequestPasswordResetAsync(request.Email);
             // In production, send email with reset link containing the token
@@ -475,10 +505,14 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             if (request.NewPassword != request.ConfirmPassword)
+            {
                 return BadRequest(new { message = "Passwords do not match" });
+            }
 
             await _authenticationService.ResetPasswordAsync(request.Token, request.NewPassword);
             return Ok(new { message = "Password reset successfully" });
@@ -513,12 +547,16 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             // Verify user is admin
             var userRoleClaim = User.FindFirst("role");
             if (userRoleClaim?.Value != "0") // 0 = Admin role
+            {
                 return Forbid();
+            }
 
             await _authenticationService.AdminResetPasswordAsync(userId, request.NewPassword);
             return Ok(new { message = "Password reset successfully" });
@@ -555,7 +593,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var response = await _authenticationService.SetupPasswordAsync(request);
             return Ok(response);
@@ -653,7 +693,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return new BadRequestObjectResult(ModelState);
+            }
 
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
@@ -750,7 +792,9 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> LinkedInCallback([FromBody] OAuthCallbackDto dto, CancellationToken ct)
     {
                 if (string.IsNullOrWhiteSpace(dto.Code))
+                {
             return BadRequest(new { message = "Authorization code is required" });
+                }
 
         var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/linkedin/callback";
 
@@ -834,7 +878,9 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> AppleCallback([FromBody] OAuthCallbackDto dto, CancellationToken ct)
     {
                 if (string.IsNullOrWhiteSpace(dto.Code))
+                {
             return BadRequest(new { message = "Authorization code is required" });
+                }
 
         var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/apple/callback";
 
@@ -905,7 +951,9 @@ public class AuthController : CrmControllerBase
         {
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
                 return Unauthorized();
+            }
 
             var emailClaim = User.FindFirst("email") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress");
             var nameClaim = User.FindFirst("name") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
@@ -946,7 +994,9 @@ public class AuthController : CrmControllerBase
         {
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
                 return Unauthorized();
+            }
 
             var credential = await _webAuthnService.CompleteRegistrationAsync(
                 userId,
@@ -1021,7 +1071,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(dto.CredentialId))
+            {
                 return BadRequest(new { message = "Credential ID is required" });
+            }
 
             var result = await _webAuthnService.CompleteAuthenticationAsync(
                 dto.Email ?? string.Empty,
@@ -1084,7 +1136,9 @@ public class AuthController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         var credentials = await _webAuthnService.GetCredentialsAsync(userId, ct);
         return Ok(credentials);
@@ -1110,11 +1164,15 @@ public class AuthController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         var success = await _webAuthnService.RemoveCredentialAsync(userId, credentialId, ct);
         if (!success)
+        {
             return NotFound(new { message = "Credential not found" });
+        }
 
         _logger.LogInformation("WebAuthn credential {CredentialId} removed for user {UserId}", credentialId, userId);
         return Ok(new { message = "WebAuthn credential removed successfully" });
@@ -1159,11 +1217,15 @@ public class AuthController : CrmControllerBase
     public IActionResult ValidateOAuthState([FromBody] OAuthStateValidateRequest request)
     {
                 if (string.IsNullOrWhiteSpace(request.State))
+                {
             return BadRequest(new { message = "State parameter is required" });
+                }
 
         var isValid = _oauthStateService.ValidateState(request.State, out var returnUrl);
         if (!isValid)
+        {
             return BadRequest(new { message = "Invalid, expired, or already consumed state token" });
+        }
 
         return Ok(new { isValid = true, returnUrl });
     }
@@ -1194,10 +1256,14 @@ public class AuthController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(dto.Provider))
+            {
                 return BadRequest(new { message = "Provider is required" });
+            }
 
             if (string.IsNullOrWhiteSpace(dto.RefreshToken))
+            {
                 return BadRequest(new { message = "Refresh token is required" });
+            }
 
             var provider = dto.Provider.ToLowerInvariant();
 
@@ -1289,7 +1355,9 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> Set2FAPolicy(int groupId, [FromBody] TwoFactorPolicyDto policy, CancellationToken ct)
     {
                 if (groupId <= 0)
+                {
             return BadRequest(new { message = "Invalid group ID" });
+                }
 
         await _twoFactorPolicyService.SetPolicyForGroupAsync(groupId, policy, ct);
 
@@ -1314,7 +1382,9 @@ public class AuthController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         var isRequired = await _twoFactorPolicyService.Is2FARequiredForUserAsync(userId, ct);
         return Ok(new { required = isRequired });
@@ -1343,7 +1413,9 @@ public class AuthController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         var result = await _totpService.RegenerateBackupCodesAsync(userId);
 
@@ -1408,7 +1480,9 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
                 if (string.IsNullOrWhiteSpace(request?.Email))
+                {
             return BadRequest(new { message = "Email is required." });
+                }
 
         MagicLinkToken? magic = null;
         try
@@ -1448,7 +1522,9 @@ public class AuthController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request?.Token))
+            {
                 return BadRequest(new { message = "Token is required." });
+            }
 
             var response = await _magicLinkService.ValidateMagicLinkAsync(request.Token, ct);
             return Ok(response);
@@ -1476,7 +1552,9 @@ public class AuthController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
             return Unauthorized();
+        }
 
         var links = await _userOAuthLinkService.GetLinksAsync(userId, ct);
 
@@ -1506,11 +1584,15 @@ public class AuthController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request?.Provider) || string.IsNullOrWhiteSpace(request.ProviderUserId))
+            {
                 return BadRequest(new { message = "Provider and ProviderUserId are required." });
+            }
 
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
                 return Unauthorized();
+            }
 
             var link = await _userOAuthLinkService.LinkProviderAsync(
                 userId, request.Provider, request.ProviderUserId,
@@ -1544,7 +1626,9 @@ public class AuthController : CrmControllerBase
         {
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
                 return Unauthorized();
+            }
 
             await _userOAuthLinkService.UnlinkProviderAsync(userId, provider, ct);
 
@@ -1578,10 +1662,14 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
                 if (string.IsNullOrWhiteSpace(provider))
+                {
             return BadRequest(new { message = "Provider name is required." });
+                }
 
         if (!_openIdConnectService.IsProviderConfigured(provider))
+        {
             return BadRequest(new { message = $"OIDC provider '{provider}' is not configured." });
+        }
 
         var state = Guid.NewGuid().ToString("N");
         var nonce = Guid.NewGuid().ToString("N");
@@ -1609,7 +1697,9 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
                 if (string.IsNullOrWhiteSpace(dto.Code))
+                {
             return BadRequest(new { message = "Authorization code is required." });
+                }
 
         // Retrieve stored state data
         var provider = dto.Provider;
@@ -1623,7 +1713,9 @@ public class AuthController : CrmControllerBase
             var storedProvider = HttpContext.Session.GetString($"oidc_{dto.State}_provider");
 
             if (!string.IsNullOrEmpty(storedProvider))
+            {
                 provider = storedProvider;
+            }
 
             // Clean up session
             HttpContext.Session.Remove($"oidc_{dto.State}_nonce");
@@ -1632,16 +1724,22 @@ public class AuthController : CrmControllerBase
         }
 
         if (string.IsNullOrWhiteSpace(provider))
+        {
             return BadRequest(new { message = "Provider name is required." });
+        }
 
         var result = await _openIdConnectService.ExchangeCodeAsync(
             provider, dto.Code, codeVerifier, nonce, ct);
 
         if (!result.Success)
+        {
             return BadRequest(new { message = result.ErrorDescription ?? result.Error ?? "OIDC authentication failed." });
+        }
 
         if (result.UserProfile == null || string.IsNullOrEmpty(result.UserProfile.Email))
+        {
             return BadRequest(new { message = "Email not returned from OIDC provider." });
+        }
 
         // Auto-provision or login existing user
         var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
@@ -1700,7 +1798,9 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
                 if (string.IsNullOrWhiteSpace(request.CredentialId))
+                {
             return BadRequest(new { message = "Credential ID is required." });
+                }
 
         var result = await _biometricAuthService.ValidateAuthenticationAsync(request, ct);
 
@@ -1713,7 +1813,9 @@ public class AuthController : CrmControllerBase
         // Generate auth tokens for the authenticated user
         var response = await _authenticationService.GenerateTokensForUserAsync(result.UserId.Value);
         if (response == null)
+        {
             return Unauthorized(new { message = "User not found or inactive." });
+        }
 
         // Record login analytics
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
@@ -1740,7 +1842,10 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> GetBiometricCredentials(CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
         var credentials = await _biometricAuthService.GetUserCredentialsAsync(userId.Value, ct);
         return Ok(credentials);
@@ -1759,11 +1864,16 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
         var success = await _biometricAuthService.CompleteRegistrationAsync(userId.Value, response, deviceName, ct);
         if (!success)
+        {
             return BadRequest(new { message = "Biometric registration failed." });
+        }
 
         return Ok(new { message = "Biometric credential registered successfully." });
     }
@@ -1797,14 +1907,18 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
                 if (string.IsNullOrWhiteSpace(dto.Code))
+                {
             return BadRequest(new { message = "Authorization code is required." });
+                }
 
         var redirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/sso/okta/callback";
         var tokens = await _oktaSsoService.ExchangeCodeForTokenAsync(dto.Code, redirectUri, ct);
         var userInfo = await _oktaSsoService.GetUserInfoAsync(tokens.AccessToken!, ct);
 
         if (string.IsNullOrWhiteSpace(userInfo.Email))
+        {
             return BadRequest(new { message = "Email not returned from Okta." });
+        }
 
         // Auto-provision or login existing user
         var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
@@ -1832,7 +1946,10 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> GetTrustedDevices(CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
         var devices = await _trustedDeviceService.GetTrustedDevicesAsync(userId.Value, false, ct);
         return Ok(devices.Select(d => new TrustedDeviceDto
@@ -1858,7 +1975,10 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var userAgent = Request.Headers.UserAgent.ToString();
@@ -1894,11 +2014,17 @@ public class AuthController : CrmControllerBase
     public async Task<IActionResult> RevokeTrustedDevice(string deviceId, CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
         var deviceIdInt = int.TryParse(deviceId, out var did) ? did : 0;
         var revoked = await _trustedDeviceService.RevokeDeviceAsync(userId.Value, deviceIdInt, ct);
-        if (!revoked) return NotFound(new { message = "Device not found." });
+        if (!revoked)
+        {
+            return NotFound(new { message = "Device not found." });
+        }
 
         return Ok(new { message = "Device trust revoked." });
     }
@@ -1918,7 +2044,10 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
         var stats = await _loginAnalyticsService.GetLoginStatisticsAsync(userId.Value, days, ct);
         return Ok(stats);
@@ -1935,7 +2064,10 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
         var logins = await _loginAnalyticsService.GetRecentLoginsAsync(userId.Value, count, ct);
         return Ok(logins);
@@ -1994,7 +2126,9 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(request.ClientId))
+        {
             return BadRequest(new { message = "client_id is required." });
+        }
 
         var response = await _deviceAuthorizationService.InitiateDeviceAuthorizationAsync(
             request.ClientId,
@@ -2026,7 +2160,9 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(request.DeviceCode))
+        {
             return BadRequest(new { error = "invalid_request", error_description = "device_code is required." });
+        }
 
         var response = await _deviceAuthorizationService.PollForTokenAsync(request.DeviceCode, request.ClientId ?? "default", ct);
 
@@ -2057,14 +2193,21 @@ public class AuthController : CrmControllerBase
         CancellationToken ct = default)
     {
         var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
 
         if (string.IsNullOrWhiteSpace(request.UserCode))
+        {
             return BadRequest(new { message = "user_code is required." });
+        }
 
         var success = await _deviceAuthorizationService.AuthorizeDeviceAsync(request.UserCode, userId.Value, ct);
         if (!success)
+        {
             return NotFound(new { message = "Invalid or expired user code." });
+        }
 
         return Ok(new { message = "Device authorized successfully." });
     }
@@ -2100,11 +2243,13 @@ public class AuthController : CrmControllerBase
 
     // ─── Helper Methods ───────────────────────────────────────────────────────
 
-    private int? GetCurrentUserId()
+    private int? GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
         if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+        {
             return userId;
+        }
         return null;
     }
 

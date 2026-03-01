@@ -481,7 +481,9 @@ public class MonitoringController : CrmControllerBase
                 var content = await response.Content.ReadAsStringAsync(ct);
                 var data = JsonSerializer.Deserialize<JsonElement>(content);
                 if (data.TryGetProperty("Version", out var v))
+                {
                     version = v.GetString();
+                }
             }
 
             return new

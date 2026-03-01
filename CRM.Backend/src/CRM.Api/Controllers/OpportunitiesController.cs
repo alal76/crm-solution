@@ -79,7 +79,9 @@ public class OpportunitiesController : CrmControllerBase
     {
                 var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
         if (opportunity == null)
+        {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        }
         return Ok(MapToDto(opportunity));
     }
 
@@ -149,14 +151,18 @@ public class OpportunitiesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var opportunity = MapFromCreateDto(dto);
 
             // TODO-CRM003-02: Auto-set probability from stage when caller does not supply it explicitly
             var stageEnum = (OpportunityStage)dto.Stage;
             if (dto.Probability == 0 && OpportunityService.StageProbabilityDefaults.TryGetValue(stageEnum, out var defaultProb))
+            {
                 opportunity.Probability = defaultProb;
+            }
 
             var id = await _opportunityService.CreateOpportunityAsync(opportunity);
             opportunity.Id = id;
@@ -191,11 +197,15 @@ public class OpportunitiesController : CrmControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] UpdateOpportunityDto dto)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
         if (opportunity == null)
+        {
             return NotFound();
+        }
 
         MapFromUpdateDto(dto, opportunity);
 
@@ -205,7 +215,9 @@ public class OpportunitiesController : CrmControllerBase
         {
             var newStage = (OpportunityStage)dto.Stage.Value;
             if (OpportunityService.StageProbabilityDefaults.TryGetValue(newStage, out var autoProb))
+            {
                 opportunity.Probability = autoProb;
+            }
         }
 
         await _opportunityService.UpdateOpportunityAsync(opportunity);
@@ -230,7 +242,9 @@ public class OpportunitiesController : CrmControllerBase
     {
                 var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
         if (opportunity == null)
+        {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        }
 
         var products = await _opportunityService.GetOpportunityProductsAsync(id);
         return Ok(products.Select(MapProductToDto).ToList());
@@ -249,11 +263,15 @@ public class OpportunitiesController : CrmControllerBase
     public async Task<IActionResult> AddProduct(int id, [FromBody] CreateOpportunityProductDto dto)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
         if (opportunity == null)
+        {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        }
 
         var product = MapProductFromCreateDto(dto);
         var created = await _opportunityService.AddOpportunityProductAsync(id, product);
@@ -274,7 +292,9 @@ public class OpportunitiesController : CrmControllerBase
     public async Task<IActionResult> UpdateProduct(int id, int productId, [FromBody] UpdateOpportunityProductDto dto)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var updated = new OpportunityProduct
         {
@@ -286,7 +306,9 @@ public class OpportunitiesController : CrmControllerBase
 
         var result = await _opportunityService.UpdateOpportunityProductAsync(id, productId, updated);
         if (result == null)
+        {
             return NotFound(new { message = $"Product {productId} not found on opportunity {id}" });
+        }
 
         return Ok(MapProductToDto(result));
     }
@@ -304,7 +326,9 @@ public class OpportunitiesController : CrmControllerBase
     {
                 var removed = await _opportunityService.RemoveOpportunityProductAsync(id, productId);
         if (!removed)
+        {
             return NotFound(new { message = $"Product {productId} not found on opportunity {id}" });
+        }
 
         return NoContent();
     }
@@ -408,37 +432,69 @@ public class OpportunitiesController : CrmControllerBase
     private static void MapFromUpdateDto(UpdateOpportunityDto dto, Opportunity entity)
     {
         if (dto.Name != null)
+        {
             entity.Name = dto.Name;
+        }
         if (dto.Stage.HasValue)
+        {
             entity.Stage = (OpportunityStage)dto.Stage.Value;
+        }
         if (dto.Probability.HasValue)
+        {
             entity.Probability = dto.Probability.Value;
+        }
         if (dto.Amount.HasValue)
+        {
             entity.Amount = dto.Amount.Value;
+        }
         if (dto.Currency != null)
+        {
             entity.Currency = dto.Currency;
+        }
         if (dto.ExpectedCloseDate != null)
+        {
             entity.ExpectedCloseDate = DateTime.Parse(dto.ExpectedCloseDate);
+        }
         if (dto.PricingModel.HasValue)
+        {
             entity.PricingModel = (OpportunityPricingModel)dto.PricingModel.Value;
+        }
         if (dto.TermLengthMonths.HasValue)
+        {
             entity.TermLengthMonths = dto.TermLengthMonths.Value;
+        }
         if (dto.SolutionNotes != null)
+        {
             entity.SolutionNotes = dto.SolutionNotes;
+        }
         if (dto.QualificationReason.HasValue)
+        {
             entity.QualificationReason = (QualificationReason)dto.QualificationReason.Value;
+        }
         if (dto.QualificationNotes != null)
+        {
             entity.QualificationNotes = dto.QualificationNotes;
+        }
         if (dto.Region != null)
+        {
             entity.Region = dto.Region;
+        }
         if (dto.AccountId.HasValue)
+        {
             entity.AccountId = dto.AccountId.Value;
+        }
         if (dto.PrimaryContactId.HasValue)
+        {
             entity.PrimaryContactId = dto.PrimaryContactId.Value;
+        }
         if (dto.SalesOwnerId.HasValue)
+        {
             entity.SalesOwnerId = dto.SalesOwnerId.Value;
+        }
         if (dto.LeadId.HasValue)
+        {
             entity.LeadId = dto.LeadId.Value;
+        }
         // Product update logic can be added here if needed
     }
 
@@ -576,7 +632,9 @@ public class OpportunitiesController : CrmControllerBase
         {
             var original = await _opportunityService.GetOpportunityByIdAsync(id);
             if (original == null)
+            {
                 return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+            }
 
             var cloned = await _opportunityService.CloneAsync(id, options);
             var dto = MapToDto(cloned);
@@ -604,7 +662,9 @@ public class OpportunitiesController : CrmControllerBase
     {
                 var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
         if (opportunity == null)
+        {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        }
 
         var members = await _opportunityService.GetTeamMembersAsync(id, ct);
         var dtos = members.Select(MapTeamMemberToDto).ToList();
@@ -622,11 +682,15 @@ public class OpportunitiesController : CrmControllerBase
     public async Task<IActionResult> AddTeamMember(int id, [FromBody] CreateTeamMemberDto dto, CancellationToken ct = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
         if (opportunity == null)
+        {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        }
 
         var member = new OpportunityTeamMember
         {
@@ -663,7 +727,9 @@ public class OpportunitiesController : CrmControllerBase
 
         var result = await _opportunityService.UpdateTeamMemberAsync(id, memberId, updated, ct);
         if (result == null)
+        {
             return NotFound(new { message = $"Team member {memberId} not found on opportunity {id}" });
+        }
 
         return Ok(MapTeamMemberToDto(result));
     }
@@ -679,7 +745,9 @@ public class OpportunitiesController : CrmControllerBase
     {
                 var removed = await _opportunityService.RemoveTeamMemberAsync(id, memberId, ct);
         if (!removed)
+        {
             return NotFound(new { message = $"Team member {memberId} not found on opportunity {id}" });
+        }
         return NoContent();
     }
 
@@ -696,7 +764,9 @@ public class OpportunitiesController : CrmControllerBase
     {
                 var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
         if (opportunity == null)
+        {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        }
 
         var competitors = await _opportunityService.GetCompetitorsAsync(id, ct);
         var dtos = competitors.Select(MapOpportunityCompetitorToDto).ToList();
@@ -714,11 +784,15 @@ public class OpportunitiesController : CrmControllerBase
     public async Task<IActionResult> AddCompetitor(int id, [FromBody] CreateOpportunityCompetitorDto dto, CancellationToken ct = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
         if (opportunity == null)
+        {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        }
 
         var competitor = new OpportunityCompetitor
         {
@@ -745,7 +819,9 @@ public class OpportunitiesController : CrmControllerBase
     {
                 var removed = await _opportunityService.RemoveCompetitorAsync(id, competitorId, ct);
         if (!removed)
+        {
             return NotFound(new { message = $"Competitor {competitorId} not found on opportunity {id}" });
+        }
         return NoContent();
     }
 
@@ -760,7 +836,9 @@ public class OpportunitiesController : CrmControllerBase
     public async Task<IActionResult> UpdateCompetitor(int id, int competitorId, [FromBody] UpdateOpportunityCompetitorDto dto, CancellationToken ct = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var updated = new OpportunityCompetitor
         {
@@ -773,7 +851,9 @@ public class OpportunitiesController : CrmControllerBase
 
         var result = await _opportunityService.UpdateCompetitorAsync(id, competitorId, updated, ct);
         if (result == null)
+        {
             return NotFound(new { message = $"Competitor {competitorId} not found on opportunity {id}" });
+        }
 
         return Ok(MapOpportunityCompetitorToDto(result));
     }
@@ -791,14 +871,20 @@ public class OpportunitiesController : CrmControllerBase
     public async Task<IActionResult> PatchForecastCategory(int id, [FromBody] ForecastCategoryPatchDto dto, CancellationToken ct = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         if (!Enum.IsDefined(typeof(ForecastCategory), dto.ForecastCategory))
+        {
             return BadRequest(new { message = $"Invalid ForecastCategory value: {dto.ForecastCategory}" });
+        }
 
         var updated = await _opportunityService.PatchForecastCategoryAsync(id, (ForecastCategory)dto.ForecastCategory, ct);
         if (!updated)
+        {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        }
 
         return NoContent();
     }

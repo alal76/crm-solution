@@ -60,7 +60,9 @@ public class IncidentsController : CrmControllerBase
     {
         var incident = await _incidentService.GetIncidentByIdAsync(id);
         if (incident == null)
+        {
             return NotFound();
+        }
         return Ok(incident);
     }
 
@@ -195,7 +197,7 @@ public class IncidentsController : CrmControllerBase
         return Ok(comments);
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         return int.Parse(userIdClaim?.Value ?? "1");

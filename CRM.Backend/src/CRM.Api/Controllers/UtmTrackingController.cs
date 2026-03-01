@@ -21,14 +21,11 @@ namespace CRM.Api.Controllers;
 public class UtmTrackingController : CrmControllerBase
 {
     private readonly IUtmTrackingService _utmTrackingService;
-    private readonly ILogger<UtmTrackingController> _logger;
 
     public UtmTrackingController(
-        IUtmTrackingService utmTrackingService,
-        ILogger<UtmTrackingController> logger)
+        IUtmTrackingService utmTrackingService)
     {
         _utmTrackingService = utmTrackingService;
-        _logger = logger;
     }
 
     #region Tracking Links (MKT-005)
@@ -65,7 +62,9 @@ public class UtmTrackingController : CrmControllerBase
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         try
         {
@@ -111,7 +110,9 @@ public class UtmTrackingController : CrmControllerBase
 
                 var destinationUrl = await _utmTrackingService.ResolveAndTrackAsync(token, ip, ua, cancellationToken);
         if (string.IsNullOrEmpty(destinationUrl))
+        {
             return NotFound(new { message = "Tracking link not found or expired" });
+        }
 
         return Redirect(destinationUrl);
     }

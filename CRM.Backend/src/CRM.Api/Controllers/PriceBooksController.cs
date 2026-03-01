@@ -44,7 +44,9 @@ namespace CRM.Api.Controllers
         {
             var item = await _pricingService.GetPriceBookByIdAsync(id, cancellationToken);
             if (item == null)
+            {
                 return NotFound();
+            }
             return Ok(item);
         }
 
@@ -63,7 +65,9 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] PriceBook model, CancellationToken cancellationToken)
         {
             if (id != model.Id)
+            {
                 return BadRequest();
+            }
             var updated = await _pricingService.UpdatePriceBookAsync(model, cancellationToken);
             return Ok(updated);
         }
@@ -75,7 +79,9 @@ namespace CRM.Api.Controllers
         {
             var ok = await _pricingService.DeletePriceBookAsync(id, cancellationToken);
             if (!ok)
+            {
                 return NotFound();
+            }
             return NoContent();
         }
 

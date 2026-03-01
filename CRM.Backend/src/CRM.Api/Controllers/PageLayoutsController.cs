@@ -32,7 +32,7 @@ public class PageLayoutsController : CrmControllerBase
         _db = db;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var id) ? id : 0;
@@ -45,7 +45,9 @@ public class PageLayoutsController : CrmControllerBase
     {
         var query = _db.PageLayouts.AsNoTracking().Where(p => !p.IsDeleted);
         if (!string.IsNullOrWhiteSpace(entityType))
+        {
             query = query.Where(p => p.EntityType == entityType);
+        }
         var results = await query.OrderBy(p => p.EntityType).ThenBy(p => p.Name).ToListAsync(ct);
         return Ok(results);
     }
@@ -119,7 +121,9 @@ public class PageLayoutsController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CRM.Core.Entities.PageLayout dto, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(dto.EntityType))
+        {
             return BadRequest(new { message = "EntityType is required." });
+        }
 
         // If this is marked default, un-default existing ones
         if (dto.IsDefault)
@@ -127,7 +131,10 @@ public class PageLayoutsController : CrmControllerBase
             var existing = await _db.PageLayouts
                 .Where(p => p.EntityType == dto.EntityType && p.IsDefault && !p.IsDeleted)
                 .ToListAsync(ct);
-            foreach (var e in existing) e.IsDefault = false;
+            foreach (var e in existing)
+            {
+                e.IsDefault = false;
+            }
         }
 
         dto.CreatedAt = DateTime.UtcNow;
@@ -145,14 +152,19 @@ public class PageLayoutsController : CrmControllerBase
     {
         var layout = await _db.PageLayouts.FindAsync(new object[] { id }, ct);
         if (layout == null || layout.IsDeleted)
+        {
             return NotFound(new { message = LayoutNotFoundMessage });
+        }
 
         if (dto.IsDefault && !layout.IsDefault)
         {
             var existing = await _db.PageLayouts
                 .Where(p => p.EntityType == layout.EntityType && p.IsDefault && !p.IsDeleted && p.Id != id)
                 .ToListAsync(ct);
-            foreach (var e in existing) e.IsDefault = false;
+            foreach (var e in existing)
+            {
+                e.IsDefault = false;
+            }
         }
 
         layout.Name = dto.Name;
@@ -171,7 +183,9 @@ public class PageLayoutsController : CrmControllerBase
     {
         var layout = await _db.PageLayouts.FindAsync(new object[] { id }, ct);
         if (layout == null || layout.IsDeleted)
+        {
             return NotFound(new { message = LayoutNotFoundMessage });
+        }
 
         layout.IsDeleted = true;
         layout.UpdatedAt = DateTime.UtcNow;

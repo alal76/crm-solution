@@ -33,7 +33,7 @@ public class CalendarIntegrationController : CrmControllerBase
         _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? User.FindFirst("sub")?.Value

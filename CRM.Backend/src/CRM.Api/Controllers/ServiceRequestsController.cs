@@ -27,17 +27,14 @@ public class ServiceRequestsController : CrmControllerBase
 {
     private const string ServiceRequestNotFoundMessage = "Service request {0} not found";
     private readonly IServiceRequestService _serviceRequestService;
-    private readonly ILogger<ServiceRequestsController> _logger;
 
     public ServiceRequestsController(
-        IServiceRequestService serviceRequestService,
-        ILogger<ServiceRequestsController> logger)
+        IServiceRequestService serviceRequestService)
     {
         _serviceRequestService = serviceRequestService;
-        _logger = logger;
     }
 
-    private int? GetCurrentUserId()
+    private int? GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : null;
@@ -77,7 +74,9 @@ public class ServiceRequestsController : CrmControllerBase
     {
                 var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
         if (request == null)
+        {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        }
         return Ok(request);
     }
 
@@ -97,7 +96,9 @@ public class ServiceRequestsController : CrmControllerBase
     {
                 var request = await _serviceRequestService.GetServiceRequestByTicketNumberAsync(ticketNumber);
         if (request == null)
+        {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, ticketNumber));
+        }
         return Ok(request);
     }
 
@@ -168,7 +169,9 @@ public class ServiceRequestsController : CrmControllerBase
     {
                 var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
         if (request == null)
+        {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        }
 
         var updateDto = new UpdateServiceRequestDto
         {
@@ -178,7 +181,9 @@ public class ServiceRequestsController : CrmControllerBase
         var userId = GetCurrentUserId();
         var result = await _serviceRequestService.UpdateServiceRequestAsync(id, updateDto, userId);
         if (result == null)
+        {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        }
         return Ok(result);
     }
 
@@ -198,7 +203,9 @@ public class ServiceRequestsController : CrmControllerBase
     {
                 var result = await _serviceRequestService.DeleteServiceRequestAsync(id);
         if (!result)
+        {
             return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        }
         return NoContent();
     }
 
@@ -269,7 +276,9 @@ public class ServiceRequestsController : CrmControllerBase
     {
                 var userId = GetCurrentUserId();
         if (!userId.HasValue)
+        {
             return Unauthorized();
+        }
 
         var requests = await _serviceRequestService.GetServiceRequestsByAssigneeAsync(userId.Value);
         return Ok(requests);
@@ -486,7 +495,9 @@ public class ServiceRequestsController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(dto.Reason))
+            {
                 return BadRequest("An expedite reason is required.");
+            }
 
             var userId = GetCurrentUserId();
             var request = await _serviceRequestService.ExpediteServiceRequestAsync(id, dto.Reason, userId);

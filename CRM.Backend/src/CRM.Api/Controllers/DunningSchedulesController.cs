@@ -26,15 +26,12 @@ namespace CRM.Api.Controllers;
 public class DunningSchedulesController : CrmControllerBase
 {
     private readonly IDunningScheduleService _service;
-    private readonly ILogger<DunningSchedulesController> _logger;
 
     /// <summary>Initialises a new instance of <see cref="DunningSchedulesController"/>.</summary>
     public DunningSchedulesController(
-        IDunningScheduleService service,
-        ILogger<DunningSchedulesController> logger)
+        IDunningScheduleService service)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     // ──────────────────────────────────────────────────────────────────────────

@@ -23,12 +23,10 @@ namespace CRM.Api.Controllers;
 public class CurrenciesController : CrmControllerBase
 {
     private readonly ICurrencyService _currencyService;
-    private readonly ILogger<CurrenciesController> _logger;
 
-    public CurrenciesController(ICurrencyService currencyService, ILogger<CurrenciesController> logger)
+    public CurrenciesController(ICurrencyService currencyService)
     {
         _currencyService = currencyService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -70,7 +68,9 @@ public class CurrenciesController : CrmControllerBase
     public async Task<IActionResult> Convert([FromBody] CurrencyConversionRequest request, CancellationToken ct = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var rateDto = await _currencyService.GetRateAsync(request.FromCurrency, request.ToCurrency, null, ct);
         var converted = await _currencyService.ConvertAsync(request.Amount, request.FromCurrency, request.ToCurrency, null, ct);

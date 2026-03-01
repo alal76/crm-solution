@@ -23,12 +23,10 @@ namespace CRM.Api.Controllers;
 public class AIAgentUsageController : CrmControllerBase
 {
     private readonly IAIAgentUsageService _service;
-    private readonly ILogger<AIAgentUsageController> _logger;
 
-    public AIAgentUsageController(IAIAgentUsageService service, ILogger<AIAgentUsageController> logger)
+    public AIAgentUsageController(IAIAgentUsageService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpPost]

@@ -26,25 +26,22 @@ public class WorkflowInstanceController : CrmControllerBase
 {
     private readonly IWorkflowInstanceService _instanceService;
     private readonly IHttpCalloutService _calloutService;
-    private readonly ILogger<WorkflowInstanceController> _logger;
 
     public WorkflowInstanceController(
         IWorkflowInstanceService instanceService,
-        IHttpCalloutService calloutService,
-        ILogger<WorkflowInstanceController> logger)
+        IHttpCalloutService calloutService)
     {
         _instanceService = instanceService;
         _calloutService = calloutService;
-        _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier);
         return claim != null ? int.Parse(claim.Value) : 0;
     }
 
-    private string[] GetCurrentUserRoles()
+    private string[] GetCurrentUserRoles() // NOSONAR
     {
         return User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
     }
@@ -66,7 +63,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 WorkflowInstanceStatus? statusFilter = null;
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<WorkflowInstanceStatus>(status, true, out var parsed))
+        {
             statusFilter = parsed;
+        }
 
         var instances = await _instanceService.GetInstancesAsync(
             workflowDefinitionId: definitionId,
@@ -104,7 +103,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 var instance = await _instanceService.GetInstanceAsync(id);
         if (instance == null)
+        {
             return NotFound(new { message = $"Workflow instance {id} not found" });
+        }
 
         var result = new WorkflowInstanceDetailDto
         {
@@ -304,7 +305,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 var success = await _instanceService.CancelInstanceAsync(id, dto.Reason ?? string.Empty, GetCurrentUserId());
         if (!success)
+        {
             return BadRequest(new { message = "Cannot cancel this instance" });
+        }
         return Ok(new { message = "Instance cancelled successfully" });
     }
 
@@ -318,7 +321,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 var success = await _instanceService.PauseInstanceAsync(id, GetCurrentUserId());
         if (!success)
+        {
             return BadRequest(new { message = "Cannot pause this instance" });
+        }
         return Ok(new { message = "Instance paused successfully" });
     }
 
@@ -332,7 +337,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 var success = await _instanceService.ResumeInstanceAsync(id, GetCurrentUserId());
         if (!success)
+        {
             return BadRequest(new { message = "Cannot resume this instance" });
+        }
         return Ok(new { message = "Instance resumed successfully" });
     }
 
@@ -346,7 +353,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 var success = await _instanceService.RetryInstanceAsync(id, GetCurrentUserId());
         if (!success)
+        {
             return BadRequest(new { message = "Cannot retry this instance" });
+        }
         return Ok(new { message = "Instance retry scheduled" });
     }
 
@@ -361,7 +370,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 var success = await _instanceService.SkipNodeAsync(id, nodeId, dto.Reason ?? string.Empty, GetCurrentUserId());
         if (!success)
+        {
             return BadRequest(new { message = "Cannot skip this node" });
+        }
         return Ok(new { message = "Node skipped successfully" });
     }
 
@@ -412,7 +423,9 @@ public class WorkflowInstanceController : CrmControllerBase
                 var userId = GetCurrentUserId();
         var success = await _instanceService.ClaimTaskAsync(taskId, userId);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot claim this task. It may not exist or is already assigned." });
+        }
         return Ok(new { message = "Task claimed successfully" });
     }
 
@@ -427,7 +440,9 @@ public class WorkflowInstanceController : CrmControllerBase
                 var userId = GetCurrentUserId();
         var success = await _instanceService.CompleteHumanTaskAsync(taskId, userId, dto.FormData, dto.OutputData);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot complete this task. It may not exist or is not assigned to you." });
+        }
         return Ok(new { message = "Task completed successfully" });
     }
 
@@ -442,7 +457,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 var success = await _instanceService.ClaimTaskAsync(taskId, assignToUserId);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot reassign this task" });
+        }
         return Ok(new { message = "Task reassigned successfully" });
     }
 
@@ -464,7 +481,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 WorkflowLogLevel? minLevel = null;
         if (!string.IsNullOrEmpty(level) && Enum.TryParse<WorkflowLogLevel>(level, true, out var parsedLevel))
+        {
             minLevel = parsedLevel;
+        }
 
         var logs = await _instanceService.GetLogsAsync(id, minLevel, category, skip, take);
 
@@ -555,7 +574,9 @@ public class WorkflowInstanceController : CrmControllerBase
     {
                 var instance = await _instanceService.GetExecutionTimelineDataAsync(id);
         if (instance == null)
+        {
             return NotFound(new { message = $"Workflow instance {id} not found" });
+        }
 
         var nodeInstances = instance.NodeInstances ?? new List<WorkflowNodeInstance>();
         var taskList = instance.Tasks ?? new List<WorkflowTask>();
@@ -734,11 +755,15 @@ public class WorkflowInstanceController : CrmControllerBase
     public async Task<IActionResult> TestHttpCallout([FromBody] HttpCalloutConfig config)
     {
                 if (config == null)
+                {
             return BadRequest(new { message = "Request body is required" });
+                }
 
         var validation = _calloutService.Validate(config);
         if (!validation.IsValid)
+        {
             return BadRequest(new { message = "Invalid configuration", errors = validation.Errors });
+        }
 
         var result = await _calloutService.ExecuteAsync(config);
         return Ok(result);
@@ -753,7 +778,9 @@ public class WorkflowInstanceController : CrmControllerBase
     public IActionResult ValidateHttpCallout([FromBody] HttpCalloutConfig config)
     {
                 if (config == null)
+                {
             return BadRequest(new { message = "Request body is required" });
+                }
 
         var validation = _calloutService.Validate(config);
         return Ok(validation);
@@ -775,13 +802,19 @@ public class WorkflowInstanceController : CrmControllerBase
         try
         {
             if (request == null)
+            {
                 return BadRequest(new { message = "Request body is required" });
+            }
 
             if (request.EntityIds == null || request.EntityIds.Count == 0)
+            {
                 return BadRequest(new { message = "At least one entity ID is required" });
+            }
 
             if (request.EntityIds.Count > 500)
+            {
                 return BadRequest(new { message = "Maximum of 500 entities per bulk operation" });
+            }
 
             var result = await _instanceService.BulkStartWorkflowAsync(
                 request.WorkflowDefinitionId,

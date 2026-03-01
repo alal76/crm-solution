@@ -25,15 +25,13 @@ namespace CRM.Api.Controllers.ITSM;
 public class EscalationRulesController : CrmControllerBase
 {
     private readonly IEscalationRuleService _escalationRuleService; // TODO-SD005-003: renamed from IEscalationRuleAdminService
-    private readonly ILogger<EscalationRulesController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EscalationRulesController"/> class.
     /// </summary>
-    public EscalationRulesController(IEscalationRuleService escalationRuleService, ILogger<EscalationRulesController> logger)
+    public EscalationRulesController(IEscalationRuleService escalationRuleService)
     {
         _escalationRuleService = escalationRuleService ?? throw new ArgumentNullException(nameof(escalationRuleService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -68,7 +66,9 @@ public class EscalationRulesController : CrmControllerBase
     public async Task<IActionResult> GetApplicable([FromQuery] string priority, CancellationToken cancellationToken = default)
     {
                 if (string.IsNullOrWhiteSpace(priority))
+                {
             return BadRequest(new { message = "Priority parameter is required" });
+                }
 
         var rules = await _escalationRuleService.GetApplicableRulesAsync(priority, cancellationToken);
         return Ok(rules);
@@ -91,7 +91,9 @@ public class EscalationRulesController : CrmControllerBase
     {
                 var rule = await _escalationRuleService.GetByIdAsync(id, cancellationToken);
         if (rule == null)
+        {
             return NotFound(new { message = $"Escalation rule with ID {id} not found" });
+        }
         return Ok(rule);
     }
 
@@ -111,7 +113,9 @@ public class EscalationRulesController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CreateEscalationRuleDto dto, CancellationToken cancellationToken = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var rule = await _escalationRuleService.CreateAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = rule.Id }, rule);
@@ -138,7 +142,9 @@ public class EscalationRulesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var rule = await _escalationRuleService.UpdateAsync(id, dto, cancellationToken);
             return Ok(rule);

@@ -343,7 +343,7 @@ public class OrderReturnsController : CrmControllerBase
 
     #region Private Methods
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 1;

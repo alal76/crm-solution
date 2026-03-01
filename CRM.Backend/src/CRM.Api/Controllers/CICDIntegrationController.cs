@@ -60,7 +60,9 @@ public class CICDIntegrationController : CrmControllerBase
     {
         var result = await _cicdService.UpdateDeploymentStatusAsync(changeId, update);
         if (!result.Success)
+        {
             return NotFound(result);
+        }
 
         return Ok(result);
     }
@@ -131,7 +133,9 @@ public class CICDIntegrationController : CrmControllerBase
     {
         var pipeline = await _cicdService.GetPipelineAsync(id);
         if (pipeline == null)
+        {
             return NotFound();
+        }
 
         return Ok(pipeline);
     }
@@ -147,7 +151,9 @@ public class CICDIntegrationController : CrmControllerBase
     {
         var deleted = await _cicdService.DeletePipelineAsync(id);
         if (!deleted)
+        {
             return NotFound();
+        }
 
         return NoContent();
     }
@@ -248,7 +254,9 @@ public class CICDIntegrationController : CrmControllerBase
 
         var result = await _cicdService.UpdateDeploymentStatusAsync(changeId.Value, request);
         if (!result.Success)
+        {
             return NotFound(result);
+        }
 
         return Ok(result);
     }

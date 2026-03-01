@@ -23,12 +23,10 @@ namespace CRM.Api.Controllers;
 public class RolesController : CrmControllerBase
 {
     private readonly IRBACService _rbacService;
-    private readonly ILogger<RolesController> _logger;
 
-    public RolesController(IRBACService rbacService, ILogger<RolesController> logger)
+    public RolesController(IRBACService rbacService)
     {
         _rbacService = rbacService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -52,7 +50,9 @@ public class RolesController : CrmControllerBase
     {
                 var role = await _rbacService.GetRoleByIdAsync(roleId, cancellationToken);
         if (role == null)
+        {
             return NotFound();
+        }
 
         return Ok(role);
     }
@@ -67,7 +67,9 @@ public class RolesController : CrmControllerBase
     {
                 var role = await _rbacService.GetRoleByNameAsync(roleName, cancellationToken);
         if (role == null)
+        {
             return NotFound();
+        }
 
         return Ok(role);
     }
@@ -83,7 +85,9 @@ public class RolesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var result = await _rbacService.CreateRoleAsync(createRoleDto, cancellationToken);
             return CreatedAtAction(nameof(GetRoleById), new { roleId = result.Id }, result);

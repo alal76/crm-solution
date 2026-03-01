@@ -44,13 +44,19 @@ public class LeadScoreRulesController : CrmControllerBase
         var query = _context.LeadScoreRules.AsQueryable();
 
         if (ruleType.HasValue)
+        {
             query = query.Where(r => r.RuleType == ruleType);
+        }
 
         if (isActive.HasValue)
+        {
             query = query.Where(r => r.IsActive == isActive);
+        }
 
         if (!string.IsNullOrWhiteSpace(category))
+        {
             query = query.Where(r => r.Category == category);
+        }
 
         var rules = await query
             .OrderBy(r => r.Priority)
@@ -71,7 +77,9 @@ public class LeadScoreRulesController : CrmControllerBase
         var rule = await _context.LeadScoreRules.FindAsync(id);
 
         if (rule == null)
+        {
             return NotFound();
+        }
 
         return Ok(rule);
     }
@@ -126,7 +134,9 @@ public class LeadScoreRulesController : CrmControllerBase
         var rule = await _context.LeadScoreRules.FindAsync(id);
 
         if (rule == null)
+        {
             return NotFound();
+        }
 
         rule.Name = dto.Name;
         rule.Description = dto.Description;
@@ -165,7 +175,9 @@ public class LeadScoreRulesController : CrmControllerBase
         var rule = await _context.LeadScoreRules.FindAsync(id);
 
         if (rule == null)
+        {
             return NotFound();
+        }
 
         rule.IsActive = !rule.IsActive;
         rule.UpdatedAt = DateTime.UtcNow;
@@ -189,7 +201,9 @@ public class LeadScoreRulesController : CrmControllerBase
         var rule = await _context.LeadScoreRules.FindAsync(id);
 
         if (rule == null)
+        {
             return NotFound();
+        }
 
         _context.LeadScoreRules.Remove(rule);
         await _context.SaveChangesAsync();

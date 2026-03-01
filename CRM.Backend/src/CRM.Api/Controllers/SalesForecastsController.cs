@@ -67,7 +67,9 @@ public class SalesForecastsController : CrmControllerBase
         {
             var forecast = await _service.GetByIdAsync(id, cancellationToken);
             if (forecast == null)
+            {
                 return NotFound(string.Format(ForecastNotFoundMessage, id));
+            }
             return Ok(forecast);
         }
         catch (Exception ex)
@@ -87,7 +89,9 @@ public class SalesForecastsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var created = await _service.CreateAsync(forecast, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -109,10 +113,14 @@ public class SalesForecastsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var updated = await _service.UpdateAsync(id, forecast, cancellationToken);
             if (!updated)
+            {
                 return NotFound(string.Format(ForecastNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)
@@ -133,7 +141,9 @@ public class SalesForecastsController : CrmControllerBase
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
             if (!deleted)
+            {
                 return NotFound(string.Format(ForecastNotFoundMessage, id));
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -158,7 +168,9 @@ public class SalesForecastsController : CrmControllerBase
         {
             var result = await _service.SubmitAsync(id, cancellationToken);
             if (!result)
+            {
                 return NotFound(string.Format(ForecastNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)

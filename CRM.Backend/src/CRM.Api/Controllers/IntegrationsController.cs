@@ -24,20 +24,17 @@ public class IntegrationsController : CrmControllerBase
     private readonly IMarketingSyncService _marketingSync;
     private readonly ILinkedInSalesNavService _linkedIn;
     private readonly ISchedulingIntegrationService _scheduling;
-    private readonly ILogger<IntegrationsController> _logger;
 
     public IntegrationsController(
         IAccountingSyncService accountingSync,
         IMarketingSyncService marketingSync,
         ILinkedInSalesNavService linkedIn,
-        ISchedulingIntegrationService scheduling,
-        ILogger<IntegrationsController> logger)
+        ISchedulingIntegrationService scheduling)
     {
         _accountingSync = accountingSync;
         _marketingSync = marketingSync;
         _linkedIn = linkedIn;
         _scheduling = scheduling;
-        _logger = logger;
     }
 
     // ------------------------------------------------------------------ //

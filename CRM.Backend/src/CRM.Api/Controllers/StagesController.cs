@@ -20,11 +20,9 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class StagesController : CrmControllerBase
 {
-    private readonly ILogger<StagesController> _logger;
 
-    public StagesController(ILogger<StagesController> logger)
+    public StagesController()
     {
-        _logger = logger;
     }
 
     /// <summary>

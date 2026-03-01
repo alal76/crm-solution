@@ -23,12 +23,10 @@ namespace CRM.Api.Controllers;
 public class IncidentCategoriesController : CrmControllerBase
 {
     private readonly IIncidentCategoryService _service;
-    private readonly ILogger<IncidentCategoriesController> _logger;
 
-    public IncidentCategoriesController(IIncidentCategoryService service, ILogger<IncidentCategoriesController> logger)
+    public IncidentCategoriesController(IIncidentCategoryService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpPost]

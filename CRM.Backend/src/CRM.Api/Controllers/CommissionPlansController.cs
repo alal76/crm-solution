@@ -70,7 +70,9 @@ public class CommissionPlansController : CrmControllerBase
                 _logger.LogInformation("Getting commission plan: id={Id}", id);
         var result = await _service.GetByIdAsync(id, cancellationToken);
         if (result == null)
+        {
             return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+        }
 
         return Ok(result);
     }
@@ -107,7 +109,9 @@ public class CommissionPlansController : CrmControllerBase
                 _logger.LogInformation("Updating commission plan: id={Id}", id);
         var result = await _service.UpdateAsync(id, dto, cancellationToken);
         if (result == null)
+        {
             return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+        }
 
         return Ok(result);
     }
@@ -142,7 +146,9 @@ public class CommissionPlansController : CrmControllerBase
                 _logger.LogInformation("Activating commission plan: id={Id}", id);
         var result = await _service.ActivateAsync(id, cancellationToken);
         if (!result)
+        {
             return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+        }
 
         return Ok(new { message = "Commission plan activated successfully" });
     }
@@ -161,7 +167,9 @@ public class CommissionPlansController : CrmControllerBase
                 _logger.LogInformation("Deactivating commission plan: id={Id}", id);
         var result = await _service.DeactivateAsync(id, cancellationToken);
         if (!result)
+        {
             return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+        }
 
         return Ok(new { message = "Commission plan deactivated successfully" });
     }
@@ -214,7 +222,9 @@ public class CommissionPlansController : CrmControllerBase
                 _logger.LogInformation("Getting tiers for commission plan: planId={PlanId}", id);
         var result = await _service.GetTiersAsync(id, cancellationToken);
         if (result == null)
+        {
             return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+        }
 
         return Ok(result);
     }
@@ -235,7 +245,9 @@ public class CommissionPlansController : CrmControllerBase
                 _logger.LogInformation("Adding tier to commission plan: planId={PlanId}", id);
         var result = await _service.AddTierAsync(id, dto, cancellationToken);
         if (result == null)
+        {
             return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
+        }
 
         return CreatedAtAction(nameof(GetTiers), new { id }, result);
     }
@@ -257,7 +269,9 @@ public class CommissionPlansController : CrmControllerBase
                 _logger.LogInformation("Updating tier: planId={PlanId}, tierId={TierId}", id, tierId);
         var result = await _service.UpdateTierAsync(tierId, dto, cancellationToken);
         if (result == null)
+        {
             return NotFound(new { message = $"Tier with id {tierId} not found in plan {id}" });
+        }
 
         return Ok(result);
     }

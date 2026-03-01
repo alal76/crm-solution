@@ -91,6 +91,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/*.tgz
-            dist/checksums.txt
+            ./dist/*.tgz
+            ./dist/checksums.txt
           generate_release_notes: true

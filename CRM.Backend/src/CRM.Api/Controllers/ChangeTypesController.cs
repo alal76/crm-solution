@@ -70,7 +70,9 @@ public class ChangeTypesController : CrmControllerBase
                 _logger.LogInformation("Getting change type: id={Id}", id);
         var result = await _service.GetByIdAsync(id, cancellationToken);
         if (result == null)
+        {
             return NotFound(new { message = $"Change type with id {id} not found" });
+        }
 
         return Ok(result);
     }
@@ -92,7 +94,9 @@ public class ChangeTypesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             _logger.LogInformation("Creating new change type: {TypeName}", dto.TypeName);
             var result = await _service.CreateAsync(dto, cancellationToken);
@@ -125,7 +129,9 @@ public class ChangeTypesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             _logger.LogInformation("Updating change type: id={Id}", id);
             var result = await _service.UpdateAsync(id, dto, cancellationToken);

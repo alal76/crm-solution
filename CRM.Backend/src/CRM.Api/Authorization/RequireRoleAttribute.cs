@@ -37,12 +37,9 @@ public class RequireRoleAttribute : Attribute, IAsyncAuthorizationFilter
         var roleClaim = user.FindFirst("http://schemas.microsoft.com/ws/2008/06/identity/claims/role")
             ?? user.FindFirst(ClaimTypes.Role);
 
-        if (roleClaim != null && Enum.TryParse<CRM.Core.Entities.UserRole>(roleClaim.Value, out var userRole))
+        if (roleClaim != null && Enum.TryParse<CRM.Core.Entities.UserRole>(roleClaim.Value, out var userRole) && _allowedRoles.Contains(userRole))
         {
-            if (_allowedRoles.Contains(userRole))
-            {
-                return Task.CompletedTask;
-            }
+            return Task.CompletedTask;
         }
 
         context.Result = new ForbidResult();

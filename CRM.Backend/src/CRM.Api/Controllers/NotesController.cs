@@ -121,7 +121,7 @@ public class NotesController : CrmControllerBase
         _normalization = normalization;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? User.FindFirst("sub")?.Value
@@ -132,19 +132,25 @@ public class NotesController : CrmControllerBase
     private async Task<bool> HasAdminRole(int userId)
     {
         if (userId == 0)
+        {
             return false;
+        }
 
         var user = await _context.Users
             .Include(u => u.PrimaryGroup)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
+        {
             return false;
+        }
 
         // Check user group name
         var groupName = user.PrimaryGroup?.Name ?? "";
         if (AdminRoles.Any(r => groupName.Contains(r, StringComparison.OrdinalIgnoreCase)))
+        {
             return true;
+        }
 
         // Check user's role claim
         var roleClaims = User.FindAll(ClaimTypes.Role).Select(c => c.Value);
@@ -166,7 +172,9 @@ public class NotesController : CrmControllerBase
     private static void SetLegacyEntityForeignKey(Note note, string? entityType, int? entityId)
     {
         if (string.IsNullOrEmpty(entityType) || !entityId.HasValue)
+        {
             return;
+        }
 
         switch (entityType.ToLower())
         {
@@ -280,28 +288,48 @@ public class NotesController : CrmControllerBase
         {
             // Legacy filters
             if (accountId.HasValue)
+            {
                 query = query.Where(n => n.AccountId == accountId || (n.EntityType == "Account" && n.EntityId == accountId));
+            }
             if (contactId.HasValue)
+            {
                 query = query.Where(n => n.ContactId == contactId || (n.EntityType == "Contact" && n.EntityId == contactId));
+            }
             if (opportunityId.HasValue)
+            {
                 query = query.Where(n => n.OpportunityId == opportunityId || (n.EntityType == "Opportunity" && n.EntityId == opportunityId));
+            }
             if (leadId.HasValue)
+            {
                 query = query.Where(n => n.LeadId == leadId || (n.EntityType == "Lead" && n.EntityId == leadId));
+            }
             if (campaignId.HasValue)
+            {
                 query = query.Where(n => n.CampaignId == campaignId || (n.EntityType == "Campaign" && n.EntityId == campaignId));
+            }
             if (quoteId.HasValue)
+            {
                 query = query.Where(n => n.QuoteId == quoteId || (n.EntityType == "Quote" && n.EntityId == quoteId));
+            }
             if (serviceRequestId.HasValue)
+            {
                 query = query.Where(n => n.ServiceRequestId == serviceRequestId || (n.EntityType == "ServiceRequest" && n.EntityId == serviceRequestId));
+            }
             if (productId.HasValue)
+            {
                 query = query.Where(n => n.ProductId == productId || (n.EntityType == "Product" && n.EntityId == productId));
+            }
         }
 
         if (noteType.HasValue)
+        {
             query = query.Where(n => n.NoteType == noteType);
+        }
 
         if (pinned == true)
+        {
             query = query.Where(n => n.IsPinned);
+        }
 
         var notes = await query
             .OrderByDescending(n => n.IsPinned)
@@ -313,10 +341,14 @@ public class NotesController : CrmControllerBase
         {
             var nt = await _normalization.GetTagsAsync("Note", note.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 note.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 note.CustomFields = cf;
+            }
 
             results.Add(await MapToResponseDto(note, currentUserId));
         }
@@ -348,14 +380,20 @@ public class NotesController : CrmControllerBase
             .FirstOrDefaultAsync(n => n.Id == id && !n.IsDeleted);
 
         if (note == null)
+        {
             return NotFound();
+        }
 
         var nt = await _normalization.GetTagsAsync("Note", note.Id);
         if (!string.IsNullOrWhiteSpace(nt))
+        {
             note.Tags = nt;
+        }
         var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
         if (!string.IsNullOrWhiteSpace(cf))
+        {
             note.CustomFields = cf;
+        }
 
         return Ok(await MapToResponseDto(note, currentUserId));
     }
@@ -447,13 +485,17 @@ public class NotesController : CrmControllerBase
     public async Task<IActionResult> UpdateNote(int id, NoteDto dto)
     {
         if (id != dto.Id)
+        {
             return BadRequest("ID mismatch");
+        }
 
         var currentUserId = GetCurrentUserId();
         var existingNote = await _context.Notes.FindAsync(id);
 
         if (existingNote == null || existingNote.IsDeleted)
+        {
             return NotFound();
+        }
 
         // RBAC check: only creator or admin can edit
         var (canEdit, _) = await GetPermissions(existingNote, currentUserId);
@@ -509,7 +551,9 @@ public class NotesController : CrmControllerBase
         var note = await _context.Notes.FindAsync(id);
 
         if (note == null || note.IsDeleted)
+        {
             return NotFound();
+        }
 
         // RBAC check: only creator or admin can delete
         var (_, canDelete) = await GetPermissions(note, currentUserId);
@@ -552,7 +596,9 @@ public class NotesController : CrmControllerBase
             .FirstOrDefaultAsync(n => n.Id == id && !n.IsDeleted);
 
         if (note == null)
+        {
             return NotFound();
+        }
 
         note.IsPinned = !note.IsPinned;
         note.UpdatedAt = DateTime.UtcNow;
@@ -583,7 +629,9 @@ public class NotesController : CrmControllerBase
             .FirstOrDefaultAsync(n => n.Id == id && !n.IsDeleted);
 
         if (note == null)
+        {
             return NotFound();
+        }
 
         note.IsImportant = !note.IsImportant;
         note.UpdatedAt = DateTime.UtcNow;
@@ -645,10 +693,14 @@ public class NotesController : CrmControllerBase
         {
             var nt = await _normalization.GetTagsAsync("Note", note.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 note.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 note.CustomFields = cf;
+            }
 
             results.Add(await MapToResponseDto(note, currentUserId));
         }

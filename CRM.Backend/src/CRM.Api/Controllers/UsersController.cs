@@ -75,13 +75,19 @@ public class UsersController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.Email))
+            {
                 return BadRequest(new { message = "Email is required" });
+            }
 
             if (string.IsNullOrWhiteSpace(request.FirstName))
+            {
                 return BadRequest(new { message = "First name is required" });
+            }
 
             if (string.IsNullOrWhiteSpace(request.LastName))
+            {
                 return BadRequest(new { message = "Last name is required" });
+            }
 
             UserDto userDto;
             // Use provided username or fall back to email
@@ -118,9 +124,13 @@ public class UsersController : CrmControllerBase
                 if (user != null)
                 {
                     if (request.DepartmentId.HasValue)
+                    {
                         user.DepartmentId = request.DepartmentId.Value;
+                    }
                     if (request.PrimaryGroupId.HasValue)
+                    {
                         user.PrimaryGroupId = request.PrimaryGroupId.Value;
+                    }
                     await _dbContext.SaveChangesAsync();
                 }
             }
@@ -204,7 +214,9 @@ public class UsersController : CrmControllerBase
     {
                 var user = await _userRepository.GetByIdAsync(id);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         ContactDto? contact = null;
         if (user.ContactId.HasValue)
@@ -234,19 +246,25 @@ public class UsersController : CrmControllerBase
     {
                 var user = await _userRepository.GetByIdAsync(id);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         // Verify profile exists
         var profile = await _profileRepository.GetByIdAsync(assignDto.UserProfileId);
         if (profile == null || profile.IsDeleted)
+        {
             return BadRequest(new { message = "Profile not found" });
+        }
 
         // Verify department exists if provided
         if (assignDto.DepartmentId.HasValue)
         {
             var department = await _departmentRepository.GetByIdAsync(assignDto.DepartmentId.Value);
             if (department == null || department.IsDeleted)
+            {
                 return BadRequest(new { message = "Department not found" });
+            }
 
             user.DepartmentId = assignDto.DepartmentId;
         }
@@ -279,7 +297,9 @@ public class UsersController : CrmControllerBase
     {
                 var user = await _userRepository.GetByIdAsync(id);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         user.Email = updateDto.Email ?? user.Email;
         user.FirstName = updateDto.FirstName ?? user.FirstName;
@@ -295,7 +315,9 @@ public class UsersController : CrmControllerBase
         {
             var contact = await _contactsService.GetByIdAsync(updateDto.ContactId.Value);
             if (contact == null)
+            {
                 return BadRequest(new { message = "Contact not found" });
+            }
             user.ContactId = updateDto.ContactId;
         }
 
@@ -332,20 +354,26 @@ public class UsersController : CrmControllerBase
     {
                 var user = await _userRepository.GetByIdAsync(id);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         ContactDto? contact = null;
         if (linkDto.ContactId.HasValue)
         {
             contact = await _contactsService.GetByIdAsync(linkDto.ContactId.Value);
             if (contact == null)
+            {
                 return BadRequest(new { message = "Contact not found" });
+            }
 
             // Check if contact is already linked to another user
             var allUsers = await _userRepository.GetAllAsync();
             var existingLink = allUsers.FirstOrDefault(u => u.ContactId == linkDto.ContactId && u.Id != id && !u.IsDeleted);
             if (existingLink != null)
+            {
                 return BadRequest(new { message = $"Contact is already linked to user: {existingLink.Username}" });
+            }
         }
 
         user.ContactId = linkDto.ContactId;
@@ -375,7 +403,9 @@ public class UsersController : CrmControllerBase
     {
                 var user = await _userRepository.GetByIdAsync(id);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         user.ContactId = null;
         user.UpdatedAt = DateTime.UtcNow;
@@ -404,7 +434,9 @@ public class UsersController : CrmControllerBase
         var user = users.FirstOrDefault(u => u.ContactId == contactId && !u.IsDeleted);
 
         if (user == null)
+        {
             return Ok(null);
+        }
 
         var contact = await _contactsService.GetByIdAsync(contactId);
         return Ok(MapToDto(user, contact));
@@ -426,7 +458,9 @@ public class UsersController : CrmControllerBase
     {
                 var user = await _userRepository.GetByIdAsync(id);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         user.IsDeleted = true;
         user.UpdatedAt = DateTime.UtcNow;
@@ -453,7 +487,9 @@ public class UsersController : CrmControllerBase
     {
                 var user = await _userRepository.GetByIdAsync(id);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         user.UserProfileId = null;
         user.UpdatedAt = DateTime.UtcNow;
@@ -479,11 +515,15 @@ public class UsersController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
             return Unauthorized(new { message = "User not authenticated" });
+        }
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         return Ok(new UserPreferencesDto
         {
@@ -518,46 +558,73 @@ public class UsersController : CrmControllerBase
     {
                 var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
             return Unauthorized(new { message = "User not authenticated" });
+        }
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null || user.IsDeleted)
+        {
             return NotFound(new { message = UserNotFoundMessage });
+        }
 
         // Validate theme preference
         var validThemes = new[] { "system", "light", "dark", "high-contrast" };
         if (!string.IsNullOrEmpty(dto.ThemePreference) && !validThemes.Contains(dto.ThemePreference.ToLower()))
+        {
             return BadRequest(new { message = "Invalid theme preference. Valid values: system, light, dark, high-contrast" });
+        }
 
         // Update theme preference
         if (!string.IsNullOrEmpty(dto.ThemePreference))
+        {
             user.ThemePreference = dto.ThemePreference.ToLower();
+        }
 
         // Update header color
-        if (dto.HeaderColor != null) // Allow empty string to clear
+        if (dto.HeaderColor != null)
+        {
+            // Allow empty string to clear
+        }
             user.HeaderColor = string.IsNullOrEmpty(dto.HeaderColor) ? null : dto.HeaderColor;
 
         // Update regional settings
         if (dto.Language != null)
+        {
             user.Language = string.IsNullOrEmpty(dto.Language) ? null : dto.Language;
+        }
         if (dto.Timezone != null)
+        {
             user.Timezone = string.IsNullOrEmpty(dto.Timezone) ? null : dto.Timezone;
+        }
         if (dto.DateFormat != null)
+        {
             user.DateFormat = string.IsNullOrEmpty(dto.DateFormat) ? null : dto.DateFormat;
+        }
         if (dto.TimeFormat != null)
+        {
             user.TimeFormat = string.IsNullOrEmpty(dto.TimeFormat) ? null : dto.TimeFormat;
+        }
 
         // Update display settings
         if (dto.RowsPerPage.HasValue)
+        {
             user.RowsPerPage = dto.RowsPerPage;
+        }
         if (dto.CompactMode.HasValue)
+        {
             user.CompactMode = dto.CompactMode;
+        }
 
         // Update notification settings
         if (dto.EmailNotifications.HasValue)
+        {
             user.EmailNotifications = dto.EmailNotifications;
+        }
         if (dto.DesktopNotifications.HasValue)
+        {
             user.DesktopNotifications = dto.DesktopNotifications;
+        }
 
         user.UpdatedAt = DateTime.UtcNow;
 

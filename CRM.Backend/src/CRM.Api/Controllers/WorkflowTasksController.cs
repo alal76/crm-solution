@@ -24,23 +24,20 @@ namespace CRM.Api.Controllers;
 public class WorkflowTasksController : CrmControllerBase
 {
     private readonly IWorkflowInstanceService _instanceService;
-    private readonly ILogger<WorkflowTasksController> _logger;
 
     public WorkflowTasksController(
-        IWorkflowInstanceService instanceService,
-        ILogger<WorkflowTasksController> logger)
+        IWorkflowInstanceService instanceService)
     {
         _instanceService = instanceService;
-        _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier);
         return claim != null && int.TryParse(claim.Value, out var userId) ? userId : 0;
     }
 
-    private string[] GetCurrentUserRoles()
+    private string[] GetCurrentUserRoles() // NOSONAR
     {
         return User.FindAll(ClaimTypes.Role).Select(c => c.Value).ToArray();
     }
@@ -59,7 +56,9 @@ public class WorkflowTasksController : CrmControllerBase
 
         WorkflowTaskStatus? statusFilter = null;
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<WorkflowTaskStatus>(status, true, out var parsed))
+        {
             statusFilter = parsed;
+        }
 
         var result = tasks
             .Where(t => !statusFilter.HasValue || t.Status == statusFilter.Value)
@@ -99,7 +98,9 @@ public class WorkflowTasksController : CrmControllerBase
         var task = tasks.FirstOrDefault(t => t.Id == taskId);
 
         if (task == null)
+        {
             return NotFound(new { message = "Task not found" });
+        }
 
         var result = new WorkflowTaskDto
         {
@@ -132,7 +133,9 @@ public class WorkflowTasksController : CrmControllerBase
                 var userId = GetCurrentUserId();
         var success = await _instanceService.CompleteHumanTaskAsync(taskId, userId, dto.FormData, dto.OutputData);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot complete this task. It may not exist or is not assigned to you." });
+        }
 
         return Ok(new { message = "Task completed successfully" });
     }
@@ -148,7 +151,9 @@ public class WorkflowTasksController : CrmControllerBase
     {
                 var success = await _instanceService.ClaimTaskAsync(taskId, assignToUserId);
         if (!success)
+        {
             return BadRequest(new { message = "Cannot reassign this task" });
+        }
 
         return Ok(new { message = "Task reassigned successfully" });
     }

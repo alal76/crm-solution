@@ -23,14 +23,11 @@ public class AdminDashboardController : CrmControllerBase
 {
     private const string MetricsErrorMessage = "Error retrieving metrics";
     private readonly IAdminDashboardService _adminDashboardService;
-    private readonly ILogger<AdminDashboardController> _logger;
 
     public AdminDashboardController(
-        IAdminDashboardService adminDashboardService,
-        ILogger<AdminDashboardController> logger)
+        IAdminDashboardService adminDashboardService)
     {
         _adminDashboardService = adminDashboardService;
-        _logger = logger;
     }
 
     /// <summary>

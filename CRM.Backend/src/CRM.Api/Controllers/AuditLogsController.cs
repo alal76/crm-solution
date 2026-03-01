@@ -47,7 +47,6 @@ public class AuditLogsController : CrmControllerBase
 {
     private readonly IAuditLogService _auditLogService;
     private readonly IAuditLogExportService? _exportService;
-    private readonly ILogger<AuditLogsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AuditLogsController"/> class.
@@ -57,11 +56,9 @@ public class AuditLogsController : CrmControllerBase
     /// <param name="exportService">Dedicated export service (optional).</param>
     public AuditLogsController(
         IAuditLogService auditLogService,
-        ILogger<AuditLogsController> logger,
         IAuditLogExportService? exportService = null)
     {
         _auditLogService = auditLogService;
-        _logger = logger;
         _exportService = exportService;
     }
 
@@ -315,12 +312,16 @@ public class AuditLogsController : CrmControllerBase
         CancellationToken cancellationToken = default)
     {
         if (request == null)
+        {
             return BadRequest(new { error = "Request body is required" });
+        }
 
         if (_exportService == null)
+        {
             return StatusCode(501, new { error = "Export service is not configured" });
+        }
 
-                var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
 
         byte[] data;
         string contentType;

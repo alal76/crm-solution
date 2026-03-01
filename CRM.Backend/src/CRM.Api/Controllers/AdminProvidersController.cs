@@ -45,7 +45,7 @@ public class AdminProvidersController : CrmControllerBase
     [ProducesResponseType(typeof(IEnumerable<ProviderRegistryEntry>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllProviders(CancellationToken cancellationToken = default)
     {
-                var providers = await _registry.GetAllProvidersAsync(cancellationToken);
+        var providers = await _registry.GetAllProvidersAsync(cancellationToken);
         return Ok(providers);
     }
 
@@ -60,10 +60,12 @@ public class AdminProvidersController : CrmControllerBase
         [FromRoute] string category,
         CancellationToken cancellationToken = default)
     {
-                var providers = await _registry.GetProvidersByCategoryAsync(category, cancellationToken);
+        var providers = await _registry.GetProvidersByCategoryAsync(category, cancellationToken);
         var list = providers.ToList();
         if (!list.Any())
+        {
             return NotFound(new { message = $"No providers found for category '{category}'" });
+        }
 
         return Ok(list);
     }
@@ -79,9 +81,11 @@ public class AdminProvidersController : CrmControllerBase
         [FromRoute] string category,
         CancellationToken cancellationToken = default)
     {
-                var config = await _registry.GetActiveProviderConfigAsync(category, cancellationToken);
+        var config = await _registry.GetActiveProviderConfigAsync(category, cancellationToken);
         if (config == null)
+        {
             return NotFound(new { message = $"No active provider configuration found for category '{category}'" });
+        }
 
         return Ok(config);
     }
@@ -101,11 +105,15 @@ public class AdminProvidersController : CrmControllerBase
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.ProviderType))
+        {
             return BadRequest(new { message = "providerType is required" });
+        }
 
-                var available = await _registry.IsProviderAvailableAsync(category, request.ProviderType, cancellationToken);
+        var available = await _registry.IsProviderAvailableAsync(category, request.ProviderType, cancellationToken);
         if (!available)
+        {
             return NotFound(new { message = $"Provider '{request.ProviderType}' is not registered in category '{category}'" });
+        }
 
         await _registry.SetActiveProviderAsync(category, request.ProviderType, request.Config ?? new(), cancellationToken);
 
@@ -187,7 +195,7 @@ public class AdminProvidersController : CrmControllerBase
     [ProducesResponseType(typeof(ProviderFeatureFlagsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFeatureFlags(CancellationToken cancellationToken = default)
     {
-                var flags = await _registry.GetProviderFeatureFlagsAsync(cancellationToken);
+        var flags = await _registry.GetProviderFeatureFlagsAsync(cancellationToken);
         return Ok(flags);
     }
 
@@ -204,9 +212,11 @@ public class AdminProvidersController : CrmControllerBase
         CancellationToken cancellationToken = default)
     {
         if (request?.Flags == null || !request.Flags.Any())
+        {
             return BadRequest(new { message = "At least one feature flag must be provided" });
+        }
 
-                await _registry.UpdateProviderFeatureFlagsAsync(request.Flags, cancellationToken);
+        await _registry.UpdateProviderFeatureFlagsAsync(request.Flags, cancellationToken);
         _logger.LogInformation("Admin updated {Count} provider feature flag(s)", request.Flags.Count);
         return Ok(new { message = $"{request.Flags.Count} feature flag(s) updated successfully" });
     }

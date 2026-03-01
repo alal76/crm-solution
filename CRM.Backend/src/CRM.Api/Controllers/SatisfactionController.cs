@@ -55,7 +55,10 @@ public class SatisfactionController : CrmControllerBase
         [FromBody] CreateSatisfactionSurveyDto dto,
         CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
         var created = await _service.CreateSurveyAsync(dto, ct);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
@@ -67,7 +70,10 @@ public class SatisfactionController : CrmControllerBase
         [FromBody] SubmitSatisfactionResponseDto dto,
         CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
 
         try
         {

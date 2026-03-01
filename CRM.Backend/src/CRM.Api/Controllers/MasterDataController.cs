@@ -574,7 +574,10 @@ public class MasterDataController : CrmControllerBase
     public async Task<IActionResult> GetBranding()
     {
                 var settings = await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
-        if (settings == null) return Ok(new { });
+        if (settings == null)
+        {
+            return Ok(new { });
+        }
         return Ok(new
         {
             // Company Identity
@@ -617,18 +620,48 @@ public class MasterDataController : CrmControllerBase
     public async Task<IActionResult> UpdateBranding([FromBody] UpdateBrandingRequest request)
     {
                 var settings = await _dbContext.SystemSettings.FirstOrDefaultAsync();
-        if (settings == null) return NotFound(new { message = "System settings not found" });
+        if (settings == null)
+        {
+            return NotFound(new { message = "System settings not found" });
+        }
 
         // Update company identity fields (not in UpdateSystemSettingsRequest)
-        if (request.CompanyFullName != null) settings.CompanyFullName = request.CompanyFullName;
-        if (request.CompanyLegalName != null) settings.CompanyLegalName = request.CompanyLegalName;
-        if (request.CompanyWebsite != null) settings.CompanyWebsite = request.CompanyWebsite;
-        if (request.CompanyEmail != null) settings.CompanyEmail = request.CompanyEmail;
-        if (request.CompanyPhone != null) settings.CompanyPhone = request.CompanyPhone;
-        if (request.CompanyTaxId != null) settings.CompanyTaxId = request.CompanyTaxId;
-        if (request.CompanyRegistrationNumber != null) settings.CompanyRegistrationNumber = request.CompanyRegistrationNumber;
-        if (request.CompanyIndustry != null) settings.CompanyIndustry = request.CompanyIndustry;
-        if (request.CompanyDescription != null) settings.CompanyDescription = request.CompanyDescription;
+        if (request.CompanyFullName != null)
+        {
+            settings.CompanyFullName = request.CompanyFullName;
+        }
+        if (request.CompanyLegalName != null)
+        {
+            settings.CompanyLegalName = request.CompanyLegalName;
+        }
+        if (request.CompanyWebsite != null)
+        {
+            settings.CompanyWebsite = request.CompanyWebsite;
+        }
+        if (request.CompanyEmail != null)
+        {
+            settings.CompanyEmail = request.CompanyEmail;
+        }
+        if (request.CompanyPhone != null)
+        {
+            settings.CompanyPhone = request.CompanyPhone;
+        }
+        if (request.CompanyTaxId != null)
+        {
+            settings.CompanyTaxId = request.CompanyTaxId;
+        }
+        if (request.CompanyRegistrationNumber != null)
+        {
+            settings.CompanyRegistrationNumber = request.CompanyRegistrationNumber;
+        }
+        if (request.CompanyIndustry != null)
+        {
+            settings.CompanyIndustry = request.CompanyIndustry;
+        }
+        if (request.CompanyDescription != null)
+        {
+            settings.CompanyDescription = request.CompanyDescription;
+        }
         settings.LastModified = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
 
@@ -739,7 +772,10 @@ public class MasterDataController : CrmControllerBase
             var regionLower = region.ToLower();
             items = items.Where(i =>
             {
-                if (i.Meta == null) return false;
+                if (i.Meta == null)
+                {
+                    return false;
+                }
                 try { var m = JsonSerializer.Deserialize<JsonElement>(i.Meta); return m.TryGetProperty("region", out var r) && (r.GetString() ?? "").ToLower() == regionLower; }
                 catch { return false; }
             });

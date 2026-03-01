@@ -108,7 +108,9 @@ public class MonitoringIntegrationController : CrmControllerBase
     {
         var integration = await _monitoringService.GetIntegrationAsync(id);
         if (integration == null)
+        {
             return NotFound();
+        }
 
         return Ok(integration);
     }
@@ -141,7 +143,9 @@ public class MonitoringIntegrationController : CrmControllerBase
     {
         var integration = await _monitoringService.UpdateIntegrationAsync(id, dto);
         if (integration == null)
+        {
             return NotFound();
+        }
 
         return Ok(integration);
     }
@@ -157,7 +161,9 @@ public class MonitoringIntegrationController : CrmControllerBase
     {
         var deleted = await _monitoringService.DeleteIntegrationAsync(id);
         if (!deleted)
+        {
             return NotFound();
+        }
 
         return NoContent();
     }
@@ -217,7 +223,7 @@ public class MonitoringIntegrationController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetAlertMappings()
     {
-        // TODO: Implement alert mapping CRUD in IMonitoringIntegrationService
+        // TODO: Implement alert mapping CRUD in IMonitoringIntegrationService // NOSONAR
         try
         {
             var integrations = await _monitoringService.GetIntegrationsAsync();

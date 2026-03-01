@@ -67,7 +67,9 @@ public class CampaignMetricsController : CrmControllerBase
                 _logger.LogInformation("Getting metrics for campaign: id={CampaignId}", id);
         var result = await _service.GetMetricsAsync(id, cancellationToken);
         if (result == null)
+        {
             return NotFound(new { message = $"Campaign with id {id} not found" });
+        }
 
         return Ok(result);
     }
@@ -120,7 +122,9 @@ public class CampaignMetricsController : CrmControllerBase
             dto.SourceCampaignId, dto.TargetCampaignId);
         var result = await _service.DuplicateAsync(dto, cancellationToken);
         if (result == null)
+        {
             return NotFound(new { message = "Source campaign metrics not found" });
+        }
 
         return CreatedAtAction(nameof(GetMetrics), new { id = dto.TargetCampaignId }, result);
     }

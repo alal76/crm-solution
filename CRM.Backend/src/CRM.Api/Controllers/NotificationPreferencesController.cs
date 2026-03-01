@@ -43,7 +43,10 @@ public class NotificationPreferencesController : CrmControllerBase
     [ProducesResponseType(typeof(IEnumerable<NotificationPreference>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(int userId, CancellationToken ct)
     {
-        if (!CanAccessUser(userId)) return Forbid();
+        if (!CanAccessUser(userId))
+        {
+            return Forbid();
+        }
 
         var prefs = await _db.NotificationPreferences
             .AsNoTracking()
@@ -63,7 +66,10 @@ public class NotificationPreferencesController : CrmControllerBase
         [FromBody] List<NotificationPreferenceDto> preferences,
         CancellationToken ct)
     {
-        if (!CanAccessUser(userId)) return Forbid();
+        if (!CanAccessUser(userId))
+        {
+            return Forbid();
+        }
 
         foreach (var dto in preferences)
         {
@@ -105,7 +111,10 @@ public class NotificationPreferencesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> ResetAll(int userId, CancellationToken ct)
     {
-        if (!CanAccessUser(userId)) return Forbid();
+        if (!CanAccessUser(userId))
+        {
+            return Forbid();
+        }
 
         var prefs = await _db.NotificationPreferences
             .Where(p => p.UserId == userId && !p.IsDeleted)
@@ -118,7 +127,9 @@ public class NotificationPreferencesController : CrmControllerBase
         }
 
         if (prefs.Count > 0)
+        {
             await _db.SaveChangesAsync(ct);
+        }
 
         return NoContent();
     }
@@ -130,7 +141,10 @@ public class NotificationPreferencesController : CrmControllerBase
     public async Task<IActionResult> GetSingle(
         int userId, string entityType, string eventType, NotificationChannel channel, CancellationToken ct)
     {
-        if (!CanAccessUser(userId)) return Forbid();
+        if (!CanAccessUser(userId))
+        {
+            return Forbid();
+        }
 
         var pref = await _db.NotificationPreferences
             .AsNoTracking()

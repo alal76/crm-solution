@@ -86,7 +86,9 @@ public class ApiUsersController : CrmControllerBase
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
         if (user == null)
+        {
             return NotFound(new { error = ApiUserNotFoundMessage });
+        }
 
         return Ok(MapToApiUserDto(user));
     }
@@ -102,15 +104,21 @@ public class ApiUsersController : CrmControllerBase
     public async Task<ActionResult<ApiKeyResponse>> Create([FromBody] CreateApiUserRequest request)
     {
                 if (string.IsNullOrWhiteSpace(request.Name))
+                {
             return BadRequest(new { error = "Name is required" });
+                }
         if (string.IsNullOrWhiteSpace(request.Email))
+        {
             return BadRequest(new { error = "Email is required" });
+        }
 
         // Check for duplicate email
         var exists = await _dbContext.Users
             .AnyAsync(u => !u.IsDeleted && u.Email.ToLower() == request.Email.Trim().ToLower());
         if (exists)
+        {
             return Conflict(new { error = "A user with this email already exists" });
+        }
 
         // Validate group is an API group if specified
         if (request.PrimaryGroupId.HasValue)
@@ -118,9 +126,13 @@ public class ApiUsersController : CrmControllerBase
             var group = await _dbContext.UserGroups
                 .FirstOrDefaultAsync(g => g.Id == request.PrimaryGroupId.Value && !g.IsDeleted);
             if (group == null)
+            {
                 return BadRequest(new { error = "Specified group not found" });
+            }
             if (!group.IsApiGroup)
+            {
                 return BadRequest(new { error = "API users can only be assigned to API groups. The specified group is not an API group." });
+            }
         }
 
         // Generate API key
@@ -176,7 +188,9 @@ public class ApiUsersController : CrmControllerBase
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
         if (user == null)
+        {
             return NotFound(new { error = ApiUserNotFoundMessage });
+        }
 
         var (rawKey, hash, prefix) = ApiKeyAuthenticationHandler.GenerateApiKey();
 
@@ -213,7 +227,9 @@ public class ApiUsersController : CrmControllerBase
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
         if (user == null)
+        {
             return NotFound(new { error = ApiUserNotFoundMessage });
+        }
 
         user.IsActive = false;
         user.ApiKeyHash = null;
@@ -240,7 +256,9 @@ public class ApiUsersController : CrmControllerBase
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
         if (user == null)
+        {
             return NotFound(new { error = ApiUserNotFoundMessage });
+        }
 
         // Validate group is an API group if specified
         if (request.PrimaryGroupId.HasValue)
@@ -248,9 +266,13 @@ public class ApiUsersController : CrmControllerBase
             var group = await _dbContext.UserGroups
                 .FirstOrDefaultAsync(g => g.Id == request.PrimaryGroupId.Value && !g.IsDeleted);
             if (group == null)
+            {
                 return BadRequest(new { error = "Specified group not found" });
+            }
             if (!group.IsApiGroup)
+            {
                 return BadRequest(new { error = "API users can only be assigned to API groups." });
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.Name))
@@ -266,7 +288,9 @@ public class ApiUsersController : CrmControllerBase
             var emailExists = await _dbContext.Users
                 .AnyAsync(u => !u.IsDeleted && u.Id != id && u.Email.ToLower() == request.Email.Trim().ToLower());
             if (emailExists)
+            {
                 return Conflict(new { error = "A user with this email already exists" });
+            }
             user.Email = request.Email.Trim();
         }
 
@@ -298,7 +322,9 @@ public class ApiUsersController : CrmControllerBase
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
         if (user == null)
+        {
             return NotFound(new { error = ApiUserNotFoundMessage });
+        }
 
         user.IsDeleted = true;
         user.IsActive = false;
@@ -325,7 +351,9 @@ public class ApiUsersController : CrmControllerBase
             .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
         if (user == null)
+        {
             return NotFound(new { error = ApiUserNotFoundMessage });
+        }
 
         user.IsActive = !user.IsActive;
         user.UpdatedAt = DateTime.UtcNow;

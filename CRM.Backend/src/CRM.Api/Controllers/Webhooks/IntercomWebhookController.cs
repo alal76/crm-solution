@@ -149,7 +149,9 @@ public class IntercomWebhookController : CrmControllerBase
         CancellationToken cancellationToken)
     {
         if (result.ActivityMapping == null)
+        {
             return;
+        }
 
         var mapping = result.ActivityMapping;
 

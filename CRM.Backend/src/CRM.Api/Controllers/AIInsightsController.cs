@@ -26,7 +26,6 @@ public class AIInsightsController : CrmControllerBase
     private readonly IMeetingSummaryService _summaryService;
     private readonly IDealRiskService _dealRiskService;
     private readonly IRevenueForecastService _forecastService;
-    private readonly ILogger<AIInsightsController> _logger;
 
     public AIInsightsController(
         IChurnPredictionService churnService,
@@ -34,8 +33,7 @@ public class AIInsightsController : CrmControllerBase
         IEmailSentimentService sentimentService,
         IMeetingSummaryService summaryService,
         IDealRiskService dealRiskService,
-        IRevenueForecastService forecastService,
-        ILogger<AIInsightsController> logger)
+        IRevenueForecastService forecastService)
     {
         _churnService = churnService;
         _nbaService = nbaService;
@@ -43,7 +41,6 @@ public class AIInsightsController : CrmControllerBase
         _summaryService = summaryService;
         _dealRiskService = dealRiskService;
         _forecastService = forecastService;
-        _logger = logger;
     }
 
     // ------------------------------------------------------------------ //

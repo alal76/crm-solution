@@ -13,7 +13,6 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers
@@ -25,12 +24,10 @@ namespace CRM.Api.Controllers
     {
     private const string SequenceNotFoundMessage = "Email sequence {0} not found";
         private readonly IEmailSequenceService _service;
-        private readonly ILogger<EmailSequencesController> _logger;
 
-        public EmailSequencesController(IEmailSequenceService service, ILogger<EmailSequencesController> logger)
+        public EmailSequencesController(IEmailSequenceService service)
         {
             _service = service;
-            _logger = logger;
         }
 
         /// <summary>
@@ -56,7 +53,9 @@ namespace CRM.Api.Controllers
         {
                         var sequence = await _service.GetByIdAsync(id, ct);
             if (sequence == null)
+            {
                 return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
+            }
             return Ok(MapToDto(sequence));
         }
 
@@ -67,7 +66,9 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> Create([FromBody] EmailSequence sequence, CancellationToken ct)
         {
             if (sequence == null)
+            {
                 return BadRequest("Sequence payload required");
+            }
                         var created = await _service.CreateSequenceAsync(sequence, ct);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
         }
@@ -83,7 +84,9 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] EmailSequence sequence, CancellationToken ct)
         {
             if (sequence == null)
+            {
                 return BadRequest("Sequence payload required");
+            }
             sequence.Id = id;
             try
             {
@@ -107,7 +110,9 @@ namespace CRM.Api.Controllers
         {
                         var deleted = await _service.DeleteAsync(id, ct);
             if (!deleted)
+            {
                 return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
+            }
             return NoContent();
         }
 
@@ -119,7 +124,9 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> Enroll(int id, [FromQuery] int contactId, [FromQuery] int? enrolledById, CancellationToken ct)
         {
             if (contactId <= 0)
+            {
                 return BadRequest("contactId is required");
+            }
             var enrollment = await _service.EnrollContactAsync(id, contactId, enrolledById, ct);
             return Ok(enrollment);
         }
@@ -132,7 +139,9 @@ namespace CRM.Api.Controllers
         {
             var ok = await _service.StartSequenceAsync(id, ct);
             if (!ok)
+            {
                 return NotFound();
+            }
             return NoContent();
         }
 
@@ -144,7 +153,9 @@ namespace CRM.Api.Controllers
         {
             var ok = await _service.StopSequenceAsync(id, ct);
             if (!ok)
+            {
                 return NotFound();
+            }
             return NoContent();
         }
 

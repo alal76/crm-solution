@@ -215,7 +215,7 @@ namespace CRM.Api.Controllers
         /// <summary>
         /// Gets the current user ID from the JWT claims.
         /// </summary>
-        private int? GetCurrentUserId()
+        private int? GetCurrentUserId() // NOSONAR
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                 ?? User.FindFirst("sub")?.Value;

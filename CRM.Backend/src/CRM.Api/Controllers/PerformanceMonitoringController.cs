@@ -54,7 +54,9 @@ public class PerformanceMonitoringController : CrmControllerBase
                 var stats = await _service.GetEndpointStatisticsAsync(endpoint, cancellationToken: cancellationToken);
 
         if (stats == null)
+        {
             return NotFound(new { error = $"No statistics found for endpoint {endpoint}" });
+        }
 
         return Ok(stats);
     }
@@ -113,7 +115,9 @@ public class PerformanceMonitoringController : CrmControllerBase
                 var result = await _service.ClearCacheAsync(pattern, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to clear cache" });
+        }
 
         _logger.LogInformation("Cache cleared{Pattern}", pattern != null ? $" (pattern: {pattern})" : "");
         return Ok(new { message = "Cache cleared successfully" });
@@ -129,7 +133,9 @@ public class PerformanceMonitoringController : CrmControllerBase
                 var config = await _service.GetRateLimitAsync(endpoint, cancellationToken);
 
         if (config == null)
+        {
             return NotFound(new { error = "Rate limit configuration not found" });
+        }
 
         return Ok(config);
     }
@@ -144,7 +150,9 @@ public class PerformanceMonitoringController : CrmControllerBase
                 var result = await _service.UpdateRateLimitAsync(dto, cancellationToken);
 
         if (!result)
+        {
             return BadRequest(new { error = "Failed to update rate limit" });
+        }
 
         _logger.LogInformation("Rate limit updated for {Endpoint}", dto.Endpoint);
         return Ok(new { message = "Rate limit updated" });
@@ -169,7 +177,9 @@ public class PerformanceMonitoringController : CrmControllerBase
     public async Task<IActionResult> PurgeOldMetrics(int daysToKeep = 30, CancellationToken cancellationToken = default)
     {
                 if (daysToKeep < 1)
+                {
             return BadRequest(new { error = "daysToKeep must be at least 1" });
+                }
 
         var count = await _service.PurgeOldMetricsAsync(daysToKeep, cancellationToken);
 

@@ -119,7 +119,9 @@ public class AccountsController : CrmControllerBase
     {
                 var account = await _accountService.GetAccountByIdAsync(id);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Generate ETag from RowVersion
         var etag = ETagHelper.GenerateETag(account.RowVersion);
@@ -155,7 +157,9 @@ public class AccountsController : CrmControllerBase
     {
                 var address = await _accountService.GetPrimaryBillingAddressAsync(id);
         if (address == null)
+        {
             return NotFound(new { message = "Primary billing address not found" });
+        }
 
         return Ok(address);
     }
@@ -169,7 +173,9 @@ public class AccountsController : CrmControllerBase
     {
                 var address = await _accountService.GetPrimaryShippingAddressAsync(id);
         if (address == null)
+        {
             return NotFound(new { message = "Primary shipping address not found" });
+        }
 
         return Ok(address);
     }
@@ -185,7 +191,9 @@ public class AccountsController : CrmControllerBase
         dto.EntityId = id;
 
         if (!dto.AddressId.HasValue && dto.NewAddress == null)
+        {
             return BadRequest(new { message = "AddressId or NewAddress is required." });
+        }
 
         var address = await _contactInfoService.LinkAddressAsync(dto);
         return CreatedAtAction(nameof(GetAddresses), new { id }, address);
@@ -212,7 +220,9 @@ public class AccountsController : CrmControllerBase
                 var links = await _accountService.GetAccountAddressesAsync(id);
         var link = links.FirstOrDefault(a => a.Id == addressId);
         if (link == null)
+        {
             return NotFound(new { message = "Address link not found" });
+        }
 
         await _contactInfoService.UnlinkAddressAsync(link.LinkId);
         return NoContent();
@@ -331,12 +341,16 @@ public class AccountsController : CrmControllerBase
             if (dto.Category == AccountCategory.Individual)
             {
                 if (string.IsNullOrWhiteSpace(dto.FirstName) || string.IsNullOrWhiteSpace(dto.LastName))
+                {
                     return BadRequest(new { message = "FirstName and LastName are required for Individual accounts" });
+                }
             }
             else
             {
                 if (string.IsNullOrWhiteSpace(dto.Company))
+                {
                     return BadRequest(new { message = "Company name is required for Organization accounts" });
+                }
             }
 
             var account = await _accountService.CreateAccountAsync(dto);
@@ -393,7 +407,9 @@ public class AccountsController : CrmControllerBase
         {
             var currentAccount = await _accountService.GetAccountByIdAsync(id);
             if (currentAccount == null)
+            {
                 return NotFound(new { message = AccountNotFoundMessage });
+            }
 
             if (!ETagHelper.IsMatch(ifMatch, currentAccount.RowVersion))
             {
@@ -408,7 +424,9 @@ public class AccountsController : CrmControllerBase
 
         var account = await _accountService.UpdateAccountAsync(id, dto);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Notify connected clients about the update
         var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
@@ -429,7 +447,9 @@ public class AccountsController : CrmControllerBase
     {
                 var result = await _accountService.DeleteAccountAsync(id);
         if (!result)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Notify connected clients about the deletion
         var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
@@ -450,7 +470,9 @@ public class AccountsController : CrmControllerBase
     {
                 var account = await _accountService.GetAccountByIdAsync(id);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         var contacts = await _accountService.GetDirectContactsAsync(id);
         return Ok(contacts);
@@ -466,7 +488,9 @@ public class AccountsController : CrmControllerBase
     {
                 var result = await _accountService.AssignContactToAccountAsync(id, contactId);
         if (!result)
+        {
             return NotFound(new { message = "Account or Contact not found" });
+        }
 
         return Ok(new { message = "Contact assigned to account successfully" });
     }
@@ -481,7 +505,9 @@ public class AccountsController : CrmControllerBase
     {
                 var result = await _accountService.UnassignContactFromAccountAsync(id, contactId);
         if (!result)
+        {
             return NotFound(new { message = "Account or Contact not found" });
+        }
 
         return Ok(new { message = "Contact removed from account successfully" });
     }
@@ -498,7 +524,9 @@ public class AccountsController : CrmControllerBase
     {
                 var account = await _accountService.GetAccountByIdAsync(id);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         var contacts = await _accountService.GetAccountContactsAsync(id);
         return Ok(contacts);
@@ -515,12 +543,16 @@ public class AccountsController : CrmControllerBase
     {
                 var account = await _accountService.GetAccountByIdAsync(id);
         if (account == null)
+        {
             return NotFound(new { message = AccountNotFoundMessage });
+        }
 
         // Allow linking contacts to any account type (Individual or Organization)
         var result = await _accountService.LinkContactToAccountAsync(id, dto);
         if (result == null)
+        {
             return BadRequest(new { message = "Failed to link contact. Contact may not exist or is already linked." });
+        }
 
         _logger.LogInformation("Contact {ContactId} linked to account {AccountId}", dto.ContactId, id);
         return CreatedAtAction(nameof(GetAccountContacts), new { id }, result);
@@ -536,7 +568,9 @@ public class AccountsController : CrmControllerBase
     {
                 var result = await _accountService.UpdateAccountContactAsync(id, contactId, dto);
         if (result == null)
+        {
             return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
+        }
 
         return Ok(result);
     }
@@ -551,7 +585,9 @@ public class AccountsController : CrmControllerBase
     {
                 var result = await _accountService.UnlinkContactFromAccountAsync(id, contactId);
         if (!result)
+        {
             return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
+        }
 
         _logger.LogInformation("Contact {ContactId} unlinked from account {AccountId}", contactId, id);
         return Ok(new { message = "Contact unlinked successfully" });
@@ -567,7 +603,9 @@ public class AccountsController : CrmControllerBase
     {
                 var result = await _accountService.SetPrimaryContactAsync(id, contactId);
         if (!result)
+        {
             return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
+        }
 
         _logger.LogInformation("Contact {ContactId} set as primary for account {AccountId}", contactId, id);
         return Ok(new { message = "Primary contact set successfully" });

@@ -24,14 +24,11 @@ namespace CRM.Api.Controllers;
 public class UserGroupsController : CrmControllerBase
 {
     private readonly IUserGroupService _userGroupService;
-    private readonly ILogger<UserGroupsController> _logger;
 
     public UserGroupsController(
-        IUserGroupService userGroupService,
-        ILogger<UserGroupsController> logger)
+        IUserGroupService userGroupService)
     {
         _userGroupService = userGroupService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -73,7 +70,9 @@ public class UserGroupsController : CrmControllerBase
     {
                 var group = await _userGroupService.GetGroupByIdAsync(id);
         if (group == null)
+        {
             return NotFound(new { error = "Group not found" });
+        }
 
         return Ok(group);
     }
@@ -99,7 +98,9 @@ public class UserGroupsController : CrmControllerBase
         try
         {
             if (string.IsNullOrWhiteSpace(request.Name))
+            {
                 return BadRequest(new { error = "Group name is required" });
+            }
 
             var group = await _userGroupService.CreateGroupAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = group.Id }, group);
@@ -137,7 +138,9 @@ public class UserGroupsController : CrmControllerBase
     {
                 var group = await _userGroupService.UpdateGroupAsync(id, request);
         if (group == null)
+        {
             return NotFound(new { error = "Group not found" });
+        }
 
         return Ok(group);
     }

@@ -496,13 +496,17 @@ public class WebhooksController : CrmControllerBase
                 .Where(c => c.Email == email && !c.IsDeleted)
                 .FirstOrDefaultAsync();
             if (customer != null)
+            {
                 return (customer.Id, null);
+            }
 
             var contact = await _context.Contacts
                 .Where(c => c.EmailPrimary == email)
                 .FirstOrDefaultAsync();
             if (contact != null)
+            {
                 return (contact.AccountId, contact.Id);
+            }
         }
 
         // Try by phone
@@ -514,14 +518,18 @@ public class WebhooksController : CrmControllerBase
                            c.MobilePhone == phone || c.MobilePhone == normalizedPhone) && !c.IsDeleted)
                 .FirstOrDefaultAsync();
             if (customer != null)
+            {
                 return (customer.Id, null);
+            }
 
             var contact = await _context.Contacts
                 .Where(c => c.PhonePrimary == phone || c.PhonePrimary == normalizedPhone ||
                            c.PhoneMobile == phone || c.PhoneMobile == normalizedPhone)
                 .FirstOrDefaultAsync();
             if (contact != null)
+            {
                 return (contact.AccountId, contact.Id);
+            }
         }
 
         return (null, null);
@@ -545,7 +553,9 @@ public class WebhooksController : CrmControllerBase
             .FirstOrDefaultAsync();
 
         if (customer != null)
+        {
             return (customer.Id, null);
+        }
 
         return (null, null);
     }
@@ -601,15 +611,25 @@ public class WebhooksController : CrmControllerBase
     {
         var lines = new List<string>();
         if (!string.IsNullOrEmpty(dto.Name))
+        {
             lines.Add($"Name: {dto.Name}");
+        }
         if (!string.IsNullOrEmpty(dto.Email))
+        {
             lines.Add($"Email: {dto.Email}");
+        }
         if (!string.IsNullOrEmpty(dto.Phone))
+        {
             lines.Add($"Phone: {dto.Phone}");
+        }
         if (!string.IsNullOrEmpty(dto.Company))
+        {
             lines.Add($"Company: {dto.Company}");
+        }
         if (!string.IsNullOrEmpty(dto.Message))
+        {
             lines.Add($"\nMessage:\n{dto.Message}");
+        }
         if (dto.FormFields != null)
         {
             lines.Add("\nAdditional Fields:");
@@ -629,7 +649,9 @@ public class WebhooksController : CrmControllerBase
     private string TruncateText(string? text, int maxLength)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return "";
+        }
         return text.Length <= maxLength ? text : text.Substring(0, maxLength) + "...";
     }
 

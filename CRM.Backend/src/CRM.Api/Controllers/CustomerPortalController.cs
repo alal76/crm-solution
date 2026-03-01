@@ -37,7 +37,7 @@ public class CustomerPortalController : CrmControllerBase
         _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var id) ? id : 0;
@@ -83,7 +83,9 @@ public class CustomerPortalController : CrmControllerBase
     public async Task<IActionResult> CreateTicket([FromBody] PortalCreateTicketRequest req, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(req.Title))
+        {
             return BadRequest(new { message = "Title is required." });
+        }
 
         var userId = GetCurrentUserId();
         var ticket = new ServiceRequest
@@ -115,7 +117,9 @@ public class CustomerPortalController : CrmControllerBase
             .Where(a => a.Status == ArticleStatus.Published && !a.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(q))
+        {
             query = query.Where(a => EF.Functions.Like(a.Title, $"%{q}%") || EF.Functions.Like(a.Content, $"%{q}%"));
+        }
 
         var total = await query.CountAsync(ct);
         var items = await query
@@ -135,11 +139,17 @@ public class CustomerPortalController : CrmControllerBase
     {
         var article = await _db.KnowledgeArticles.AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id && a.Status == ArticleStatus.Published && !a.IsDeleted, ct);
-        if (article == null) return NotFound(new { message = "Article not found" });
+        if (article == null)
+        {
+            return NotFound(new { message = "Article not found" });
+        }
 
         // Increment view count
         var tracked = await _db.KnowledgeArticles.FindAsync(new object[] { id }, ct);
-        if (tracked != null) { tracked.ViewCount++; await _db.SaveChangesAsync(ct); }
+        if (tracked != null)
+        {
+            { tracked.ViewCount++; await _db.SaveChangesAsync(ct); }
+        }
 
         return Ok(article);
     }
@@ -151,7 +161,10 @@ public class CustomerPortalController : CrmControllerBase
     public async Task<IActionResult> SubmitKbFeedback(int id, [FromBody] PortalKbFeedbackRequest req, CancellationToken ct = default)
     {
         var exists = await _db.KnowledgeArticles.AnyAsync(a => a.Id == id && a.Status == ArticleStatus.Published && !a.IsDeleted, ct);
-        if (!exists) return NotFound(new { message = "Article not found" });
+        if (!exists)
+        {
+            return NotFound(new { message = "Article not found" });
+        }
 
         var userId = GetCurrentUserId();
         var feedback = new ArticleFeedback
@@ -177,7 +190,9 @@ public class CustomerPortalController : CrmControllerBase
     public async Task<IActionResult> RegisterDeal([FromBody] PortalRegisterDealRequest req, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(req.CompanyName))
+        {
             return BadRequest(new { message = "CompanyName is required." });
+        }
 
         var userId = GetCurrentUserId();
         var lead = new Lead

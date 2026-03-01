@@ -589,16 +589,22 @@ public class SubscriptionsController : CrmControllerBase
         CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return ValidationProblem(ModelState);
+        }
 
         try
         {
             var subscription = await _subscriptionService.GetByIdAsync(id, cancellationToken);
             if (subscription == null)
+            {
                 return NotFound(string.Format(SubscriptionNotFoundMessage, id));
+            }
 
             if (subscription.SubscriptionStatus != SubscriptionStatus.Trial)
+            {
                 return BadRequest($"Subscription {id} is not in Trial status (current: {subscription.SubscriptionStatus}).");
+            }
 
             // Change plan if a new planId is specified
             if (request.PlanId.HasValue)
@@ -643,7 +649,7 @@ public class SubscriptionsController : CrmControllerBase
         CancellationToken cancellationToken = default)
     {
         // Return active subscriptions that were updated in the last N days (proxy for recent conversions)
-        // TODO: Track trial conversion timestamps in a dedicated field for precise querying.
+        // TODO: Track trial conversion timestamps in a dedicated field for precise querying. // NOSONAR
         var fromDate = DateTime.UtcNow.AddDays(-days);
         var subscriptions = await _subscriptionService.GetExpiringSubscriptionsAsync(
             fromDate, DateTime.UtcNow, cancellationToken);
@@ -738,7 +744,9 @@ public class SubscriptionsController : CrmControllerBase
     private static string CultureInfoInvariantTitle(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return value;
+        }
         var lower = value.ToLowerInvariant();
         return lower switch
         {

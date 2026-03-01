@@ -25,15 +25,13 @@ namespace CRM.Api.Controllers;
 public class CampaignsController : CrmControllerBase
 {
     private readonly IMarketingCampaignService _campaignService;
-    private readonly ILogger<CampaignsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CampaignsController"/> class.
     /// </summary>
-    public CampaignsController(IMarketingCampaignService campaignService, ILogger<CampaignsController> logger)
+    public CampaignsController(IMarketingCampaignService campaignService)
     {
         _campaignService = campaignService;
-        _logger = logger;
     }
 
     /// <summary>

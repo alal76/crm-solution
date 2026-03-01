@@ -72,7 +72,9 @@ public class DashboardLayoutController : CrmControllerBase
         {
             // Check if the caller is an admin
             if (!User.IsInRole("Admin"))
+            {
                 return Forbid();
+            }
         }
 
         var existing = await _db.UserDashboardLayouts
@@ -119,7 +121,9 @@ public class DashboardLayoutController : CrmControllerBase
         }
 
         if (layouts.Count > 0)
+        {
             await _db.SaveChangesAsync(ct);
+        }
 
         return NoContent();
     }

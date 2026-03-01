@@ -253,7 +253,9 @@ public class DocuSignWebhookController : CrmControllerBase
 
         var recipientStatuses = envelopeStatus.Element(ns + "RecipientStatuses");
         if (recipientStatuses == null)
+        {
             return recipients;
+        }
 
         foreach (var recipientStatus in recipientStatuses.Elements(ns + "RecipientStatus"))
         {

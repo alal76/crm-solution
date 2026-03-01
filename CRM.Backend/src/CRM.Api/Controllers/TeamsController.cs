@@ -87,7 +87,9 @@ public class TeamsController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] Team team, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
+        {
             return ValidationProblem(ModelState);
+        }
 
         try
         {
@@ -109,7 +111,9 @@ public class TeamsController : CrmControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] Team team, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
+        {
             return ValidationProblem(ModelState);
+        }
 
         try
         {
@@ -135,7 +139,9 @@ public class TeamsController : CrmControllerBase
         {
             var result = await _teamService.DeleteAsync(id, cancellationToken);
             if (!result)
+            {
                 return NotFound($"Team with ID {id} not found.");
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -180,7 +186,9 @@ public class TeamsController : CrmControllerBase
         {
             var result = await _teamService.RemoveMemberAsync(teamId, userId, cancellationToken);
             if (!result)
+            {
                 return NotFound($"Member {userId} not found in team {teamId}.");
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -287,7 +295,9 @@ public class TeamsController : CrmControllerBase
         {
             var result = await _teamService.AssignTerritoryAsync(teamId, request.TerritoryId, cancellationToken);
             if (!result)
+            {
                 return BadRequest("Failed to assign territory.");
+            }
             return Ok(new { teamId, territoryId = request.TerritoryId, assigned = true });
         }
         catch (Exception ex)
@@ -308,7 +318,9 @@ public class TeamsController : CrmControllerBase
         {
             var result = await _teamService.RemoveTerritoryAsync(teamId, territoryId, cancellationToken);
             if (!result)
+            {
                 return NotFound($"Territory {territoryId} not assigned to team {teamId}.");
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -337,7 +349,9 @@ public class TeamsController : CrmControllerBase
     {
         var team = await _teamService.GetTeamByTerritoryAsync(territoryId, cancellationToken);
         if (team == null)
+        {
             return NotFound($"No team found for territory {territoryId}.");
+        }
         return Ok(team);
     }
 
@@ -356,7 +370,9 @@ public class TeamsController : CrmControllerBase
         {
             var result = await _teamService.AssignAccountAsync(teamId, request.AccountId, cancellationToken);
             if (!result)
+            {
                 return BadRequest("Failed to assign account.");
+            }
             return Ok(new { teamId, accountId = request.AccountId, assigned = true });
         }
         catch (Exception ex)
@@ -377,7 +393,9 @@ public class TeamsController : CrmControllerBase
         {
             var result = await _teamService.RemoveAccountAsync(teamId, accountId, cancellationToken);
             if (!result)
+            {
                 return NotFound($"Account {accountId} not assigned to team {teamId}.");
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -406,7 +424,9 @@ public class TeamsController : CrmControllerBase
     {
         var team = await _teamService.GetTeamByAccountAsync(accountId, cancellationToken);
         if (team == null)
+        {
             return NotFound($"No team found for account {accountId}.");
+        }
         return Ok(team);
     }
 
@@ -496,7 +516,9 @@ public class TeamsController : CrmControllerBase
     {
         var parent = await _teamService.GetParentTeamAsync(teamId, cancellationToken);
         if (parent == null)
+        {
             return NotFound($"Team {teamId} has no parent team.");
+        }
         return Ok(parent);
     }
 
@@ -536,7 +558,9 @@ public class TeamsController : CrmControllerBase
     private IActionResult HandleServiceException(Exception ex)
     {
         if (ex is InvalidOperationException && ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
             return NotFound(ex.Message);
+        }
 
         return BadRequest(ex.Message);
     }

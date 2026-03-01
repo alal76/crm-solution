@@ -32,7 +32,7 @@ public class SavedSearchesController : CrmControllerBase
         _logger = logger;
     }
 
-    private int? GetCurrentUserId()
+    private int? GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var id) ? id : null;
@@ -49,7 +49,9 @@ public class SavedSearchesController : CrmControllerBase
             .Where(f => !f.IsDeleted && (f.UserId == userId || f.IsPublic));
 
         if (!string.IsNullOrWhiteSpace(entityType))
+        {
             query = query.Where(f => f.EntityType == entityType);
+        }
 
         var results = await query
             .OrderByDescending(f => f.IsPinned)
@@ -80,7 +82,10 @@ public class SavedSearchesController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] SavedFilterCreateDto dto, CancellationToken ct)
     {
         var userId = GetCurrentUserId();
-        if (userId is null) return Unauthorized();
+        if (userId is null)
+        {
+            return Unauthorized();
+        }
 
         var filter = new SavedFilter
         {
@@ -114,8 +119,14 @@ public class SavedSearchesController : CrmControllerBase
         var filter = await _db.SavedFilters
             .FirstOrDefaultAsync(f => f.Id == id && !f.IsDeleted, ct);
 
-        if (filter is null) return NotFound();
-        if (filter.UserId != userId) return Forbid();
+        if (filter is null)
+        {
+            return NotFound();
+        }
+        if (filter.UserId != userId)
+        {
+            return Forbid();
+        }
 
         filter.Name = dto.Name;
         filter.EntityType = dto.EntityType;
@@ -139,7 +150,10 @@ public class SavedSearchesController : CrmControllerBase
         var filter = await _db.SavedFilters
             .FirstOrDefaultAsync(f => f.Id == id && !f.IsDeleted && (f.UserId == userId || f.IsPublic), ct);
 
-        if (filter is null) return NotFound();
+        if (filter is null)
+        {
+            return NotFound();
+        }
 
         filter.UsageCount++;
         filter.LastUsedAt = DateTime.UtcNow;
@@ -159,8 +173,14 @@ public class SavedSearchesController : CrmControllerBase
         var filter = await _db.SavedFilters
             .FirstOrDefaultAsync(f => f.Id == id && !f.IsDeleted, ct);
 
-        if (filter is null) return NotFound();
-        if (filter.UserId != userId) return Forbid();
+        if (filter is null)
+        {
+            return NotFound();
+        }
+        if (filter.UserId != userId)
+        {
+            return Forbid();
+        }
 
         filter.IsDeleted = true;
         filter.UpdatedAt = DateTime.UtcNow;

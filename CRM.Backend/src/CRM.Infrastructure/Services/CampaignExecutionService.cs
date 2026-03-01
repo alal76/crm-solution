@@ -411,20 +411,32 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         if (!string.IsNullOrEmpty(status))
             query = query.Where(r => r.Status == status);
 
-        if (hasOpened == true)
+        if (hasOpened is true)
+        {
             query = query.Where(r => r.FirstOpenedAt != null);
-        else if (hasOpened == false)
+        }
+        else if (hasOpened is false)
+        {
             query = query.Where(r => r.FirstOpenedAt == null);
+        }
 
-        if (hasClicked == true)
+        if (hasClicked is true)
+        {
             query = query.Where(r => r.FirstClickedAt != null);
-        else if (hasClicked == false)
+        }
+        else if (hasClicked is false)
+        {
             query = query.Where(r => r.FirstClickedAt == null);
+        }
 
-        if (hasConverted == true)
+        if (hasConverted is true)
+        {
             query = query.Where(r => r.ConvertedAt != null);
-        else if (hasConverted == false)
+        }
+        else if (hasConverted is false)
+        {
             query = query.Where(r => r.ConvertedAt == null);
+        }
 
         var totalCount = await query.CountAsync();
         var items = await query

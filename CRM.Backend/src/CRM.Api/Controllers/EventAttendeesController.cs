@@ -67,7 +67,9 @@ public class EventAttendeesController : CrmControllerBase
         {
             var attendee = await _service.GetByIdAsync(id, cancellationToken);
             if (attendee == null)
+            {
                 return NotFound(string.Format(AttendeeNotFoundMessage, id));
+            }
             return Ok(attendee);
         }
         catch (Exception ex)
@@ -87,7 +89,9 @@ public class EventAttendeesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var created = await _service.CreateAsync(attendee, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -109,10 +113,14 @@ public class EventAttendeesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var updated = await _service.UpdateAsync(id, attendee, cancellationToken);
             if (!updated)
+            {
                 return NotFound(string.Format(AttendeeNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)
@@ -133,7 +141,9 @@ public class EventAttendeesController : CrmControllerBase
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
             if (!deleted)
+            {
                 return NotFound(string.Format(AttendeeNotFoundMessage, id));
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -176,10 +186,14 @@ public class EventAttendeesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var updated = await _service.UpdateResponseAsync(id, request.Status, request.Comment, cancellationToken);
             if (!updated)
+            {
                 return NotFound(string.Format(AttendeeNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)
@@ -200,10 +214,14 @@ public class EventAttendeesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var recorded = await _service.RecordAttendanceAsync(id, request.DidAttend, request.DurationMinutes, request.Notes, cancellationToken);
             if (!recorded)
+            {
                 return NotFound(string.Format(AttendeeNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)

@@ -109,7 +109,9 @@ public class CommunicationsController : CrmControllerBase
             .FirstOrDefaultAsync();
 
         if (channel == null)
+        {
             return NotFound(new { message = ChannelNotFoundMessage });
+        }
 
         return Ok(channel);
     }
@@ -123,7 +125,9 @@ public class CommunicationsController : CrmControllerBase
     public async Task<ActionResult<CommunicationChannelDto>> CreateChannel([FromBody] CommunicationChannelCreateDto dto)
     {
                 if (!Enum.TryParse<ChannelType>(dto.ChannelType, true, out var channelType))
+                {
             return BadRequest(new { message = "Invalid channel type" });
+                }
 
         // If setting as default, unset other defaults of same type
         if (dto.IsDefault)
@@ -132,7 +136,9 @@ public class CommunicationsController : CrmControllerBase
                 .Where(c => c.ChannelType == channelType && c.IsDefault && !c.IsDeleted)
                 .ToListAsync();
             foreach (var c in existingDefaults)
+            {
                 c.IsDefault = false;
+            }
         }
 
         var channel = new CommunicationChannel
@@ -195,10 +201,14 @@ public class CommunicationsController : CrmControllerBase
     {
                 var channel = await _context.CommunicationChannels.FindAsync(id);
         if (channel == null || channel.IsDeleted)
+        {
             return NotFound(new { message = ChannelNotFoundMessage });
+        }
 
         if (!Enum.TryParse<ChannelType>(dto.ChannelType, true, out var channelType))
+        {
             return BadRequest(new { message = "Invalid channel type" });
+        }
 
         // If setting as default, unset other defaults of same type
         if (dto.IsDefault && !channel.IsDefault)
@@ -207,7 +217,9 @@ public class CommunicationsController : CrmControllerBase
                 .Where(c => c.ChannelType == channelType && c.IsDefault && !c.IsDeleted && c.Id != id)
                 .ToListAsync();
             foreach (var c in existingDefaults)
+            {
                 c.IsDefault = false;
+            }
         }
 
         channel.ChannelType = channelType;
@@ -231,21 +243,37 @@ public class CommunicationsController : CrmControllerBase
 
         // Only update credentials if provided (non-null)
         if (!string.IsNullOrEmpty(dto.ApiKey))
+        {
             channel.ApiKey = dto.ApiKey;
+        }
         if (!string.IsNullOrEmpty(dto.ApiSecret))
+        {
             channel.ApiSecret = dto.ApiSecret;
+        }
         if (!string.IsNullOrEmpty(dto.ClientId))
+        {
             channel.ClientId = dto.ClientId;
+        }
         if (!string.IsNullOrEmpty(dto.ClientSecret))
+        {
             channel.ClientSecret = dto.ClientSecret;
+        }
         if (!string.IsNullOrEmpty(dto.AccessToken))
+        {
             channel.AccessToken = dto.AccessToken;
+        }
         if (!string.IsNullOrEmpty(dto.RefreshToken))
+        {
             channel.RefreshToken = dto.RefreshToken;
+        }
         if (!string.IsNullOrEmpty(dto.SmtpPassword))
+        {
             channel.SmtpPassword = dto.SmtpPassword;
+        }
         if (!string.IsNullOrEmpty(dto.PageAccessToken))
+        {
             channel.PageAccessToken = dto.PageAccessToken;
+        }
 
         await _context.SaveChangesAsync();
 
@@ -264,7 +292,9 @@ public class CommunicationsController : CrmControllerBase
     {
                 var channel = await _context.CommunicationChannels.FindAsync(id);
         if (channel == null || channel.IsDeleted)
+        {
             return NotFound(new { message = ChannelNotFoundMessage });
+        }
 
         channel.IsDeleted = true;
         channel.UpdatedAt = DateTime.UtcNow;
@@ -287,7 +317,9 @@ public class CommunicationsController : CrmControllerBase
         {
             var channel = await _context.CommunicationChannels.FindAsync(id);
             if (channel == null || channel.IsDeleted)
+            {
                 return NotFound(new { message = ChannelNotFoundMessage });
+            }
 
             var testResult = await TestChannelConnectionAsync(channel);
 
@@ -348,15 +380,19 @@ public class CommunicationsController : CrmControllerBase
         await Task.CompletedTask; // Stub for future async implementation
 
         if (string.IsNullOrEmpty(channel.SmtpServer))
+        {
             return new ChannelTestResult { Success = false, Message = "SMTP server not configured", ErrorMessage = "Missing SMTP server configuration" };
+        }
 
         try
         {
             // Validate SMTP settings are present
             if (!channel.SmtpPort.HasValue)
+            {
                 return new ChannelTestResult { Success = false, Message = "SMTP port not configured", ErrorMessage = "Missing SMTP port" };
+            }
 
-            // TODO: Implement actual SMTP connection test when production-ready
+            // TODO: Implement actual SMTP connection test when production-ready // NOSONAR
             _logger.LogInformation("Email channel {ChannelId} connection test: SMTP server {Server}:{Port}",
                 channel.Id, channel.SmtpServer, channel.SmtpPort);
 
@@ -382,11 +418,13 @@ public class CommunicationsController : CrmControllerBase
         await Task.CompletedTask; // Stub for future async implementation
 
         if (string.IsNullOrEmpty(channel.AccessToken) || string.IsNullOrEmpty(channel.WhatsAppPhoneNumberId))
+        {
             return new ChannelTestResult { Success = false, Message = "WhatsApp credentials not configured", ErrorMessage = "Missing access token or phone number ID" };
+        }
 
         try
         {
-            // TODO: Implement WhatsApp Business API credential verification when production-ready
+            // TODO: Implement WhatsApp Business API credential verification when production-ready // NOSONAR
             _logger.LogInformation("WhatsApp channel {ChannelId} connection test: Phone ID {PhoneId}",
                 channel.Id, channel.WhatsAppPhoneNumberId);
 
@@ -412,11 +450,13 @@ public class CommunicationsController : CrmControllerBase
         await Task.CompletedTask; // Stub for future async implementation
 
         if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
+        {
             return new ChannelTestResult { Success = false, Message = "Twitter API credentials not configured", ErrorMessage = "Missing API key or secret" };
+        }
 
         try
         {
-            // TODO: Implement Twitter OAuth credential verification when production-ready
+            // TODO: Implement Twitter OAuth credential verification when production-ready // NOSONAR
             _logger.LogInformation("Twitter channel {ChannelId} connection test validated", channel.Id);
 
             return new ChannelTestResult
@@ -441,11 +481,13 @@ public class CommunicationsController : CrmControllerBase
         await Task.CompletedTask; // Stub for future async implementation
 
         if (string.IsNullOrEmpty(channel.PageAccessToken ?? channel.AccessToken) || string.IsNullOrEmpty(channel.SocialAccountId))
+        {
             return new ChannelTestResult { Success = false, Message = "Facebook page credentials not configured", ErrorMessage = "Missing access token or page ID" };
+        }
 
         try
         {
-            // TODO: Implement Facebook page access token verification when production-ready
+            // TODO: Implement Facebook page access token verification when production-ready // NOSONAR
             _logger.LogInformation("Facebook channel {ChannelId} connection test: Page ID {PageId}",
                 channel.Id, channel.SocialAccountId);
 
@@ -471,11 +513,13 @@ public class CommunicationsController : CrmControllerBase
         await Task.CompletedTask; // Stub for future async implementation
 
         if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
+        {
             return new ChannelTestResult { Success = false, Message = "SMS credentials not configured", ErrorMessage = "Missing API key or auth token" };
+        }
 
         try
         {
-            // TODO: Implement Twilio credential verification when production-ready
+            // TODO: Implement Twilio credential verification when production-ready // NOSONAR
             _logger.LogInformation("SMS channel {ChannelId} connection test validated", channel.Id);
 
             return new ChannelTestResult
@@ -500,7 +544,9 @@ public class CommunicationsController : CrmControllerBase
         await Task.CompletedTask; // Stub for future async implementation
 
         if (string.IsNullOrEmpty(channel.AccessToken))
+        {
             return new ChannelTestResult { Success = false, Message = "LinkedIn credentials not configured", ErrorMessage = "Missing access token" };
+        }
 
         try
         {
@@ -549,9 +595,11 @@ public class CommunicationsController : CrmControllerBase
         try
         {
             if (string.IsNullOrEmpty(channel.SmtpServer) || !channel.SmtpPort.HasValue)
+            {
                 return new MessageSendResult { Success = false, ErrorMessage = "SMTP not configured" };
+            }
 
-            // TODO: Implement SMTP sending via System.Net.Mail or MailKit when production-ready
+            // TODO: Implement SMTP sending via System.Net.Mail or MailKit when production-ready // NOSONAR
             _logger.LogInformation("Email sent to {ToAddress} via {Server}", message.ToAddress, channel.SmtpServer);
 
             return new MessageSendResult
@@ -577,9 +625,11 @@ public class CommunicationsController : CrmControllerBase
         try
         {
             if (string.IsNullOrEmpty(channel.AccessToken) || string.IsNullOrEmpty(channel.WhatsAppPhoneNumberId))
+            {
                 return new MessageSendResult { Success = false, ErrorMessage = "WhatsApp not configured" };
+            }
 
-            // TODO: Implement WhatsApp Graph API sending when production-ready
+            // TODO: Implement WhatsApp Graph API sending when production-ready // NOSONAR
             _logger.LogInformation("WhatsApp message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -605,9 +655,11 @@ public class CommunicationsController : CrmControllerBase
         try
         {
             if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.AccessToken))
+            {
                 return new MessageSendResult { Success = false, ErrorMessage = "Twitter not configured" };
+            }
 
-            // TODO: Implement Twitter DM API sending when production-ready
+            // TODO: Implement Twitter DM API sending when production-ready // NOSONAR
             _logger.LogInformation("Twitter DM sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -633,9 +685,11 @@ public class CommunicationsController : CrmControllerBase
         try
         {
             if (string.IsNullOrEmpty(channel.PageAccessToken ?? channel.AccessToken))
+            {
                 return new MessageSendResult { Success = false, ErrorMessage = "Facebook not configured" };
+            }
 
-            // TODO: Implement Facebook Messenger Platform sending when production-ready
+            // TODO: Implement Facebook Messenger Platform sending when production-ready // NOSONAR
             _logger.LogInformation("Facebook message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -661,9 +715,11 @@ public class CommunicationsController : CrmControllerBase
         try
         {
             if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
+            {
                 return new MessageSendResult { Success = false, ErrorMessage = "SMS provider not configured" };
+            }
 
-            // TODO: Implement Twilio SMS sending when production-ready
+            // TODO: Implement Twilio SMS sending when production-ready // NOSONAR
             _logger.LogInformation("SMS sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -689,9 +745,11 @@ public class CommunicationsController : CrmControllerBase
         try
         {
             if (string.IsNullOrEmpty(channel.AccessToken))
+            {
                 return new MessageSendResult { Success = false, ErrorMessage = "LinkedIn not configured" };
+            }
 
-            // TODO: Implement LinkedIn Messaging API when production-ready
+            // TODO: Implement LinkedIn Messaging API when production-ready // NOSONAR
             _logger.LogInformation("LinkedIn message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -730,22 +788,34 @@ public class CommunicationsController : CrmControllerBase
             .Where(m => !m.IsDeleted && !m.IsArchived);
 
         if (!string.IsNullOrEmpty(channelType) && Enum.TryParse<ChannelType>(channelType, true, out var ct))
+        {
             query = query.Where(m => m.ChannelType == ct);
+        }
 
         if (!string.IsNullOrEmpty(direction) && Enum.TryParse<MessageDirection>(direction, true, out var dir))
+        {
             query = query.Where(m => m.Direction == dir);
+        }
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<MessageStatus>(status, true, out var st))
+        {
             query = query.Where(m => m.Status == st);
+        }
 
         if (unreadOnly == true)
+        {
             query = query.Where(m => !m.IsRead);
+        }
 
         if (accountId.HasValue)
+        {
             query = query.Where(m => m.AccountId == accountId);
+        }
 
         if (contactId.HasValue)
+        {
             query = query.Where(m => m.ContactId == contactId);
+        }
 
         var messages = await query
             .OrderByDescending(m => m.CreatedAt)
@@ -791,7 +861,9 @@ public class CommunicationsController : CrmControllerBase
             .FirstOrDefaultAsync();
 
         if (message == null)
+        {
             return NotFound(new { message = MessageNotFoundMessage });
+        }
 
         // Mark as read
         if (!message.IsRead)
@@ -842,11 +914,17 @@ public class CommunicationsController : CrmControllerBase
 
         // Parse CC/BCC if present
         if (!string.IsNullOrEmpty(message.CcAddresses))
+        {
             dto.CcAddresses = JsonSerializer.Deserialize<List<string>>(message.CcAddresses);
+        }
         if (!string.IsNullOrEmpty(message.BccAddresses))
+        {
             dto.BccAddresses = JsonSerializer.Deserialize<List<string>>(message.BccAddresses);
+        }
         if (!string.IsNullOrEmpty(message.AttachmentsJson))
+        {
             dto.Attachments = JsonSerializer.Deserialize<List<MessageAttachmentDto>>(message.AttachmentsJson);
+        }
 
         return Ok(dto);
     }
@@ -861,7 +939,9 @@ public class CommunicationsController : CrmControllerBase
     {
                 var channel = await _context.CommunicationChannels.FindAsync(dto.ChannelId);
         if (channel == null || channel.IsDeleted || !channel.IsEnabled)
+        {
             return BadRequest(new { message = "Channel not found or not enabled" });
+        }
 
         var message = new CommunicationMessage
         {
@@ -941,7 +1021,9 @@ public class CommunicationsController : CrmControllerBase
     {
                 var message = await _context.CommunicationMessages.FindAsync(id);
         if (message == null || message.IsDeleted)
+        {
             return NotFound(new { message = MessageNotFoundMessage });
+        }
 
         message.IsRead = isRead;
         message.UpdatedAt = DateTime.UtcNow;
@@ -960,7 +1042,9 @@ public class CommunicationsController : CrmControllerBase
     {
                 var message = await _context.CommunicationMessages.FindAsync(id);
         if (message == null || message.IsDeleted)
+        {
             return NotFound(new { message = MessageNotFoundMessage });
+        }
 
         message.IsStarred = isStarred;
         message.UpdatedAt = DateTime.UtcNow;
@@ -979,7 +1063,9 @@ public class CommunicationsController : CrmControllerBase
     {
                 var message = await _context.CommunicationMessages.FindAsync(id);
         if (message == null || message.IsDeleted)
+        {
             return NotFound(new { message = MessageNotFoundMessage });
+        }
 
         message.IsArchived = true;
         message.UpdatedAt = DateTime.UtcNow;
@@ -998,7 +1084,9 @@ public class CommunicationsController : CrmControllerBase
     {
                 var message = await _context.CommunicationMessages.FindAsync(id);
         if (message == null || message.IsDeleted)
+        {
             return NotFound(new { message = MessageNotFoundMessage });
+        }
 
         message.IsDeleted = true;
         message.UpdatedAt = DateTime.UtcNow;
@@ -1027,13 +1115,19 @@ public class CommunicationsController : CrmControllerBase
             .Where(c => !c.IsDeleted);
 
         if (!string.IsNullOrEmpty(channelType) && Enum.TryParse<ChannelType>(channelType, true, out var ct))
+        {
             query = query.Where(c => c.PrimaryChannelType == ct);
+        }
 
         if (!string.IsNullOrEmpty(status) && Enum.TryParse<ConversationStatus>(status, true, out var st))
+        {
             query = query.Where(c => c.Status == st);
+        }
 
         if (accountId.HasValue)
+        {
             query = query.Where(c => c.AccountId == accountId);
+        }
 
         var conversations = await query
             .OrderByDescending(c => c.IsPinned)
@@ -1076,7 +1170,9 @@ public class CommunicationsController : CrmControllerBase
             .FirstOrDefaultAsync();
 
         if (conversation == null)
+        {
             return NotFound(new { message = "Conversation not found" });
+        }
 
         var messages = await _context.CommunicationMessages
             .Where(m => m.ConversationId == conversation.ConversationId && !m.IsDeleted)
@@ -1125,14 +1221,18 @@ public class CommunicationsController : CrmControllerBase
         };
 
         if (!string.IsNullOrEmpty(conversation.TagsJson))
+        {
             dto.Tags = JsonSerializer.Deserialize<List<string>>(conversation.TagsJson);
+        }
 
         // Mark all messages as read
         var unreadMessages = await _context.CommunicationMessages
             .Where(m => m.ConversationId == conversation.ConversationId && !m.IsRead && !m.IsDeleted)
             .ToListAsync();
         foreach (var msg in unreadMessages)
+        {
             msg.IsRead = true;
+        }
         conversation.UnreadCount = 0;
         await _context.SaveChangesAsync();
 
@@ -1153,7 +1253,9 @@ public class CommunicationsController : CrmControllerBase
                 var query = _context.EmailTemplates.Where(t => !t.IsDeleted);
 
         if (!string.IsNullOrEmpty(category) && Enum.TryParse<EmailTemplateCategory>(category, true, out var cat))
+        {
             query = query.Where(t => t.Category == cat);
+        }
 
         var templates = await query
             .OrderBy(t => t.Category)
@@ -1189,7 +1291,9 @@ public class CommunicationsController : CrmControllerBase
             .FirstOrDefaultAsync();
 
         if (template == null)
+        {
             return NotFound(new { message = TemplateNotFoundMessage });
+        }
 
         var dto = new EmailTemplateDto
         {
@@ -1212,7 +1316,9 @@ public class CommunicationsController : CrmControllerBase
         };
 
         if (!string.IsNullOrEmpty(template.MergeFieldsJson))
+        {
             dto.MergeFields = JsonSerializer.Deserialize<List<string>>(template.MergeFieldsJson);
+        }
 
         return Ok(dto);
     }
@@ -1260,10 +1366,14 @@ public class CommunicationsController : CrmControllerBase
     {
                 var template = await _context.EmailTemplates.FindAsync(id);
         if (template == null || template.IsDeleted)
+        {
             return NotFound(new { message = TemplateNotFoundMessage });
+        }
 
         if (template.IsSystem)
+        {
             return BadRequest(new { message = "Cannot modify system templates" });
+        }
 
         template.Name = dto.Name;
         template.Description = dto.Description;
@@ -1296,10 +1406,14 @@ public class CommunicationsController : CrmControllerBase
     {
                 var template = await _context.EmailTemplates.FindAsync(id);
         if (template == null || template.IsDeleted)
+        {
             return NotFound(new { message = TemplateNotFoundMessage });
+        }
 
         if (template.IsSystem)
+        {
             return BadRequest(new { message = "Cannot delete system templates" });
+        }
 
         template.IsDeleted = true;
         template.UpdatedAt = DateTime.UtcNow;

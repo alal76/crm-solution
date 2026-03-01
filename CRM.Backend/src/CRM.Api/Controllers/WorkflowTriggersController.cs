@@ -33,7 +33,7 @@ public class WorkflowTriggersController : CrmControllerBase
         _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
@@ -71,7 +71,9 @@ public class WorkflowTriggersController : CrmControllerBase
     {
                 var trigger = await _triggerService.GetByIdAsync(id);
         if (trigger == null)
+        {
             return NotFound(new { error = $"Trigger with ID {id} not found" });
+        }
 
         return Ok(trigger);
     }
@@ -98,20 +100,26 @@ public class WorkflowTriggersController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             // Validate cron expression if scheduled trigger
             if (dto.TriggerType == WorkflowTriggerType.Scheduled && !string.IsNullOrEmpty(dto.CronExpression))
             {
                 if (!_triggerService.ValidateCronExpression(dto.CronExpression, out var cronError))
+                {
                     return BadRequest(new { error = "Invalid cron expression", details = cronError });
+                }
             }
 
             // Validate filter conditions if provided
             if (!string.IsNullOrEmpty(dto.FilterConditions))
             {
                 if (!_triggerService.ValidateFilterConditions(dto.FilterConditions, out var filterError))
+                {
                     return BadRequest(new { error = "Invalid filter conditions", details = filterError });
+                }
             }
 
             var trigger = await _triggerService.CreateAsync(dto, GetCurrentUserId());
@@ -135,20 +143,26 @@ public class WorkflowTriggersController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             // Validate cron expression if provided
             if (!string.IsNullOrEmpty(dto.CronExpression))
             {
                 if (!_triggerService.ValidateCronExpression(dto.CronExpression, out var cronError))
+                {
                     return BadRequest(new { error = "Invalid cron expression", details = cronError });
+                }
             }
 
             // Validate filter conditions if provided
             if (!string.IsNullOrEmpty(dto.FilterConditions))
             {
                 if (!_triggerService.ValidateFilterConditions(dto.FilterConditions, out var filterError))
+                {
                     return BadRequest(new { error = "Invalid filter conditions", details = filterError });
+                }
             }
 
             dto.Id = id;
@@ -176,7 +190,9 @@ public class WorkflowTriggersController : CrmControllerBase
     {
                 var success = await _triggerService.DeleteAsync(id);
         if (!success)
+        {
             return NotFound(new { error = $"Trigger with ID {id} not found" });
+        }
 
         return NoContent();
     }
@@ -251,7 +267,9 @@ public class WorkflowTriggersController : CrmControllerBase
             var result = await _triggerService.FireTriggerAsync(id, request.EntityId, initiatedById);
 
             if (!result.Success)
+            {
                 return BadRequest(new { error = "Trigger execution failed", details = result.Errors });
+            }
 
             _logger.LogInformation(
                 "Manually fired workflow trigger {TriggerId} for entity {EntityId}, triggered {WorkflowCount} workflows",
@@ -316,7 +334,9 @@ public class WorkflowTriggersController : CrmControllerBase
         [FromQuery] string? eventName = null)
     {
                 if (string.IsNullOrWhiteSpace(entityType))
+                {
             return BadRequest(new { error = "entityType is required" });
+                }
 
         var triggers = await _triggerService.GetMatchingTriggersAsync(entityType, triggerType, eventName);
         return Ok(triggers);

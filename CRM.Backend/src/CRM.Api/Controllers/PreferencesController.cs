@@ -21,12 +21,10 @@ namespace CRM.Api.Controllers;
 public class PreferencesController : CrmControllerBase
 {
     private readonly IPreferencesService _preferencesService;
-    private readonly ILogger<PreferencesController> _logger;
 
-    public PreferencesController(IPreferencesService preferencesService, ILogger<PreferencesController> logger)
+    public PreferencesController(IPreferencesService preferencesService)
     {
         _preferencesService = preferencesService;
-        _logger = logger;
     }
 
     [HttpGet("preferences/{id:int}")]

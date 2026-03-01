@@ -23,14 +23,11 @@ namespace CRM.Api.Controllers;
 public class LeadScoreController : CrmControllerBase
 {
     private readonly ILeadScoreHistoryService _historyService;
-    private readonly ILogger<LeadScoreController> _logger;
 
     public LeadScoreController(
-        ILeadScoreHistoryService historyService,
-        ILogger<LeadScoreController> logger)
+        ILeadScoreHistoryService historyService)
     {
         _historyService = historyService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -65,7 +62,9 @@ public class LeadScoreController : CrmControllerBase
     {
                 var explanation = await _historyService.GetExplanationAsync(id, ct);
         if (explanation == null)
+        {
             return NotFound(new { error = $"Lead {id} not found" });
+        }
 
         return Ok(explanation);
     }

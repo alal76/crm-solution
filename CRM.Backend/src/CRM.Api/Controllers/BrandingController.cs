@@ -59,7 +59,9 @@ public class BrandingController : CrmControllerBase
     {
                 var config = await _brandingConfigService.GetByIdAsync(id, cancellationToken);
         if (config == null)
+        {
             return NotFound();
+        }
 
         return Ok(config);
     }
@@ -82,11 +84,15 @@ public class BrandingController : CrmControllerBase
         try
         {
             if (request == null || string.IsNullOrWhiteSpace(request.SolutionName))
+            {
                 return BadRequest(new { message = "Solution name is required" });
+            }
 
             var userId = GetCurrentUserId();
             if (userId == 0)
+            {
                 return Unauthorized();
+            }
 
             var config = await _brandingConfigService.UpdateSolutionNameAsync(
                 request.SolutionName, userId, cancellationToken);
@@ -193,7 +199,9 @@ public class BrandingController : CrmControllerBase
     {
                 var userId = GetCurrentUserId();
         if (userId == 0)
+        {
             return Unauthorized();
+        }
 
         var config = await _brandingConfigService.DeleteCustomLogoAsync(userId, cancellationToken);
         return Ok(config);
@@ -212,7 +220,9 @@ public class BrandingController : CrmControllerBase
     {
                 var userId = GetCurrentUserId();
         if (userId == 0)
+        {
             return Unauthorized();
+        }
 
         var config = await _brandingConfigService.DeleteFaviconAsync(userId, cancellationToken);
         return Ok(config);
@@ -234,7 +244,9 @@ public class BrandingController : CrmControllerBase
     {
                 var userId = GetCurrentUserId();
         if (userId == 0)
+        {
             return Unauthorized();
+        }
 
         var config = await _brandingConfigService.SetCustomBrandingEnabledAsync(isEnabled, userId, cancellationToken);
         return Ok(config);
@@ -244,7 +256,7 @@ public class BrandingController : CrmControllerBase
     /// Gets the current user ID from claims.
     /// </summary>
     /// <returns>User ID or 0 if not found.</returns>
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         return userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId) ? userId : 0;

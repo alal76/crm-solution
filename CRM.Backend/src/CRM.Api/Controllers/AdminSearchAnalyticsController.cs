@@ -86,7 +86,9 @@ public class AdminSearchAnalyticsController : CrmControllerBase
         var resolvedTo = to ?? DateTime.UtcNow;
 
         if (resolvedFrom > resolvedTo)
+        {
             return BadRequest(new { message = "from must be before to." });
+        }
 
         var volume = await _analytics.GetSearchVolumeAsync(resolvedFrom, resolvedTo, ct);
         return Ok(volume);

@@ -65,7 +65,9 @@ public class ServiceRequestSettingsController : CrmControllerBase
     {
                 var category = await _categoryService.GetCategoryByIdAsync(id);
         if (category == null)
+        {
             return NotFound($"Category {id} not found");
+        }
         return Ok(category);
     }
 
@@ -124,7 +126,9 @@ public class ServiceRequestSettingsController : CrmControllerBase
     {
                 var result = await _categoryService.DeleteCategoryAsync(id);
         if (!result)
+        {
             return NotFound($"Category {id} not found");
+        }
         return NoContent();
     }
 
@@ -176,7 +180,9 @@ public class ServiceRequestSettingsController : CrmControllerBase
     {
                 var subcategory = await _subcategoryService.GetSubcategoryByIdAsync(id);
         if (subcategory == null)
+        {
             return NotFound($"Subcategory {id} not found");
+        }
         return Ok(subcategory);
     }
 
@@ -222,7 +228,9 @@ public class ServiceRequestSettingsController : CrmControllerBase
     {
                 var result = await _subcategoryService.DeleteSubcategoryAsync(id);
         if (!result)
+        {
             return NotFound($"Subcategory {id} not found");
+        }
         return NoContent();
     }
 
@@ -274,7 +282,9 @@ public class ServiceRequestSettingsController : CrmControllerBase
     {
                 var field = await _customFieldService.GetFieldDefinitionByIdAsync(id);
         if (field == null)
+        {
             return NotFound($"Custom field {id} not found");
+        }
         return Ok(field);
     }
 
@@ -329,7 +339,9 @@ public class ServiceRequestSettingsController : CrmControllerBase
     {
                 var result = await _customFieldService.DeleteFieldDefinitionAsync(id);
         if (!result)
+        {
             return NotFound($"Custom field {id} not found");
+        }
         return NoContent();
     }
 
@@ -413,7 +425,9 @@ public class ServiceRequestSettingsController : CrmControllerBase
     {
                 var type = await _typeService.GetTypeByIdAsync(id);
         if (type == null)
+        {
             return NotFound($"Service request type {id} not found");
+        }
         return Ok(type);
     }
 
@@ -467,7 +481,9 @@ public class ServiceRequestSettingsController : CrmControllerBase
     {
                 var result = await _typeService.DeleteTypeAsync(id);
         if (!result)
+        {
             return NotFound($"Service request type {id} not found");
+        }
         return NoContent();
     }
 

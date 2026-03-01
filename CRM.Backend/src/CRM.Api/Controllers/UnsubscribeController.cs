@@ -21,14 +21,11 @@ namespace CRM.Api.Controllers;
 public class UnsubscribeController : CrmControllerBase
 {
     private readonly IUnsubscribeService _unsubscribeService;
-    private readonly ILogger<UnsubscribeController> _logger;
 
     public UnsubscribeController(
-        IUnsubscribeService unsubscribeService,
-        ILogger<UnsubscribeController> logger)
+        IUnsubscribeService unsubscribeService)
     {
         _unsubscribeService = unsubscribeService;
-        _logger = logger;
     }
 
     /// <summary>
@@ -41,7 +38,9 @@ public class UnsubscribeController : CrmControllerBase
     public async Task<IActionResult> GetStatus([FromQuery] string email, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(email))
+        {
             return BadRequest(new { message = "Email address is required" });
+        }
 
                 var status = await _unsubscribeService.GetStatusAsync(email, cancellationToken);
         return Ok(status);
@@ -57,7 +56,9 @@ public class UnsubscribeController : CrmControllerBase
     public async Task<IActionResult> Unsubscribe([FromBody] UnsubscribeRequestDto dto, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
                 var status = await _unsubscribeService.UnsubscribeAsync(dto, cancellationToken);
         return Ok(status);
@@ -77,14 +78,20 @@ public class UnsubscribeController : CrmControllerBase
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(email))
+        {
             return BadRequest(new { message = "Email address is required" });
+        }
 
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
                 var status = await _unsubscribeService.UpdatePreferencesAsync(email, dto, cancellationToken);
         if (status is null)
+        {
             return NotFound(new { message = "No subscription record found for this email" });
+        }
 
         return Ok(status);
     }
@@ -102,7 +109,9 @@ public class UnsubscribeController : CrmControllerBase
         CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(email))
+        {
             return BadRequest(new { message = "Email address is required" });
+        }
 
                 var token = await _unsubscribeService.GenerateUnsubscribeTokenAsync(email, campaignId, cancellationToken);
         return Ok(new { token, email, campaignId });

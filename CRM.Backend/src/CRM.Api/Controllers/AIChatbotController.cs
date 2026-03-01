@@ -533,7 +533,7 @@ public class AIChatbotController : CrmControllerBase
         return result;
     }
 
-    private string BuildSystemPrompt(string documentation, string? accountContext)
+    private static string BuildSystemPrompt(string documentation, string? accountContext)
     {
         var prompt = new StringBuilder();
 
@@ -562,7 +562,9 @@ public class AIChatbotController : CrmControllerBase
     private async Task<string> GetAccountContextAsync(List<int>? accountIds)
     {
         if (accountIds == null || !accountIds.Any())
+        {
             return "";
+        }
 
         var context = new StringBuilder();
 
@@ -596,13 +598,19 @@ public class AIChatbotController : CrmControllerBase
 
                 context.AppendLine($"Account: {name}");
                 if (!string.IsNullOrEmpty(account.Email))
+                {
                     context.AppendLine($"  - Email: {account.Email}");
+                }
                 if (!string.IsNullOrEmpty(account.Industry))
+                {
                     context.AppendLine($"  - Industry: {account.Industry}");
+                }
                 context.AppendLine($"  - Lifecycle Stage: {account.LifecycleStage}");
                 context.AppendLine($"  - Open Opportunities: {account.OpportunityCount}");
                 if (account.OpenOpportunityValue > 0)
+                {
                     context.AppendLine($"  - Open Opportunity Value: ${account.OpenOpportunityValue:N2}");
+                }
                 context.AppendLine();
             }
         }

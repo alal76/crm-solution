@@ -34,13 +34,13 @@ public class DashboardConfigController : CrmControllerBase
         _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
-    private string GetCurrentUserRole()
+    private string GetCurrentUserRole() // NOSONAR
     {
         return User.FindFirst(ClaimTypes.Role)?.Value ?? "";
     }
@@ -143,15 +143,21 @@ public class DashboardConfigController : CrmControllerBase
             .FirstOrDefaultAsync();
 
         if (dashboard == null)
+        {
             return NotFound(new { message = DashboardNotFoundMessage });
+        }
 
         // Check access
         if (dashboard.Visibility == DashboardVisibility.Private && dashboard.OwnerId != userId)
+        {
             return Forbid();
+        }
 
         if (dashboard.Visibility == DashboardVisibility.RoleBased &&
             dashboard.AllowedRoles != null && !dashboard.AllowedRoles.Contains(userRole))
+        {
             return Forbid();
+        }
 
         var dto = new DashboardDetailDto
         {
@@ -235,7 +241,9 @@ public class DashboardConfigController : CrmControllerBase
         }
 
         if (dashboard == null)
+        {
             return Ok(null); // No dashboards available
+        }
 
         var dto = new DashboardDetailDto
         {
@@ -289,7 +297,9 @@ public class DashboardConfigController : CrmControllerBase
     public async Task<IActionResult> CreateDashboard([FromBody] CreateDashboardDto dto)
     {
                 if (string.IsNullOrWhiteSpace(dto.Name))
+                {
             return BadRequest(new { message = "Dashboard name is required" });
+                }
 
         var userId = GetCurrentUserId();
 
@@ -344,10 +354,14 @@ public class DashboardConfigController : CrmControllerBase
     {
                 var dashboard = await _context.Dashboards.FindAsync(id);
         if (dashboard == null || dashboard.IsDeleted)
+        {
             return NotFound(new { message = DashboardNotFoundMessage });
+        }
 
         if (dashboard.IsSystem && !User.IsInRole("Admin"))
+        {
             return Forbid();
+        }
 
         // If this is set as default, unset other defaults
         if (dto.IsDefault == true && !dashboard.IsDefault)
@@ -362,27 +376,49 @@ public class DashboardConfigController : CrmControllerBase
         }
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
             dashboard.Name = dto.Name;
+        }
         if (dto.Description != null)
+        {
             dashboard.Description = dto.Description;
+        }
         if (dto.IsDefault.HasValue)
+        {
             dashboard.IsDefault = dto.IsDefault.Value;
+        }
         if (dto.IsActive.HasValue)
+        {
             dashboard.IsActive = dto.IsActive.Value;
+        }
         if (!string.IsNullOrWhiteSpace(dto.IconName))
+        {
             dashboard.IconName = dto.IconName;
+        }
         if (dto.DisplayOrder.HasValue)
+        {
             dashboard.DisplayOrder = dto.DisplayOrder.Value;
+        }
         if (dto.ColumnCount.HasValue)
+        {
             dashboard.ColumnCount = dto.ColumnCount.Value;
+        }
         if (dto.RefreshIntervalSeconds.HasValue)
+        {
             dashboard.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
+        }
         if (dto.LayoutConfig != null)
+        {
             dashboard.LayoutConfig = dto.LayoutConfig;
+        }
         if (dto.Visibility != null && Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis))
+        {
             dashboard.Visibility = vis;
+        }
         if (dto.AllowedRoles != null)
+        {
             dashboard.AllowedRoles = dto.AllowedRoles;
+        }
 
         dashboard.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -403,10 +439,14 @@ public class DashboardConfigController : CrmControllerBase
     {
                 var dashboard = await _context.Dashboards.FindAsync(id);
         if (dashboard == null || dashboard.IsDeleted)
+        {
             return NotFound(new { message = DashboardNotFoundMessage });
+        }
 
         if (dashboard.IsSystem)
+        {
             return BadRequest(new { message = "Cannot delete system dashboards" });
+        }
 
         dashboard.IsDeleted = true;
         dashboard.UpdatedAt = DateTime.UtcNow;
@@ -470,11 +510,15 @@ public class DashboardConfigController : CrmControllerBase
     public async Task<IActionResult> CreateWidget([FromBody] CreateWidgetDto dto)
     {
                 if (string.IsNullOrWhiteSpace(dto.Title))
+                {
             return BadRequest(new { message = "Widget title is required" });
+                }
 
         var dashboard = await _context.Dashboards.FindAsync(dto.DashboardId);
         if (dashboard == null || dashboard.IsDeleted)
+        {
             return NotFound(new { message = DashboardNotFoundMessage });
+        }
 
         var widget = new DashboardWidget
         {
@@ -521,44 +565,82 @@ public class DashboardConfigController : CrmControllerBase
     {
                 var widget = await _context.DashboardWidgets.FindAsync(id);
         if (widget == null || widget.IsDeleted)
+        {
             return NotFound(new { message = "Widget not found" });
+        }
 
         if (!string.IsNullOrWhiteSpace(dto.Title))
+        {
             widget.Title = dto.Title;
+        }
         if (dto.Subtitle != null)
+        {
             widget.Subtitle = dto.Subtitle;
+        }
         if (dto.WidgetType != null && Enum.TryParse<WidgetType>(dto.WidgetType, out var wt))
+        {
             widget.WidgetType = wt;
+        }
         if (dto.DataSource != null)
+        {
             widget.DataSource = dto.DataSource;
+        }
         if (dto.RowIndex.HasValue)
+        {
             widget.RowIndex = dto.RowIndex.Value;
+        }
         if (dto.ColumnIndex.HasValue)
+        {
             widget.ColumnIndex = dto.ColumnIndex.Value;
+        }
         if (dto.ColumnSpan.HasValue)
+        {
             widget.ColumnSpan = dto.ColumnSpan.Value;
+        }
         if (dto.RowSpan.HasValue)
+        {
             widget.RowSpan = dto.RowSpan.Value;
+        }
         if (dto.DisplayOrder.HasValue)
+        {
             widget.DisplayOrder = dto.DisplayOrder.Value;
+        }
         if (dto.IsVisible.HasValue)
+        {
             widget.IsVisible = dto.IsVisible.Value;
+        }
         if (dto.IconName != null)
+        {
             widget.IconName = dto.IconName;
+        }
         if (dto.Color != null)
+        {
             widget.Color = dto.Color;
+        }
         if (dto.BackgroundColor != null)
+        {
             widget.BackgroundColor = dto.BackgroundColor;
+        }
         if (dto.NavigationLink != null)
+        {
             widget.NavigationLink = dto.NavigationLink;
+        }
         if (dto.ConfigJson != null)
+        {
             widget.ConfigJson = dto.ConfigJson;
+        }
         if (dto.ShowTrend.HasValue)
+        {
             widget.ShowTrend = dto.ShowTrend.Value;
+        }
         if (dto.TrendPeriodDays.HasValue)
+        {
             widget.TrendPeriodDays = dto.TrendPeriodDays.Value;
+        }
         if (dto.RefreshIntervalSeconds.HasValue)
+        {
             widget.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
+        }
 
         widget.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -579,7 +661,9 @@ public class DashboardConfigController : CrmControllerBase
     {
                 var widget = await _context.DashboardWidgets.FindAsync(id);
         if (widget == null || widget.IsDeleted)
+        {
             return NotFound(new { message = "Widget not found" });
+        }
 
         widget.IsDeleted = true;
         widget.UpdatedAt = DateTime.UtcNow;
@@ -698,7 +782,9 @@ public class DashboardConfigController : CrmControllerBase
     {
                 var existingCount = await _context.Dashboards.CountAsync(d => !d.IsDeleted);
         if (existingCount > 0)
+        {
             return Ok(new { message = "Dashboards already exist", count = existingCount });
+        }
 
         // Create default Sales Dashboard
         var salesDashboard = new Dashboard

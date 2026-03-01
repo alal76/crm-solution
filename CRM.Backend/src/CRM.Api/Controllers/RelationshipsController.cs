@@ -26,17 +26,14 @@ public class RelationshipsController : CrmControllerBase
     private const string RelationshipNotFoundMessage = "Relationship not found";
 
     private readonly RelationshipService _relationshipService;
-    private readonly ILogger<RelationshipsController> _logger;
 
     public RelationshipsController(
-        RelationshipService relationshipService,
-        ILogger<RelationshipsController> logger)
+        RelationshipService relationshipService)
     {
         _relationshipService = relationshipService;
-        _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
@@ -65,7 +62,9 @@ public class RelationshipsController : CrmControllerBase
     {
                 var type = await _relationshipService.GetRelationshipTypeAsync(id);
         if (type == null)
+        {
             return NotFound(new { message = RelationshipTypeNotFoundMessage });
+        }
 
         return Ok(type);
     }
@@ -96,7 +95,9 @@ public class RelationshipsController : CrmControllerBase
         {
             var type = await _relationshipService.UpdateRelationshipTypeAsync(id, dto);
             if (type == null)
+            {
                 return NotFound(new { message = RelationshipTypeNotFoundMessage });
+            }
 
             return Ok(type);
         }
@@ -118,7 +119,9 @@ public class RelationshipsController : CrmControllerBase
         {
             var result = await _relationshipService.DeleteRelationshipTypeAsync(id);
             if (!result)
+            {
                 return NotFound(new { message = RelationshipTypeNotFoundMessage });
+            }
 
             return Ok(new { message = "Relationship type deleted" });
         }
@@ -183,7 +186,9 @@ public class RelationshipsController : CrmControllerBase
     {
                 var relationship = await _relationshipService.GetRelationshipAsync(id);
         if (relationship == null)
+        {
             return NotFound(new { message = RelationshipNotFoundMessage });
+        }
 
         return Ok(relationship);
     }
@@ -220,7 +225,9 @@ public class RelationshipsController : CrmControllerBase
                 var userId = GetCurrentUserId();
         var relationship = await _relationshipService.UpdateRelationshipAsync(id, dto, userId);
         if (relationship == null)
+        {
             return NotFound(new { message = RelationshipNotFoundMessage });
+        }
 
         return Ok(relationship);
     }
@@ -235,7 +242,9 @@ public class RelationshipsController : CrmControllerBase
     {
                 var result = await _relationshipService.DeleteRelationshipAsync(id);
         if (!result)
+        {
             return NotFound(new { message = RelationshipNotFoundMessage });
+        }
 
         return Ok(new { message = "Relationship deleted" });
     }

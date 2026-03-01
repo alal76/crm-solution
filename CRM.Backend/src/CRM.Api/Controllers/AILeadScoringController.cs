@@ -41,22 +41,19 @@ public class AILeadScoringController : CrmControllerBase
     private readonly ILLMService _llmService;
     private readonly ILLMSettingsService _llmSettingsService;
     private readonly ILeadScoreHistoryService _scoreHistoryService;
-    private readonly ILogger<AILeadScoringController> _logger;
 
     public AILeadScoringController(
         CrmDbContext context,
         IAllenAIService aiService,
         ILLMService llmService,
         ILLMSettingsService llmSettingsService,
-        ILeadScoreHistoryService scoreHistoryService,
-        ILogger<AILeadScoringController> logger)
+        ILeadScoreHistoryService scoreHistoryService)
     {
         _context = context;
         _aiService = aiService;
         _llmService = llmService;
         _llmSettingsService = llmSettingsService;
         _scoreHistoryService = scoreHistoryService;
-        _logger = logger;
     }
 
     /// <summary>

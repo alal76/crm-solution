@@ -40,7 +40,9 @@ public class LookupsController : CrmControllerBase
     {
         var cat = await _context.LookupCategories.FirstOrDefaultAsync(c => c.Name.ToLower() == categoryName.ToLower());
         if (cat == null)
+        {
             return NotFound();
+        }
 
         var items = await _context.LookupItems.Where(i => i.LookupCategoryId == cat.Id && i.IsActive).OrderBy(i => i.SortOrder).ToListAsync();
         return Ok(items.Select(i => new { i.Id, i.Key, i.Value, i.Meta }));

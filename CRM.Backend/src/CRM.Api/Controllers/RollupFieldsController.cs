@@ -38,7 +38,9 @@ public class RollupFieldsController : CrmControllerBase
     {
         var query = _db.RollupFields.AsNoTracking().Where(r => !r.IsDeleted && r.IsActive);
         if (!string.IsNullOrWhiteSpace(parentEntityType))
+        {
             query = query.Where(r => r.ParentEntityType == parentEntityType);
+        }
         return Ok(await query.ToListAsync(ct));
     }
 
@@ -60,7 +62,9 @@ public class RollupFieldsController : CrmControllerBase
     public async Task<IActionResult> Calculate([FromBody] RollupRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request.ParentEntityType))
+        {
             return BadRequest(new { message = "ParentEntityType is required." });
+        }
 
         var result = await _rollupSvc.CalculateAsync(request, ct);
         return Ok(result);

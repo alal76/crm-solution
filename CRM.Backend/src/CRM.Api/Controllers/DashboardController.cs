@@ -26,13 +26,11 @@ namespace CRM.Api.Controllers;
 public class DashboardController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
-    private readonly ILogger<DashboardController> _logger;
     private readonly IDashboardService _dashboardService;
 
-    public DashboardController(CrmDbContext context, ILogger<DashboardController> logger, IDashboardService dashboardService)
+    public DashboardController(CrmDbContext context, IDashboardService dashboardService)
     {
         _context = context;
-        _logger = logger;
         _dashboardService = dashboardService;
     }
 

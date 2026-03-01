@@ -29,17 +29,15 @@ namespace CRM.Api.Controllers;
 public class AnalyticsEventsController : CrmControllerBase
 {
     private readonly IAnalyticsEventService _service;
-    private readonly ILogger<AnalyticsEventsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AnalyticsEventsController"/> class.
     /// </summary>
     /// <param name="service">The analytics event service.</param>
     /// <param name="logger">The logger.</param>
-    public AnalyticsEventsController(IAnalyticsEventService service, ILogger<AnalyticsEventsController> logger)
+    public AnalyticsEventsController(IAnalyticsEventService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     /// <summary>

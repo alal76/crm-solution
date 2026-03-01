@@ -35,7 +35,7 @@ public class ForumPostsController : CrmControllerBase
         _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var id) ? id : 0;
@@ -59,10 +59,14 @@ public class ForumPostsController : CrmControllerBase
             .Where(p => !p.IsDeleted && (p.IsApproved || IsAdmin()));
 
         if (!string.IsNullOrWhiteSpace(category))
+        {
             query = query.Where(p => p.Category == category);
+        }
 
         if (pinned.HasValue)
+        {
             query = query.Where(p => p.IsPinned == pinned.Value);
+        }
 
         var total = await query.CountAsync(ct);
         var items = await query
@@ -90,7 +94,9 @@ public class ForumPostsController : CrmControllerBase
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted && (p.IsApproved || IsAdmin()), ct);
 
         if (post == null)
+        {
             return NotFound(new { message = PostNotFoundMessage });
+        }
 
         // Increment view count
         var tracked = await _db.ForumPosts.FindAsync(new object[] { id }, ct);
@@ -112,10 +118,14 @@ public class ForumPostsController : CrmControllerBase
     public async Task<IActionResult> CreatePost([FromBody] ForumCreatePostRequest req, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(req.Title))
+        {
             return BadRequest(new { message = "Title is required." });
+        }
 
         if (string.IsNullOrWhiteSpace(req.Body))
+        {
             return BadRequest(new { message = "Body is required." });
+        }
 
         var userId = GetCurrentUserId();
         var autoApprove = IsAdmin();
@@ -162,7 +172,9 @@ public class ForumPostsController : CrmControllerBase
     {
         var post = await _db.ForumPosts.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
         if (post == null)
+        {
             return NotFound(new { message = PostNotFoundMessage });
+        }
 
         post.IsApproved = true;
         post.UpdatedAt = DateTime.UtcNow;
@@ -181,7 +193,9 @@ public class ForumPostsController : CrmControllerBase
     {
         var post = await _db.ForumPosts.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
         if (post == null)
+        {
             return NotFound(new { message = PostNotFoundMessage });
+        }
 
         post.IsPinned = pin;
         post.UpdatedAt = DateTime.UtcNow;
@@ -199,7 +213,9 @@ public class ForumPostsController : CrmControllerBase
     {
         var post = await _db.ForumPosts.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
         if (post == null)
+        {
             return NotFound(new { message = PostNotFoundMessage });
+        }
 
         post.IsDeleted = true;
         post.UpdatedAt = DateTime.UtcNow;

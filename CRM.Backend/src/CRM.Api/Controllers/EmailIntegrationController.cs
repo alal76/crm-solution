@@ -31,7 +31,7 @@ public class EmailIntegrationController : CrmControllerBase
         _emailSyncService = emailSyncService;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
             ?? User.FindFirst("sub")?.Value

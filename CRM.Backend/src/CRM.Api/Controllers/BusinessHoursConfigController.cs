@@ -48,7 +48,10 @@ public class BusinessHoursConfigController : CrmControllerBase
     public async Task<ActionResult<BusinessHoursConfigDto>> GetById(int id, CancellationToken ct)
     {
                 var config = await _service.GetByIdAsync(id, ct);
-        if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
+        if (config == null)
+        {
+            return NotFound(string.Format(ConfigNotFoundMessage, id));
+        }
         return Ok(config);
     }
 
@@ -75,7 +78,10 @@ public class BusinessHoursConfigController : CrmControllerBase
         try
         {
             var config = await _service.UpdateAsync(id, request, ct);
-            if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
+            if (config == null)
+            {
+                return NotFound(string.Format(ConfigNotFoundMessage, id));
+            }
             return Ok(config);
         }
         catch (InvalidOperationException ex)
@@ -93,7 +99,10 @@ public class BusinessHoursConfigController : CrmControllerBase
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
                 var deleted = await _service.DeleteAsync(id, ct);
-        if (!deleted) return NotFound(string.Format(ConfigNotFoundMessage, id));
+        if (!deleted)
+        {
+            return NotFound(string.Format(ConfigNotFoundMessage, id));
+        }
         return NoContent();
     }
 
@@ -105,7 +114,10 @@ public class BusinessHoursConfigController : CrmControllerBase
     public async Task<ActionResult<BusinessHoursConfigDto>> SetDefault(int id, CancellationToken ct)
     {
                 var config = await _service.SetDefaultAsync(id, ct);
-        if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
+        if (config == null)
+        {
+            return NotFound(string.Format(ConfigNotFoundMessage, id));
+        }
         return Ok(config);
     }
 }

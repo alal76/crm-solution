@@ -27,16 +27,13 @@ public class SystemConfigurationController : CrmControllerBase
 {
     private readonly ISystemConfigurationService _systemConfig;
     private readonly IProviderConfigurationService _providerConfig;
-    private readonly ILogger<SystemConfigurationController> _logger;
 
     public SystemConfigurationController(
         ISystemConfigurationService systemConfig,
-        IProviderConfigurationService providerConfig,
-        ILogger<SystemConfigurationController> logger)
+        IProviderConfigurationService providerConfig)
     {
         _systemConfig = systemConfig;
         _providerConfig = providerConfig;
-        _logger = logger;
     }
 
     #region System Configuration

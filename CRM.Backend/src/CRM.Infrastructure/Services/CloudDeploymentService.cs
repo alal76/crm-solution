@@ -97,7 +97,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted)
             ?? throw new KeyNotFoundException($"Provider {id} not found");
 
-        if (request.IsDefault == true)
+        if (request.IsDefault is true)
         {
             await UnsetDefaultProvidersAsync();
         }

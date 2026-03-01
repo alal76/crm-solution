@@ -89,7 +89,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         return Ok(MapToDto(contract));
     }
@@ -103,7 +105,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByContractNumberAsync(contractNumber, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = $"Contract '{contractNumber}' not found" });
+        }
 
         return Ok(MapToDto(contract));
     }
@@ -116,7 +120,9 @@ public class ContractsController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CreateContractRequest request, CancellationToken cancellationToken = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var contract = new Contract
         {
@@ -160,51 +166,95 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         // Field-by-field patching
         if (request.Name != null)
+        {
             contract.Name = request.Name;
+        }
         if (request.Description != null)
+        {
             contract.Description = request.Description;
+        }
         if (request.Status.HasValue)
+        {
             contract.Status = request.Status.Value;
+        }
         if (request.ContractType.HasValue)
+        {
             contract.ContractType = request.ContractType.Value;
+        }
         if (request.AccountId.HasValue)
+        {
             contract.AccountId = request.AccountId.Value;
+        }
         if (request.ContactId.HasValue)
+        {
             contract.ContactId = request.ContactId;
+        }
         if (request.OwnerId.HasValue)
+        {
             contract.OwnerId = request.OwnerId;
+        }
         if (request.ParentContractId.HasValue)
+        {
             contract.ParentContractId = request.ParentContractId;
+        }
         if (request.OpportunityId.HasValue)
+        {
             contract.OpportunityId = request.OpportunityId;
+        }
         if (request.QuoteId.HasValue)
+        {
             contract.QuoteId = request.QuoteId;
+        }
         if (request.StartDate.HasValue)
+        {
             contract.StartDate = request.StartDate.Value;
+        }
         if (request.EndDate.HasValue)
+        {
             contract.EndDate = request.EndDate.Value;
+        }
         if (request.SignedDate.HasValue)
+        {
             contract.SignedDate = request.SignedDate;
+        }
         if (request.Value.HasValue)
+        {
             contract.Value = request.Value.Value;
+        }
         if (request.CurrencyCode != null)
+        {
             contract.CurrencyCode = request.CurrencyCode;
+        }
         if (request.BillingFrequency != null)
+        {
             contract.BillingFrequency = request.BillingFrequency;
+        }
         if (request.AutoRenew.HasValue)
+        {
             contract.AutoRenew = request.AutoRenew.Value;
+        }
         if (request.RenewalNoticeDays.HasValue)
+        {
             contract.RenewalNoticeDays = request.RenewalNoticeDays.Value;
+        }
         if (request.Terms != null)
+        {
             contract.Terms = request.Terms;
+        }
         if (request.SpecialConditions != null)
+        {
             contract.SpecialConditions = request.SpecialConditions;
+        }
         if (request.TerminationClause != null)
+        {
             contract.TerminationClause = request.TerminationClause;
+        }
         contract.UpdatedAt = DateTime.UtcNow;
 
         var updated = await _contractService.UpdateAsync(contract, cancellationToken);
@@ -222,11 +272,15 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var result = await _contractService.DeleteAsync(id, cancellationToken);
         if (!result)
+        {
             return StatusCode(500, new { message = "Error deleting contract" });
+        }
 
         _logger.LogInformation("Contract {ContractId} deleted", id);
         return NoContent();
@@ -246,10 +300,14 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         if (contract.Status != ContractStatus.PendingApproval)
+        {
             return BadRequest(new { message = "Contract must be in PendingApproval status to approve" });
+        }
 
         var updated = await _contractService.UpdateStatusAsync(id, ContractStatus.Approved, cancellationToken);
         _logger.LogInformation("Contract {ContractId} approved", id);
@@ -267,10 +325,14 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         if (contract.Status != ContractStatus.PendingApproval)
+        {
             return BadRequest(new { message = "Contract must be in PendingApproval status to reject" });
+        }
 
         contract.RejectionReason = request.Reason;
         var updated = await _contractService.UpdateStatusAsync(id, ContractStatus.Draft, cancellationToken);
@@ -288,7 +350,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var result = await _contractService.ActivateAsync(id, cancellationToken);
         _logger.LogInformation("Contract {ContractId} activated", id);
@@ -305,7 +369,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var result = await _contractService.SuspendAsync(id, request?.Reason ?? "No reason provided", cancellationToken);
         _logger.LogInformation("Contract {ContractId} suspended", id);
@@ -322,7 +388,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var result = await _contractService.TerminateAsync(id, request?.Reason ?? "No reason provided", null, cancellationToken);
         _logger.LogInformation("Contract {ContractId} terminated", id);
@@ -339,7 +407,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var result = await _contractService.ExpireAsync(id, cancellationToken);
         _logger.LogInformation("Contract {ContractId} expired", id);
@@ -360,7 +430,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var renewed = await _contractService.InitiateRenewalAsync(id, cancellationToken);
         _logger.LogInformation("Contract {ContractId} renewal initiated, new contract {NewContractId}", id, renewed.Id);
@@ -401,7 +473,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var amendment = new Contract
         {
@@ -450,7 +524,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var signers = request.Signers.Select(s => new ContractSigner
         {
@@ -463,7 +539,9 @@ public class ContractsController : CrmControllerBase
 
         var result = await _contractService.SendForSignatureAsync(id, signers, cancellationToken);
         if (!result)
+        {
             return StatusCode(500, new { message = "Failed to send contract for signature" });
+        }
 
         _logger.LogInformation("Contract {ContractId} sent for signature", id);
         return Ok(new { message = "Contract sent for signature", contractId = id });
@@ -502,7 +580,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var pdf = await _contractService.GenerateContractPdfAsync(id, cancellationToken);
         return File(pdf, "application/pdf", $"contract-{contract.ContractNumber}.pdf");
@@ -557,7 +637,9 @@ public class ContractsController : CrmControllerBase
     public async Task<IActionResult> Search([FromQuery] string q = "", CancellationToken cancellationToken = default)
     {
                 if (string.IsNullOrWhiteSpace(q))
+                {
             return BadRequest(new { message = "Search query is required" });
+                }
 
         var contracts = await _contractService.SearchAsync(q, cancellationToken);
         return Ok(contracts.Select(c => MapToDto(c)));
@@ -613,10 +695,14 @@ public class ContractsController : CrmControllerBase
     public async Task<IActionResult> BulkUpdateStatus([FromBody] BulkStatusUpdateRequest request, CancellationToken cancellationToken = default)
     {
                 if (request.ContractIds == null || request.ContractIds.Count == 0)
+                {
             return BadRequest(new { message = "At least one contract ID is required" });
+                }
 
         if (!Enum.IsDefined(typeof(ContractStatus), request.Status))
+        {
             return BadRequest(new { message = "Invalid contract status" });
+        }
 
         var updatedCount = await _contractService.BulkUpdateStatusAsync(
             request.ContractIds,
@@ -659,7 +745,9 @@ public class ContractsController : CrmControllerBase
         {
             var supportedFormats = _contractExportService.GetSupportedFormats();
             if (!supportedFormats.Contains(format, StringComparer.OrdinalIgnoreCase))
+            {
                 return BadRequest(new { message = $"Unsupported format '{format}'. Supported formats: {string.Join(", ", supportedFormats)}" });
+            }
 
             var result = await _contractExportService.ExportAsync(id, format, cancellationToken);
             return File(result.Content, result.ContentType, result.FileName);
@@ -678,7 +766,9 @@ public class ContractsController : CrmControllerBase
     public async Task<IActionResult> ExportBulk([FromBody] BulkExportRequest request, CancellationToken cancellationToken = default)
     {
                 if (request.ContractIds == null || request.ContractIds.Length == 0)
+                {
             return BadRequest(new { message = "At least one contract ID is required" });
+                }
 
         var result = await _contractExportService.ExportBulkAsync(
             request.ContractIds,
@@ -717,7 +807,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var versions = await _contractService.GetVersionHistoryAsync(id, cancellationToken);
         return Ok(new
@@ -744,7 +836,9 @@ public class ContractsController : CrmControllerBase
     {
                 var contract = await _contractService.GetByIdAsync(id, cancellationToken);
         if (contract == null)
+        {
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
+        }
 
         var version = await _contractService.CreateVersionSnapshotAsync(
             id,

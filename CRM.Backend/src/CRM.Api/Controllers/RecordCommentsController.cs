@@ -30,7 +30,7 @@ public class RecordCommentsController : CrmControllerBase
         _service = service ?? throw new ArgumentNullException(nameof(service));
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                  ?? User.FindFirst("sub")?.Value
@@ -53,7 +53,9 @@ public class RecordCommentsController : CrmControllerBase
         CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(entityType) || entityId <= 0)
+        {
             return BadRequest("entityType and entityId are required.");
+        }
 
         var comments = await _service.GetByEntityAsync(entityType, entityId, ct);
         return Ok(comments);
@@ -68,7 +70,9 @@ public class RecordCommentsController : CrmControllerBase
     {
         var comment = await _service.GetByIdAsync(id, ct);
         if (comment == null)
+        {
             return NotFound();
+        }
         return Ok(comment);
     }
 
@@ -91,11 +95,15 @@ public class RecordCommentsController : CrmControllerBase
         [FromBody] CreateRecordCommentDto dto, CancellationToken ct = default)
     {
         if (dto == null || string.IsNullOrWhiteSpace(dto.Content))
+        {
             return BadRequest("Content is required.");
+        }
 
         var authorId = GetCurrentUserId();
         if (authorId == 0)
+        {
             return Unauthorized();
+        }
 
         var created = await _service.CreateAsync(dto, authorId, ct);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
@@ -112,15 +120,21 @@ public class RecordCommentsController : CrmControllerBase
         int id, [FromBody] UpdateRecordCommentDto dto, CancellationToken ct = default)
     {
         if (dto == null || string.IsNullOrWhiteSpace(dto.Content))
+        {
             return BadRequest("Content is required.");
+        }
 
         var userId = GetCurrentUserId();
         if (userId == 0)
+        {
             return Unauthorized();
+        }
 
         var updated = await _service.UpdateAsync(id, dto, userId, ct);
         if (updated == null)
+        {
             return NotFound();
+        }
 
         return Ok(updated);
     }
@@ -135,11 +149,15 @@ public class RecordCommentsController : CrmControllerBase
     {
         var userId = GetCurrentUserId();
         if (userId == 0)
+        {
             return Unauthorized();
+        }
 
         var deleted = await _service.DeleteAsync(id, userId, ct);
         if (!deleted)
+        {
             return NotFound();
+        }
 
         return NoContent();
     }

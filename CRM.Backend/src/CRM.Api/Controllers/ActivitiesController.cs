@@ -81,7 +81,9 @@ public class ActivitiesController : CrmControllerBase
         entity.Title = dto.Title ?? entity.Title;
         entity.Description = dto.Description ?? entity.Description;
         if (dto.ActivityDate.HasValue)
+        {
             entity.ActivityDate = dto.ActivityDate.Value;
+        }
         entity.AccountId = dto.AccountId ?? entity.AccountId;
         entity.ContactId = dto.ContactId ?? entity.ContactId;
         entity.OpportunityId = dto.OpportunityId ?? entity.OpportunityId;
@@ -123,22 +125,34 @@ public class ActivitiesController : CrmControllerBase
             .AsQueryable();
 
         if (accountId.HasValue)
+        {
             query = query.Where(a => a.AccountId == accountId);
+        }
 
         if (opportunityId.HasValue)
+        {
             query = query.Where(a => a.OpportunityId == opportunityId);
+        }
 
         if (userId.HasValue)
+        {
             query = query.Where(a => a.UserId == userId);
+        }
 
         if (activityType.HasValue)
+        {
             query = query.Where(a => (int)a.ActivityType == activityType);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(a => a.ActivityDate >= fromDate);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(a => a.ActivityDate <= toDate);
+        }
 
         var activities = await query
             .OrderByDescending(a => a.ActivityDate)
@@ -149,10 +163,14 @@ public class ActivitiesController : CrmControllerBase
         {
             var nt = await _normalization.GetTagsAsync("Activity", a.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 a.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 a.CustomFields = cf;
+            }
         }
 
         return Ok(activities.Select(ToDto));
@@ -181,14 +199,20 @@ public class ActivitiesController : CrmControllerBase
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if (activity == null)
+        {
             return NotFound();
+        }
 
         var nt = await _normalization.GetTagsAsync("Activity", activity.Id);
         if (!string.IsNullOrWhiteSpace(nt))
+        {
             activity.Tags = nt;
+        }
         var cf = await _normalization.GetCustomFieldsAsync("Activity", activity.Id);
         if (!string.IsNullOrWhiteSpace(cf))
+        {
             activity.CustomFields = cf;
+        }
 
         return Ok(ToDto(activity));
     }
@@ -211,9 +235,13 @@ public class ActivitiesController : CrmControllerBase
     {
         // Validate required fields
         if (string.IsNullOrWhiteSpace(dto.Title) || dto.Title.Length > 255)
+        {
             return BadRequest("Title is required and must be <= 255 characters.");
+        }
         if (dto.ActivityType < 0)
+        {
             return BadRequest("ActivityType is required.");
+        }
 
         var activity = ToEntity(dto);
         _context.Activities.Add(activity);
@@ -240,7 +268,9 @@ public class ActivitiesController : CrmControllerBase
     {
         var activity = await _context.Activities.FindAsync(id);
         if (activity == null)
+        {
             return NotFound();
+        }
 
         _context.Activities.Remove(activity);
         await _context.SaveChangesAsync();
@@ -280,10 +310,14 @@ public class ActivitiesController : CrmControllerBase
         {
             var nt = await _normalization.GetTagsAsync("Activity", a.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 a.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 a.CustomFields = cf;
+            }
         }
 
         return Ok(activities.Select(ToDto));
@@ -340,10 +374,14 @@ public class ActivitiesController : CrmControllerBase
         {
             var nt = await _normalization.GetTagsAsync("Activity", a.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 a.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 a.CustomFields = cf;
+            }
         }
 
         return Ok(activities.Select(ToDto));
@@ -374,10 +412,14 @@ public class ActivitiesController : CrmControllerBase
         {
             var nt = await _normalization.GetTagsAsync("Activity", a.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 a.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 a.CustomFields = cf;
+            }
         }
 
         return Ok(activities.Select(ToDto));
@@ -449,7 +491,9 @@ public class ActivitiesController : CrmControllerBase
     {
         var activity = await _context.Activities.FindAsync(activityId);
         if (activity == null)
+        {
             return NotFound("Activity not found");
+        }
 
         var attendees = await _context.EventAttendees
             .Where(a => a.ActivityId == activityId)
@@ -481,7 +525,9 @@ public class ActivitiesController : CrmControllerBase
     {
         var activity = await _context.Activities.FindAsync(activityId);
         if (activity == null)
+        {
             return NotFound("Activity not found");
+        }
 
         var attendee = new EventAttendee
         {
@@ -522,7 +568,9 @@ public class ActivitiesController : CrmControllerBase
             .FirstOrDefaultAsync(a => a.Id == attendeeId && a.ActivityId == activityId);
 
         if (attendee == null)
+        {
             return NotFound();
+        }
 
         return Ok(attendee);
     }
@@ -554,7 +602,9 @@ public class ActivitiesController : CrmControllerBase
             .FirstOrDefaultAsync(a => a.Id == attendeeId && a.ActivityId == activityId);
 
         if (attendee == null)
+        {
             return NotFound();
+        }
 
         attendee.ResponseStatus = dto.ResponseStatus;
         attendee.RespondedAt = DateTime.UtcNow;
@@ -592,7 +642,9 @@ public class ActivitiesController : CrmControllerBase
             .FirstOrDefaultAsync(a => a.Id == attendeeId && a.ActivityId == activityId);
 
         if (attendee == null)
+        {
             return NotFound();
+        }
 
         attendee.DidAttend = dto.DidAttend;
         attendee.UpdatedAt = DateTime.UtcNow;
@@ -623,7 +675,9 @@ public class ActivitiesController : CrmControllerBase
             .FirstOrDefaultAsync(a => a.Id == attendeeId && a.ActivityId == activityId);
 
         if (attendee == null)
+        {
             return NotFound();
+        }
 
         _context.EventAttendees.Remove(attendee);
         await _context.SaveChangesAsync();
@@ -657,10 +711,14 @@ public class ActivitiesController : CrmControllerBase
             .Where(ea => ea.AttendeeType == attendeeType && ea.AttendeeId == attendeeId);
 
         if (fromDate.HasValue)
+        {
             query = query.Where(ea => ea.Activity!.ActivityDate >= fromDate);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(ea => ea.Activity!.ActivityDate <= toDate);
+        }
 
         var activities = await query
             .Select(ea => ea.Activity!)

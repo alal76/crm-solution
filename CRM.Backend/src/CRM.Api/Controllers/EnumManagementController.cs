@@ -44,10 +44,14 @@ public class EnumManagementController : CrmControllerBase
         var query = _context.LookupCategories.AsQueryable();
 
         if (!includeInactive)
+        {
             query = query.Where(c => !c.IsDeleted);
+        }
 
         if (!string.IsNullOrWhiteSpace(entityType))
+        {
             query = query.Where(c => c.EntityType == entityType);
+        }
 
         var categories = await query
             .OrderBy(c => c.EntityType)
@@ -83,7 +87,9 @@ public class EnumManagementController : CrmControllerBase
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
         if (cat == null)
+        {
             return NotFound();
+        }
 
         return Ok(MapToDetailDto(cat));
     }
@@ -96,10 +102,14 @@ public class EnumManagementController : CrmControllerBase
     public async Task<IActionResult> CreateCategory([FromBody] CreateLookupCategoryDto dto, CancellationToken ct = default)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         if (await _context.LookupCategories.AnyAsync(c => c.Name == dto.Name && !c.IsDeleted, ct))
+        {
             return Conflict(new { message = $"A category named '{dto.Name}' already exists." });
+        }
 
         var category = new LookupCategory
         {
@@ -131,15 +141,21 @@ public class EnumManagementController : CrmControllerBase
     public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateLookupCategoryDto dto, CancellationToken ct = default)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var cat = await _context.LookupCategories.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
         if (cat == null)
+        {
             return NotFound();
+        }
 
         var duplicate = await _context.LookupCategories.AnyAsync(c => c.Name == dto.Name && c.Id != id && !c.IsDeleted, ct);
         if (duplicate)
+        {
             return Conflict(new { message = $"A category named '{dto.Name}' already exists." });
+        }
 
         cat.Name = dto.Name;
         cat.Description = dto.Description;
@@ -169,10 +185,14 @@ public class EnumManagementController : CrmControllerBase
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
         if (cat == null)
+        {
             return NotFound();
+        }
 
         if (cat.IsSystemManaged)
+        {
             return Conflict(new { message = "System-managed categories cannot be deleted." });
+        }
 
         cat.IsDeleted = true;
         cat.UpdatedAt = DateTime.UtcNow;
@@ -203,11 +223,15 @@ public class EnumManagementController : CrmControllerBase
     {
         var exists = await _context.LookupCategories.AnyAsync(c => c.Id == categoryId && !c.IsDeleted, ct);
         if (!exists)
+        {
             return NotFound();
+        }
 
         var query = _context.LookupItems.Where(i => i.LookupCategoryId == categoryId && !i.IsDeleted);
         if (!includeInactive)
+        {
             query = query.Where(i => i.IsActive);
+        }
 
         var items = await query
             .OrderBy(i => i.SortOrder)
@@ -227,18 +251,26 @@ public class EnumManagementController : CrmControllerBase
     public async Task<IActionResult> CreateItem(int categoryId, [FromBody] CreateLookupItemDto dto, CancellationToken ct = default)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var cat = await _context.LookupCategories.FirstOrDefaultAsync(c => c.Id == categoryId && !c.IsDeleted, ct);
         if (cat == null)
+        {
             return NotFound(new { message = "Category not found." });
+        }
 
         if (await _context.LookupItems.AnyAsync(i => i.LookupCategoryId == categoryId && i.Key == dto.Key && !i.IsDeleted, ct))
+        {
             return Conflict(new { message = $"An item with key '{dto.Key}' already exists in this category." });
+        }
 
         // Ensure only one default per category
         if (dto.IsDefault)
+        {
             await ClearDefaultFlagAsync(categoryId, ct);
+        }
 
         var item = new LookupItem
         {
@@ -270,7 +302,9 @@ public class EnumManagementController : CrmControllerBase
     {
         var item = await _context.LookupItems.FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted, ct);
         if (item == null)
+        {
             return NotFound();
+        }
         return Ok(MapToItemDto(item));
     }
 
@@ -282,23 +316,33 @@ public class EnumManagementController : CrmControllerBase
     public async Task<IActionResult> UpdateItem(int id, [FromBody] UpdateLookupItemDto dto, CancellationToken ct = default)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var item = await _context.LookupItems.FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted, ct);
         if (item == null)
+        {
             return NotFound();
+        }
 
         if (item.IsSystemValue)
+        {
             return Conflict(new { message = "System values cannot be modified." });
+        }
 
         // Unique key check within category
         var duplicate = await _context.LookupItems.AnyAsync(i => i.LookupCategoryId == item.LookupCategoryId && i.Key == dto.Key && i.Id != id && !i.IsDeleted, ct);
         if (duplicate)
+        {
             return Conflict(new { message = $"An item with key '{dto.Key}' already exists in this category." });
+        }
 
         // Ensure only one default per category
         if (dto.IsDefault && !item.IsDefault)
+        {
             await ClearDefaultFlagAsync(item.LookupCategoryId, ct);
+        }
 
         item.Key = dto.Key;
         item.Value = dto.Value;
@@ -325,10 +369,14 @@ public class EnumManagementController : CrmControllerBase
     {
         var item = await _context.LookupItems.FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted, ct);
         if (item == null)
+        {
             return NotFound();
+        }
 
         if (item.IsSystemValue)
+        {
             return Conflict(new { message = "System values cannot be deleted." });
+        }
 
         item.IsDeleted = true;
         item.UpdatedAt = DateTime.UtcNow;
@@ -347,7 +395,9 @@ public class EnumManagementController : CrmControllerBase
     {
         var exists = await _context.LookupCategories.AnyAsync(c => c.Id == categoryId && !c.IsDeleted, ct);
         if (!exists)
+        {
             return NotFound();
+        }
 
         var items = await _context.LookupItems
             .Where(i => i.LookupCategoryId == categoryId && !i.IsDeleted)
@@ -379,7 +429,9 @@ public class EnumManagementController : CrmControllerBase
             .ToListAsync(ct);
 
         foreach (var d in currentDefaults)
+        {
             d.IsDefault = false;
+        }
     }
 
     private async Task<LookupCategoryDto?> GetCategoryDto(int id, CancellationToken ct)

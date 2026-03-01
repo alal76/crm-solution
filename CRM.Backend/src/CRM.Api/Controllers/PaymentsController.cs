@@ -68,7 +68,9 @@ public class PaymentsController : CrmControllerBase
         {
             var payment = await _paymentService.GetByIdAsync(id, cancellationToken);
             if (payment == null)
+            {
                 return NotFound(string.Format(PaymentNotFoundMessage, id));
+            }
             return Ok(MapToDto(payment));
         }
         catch (Exception ex)
@@ -89,7 +91,9 @@ public class PaymentsController : CrmControllerBase
         {
             var payment = await _paymentService.GetByTransactionIdAsync(transactionId, cancellationToken);
             if (payment == null)
+            {
                 return NotFound($"Payment with transaction '{transactionId}' not found");
+            }
             return Ok(MapToDto(payment));
         }
         catch (Exception ex)
@@ -109,7 +113,9 @@ public class PaymentsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var payment = new Payment
             {
                 InvoiceId = dto.InvoiceId,
@@ -140,9 +146,13 @@ public class PaymentsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             if (id != payment.Id)
+            {
                 return BadRequest("ID mismatch");
+            }
             var updated = await _paymentService.UpdateAsync(payment, cancellationToken);
             return Ok(MapToDto(updated));
         }
@@ -161,7 +171,9 @@ public class PaymentsController : CrmControllerBase
         {
             var result = await _paymentService.DeleteAsync(id, cancellationToken);
             if (!result)
+            {
                 return NotFound(string.Format(PaymentNotFoundMessage, id));
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -185,11 +197,15 @@ public class PaymentsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var result = await _paymentService.ProcessPaymentAsync(
                 request.InvoiceId, request.Amount, request.Method, request.Details ?? new PaymentDetails(), cancellationToken);
             if (!result.Success)
+            {
                 return BadRequest(result);
+            }
             return Ok(result);
         }
         catch (Exception ex)
@@ -210,10 +226,14 @@ public class PaymentsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var result = await _paymentService.ProcessRefundAsync(id, request.Amount, request.Reason, cancellationToken);
             if (!result.Success)
+            {
                 return BadRequest(result);
+            }
             return Ok(result);
         }
         catch (Exception ex)
@@ -235,7 +255,9 @@ public class PaymentsController : CrmControllerBase
         {
             var result = await _paymentService.VoidPaymentAsync(id, request.Reason, cancellationToken);
             if (!result.Success)
+            {
                 return BadRequest(result);
+            }
             return Ok(result);
         }
         catch (Exception ex)
@@ -257,7 +279,9 @@ public class PaymentsController : CrmControllerBase
         {
             var result = await _paymentService.CapturePaymentAsync(id, amount, cancellationToken);
             if (!result.Success)
+            {
                 return BadRequest(result);
+            }
             return Ok(result);
         }
         catch (Exception ex)
@@ -443,7 +467,9 @@ public class PaymentsController : CrmControllerBase
         {
             var success = await _paymentService.ReconcilePaymentAsync(id, request.ExternalReference, cancellationToken);
             if (!success)
+            {
                 return NotFound(string.Format(PaymentNotFoundMessage, id));
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -510,7 +536,9 @@ public class PaymentsController : CrmControllerBase
         {
             var result = await _paymentService.RetryPaymentAsync(id, cancellationToken);
             if (!result.Success)
+            {
                 return BadRequest(result);
+            }
             return Ok(result);
         }
         catch (Exception ex)
@@ -530,7 +558,9 @@ public class PaymentsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var paymentEntity = new Payment
             {
                 InvoiceId = request.InvoiceId,

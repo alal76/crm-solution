@@ -284,10 +284,14 @@ public class ZipCodesController : CrmControllerBase
     public IActionResult TriggerImport([FromBody] ImportTriggerRequest? request = null)
     {
         if (_importQueue == null)
+        {
             return NotFound("Import queue is not available. Ensure the import worker service is registered.");
+        }
 
         if (_zipCodeImportService?.IsImportRunning == true)
+        {
             return Conflict(new { message = "An import is already in progress", hint = "Poll GET import/status for progress" });
+        }
 
         var source = request?.Source ?? "GeoNames";
         var importRequest = new ZipCodeImportRequest(
@@ -342,9 +346,13 @@ public class ZipCodesController : CrmControllerBase
     public IActionResult ImportFromGeoNames()
     {
         if (_importQueue == null)
+        {
             return NotFound("Import worker is not available");
+        }
         if (_zipCodeImportService?.IsImportRunning == true)
+        {
             return Conflict(new { message = "An import is already in progress" });
+        }
 
         _importQueue.TryEnqueue(new ZipCodeImportRequest("GeoNames", RequestedBy: User.Identity?.Name ?? "admin"));
         _logger.LogInformation("Admin queued GeoNames all-countries ZIP import");
@@ -363,11 +371,17 @@ public class ZipCodesController : CrmControllerBase
     public IActionResult ImportCountryFromGeoNames(string countryCode)
     {
         if (_importQueue == null)
+        {
             return NotFound("Import worker is not available");
+        }
         if (string.IsNullOrWhiteSpace(countryCode) || countryCode.Length != 2)
+        {
             return BadRequest("Country code must be a 2-letter ISO code");
+        }
         if (_zipCodeImportService?.IsImportRunning == true)
+        {
             return Conflict(new { message = "An import is already in progress" });
+        }
 
         _importQueue.TryEnqueue(new ZipCodeImportRequest("GeoNames-Country", CountryCode: countryCode.ToUpperInvariant(), RequestedBy: User.Identity?.Name ?? "admin"));
         _logger.LogInformation("Admin queued GeoNames ZIP import for {Country}", countryCode.ToUpperInvariant());
@@ -385,9 +399,13 @@ public class ZipCodesController : CrmControllerBase
     public IActionResult ImportFromGitHub([FromBody] GitHubImportRequest? request = null)
     {
         if (_importQueue == null)
+        {
             return NotFound("Import worker is not available");
+        }
         if (_zipCodeImportService?.IsImportRunning == true)
+        {
             return Conflict(new { message = "An import is already in progress" });
+        }
 
         _importQueue.TryEnqueue(new ZipCodeImportRequest("GitHub", Url: request?.Url, RequestedBy: User.Identity?.Name ?? "admin"));
         _logger.LogInformation("Admin queued GitHub ZIP import from {Url}", request?.Url ?? "default");

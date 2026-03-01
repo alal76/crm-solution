@@ -44,7 +44,9 @@ namespace CRM.Api.Controllers
         {
             var item = await _bundleService.GetBundleByIdAsync(id, cancellationToken);
             if (item == null)
+            {
                 return NotFound();
+            }
             return Ok(item);
         }
 
@@ -63,7 +65,9 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] ProductBundle model, CancellationToken cancellationToken)
         {
             if (id != model.Id)
+            {
                 return BadRequest();
+            }
             var updated = await _bundleService.UpdateBundleAsync(model, cancellationToken);
             return Ok(updated);
         }
@@ -75,7 +79,9 @@ namespace CRM.Api.Controllers
         {
             var ok = await _bundleService.DeleteBundleAsync(id, cancellationToken);
             if (!ok)
+            {
                 return NotFound();
+            }
             return NoContent();
         }
 

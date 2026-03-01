@@ -76,29 +76,47 @@ public class InteractionsController : CrmControllerBase
             .AsQueryable();
 
         if (accountId.HasValue)
+        {
             query = query.Where(i => i.AccountId == accountId);
+        }
         if (opportunityId.HasValue)
+        {
             query = query.Where(i => i.OpportunityId == opportunityId);
+        }
         if (assignedToUserId.HasValue)
+        {
             query = query.Where(i => i.AssignedToUserId == assignedToUserId);
+        }
         if (interactionType.HasValue)
+        {
             query = query.Where(i => i.InteractionType == interactionType);
+        }
         if (outcome.HasValue)
+        {
             query = query.Where(i => i.Outcome == outcome);
+        }
         if (fromDate.HasValue)
+        {
             query = query.Where(i => i.InteractionDate >= fromDate);
+        }
         if (toDate.HasValue)
+        {
             query = query.Where(i => i.InteractionDate <= toDate);
+        }
 
         var interactions = await query.OrderByDescending(i => i.InteractionDate).ToListAsync();
         foreach (var it in interactions)
         {
             var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 it.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 it.CustomFields = cf;
+            }
         }
 
         return Ok(interactions);
@@ -128,14 +146,20 @@ public class InteractionsController : CrmControllerBase
             .FirstOrDefaultAsync(i => i.Id == id);
 
         if (interaction == null)
+        {
             return NotFound();
+        }
 
         var nt = await _normalization.GetTagsAsync("Interaction", interaction.Id);
         if (!string.IsNullOrWhiteSpace(nt))
+        {
             interaction.Tags = nt;
+        }
         var cf = await _normalization.GetCustomFieldsAsync("Interaction", interaction.Id);
         if (!string.IsNullOrWhiteSpace(cf))
+        {
             interaction.CustomFields = cf;
+        }
 
         return Ok(interaction);
     }
@@ -160,7 +184,9 @@ public class InteractionsController : CrmControllerBase
         interaction.UpdatedAt = DateTime.UtcNow;
 
         if (interaction.InteractionDate == default)
+        {
             interaction.InteractionDate = DateTime.UtcNow;
+        }
 
         _context.Interactions.Add(interaction);
         await _context.SaveChangesAsync();
@@ -199,11 +225,15 @@ public class InteractionsController : CrmControllerBase
     public async Task<IActionResult> UpdateInteraction(int id, Interaction interaction)
     {
         if (id != interaction.Id)
+        {
             return BadRequest();
+        }
 
         var existingInteraction = await _context.Interactions.FindAsync(id);
         if (existingInteraction == null)
+        {
             return NotFound();
+        }
 
         _context.Entry(existingInteraction).CurrentValues.SetValues(interaction);
         existingInteraction.UpdatedAt = DateTime.UtcNow;
@@ -230,7 +260,9 @@ public class InteractionsController : CrmControllerBase
     {
         var interaction = await _context.Interactions.FindAsync(id);
         if (interaction == null)
+        {
             return NotFound();
+        }
 
         _context.Interactions.Remove(interaction);
         await _context.SaveChangesAsync();
@@ -257,7 +289,9 @@ public class InteractionsController : CrmControllerBase
     {
         var interaction = await _context.Interactions.FindAsync(id);
         if (interaction == null)
+        {
             return NotFound();
+        }
 
         interaction.IsCompleted = true;
         interaction.CompletedDate = DateTime.UtcNow;
@@ -266,9 +300,13 @@ public class InteractionsController : CrmControllerBase
         if (request != null)
         {
             if (request.Outcome.HasValue)
+            {
                 interaction.Outcome = request.Outcome.Value;
+            }
             if (!string.IsNullOrEmpty(request.Notes))
+            {
                 interaction.Description = $"{interaction.Description}\n\nCompletion Notes: {request.Notes}".Trim();
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -354,10 +392,14 @@ public class InteractionsController : CrmControllerBase
         {
             var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 it.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 it.CustomFields = cf;
+            }
         }
 
         return Ok(interactions);
@@ -382,7 +424,9 @@ public class InteractionsController : CrmControllerBase
             .Where(i => i.FollowUpDate != null && i.FollowUpDate <= DateTime.UtcNow.AddDays(7));
 
         if (userId.HasValue)
+        {
             query = query.Where(i => i.AssignedToUserId == userId);
+        }
 
         var interactions = await query
             .OrderBy(i => i.FollowUpDate)
@@ -392,10 +436,14 @@ public class InteractionsController : CrmControllerBase
         {
             var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
             if (!string.IsNullOrWhiteSpace(nt))
+            {
                 it.Tags = nt;
+            }
             var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
             if (!string.IsNullOrWhiteSpace(cf))
+            {
                 it.CustomFields = cf;
+            }
         }
 
         return Ok(interactions);
@@ -474,10 +522,14 @@ public class InteractionsController : CrmControllerBase
             .FirstOrDefaultAsync(i => i.Id == id);
 
         if (interaction == null)
+        {
             return NotFound(new { message = InteractionNotFoundMessage });
+        }
 
         if (interaction.AccountId <= 0)
+        {
             return BadRequest(new { message = "Interaction must be linked to an account before creating a service request" });
+        }
 
         // Determine priority
         var priority = ServiceRequestPriority.Medium;
@@ -552,7 +604,9 @@ public class InteractionsController : CrmControllerBase
     {
                 var interaction = await _context.Interactions.FindAsync(id);
         if (interaction == null)
+        {
             return NotFound(new { message = InteractionNotFoundMessage });
+        }
 
         var accountId = request.AccountId ?? interaction.AccountId;
 
@@ -576,7 +630,9 @@ public class InteractionsController : CrmControllerBase
         }
 
         if (accountId <= 0)
+        {
             return BadRequest(new { message = "AccountId is required or CreateAccountIfNeeded must be true" });
+        }
 
         var contact = new Contact
         {
@@ -596,7 +652,9 @@ public class InteractionsController : CrmControllerBase
         // Link interaction to the new contact
         interaction.ContactId = contact.Id;
         if (interaction.AccountId <= 0)
+        {
             interaction.AccountId = accountId;
+        }
         interaction.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
@@ -627,13 +685,17 @@ public class InteractionsController : CrmControllerBase
     {
                 var interaction = await _context.Interactions.FindAsync(id);
         if (interaction == null)
+        {
             return NotFound(new { message = InteractionNotFoundMessage });
+        }
 
         if (request.AccountId.HasValue)
         {
             var account = await _context.Accounts.FindAsync(request.AccountId.Value);
             if (account == null)
+            {
                 return BadRequest(new { message = "Account not found" });
+            }
             interaction.AccountId = request.AccountId.Value;
         }
 
@@ -641,7 +703,9 @@ public class InteractionsController : CrmControllerBase
         {
             var contact = await _context.Contacts.FindAsync(request.ContactId.Value);
             if (contact == null)
+            {
                 return BadRequest(new { message = "Contact not found" });
+            }
             interaction.ContactId = request.ContactId.Value;
         }
 
@@ -649,7 +713,9 @@ public class InteractionsController : CrmControllerBase
         {
             var opportunity = await _context.Opportunities.FindAsync(request.OpportunityId.Value);
             if (opportunity == null)
+            {
                 return BadRequest(new { message = "Opportunity not found" });
+            }
             interaction.OpportunityId = request.OpportunityId.Value;
         }
 
@@ -685,7 +751,9 @@ public class InteractionsController : CrmControllerBase
     {
                 var interaction = await _context.Interactions.FindAsync(id);
         if (interaction == null)
+        {
             return NotFound(new { message = InteractionNotFoundMessage });
+        }
 
         var notePrefix = request.IsInternal ? "[Internal Note]" : "[Note]";
         var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm");
@@ -717,7 +785,9 @@ public class InteractionsController : CrmControllerBase
     {
                 var interaction = await _context.Interactions.FindAsync(id);
         if (interaction == null)
+        {
             return NotFound(new { message = InteractionNotFoundMessage });
+        }
 
         interaction.Tags = string.Join(",", request.Tags);
         interaction.UpdatedAt = DateTime.UtcNow;

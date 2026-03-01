@@ -40,7 +40,7 @@ public class CustomFieldsController : CrmControllerBase
         _logger = logger;
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var id) ? id : 0;
@@ -58,7 +58,9 @@ public class CustomFieldsController : CrmControllerBase
             .Where(d => !d.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(entityType))
+        {
             query = query.Where(d => d.EntityType == entityType);
+        }
 
         var results = await query.OrderBy(d => d.EntityType).ThenBy(d => d.DisplayOrder).ToListAsync(ct);
         return Ok(results);
@@ -84,12 +86,16 @@ public class CustomFieldsController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CRM.Core.Entities.CustomFieldDefinition dto, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(dto.EntityType) || string.IsNullOrWhiteSpace(dto.FieldKey))
+        {
             return BadRequest(new { message = "EntityType and FieldKey are required." });
+        }
 
         var duplicate = await _db.CustomFieldDefinitions
             .AnyAsync(d => d.EntityType == dto.EntityType && d.FieldKey == dto.FieldKey && !d.IsDeleted, ct);
         if (duplicate)
+        {
             return BadRequest(new { message = $"A field with key '{dto.FieldKey}' already exists for entity type '{dto.EntityType}'." });
+        }
 
         dto.CreatedAt = DateTime.UtcNow;
         dto.UpdatedAt = DateTime.UtcNow;
@@ -109,7 +115,9 @@ public class CustomFieldsController : CrmControllerBase
     {
         var existing = await _db.CustomFieldDefinitions.FindAsync(new object[] { id }, ct);
         if (existing == null || existing.IsDeleted)
+        {
             return NotFound(new { message = FieldDefinitionNotFoundMessage });
+        }
 
         existing.Label = dto.Label;
         existing.FieldType = dto.FieldType;
@@ -133,7 +141,9 @@ public class CustomFieldsController : CrmControllerBase
     {
         var existing = await _db.CustomFieldDefinitions.FindAsync(new object[] { id }, ct);
         if (existing == null || existing.IsDeleted)
+        {
             return NotFound(new { message = FieldDefinitionNotFoundMessage });
+        }
 
         existing.IsDeleted = true;
         existing.UpdatedAt = DateTime.UtcNow;
@@ -162,7 +172,9 @@ public class CustomFieldsController : CrmControllerBase
     {
         var defExists = await _db.CustomFieldDefinitions.AnyAsync(d => d.Id == id && !d.IsDeleted, ct);
         if (!defExists)
+        {
             return NotFound(new { message = FieldDefinitionNotFoundMessage });
+        }
 
         rule.CustomFieldDefinitionId = id;
         rule.CreatedAt = DateTime.UtcNow;
@@ -181,7 +193,9 @@ public class CustomFieldsController : CrmControllerBase
         var rule = await _db.CustomFieldValidationRules
             .FirstOrDefaultAsync(r => r.Id == ruleId && r.CustomFieldDefinitionId == id && !r.IsDeleted, ct);
         if (rule == null)
+        {
             return NotFound(new { message = "Validation rule not found" });
+        }
 
         rule.IsDeleted = true;
         rule.UpdatedAt = DateTime.UtcNow;

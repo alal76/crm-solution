@@ -42,7 +42,9 @@ public class CompetitorsController : CrmControllerBase
                 var query = _context.Competitors.AsNoTracking().Where(c => !c.IsDeleted);
 
         if (activeOnly)
+        {
             query = query.Where(c => c.IsActive);
+        }
 
         var competitors = await query
             .OrderBy(c => c.Name)
@@ -83,7 +85,9 @@ public class CompetitorsController : CrmControllerBase
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
         if (competitor == null)
+        {
             return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+        }
 
         return Ok(new CompetitorDto
         {
@@ -115,7 +119,9 @@ public class CompetitorsController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CreateCompetitorDto request, CancellationToken ct = default)
     {
                 if (string.IsNullOrWhiteSpace(request.Name))
+                {
             return BadRequest(new { message = "Name is required" });
+                }
 
         var competitor = new Competitor
         {
@@ -152,32 +158,58 @@ public class CompetitorsController : CrmControllerBase
     {
                 var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
         if (competitor == null)
+        {
             return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Name))
+        {
             competitor.Name = request.Name;
+        }
         if (request.Description != null)
+        {
             competitor.Description = request.Description;
+        }
         if (request.Website != null)
+        {
             competitor.Website = request.Website;
+        }
         if (request.Industry != null)
+        {
             competitor.Industry = request.Industry;
+        }
         if (request.Strengths != null)
+        {
             competitor.Strengths = request.Strengths;
+        }
         if (request.Weaknesses != null)
+        {
             competitor.Weaknesses = request.Weaknesses;
+        }
         if (request.OurAdvantages != null)
+        {
             competitor.OurAdvantages = request.OurAdvantages;
+        }
         if (request.PrimaryProducts != null)
+        {
             competitor.PrimaryProducts = request.PrimaryProducts;
+        }
         if (request.PricingTier != null)
+        {
             competitor.PricingTier = request.PricingTier;
+        }
         if (request.MarketSharePercent.HasValue)
+        {
             competitor.MarketSharePercent = request.MarketSharePercent;
+        }
         if (request.IsActive.HasValue)
+        {
             competitor.IsActive = request.IsActive.Value;
+        }
         if (request.Notes != null)
+        {
             competitor.Notes = request.Notes;
+        }
 
         competitor.UpdatedAt = DateTime.UtcNow;
         await (_context as DbContext)!.SaveChangesAsync(ct);
@@ -196,7 +228,9 @@ public class CompetitorsController : CrmControllerBase
     {
                 var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
         if (competitor == null)
+        {
             return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+        }
 
         competitor.IsDeleted = true;
         competitor.UpdatedAt = DateTime.UtcNow;
@@ -219,7 +253,9 @@ public class CompetitorsController : CrmControllerBase
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
         if (competitor == null)
+        {
             return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+        }
 
         var opportunities = await _context.OpportunityCompetitors
             .AsNoTracking()
@@ -263,17 +299,23 @@ public class CompetitorsController : CrmControllerBase
     {
                 var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
         if (competitor == null)
+        {
             return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+        }
 
         var opportunity = await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
         if (opportunity == null)
+        {
             return NotFound(new { message = $"Opportunity with ID {opportunityId} not found" });
+        }
 
         // Check if already linked
         var existing = await _context.OpportunityCompetitors
             .FirstOrDefaultAsync(oc => oc.CompetitorId == id && oc.OpportunityId == opportunityId, ct);
         if (existing != null)
+        {
             return Conflict(new { message = "Competitor is already linked to this opportunity" });
+        }
 
         var link = new OpportunityCompetitor
         {
@@ -304,7 +346,9 @@ public class CompetitorsController : CrmControllerBase
             .FirstOrDefaultAsync(oc => oc.CompetitorId == id && oc.OpportunityId == opportunityId, ct);
 
         if (link == null)
+        {
             return NotFound(new { message = "Competitor is not linked to this opportunity" });
+        }
 
         _context.OpportunityCompetitors.Remove(link);
         await (_context as DbContext)!.SaveChangesAsync(ct);
@@ -326,7 +370,9 @@ public class CompetitorsController : CrmControllerBase
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
         if (competitor == null)
+        {
             return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
+        }
 
         var opportunities = await _context.OpportunityCompetitors
             .AsNoTracking()

@@ -68,7 +68,9 @@ public class ConversationsController : CrmControllerBase
         {
             var conversation = await _service.GetByIdAsync(id, cancellationToken);
             if (conversation == null)
+            {
                 return NotFound(string.Format(ConversationNotFoundMessage, id));
+            }
             return Ok(conversation);
         }
         catch (Exception ex)
@@ -89,7 +91,9 @@ public class ConversationsController : CrmControllerBase
         {
             var conversation = await _service.GetByConversationIdAsync(conversationId, cancellationToken);
             if (conversation == null)
+            {
                 return NotFound($"Conversation '{conversationId}' not found");
+            }
             return Ok(conversation);
         }
         catch (Exception ex)
@@ -109,7 +113,9 @@ public class ConversationsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var created = await _service.CreateAsync(conversation, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -131,10 +137,14 @@ public class ConversationsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var updated = await _service.UpdateAsync(id, conversation, cancellationToken);
             if (!updated)
+            {
                 return NotFound(string.Format(ConversationNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)
@@ -155,7 +165,9 @@ public class ConversationsController : CrmControllerBase
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
             if (!deleted)
+            {
                 return NotFound(string.Format(ConversationNotFoundMessage, id));
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -180,10 +192,14 @@ public class ConversationsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var updated = await _service.UpdateStatusAsync(id, request.Status, cancellationToken);
             if (!updated)
+            {
                 return NotFound(string.Format(ConversationNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)
@@ -204,10 +220,14 @@ public class ConversationsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var assigned = await _service.AssignAsync(id, request.UserId, cancellationToken);
             if (!assigned)
+            {
                 return NotFound(string.Format(ConversationNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)

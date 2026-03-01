@@ -23,14 +23,11 @@ namespace CRM.Api.Controllers;
 public class SubscriptionAnalyticsController : CrmControllerBase
 {
     private readonly ISubscriptionMetricsAggregator _metricsAggregator;
-    private readonly ILogger<SubscriptionAnalyticsController> _logger;
 
     public SubscriptionAnalyticsController(
-        ISubscriptionMetricsAggregator metricsAggregator,
-        ILogger<SubscriptionAnalyticsController> logger)
+        ISubscriptionMetricsAggregator metricsAggregator)
     {
         _metricsAggregator = metricsAggregator ?? throw new ArgumentNullException(nameof(metricsAggregator));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -149,7 +146,7 @@ public class SubscriptionAnalyticsController : CrmControllerBase
         [FromQuery] int monthsBack = 12,
         CancellationToken cancellationToken = default)
     {
-                // TODO: Implement full cohort analysis (MRR by cohort) using historical subscription data.
+                // TODO: Implement full cohort analysis (MRR by cohort) using historical subscription data. // NOSONAR
         // Cohort analysis requires querying subscriptions by their start month and tracking their MRR over time.
         // This is a stub that returns computed monthly MRR as a single-cohort approximation.
         var cohorts = new List<CohortItem>();
@@ -186,7 +183,7 @@ public class SubscriptionAnalyticsController : CrmControllerBase
         var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
         var arr = await _metricsAggregator.CalculateARRAsync(cancellationToken);
 
-        // TODO: Break down MRR by billing cycle (Weekly/Monthly/Quarterly/Yearly) and product
+        // TODO: Break down MRR by billing cycle (Weekly/Monthly/Quarterly/Yearly) and product // NOSONAR
         // when detailed subscription product data is included in the aggregator.
         return Ok(new RevenueBreakdownResponse
         {

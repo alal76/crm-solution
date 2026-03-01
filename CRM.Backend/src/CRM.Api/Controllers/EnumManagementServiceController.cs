@@ -26,14 +26,11 @@ namespace CRM.Api.Controllers;
 public class EnumManagementServiceController : CrmControllerBase
 {
     private readonly IEnumManagementService _service;
-    private readonly ILogger<EnumManagementServiceController> _logger;
 
     public EnumManagementServiceController(
-        IEnumManagementService service,
-        ILogger<EnumManagementServiceController> logger)
+        IEnumManagementService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     // ─── Category endpoints ───────────────────────────────────────────────────

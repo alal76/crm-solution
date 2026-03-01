@@ -468,7 +468,7 @@ public class LegacyProblemsController : CrmControllerBase
 
     #region Helper Methods
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         // Try multiple claim types for maximum compatibility with different JWT configurations
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)

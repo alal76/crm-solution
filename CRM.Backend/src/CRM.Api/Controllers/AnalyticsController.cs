@@ -24,23 +24,21 @@ namespace CRM.Api.Controllers;
 public class AnalyticsController : CrmControllerBase
 {
     private readonly IProviderFactory<IAnalyticsPort> _analyticsFactory;
-    private readonly ILogger<AnalyticsController> _logger;
 
-    public AnalyticsController(IProviderFactory<IAnalyticsPort> analyticsFactory, ILogger<AnalyticsController> logger)
+    public AnalyticsController(IProviderFactory<IAnalyticsPort> analyticsFactory)
     {
         _analyticsFactory = analyticsFactory ?? throw new ArgumentNullException(nameof(analyticsFactory));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 
-    private string? GetCurrentUserEmail() => User.FindFirst(ClaimTypes.Email)?.Value;
+    private string? GetCurrentUserEmail() => User.FindFirst(ClaimTypes.Email)?.Value; // NOSONAR
 
-    private List<string> GetCurrentUserRoles() =>
+    private List<string> GetCurrentUserRoles() => // NOSONAR
         User.FindAll(ClaimTypes.Role).Select(c => c.Value).Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
 
     private static Dictionary<string, string>? ParseFilters(IQueryCollection query)

@@ -177,7 +177,9 @@ public class ImportExportController : CrmControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Contact>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
+                        {
                             return BadRequest(new { message = NoValidRecordsMessage });
+                        }
 
                         foreach (var item in items)
                         {
@@ -198,7 +200,9 @@ public class ImportExportController : CrmControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Account>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
+                        {
                             return BadRequest(new { message = NoValidRecordsMessage });
+                        }
 
                         foreach (var item in items)
                         {
@@ -221,7 +225,9 @@ public class ImportExportController : CrmControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Opportunity>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
+                        {
                             return BadRequest(new { message = NoValidRecordsMessage });
+                        }
 
                         foreach (var item in items)
                         {
@@ -244,7 +250,9 @@ public class ImportExportController : CrmControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Product>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
+                        {
                             return BadRequest(new { message = NoValidRecordsMessage });
+                        }
 
                         foreach (var item in items)
                         {
@@ -267,7 +275,9 @@ public class ImportExportController : CrmControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<CrmTask>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
+                        {
                             return BadRequest(new { message = NoValidRecordsMessage });
+                        }
 
                         foreach (var item in items)
                         {
@@ -290,7 +300,9 @@ public class ImportExportController : CrmControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Lead>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
+                        {
                             return BadRequest(new { message = NoValidRecordsMessage });
+                        }
 
                         foreach (var item in items)
                         {
@@ -390,7 +402,9 @@ public class ImportExportController : CrmControllerBase
         var sb = new StringBuilder();
         var list = data as System.Collections.IEnumerable;
         if (list == null)
+        {
             return "";
+        }
 
         bool headerWritten = false;
 

@@ -42,9 +42,13 @@ public class AdminDeadLetterQueueController : CrmControllerBase
         IEnumerable<DeadLetterMessage> messages;
 
         if (!string.IsNullOrWhiteSpace(source))
+        {
             messages = await _dlq.GetBySourceAsync(source, ct);
+        }
         else
+        {
             messages = await _dlq.GetMessagesAsync(skip, take, ct);
+        }
 
         var count = await _dlq.GetCountAsync(ct);
         return Ok(new { messages, totalCount = count });
@@ -67,7 +71,9 @@ public class AdminDeadLetterQueueController : CrmControllerBase
     {
         var success = await _dlq.RetryAsync(messageId, ct);
         if (!success)
+        {
             return NotFound(new { message = "Message not found in dead letter queue." });
+        }
 
         _logger.LogInformation("Admin retried DLQ message {MessageId}", messageId);
         return Ok(new { message = "Message requeued for processing.", messageId });
@@ -91,7 +97,9 @@ public class AdminDeadLetterQueueController : CrmControllerBase
     {
         var success = await _dlq.RemoveAsync(messageId, ct);
         if (!success)
+        {
             return NotFound(new { message = "Message not found in dead letter queue." });
+        }
 
         _logger.LogInformation("Admin removed DLQ message {MessageId}", messageId);
         return NoContent();

@@ -27,18 +27,15 @@ public class AdminSettingsController : CrmControllerBase
     private readonly IUserGroupService _userGroupService;
     private readonly IUserApprovalService _approvalService;
     private readonly IDatabaseBackupService _backupService;
-    private readonly ILogger<AdminSettingsController> _logger;
 
     public AdminSettingsController(
         IUserGroupService userGroupService,
         IUserApprovalService approvalService,
-        IDatabaseBackupService backupService,
-        ILogger<AdminSettingsController> logger)
+        IDatabaseBackupService backupService)
     {
         _userGroupService = userGroupService;
         _approvalService = approvalService;
         _backupService = backupService;
-        _logger = logger;
     }
 
     #region User Approval
@@ -64,7 +61,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var request = await _approvalService.GetApprovalRequestByIdAsync(id);
         if (request == null)
+        {
             return NotFound(new { error = "Approval request not found" });
+        }
 
         return Ok(request);
     }
@@ -79,7 +78,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
+        {
             return Unauthorized(new { error = "User ID not found in token" });
+        }
 
         var createdUser = await _approvalService.ApproveUserAsync(id, int.Parse(userId), request);
         return Ok(createdUser);
@@ -95,7 +96,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
+        {
             return Unauthorized(new { error = "User ID not found in token" });
+        }
 
         await _approvalService.RejectUserAsync(id, int.Parse(userId), request.RejectionReason);
         return Ok(new { message = "User request rejected successfully" });
@@ -138,7 +141,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var group = await _userGroupService.GetGroupByIdAsync(id);
         if (group == null)
+        {
             return NotFound(new { error = "Group not found" });
+        }
 
         return Ok(group);
     }
@@ -154,7 +159,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var group = await _userGroupService.UpdateGroupAsync(id, request);
         if (group == null)
+        {
             return NotFound(new { error = "Group not found" });
+        }
 
         return Ok(group);
     }
@@ -218,7 +225,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
+        {
             return Unauthorized(new { error = "User ID not found in token" });
+        }
 
         var backup = await _backupService.CreateBackupAsync(int.Parse(userId), request);
         return CreatedAtAction(nameof(GetBackup), new { id = backup.Id }, backup);
@@ -245,7 +254,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var backup = await _backupService.GetBackupByIdAsync(id);
         if (backup == null)
+        {
             return NotFound(new { error = "Backup not found" });
+        }
 
         return Ok(backup);
     }
@@ -260,7 +271,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
+        {
             return Unauthorized(new { error = "User ID not found in token" });
+        }
 
         await _backupService.RestoreBackupAsync(request.BackupId, request.TargetDatabase, int.Parse(userId));
         return Ok(new { message = "Database restore initiated successfully" });
@@ -287,7 +300,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
+        {
             return Unauthorized(new { error = "User ID not found in token" });
+        }
 
         await _backupService.MigrateDatabaseAsync(config, int.Parse(userId));
         return Ok(new { message = "Database migration initiated. This may take several minutes." });
@@ -321,7 +336,9 @@ public class AdminSettingsController : CrmControllerBase
         {
             var backup = await _backupService.GetBackupByIdAsync(id);
             if (backup == null)
+            {
                 return NotFound(new { error = "Backup not found" });
+            }
 
             var fileBytes = await _backupService.DownloadBackupAsync(id);
             var fileName = $"{backup.BackupName}.sql";
@@ -345,11 +362,15 @@ public class AdminSettingsController : CrmControllerBase
     public async Task<ActionResult<DatabaseBackupDto>> UploadBackup([FromForm] IFormFile file, [FromForm] string? description = null, [FromForm] string? sourceDatabase = null)
     {
                 if (file == null || file.Length == 0)
+                {
             return BadRequest(new { error = "No file provided" });
+                }
 
         var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
+        {
             return Unauthorized(new { error = "User ID not found in token" });
+        }
 
         var request = new UploadBackupRequest
         {
@@ -374,11 +395,15 @@ public class AdminSettingsController : CrmControllerBase
     public async Task<ActionResult> RestoreFromUpload([FromForm] IFormFile file)
     {
                 if (file == null || file.Length == 0)
+                {
             return BadRequest(new { error = "No file provided" });
+                }
 
         var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
+        {
             return Unauthorized(new { error = "User ID not found in token" });
+        }
 
         using var stream = file.OpenReadStream();
         await _backupService.RestoreFromFileAsync(stream, file.FileName, int.Parse(userId));
@@ -411,7 +436,9 @@ public class AdminSettingsController : CrmControllerBase
     {
                 var schedule = await _backupService.GetScheduleByIdAsync(id);
         if (schedule == null)
+        {
             return NotFound(new { error = ScheduleNotFoundMessage });
+        }
 
         return Ok(schedule);
     }

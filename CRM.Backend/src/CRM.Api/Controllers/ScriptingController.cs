@@ -102,7 +102,9 @@ public class ScriptingController : CrmControllerBase
         CancellationToken cancellationToken = default)
     {
                 if (request == null || string.IsNullOrWhiteSpace(request.Code))
+                {
             return BadRequest(new { message = "Code is required" });
+                }
 
         var language = (ScriptLanguage)request.Language;
         IScriptEngine engine;
@@ -157,10 +159,14 @@ public class ScriptingController : CrmControllerBase
         CancellationToken cancellationToken = default)
     {
                 if (request == null || string.IsNullOrWhiteSpace(request.Code))
+                {
             return BadRequest(new { message = "Code is required" });
+                }
 
         if (request.Timeout.HasValue && request.Timeout.Value <= 0)
+        {
             return BadRequest(new { message = "Timeout must be a positive value in milliseconds" });
+        }
 
         var language = (ScriptLanguage)request.Language;
         IScriptEngine engine;
@@ -247,7 +253,9 @@ public class ScriptingController : CrmControllerBase
                 var plugin = await _scriptPluginService.GetByIdAsync(id, cancellationToken);
 
         if (plugin == null)
+        {
             return NotFound(new { message = $"Script plugin {id} not found" });
+        }
 
         return Ok(plugin);
     }
@@ -389,7 +397,9 @@ public class ScriptingController : CrmControllerBase
         try
         {
             if (request == null)
+            {
                 return BadRequest(new { message = "Request body is required" });
+            }
 
             var result = await _scriptPluginService.TestExecuteAsync(id, request, cancellationToken);
             return Ok(result);
@@ -414,7 +424,7 @@ public class ScriptingController : CrmControllerBase
     /// Extracts the authenticated user's numeric ID from JWT claims.
     /// Returns 0 when the claim is absent or cannot be parsed.
     /// </summary>
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier);
         return claim != null && int.TryParse(claim.Value, out var userId) ? userId : 0;

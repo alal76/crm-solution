@@ -25,7 +25,6 @@ namespace CRM.Api.Controllers;
 public class ProductsController : CrmControllerBase
 {
     private readonly IProductService _productService;
-    private readonly ILogger<ProductsController> _logger;
     private readonly ICrmNotificationService _notificationService;
 
     /// <summary>
@@ -36,11 +35,9 @@ public class ProductsController : CrmControllerBase
     /// <param name="notificationService">Service for SignalR real-time notifications.</param>
     public ProductsController(
         IProductService productService,
-        ILogger<ProductsController> logger,
         ICrmNotificationService notificationService)
     {
         _productService = productService;
-        _logger = logger;
         _notificationService = notificationService;
     }
 
@@ -75,7 +72,9 @@ public class ProductsController : CrmControllerBase
     {
                 var product = await _productService.GetProductByIdAsync(id);
         if (product == null)
+        {
             return NotFound(new { message = $"Product with ID {id} not found" });
+        }
         return Ok(product);
     }
 
@@ -154,7 +153,9 @@ public class ProductsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var id = await _productService.CreateProductAsync(product);
             product.Id = id;
@@ -189,7 +190,9 @@ public class ProductsController : CrmControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] Product product)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         product.Id = id;
         await _productService.UpdateProductAsync(product);

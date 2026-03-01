@@ -24,12 +24,10 @@ namespace CRM.Api.Controllers;
 public class WebhookRegistrationsController : CrmControllerBase
 {
     private readonly IWebhookManagementService _service;
-    private readonly ILogger<WebhookRegistrationsController> _logger;
 
-    public WebhookRegistrationsController(IWebhookManagementService service, ILogger<WebhookRegistrationsController> logger)
+    public WebhookRegistrationsController(IWebhookManagementService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     /// <summary>

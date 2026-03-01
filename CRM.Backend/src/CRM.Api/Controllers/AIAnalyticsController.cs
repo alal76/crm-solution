@@ -28,7 +28,6 @@ public class AIAnalyticsController : CrmControllerBase
     private readonly IAIOpportunityScoringService _opportunityScoring;
     private readonly IDashboardBuilderService _dashboardBuilder;
     private readonly IReportBuilderService _reportBuilder;
-    private readonly ILogger<AIAnalyticsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AIAnalyticsController"/> class.
@@ -38,15 +37,13 @@ public class AIAnalyticsController : CrmControllerBase
         IAILeadScoringService leadScoring,
         IAIOpportunityScoringService opportunityScoring,
         IDashboardBuilderService dashboardBuilder,
-        IReportBuilderService reportBuilder,
-        ILogger<AIAnalyticsController> logger)
+        IReportBuilderService reportBuilder)
     {
         _kbSearch = kbSearch;
         _leadScoring = leadScoring;
         _opportunityScoring = opportunityScoring;
         _dashboardBuilder = dashboardBuilder;
         _reportBuilder = reportBuilder;
-        _logger = logger;
     }
 
     // =========================================================================
@@ -63,7 +60,9 @@ public class AIAnalyticsController : CrmControllerBase
     public async Task<IActionResult> SemanticSearch([FromBody] KbSearchRequest request, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(request?.Query))
+        {
             return BadRequest("Query is required.");
+        }
 
         var results = await _kbSearch.SemanticSearchAsync(request.Query, request.TopK, ct);
         return Ok(results);
@@ -95,7 +94,9 @@ public class AIAnalyticsController : CrmControllerBase
     {
         var result = await _leadScoring.ScoreLeadAsync(id, ct);
         if (result == null)
+        {
             return NotFound($"Lead with ID {id} not found.");
+        }
         return Ok(result);
     }
 
@@ -135,7 +136,9 @@ public class AIAnalyticsController : CrmControllerBase
     {
         var result = await _opportunityScoring.ScoreOpportunityAsync(id, ct);
         if (result == null)
+        {
             return NotFound($"Opportunity with ID {id} not found.");
+        }
         return Ok(result);
     }
 
@@ -186,7 +189,9 @@ public class AIAnalyticsController : CrmControllerBase
     {
         var dashboard = await _dashboardBuilder.GetDashboardAsync(id, ct);
         if (dashboard == null)
+        {
             return NotFound($"Dashboard '{id}' not found.");
+        }
         return Ok(dashboard);
     }
 
@@ -199,7 +204,9 @@ public class AIAnalyticsController : CrmControllerBase
     public async Task<IActionResult> CreateDashboard([FromBody] CustomDashboard dashboard, CancellationToken ct)
     {
                 if (string.IsNullOrWhiteSpace(dashboard?.Name))
+                {
             return BadRequest("Dashboard name is required.");
+                }
 
         // Ensure Widgets is never null to prevent NullReferenceException in service
         dashboard.Widgets ??= new List<DashboardWidget>();
@@ -219,7 +226,9 @@ public class AIAnalyticsController : CrmControllerBase
         dashboard.Id = id;
         var updated = await _dashboardBuilder.UpdateDashboardAsync(dashboard, ct);
         if (updated == null)
+        {
             return NotFound($"Dashboard '{id}' not found.");
+        }
         return Ok(updated);
     }
 
@@ -233,7 +242,9 @@ public class AIAnalyticsController : CrmControllerBase
     {
         var deleted = await _dashboardBuilder.DeleteDashboardAsync(id, ct);
         if (!deleted)
+        {
             return NotFound($"Dashboard '{id}' not found.");
+        }
         return NoContent();
     }
 
@@ -258,7 +269,9 @@ public class AIAnalyticsController : CrmControllerBase
     {
         var data = await _dashboardBuilder.GetWidgetDataAsync(widgetId, ct);
         if (data == null)
+        {
             return NotFound($"Widget '{widgetId}' not found.");
+        }
         return Ok(data);
     }
 
@@ -287,7 +300,9 @@ public class AIAnalyticsController : CrmControllerBase
     {
         var report = await _reportBuilder.GetReportAsync(id, ct);
         if (report == null)
+        {
             return NotFound($"Report '{id}' not found.");
+        }
         return Ok(report);
     }
 
@@ -300,7 +315,9 @@ public class AIAnalyticsController : CrmControllerBase
     public async Task<IActionResult> CreateReport([FromBody] ReportDefinition report, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(report?.Name))
+        {
             return BadRequest("Report name is required.");
+        }
 
         var created = await _reportBuilder.CreateReportAsync(report, ct);
         return CreatedAtAction(nameof(GetReport), new { id = created.Id }, created);
@@ -316,7 +333,9 @@ public class AIAnalyticsController : CrmControllerBase
     {
         var result = await _reportBuilder.ExecuteReportAsync(id, ct);
         if (result == null)
+        {
             return NotFound($"Report '{id}' not found.");
+        }
         return Ok(result);
     }
 
@@ -330,7 +349,9 @@ public class AIAnalyticsController : CrmControllerBase
     {
         var csv = await _reportBuilder.ExportToCsvAsync(id, ct);
         if (csv == null)
+        {
             return NotFound($"Report '{id}' not found.");
+        }
         return File(csv, "text/csv", $"report-{id}.csv");
     }
 

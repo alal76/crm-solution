@@ -59,7 +59,9 @@ public class PortalController : CrmControllerBase
     {
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         var result = await _portalService.GetMyTicketsAsync(userId.Value, page, pageSize, ct);
         return Ok(result);
@@ -71,11 +73,15 @@ public class PortalController : CrmControllerBase
         [FromBody] PortalCreateTicketDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         try
         {
@@ -94,11 +100,15 @@ public class PortalController : CrmControllerBase
     {
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         var ticket = await _portalService.GetTicketAsync(userId.Value, id, ct);
         if (ticket == null)
+        {
             return NotFound();
+        }
 
         return Ok(ticket);
     }
@@ -109,7 +119,9 @@ public class PortalController : CrmControllerBase
     {
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         var comments = await _portalService.GetTicketCommentsAsync(userId.Value, id, ct);
         return Ok(comments);
@@ -121,11 +133,15 @@ public class PortalController : CrmControllerBase
         int id, [FromBody] PortalAddCommentDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         try
         {
@@ -158,7 +174,9 @@ public class PortalController : CrmControllerBase
     {
         var article = await _portalService.GetKnowledgeArticleAsync(id, ct);
         if (article == null)
+        {
             return NotFound();
+        }
 
         return Ok(article);
     }
@@ -170,7 +188,9 @@ public class PortalController : CrmControllerBase
     {
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         var profile = await _portalService.GetProfileAsync(userId.Value, ct);
         return Ok(profile);
@@ -181,11 +201,15 @@ public class PortalController : CrmControllerBase
     public async Task<IActionResult> UpdateProfile([FromBody] UpdatePortalProfileDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         try
         {
@@ -203,11 +227,15 @@ public class PortalController : CrmControllerBase
     public async Task<IActionResult> ChangePassword([FromBody] ChangePortalPasswordDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         try
         {
@@ -229,10 +257,14 @@ public class PortalController : CrmControllerBase
     {
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         if (file == null || file.Length == 0)
+        {
             return BadRequest(new { message = "No file provided." });
+        }
 
         try
         {
@@ -253,7 +285,9 @@ public class PortalController : CrmControllerBase
     {
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         var attachments = await _portalService.GetAttachmentsAsync(ticketId, userId.Value, ct);
         return Ok(attachments);
@@ -267,7 +301,9 @@ public class PortalController : CrmControllerBase
     {
         var userId = ExtractPortalUserId();
         if (userId == null)
+        {
             return Unauthorized(new { message = "Portal authentication required." });
+        }
 
         try
         {
@@ -291,7 +327,9 @@ public class PortalController : CrmControllerBase
         {
             var authHeader = HttpContext.Request.Headers["Authorization"].ToString();
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
                 return null;
+            }
 
             var token = authHeader["Bearer ".Length..].Trim();
             var secret = _configuration["Jwt:Secret"]
@@ -314,11 +352,15 @@ public class PortalController : CrmControllerBase
             // Must be a portal token
             var portalClaim = principal.FindFirst("portal");
             if (portalClaim?.Value != "true")
+            {
                 return null;
+            }
 
             var userIdClaim = principal.FindFirst("portal_user_id");
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var uid))
+            {
                 return uid;
+            }
 
             return null;
         }

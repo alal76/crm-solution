@@ -68,7 +68,9 @@ public class SalesQuotasController : CrmControllerBase
         {
             var quota = await _service.GetByIdAsync(id, cancellationToken);
             if (quota == null)
+            {
                 return NotFound(string.Format(QuotaNotFoundMessage, id));
+            }
             return Ok(quota);
         }
         catch (Exception ex)
@@ -88,7 +90,9 @@ public class SalesQuotasController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var created = await _service.CreateAsync(quota, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -110,10 +114,14 @@ public class SalesQuotasController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var updated = await _service.UpdateAsync(id, quota, cancellationToken);
             if (!updated)
+            {
                 return NotFound(string.Format(QuotaNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)
@@ -134,7 +142,9 @@ public class SalesQuotasController : CrmControllerBase
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
             if (!deleted)
+            {
                 return NotFound(string.Format(QuotaNotFoundMessage, id));
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -195,10 +205,14 @@ public class SalesQuotasController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var updated = await _service.UpdateAttainmentAsync(id, request.ActualAmount, cancellationToken);
             if (!updated)
+            {
                 return NotFound(string.Format(QuotaNotFoundMessage, id));
+            }
             return Ok();
         }
         catch (Exception ex)

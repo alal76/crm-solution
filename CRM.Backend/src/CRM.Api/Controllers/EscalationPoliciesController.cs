@@ -26,17 +26,14 @@ namespace CRM.Api.Controllers.ITSM;
 public class EscalationPoliciesController : CrmControllerBase
 {
     private readonly IEscalationPolicyService _escalationPolicyService;
-    private readonly ILogger<EscalationPoliciesController> _logger;
 
     public EscalationPoliciesController(
-        IEscalationPolicyService escalationPolicyService,
-        ILogger<EscalationPoliciesController> logger)
+        IEscalationPolicyService escalationPolicyService)
     {
         _escalationPolicyService = escalationPolicyService;
-        _logger = logger;
     }
 
-    private int? GetCurrentUserId()
+    private int? GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : null;

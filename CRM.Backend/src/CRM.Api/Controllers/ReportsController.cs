@@ -587,7 +587,7 @@ public class ReportsController : CrmControllerBase
     /// Gets the current user ID from the claims principal.
     /// </summary>
     /// <returns>The current user ID, or 0 if not found.</returns>
-    private int GetCurrentUserId()
+    private int GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;

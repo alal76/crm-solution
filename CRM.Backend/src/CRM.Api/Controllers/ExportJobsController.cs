@@ -23,12 +23,10 @@ namespace CRM.Api.Controllers;
 public class ExportJobsController : CrmControllerBase
 {
     private readonly IExportJobService _service;
-    private readonly ILogger<ExportJobsController> _logger;
 
-    public ExportJobsController(IExportJobService service, ILogger<ExportJobsController> logger)
+    public ExportJobsController(IExportJobService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     [HttpPost]

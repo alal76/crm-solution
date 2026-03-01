@@ -355,7 +355,9 @@ public class DatabaseController : CrmControllerBase
             var pattern = $@"(?:^|;)\s*{param}\s*=\s*([^;]+)";
             var match = System.Text.RegularExpressions.Regex.Match(connectionString, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
             if (match.Success)
+            {
                 return match.Groups[1].Value.Trim();
+            }
         }
         return null;
     }
@@ -372,7 +374,9 @@ public class DatabaseController : CrmControllerBase
     private string MaskPassword(string? password)
     {
         if (string.IsNullOrEmpty(password) || password == "N/A")
+        {
             return password ?? "";
+        }
         return new string('*', Math.Min(password.Length, 12));
     }
 
@@ -619,7 +623,9 @@ Then restart the API container:
                 {
                     var connection = _context.Database.GetDbConnection();
                     if (connection.State != System.Data.ConnectionState.Open)
+                    {
                         await connection.OpenAsync();
+                    }
 
                     // Create SQL dump by querying table structures and data
                     await using var writer = new StreamWriter(backupPath);
@@ -640,7 +646,9 @@ Then restart the API container:
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
+                        {
                             tables.Add(reader.GetString(0));
+                        }
                     }
 
                     await writer.WriteLineAsync($"-- Tables: {string.Join(", ", tables)}");
@@ -669,7 +677,9 @@ Then restart the API container:
                 {
                     var connection = _context.Database.GetDbConnection();
                     if (connection.State != System.Data.ConnectionState.Open)
+                    {
                         await connection.OpenAsync();
+                    }
 
                     using var cmd = connection.CreateCommand();
                     cmd.CommandText = $"BACKUP DATABASE [{sqlConn.Database}] TO DISK = '{backupPath}' WITH FORMAT, INIT, NAME = '{backupName}'";
@@ -745,7 +755,9 @@ Then restart the API container:
     {
                 var backup = await _context.DatabaseBackups.FindAsync(backupId);
         if (backup == null)
+        {
             return NotFound(new { message = "Backup not found" });
+        }
 
         // Restore logic would go here
         _logger.LogInformation("Database restore initiated from backup: {BackupName}", backup.BackupName);
@@ -770,7 +782,9 @@ Then restart the API container:
         var connection = _context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
+        {
             await connection.OpenAsync();
+        }
 
         switch (provider)
         {
@@ -791,7 +805,9 @@ Then restart the API container:
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
+                        {
                             tables.Add(reader.GetString(0));
+                        }
                     }
 
                     // Table names from information_schema are safe to use
@@ -799,7 +815,9 @@ Then restart the API container:
                     {
                         // Validate table name contains only safe characters
                         if (!IsValidIdentifier(table))
+                        {
                             continue;
+                        }
 
                         using var optimizeCmd = connection.CreateCommand();
                         optimizeCmd.CommandText = $"OPTIMIZE TABLE `{table}`";
@@ -888,7 +906,9 @@ Then restart the API container:
         var connection = _context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
+        {
             await connection.OpenAsync();
+        }
 
         switch (provider)
         {
@@ -907,7 +927,9 @@ Then restart the API container:
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
+                        {
                             tables.Add(reader.GetString(0));
+                        }
                     }
 
                     foreach (var table in tables.Where(IsValidIdentifier))
@@ -1046,7 +1068,9 @@ Then restart the API container:
         var connection = _context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
+        {
             await connection.OpenAsync();
+        }
 
         switch (provider)
         {
@@ -1067,14 +1091,18 @@ Then restart the API container:
                     using (var reader = await cmd.ExecuteReaderAsync())
                     {
                         while (await reader.ReadAsync())
+                        {
                             tables.Add(reader.GetString(0));
+                        }
                     }
 
                     foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
                     {
                         // Validate table name
                         if (!IsValidIdentifier(table))
+                        {
                             continue;
+                        }
 
                         using var repairCmd = connection.CreateCommand();
                         repairCmd.CommandText = $"ALTER TABLE `{table}` ENGINE=InnoDB";
@@ -1247,13 +1275,17 @@ Then restart the API container:
     public async Task<ActionResult> ClearAllData([FromBody] ClearDataRequest request)
     {
                 if (request.ConfirmationCode != "DELETE_ALL_DATA")
+                {
             return BadRequest(new { message = "Invalid confirmation code" });
+                }
 
         var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
         var connection = _context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
+        {
             await connection.OpenAsync();
+        }
 
         // Tables to clear in order (respecting foreign key constraints)
         var tablesToClear = new[]
@@ -1425,7 +1457,9 @@ Then restart the API container:
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
+            {
                 await connection.OpenAsync();
+            }
 
             switch (provider)
             {
@@ -1558,7 +1592,9 @@ Then restart the API container:
                             {
                                 var table = reader.GetString(0);
                                 if (string.IsNullOrEmpty(tableName) || table.Equals(tableName, StringComparison.OrdinalIgnoreCase))
+                                {
                                     tables.Add(table);
+                                }
                             }
                         }
 
@@ -1616,7 +1652,9 @@ Then restart the API container:
                         cmd.Parameters.Add(dbParam);
                         var result = await cmd.ExecuteScalarAsync();
                         if (result != null && result != DBNull.Value)
+                        {
                             return FormatFileSize(Convert.ToInt64(result));
+                        }
                     }
                     break;
 
@@ -1626,7 +1664,9 @@ Then restart the API container:
                         cmd.CommandText = "SELECT pg_database_size(current_database())";
                         var result = await cmd.ExecuteScalarAsync();
                         if (result != null && result != DBNull.Value)
+                        {
                             return FormatFileSize(Convert.ToInt64(result));
+                        }
                     }
                     break;
 
@@ -1636,7 +1676,9 @@ Then restart the API container:
                         cmd.CommandText = "SELECT SUM(size * 8 * 1024) FROM sys.database_files";
                         var result = await cmd.ExecuteScalarAsync();
                         if (result != null && result != DBNull.Value)
+                        {
                             return FormatFileSize(Convert.ToInt64(result));
+                        }
                     }
                     break;
 
@@ -1685,7 +1727,9 @@ Then restart the API container:
             // Get table list from database metadata
             var connection = _context.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
+            {
                 await connection.OpenAsync();
+            }
 
             switch (provider)
             {
@@ -1811,7 +1855,9 @@ Then restart the API container:
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
+            {
                 await connection.OpenAsync();
+            }
 
             switch (provider)
             {
@@ -1914,7 +1960,9 @@ Then restart the API container:
         {
             var connection = _context.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
+            {
                 await connection.OpenAsync();
+            }
 
             switch (provider)
             {
@@ -2078,7 +2126,9 @@ Then restart the API container:
     private static bool IsValidIdentifier(string identifier)
     {
         if (string.IsNullOrEmpty(identifier) || identifier.Length > 128)
+        {
             return false;
+        }
 
         // Allow only alphanumeric characters and underscores
         return System.Text.RegularExpressions.Regex.IsMatch(identifier, @"^[a-zA-Z_][a-zA-Z0-9_]*$");
@@ -2132,7 +2182,9 @@ Then restart the API container:
     private Task GenerateInsertStatements<T>(StringBuilder script, string tableName, List<T> records) where T : class
     {
         if (!records.Any())
+        {
             return Task.CompletedTask;
+        }
 
         script.AppendLine($"-- {tableName} ({records.Count} records)");
         // Simplified - real implementation would serialize properly

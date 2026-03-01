@@ -90,7 +90,9 @@ public class ContactsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var currentUser = User.FindFirst("sub")?.Value ?? "System";
             var contact = await _contactsService.CreateAsync(request, currentUser);
@@ -124,7 +126,9 @@ public class ContactsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var currentUser = User.FindFirst("sub")?.Value ?? "System";
             var contact = await _contactsService.UpdateAsync(id, request, currentUser);
@@ -180,7 +184,9 @@ public class ContactsController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var link = await _contactsService.AddSocialMediaLinkAsync(id, request);
             return CreatedAtAction(nameof(GetContactById), new { id }, link);

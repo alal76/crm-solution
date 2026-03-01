@@ -51,7 +51,9 @@ public class ModuleFieldConfigurationsController : CrmControllerBase
     {
                 var config = await _service.GetFieldConfigurationAsync(id);
         if (config == null)
+        {
             return NotFound(new { message = FieldConfigNotFoundMessage });
+        }
 
         return Ok(config);
     }
@@ -79,7 +81,9 @@ public class ModuleFieldConfigurationsController : CrmControllerBase
     {
                 var result = await _service.UpdateFieldConfigurationAsync(id, dto);
         if (result == null)
+        {
             return NotFound(new { message = FieldConfigNotFoundMessage });
+        }
 
         return Ok(result);
     }
@@ -95,7 +99,9 @@ public class ModuleFieldConfigurationsController : CrmControllerBase
     {
                 var result = await _service.DeleteFieldConfigurationAsync(id);
         if (!result)
+        {
             return NotFound(new { message = FieldConfigNotFoundMessage });
+        }
 
         return NoContent();
     }

@@ -24,17 +24,14 @@ namespace CRM.Api.Controllers.ITSM;
 public class EscalationAnalyticsController : CrmControllerBase
 {
     private readonly IEscalationAnalyticsService _analyticsService;
-    private readonly ILogger<EscalationAnalyticsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of <see cref="EscalationAnalyticsController"/>.
     /// </summary>
     public EscalationAnalyticsController(
-        IEscalationAnalyticsService analyticsService,
-        ILogger<EscalationAnalyticsController> logger)
+        IEscalationAnalyticsService analyticsService)
     {
         _analyticsService = analyticsService ?? throw new ArgumentNullException(nameof(analyticsService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <summary>
@@ -79,7 +76,9 @@ public class EscalationAnalyticsController : CrmControllerBase
         var start = startDate ?? end.AddDays(-30);
 
         if (start > end)
+        {
             return BadRequest(new { message = "startDate must be before endDate" });
+        }
 
         var dashboard = await _analyticsService.GetEscalationDashboardAsync(start, end, cancellationToken);
         return Ok(dashboard);

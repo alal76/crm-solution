@@ -43,7 +43,9 @@ public class PortalAdminController : CrmControllerBase
         [FromBody] UpdatePortalConfigDto dto, CancellationToken ct)
     {
         if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
+        }
 
         var config = await _portalAdmin.UpdateConfigAsync(dto, ct);
         return Ok(config);
@@ -64,7 +66,9 @@ public class PortalAdminController : CrmControllerBase
     {
         var success = await _portalAdmin.ActivatePortalUserAsync(id, ct);
         if (!success)
+        {
             return NotFound(new { message = $"Portal user {id} not found." });
+        }
 
         return Ok(new { message = "Portal user activated." });
     }
@@ -75,7 +79,9 @@ public class PortalAdminController : CrmControllerBase
     {
         var success = await _portalAdmin.DeactivatePortalUserAsync(id, ct);
         if (!success)
+        {
             return NotFound(new { message = $"Portal user {id} not found." });
+        }
 
         return Ok(new { message = "Portal user deactivated." });
     }

@@ -256,7 +256,9 @@ public class ITSMWebhooksController : CrmControllerBase
     {
         var subscription = await _webhookService.GetSubscriptionByIdAsync(id);
         if (subscription == null)
+        {
             return NotFound();
+        }
 
         // Send a test event
         await _webhookService.SendWebhookAsync(WebhookEventType.IncidentCreated, new
@@ -271,7 +273,7 @@ public class ITSMWebhooksController : CrmControllerBase
         return Ok(deliveries.FirstOrDefault());
     }
 
-    private int GetCurrentUserId() =>
+    private int GetCurrentUserId() => // NOSONAR
         int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
 }
 

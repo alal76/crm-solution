@@ -186,7 +186,9 @@ public class SelfServiceChatbotController : CrmControllerBase
 
         var status = await _chatbotService.CheckIncidentStatusAsync(incidentNumber, userId);
         if (status == null)
+        {
             return NotFound();
+        }
 
         return Ok(status);
     }
@@ -277,7 +279,10 @@ public class SelfServiceChatbotController : CrmControllerBase
 
     private int? GetAuthenticatedUserId()
     {
-        if (User.Identity?.IsAuthenticated != true) return null;
+        if (User.Identity?.IsAuthenticated != true)
+        {
+            return null;
+        }
         var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var uid) ? uid : null;
     }

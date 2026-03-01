@@ -22,12 +22,10 @@ namespace CRM.Api.Controllers;
 public class PipelinesController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
-    private readonly ILogger<PipelinesController> _logger;
 
-    public PipelinesController(CrmDbContext context, ILogger<PipelinesController> logger)
+    public PipelinesController(CrmDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     /// <summary>

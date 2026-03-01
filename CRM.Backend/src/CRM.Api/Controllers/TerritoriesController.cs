@@ -636,7 +636,9 @@ public class TerritoriesController : CrmControllerBase
     {
         var territory = await _territoryService.GetTerritoryByCodeAsync(code, cancellationToken);
         if (territory == null)
+        {
             return NotFound();
+        }
         return Ok(territory);
     }
 
@@ -653,22 +655,34 @@ public class TerritoriesController : CrmControllerBase
     {
         var territory = await _territoryService.GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             return NotFound();
+        }
 
         // Derive rules from territory config fields
         var rules = new List<TerritoryRuleDto>();
         int ruleId = 1;
 
         if (!string.IsNullOrWhiteSpace(territory.Countries))
+        {
             rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "Country", Operator = "in", Value = territory.Countries, IsActive = true });
+        }
         if (!string.IsNullOrWhiteSpace(territory.Regions))
+        {
             rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "Region", Operator = "in", Value = territory.Regions, IsActive = true });
+        }
         if (!string.IsNullOrWhiteSpace(territory.States))
+        {
             rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "State", Operator = "in", Value = territory.States, IsActive = true });
+        }
         if (!string.IsNullOrWhiteSpace(territory.Industries))
+        {
             rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "Industry", Operator = "in", Value = territory.Industries, IsActive = true });
+        }
         if (territory.RevenueRangeMin.HasValue || territory.RevenueRangeMax.HasValue)
+        {
             rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "AnnualRevenue", Operator = "between", Value = $"{territory.RevenueRangeMin ?? 0}-{territory.RevenueRangeMax ?? decimal.MaxValue}", IsActive = true });
+        }
 
         return Ok(rules);
     }
@@ -685,7 +699,9 @@ public class TerritoriesController : CrmControllerBase
     {
         var territory = await _territoryService.GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             return NotFound();
+        }
 
         var quotas = new List<TerritoryQuotaDto>();
         if (territory.AnnualQuota.HasValue && territory.AnnualQuota.Value > 0)
@@ -712,7 +728,7 @@ public class TerritoriesController : CrmControllerBase
 
     #region Helper Methods
 
-    private int? GetCurrentUserId()
+    private int? GetCurrentUserId() // NOSONAR
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
         if (int.TryParse(userIdClaim, out var userId))

@@ -79,7 +79,9 @@ public class OrdersController : CrmControllerBase
         {
             var order = await _orderService.GetByIdAsync(id, cancellationToken);
             if (order == null)
+            {
                 return NotFound($"Order {id} not found");
+            }
             return Ok(order);
         }
         catch (Exception ex)
@@ -106,7 +108,9 @@ public class OrdersController : CrmControllerBase
         {
             var order = await _orderService.GetByOrderNumberAsync(orderNumber, cancellationToken);
             if (order == null)
+            {
                 return NotFound($"Order '{orderNumber}' not found");
+            }
             return Ok(order);
         }
         catch (Exception ex)
@@ -132,7 +136,9 @@ public class OrdersController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var created = await _orderService.CreateAsync(dto, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -162,9 +168,13 @@ public class OrdersController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             if (id != dto.Id)
+            {
                 return BadRequest("ID mismatch");
+            }
             var updated = await _orderService.UpdateAsync(dto, cancellationToken);
             return Ok(updated);
         }
@@ -192,7 +202,9 @@ public class OrdersController : CrmControllerBase
         {
             var result = await _orderService.DeleteAsync(id, cancellationToken);
             if (!result)
+            {
                 return NotFound($"Order {id} not found");
+            }
             return NoContent();
         }
         catch (Exception ex)
@@ -639,7 +651,9 @@ public class OrdersController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             var item = await _orderService.AddLineItemAsync(id, lineItem, cancellationToken);
             return Ok(item);
         }
@@ -669,7 +683,9 @@ public class OrdersController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return ValidationProblem(ModelState);
+            }
             lineItem.Id = lineItemId;
             var item = await _orderService.UpdateLineItemAsync(lineItem, cancellationToken);
             return Ok(item);
@@ -698,7 +714,9 @@ public class OrdersController : CrmControllerBase
         {
             var result = await _orderService.RemoveLineItemAsync(lineItemId, cancellationToken);
             if (!result)
+            {
                 return NotFound($"Line item {lineItemId} not found");
+            }
             return NoContent();
         }
         catch (Exception ex)
