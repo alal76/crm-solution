@@ -1120,7 +1120,7 @@ public class LLMService : ILLMService
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("DeepSeek API error: {StatusCode} - {Content}", response.StatusCode, content);
-            throw new Exception($"DeepSeek API error: {response.StatusCode}");
+            throw new HttpRequestException($"DeepSeek API error: {response.StatusCode}");
         }
 
         var jsonResponse = JsonDocument.Parse(content);
@@ -1178,7 +1178,7 @@ public class LLMService : ILLMService
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogError("Groq API error: {StatusCode} - {Content}", response.StatusCode, content);
-            throw new Exception($"Groq API error: {response.StatusCode}");
+            throw new HttpRequestException($"Groq API error: {response.StatusCode}");
         }
 
         var jsonResponse = JsonDocument.Parse(content);
@@ -1259,7 +1259,7 @@ public class LLMService : ILLMService
                 }
             }
 
-            throw new Exception($"Allen AI API error: {response.StatusCode}");
+            throw new HttpRequestException($"Allen AI API error: {response.StatusCode}");
         }
 
         // Hugging Face returns an array of generated texts

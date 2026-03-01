@@ -22,7 +22,6 @@ public class ScriptChaosMiddleware : ICompiledScriptEngine
     private readonly ICompiledScriptEngine _inner;
     private readonly ILogger<ScriptChaosMiddleware> _logger;
     private readonly ChaosOptions _options;
-    private readonly Random _random;
 
     public ScriptRuntime Runtime => _inner.Runtime;
 
@@ -34,7 +33,6 @@ public class ScriptChaosMiddleware : ICompiledScriptEngine
         _inner = inner;
         _options = options;
         _logger = logger;
-        _random = new Random();
     }
 
     public async Task<CompilationResult> CompileAsync(
@@ -69,9 +67,9 @@ public class ScriptChaosMiddleware : ICompiledScriptEngine
 
     private async Task InjectChaosDelay(CancellationToken cancellationToken)
     {
-        if (_options.LatencyInjectionRate > 0 && _random.NextDouble() < _options.LatencyInjectionRate)
+        if (_options.LatencyInjectionRate > 0 && Random.Shared.NextDouble() < _options.LatencyInjectionRate)
         {
-            var delayMs = _random.Next(_options.MinLatencyMs, _options.MaxLatencyMs);
+            var delayMs = Random.Shared.Next(_options.MinLatencyMs, _options.MaxLatencyMs);
             _logger.LogDebug("[CHAOS] Injecting {Delay}ms latency", delayMs);
             await Task.Delay(delayMs, cancellationToken);
         }
@@ -79,7 +77,7 @@ public class ScriptChaosMiddleware : ICompiledScriptEngine
 
     private bool ShouldFail()
     {
-        var shouldFail = _options.FailureRate > 0 && _random.NextDouble() < _options.FailureRate;
+        var shouldFail = _options.FailureRate > 0 && Random.Shared.NextDouble() < _options.FailureRate;
         if (shouldFail) _logger.LogWarning("[CHAOS] Injecting random failure");
         return shouldFail;
     }

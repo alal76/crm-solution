@@ -1293,7 +1293,7 @@ using (var scope = app.Services.CreateScope())
             if (missingTables.Count > 0)
             {
                 Log.Fatal("Database migration incomplete. Missing tables: {MissingTables}. Aborting seeding.", string.Join(", ", missingTables));
-                throw new Exception($"Missing tables after migration: {string.Join(", ", missingTables)}");
+                throw new InvalidOperationException($"Missing tables after migration: {string.Join(", ", missingTables)}");
             }
         }
 
@@ -1304,7 +1304,7 @@ using (var scope = app.Services.CreateScope())
             if (scope.ServiceProvider.GetService(serviceType) == null)
             {
                 Log.Fatal("Required service not registered in DI: {ServiceName}", serviceType.Name);
-                throw new Exception($"Missing DI registration: {serviceType.Name}");
+                throw new InvalidOperationException($"Missing DI registration: {serviceType.Name}");
             }
         }
 

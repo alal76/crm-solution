@@ -349,7 +349,7 @@ public class RelationshipService
         _logger.LogInformation("Created relationship between account {Source} and {Target}",
             dto.SourceAccountId, dto.TargetAccountId);
 
-        return await GetRelationshipAsync(relationship.Id) ?? throw new Exception("Failed to retrieve created relationship");
+        return await GetRelationshipAsync(relationship.Id) ?? throw new InvalidOperationException("Failed to retrieve created relationship");
     }
 
     /// <summary>

@@ -370,9 +370,215 @@
             margin-bottom: 12px;
             opacity: 0.45;
         }
+
+        /* ── Quick-start preset tiles ─────────────────────────────────────── */
+        .quickstart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px,1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .quickstart-tile {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 14px 12px 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color .15s, background .15s, box-shadow .15s;
+            background: #fff;
+        }
+        .quickstart-tile:hover  { border-color: #9a9cf5; background: #f5f5ff; }
+        .quickstart-tile.active { border-color: var(--primary-color,#667eea); background: rgba(102,126,234,.08); box-shadow: 0 0 0 3px rgba(102,126,234,.15); }
+        .quickstart-tile .qt-icon  { font-size: 1.8rem; margin-bottom: 6px; }
+        .quickstart-tile .qt-name  { font-size: .82rem; font-weight: 700; color: #222; }
+        .quickstart-tile .qt-desc  { font-size: .7rem;  color: #666; margin-top: 2px; line-height: 1.3; }
+        .quickstart-tile .qt-badge { font-size: .6rem; margin-top: 5px; display:inline-block; }
+
+        /* ── Rich provider cards ─────────────────────────────────────── */
+        .provider-v2-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+            gap: 10px;
+        }
+        .provider-v2-card {
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #dde0e8;
+            border-radius: 10px;
+            padding: 12px 12px 10px;
+            cursor: pointer;
+            background: #fff;
+            transition: border-color .15s, box-shadow .15s;
+            position: relative;
+        }
+        .provider-v2-card.selected {
+            border-color: var(--primary-color,#667eea);
+            background: rgba(102,126,234,.06);
+            box-shadow: 0 0 0 3px rgba(102,126,234,.15);
+        }
+        .provider-v2-card:hover { border-color: #aab0f5; }
+        .pv2-icon  { font-size: 1.5rem; margin-bottom: 4px; }
+        .pv2-name  { font-size: .85rem; font-weight: 700; color: #222; }
+        .pv2-desc  { font-size: .72rem; color: #555; margin-top: 3px; line-height: 1.3; flex: 1; }
+        .pv2-tags  { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 6px; }
+        .pv2-tag   { font-size: .62rem; padding: 1px 5px; border-radius: 20px; font-weight: 600; }
+        .pv2-tag.oss      { background: #e6f5ec; color: #2e7d32; }
+        .pv2-tag.saas     { background: #e3f2fd; color: #1565c0; }
+        .pv2-tag.selfhost { background: #fff3e0; color: #bf360c; }
+        .pv2-tag.free     { background: #f3e5f5; color: #6a1b9a; }
+        .pv2-tag.rec      { background: #4a5ec7; color: #fff; }
+        .pv2-tag.builtin  { background: #37474f; color: #fff; }
+        .pv2-selected-check {
+            position: absolute; top: 7px; right: 8px;
+            width: 18px; height: 18px; border-radius: 50%;
+            background: var(--primary-color,#4a5ec7); color: #fff;
+            display: none; align-items: center; justify-content: center;
+            font-size: .7rem;
+        }
+        .provider-v2-card.selected .pv2-selected-check { display: flex; }
+        .provider-section { border: 1px solid #eaecf2; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+        .provider-section-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .provider-section-title { font-size: .85rem; font-weight: 700; color: #333; }
+        .provider-preset-bar { display:flex; gap:6px; flex-wrap:wrap; }
+
+        /* ── Step 6 review ─────────────────────────────────────── */
+        .review-section {
+            background: #f9f9fc;
+            border: 1px solid #e4e6ef;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+        .review-section-title {
+            font-size: .78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        .review-kv  { display: grid; grid-template-columns: 150px 1fr; gap: 4px 10px; font-size: .82rem; }
+        .review-k   { color: #777; }
+        .review-v   { color: #222; font-weight: 600; }
+        .est-time-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: linear-gradient(135deg,#4a5ec7,#6a3d9a); color:#fff;
+            padding: 8px 16px; border-radius: 20px; font-size: .82rem; font-weight: 600;
+        }
+
+        /* ── Help tooltip ─────────────────────────────────────── */
+        .help-tip {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #e8eaf6; color: #3949ab; font-size: .68rem; font-weight: 700;
+            cursor: help; vertical-align: middle; margin-left: 4px;
+            border: 1px solid #c5cae9;
+        }
+
+        /* ── Arch recommendation callout ─────────────────────────── */
+        .arch-rec-callout {
+            display: flex; align-items: flex-start; gap: 10px;
+            background: linear-gradient(135deg, #e8f4fd, #f0e6ff);
+            border-left: 4px solid #667eea;
+            border-radius: 8px; padding: 12px 14px;
+            margin-bottom: 16px; font-size: .85rem;
+        }
+        .arch-rec-callout .arc-icon { font-size: 1.4rem; flex-shrink: 0; }
+        .arch-rec-callout .arc-text strong { color: #333; }
+        .arch-rec-callout .arc-text p { margin: 2px 0 0; color: #555; font-size: .78rem;}
+
+        /* ── Draft saved notification ────────────────────────────── */
+        #draftToast {
+            position: fixed; bottom: 20px; right: 20px;
+            background: #37474f; color: #fff;
+            border-radius: 8px; padding: 10px 18px; font-size: .82rem;
+            opacity: 0; pointer-events: none; transition: opacity .3s;
+            z-index: 9999;
+        }
+        #draftToast.show { opacity: 1; }
+
+        /* ── pv2-* shims (HTML shorthand for provider cards) ─────────── */
+        .pv2-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(175px,1fr)); gap:10px; }
+        .pv2-card {
+            display:flex; flex-direction:column;
+            border:2px solid #dde0e8; border-radius:10px; padding:12px 12px 10px;
+            cursor:pointer; background:#fff; text-align:left; width:100%;
+            transition:border-color .15s, box-shadow .15s;
+        }
+        .pv2-card:hover    { border-color:#aab0f5; }
+        .pv2-card.selected {
+            border-color:var(--primary-color,#667eea);
+            background:rgba(102,126,234,.06);
+            box-shadow:0 0 0 3px rgba(102,126,234,.15);
+        }
+        .pv2-card-top   { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+        .pv2-card-icon  { font-size:1.4rem; }
+        .pv2-card-title { font-size:.85rem; font-weight:700; color:#222; }
+        .pv2-card-desc  { font-size:.72rem; color:#555; margin-bottom:6px; line-height:1.3; flex:1; }
+
     </style>
 </head>
 <body>
+    <!-- Draft saved toast -->
+    <div id="draftToast"><i class="bi bi-check2-circle me-2"></i>Draft saved</div>
+
+    <!-- Welcome / Quick-start modal -->
+    <div class="modal fade" id="welcomeModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header" style="background:linear-gradient(135deg,#4a5ec7,#6a3d9a); color:#fff; border-bottom:0">
+            <h5 class="modal-title"><i class="bi bi-rocket-takeoff me-2"></i>Welcome to the CRM Deployment Wizard</h5>
+          </div>
+          <div class="modal-body p-4">
+            <p class="text-muted mb-3">This wizard generates deployment configuration for the CRM Solution across cloud and on-premises platforms. Choose a quick-start profile to pre-fill settings, or start from scratch.</p>
+            <div class="row g-3 mb-2">
+              <div class="col-md-3">
+                <button type="button" class="quickstart-tile w-100 text-start border-0" onclick="applyQuickPreset('dev'); closeWelcome()">
+                  <div class="qt-icon">💻</div>
+                  <div class="qt-name">Developer / Lab</div>
+                  <div class="qt-desc">Single machine, Docker Compose, SQLite/MariaDB</div>
+                  <span class="qt-badge badge bg-secondary">~5 min</span>
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button type="button" class="quickstart-tile w-100 text-start border-0" onclick="applyQuickPreset('starter'); closeWelcome()">
+                  <div class="qt-icon">🚀</div>
+                  <div class="qt-name">Starter</div>
+                  <div class="qt-desc">Small team (&lt;50), monolithic, single node</div>
+                  <span class="qt-badge badge bg-success">~15 min</span>
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button type="button" class="quickstart-tile w-100 text-start border-0" onclick="applyQuickPreset('production'); closeWelcome()">
+                  <div class="qt-icon">🏭</div>
+                  <div class="qt-name">Production</div>
+                  <div class="qt-desc">100–500 users, HA, cloud-native services</div>
+                  <span class="qt-badge badge bg-primary">~45 min</span>
+                </button>
+              </div>
+              <div class="col-md-3">
+                <button type="button" class="quickstart-tile w-100 text-start border-0" onclick="applyQuickPreset('enterprise'); closeWelcome()">
+                  <div class="qt-icon">🏢</div>
+                  <div class="qt-name">Enterprise</div>
+                  <div class="qt-desc">500+ users, microservices, full HA, premium providers</div>
+                  <span class="qt-badge badge bg-danger">~2 hrs</span>
+                </button>
+              </div>
+            </div>
+            <div class="text-center text-muted small mt-2">You can change any settings after selecting a preset.</div>
+          </div>
+          <div class="modal-footer border-0">
+            <button type="button" class="btn btn-outline-secondary" onclick="closeWelcome()">
+              <i class="bi bi-pencil me-1"></i>Start from scratch
+            </button>
+            <button type="button" class="btn btn-outline-secondary text-muted small ms-auto" onclick="localStorage.setItem('cdt_skip_welcome','1'); closeWelcome()">Don't show again</button>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Header -->
     <header class="wizard-header">
         <div class="container">
@@ -388,6 +594,10 @@
                             data-bs-toggle="offcanvas" data-bs-target="#day2Canvas"
                             title="Day-2 Operations">
                         <i class="bi bi-arrow-repeat me-1"></i>Day-2 Ops
+                    </button>
+                    <button class="btn btn-outline-light btn-sm" type="button"
+                            onclick="saveDraft()" title="Save current progress to browser storage">
+                        <i class="bi bi-floppy me-1"></i>Save Draft
                     </button>
                     <a href="/" class="btn btn-outline-light btn-sm">
                         <i class="bi bi-house me-1"></i>Home
@@ -864,28 +1074,59 @@
 
             <!-- Step 1: Basic Information -->
             <div class="wizard-section" data-section="1">
-                <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Basic Information</h3>
-                
-                <div class="mb-4">
+                <h3 class="mb-3"><i class="bi bi-info-circle me-2"></i>Basic Information</h3>
+
+                <!-- Quick-start preset tiles -->
+                <div class="mb-3">
+                    <p class="form-label fw-semibold mb-2">Quick-start preset <span class="help-tip" title="Pre-fills recommended settings for your deployment scale. You can customise everything afterwards.">?</span></p>
+                    <div class="quickstart-grid">
+                        <button type="button" id="qt_dev"        class="quickstart-tile text-start border-0" onclick="applyQuickPreset('dev')">
+                            <div class="qt-icon">💻</div><div class="qt-name">Developer / Lab</div>
+                            <div class="qt-desc">Single machine, Docker Compose, up to 10 users</div>
+                            <span class="qt-badge badge bg-secondary">~5 min</span>
+                        </button>
+                        <button type="button" id="qt_starter"    class="quickstart-tile text-start border-0" onclick="applyQuickPreset('starter')">
+                            <div class="qt-icon">🚀</div><div class="qt-name">Starter</div>
+                            <div class="qt-desc">Small team &lt;50, monolithic, 2 vCPU / 4 GB</div>
+                            <span class="qt-badge badge bg-success">~15 min</span>
+                        </button>
+                        <button type="button" id="qt_production" class="quickstart-tile text-start border-0" onclick="applyQuickPreset('production')">
+                            <div class="qt-icon">🏭</div><div class="qt-name">Production</div>
+                            <div class="qt-desc">100–500 users, HA, cloud-native, managed DB</div>
+                            <span class="qt-badge badge bg-primary">~45 min</span>
+                        </button>
+                        <button type="button" id="qt_enterprise" class="quickstart-tile text-start border-0" onclick="applyQuickPreset('enterprise')">
+                            <div class="qt-icon">🏢</div><div class="qt-name">Enterprise</div>
+                            <div class="qt-desc">500+ users, microservices, full HA, Kubernetes</div>
+                            <span class="qt-badge badge bg-danger">~2 hrs</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label" for="deploymentName">Deployment Name</label>
-                    <input type="text" class="form-control" id="deploymentName" value="crm-production" 
+                    <input type="text" class="form-control" id="deploymentName" value="crm-production"
                            placeholder="e.g., crm-production">
                     <small class="text-muted">A unique identifier for this deployment (no spaces)</small>
                 </div>
-                
-                <div class="mb-4">
+
+                <div class="mb-3">
                     <label class="form-label" for="deploymentDescription">Description</label>
-                    <input type="text" class="form-control" id="deploymentDescription" 
+                    <input type="text" class="form-control" id="deploymentDescription"
                            value="CRM Solution Deployment" placeholder="Brief description">
                 </div>
-                
-                <div class="mb-4">
-                    <label class="form-label" for="expectedUsers">Expected Number of Users</label>
-                    <input type="number" class="form-control" id="expectedUsers" value="100" min="1" max="100000">
-                    <small class="text-muted">Helps determine recommended resource sizing</small>
+
+                <div class="mb-3">
+                    <label class="form-label" for="expectedUsers">
+                        Expected Number of Users
+                        <span class="help-tip" title="Used to recommend compute, memory, and architecture. Can always be adjusted after deployment.">?</span>
+                    </label>
+                    <input type="number" class="form-control" id="expectedUsers" value="100" min="1" max="100000"
+                           oninput="loadRecommendation()">
+                    <small class="text-muted">Helps determine recommended resource sizing and architecture</small>
                 </div>
-                
-                <div class="recommendation-box" id="sizeRecommendation" style="display: none;">
+
+                <div class="recommendation-box" id="sizeRecommendation">
                     <h6><i class="bi bi-lightbulb me-2"></i>Size Recommendation</h6>
                     <p class="mb-2" id="recDescription"></p>
                     <div class="row small">
@@ -1355,28 +1596,59 @@
 
             <!-- Step 3: Architecture -->
             <div class="wizard-section" data-section="3">
-                <h3 class="mb-4"><i class="bi bi-diagram-3 me-2"></i>Deployment Architecture</h3>
-                
-                <div class="row g-3">
+                <h3 class="mb-3"><i class="bi bi-diagram-3 me-2"></i>Deployment Architecture</h3>
+
+                <!-- Smart recommendation banner -->
+                <div class="alert alert-primary d-flex align-items-center gap-3 mb-4 py-2" id="archSuggestBanner">
+                    <i class="bi bi-stars fs-4"></i>
+                    <div>
+                        <strong>Recommendation:</strong> <span id="archSuggestText">Based on your user count we suggest <strong>Monolithic</strong> — simpler to operate for small teams.</span>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-primary ms-auto text-nowrap" onclick="applyArchSuggestion()">Apply suggestion</button>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <!-- Monolithic card -->
                     <div class="col-md-6">
-                        <label class="option-card" for="archMonolithic">
+                        <label class="option-card h-100" for="archMonolithic" style="cursor:pointer">
                             <input type="radio" name="architecture" value="monolithic" id="archMonolithic" onchange="selectArchitecture('monolithic')">
-                            <div class="option-icon text-info"><i class="bi bi-box"></i></div>
-                            <h5>Monolithic</h5>
-                            <p class="text-muted small mb-0">Single application with all modules. Simpler deployment, good for smaller teams.</p>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="option-icon text-info mb-0"><i class="bi bi-box"></i></div>
+                                <h5 class="mb-0">Monolithic</h5>
+                                <span class="badge bg-success ms-auto">Recommended &lt;500 users</span>
+                            </div>
+                            <p class="text-muted small mb-2">All CRM modules run in a single application container. One image to build, one service to scale.</p>
+                            <ul class="small text-muted ps-3 mb-2">
+                                <li>✅ Fastest to deploy (1 container)</li>
+                                <li>✅ Simplest operations &amp; logging</li>
+                                <li>✅ Low infrastructure cost</li>
+                                <li>⚠️ Scale entire app, not individual modules</li>
+                            </ul>
+                            <p class="small mb-0"><strong>Best for:</strong> Dev labs, SMBs, &lt;500 concurrent users</p>
                         </label>
                     </div>
+                    <!-- Microservices card -->
                     <div class="col-md-6">
-                        <label class="option-card" for="archMicroservices">
+                        <label class="option-card h-100" for="archMicroservices" style="cursor:pointer">
                             <input type="radio" name="architecture" value="microservices" id="archMicroservices" onchange="selectArchitecture('microservices')">
-                            <div class="option-icon text-success"><i class="bi bi-boxes"></i></div>
-                            <h5>Microservices</h5>
-                            <p class="text-muted small mb-0">Separate services for each module. Better scalability and isolation.</p>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="option-icon text-success mb-0"><i class="bi bi-boxes"></i></div>
+                                <h5 class="mb-0">Microservices</h5>
+                                <span class="badge bg-primary ms-auto">Recommended 500+ users</span>
+                            </div>
+                            <p class="text-muted small mb-2">Each module (Sales, ITSM, Marketing, …) runs as an independent service behind an API gateway.</p>
+                            <ul class="small text-muted ps-3 mb-2">
+                                <li>✅ Scale individual services independently</li>
+                                <li>✅ Fault isolation — one service fails, rest continue</li>
+                                <li>✅ Independent deployment pipelines</li>
+                                <li>⚠️ More complex to operate (K8s recommended)</li>
+                            </ul>
+                            <p class="small mb-0"><strong>Best for:</strong> Enterprise, 500+ users, Kubernetes deployments</p>
                         </label>
                     </div>
                 </div>
 
-                <div class="alert alert-info mt-4" id="archInfo" style="display: none;">
+                <div class="alert alert-info mt-2" id="archInfo" style="display: none;">
                     <i class="bi bi-info-circle me-2"></i>
                     <span id="archInfoText"></span>
                 </div>
@@ -1595,118 +1867,161 @@
 
             <!-- Step 5: Providers -->
             <div class="wizard-section" data-section="5">
-                <h3 class="mb-4"><i class="bi bi-puzzle me-2"></i>Provider Selection</h3>
-                
-                <p class="text-muted mb-4">Select which providers to use for each service. "Built-in" uses the CRM's native implementation.</p>
-                
+                <h3 class="mb-3"><i class="bi bi-puzzle me-2"></i>Provider Selection</h3>
+                <p class="text-muted mb-3">Choose which technology powers each CRM service. All <strong>Built-in</strong> options are free, self-hosted, and production-ready.</p>
+
+                <!-- Quick preset row -->
+                <div class="d-flex flex-wrap gap-2 mb-4 p-3 bg-light rounded">
+                    <span class="text-muted small align-self-center me-1 fw-semibold">Quick select:</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="applyProviderPreset('builtin')">
+                        <i class="bi bi-box me-1"></i>All Built-in (zero extra infra)
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="applyProviderPreset('oss')">
+                        <i class="bi bi-github me-1"></i>Open-Source Stack
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="applyProviderPreset('cloud')">
+                        <i class="bi bi-cloud me-1"></i>Cloud-native / SaaS
+                    </button>
+                </div>
+
+                <!-- Search -->
                 <div class="mb-4">
-                    <p class="form-label"><i class="bi bi-search me-2"></i>Search Provider</p>
-                    <div class="provider-grid" id="searchProviderGrid">
-                        <button type="button" class="provider-option selected" onclick="selectProvider('search', 'builtin')">
-                            <i class="bi bi-box text-primary"></i>
-                            <div>Built-in</div>
+                    <p class="fw-semibold mb-2"><i class="bi bi-search me-2 text-info"></i>Search Provider</p>
+                    <div class="pv2-grid" id="searchProviderGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('search','builtin')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📦</span><span class="pv2-card-title">Built-in</span></div>
+                            <div class="pv2-card-desc">EF Core full-text search. No extra services needed.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span><span class="pv2-tag rec">Recommended</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('search', 'meilisearch')">
-                            <i class="bi bi-search text-success"></i>
-                            <div>Meilisearch</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('search','meilisearch')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">⚡</span><span class="pv2-card-title">Meilisearch</span></div>
+                            <div class="pv2-card-desc">Blazing-fast typo-tolerant search engine. OSS, Docker-deployable.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('search', 'algolia')">
-                            <i class="bi bi-search text-info"></i>
-                            <div>Algolia</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('search','algolia')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🔎</span><span class="pv2-card-title">Algolia</span></div>
+                            <div class="pv2-card-desc">Managed SaaS search with analytics &amp; personalization. Usage-based billing.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
                         </button>
                     </div>
                 </div>
 
+                <!-- Chat -->
                 <div class="mb-4">
-                    <p class="form-label"><i class="bi bi-chat-dots me-2"></i>Chat Provider</p>
-                    <div class="provider-grid" id="chatProviderGrid">
-                        <button type="button" class="provider-option selected" onclick="selectProvider('chat', 'builtin')">
-                            <i class="bi bi-box text-primary"></i>
-                            <div>Built-in</div>
+                    <p class="fw-semibold mb-2"><i class="bi bi-chat-dots me-2 text-success"></i>Chat Provider</p>
+                    <div class="pv2-grid" id="chatProviderGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('chat','builtin')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📦</span><span class="pv2-card-title">Built-in</span></div>
+                            <div class="pv2-card-desc">SignalR-based in-app messaging with no external dependencies.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span><span class="pv2-tag rec">Recommended</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('chat', 'chatwoot')">
-                            <i class="bi bi-chat text-success"></i>
-                            <div>Chatwoot</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('chat','chatwoot')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">💬</span><span class="pv2-card-title">Chatwoot</span></div>
+                            <div class="pv2-card-desc">OSS customer support platform with omnichannel inbox support.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('chat', 'intercom')">
-                            <i class="bi bi-chat text-info"></i>
-                            <div>Intercom</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('chat','intercom')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🌐</span><span class="pv2-card-title">Intercom</span></div>
+                            <div class="pv2-card-desc">Enterprise SaaS chat with AI-assisted support &amp; product tours.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
                         </button>
                     </div>
                 </div>
 
+                <!-- Notifications -->
                 <div class="mb-4">
-                    <p class="form-label"><i class="bi bi-bell me-2"></i>Notification Provider</p>
-                    <div class="provider-grid" id="notificationProviderGrid">
-                        <button type="button" class="provider-option selected" onclick="selectProvider('notification', 'builtin')">
-                            <i class="bi bi-box text-primary"></i>
-                            <div>Built-in</div>
+                    <p class="fw-semibold mb-2"><i class="bi bi-bell me-2 text-warning"></i>Notification Provider</p>
+                    <div class="pv2-grid" id="notificationProviderGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('notification','builtin')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📦</span><span class="pv2-card-title">Built-in</span></div>
+                            <div class="pv2-card-desc">SMTP email + in-app notifications. No third-party accounts required.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span><span class="pv2-tag rec">Recommended</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('notification', 'novu')">
-                            <i class="bi bi-bell text-success"></i>
-                            <div>Novu</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('notification','novu')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🔔</span><span class="pv2-card-title">Novu</span></div>
+                            <div class="pv2-card-desc">OSS notification infrastructure — email, SMS, push, in-app &amp; chat.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('notification', 'twilio')">
-                            <i class="bi bi-telephone text-danger"></i>
-                            <div>Twilio</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('notification','twilio')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📱</span><span class="pv2-card-title">Twilio</span></div>
+                            <div class="pv2-card-desc">SMS, voice &amp; WhatsApp via Twilio APIs. Pay-per-message.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('notification', 'sendgrid')">
-                            <i class="bi bi-envelope text-info"></i>
-                            <div>SendGrid</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('notification','sendgrid')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">✉️</span><span class="pv2-card-title">SendGrid</span></div>
+                            <div class="pv2-card-desc">Scalable transactional email platform by Twilio. 100 emails/day free.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
                         </button>
                     </div>
                 </div>
 
+                <!-- Analytics -->
                 <div class="mb-4">
-                    <p class="form-label"><i class="bi bi-bar-chart me-2"></i>Analytics Provider</p>
-                    <div class="provider-grid" id="analyticsProviderGrid">
-                        <button type="button" class="provider-option selected" onclick="selectProvider('analytics', 'builtin')">
-                            <i class="bi bi-box text-primary"></i>
-                            <div>Built-in</div>
+                    <p class="fw-semibold mb-2"><i class="bi bi-bar-chart me-2 text-primary"></i>Analytics Provider</p>
+                    <div class="pv2-grid" id="analyticsProviderGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('analytics','builtin')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📦</span><span class="pv2-card-title">Built-in</span></div>
+                            <div class="pv2-card-desc">Embedded dashboard charts powered by CRM data — no extra containers.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span><span class="pv2-tag rec">Recommended</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('analytics', 'superset')">
-                            <i class="bi bi-graph-up text-success"></i>
-                            <div>Superset</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('analytics','superset')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📊</span><span class="pv2-card-title">Apache Superset</span></div>
+                            <div class="pv2-card-desc">Powerful OSS BI platform with SQL Lab, drag-and-drop dashboards &amp; 40+ chart types.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('analytics', 'powerbi')">
-                            <i class="bi bi-bar-chart text-warning"></i>
-                            <div>Power BI</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('analytics','powerbi')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📈</span><span class="pv2-card-title">Power BI</span></div>
+                            <div class="pv2-card-desc">Microsoft enterprise BI with AI insights and Office 365 integration.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
                         </button>
                     </div>
                 </div>
 
+                <!-- E-Signatures -->
                 <div class="mb-4">
-                    <p class="form-label"><i class="bi bi-pen me-2"></i>Signature Provider</p>
-                    <div class="provider-grid" id="signatureProviderGrid">
-                        <button type="button" class="provider-option selected" onclick="selectProvider('signature', 'builtin')">
-                            <i class="bi bi-box text-primary"></i>
-                            <div>Built-in</div>
+                    <p class="fw-semibold mb-2"><i class="bi bi-pen me-2 text-secondary"></i>E-Signature Provider</p>
+                    <div class="pv2-grid" id="signatureProviderGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('signature','builtin')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📦</span><span class="pv2-card-title">Built-in</span></div>
+                            <div class="pv2-card-desc">Basic PDF signing workflow with stored signature images.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span><span class="pv2-tag rec">Recommended</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('signature', 'docuseal')">
-                            <i class="bi bi-file-earmark-text text-success"></i>
-                            <div>DocuSeal</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('signature','docuseal')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📝</span><span class="pv2-card-title">DocuSeal</span></div>
+                            <div class="pv2-card-desc">OSS e-signature with template management, multi-signer flows &amp; audit trails.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('signature', 'docusign')">
-                            <i class="bi bi-file-earmark-check text-info"></i>
-                            <div>DocuSign</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('signature','docusign')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">✍️</span><span class="pv2-card-title">DocuSign</span></div>
+                            <div class="pv2-card-desc">Industry-leading e-signature SaaS. Legally binding in 180+ countries.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
                         </button>
                     </div>
                 </div>
 
+                <!-- AI -->
                 <div class="mb-4">
-                    <p class="form-label"><i class="bi bi-robot me-2"></i>AI Provider</p>
-                    <div class="provider-grid" id="aiProviderGrid">
-                        <button type="button" class="provider-option selected" onclick="selectProvider('ai', 'ollama')">
-                            <i class="bi bi-cpu text-primary"></i>
-                            <div>Ollama (Local)</div>
+                    <p class="fw-semibold mb-2"><i class="bi bi-robot me-2 text-danger"></i>AI / LLM Provider</p>
+                    <div class="pv2-grid" id="aiProviderGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('ai','ollama')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🦙</span><span class="pv2-card-title">Ollama (Local)</span></div>
+                            <div class="pv2-card-desc">Run Llama 3, Mistral &amp; others locally. Data never leaves your server.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span><span class="pv2-tag rec">Recommended</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('ai', 'openai')">
-                            <i class="bi bi-robot text-success"></i>
-                            <div>OpenAI</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('ai','openai')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🤖</span><span class="pv2-card-title">OpenAI</span></div>
+                            <div class="pv2-card-desc">GPT-4o &amp; o1 models via API. Best-in-class reasoning. Pay per token.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
                         </button>
-                        <button type="button" class="provider-option" onclick="selectProvider('ai', 'azure_openai')">
-                            <i class="bi bi-cloud text-info"></i>
-                            <div>Azure OpenAI</div>
+                        <button type="button" class="pv2-card" onclick="selectProvider('ai','azure_openai')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">☁️</span><span class="pv2-card-title">Azure OpenAI</span></div>
+                            <div class="pv2-card-desc">GPT-4o on Azure infrastructure. VNET-isolated, GDPR compliant.</div>
+                            <div class="pv2-tags"><span class="pv2-tag cloud">Cloud</span><span class="pv2-tag saas">SaaS</span></div>
+                        </button>
+                        <button type="button" class="pv2-card" onclick="selectProvider('ai','anthropic')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🧠</span><span class="pv2-card-title">Anthropic Claude</span></div>
+                            <div class="pv2-card-desc">Claude 3.5 Sonnet with 200K context window. Excellent for long documents.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
                         </button>
                     </div>
                 </div>
@@ -1714,15 +2029,30 @@
 
             <!-- Step 6: Review -->
             <div class="wizard-section" data-section="6">
-                <h3 class="mb-4"><i class="bi bi-check-circle me-2"></i>Review Configuration</h3>
-                
-                <div class="config-summary" id="configSummary">
-                    <!-- Populated by JavaScript -->
+                <h3 class="mb-3"><i class="bi bi-check-circle me-2"></i>Review &amp; Generate</h3>
+                <p class="text-muted mb-4">Your configuration is summarised below. Click <strong>Edit</strong> on any section to go back, or hit <strong>Generate Configuration</strong> when you're ready.</p>
+
+                <!-- Dynamic summary populated by buildReviewSummary() -->
+                <div id="configSummary" class="mb-3">
+                    <!-- Populated by JavaScript on step entry -->
                 </div>
 
-                <div class="alert alert-success mt-4">
-                    <i class="bi bi-info-circle me-2"></i>
-                    Ready to generate! Click "Generate Configuration" to create your deployment files.
+                <!-- Deployment checklist -->
+                <div class="card border-0 bg-light mb-3">
+                    <div class="card-body py-3">
+                        <h6 class="mb-2"><i class="bi bi-list-check me-2"></i>Pre-flight Checklist</h6>
+                        <ul class="small mb-0 ps-3" id="preflightList">
+                            <li id="chk-name" class="mb-1">⏳ Deployment name set</li>
+                            <li id="chk-platform" class="mb-1">⏳ Target platform selected</li>
+                            <li id="chk-db" class="mb-1">⏳ Database configured</li>
+                            <li id="chk-arch" class="mb-1">⏳ Architecture chosen</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="alert alert-success">
+                    <i class="bi bi-rocket-takeoff me-2"></i>
+                    All set! Click <strong>Generate Configuration</strong> below to create your deployment files.
                 </div>
             </div>
 
@@ -2869,15 +3199,238 @@
             nextStep();
         }
 
+        // ── Quick-start preset system ─────────────────────────────────────────
+        function applyQuickPreset(preset) {
+            const presets = {
+                dev: {
+                    name: 'crm-dev',
+                    description: 'Developer / Lab environment',
+                    users: 10,
+                    architecture: 'monolithic',
+                    database: 'mariadb',
+                    search: 'builtin', chat: 'builtin', notification: 'builtin',
+                    analytics: 'builtin', signature: 'builtin', ai: 'ollama',
+                },
+                starter: {
+                    name: 'crm-starter',
+                    description: 'Small team starter deployment',
+                    users: 50,
+                    architecture: 'monolithic',
+                    database: 'mariadb',
+                    search: 'builtin', chat: 'builtin', notification: 'builtin',
+                    analytics: 'builtin', signature: 'builtin', ai: 'ollama',
+                },
+                production: {
+                    name: 'crm-production',
+                    description: 'Production deployment with HA',
+                    users: 250,
+                    architecture: 'monolithic',
+                    database: 'mariadb',
+                    search: 'meilisearch', chat: 'builtin', notification: 'novu',
+                    analytics: 'superset', signature: 'docuseal', ai: 'ollama',
+                },
+                enterprise: {
+                    name: 'crm-enterprise',
+                    description: 'Enterprise-grade full Kubernetes deployment',
+                    users: 1000,
+                    architecture: 'microservices',
+                    database: 'postgresql',
+                    search: 'meilisearch', chat: 'chatwoot', notification: 'novu',
+                    analytics: 'superset', signature: 'docuseal', ai: 'openai',
+                },
+            };
+            const p = presets[preset];
+            if (!p) return;
+
+            // Update UI fields
+            const nm = document.getElementById('deploymentName');    if (nm) nm.value = p.name;
+            const ds = document.getElementById('deploymentDescription'); if (ds) ds.value = p.description;
+            const eu = document.getElementById('expectedUsers');     if (eu) eu.value = p.users;
+
+            // Update config
+            config.name = p.name;
+            config.description = p.description;
+            config.expected_users = p.users;
+
+            // Highlight the selected tile
+            document.querySelectorAll('.quickstart-tile').forEach(t => t.classList.remove('active'));
+            const tile = document.getElementById('qt_' + preset);
+            if (tile) tile.classList.add('active');
+
+            // Auto-select architecture if on step 3
+            if (p.architecture) {
+                config.architecture = p.architecture;
+                const radio = document.querySelector(`[name="architecture"][value="${p.architecture}"]`);
+                if (radio) { radio.checked = true; selectArchitecture(p.architecture); }
+            }
+
+            // Auto-select database
+            if (p.database) {
+                config.database_type = p.database;
+                const dbRadio = document.querySelector(`[name="database"][value="${p.database}"]`);
+                if (dbRadio) { dbRadio.checked = true; selectDatabase(p.database); }
+            }
+
+            // Auto-select providers (they may not be rendered yet — store in config)
+            ['search','chat','notification','analytics','signature','ai'].forEach(type => {
+                const val = p[type];
+                if (val) {
+                    config[type + '_provider'] = val;
+                    const grid = document.getElementById(type + 'ProviderGrid');
+                    if (grid) {
+                        grid.querySelectorAll('.pv2-card, .provider-option').forEach(el => el.classList.remove('selected'));
+                        const btn = Array.from(grid.querySelectorAll('.pv2-card, .provider-option'))
+                            .find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + val + "'"));
+                        if (btn) btn.classList.add('selected');
+                    }
+                }
+            });
+
+            loadRecommendation();
+            updateArchSuggestion();
+        }
+
+        // ── Welcome modal ─────────────────────────────────────────────────────
+        function closeWelcome() {
+            const modal = bootstrap && bootstrap.Modal.getInstance(document.getElementById('welcomeModal'));
+            if (modal) modal.hide();
+        }
+
+        // ── Draft persistence ─────────────────────────────────────────────────
+        const DRAFT_KEY = 'cdt_draft_v1';
+
+        function saveDraft() {
+            try {
+                // Capture form fields into config first
+                const nm = document.getElementById('deploymentName');   if (nm) config.name = nm.value;
+                const ds = document.getElementById('deploymentDescription'); if (ds) config.description = ds.value;
+                const eu = document.getElementById('expectedUsers');    if (eu) config.expected_users = parseInt(eu.value)||100;
+                localStorage.setItem(DRAFT_KEY, JSON.stringify({ config, step: currentStep }));
+                const toast = document.getElementById('draftToast');
+                if (toast) { toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2200); }
+            } catch(e) { console.warn('Draft save failed:', e); }
+        }
+
+        function loadDraft() {
+            try {
+                const raw = localStorage.getItem(DRAFT_KEY);
+                if (!raw) return false;
+                const { config: saved, step } = JSON.parse(raw);
+                Object.assign(config, saved);
+                if (step !== undefined) currentStep = step;
+                // Restore form fields
+                const nm = document.getElementById('deploymentName');   if (nm) nm.value = config.name || '';
+                const ds = document.getElementById('deploymentDescription'); if (ds) ds.value = config.description || '';
+                const eu = document.getElementById('expectedUsers');    if (eu) eu.value = config.expected_users || 100;
+                updateStepIndicator();
+                loadRecommendation();
+                return true;
+            } catch(e) { console.warn('Draft load failed:', e); return false; }
+        }
+
+        // ── Architecture suggestion ───────────────────────────────────────────
+        function updateArchSuggestion() {
+            const users = config.expected_users || 100;
+            const isMicro = users >= 500;
+            const text = isMicro
+                ? `With <strong>${users.toLocaleString()} users</strong> we recommend <strong>Microservices</strong> — independent scaling and fault isolation.`
+                : `With <strong>${users.toLocaleString()} users</strong> we recommend <strong>Monolithic</strong> — simpler to deploy and operate.`;
+            const el = document.getElementById('archSuggestText');
+            if (el) el.innerHTML = text;
+            // store suggested arch for "Apply" button
+            document.getElementById('archSuggestBanner') && (document.getElementById('archSuggestBanner').dataset.suggestion = isMicro ? 'microservices' : 'monolithic');
+        }
+
+        function applyArchSuggestion() {
+            const banner = document.getElementById('archSuggestBanner');
+            const arch = banner ? banner.dataset.suggestion : null;
+            if (!arch) return;
+            const radio = document.querySelector(`[name="architecture"][value="${arch}"]`);
+            if (radio) { radio.checked = true; selectArchitecture(arch); }
+        }
+
+        // ── Provider preset quick-select ──────────────────────────────────────
+        function applyProviderPreset(preset) {
+            const presets = {
+                builtin: { search:'builtin', chat:'builtin', notification:'builtin', analytics:'builtin', signature:'builtin', ai:'ollama' },
+                oss:     { search:'meilisearch', chat:'chatwoot', notification:'novu', analytics:'superset', signature:'docuseal', ai:'ollama' },
+                cloud:   { search:'algolia', chat:'intercom', notification:'sendgrid', analytics:'powerbi', signature:'docusign', ai:'openai' },
+            };
+            const p = presets[preset];
+            if (!p) return;
+            Object.keys(p).forEach(type => {
+                config[type + '_provider'] = p[type];
+                const grid = document.getElementById(type + 'ProviderGrid');
+                if (grid) {
+                    grid.querySelectorAll('.pv2-card, .provider-option').forEach(el => el.classList.remove('selected'));
+                    const btn = Array.from(grid.querySelectorAll('.pv2-card, .provider-option'))
+                        .find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + p[type] + "'"));
+                    if (btn) btn.classList.add('selected');
+                }
+            });
+        }
+
+        // ── Rich review summary ───────────────────────────────────────────────
+        function buildReviewSummary() {
+            const pl = (config.platform || 'unknown').replace('_',' ').toUpperCase();
+            const db = (config.database_type || 'mariadb').toUpperCase();
+            const arch = config.architecture ? config.architecture.charAt(0).toUpperCase() + config.architecture.slice(1) : '—';
+            const users = config.expected_users || 100;
+            const estMins = users < 50 ? 5 : users < 200 ? 20 : users < 500 ? 45 : 120;
+
+            const pv = type => config[type + '_provider'] || 'builtin';
+            const badge = v => v === 'builtin' ? '<span class="badge bg-secondary">Built-in</span>'
+                              : `<span class="badge bg-primary">${v}</span>`;
+
+            const preflight = [];
+            if (config.name) preflight.push('✅ Deployment name set');
+            else preflight.push('❌ Deployment name missing');
+            if (config.platform) preflight.push('✅ Platform: ' + pl);
+            else preflight.push('❌ No platform selected');
+            if (config.database_type) preflight.push('✅ Database: ' + db);
+            else preflight.push('⚠️ Using default database (MariaDB)');
+            if (config.architecture) preflight.push('✅ Architecture: ' + arch);
+            else preflight.push('⚠️ Using default architecture (Monolithic)');
+
+            return `
+            <div class="review-section">
+                <div class="review-section-title"><i class="bi bi-info-circle me-1"></i>Deployment Overview</div>
+                <div class="review-kv">
+                    <span class="review-k">Name</span>       <span class="review-v">${config.name || '—'}</span>
+                    <span class="review-k">Description</span><span class="review-v">${config.description || '—'}</span>
+                    <span class="review-k">Users</span>      <span class="review-v">${users.toLocaleString()}</span>
+                    <span class="review-k">Platform</span>   <span class="review-v">${pl}</span>
+                    <span class="review-k">Architecture</span><span class="review-v">${arch}</span>
+                    <span class="review-k">Database</span>   <span class="review-v">${db} (port ${config.database_port || 3306})</span>
+                </div>
+            </div>
+            <div class="review-section">
+                <div class="review-section-title"><i class="bi bi-puzzle me-1"></i>Providers</div>
+                <div class="review-kv">
+                    <span class="review-k">Search</span>       <span class="review-v">${badge(pv('search'))}</span>
+                    <span class="review-k">Chat</span>         <span class="review-v">${badge(pv('chat'))}</span>
+                    <span class="review-k">Notifications</span><span class="review-v">${badge(pv('notification'))}</span>
+                    <span class="review-k">Analytics</span>    <span class="review-v">${badge(pv('analytics'))}</span>
+                    <span class="review-k">Signatures</span>   <span class="review-v">${badge(pv('signature'))}</span>
+                    <span class="review-k">AI / LLM</span>     <span class="review-v">${badge(pv('ai'))}</span>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-3 mt-3 mb-1">
+                <div class="est-time-badge"><i class="bi bi-clock me-1"></i>Est. deployment time: ~${estMins} min</div>
+                <button class="btn btn-sm btn-outline-secondary" onclick="saveDraft()"><i class="bi bi-floppy me-1"></i>Save Draft</button>
+            </div>`;
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadEnums();
             updateStepIndicator();
             
-            // Update recommendation on user count change
+            // Update recommendation and arch suggestion on user count change
             document.getElementById('expectedUsers').addEventListener('change', function() {
                 config.expected_users = parseInt(this.value);
                 loadRecommendation();
+                updateArchSuggestion();
             });
             
             // Discovery event listeners (sidebar buttons handle platform selection now)
@@ -2894,6 +3447,19 @@
             initDiscovery();
             
             loadRecommendation();
+            updateArchSuggestion();
+
+            // Show welcome modal unless user opted out
+            if (!localStorage.getItem('cdt_skip_welcome')) {
+                const wm = document.getElementById('welcomeModal');
+                if (wm) { const m = new bootstrap.Modal(wm); m.show(); }
+            }
+
+            // Try to restore draft
+            const hasDraft = localStorage.getItem(DRAFT_KEY);
+            if (hasDraft && !localStorage.getItem('cdt_skip_welcome')) {
+                // Will be offered via welcome modal if implemented
+            }
         });
 
         async function loadEnums() {
@@ -3118,8 +3684,11 @@
         function selectProvider(type, provider) {
             config[`${type}_provider`] = provider;
             const grid = document.getElementById(`${type}ProviderGrid`);
-            grid.querySelectorAll('.provider-option').forEach(el => el.classList.remove('selected'));
-            event.target.closest('.provider-option').classList.add('selected');
+            if (!grid) return;
+            // Support both legacy .provider-option and new .pv2-card buttons
+            grid.querySelectorAll('.provider-option, .pv2-card').forEach(el => el.classList.remove('selected'));
+            const clicked = event && event.target ? event.target.closest('.provider-option, .pv2-card') : null;
+            if (clicked) clicked.classList.add('selected');
         }
 
         function updateStepIndicator() {
@@ -3192,10 +3761,8 @@
             if (currentStep < totalSteps) {
                 currentStep++;
                 updateStepIndicator();
-                
-                if (currentStep === totalSteps) {
-                    renderSummary();
-                }
+                if (currentStep === 3) { updateArchSuggestion(); }
+                if (currentStep === totalSteps) { renderSummary(); }
             }
         }
 
@@ -3208,54 +3775,15 @@
 
         function renderSummary() {
             const summary = document.getElementById('configSummary');
-            summary.innerHTML = `
-                <div class="summary-item">
-                    <span><strong>Deployment Name</strong></span>
-                    <span>${config.name}</span>
-                </div>
-                <div class="summary-item">
-                    <span><strong>Expected Users</strong></span>
-                    <span>${config.expected_users}</span>
-                </div>
-                <div class="summary-item">
-                    <span><strong>Platform</strong></span>
-                    <span>${config.platform.replace('_', ' ').toUpperCase()}</span>
-                </div>
-                <div class="summary-item">
-                    <span><strong>Architecture</strong></span>
-                    <span>${config.architecture.charAt(0).toUpperCase() + config.architecture.slice(1)}</span>
-                </div>
-                <div class="summary-item">
-                    <span><strong>Database</strong></span>
-                    <span>${config.database_type.toUpperCase()} (${config.database_name}:${config.database_port})</span>
-                </div>
-                <hr>
-                <h6>Providers</h6>
-                <div class="summary-item">
-                    <span>Search</span>
-                    <span>${config.search_provider}</span>
-                </div>
-                <div class="summary-item">
-                    <span>Chat</span>
-                    <span>${config.chat_provider}</span>
-                </div>
-                <div class="summary-item">
-                    <span>Notifications</span>
-                    <span>${config.notification_provider}</span>
-                </div>
-                <div class="summary-item">
-                    <span>Analytics</span>
-                    <span>${config.analytics_provider}</span>
-                </div>
-                <div class="summary-item">
-                    <span>Signatures</span>
-                    <span>${config.signature_provider}</span>
-                </div>
-                <div class="summary-item">
-                    <span>AI</span>
-                    <span>${config.ai_provider}</span>
-                </div>
-            `;
+            if (summary) summary.innerHTML = buildReviewSummary();
+            // Update preflight checklist
+            const checks = [
+                { id: 'chk-name',     ok: !!config.name,         ok_msg: '✅ Deployment name: ' + (config.name || '—'),    fail_msg: '❌ Deployment name not set' },
+                { id: 'chk-platform', ok: !!config.platform,     ok_msg: '✅ Platform: ' + (config.platform||'').replace('_',' ').toUpperCase(), fail_msg: '❌ No platform selected' },
+                { id: 'chk-db',       ok: !!config.database_type,ok_msg: '✅ Database: ' + (config.database_type||'mariadb').toUpperCase(), fail_msg: '⚠️ Using default database (MariaDB)' },
+                { id: 'chk-arch',     ok: !!config.architecture, ok_msg: '✅ Architecture: ' + (config.architecture ? config.architecture.charAt(0).toUpperCase()+config.architecture.slice(1) : 'Monolithic'), fail_msg: '⚠️ Using default architecture (Monolithic)' },
+            ];
+            checks.forEach(c => { const el = document.getElementById(c.id); if (el) el.textContent = c.ok ? c.ok_msg : c.fail_msg; });
         }
 
         async function generateConfig() {

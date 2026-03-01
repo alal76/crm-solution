@@ -1424,7 +1424,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             var error = process.StandardError.ReadToEnd();
             process.WaitForExit(60000);
 
-            return process.ExitCode == 0 ? output : throw new Exception(error);
+            return process.ExitCode == 0 ? output : throw new InvalidOperationException(error);
         });
     }
 
@@ -1449,7 +1449,7 @@ public class CloudDeploymentService : ICloudDeploymentService
             var error = process.StandardError.ReadToEnd();
             process.WaitForExit(60000);
 
-            return process.ExitCode == 0 ? output : throw new Exception(error);
+            return process.ExitCode == 0 ? output : throw new InvalidOperationException(error);
         });
     }
 

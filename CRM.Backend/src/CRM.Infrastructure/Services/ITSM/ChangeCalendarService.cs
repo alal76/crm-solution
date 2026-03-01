@@ -380,8 +380,8 @@ public class ChangeCalendarService : IChangeCalendarService
                 BlackoutId = 1,
                 Name = "Year-End Freeze",
                 Description = "No changes during year-end business processing",
-                StartDate = new DateTime(DateTime.Now.Year, 12, 20),
-                EndDate = new DateTime(DateTime.Now.Year + 1, 1, 3),
+                StartDate = new DateTime(DateTime.UtcNow.Year, 12, 20),
+                EndDate = new DateTime(DateTime.UtcNow.Year + 1, 1, 3),
                 Type = BlackoutType.Freeze,
                 AllowEmergencyChanges = true,
                 IsActive = true
@@ -391,8 +391,8 @@ public class ChangeCalendarService : IChangeCalendarService
                 BlackoutId = 2,
                 Name = "Quarter-End Freeze",
                 Description = "Limited changes during quarter-end processing",
-                StartDate = new DateTime(DateTime.Now.Year, 3, 28),
-                EndDate = new DateTime(DateTime.Now.Year, 4, 2),
+                StartDate = new DateTime(DateTime.UtcNow.Year, 3, 28),
+                EndDate = new DateTime(DateTime.UtcNow.Year, 4, 2),
                 Type = BlackoutType.BusinessCritical,
                 AllowEmergencyChanges = true,
                 IsActive = true
