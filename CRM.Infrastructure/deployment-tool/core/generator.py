@@ -91,6 +91,8 @@ class ConfigGenerator:
                 lstrip_blocks=True,
             )
             self._env.globals.update(self._template_globals())
+            # Also register docker_escape as a Jinja2 filter for | pipe usage
+            self._env.filters["docker_escape"] = self._docker_escape
         else:
             self._env = None
 
@@ -98,19 +100,33 @@ class ConfigGenerator:
     # Helpers exposed as template globals
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _docker_escape(value: str) -> str:
+        """Escape ``$`` as ``$$`` for Docker Compose variable interpolation."""
+        if not isinstance(value, str):
+            return str(value)
+        return value.replace("$", "$$")
+
     def _template_globals(self) -> dict:
         return {
             "now": datetime.now(timezone.utc).isoformat(),
             "generate_password": self.generate_password,
             "generate_token": self.generate_token,
+            "docker_escape": self._docker_escape,
         }
 
     @staticmethod
     def generate_password(length: int = 16, special: bool = True) -> str:
-        """Return a cryptographically secure random password."""
+        """Return a cryptographically secure random password.
+
+        Excludes ``$``, backtick, single-quote, double-quote and backslash
+        so that generated values are safe inside Docker Compose env vars,
+        shell scripts, and .env files without additional escaping.
+        """
         alphabet = string.ascii_letters + string.digits
         if special:
-            alphabet += "!@#$%^&*()-_=+[]{}|;:,.<>?"
+            # Omit $, `, ', ", \ which break Docker Compose / shell interpolation
+            alphabet += "!@#%^&*()-_=+[]{}|;:,.<>?"
         return "".join(secrets.choice(alphabet) for _ in range(length))
 
     @staticmethod
@@ -186,15 +202,57 @@ class ConfigGenerator:
         if not ctx.get("db_root_password"):
             ctx["db_root_password"] = self.generate_password(24)
 
-        # Default image registry values
-        if not ctx.get("image_registry"):
-            ctx["image_registry"] = "ghcr.io"
-        if not ctx.get("image_org"):
-            ctx["image_org"] = "crm"
+        # Default image registry — empty means local images (no registry prefix)
+        ctx.setdefault("image_registry", "")
+        ctx.setdefault("image_org", "")
 
         # SSL defaults
         if "ssl_enabled" not in ctx:
             ctx["ssl_enabled"] = False
+
+        # Ensure all optional template variables have defaults so
+        # StrictUndefined does not raise for unset optional fields.
+        _optional_defaults = {
+            "redis_password": "",
+            "meilisearch_master_key": "masterKey",
+            "chatwoot_api_key": "",
+            "chatwoot_secret_key": "",
+            "chatwoot_account_id": "1",
+            "novu_api_key": "",
+            "novu_jwt_secret": self.generate_token(32),
+            "superset_secret_key": "",
+            "superset_admin_password": "",
+            "docuseal_api_key": "",
+            "docuseal_secret_key": "",
+            "n8n_api_key": "",
+            "n8n_username": "admin",
+            "n8n_password": "",
+            "openai_api_key": "",
+            "openai_model": "gpt-4o",
+            "anthropic_api_key": "",
+            "azure_openai_endpoint": "",
+            "azure_openai_api_key": "",
+            "azure_openai_deployment": "gpt-4o",
+            "ollama_model": "llama3.1:8b",
+            "rate_limiting_enabled": "true",
+            "is_development": False,
+            "admin_email": "",
+            "admin_password": "",
+            "admin_username": "admin",
+            "admin_admin_email": "admin@crm.local",
+            "admin_admin_password": "Admin@123",
+            "admin_admin_username": "admin",
+            "api_port": "5000",
+            "frontend_port": "80",
+            "db_host": "crm-mariadb",
+            "db_port": 3306,
+            "db_name": "crm_db",
+            "db_user": "crm_user",
+            "db_version": "10.11",
+            "domain_name": "localhost",
+        }
+        for key, default in _optional_defaults.items():
+            ctx.setdefault(key, default)
 
         return ctx
 
@@ -222,10 +280,12 @@ class ConfigGenerator:
 
     def generate(self, profile: dict, output_dir: Optional[Path] = None) -> GenerationResult:
         """Generate all configuration files for the given wizard profile."""
-        profile_name = profile.get("meta", {}).get("profile_name", "crm")
 
+        # Default output goes to the persistent generated/ directory next to the CDT root
         if output_dir is None:
-            output_dir = Path(tempfile.mkdtemp()) / f"crm-deploy-{profile_name}"
+            base = Path(__file__).parent.parent / "generated"
+            base.mkdir(parents=True, exist_ok=True)
+            output_dir = base
 
         output_dir.mkdir(parents=True, exist_ok=True)
 

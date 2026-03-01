@@ -172,11 +172,24 @@ class DockerComposeDeployer:
             extras.append("crm-meilisearch")
         if providers.get("ai_provider") == "ollama":
             extras.append("crm-ollama")
+        if providers.get("chat_provider") == "chatwoot":
+            extras.append("crm-chatwoot")
+        if providers.get("notification_provider") == "novu":
+            extras.append("crm-novu")
+        if providers.get("analytics_provider") == "superset":
+            extras.append("crm-superset")
+        if providers.get("signature_provider") == "docuseal":
+            extras.append("crm-docuseal")
+        if providers.get("integration_provider") == "n8n":
+            extras.append("crm-n8n")
         if extras:
+            self._emit(f"Starting provider services: {', '.join(extras)}", "info")
             self._run(
                 ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d"] + extras,
                 timeout=120,
             )
+        else:
+            self._emit("No external providers selected — skipping", "info")
         return True
 
     def _step_start_api(self) -> bool:

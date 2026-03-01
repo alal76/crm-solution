@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 11,
+  "patch": 12,
   "lastUpdate": "2026-03-01",
-  "description": "feat(cdt): v0.614.11 — Secrets/Auth & SSL wizard steps, complete docker-compose template, all provider services, SSL routes blueprint",
+  "description": "fix(cdt): v0.614.12 — Fix deploy failures: remove $ from password gen, local image defaults, docker_escape filter, .env.j2 template, all-provider deployer",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

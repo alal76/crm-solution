@@ -2066,11 +2066,11 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label">Registry URL</label>
-                                <input type="text" class="form-control" id="secretImageRegistry" placeholder="ghcr.io" value="ghcr.io">
+                                <input type="text" class="form-control" id="secretImageRegistry" placeholder="Leave blank for local images (e.g. ghcr.io)">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Organisation / Namespace</label>
-                                <input type="text" class="form-control" id="secretImageOrg" placeholder="crm">
+                                <input type="text" class="form-control" id="secretImageOrg" placeholder="Leave blank for local images (e.g. crm)">
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label">Registry Token / Password</label>
@@ -3034,7 +3034,7 @@
             secrets: {},
             ssl: { ssl_enabled: false },
             service_accounts: {},
-            image_registry: { image_registry: 'ghcr.io', image_org: 'crm' }
+            image_registry: { image_registry: '', image_org: '' }
         };
         
         let currentStep = 0;
@@ -4377,8 +4377,8 @@
             } else if (currentStep === 6) {
                 // Secrets & Authentication
                 config.secrets = {
-                    image_registry: document.getElementById('secretImageRegistry')?.value || 'ghcr.io',
-                    image_org: document.getElementById('secretImageOrg')?.value || 'crm',
+                    image_registry: document.getElementById('secretImageRegistry')?.value || '',
+                    image_org: document.getElementById('secretImageOrg')?.value || '',
                     registry_token: document.getElementById('secretRegistryToken')?.value || '',
                     db_user: document.getElementById('secretDbUser')?.value || 'crm_user',
                     db_password: document.getElementById('secretDbPassword')?.value || '',
