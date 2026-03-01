@@ -368,9 +368,13 @@ public class StripeWebhookController : CrmControllerBase
             var cardBrand = GetObjectStringProperty(stripeEvent, "payment_method_details", "card", "brand");
             var cardLast4 = GetObjectStringProperty(stripeEvent, "payment_method_details", "card", "last4");
             if (!string.IsNullOrEmpty(cardBrand))
+            {
                 payment.CardBrand = cardBrand;
+            }
             if (!string.IsNullOrEmpty(cardLast4))
+            {
                 payment.CardLast4 = cardLast4;
+            }
             payment.GatewayReference = chargeId;
             await _paymentService.UpdateAsync(payment, cancellationToken);
         }
@@ -578,7 +582,9 @@ public class StripeWebhookController : CrmControllerBase
     private async Task<Payment?> FindPaymentByTransactionIdAsync(string? transactionId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(transactionId))
+        {
             return null;
+        }
 
         try
         {
@@ -686,13 +692,17 @@ public class StripeWebhookController : CrmControllerBase
         try
         {
             if (stripeEvent.Data?.ValueKind != JsonValueKind.Object)
+            {
                 return 0;
+            }
 
             var current = stripeEvent.Data.Value.GetProperty("object");
             foreach (var segment in path)
             {
                 if (!current.TryGetProperty(segment, out current))
+                {
                     return 0;
+                }
             }
 
             return current.ValueKind == JsonValueKind.Number ? current.GetDecimal() : 0;
@@ -721,13 +731,17 @@ public class StripeWebhookController : CrmControllerBase
         try
         {
             if (stripeEvent.Data?.ValueKind != JsonValueKind.Object)
+            {
                 return null;
+            }
 
             var current = stripeEvent.Data.Value.GetProperty("object");
             foreach (var segment in path)
             {
                 if (!current.TryGetProperty(segment, out current))
+                {
                     return null;
+                }
             }
 
             return current.ValueKind == JsonValueKind.String ? current.GetString() : null;

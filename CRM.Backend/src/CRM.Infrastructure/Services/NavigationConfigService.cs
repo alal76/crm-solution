@@ -724,9 +724,13 @@ namespace CRM.Infrastructure.Services
                 .ToList();
 
             if (scopes.Contains("all", StringComparer.OrdinalIgnoreCase))
+            {
                 return "all";
+            }
             if (scopes.Contains("team", StringComparer.OrdinalIgnoreCase))
+            {
                 return "team";
+            }
 
             return "own";
         }

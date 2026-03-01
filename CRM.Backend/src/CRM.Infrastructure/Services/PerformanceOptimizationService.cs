@@ -88,7 +88,9 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
         var metrics = await query.ToListAsync(cancellationToken);
 
         if (metrics.Count == 0)
+        {
             return null;
+        }
 
         var responseTimes = metrics.Select(m => m.ResponseTimeMs).OrderBy(t => t).ToList();
         var p95Index = (int)(responseTimes.Count * 0.95);
@@ -127,7 +129,9 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
         {
             var stats = await GetEndpointStatisticsAsync(endpoint.Endpoint, from, DateTime.UtcNow, cancellationToken);
             if (stats != null)
+            {
                 results.Add(stats);
+            }
         }
 
         return results;

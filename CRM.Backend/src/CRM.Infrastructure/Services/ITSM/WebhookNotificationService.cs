@@ -281,7 +281,9 @@ public class WebhookNotificationService : IWebhookNotificationService
     {
         var subscription = _subscriptions.FirstOrDefault(s => s.WebhookSubscriptionId == id);
         if (subscription == null)
+        {
             throw new KeyNotFoundException($"Webhook subscription {id} not found");
+        }
 
         if (dto.Name != null) subscription.Name = dto.Name;
         if (dto.Description != null) subscription.Description = dto.Description;
@@ -304,7 +306,9 @@ public class WebhookNotificationService : IWebhookNotificationService
     {
         var subscription = _subscriptions.FirstOrDefault(s => s.WebhookSubscriptionId == id);
         if (subscription == null)
+        {
             return Task.FromResult(false);
+        }
 
         subscription.IsDeleted = true;
 
@@ -318,7 +322,9 @@ public class WebhookNotificationService : IWebhookNotificationService
         var query = _deliveries.AsEnumerable();
 
         if (subscriptionId.HasValue)
+        {
             query = query.Where(d => d.WebhookSubscriptionId == subscriptionId.Value);
+        }
 
         var result = query
             .OrderByDescending(d => d.CreatedAt)
@@ -354,11 +360,15 @@ public class WebhookNotificationService : IWebhookNotificationService
     {
         var delivery = _deliveries.FirstOrDefault(d => d.WebhookDeliveryId == deliveryId);
         if (delivery == null)
+        {
             return false;
+        }
 
         var subscription = _subscriptions.FirstOrDefault(s => s.WebhookSubscriptionId == delivery.WebhookSubscriptionId);
         if (subscription == null || !subscription.IsActive)
+        {
             return false;
+        }
 
         _logger.LogInformation("Retrying webhook delivery {DeliveryId}", deliveryId);
 
@@ -449,7 +459,9 @@ public class WebhookNotificationService : IWebhookNotificationService
     private static string MaskSecret(string? secret)
     {
         if (string.IsNullOrEmpty(secret) || secret.Length < 8)
+        {
             return "****";
+        }
         return $"{secret[..4]}...{secret[^4..]}";
     }
 

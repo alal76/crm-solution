@@ -59,7 +59,9 @@ public class LeadScoreHistoryService : ILeadScoreHistoryService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, ct);
 
         if (lead == null)
+        {
             return null;
+        }
 
         var recentHistory = await _context.LeadScoreHistories
             .Where(h => h.LeadId == leadId)
@@ -148,14 +150,18 @@ public class LeadScoreHistoryService : ILeadScoreHistoryService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, ct);
 
         if (lead == null || lead.FitScore <= 0)
+        {
             return;
+        }
 
         var now = DateTime.UtcNow;
         var decayThreshold = now.AddDays(-14);
 
         // Skip if already decayed within the last 14 days
         if (lead.LastScoreDecayDate.HasValue && lead.LastScoreDecayDate >= decayThreshold)
+        {
             return;
+        }
 
         var previousScore = lead.FitScore;
         // Apply 5 % decay, round down, floor at 0
@@ -218,7 +224,9 @@ public class LeadScoreHistoryService : ILeadScoreHistoryService
     private static string CalculateTrend(List<int> scoresNewestFirst)
     {
         if (scoresNewestFirst.Count < 2)
+        {
             return "stable";
+        }
 
         // Oldest half vs newest half
         var half = scoresNewestFirst.Count / 2;

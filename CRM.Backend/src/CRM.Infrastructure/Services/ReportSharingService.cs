@@ -169,7 +169,9 @@ public class ReportSharingService : IReportSharingService
             .FirstOrDefaultAsync(s => s.ReportId == reportId && s.UserId == userId && !s.IsDeleted, cancellationToken);
 
         if (share == null)
+        {
             return false;
+        }
 
         share.IsDeleted = true;
 
@@ -190,10 +192,14 @@ public class ReportSharingService : IReportSharingService
             .FirstOrDefaultAsync(r => r.Id == reportId && !r.IsDeleted, cancellationToken);
 
         if (report == null)
+        {
             return false;
+        }
 
         if (report.CreatedByUserId == userId)
+        {
             return true;
+        }
 
         // Check if report is shared with user
         return await _context.ReportShares

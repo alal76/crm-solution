@@ -252,7 +252,9 @@ public class ReportBuilderService : IReportBuilderService
     public async Task<ReportDefinition?> GetReportAsync(string reportId, CancellationToken ct = default)
     {
         if (!int.TryParse(reportId, out var id))
+        {
             return null;
+        }
 
         var entity = await _context.ReportDefinitions
             .AsNoTracking()
@@ -279,13 +281,17 @@ public class ReportBuilderService : IReportBuilderService
     public async Task<ReportDefinition?> UpdateReportAsync(ReportDefinition report, CancellationToken ct = default)
     {
         if (!int.TryParse(report.Id, out var id))
+        {
             return null;
+        }
 
         var entity = await _context.ReportDefinitions
             .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, ct);
 
         if (entity == null)
+        {
             return null;
+        }
 
         entity.Name = report.Name;
         entity.Description = report.Description;
@@ -309,13 +315,17 @@ public class ReportBuilderService : IReportBuilderService
     public async Task<bool> DeleteReportAsync(string reportId, CancellationToken ct = default)
     {
         if (!int.TryParse(reportId, out var id))
+        {
             return false;
+        }
 
         var entity = await _context.ReportDefinitions
             .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, ct);
 
         if (entity == null)
+        {
             return false;
+        }
 
         entity.IsDeleted = true;
         await _context.SaveChangesAsync(ct);
@@ -328,14 +338,18 @@ public class ReportBuilderService : IReportBuilderService
     public async Task<ReportExecutionResult?> ExecuteReportAsync(string reportId, CancellationToken ct = default)
     {
         if (!int.TryParse(reportId, out var id))
+        {
             return null;
+        }
 
         var entity = await _context.ReportDefinitions
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, ct);
 
         if (entity == null)
+        {
             return null;
+        }
 
         var report = MapToDto(entity);
 
@@ -372,7 +386,9 @@ public class ReportBuilderService : IReportBuilderService
     {
         var result = await ExecuteReportAsync(reportId, ct);
         if (result == null)
+        {
             return null;
+        }
 
         var sb = new StringBuilder();
 
@@ -418,9 +434,13 @@ public class ReportBuilderService : IReportBuilderService
             {
                 using var doc = JsonDocument.Parse(entity.SortByJson);
                 if (doc.RootElement.TryGetProperty("field", out var f))
+                {
                     dto.SortBy = f.GetString();
+                }
                 if (doc.RootElement.TryGetProperty("direction", out var d))
+                {
                     dto.SortDirection = d.GetString() ?? "Asc";
+                }
             }
             catch
             {
@@ -434,7 +454,9 @@ public class ReportBuilderService : IReportBuilderService
             {
                 using var doc = JsonDocument.Parse(entity.GroupByJson);
                 if (doc.RootElement.TryGetProperty("field", out var f))
+                {
                     dto.GroupBy = f.GetString();
+                }
             }
             catch
             {
@@ -506,7 +528,9 @@ public class ReportBuilderService : IReportBuilderService
     private static List<string> DeserializeStringList(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
+        {
             return new List<string>();
+        }
 
         try
         {
@@ -521,7 +545,9 @@ public class ReportBuilderService : IReportBuilderService
     private static List<ReportFilter> DeserializeFilters(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
+        {
             return new List<ReportFilter>();
+        }
 
         try
         {
@@ -636,10 +662,14 @@ public class ReportBuilderService : IReportBuilderService
     private static string EscapeCsv(string value)
     {
         if (string.IsNullOrEmpty(value))
+        {
             return "";
+        }
 
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+        {
             return $"\"{value.Replace("\"", "\"\"")}\"";
+        }
 
         return value;
     }

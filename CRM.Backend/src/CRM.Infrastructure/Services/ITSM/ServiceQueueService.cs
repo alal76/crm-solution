@@ -69,7 +69,9 @@ public class ServiceQueueService : IServiceQueueService
         try
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
+            {
                 throw new ArgumentException("Queue name is required");
+            }
 
             var queue = new CRM.Core.Entities.ITSM.ServiceQueue
             {
@@ -104,16 +106,24 @@ public class ServiceQueueService : IServiceQueueService
                 .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted, ct);
 
             if (queue == null)
+            {
                 throw new KeyNotFoundException($"Service queue with ID {id} not found");
+            }
 
             if (!string.IsNullOrWhiteSpace(dto.Name))
+            {
                 queue.Name = dto.Name;
+            }
 
             if (dto.Description != null)
+            {
                 queue.Description = dto.Description;
+            }
 
             if (dto.IsActive.HasValue)
+            {
                 queue.IsActive = dto.IsActive.Value;
+            }
 
 
             _dbContext.Set<CRM.Core.Entities.ITSM.ServiceQueue>().Update(queue);
@@ -138,7 +148,9 @@ public class ServiceQueueService : IServiceQueueService
                 .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted, ct);
 
             if (queue == null)
+            {
                 throw new KeyNotFoundException($"Service queue with ID {id} not found");
+            }
 
             queue.IsDeleted = true;
 
@@ -162,13 +174,17 @@ public class ServiceQueueService : IServiceQueueService
                 .FirstOrDefaultAsync(q => q.Id == queueId && !q.IsDeleted, ct);
 
             if (queue == null)
+            {
                 throw new KeyNotFoundException($"Service queue with ID {queueId} not found");
+            }
 
             var request = await _dbContext.ServiceRequests
                 .FirstOrDefaultAsync(r => r.Id == serviceRequestId && !r.IsDeleted, ct);
 
             if (request == null)
+            {
                 throw new KeyNotFoundException($"Service request with ID {serviceRequestId} not found");
+            }
 
             _logger.LogInformation("Service request {ServiceRequestId} assigned to queue {QueueId}",
                 serviceRequestId, queueId);
@@ -215,7 +231,9 @@ public class ServiceQueueService : IServiceQueueService
                 .FirstOrDefaultAsync(q => q.Id == queueId && !q.IsDeleted, ct);
 
             if (queue == null)
+            {
                 throw new KeyNotFoundException($"Service queue with ID {queueId} not found");
+            }
 
             return MapToDto(queue);
         }

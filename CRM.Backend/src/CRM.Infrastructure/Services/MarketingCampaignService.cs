@@ -55,13 +55,19 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
     {
         var c = await _repository.GetByIdAsync(id);
         if (c == null)
+        {
             return null;
+        }
         var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
         if (!string.IsNullOrWhiteSpace(tags))
+        {
             c.Tags = tags;
+        }
         var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
         if (!string.IsNullOrWhiteSpace(cfs))
+        {
             c.CustomFields = cfs;
+        }
         return CampaignMapper.ToDto(c);
     }
 
@@ -72,10 +78,14 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         {
             var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
             if (!string.IsNullOrWhiteSpace(tags))
+            {
                 c.Tags = tags;
+            }
             var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
             if (!string.IsNullOrWhiteSpace(cfs))
+            {
                 c.CustomFields = cfs;
+            }
         }
         return items.Select(CampaignMapper.ToDto);
     }
@@ -87,10 +97,14 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         {
             var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
             if (!string.IsNullOrWhiteSpace(tags))
+            {
                 c.Tags = tags;
+            }
             var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
             if (!string.IsNullOrWhiteSpace(cfs))
+            {
                 c.CustomFields = cfs;
+            }
         }
         return items.Select(CampaignMapper.ToDto);
     }
@@ -147,7 +161,9 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
 
         // Update any queued duplicate candidates with the new entity ID
         if (candidatesQueued > 0)
+        {
             await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Campaign", campaign.Id);
+        }
 
         return campaign.Id;
     }
@@ -156,7 +172,9 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
     {
         var campaign = await _repository.GetByIdAsync(id);
         if (campaign == null)
+        {
             throw new InvalidOperationException($"Campaign with ID {id} not found");
+        }
         CampaignMapper.UpdateEntity(campaign, dto);
         ValidateCampaign(campaign);
         await _repository.UpdateAsync(campaign);

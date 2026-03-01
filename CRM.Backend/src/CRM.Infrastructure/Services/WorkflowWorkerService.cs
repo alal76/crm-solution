@@ -363,7 +363,9 @@ public class WorkflowWorkerService : BackgroundService
     private async Task AdvanceWorkflowAsync(CrmDbContext dbContext, WorkflowTask task, TaskResult result, CancellationToken cancellationToken)
     {
         if (task.WorkflowInstanceId == 0)
+        {
             return;
+        }
 
         var instance = await dbContext.WorkflowInstances
             .Include(i => i.WorkflowVersion)
@@ -372,14 +374,18 @@ public class WorkflowWorkerService : BackgroundService
             .FirstOrDefaultAsync(i => i.Id == task.WorkflowInstanceId, cancellationToken);
 
         if (instance == null || instance.Status != WorkflowInstanceStatus.Running)
+        {
             return;
+        }
 
         // Find the current node
         var currentNode = instance.WorkflowVersion?.Nodes
             .FirstOrDefault(n => n.Id == instance.CurrentNodeId);
 
         if (currentNode == null)
+        {
             return;
+        }
 
         // Evaluate transitions and find the next node
         var nextTransition = await EvaluateTransitionsAsync(dbContext, currentNode, instance, result, cancellationToken);
@@ -434,7 +440,9 @@ public class WorkflowWorkerService : BackgroundService
             .ToList();
 
         if (!transitions.Any())
+        {
             return Task.FromResult<WorkflowTransition?>(null);
+        }
 
         // Parse current state data
         var stateData = new Dictionary<string, object>();
@@ -496,7 +504,9 @@ public class WorkflowWorkerService : BackgroundService
     private bool EvaluateExpression(string? expression, Dictionary<string, object> data)
     {
         if (string.IsNullOrEmpty(expression))
+        {
             return true;
+        }
 
         // Simple expression evaluation (field == value, field > value, etc.)
         // In production, use a proper expression evaluator like NCalc
@@ -513,20 +523,32 @@ public class WorkflowWorkerService : BackgroundService
                     var fieldStr = fieldValue?.ToString() ?? "";
 
                     if (expression.Contains("=="))
+                    {
                         return fieldStr.Equals(value, StringComparison.OrdinalIgnoreCase);
+                    }
                     if (expression.Contains("!="))
+                    {
                         return !fieldStr.Equals(value, StringComparison.OrdinalIgnoreCase);
+                    }
 
                     if (double.TryParse(fieldStr, out var numField) && double.TryParse(value, out var numValue))
                     {
                         if (expression.Contains(">="))
+                        {
                             return numField >= numValue;
+                        }
                         if (expression.Contains("<="))
+                        {
                             return numField <= numValue;
+                        }
                         if (expression.Contains(">"))
+                        {
                             return numField > numValue;
+                        }
                         if (expression.Contains("<"))
+                        {
                             return numField < numValue;
+                        }
                     }
                 }
             }
@@ -542,13 +564,17 @@ public class WorkflowWorkerService : BackgroundService
     private bool EvaluateFieldMatch(string? expression, Dictionary<string, object> data)
     {
         if (string.IsNullOrEmpty(expression))
+        {
             return true;
+        }
 
         try
         {
             var conditions = JsonSerializer.Deserialize<Dictionary<string, string>>(expression);
             if (conditions == null)
+            {
                 return true;
+            }
 
             foreach (var condition in conditions)
             {
@@ -570,7 +596,9 @@ public class WorkflowWorkerService : BackgroundService
     private bool EvaluateUserChoice(string? expression, TaskResult result)
     {
         if (string.IsNullOrEmpty(expression) || string.IsNullOrEmpty(result.ResultData))
+        {
             return false;
+        }
 
         try
         {
@@ -853,21 +881,37 @@ public class WorkflowWorkerService : BackgroundService
             {
                 var targetType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
                 if (targetType == typeof(string))
+                {
                     typedValue = fieldValue;
+                }
                 else if (targetType == typeof(int) && int.TryParse(fieldValue, out var intVal))
+                {
                     typedValue = intVal;
+                }
                 else if (targetType == typeof(decimal) && decimal.TryParse(fieldValue, out var decVal))
+                {
                     typedValue = decVal;
+                }
                 else if (targetType == typeof(double) && double.TryParse(fieldValue, out var dblVal))
+                {
                     typedValue = dblVal;
+                }
                 else if (targetType == typeof(bool) && bool.TryParse(fieldValue, out var boolVal))
+                {
                     typedValue = boolVal;
+                }
                 else if (targetType == typeof(DateTime) && DateTime.TryParse(fieldValue, out var dateVal))
+                {
                     typedValue = dateVal;
+                }
                 else if (targetType.IsEnum)
+                {
                     typedValue = Enum.Parse(targetType, fieldValue, ignoreCase: true);
+                }
                 else
+                {
                     typedValue = Convert.ChangeType(fieldValue, targetType);
+                }
             }
 
             property.SetValue(entity, typedValue);

@@ -53,7 +53,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
     public async Task<EmailSequenceDto> CreateAsync(CreateEmailSequenceDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
+        {
             throw new ArgumentException("Sequence name is required", nameof(dto.Name));
+        }
 
         var sequence = new EmailSequence
         {
@@ -81,22 +83,34 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted, cancellationToken);
 
         if (sequence == null)
+        {
             throw new InvalidOperationException($"Email sequence {id} not found");
+        }
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
             sequence.Name = dto.Name;
+        }
 
         if (dto.Description != null)
+        {
             sequence.Description = dto.Description;
+        }
 
         if (dto.DefaultFromName != null)
+        {
             sequence.FromName = dto.DefaultFromName;
+        }
 
         if (dto.DefaultFromEmail != null)
+        {
             sequence.FromEmail = dto.DefaultFromEmail;
+        }
 
         if (dto.DefaultReplyTo != null)
+        {
             sequence.ReplyToEmail = dto.DefaultReplyTo;
+        }
 
         _context.EmailSequences.Update(sequence);
         await _context.SaveChangesAsync(cancellationToken);
@@ -111,7 +125,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == id && !e.IsDeleted, cancellationToken);
 
         if (sequence == null)
+        {
             return false;
+        }
 
         sequence.IsDeleted = true;
         _context.EmailSequences.Update(sequence);
@@ -131,7 +147,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == sequenceId && !e.IsDeleted, cancellationToken);
 
         if (sequence == null)
+        {
             throw new InvalidOperationException($"Email sequence {sequenceId} not found");
+        }
 
         var step = new EmailSequenceStep
         {
@@ -166,7 +184,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(s => s.Id == stepId && s.EmailSequenceId == sequenceId && !s.IsDeleted, cancellationToken);
 
         if (step == null)
+        {
             throw new InvalidOperationException($"Step {stepId} not found in sequence {sequenceId}");
+        }
 
         step.Name = dto.Name;
         step.Subject = dto.Subject;
@@ -190,7 +210,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(s => s.Id == stepId && s.EmailSequenceId == sequenceId && !s.IsDeleted, cancellationToken);
 
         if (step == null)
+        {
             return false;
+        }
 
         step.IsDeleted = true;
         _context.EmailSequenceSteps.Update(step);
@@ -232,13 +254,17 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == sequenceId && !e.IsDeleted, cancellationToken);
 
         if (sequence == null)
+        {
             throw new InvalidOperationException($"Email sequence {sequenceId} not found");
+        }
 
         var contact = await _context.Contacts
             .FirstOrDefaultAsync(c => c.Id == dto.ContactId, cancellationToken);
 
         if (contact == null)
+        {
             throw new InvalidOperationException($"Contact {dto.ContactId} not found");
+        }
 
         var enrollment = new EmailSequenceEnrollment
         {
@@ -276,7 +302,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == enrollmentId && e.EmailSequenceId == sequenceId && !e.IsDeleted, cancellationToken);
 
         if (enrollment == null)
+        {
             return false;
+        }
 
         enrollment.Status = EnrollmentStatus.Paused;
         _context.EmailSequenceEnrollments.Update(enrollment);
@@ -291,7 +319,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == enrollmentId && e.EmailSequenceId == sequenceId && !e.IsDeleted, cancellationToken);
 
         if (enrollment == null)
+        {
             return false;
+        }
 
         enrollment.Status = EnrollmentStatus.Active;
         _context.EmailSequenceEnrollments.Update(enrollment);
@@ -306,7 +336,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == enrollmentId && e.EmailSequenceId == sequenceId && !e.IsDeleted, cancellationToken);
 
         if (enrollment == null)
+        {
             return false;
+        }
 
         enrollment.IsDeleted = true;
         enrollment.Status = EnrollmentStatus.Removed;
@@ -344,7 +376,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == sequenceId && !e.IsDeleted, cancellationToken);
 
         if (sequence == null)
+        {
             throw new InvalidOperationException($"Email sequence {sequenceId} not found");
+        }
 
         sequence.Status = EmailSequenceStatus.Active;
         _context.EmailSequences.Update(sequence);
@@ -372,7 +406,9 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .FirstOrDefaultAsync(e => e.Id == sequenceId && !e.IsDeleted, cancellationToken);
 
         if (original == null)
+        {
             throw new InvalidOperationException($"Email sequence {sequenceId} not found");
+        }
 
         var copy = new EmailSequence
         {

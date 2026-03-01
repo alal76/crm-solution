@@ -237,13 +237,15 @@ public class FeatureRolloutFlags
 
 public class ProviderConfiguration
 {
-    public string Chat { get; set; } = "BuiltIn";
-    public string Search { get; set; } = "BuiltIn";
-    public string Notifications { get; set; } = "BuiltIn";
-    public string Analytics { get; set; } = "BuiltIn";
-    public string Signatures { get; set; } = "BuiltIn";
-    public string Integrations { get; set; } = "BuiltIn";
-    public string Compliance { get; set; } = "BuiltIn";
+    private const string BuiltInProviderType = "BuiltIn";
+
+    public string Chat { get; set; } = BuiltInProviderType;
+    public string Search { get; set; } = BuiltInProviderType;
+    public string Notifications { get; set; } = BuiltInProviderType;
+    public string Analytics { get; set; } = BuiltInProviderType;
+    public string Signatures { get; set; } = BuiltInProviderType;
+    public string Integrations { get; set; } = BuiltInProviderType;
+    public string Compliance { get; set; } = BuiltInProviderType;
 }
 
 public class FeatureFlagStatus

@@ -107,21 +107,29 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         // Validate input
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+        {
             throw new ArgumentException("Email and password are required");
+        }
 
         if (request.Password != request.ConfirmPassword)
+        {
             throw new ArgumentException("Passwords do not match");
+        }
 
         // Check if user already exists
         var existingUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (existingUser != null)
+        {
             throw new InvalidOperationException("User with this email already exists");
+        }
 
         // Check if there's already a pending approval request for this email
         var existingRequest = await _dbContext.UserApprovalRequests
             .FirstOrDefaultAsync(r => r.Email == request.Email && r.Status == 0); // Status 0 = Pending
         if (existingRequest != null)
+        {
             throw new InvalidOperationException("A registration request for this email is already pending approval");
+        }
 
         // Check system settings for approval requirement
         var systemSettings = await _dbContext.SystemSettings.FirstOrDefaultAsync();
@@ -215,7 +223,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             _logger.LogInformation("User {Email} requires password setup - redirecting to password setup", normalizedEmail);
 
             if (!user.IsActive)
+            {
                 throw new UnauthorizedAccessException("User account is inactive");
+            }
 
             var passwordSetupToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
             var cacheKey = $"password_setup_{passwordSetupToken}";
@@ -241,7 +251,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         }
 
         if (!user.IsActive)
+        {
             throw new UnauthorizedAccessException("User account is inactive");
+        }
 
         // Check if password must be reset (admin-forced)
         if (user.MustResetPassword)
@@ -337,7 +349,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         // If no group or no password last changed date, assume not expired
         if (user.PrimaryGroup == null || user.PasswordLastChangedAt == null)
+        {
             return (false, false, null);
+        }
 
         var group = user.PrimaryGroup;
 
@@ -354,11 +368,15 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         {
             // If policy is MustChange, block login
             if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.MustChange)
+            {
                 return (true, false, 0);
+            }
 
             // For Alert policy, allow login but indicate expiration
             if (group.PasswordExpirationPolicy == PasswordExpirationPolicy.Alert)
+            {
                 return (false, true, 0);
+            }
         }
 
         // Check for warning period
@@ -374,7 +392,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     public async Task<AuthResponse> OAuthLoginAsync(OAuthLoginRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Provider) || string.IsNullOrWhiteSpace(request.Token))
+        {
             throw new ArgumentException("Provider and token are required");
+        }
 
         // Validate and extract user info from the provider token
         var (providerUserId, email, firstName, lastName) = await ValidateProviderTokenAsync(request.Provider, request.Token);
@@ -443,7 +463,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
+        {
             return null;
+        }
 
         var response = GenerateAuthResponse(user);
         await PersistRefreshTokenAsync(user, response.RefreshToken);
@@ -453,7 +475,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))
+        {
             throw new ArgumentException("Refresh token is required");
+        }
 
         // Find the refresh token record in the dedicated table
         var storedToken = await _dbContext.RefreshTokens
@@ -461,7 +485,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             .FirstOrDefaultAsync(rt => rt.Token == refreshToken);
 
         if (storedToken == null)
+        {
             throw new UnauthorizedAccessException("Invalid refresh token");
+        }
 
         // Detect token reuse: if this token was already revoked, revoke ALL tokens for this user (potential theft)
         if (storedToken.IsRevoked)
@@ -483,11 +509,15 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         // Check if token is expired
         if (storedToken.IsExpired)
+        {
             throw new UnauthorizedAccessException("Refresh token has expired");
+        }
 
         // Verify the user is still active
         if (storedToken.User == null || storedToken.User.IsDeleted || !storedToken.User.IsActive)
+        {
             throw new UnauthorizedAccessException("User account is inactive or deleted");
+        }
 
         // Load full user data for response (with navigation properties)
         var fullUser = await _dbContext.Users
@@ -497,7 +527,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             .FirstOrDefaultAsync(u => u.Id == storedToken.UserId);
 
         if (fullUser == null)
+        {
             throw new UnauthorizedAccessException(UserNotFoundMessage);
+        }
 
         // Generate new tokens (rotation)
         var response = GenerateAuthResponse(fullUser);
@@ -537,7 +569,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var existingUser = await _userRepository.GetByIdAsync(userId);
         if (existingUser == null)
+        {
             throw new InvalidOperationException(UserNotFoundMessage);
+        }
 
         existingUser.FirstName = user.FirstName;
         existingUser.LastName = user.LastName;
@@ -558,7 +592,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     private bool VerifyPassword(string password, string hash)
     {
         if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash))
+        {
             return false;
+        }
 
         try
         {
@@ -851,9 +887,13 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         var email = root.TryGetProperty("email", out var emailProp) ? emailProp.GetString() : null;
 
         if (string.IsNullOrEmpty(sub))
+        {
             throw new InvalidOperationException("Google token missing 'sub' claim");
+        }
         if (string.IsNullOrEmpty(email))
+        {
             throw new InvalidOperationException("Google token missing 'email' claim");
+        }
 
         var firstName = root.TryGetProperty("given_name", out var gn) ? gn.GetString() : null;
         var lastName = root.TryGetProperty("family_name", out var fn) ? fn.GetString() : null;
@@ -885,12 +925,18 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         // Microsoft Graph returns 'mail' for most accounts, fallback to 'userPrincipalName'
         var email = root.TryGetProperty("mail", out var mailProp) ? mailProp.GetString() : null;
         if (string.IsNullOrEmpty(email))
+        {
             email = root.TryGetProperty("userPrincipalName", out var upnProp) ? upnProp.GetString() : null;
+        }
 
         if (string.IsNullOrEmpty(id))
+        {
             throw new InvalidOperationException("Microsoft token missing 'id' field");
+        }
         if (string.IsNullOrEmpty(email))
+        {
             throw new InvalidOperationException("Microsoft token missing 'mail' or 'userPrincipalName' field");
+        }
 
         var firstName = root.TryGetProperty("givenName", out var gn) ? gn.GetString() : null;
         var lastName = root.TryGetProperty("surname", out var sn) ? sn.GetString() : null;
@@ -903,7 +949,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
+        {
             throw new InvalidOperationException(UserNotFoundMessage);
+        }
 
         var setup = await _totpService.InitializeSetupAsync(userId, user.Email);
         var backupCodes = await _totpService.CompleteSetupAsync(userId, setup.Secret);
@@ -921,7 +969,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null || string.IsNullOrEmpty(user.TwoFactorSecret))
+        {
             throw new InvalidOperationException("User or 2FA not configured");
+        }
 
         return await _totpService.VerifySetupAsync(userId, code, user.TwoFactorSecret);
     }
@@ -931,17 +981,23 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         // Retrieve user ID from cache using temp token
         var cacheKey = $"2fa_token_{tempToken}";
         if (!_cache.TryGetValue(cacheKey, out int userId))
+        {
             throw new UnauthorizedAccessException("Invalid or expired verification token");
+        }
 
         // Remove token from cache immediately (one-time use)
         _cache.Remove(cacheKey);
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
+        {
             throw new UnauthorizedAccessException(UserNotFoundMessage);
+        }
 
         if (string.IsNullOrEmpty(user.TwoFactorSecret))
+        {
             throw new InvalidOperationException("2FA not configured for this user");
+        }
 
         // Verify the TOTP code
         var isValid = await _totpService.VerifySetupAsync(userId, code, user.TwoFactorSecret);
@@ -960,7 +1016,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         }
 
         if (!isValid)
+        {
             throw new UnauthorizedAccessException("Invalid verification code");
+        }
 
         user.LastLoginAt = DateTime.UtcNow;
 
@@ -986,7 +1044,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
+        {
             throw new InvalidOperationException(UserNotFoundMessage);
+        }
 
         user.TwoFactorSecret = secret;
         user.BackupCodes = System.Text.Json.JsonSerializer.Serialize(backupCodes);
@@ -1000,7 +1060,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
+        {
             throw new InvalidOperationException(UserNotFoundMessage);
+        }
 
         user.TwoFactorEnabled = false;
         user.TwoFactorSecret = null;
@@ -1017,7 +1079,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         var user = users.FirstOrDefault(u => u.Email == email);
 
         if (user == null)
+        {
             throw new InvalidOperationException("User with this email not found");
+        }
 
         var resetToken = GenerateRandomToken();
         user.PasswordResetToken = HashPassword(resetToken);
@@ -1077,7 +1141,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     public async Task<bool> ResetPasswordAsync(string token, string newPassword)
     {
         if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(newPassword))
+        {
             throw new ArgumentException("Token and new password are required");
+        }
 
         var users = await _userRepository.GetAllAsync();
         var user = users.FirstOrDefault(u =>
@@ -1085,11 +1151,15 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             u.PasswordResetTokenExpiry > DateTime.UtcNow);
 
         if (user == null)
+        {
             throw new InvalidOperationException("Invalid or expired password reset token");
+        }
 
         // Verify token
         if (!VerifyPassword(token, user.PasswordResetToken ?? ""))
+        {
             throw new UnauthorizedAccessException("Invalid password reset token");
+        }
 
         user.PasswordHash = HashPassword(newPassword);
         user.PasswordResetToken = null;
@@ -1104,14 +1174,20 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     public async Task<bool> AdminResetPasswordAsync(int userId, string newPassword)
     {
         if (string.IsNullOrWhiteSpace(newPassword))
+        {
             throw new ArgumentException("New password is required");
+        }
 
         if (newPassword.Length < 6)
+        {
             throw new ArgumentException("Password must be at least 6 characters");
+        }
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null || user.IsDeleted)
+        {
             throw new InvalidOperationException(UserNotFoundMessage);
+        }
 
         user.PasswordHash = HashPassword(newPassword);
         user.PasswordResetToken = null;
@@ -1127,13 +1203,19 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     public async Task<AuthResponse> SetupPasswordAsync(SetPasswordRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.PasswordSetupToken))
+        {
             throw new ArgumentException("Password setup token is required");
+        }
 
         if (string.IsNullOrWhiteSpace(request.NewPassword))
+        {
             throw new ArgumentException("New password is required");
+        }
 
         if (request.NewPassword != request.ConfirmPassword)
+        {
             throw new ArgumentException("Passwords do not match");
+        }
 
         // Validate password against complexity requirements
         await ValidatePasswordComplexityAsync(request.NewPassword);
@@ -1141,7 +1223,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         // Get user ID from cache token
         var cacheKey = $"password_setup_{request.PasswordSetupToken}";
         if (!_cache.TryGetValue(cacheKey, out int userId))
+        {
             throw new UnauthorizedAccessException("Invalid or expired password setup token");
+        }
 
         // Remove token from cache (one-time use)
         _cache.Remove(cacheKey);
@@ -1154,7 +1238,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
 
         if (user == null)
+        {
             throw new InvalidOperationException(UserNotFoundMessage);
+        }
 
         // Update password and reset flags
         user.PasswordHash = HashPassword(request.NewPassword);
@@ -1217,11 +1303,15 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user == null)
+        {
             throw new ArgumentException(UserNotFoundMessage);
+        }
 
         // Verify old password
         if (!BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash))
+        {
             throw new ArgumentException("Current password is incorrect");
+        }
 
         // Validate new password complexity
         await ValidatePasswordComplexityAsync(newPassword);
@@ -1282,25 +1372,39 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         var errors = new List<string>();
 
         if (password.Length < requirements.MinLength)
+        {
             errors.Add($"Password must be at least {requirements.MinLength} characters");
+        }
 
         if (requirements.MaxLength > 0 && password.Length > requirements.MaxLength)
+        {
             errors.Add($"Password must be no more than {requirements.MaxLength} characters");
+        }
 
         if (requirements.RequireUppercase && !password.Any(char.IsUpper))
+        {
             errors.Add("Password must contain at least one uppercase letter");
+        }
 
         if (requirements.RequireLowercase && !password.Any(char.IsLower))
+        {
             errors.Add("Password must contain at least one lowercase letter");
+        }
 
         if (requirements.RequireNumbers && !password.Any(char.IsDigit))
+        {
             errors.Add("Password must contain at least one number");
+        }
 
         if (requirements.RequireSpecialChars && !password.Any(c => !char.IsLetterOrDigit(c)))
+        {
             errors.Add("Password must contain at least one special character");
+        }
 
         if (errors.Any())
+        {
             throw new ArgumentException(string.Join(". ", errors));
+        }
     }
 
     // Helper Methods

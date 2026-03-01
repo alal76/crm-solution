@@ -27,6 +27,8 @@ public class DashboardController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly IDashboardService _dashboardService;
+    private const string WidgetSizeMedium = "medium";
+    private const string WidgetSizeLarge = "large";
 
     public DashboardController(CrmDbContext context, IDashboardService dashboardService)
     {
@@ -743,20 +745,20 @@ public class DashboardController : CrmControllerBase
     {
         var widgets = new List<DashboardWidget>
         {
-            new() { Id = "stats", Name = "Key Statistics", Description = "Overview of key CRM metrics", Category = "Overview", DefaultSize = "large" },
-            new() { Id = "summary", Name = "Dashboard Summary", Description = "Quick summary of MTD/QTD performance", Category = "Overview", DefaultSize = "medium" },
-            new() { Id = "pipeline", Name = "Pipeline Summary", Description = "Sales pipeline by stage", Category = "Sales", DefaultSize = "large" },
-            new() { Id = "forecast", Name = "Sales Forecast", Description = "Projected revenue for upcoming periods", Category = "Sales", DefaultSize = "medium" },
-            new() { Id = "deals-closing", Name = "Deals Closing Soon", Description = "Opportunities closing within selected period", Category = "Sales", DefaultSize = "medium" },
-            new() { Id = "activities", Name = "Recent Activities", Description = "Latest activities across CRM", Category = "Activity", DefaultSize = "medium" },
-            new() { Id = "tasks", Name = "Tasks Dashboard", Description = "Overdue and upcoming tasks", Category = "Activity", DefaultSize = "medium" },
-            new() { Id = "sales-leaderboard", Name = "Sales Leaderboard", Description = "Top performers by revenue", Category = "Leaderboard", DefaultSize = "medium" },
-            new() { Id = "activity-leaderboard", Name = "Activity Leaderboard", Description = "Top performers by activity count", Category = "Leaderboard", DefaultSize = "medium" },
-            new() { Id = "revenue-trends", Name = "Revenue Trends", Description = "Monthly revenue over time", Category = "Trends", DefaultSize = "large" },
-            new() { Id = "lead-funnel", Name = "Lead Funnel", Description = "Lead conversion funnel analysis", Category = "Analytics", DefaultSize = "medium" },
-            new() { Id = "win-loss", Name = "Win/Loss Analysis", Description = "Deal win/loss breakdown", Category = "Analytics", DefaultSize = "medium" },
-            new() { Id = "top-accounts", Name = "Top Accounts", Description = "Highest revenue accounts", Category = "Accounts", DefaultSize = "medium" },
-            new() { Id = "account-acquisition", Name = "Account Acquisition", Description = "New account and lead trends", Category = "Accounts", DefaultSize = "medium" }
+            new() { Id = "stats", Name = "Key Statistics", Description = "Overview of key CRM metrics", Category = "Overview", DefaultSize = WidgetSizeLarge },
+            new() { Id = "summary", Name = "Dashboard Summary", Description = "Quick summary of MTD/QTD performance", Category = "Overview", DefaultSize = WidgetSizeMedium },
+            new() { Id = "pipeline", Name = "Pipeline Summary", Description = "Sales pipeline by stage", Category = "Sales", DefaultSize = WidgetSizeLarge },
+            new() { Id = "forecast", Name = "Sales Forecast", Description = "Projected revenue for upcoming periods", Category = "Sales", DefaultSize = WidgetSizeMedium },
+            new() { Id = "deals-closing", Name = "Deals Closing Soon", Description = "Opportunities closing within selected period", Category = "Sales", DefaultSize = WidgetSizeMedium },
+            new() { Id = "activities", Name = "Recent Activities", Description = "Latest activities across CRM", Category = "Activity", DefaultSize = WidgetSizeMedium },
+            new() { Id = "tasks", Name = "Tasks Dashboard", Description = "Overdue and upcoming tasks", Category = "Activity", DefaultSize = WidgetSizeMedium },
+            new() { Id = "sales-leaderboard", Name = "Sales Leaderboard", Description = "Top performers by revenue", Category = "Leaderboard", DefaultSize = WidgetSizeMedium },
+            new() { Id = "activity-leaderboard", Name = "Activity Leaderboard", Description = "Top performers by activity count", Category = "Leaderboard", DefaultSize = WidgetSizeMedium },
+            new() { Id = "revenue-trends", Name = "Revenue Trends", Description = "Monthly revenue over time", Category = "Trends", DefaultSize = WidgetSizeLarge },
+            new() { Id = "lead-funnel", Name = "Lead Funnel", Description = "Lead conversion funnel analysis", Category = "Analytics", DefaultSize = WidgetSizeMedium },
+            new() { Id = "win-loss", Name = "Win/Loss Analysis", Description = "Deal win/loss breakdown", Category = "Analytics", DefaultSize = WidgetSizeMedium },
+            new() { Id = "top-accounts", Name = "Top Accounts", Description = "Highest revenue accounts", Category = "Accounts", DefaultSize = WidgetSizeMedium },
+            new() { Id = "account-acquisition", Name = "Account Acquisition", Description = "New account and lead trends", Category = "Accounts", DefaultSize = WidgetSizeMedium }
         };
 
         return Ok(widgets);

@@ -119,7 +119,9 @@ public class InteractionService : IInteractionService
 
             // Update any queued duplicate candidates with the new entity ID
             if (candidatesQueued > 0)
+            {
                 await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Interaction", interaction.Id);
+            }
 
             _logger.LogInformation("Created interaction {InteractionId} for account {AccountId}",
                 interaction.Id, interaction.AccountId);

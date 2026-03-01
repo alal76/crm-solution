@@ -103,7 +103,9 @@ public class WorkflowLogRetentionService : BackgroundService
         foreach (var (level, retentionDays) in DefaultRetentionDays)
         {
             if (stoppingToken.IsCancellationRequested)
+            {
                 break;
+            }
 
             var cutoffDate = DateTime.UtcNow.AddDays(-retentionDays);
 
@@ -154,7 +156,9 @@ public class WorkflowLogRetentionService : BackgroundService
                 .ToListAsync(stoppingToken);
 
             if (batch.Count == 0)
+            {
                 break;
+            }
 
             context.WorkflowLogs.RemoveRange(batch);
             await context.SaveChangesAsync(stoppingToken);
@@ -162,7 +166,9 @@ public class WorkflowLogRetentionService : BackgroundService
 
             // If we got fewer than a full batch, we're done
             if (batch.Count < BatchSize)
+            {
                 break;
+            }
         }
 
         return totalDeleted;

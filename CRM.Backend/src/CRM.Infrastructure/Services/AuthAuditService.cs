@@ -92,7 +92,9 @@ public class AuthAuditService : IAuthAuditService
         var query = _dbContext.AuthAuditLogs.AsNoTracking();
 
         if (userId.HasValue)
+        {
             query = query.Where(l => l.UserId == userId.Value);
+        }
 
         var total = await query.CountAsync(cancellationToken);
 

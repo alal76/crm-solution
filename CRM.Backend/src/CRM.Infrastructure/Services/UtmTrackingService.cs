@@ -40,7 +40,9 @@ public class UtmTrackingService : IUtmTrackingService
             .AnyAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (!campaignExists)
+        {
             throw new ArgumentException($"Campaign {campaignId} not found.", nameof(campaignId));
+        }
 
         var token = GenerateShortToken();
         var trackedUrl = BuildTrackedUrl(dto.OriginalUrl, dto.UtmSource, dto.UtmMedium, dto.UtmCampaign, dto.UtmContent, token);

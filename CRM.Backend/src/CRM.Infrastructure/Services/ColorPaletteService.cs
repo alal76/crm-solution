@@ -198,7 +198,9 @@ public class ColorPaletteService : IColorPaletteService
             .FirstOrDefaultAsync(p => p.Id == paletteId && p.IsUserDefined && p.CreatedByUserId == userId);
 
         if (palette == null)
+        {
             return false;
+        }
 
         _context.ColorPalettes.Remove(palette);
         await _context.SaveChangesAsync();

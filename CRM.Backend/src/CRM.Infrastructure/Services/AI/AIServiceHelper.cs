@@ -154,7 +154,9 @@ public static class AIServiceHelper
     public static double GetValidTemperature(double? requestedTemperature, double defaultTemperature)
     {
         if (!requestedTemperature.HasValue)
+        {
             return defaultTemperature;
+        }
 
         // Clamp to valid range
         return Math.Clamp(requestedTemperature.Value, 0.0, 2.0);
@@ -169,7 +171,9 @@ public static class AIServiceHelper
     public static int GetValidMaxTokens(int? requestedMaxTokens, int defaultMaxTokens)
     {
         if (!requestedMaxTokens.HasValue)
+        {
             return defaultMaxTokens;
+        }
 
         // Clamp to reasonable range (1 to 128000)
         return Math.Clamp(requestedMaxTokens.Value, 1, 128000);

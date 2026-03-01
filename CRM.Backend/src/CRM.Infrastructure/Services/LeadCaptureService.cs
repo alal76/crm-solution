@@ -72,7 +72,9 @@ public class LeadCaptureService : ILeadCaptureService
     public Task<bool> ValidateFormTokenAsync(string token, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(token))
+        {
             return Task.FromResult(false);
+        }
 
         if (_tokens.TryGetValue(token, out var tokenData))
         {

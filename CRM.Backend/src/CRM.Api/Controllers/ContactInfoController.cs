@@ -23,6 +23,7 @@ public class ContactInfoController : CrmControllerBase
 {
 
     private readonly IContactInfoService _contactInfoService;
+    private const string UserNotAuthenticated = "User not authenticated";
 
     public ContactInfoController(IContactInfoService contactInfoService)
     {
@@ -46,7 +47,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<EntityContactInfoDto>> GetEntityContactInfo(string entityType, int entityId)
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -88,7 +89,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedAddressDto>>> GetAddresses(string entityType, int entityId)
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -211,7 +212,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryAddress(string entityType, int entityId, int addressId, [FromQuery] string addressTypeStr = "Primary")
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -237,7 +238,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedPhoneDto>>> GetPhoneNumbers(string entityType, int entityId)
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -360,7 +361,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryPhone(string entityType, int entityId, int phoneId, [FromQuery] string phoneTypeStr = "Office")
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -386,7 +387,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedEmailDto>>> GetEmailAddresses(string entityType, int entityId)
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -538,7 +539,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimaryEmail(string entityType, int entityId, int emailId, [FromQuery] string emailTypeStr = "General")
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -564,7 +565,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<LinkedSocialMediaDto>>> GetSocialMediaAccounts(string entityType, int entityId)
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -675,7 +676,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> SetPrimarySocialMedia(string entityType, int entityId, int socialMediaId)
     {
-                if (!Enum.TryParse<EntityType>(entityType, true, out var type))
+        if (!Enum.TryParse<EntityType>(entityType, true, out var type))
         {
             return BadRequest($"Invalid entity type: {entityType}");
         }
@@ -699,7 +700,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateContactInfoResponse>> ValidateEmail([FromBody] ValidateEmailRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.Email))
+        if (string.IsNullOrWhiteSpace(request.Email))
         {
             return BadRequest("Email is required");
         }
@@ -731,7 +732,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateContactInfoResponse>> ValidatePhone([FromBody] ValidatePhoneRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.PhoneNumber))
+        if (string.IsNullOrWhiteSpace(request.PhoneNumber))
         {
             return BadRequest("Phone number is required");
         }
@@ -764,7 +765,7 @@ public class ContactInfoController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<ValidateSocialMediaResponse>> ValidateSocialMedia([FromBody] ValidateSocialMediaRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.HandleOrUrl))
+        if (string.IsNullOrWhiteSpace(request.HandleOrUrl))
         {
             return BadRequest("Handle or URL is required");
         }
@@ -819,7 +820,7 @@ public class ContactInfoController : CrmControllerBase
             var userId = GetCurrentUserId();
             if (userId == null)
             {
-                return Unauthorized("User not authenticated");
+                return Unauthorized(UserNotAuthenticated);
             }
 
             var follow = await _contactInfoService.FollowSocialMediaAccountAsync(
@@ -853,7 +854,7 @@ public class ContactInfoController : CrmControllerBase
             var userId = GetCurrentUserId();
             if (userId == null)
             {
-                return Unauthorized("User not authenticated");
+                return Unauthorized(UserNotAuthenticated);
             }
 
             await _contactInfoService.UnfollowSocialMediaAccountAsync(followId, userId.Value);
@@ -877,7 +878,7 @@ public class ContactInfoController : CrmControllerBase
                 var userId = GetCurrentUserId();
         if (userId == null)
         {
-            return Unauthorized("User not authenticated");
+            return Unauthorized(UserNotAuthenticated);
         }
 
         var follows = await _contactInfoService.GetUserFollowsAsync(userId.Value);
@@ -901,7 +902,7 @@ public class ContactInfoController : CrmControllerBase
             var userId = GetCurrentUserId();
             if (userId == null)
             {
-                return Unauthorized("User not authenticated");
+                return Unauthorized(UserNotAuthenticated);
             }
 
             var follow = await _contactInfoService.UpdateFollowSettingsAsync(

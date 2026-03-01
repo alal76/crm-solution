@@ -41,7 +41,9 @@ public class SatisfactionService : ISatisfactionService
             .AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(entityType))
+        {
             query = query.Where(s => s.EntityType == entityType);
+        }
 
         var totalCount = await query.CountAsync(ct);
 
@@ -124,10 +126,14 @@ public class SatisfactionService : ISatisfactionService
             ?? throw new InvalidOperationException($"Survey with token '{dto.SurveyToken}' not found.");
 
         if (survey.Status == SurveyStatus.Responded)
+        {
             throw new InvalidOperationException("This survey has already been answered.");
+        }
 
         if (survey.ExpiresAt.HasValue && survey.ExpiresAt.Value < DateTime.UtcNow)
+        {
             throw new InvalidOperationException("This survey link has expired.");
+        }
 
         var now = DateTime.UtcNow;
         var sentiment = ClassifySentiment(dto.Score, survey.Type);

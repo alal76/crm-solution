@@ -181,7 +181,9 @@ public class DuplicateReviewWorkerService : BackgroundService
             .FirstOrDefaultAsync(cancellationToken);
 
         if (assignee != null)
+        {
             return assignee;
+        }
 
         // Fallback: find any active admin user
         assignee = await context.Users
@@ -199,7 +201,9 @@ public class DuplicateReviewWorkerService : BackgroundService
     private async Task EnsureDefaultRulesSeededAsync(CrmDbContext context, CancellationToken cancellationToken)
     {
         if (_rulesSeeded)
+        {
             return;
+        }
 
         var existingRulesCount = await context.Set<DuplicateRule>()
             .CountAsync(r => !r.IsDeleted, cancellationToken);

@@ -329,7 +329,9 @@ public class ImportExportService : IImportExportService
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length < 2)
+        {
             return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        }
 
         var records = new List<AccountImportDto>();
         var errors = new List<ImportError>();
@@ -424,7 +426,9 @@ public class ImportExportService : IImportExportService
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length < 2)
+        {
             return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        }
 
         var records = new List<ContactImportDto>();
 
@@ -504,7 +508,9 @@ public class ImportExportService : IImportExportService
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length < 2)
+        {
             return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        }
 
         var records = new List<LeadImportDto>();
 
@@ -586,7 +592,9 @@ public class ImportExportService : IImportExportService
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length < 2)
+        {
             return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        }
 
         var records = new List<OpportunityImportDto>();
 
@@ -664,7 +672,9 @@ public class ImportExportService : IImportExportService
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         if (lines.Length < 2)
+        {
             return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        }
 
         var records = new List<ProductImportDto>();
 
@@ -733,7 +743,9 @@ public class ImportExportService : IImportExportService
     private static LeadSource ParseLeadSource(string? source)
     {
         if (string.IsNullOrWhiteSpace(source))
+        {
             return LeadSource.Manual;
+        }
 
         return Enum.TryParse<LeadSource>(source, true, out var result)
             ? result
@@ -743,7 +755,9 @@ public class ImportExportService : IImportExportService
     private static string EscapeCsv(string? value)
     {
         if (string.IsNullOrEmpty(value))
+        {
             return string.Empty;
+        }
 
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
         {

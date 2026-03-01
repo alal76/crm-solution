@@ -213,7 +213,7 @@ public class CampaignConversionsController : CrmControllerBase
         [FromBody] UpdateCampaignConversionDto dto,
         CancellationToken cancellationToken = default)
     {
-                if (!ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }

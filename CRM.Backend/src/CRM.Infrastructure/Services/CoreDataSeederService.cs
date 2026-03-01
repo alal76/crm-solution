@@ -82,7 +82,9 @@ public class CoreDataSeederService : ICoreDataSeederService
         _logger.LogInformation("Seeding departments...");
 
         if (_context.Departments.Any())
+        {
             return;
+        }
 
         var departments = new List<Department>
         {
@@ -117,7 +119,9 @@ public class CoreDataSeederService : ICoreDataSeederService
         _logger.LogInformation("Seeding sample accounts...");
 
         if (_context.Accounts.Any())
+        {
             return;
+        }
 
         var accounts = new List<Account>
         {
@@ -159,7 +163,9 @@ public class CoreDataSeederService : ICoreDataSeederService
         _logger.LogInformation("Seeding sample products...");
 
         if (_context.Products.Any())
+        {
             return;
+        }
 
         var products = new List<Product>
         {
@@ -500,7 +506,9 @@ public class CoreDataSeederService : ICoreDataSeederService
         _logger.LogInformation("Seeding sample contacts...");
 
         if (_context.Contacts.Any())
+        {
             return;
+        }
 
         var contacts = new List<Contact>
         {

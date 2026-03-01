@@ -450,7 +450,9 @@ public class KnowledgeBaseSearchIndexService : IKnowledgeBaseSearchIndexService
     private static string StripHtml(string html)
     {
         if (string.IsNullOrEmpty(html))
+        {
             return string.Empty;
+        }
 
         // Remove HTML tags
         var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", " ");

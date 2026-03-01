@@ -35,7 +35,9 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
             .FirstOrDefaultAsync(c => c.Id == commissionId && !c.IsDeleted, cancellationToken);
 
         if (commission == null)
+        {
             return false;
+        }
 
         commission.Status = CommissionStatus.Paid;
         commission.PaidDate = paidDate ?? DateTime.UtcNow;
@@ -58,7 +60,9 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
             .FirstOrDefaultAsync(c => c.Id == commissionId && !c.IsDeleted && c.Status == CommissionStatus.Paid, cancellationToken);
 
         if (commission == null)
+        {
             return false;
+        }
 
         var clawbackAmount = amount ?? commission.CommissionAmount;
         commission.Status = CommissionStatus.ClawedBack;
@@ -133,7 +137,9 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
             .FirstOrDefaultAsync(c => c.Id == payoutId && !c.IsDeleted, cancellationToken);
 
         if (commission == null)
+        {
             return null;
+        }
 
         commission.Status = CommissionStatus.Paid;
         commission.PaidDate = DateTime.UtcNow;

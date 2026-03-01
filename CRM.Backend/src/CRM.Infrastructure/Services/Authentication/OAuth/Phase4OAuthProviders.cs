@@ -179,7 +179,9 @@ public class GoogleOAuthProvider : IGoogleOAuthProvider
         foreach (var param in parameters)
         {
             if (!first)
+            {
                 sb.Append("&");
+            }
             sb.Append(Uri.EscapeDataString(param.Key)).Append("=").Append(Uri.EscapeDataString(param.Value));
             first = false;
         }
@@ -356,7 +358,9 @@ public class MicrosoftOAuthProvider : IMicrosoftOAuthProvider
         foreach (var param in parameters)
         {
             if (!first)
+            {
                 sb.Append("&");
+            }
             sb.Append(Uri.EscapeDataString(param.Key)).Append("=").Append(Uri.EscapeDataString(param.Value));
             first = false;
         }
@@ -405,7 +409,9 @@ public class GitHubOAuthProvider : IGitHubOAuthProvider
         foreach (var param in parameters)
         {
             if (!first)
+            {
                 sb.Append("&");
+            }
             sb.Append(Uri.EscapeDataString(param.Key)).Append("=").Append(Uri.EscapeDataString(param.Value));
             first = false;
         }

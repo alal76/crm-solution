@@ -213,7 +213,9 @@ public class OktaSsoService : IOktaSsoService
         {
             var parts = idToken.Split('.');
             if (parts.Length != 3)
+            {
                 return false;
+            }
 
             var payload = parts[1];
             var paddedPayload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
@@ -271,13 +273,19 @@ public class OktaSsoService : IOktaSsoService
         var queryParams = new Dictionary<string, string>();
 
         if (!string.IsNullOrEmpty(idTokenHint))
+        {
             queryParams["id_token_hint"] = idTokenHint;
+        }
 
         if (!string.IsNullOrEmpty(postLogoutRedirectUri))
+        {
             queryParams["post_logout_redirect_uri"] = postLogoutRedirectUri;
+        }
 
         if (queryParams.Count == 0)
+        {
             return baseUrl;
+        }
 
         var queryString = string.Join("&", queryParams.Select(kvp =>
             $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));

@@ -28,7 +28,9 @@ public class AlgoliaHealthCheck : IHealthCheck
         {
             var isAvailable = await _provider.IsAvailableAsync();
             if (isAvailable)
+            {
                 return HealthCheckResult.Healthy("Algolia search is reachable");
+            }
             return HealthCheckResult.Degraded("Algolia search is not responding");
         }
         catch (Exception ex)

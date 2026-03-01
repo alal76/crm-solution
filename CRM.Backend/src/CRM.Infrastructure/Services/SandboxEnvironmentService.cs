@@ -241,13 +241,21 @@ public class SandboxEnvironmentService : ISandboxEnvironmentService
         };
 
         if (options.PromoteConfigurations)
+        {
             result.PromotedItems.Add("System configurations");
+        }
         if (options.PromoteCustomFields)
+        {
             result.PromotedItems.Add("Custom field definitions");
+        }
         if (options.PromoteWorkflows)
+        {
             result.PromotedItems.Add("Workflow definitions");
+        }
         if (options.PromoteSchemaChanges)
+        {
             result.PromotedItems.Add("Schema changes");
+        }
 
         if (options.DryRun)
         {

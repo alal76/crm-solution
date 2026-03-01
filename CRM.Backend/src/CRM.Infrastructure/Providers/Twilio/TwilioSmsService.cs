@@ -88,9 +88,13 @@ public partial class TwilioSmsService : ISmsNotificationService
             };
 
             if (!string.IsNullOrEmpty(_config.MessagingServiceSid))
+            {
                 createParams.MessagingServiceSid = _config.MessagingServiceSid;
+            }
             else
+            {
                 createParams.From = new TwilioPhoneNumber(_config.FromPhoneNumber);
+            }
 
             var msg = await MessageResource.CreateAsync(createParams);
 
@@ -149,7 +153,9 @@ public partial class TwilioSmsService : ISmsNotificationService
     public bool IsValidPhoneNumber(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
             return false;
+        }
 
         return PhoneNumberRegex().IsMatch(phoneNumber);
     }

@@ -92,16 +92,22 @@ public class PortalAuthService : IPortalAuthService
             .FirstOrDefaultAsync(c => !c.IsDeleted, ct);
 
         if (config != null && !config.IsEnabled)
+        {
             throw new InvalidOperationException("Customer portal is currently disabled.");
+        }
 
         if (config != null && !config.AllowSelfRegistration)
+        {
             throw new InvalidOperationException("Self-registration is not allowed. Please contact support.");
+        }
 
         // Check email not already registered
         var existing = await _db.PortalUsers
             .AnyAsync(u => u.Email == dto.Email && !u.IsDeleted, ct);
         if (existing)
+        {
             throw new InvalidOperationException($"Email '{dto.Email}' is already registered.");
+        }
 
         var now = DateTime.UtcNow;
         var portalUser = new PortalUser
@@ -142,7 +148,9 @@ public class PortalAuthService : IPortalAuthService
             .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted, ct);
 
         if (user == null)
+        {
             return false; // Do not reveal user existence
+        }
 
         user.PasswordResetToken = Guid.NewGuid().ToString("N");
         user.PasswordResetExpiry = DateTime.UtcNow.AddHours(2);
@@ -159,7 +167,9 @@ public class PortalAuthService : IPortalAuthService
             .FirstOrDefaultAsync(u => u.PasswordResetToken == token && !u.IsDeleted, ct);
 
         if (user == null)
+        {
             return false;
+        }
 
         if (user.PasswordResetExpiry == null || user.PasswordResetExpiry < DateTime.UtcNow)
         {
@@ -182,7 +192,9 @@ public class PortalAuthService : IPortalAuthService
             .FirstOrDefaultAsync(u => u.EmailVerificationToken == token && !u.IsDeleted, ct);
 
         if (user == null)
+        {
             return false;
+        }
 
         user.IsEmailVerified = true;
         user.EmailVerifiedAt = DateTime.UtcNow;
@@ -208,7 +220,9 @@ public class PortalAuthService : IPortalAuthService
         };
 
         if (!string.IsNullOrEmpty(user.DisplayName))
+        {
             claims.Add(new Claim(ClaimTypes.Name, user.DisplayName));
+        }
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {

@@ -571,7 +571,9 @@ public class TwilioProvider : INotificationPort
     {
         var result = new Dictionary<string, string>();
         if (string.IsNullOrEmpty(data))
+        {
             return result;
+        }
 
         var pairs = data.Split('&');
         foreach (var pair in pairs)
@@ -684,7 +686,9 @@ public class TwilioProvider : INotificationPort
     private static string TruncateForLog(string? text, int maxLength = 50)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return "";
+        }
         return text.Length <= maxLength ? text : text[..maxLength] + "...";
     }
 

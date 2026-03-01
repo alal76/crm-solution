@@ -104,7 +104,9 @@ public class RecurringBillingEngine : IRecurringBillingEngine
             .FirstOrDefaultAsync(s => s.Id == subscriptionId && !s.IsDeleted, cancellationToken);
 
         if (sub == null)
+        {
             throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
 
         // Calculate billing amount
         var billingAmount = await CalculateBillingAmountAsync(
@@ -267,7 +269,9 @@ public class RecurringBillingEngine : IRecurringBillingEngine
             .FirstOrDefaultAsync(i => i.Id == invoiceId && !i.IsDeleted, cancellationToken);
 
         if (invoice == null)
+        {
             throw new InvalidOperationException($"Invoice {invoiceId} not found");
+        }
 
         // Calculate next retry date with exponential backoff
         var backoffDays = retryAttempt switch
@@ -309,7 +313,9 @@ public class RecurringBillingEngine : IRecurringBillingEngine
             .FirstOrDefaultAsync(s => s.Id == subscriptionId && !s.IsDeleted, cancellationToken);
 
         if (sub == null)
+        {
             throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
 
         var baseAmount = sub.Amount;
 

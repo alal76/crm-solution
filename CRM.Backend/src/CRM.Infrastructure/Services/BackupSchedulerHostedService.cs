@@ -77,7 +77,9 @@ public class BackupSchedulerHostedService : BackgroundService
         foreach (var schedule in dueSchedules)
         {
             if (stoppingToken.IsCancellationRequested)
+            {
                 break;
+            }
 
             _logger.LogInformation("Running due scheduled backup: {ScheduleName} (ID: {ScheduleId})", schedule.Name, schedule.Id);
 

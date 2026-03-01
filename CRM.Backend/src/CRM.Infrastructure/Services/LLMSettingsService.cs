@@ -157,9 +157,13 @@ public class LLMSettingsService : ILLMSettingsService
         };
 
         if (enabled != null)
+        {
             dto.Enabled = GetBoolSettingValue(settingsDict, $"{prefix}.Enabled", enabled.Value);
+        }
         else
+        {
             dto.Enabled = GetNullableBoolSettingValue(settingsDict, $"{prefix}.Enabled");
+        }
 
         var apiKeySettingKey = $"{prefix}.ApiKey";
         bool hasDbKey = settingsDict.ContainsKey(apiKeySettingKey) &&
@@ -196,14 +200,18 @@ public class LLMSettingsService : ILLMSettingsService
             return MaskApiKey(realKey);
         }
         if (IsValidApiKey(configKey))
+        {
             return MaskApiKey(configKey);
+        }
         return null;
     }
 
     private static string? MaskApiKey(string? key)
     {
         if (string.IsNullOrWhiteSpace(key) || key.Length < 8)
+        {
             return key != null ? "****" : null;
+        }
         return $"{key[..4]}****{key[^4..]}";
     }
 
@@ -213,7 +221,9 @@ public class LLMSettingsService : ILLMSettingsService
             .FirstOrDefaultAsync(s => s.SettingKey == key && !s.IsDeleted);
         if (setting == null) return null;
         if (setting.IsEncrypted)
+        {
             return _encryptionService.Decrypt(setting.SettingValue);
+        }
         return setting.SettingValue;
     }
 
@@ -238,19 +248,33 @@ public class LLMSettingsService : ILLMSettingsService
         try
         {
             if (request.DefaultProvider != null)
+            {
                 await SetSettingValueAsync("DefaultProvider", request.DefaultProvider, "string", "general");
+            }
             if (request.EnableFallback.HasValue)
+            {
                 await SetSettingValueAsync("EnableFallback", request.EnableFallback.Value.ToString().ToLower(), "boolean", "general");
+            }
             if (request.FallbackOrder != null)
+            {
                 await SetSettingValueAsync("FallbackOrder", JsonSerializer.Serialize(request.FallbackOrder), "json", "general");
+            }
             if (request.DefaultMaxTokens.HasValue)
+            {
                 await SetSettingValueAsync("DefaultMaxTokens", request.DefaultMaxTokens.Value.ToString(), "integer", "general");
+            }
             if (request.DefaultTemperature.HasValue)
+            {
                 await SetSettingValueAsync("DefaultTemperature", request.DefaultTemperature.Value.ToString(), "decimal", "general");
+            }
             if (request.TimeoutSeconds.HasValue)
+            {
                 await SetSettingValueAsync("TimeoutSeconds", request.TimeoutSeconds.Value.ToString(), "integer", "general");
+            }
             if (request.MaxRetries.HasValue)
+            {
                 await SetSettingValueAsync("MaxRetries", request.MaxRetries.Value.ToString(), "integer", "general");
+            }
 
             if (request.Providers != null)
             {
@@ -260,29 +284,53 @@ public class LLMSettingsService : ILLMSettingsService
                     var prefix = GetProviderPrefix(providerKey);
 
                     if (ps.DefaultModel != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.DefaultModel", ps.DefaultModel, "string", category);
+                    }
                     if (ps.BaseUrl != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.BaseUrl", ps.BaseUrl, "string", category);
+                    }
                     if (ps.ApiVersion != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.ApiVersion", ps.ApiVersion, "string", category);
+                    }
                     if (ps.Location != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.Location", ps.Location, "string", category);
+                    }
                     if (ps.Region != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.Region", ps.Region, "string", category);
+                    }
                     if (ps.ApiFormat != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.ApiFormat", ps.ApiFormat, "string", category);
+                    }
                     if (ps.Enabled.HasValue)
+                    {
                         await SetSettingValueAsync($"{prefix}.Enabled", ps.Enabled.Value.ToString().ToLower(), "boolean", category);
+                    }
                     if (ps.UseVertexAI.HasValue)
+                    {
                         await SetSettingValueAsync($"{prefix}.UseVertexAI", ps.UseVertexAI.Value.ToString().ToLower(), "boolean", category);
+                    }
                     if (ps.UseDefaultCredentials.HasValue)
+                    {
                         await SetSettingValueAsync($"{prefix}.UseDefaultCredentials", ps.UseDefaultCredentials.Value.ToString().ToLower(), "boolean", category);
+                    }
                     if (ps.Endpoint != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.Endpoint", ps.Endpoint, "string", category);
+                    }
                     if (ps.DeploymentName != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.DeploymentName", ps.DeploymentName, "string", category);
+                    }
                     if (ps.ProjectId != null)
+                    {
                         await SetSettingValueAsync($"{prefix}.ProjectId", ps.ProjectId, "string", category);
+                    }
 
                     // Handle API key: encrypt before storage
                     if (ps.ApiKey != null)
@@ -325,7 +373,9 @@ public class LLMSettingsService : ILLMSettingsService
             existing.Category = category;
             existing.IsEncrypted = isEncrypted;
             if (description != null)
+            {
                 existing.Description = description;
+            }
         }
         else
         {
@@ -347,7 +397,9 @@ public class LLMSettingsService : ILLMSettingsService
         var existing = await _context.LLMProviderSettings
             .FirstOrDefaultAsync(s => s.SettingKey == key);
         if (existing != null)
+        {
             _context.LLMProviderSettings.Remove(existing);
+        }
     }
 
     public async Task InitializeDefaultSettingsAsync()
@@ -425,7 +477,9 @@ public class LLMSettingsService : ILLMSettingsService
         var prefix = GetProviderPrefix(providerName);
         var dbKey = await GetSettingValueAsync($"{prefix}.ApiKey");
         if (!string.IsNullOrWhiteSpace(dbKey))
+        {
             return dbKey;
+        }
 
         return providerName.ToLower() switch
         {
@@ -448,7 +502,9 @@ public class LLMSettingsService : ILLMSettingsService
         var prefix = GetProviderPrefix(providerName);
         var dbValue = await GetSettingValueAsync($"{prefix}.BaseUrl");
         if (!string.IsNullOrWhiteSpace(dbValue))
+        {
             return dbValue;
+        }
 
         return providerName.ToLower() switch
         {
@@ -475,11 +531,15 @@ public class LLMSettingsService : ILLMSettingsService
 
             var apiKey = await GetProviderApiKeyAsync(providerName);
             if (!string.IsNullOrWhiteSpace(apiKey))
+            {
                 result[$"{prefix}.ApiKey"] = apiKey;
+            }
 
             var baseUrl = await GetProviderBaseUrlAsync(providerName);
             if (!string.IsNullOrWhiteSpace(baseUrl))
+            {
                 result[$"{prefix}.BaseUrl"] = baseUrl;
+            }
 
             return result;
         }
@@ -496,7 +556,9 @@ public class LLMSettingsService : ILLMSettingsService
         {
             var apiKey = await GetProviderApiKeyAsync(providerName);
             if (string.IsNullOrWhiteSpace(apiKey) && providerName.ToLower() != "local")
+            {
                 return (false, "No API key configured. Please set the API key first.");
+            }
 
             // Resolve ILLMService lazily to avoid circular dependency
             var llmService = _serviceProvider.GetRequiredService<ILLMService>();
@@ -511,7 +573,9 @@ public class LLMSettingsService : ILLMSettingsService
 
             var response = await llmService.CompletionAsync(testRequest);
             if (response.Success)
+            {
                 return (true, $"Connection successful! Model: {response.Model}, Tokens: {response.TotalTokens}");
+            }
             return (false, response.Error ?? "Connection failed with no error details.");
         }
         catch (Exception ex)
@@ -534,28 +598,36 @@ public class LLMSettingsService : ILLMSettingsService
     private static bool GetBoolSettingValue(Dictionary<string, string> settings, string key, bool defaultValue)
     {
         if (settings.TryGetValue(key, out var value))
+        {
             return bool.TryParse(value, out var result) ? result : defaultValue;
+        }
         return defaultValue;
     }
 
     private static bool? GetNullableBoolSettingValue(Dictionary<string, string> settings, string key)
     {
         if (settings.TryGetValue(key, out var value))
+        {
             return bool.TryParse(value, out var result) ? result : null;
+        }
         return null;
     }
 
     private static int GetIntSettingValue(Dictionary<string, string> settings, string key, int defaultValue)
     {
         if (settings.TryGetValue(key, out var value))
+        {
             return int.TryParse(value, out var result) ? result : defaultValue;
+        }
         return defaultValue;
     }
 
     private static double GetDoubleSettingValue(Dictionary<string, string> settings, string key, double defaultValue)
     {
         if (settings.TryGetValue(key, out var value))
+        {
             return double.TryParse(value, out var result) ? result : defaultValue;
+        }
         return defaultValue;
     }
 
@@ -626,7 +698,9 @@ public class LLMSettingsService : ILLMSettingsService
                 var n = p.ToLower();
                 if (effectiveOrder.Contains(n)) continue;
                 if (providerConfigStatus.TryGetValue(n, out var ic) && ic)
+                {
                     effectiveOrder.Add(n);
+                }
             }
         }
 

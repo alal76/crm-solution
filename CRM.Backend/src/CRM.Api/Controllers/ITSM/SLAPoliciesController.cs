@@ -91,7 +91,9 @@ public class SLAPoliciesController : CrmControllerBase
     {
                 var policy = await _slaPolicyService.GetByIdAsync(id, cancellationToken);
         if (policy == null)
+        {
             return NotFound(new { message = $"SLA policy with ID {id} not found" });
+        }
         return Ok(policy);
     }
 
@@ -111,7 +113,9 @@ public class SLAPoliciesController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CreateSLAPolicyDto dto, CancellationToken cancellationToken = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var policy = await _slaPolicyService.CreateAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = policy.Id }, policy);
@@ -138,7 +142,9 @@ public class SLAPoliciesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var policy = await _slaPolicyService.UpdateAsync(id, dto, cancellationToken);
             return Ok(policy);

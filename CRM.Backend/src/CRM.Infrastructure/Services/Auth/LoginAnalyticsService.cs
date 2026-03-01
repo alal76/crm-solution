@@ -325,17 +325,29 @@ public class LoginAnalyticsService : ILoginAnalyticsService
     {
         // Simple extraction - in production use a proper UA parser
         if (userAgent.Contains("Windows"))
+        {
             return "Windows";
+        }
         if (userAgent.Contains("Mac"))
+        {
             return "Mac";
+        }
         if (userAgent.Contains("iPhone"))
+        {
             return "iPhone";
+        }
         if (userAgent.Contains("iPad"))
+        {
             return "iPad";
+        }
         if (userAgent.Contains("Android"))
+        {
             return "Android";
+        }
         if (userAgent.Contains("Linux"))
+        {
             return "Linux";
+        }
         return "Unknown";
     }
 }

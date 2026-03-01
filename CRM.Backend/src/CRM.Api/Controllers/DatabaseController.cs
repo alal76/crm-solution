@@ -1274,10 +1274,10 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> ClearAllData([FromBody] ClearDataRequest request)
     {
-                if (request.ConfirmationCode != "DELETE_ALL_DATA")
-                {
+        if (request.ConfirmationCode != "DELETE_ALL_DATA")
+        {
             return BadRequest(new { message = "Invalid confirmation code" });
-                }
+        }
 
         var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
         var connection = _context.Database.GetDbConnection();

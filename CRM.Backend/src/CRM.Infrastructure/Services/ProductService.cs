@@ -51,15 +51,21 @@ public class ProductService : IProductService, IProductInputPort
     {
         var product = await _repository.GetByIdAsync(id);
         if (product == null)
+        {
             return null;
+        }
 
         var tags = await _normalizationService.GetTagsAsync("Product", product.Id);
         if (!string.IsNullOrWhiteSpace(tags))
+        {
             product.Tags = tags;
+        }
 
         var cfs = await _normalizationService.GetCustomFieldsAsync("Product", product.Id);
         if (!string.IsNullOrWhiteSpace(cfs))
+        {
             product.CustomFields = cfs;
+        }
 
         return product;
     }
@@ -71,11 +77,15 @@ public class ProductService : IProductService, IProductInputPort
         {
             var tags = await _normalizationService.GetTagsAsync("Product", product.Id);
             if (!string.IsNullOrWhiteSpace(tags))
+            {
                 product.Tags = tags;
+            }
 
             var cfs = await _normalizationService.GetCustomFieldsAsync("Product", product.Id);
             if (!string.IsNullOrWhiteSpace(cfs))
+            {
                 product.CustomFields = cfs;
+            }
         }
         return products;
     }
@@ -92,11 +102,15 @@ public class ProductService : IProductService, IProductInputPort
         {
             var tags = await _normalizationService.GetTagsAsync("Product", product.Id);
             if (!string.IsNullOrWhiteSpace(tags))
+            {
                 product.Tags = tags;
+            }
 
             var cfs = await _normalizationService.GetCustomFieldsAsync("Product", product.Id);
             if (!string.IsNullOrWhiteSpace(cfs))
+            {
                 product.CustomFields = cfs;
+            }
         }
         return products;
     }
@@ -118,7 +132,9 @@ public class ProductService : IProductService, IProductInputPort
 
         // Update any queued duplicate candidates with the new entity ID
         if (candidatesQueued > 0)
+        {
             await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Product", product.Id);
+        }
 
         return product.Id;
     }

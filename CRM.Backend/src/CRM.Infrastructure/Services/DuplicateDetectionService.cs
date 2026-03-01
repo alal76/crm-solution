@@ -164,7 +164,9 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     {
         var rule = await _context.Set<DuplicateRule>().FindAsync(ruleId);
         if (rule == null)
+        {
             return false;
+        }
 
         rule.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -514,13 +516,17 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     {
         var candidate = await _context.Set<DuplicateCandidate>().FindAsync(candidateId);
         if (candidate == null)
+        {
             return null;
+        }
 
         candidate.Status = status;
         candidate.ReviewedById = userId;
         candidate.ReviewedAt = DateTime.UtcNow;
         if (notes != null)
+        {
             candidate.Notes = notes;
+        }
 
         await _context.SaveChangesAsync();
         return candidate;
@@ -792,7 +798,9 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     private string ApplyTransform(string value, string? transform)
     {
         if (string.IsNullOrEmpty(transform))
+        {
             return value;
+        }
 
         var result = value;
         foreach (var t in transform.Split(','))
@@ -859,7 +867,9 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     private string GetSoundex(string input)
     {
         if (string.IsNullOrEmpty(input))
+        {
             return "0000";
+        }
 
         var soundex = new StringBuilder();
         soundex.Append(char.ToUpper(input[0]));

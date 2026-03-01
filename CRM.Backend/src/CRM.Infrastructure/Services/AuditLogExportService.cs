@@ -119,16 +119,24 @@ public class AuditLogExportService : IAuditLogExportService
             .Where(a => !a.IsDeleted);
 
         if (!string.IsNullOrWhiteSpace(request.EntityType))
+        {
             query = query.Where(a => a.EntityType == request.EntityType);
+        }
 
         if (request.UserId.HasValue)
+        {
             query = query.Where(a => a.UserId == request.UserId.Value);
+        }
 
         if (request.DateFrom.HasValue)
+        {
             query = query.Where(a => a.CreatedAt >= request.DateFrom.Value);
+        }
 
         if (request.DateTo.HasValue)
+        {
             query = query.Where(a => a.CreatedAt <= request.DateTo.Value);
+        }
 
         return await query
             .OrderByDescending(a => a.CreatedAt)
@@ -139,7 +147,9 @@ public class AuditLogExportService : IAuditLogExportService
     private static string CsvEscape(string value)
     {
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+        {
             return $"\"{value.Replace("\"", "\"\"")}\"";
+        }
         return value;
     }
 }

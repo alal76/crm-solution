@@ -68,7 +68,7 @@ public class AIEmailController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AnalyzeEmail([FromBody] EmailAnalysisRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.EmailContent))
+        if (string.IsNullOrWhiteSpace(request.EmailContent))
         {
             return BadRequest(new { error = "Email content cannot be empty" });
         }
@@ -182,7 +182,7 @@ Respond ONLY with valid JSON in this exact format:
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SuggestResponse([FromBody] ResponseSuggestionRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.EmailContent))
+        if (string.IsNullOrWhiteSpace(request.EmailContent))
         {
             return BadRequest(new { error = "Email content cannot be empty" });
         }
@@ -308,7 +308,7 @@ Respond with JSON in this format:
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> OptimizeSubject([FromBody] SubjectOptimizationRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.Subject) && string.IsNullOrWhiteSpace(request.EmailBody))
+        if (string.IsNullOrWhiteSpace(request.Subject) && string.IsNullOrWhiteSpace(request.EmailBody))
         {
             return BadRequest(new { error = "Subject or email body is required" });
         }
@@ -356,12 +356,13 @@ Respond with JSON:
   ""tips"": [""General tips for improvement""]
 }}";
 
-        var emailBodyPreview = request.EmailBody?.Length > 500
-            ? request.EmailBody[..500] + "..."
-            : request.EmailBody ?? "";
+        var emailBodyText = request.EmailBody ?? "";
+        var emailBodyPreview = emailBodyText.Length > 500
+            ? emailBodyText[..500] + "..."
+            : emailBodyText;
         var userContent = request.Subject != null
             ? $"Original subject: {request.Subject}\n\nEmail preview: {emailBodyPreview}"
-            : $"Generate subject for this email:\n\n{request.EmailBody}";
+            : $"Generate subject for this email:\n\n{emailBodyText}";
 
         var llmRequest = new LLMRequest
         {
@@ -429,7 +430,7 @@ Respond with JSON:
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ImproveEmail([FromBody] EmailImproveRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.EmailContent))
+        if (string.IsNullOrWhiteSpace(request.EmailContent))
         {
             return BadRequest(new { error = "Email content cannot be empty" });
         }

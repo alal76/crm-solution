@@ -101,7 +101,9 @@ public class FieldMasterDataService : IFieldMasterDataService
             .FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
 
         if (link == null)
+        {
             throw new KeyNotFoundException($"Link with ID {id} not found");
+        }
 
         link.SourceType = dto.SourceType;
         link.SourceName = dto.SourceName;
@@ -129,7 +131,9 @@ public class FieldMasterDataService : IFieldMasterDataService
             .FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
 
         if (link == null)
+        {
             return false;
+        }
 
         link.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -229,7 +233,9 @@ public class FieldMasterDataService : IFieldMasterDataService
     {
         var links = await GetLinksForFieldAsync(fieldConfigurationId);
         if (!links.Any())
+        {
             return new List<MasterDataLookupResultDto>();
+        }
 
         var link = links.First(); // Primary link
         var results = new List<MasterDataLookupResultDto>();
@@ -253,11 +259,15 @@ public class FieldMasterDataService : IFieldMasterDataService
         Dictionary<string, string>? dependentValues = null)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return (true, null); // Empty values handled by required validation
+        }
 
         var links = await GetLinksForFieldAsync(fieldConfigurationId);
         if (!links.Any())
+        {
             return (true, null); // No validation configured
+        }
 
         var link = links.First();
 
@@ -279,7 +289,9 @@ public class FieldMasterDataService : IFieldMasterDataService
 
         // If free text is allowed, skip master data validation
         if (link.AllowFreeText)
+        {
             return (true, null);
+        }
 
         // Check if value exists in master data
         var masterData = await GetMasterDataForFieldAsync(fieldConfigurationId, dependentValues, value, 1);
@@ -301,7 +313,9 @@ public class FieldMasterDataService : IFieldMasterDataService
             .FirstOrDefaultAsync(c => c.Name == link.SourceName && !c.IsDeleted && c.IsActive);
 
         if (category == null)
+        {
             return new List<MasterDataLookupResultDto>();
+        }
 
         var query = _context.LookupItems
             .Where(i => i.LookupCategoryId == category.Id && !i.IsDeleted && i.IsActive);
@@ -363,11 +377,17 @@ public class FieldMasterDataService : IFieldMasterDataService
         if (dependentValues != null)
         {
             if (dependentValues.TryGetValue("countryCode", out var countryCode) && !string.IsNullOrEmpty(countryCode))
+            {
                 query = query.Where(z => z.CountryCode == countryCode);
+            }
             if (dependentValues.TryGetValue("stateCode", out var stateCode) && !string.IsNullOrEmpty(stateCode))
+            {
                 query = query.Where(z => z.StateCode == stateCode);
+            }
             if (dependentValues.TryGetValue("city", out var city) && !string.IsNullOrEmpty(city))
+            {
                 query = query.Where(z => z.City == city);
+            }
         }
 
         // Apply static filter expression
@@ -379,9 +399,13 @@ public class FieldMasterDataService : IFieldMasterDataService
                 if (filters != null)
                 {
                     if (filters.TryGetValue("CountryCode", out var cc))
+                    {
                         query = query.Where(z => z.CountryCode == cc);
+                    }
                     if (filters.TryGetValue("StateCode", out var sc))
+                    {
                         query = query.Where(z => z.StateCode == sc);
+                    }
                 }
             }
             catch { /* Ignore invalid filter */ }

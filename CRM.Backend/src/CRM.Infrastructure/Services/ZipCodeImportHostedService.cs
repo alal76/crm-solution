@@ -374,11 +374,15 @@ public class ZipCodeImportHostedService : BackgroundService
         _lastImportTime = DateTime.UtcNow;
 
         if (result.Success)
+        {
             _logger.LogInformation(
                 "ZIP import completed (source={Source}): {Imported:N0} imported, {Skipped:N0} skipped",
                 request.Source, result.RecordsImported, result.RecordsSkipped);
+        }
         else
+        {
             _logger.LogError("ZIP import failed (source={Source}): {Error}", request.Source, result.ErrorMessage);
+        }
     }
 
     // Downloads a CSV file from an arbitrary URL and pipes it into ImportFromCsvStreamAsync.

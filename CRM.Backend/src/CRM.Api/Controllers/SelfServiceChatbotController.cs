@@ -22,6 +22,7 @@ public class SelfServiceChatbotController : CrmControllerBase
 {
     private readonly ISelfServiceChatbotService _chatbotService;
     private readonly ILogger<SelfServiceChatbotController> _logger;
+    private const string UserIdClaimName = "userId";
 
     public SelfServiceChatbotController(
         ISelfServiceChatbotService chatbotService,
@@ -43,7 +44,7 @@ public class SelfServiceChatbotController : CrmControllerBase
         if (User.Identity?.IsAuthenticated is true)
         {
             // Extract user ID from claims
-            var userIdClaim = User.FindFirst("userId");
+            var userIdClaim = User.FindFirst(UserIdClaimName);
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
             {
                 userId = id;
@@ -65,7 +66,7 @@ public class SelfServiceChatbotController : CrmControllerBase
         int? userId = null;
         if (User.Identity?.IsAuthenticated is true)
         {
-            var userIdClaim = User.FindFirst("userId");
+            var userIdClaim = User.FindFirst(UserIdClaimName);
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
             {
                 userId = id;
@@ -123,7 +124,7 @@ public class SelfServiceChatbotController : CrmControllerBase
         int? userId = null;
         if (User.Identity?.IsAuthenticated is true)
         {
-            var userIdClaim = User.FindFirst("userId");
+            var userIdClaim = User.FindFirst(UserIdClaimName);
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
             {
                 userId = id;
@@ -155,7 +156,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     public async Task<ActionResult<IncidentCreationResultDto>> CreateIncidentFromChat(string sessionId)
     {
         int? userId = null;
-        var userIdClaim = User.FindFirst("userId");
+        var userIdClaim = User.FindFirst(UserIdClaimName);
         if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
         {
             userId = id;
@@ -177,7 +178,7 @@ public class SelfServiceChatbotController : CrmControllerBase
         int? userId = null;
         if (User.Identity?.IsAuthenticated is true)
         {
-            var userIdClaim = User.FindFirst("userId");
+            var userIdClaim = User.FindFirst(UserIdClaimName);
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
             {
                 userId = id;

@@ -62,7 +62,9 @@ namespace CRM.Infrastructure.Services
         {
             var entity = await _context.PriceBooks.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
             if (entity == null)
+            {
                 return false;
+            }
             entity.IsDeleted = true;
             await _context.SaveChangesAsync(cancellationToken);
             return true;

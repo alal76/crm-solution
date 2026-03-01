@@ -254,14 +254,20 @@ public class WebhookService : IWebhookService
             foreach (var entry in entries.EnumerateArray())
             {
                 if (!entry.TryGetProperty("changes", out var changes))
+                {
                     continue;
+                }
 
                 foreach (var change in changes.EnumerateArray())
                 {
                     if (!change.TryGetProperty("value", out var value))
+                    {
                         continue;
+                    }
                     if (!value.TryGetProperty("messages", out var messages))
+                    {
                         continue;
+                    }
 
                     foreach (var msg in messages.EnumerateArray())
                     {
@@ -346,7 +352,9 @@ public class WebhookService : IWebhookService
             foreach (var entry in entries.EnumerateArray())
             {
                 if (!entry.TryGetProperty("messaging", out var messagingEvents))
+                {
                     continue;
+                }
 
                 foreach (var messagingEvent in messagingEvents.EnumerateArray())
                 {
@@ -491,7 +499,9 @@ public class WebhookService : IWebhookService
     private static string GetFirstName(string? fullName)
     {
         if (string.IsNullOrWhiteSpace(fullName))
+        {
             return "Unknown";
+        }
         var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return parts.Length > 0 ? parts[0] : "Unknown";
     }
@@ -499,7 +509,9 @@ public class WebhookService : IWebhookService
     private static string GetLastName(string? fullName)
     {
         if (string.IsNullOrWhiteSpace(fullName))
+        {
             return "Unknown";
+        }
         var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : "Unknown";
     }

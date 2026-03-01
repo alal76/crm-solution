@@ -30,7 +30,9 @@ public class CompetitorService : ICompetitorService
     {
         var query = _dbContext.Competitors.Where(c => !c.IsDeleted);
         if (!includeInactive)
+        {
             query = query.Where(c => c.IsActive);
+        }
         
         return await query.OrderBy(c => c.Name).ToListAsync(cancellationToken);
     }

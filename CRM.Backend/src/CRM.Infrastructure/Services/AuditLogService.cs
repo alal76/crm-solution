@@ -198,22 +198,34 @@ public class AuditLogService : IAuditLogService
             .Where(a => !a.IsDeleted);
 
         if (!string.IsNullOrEmpty(entityType))
+        {
             query = query.Where(a => a.EntityType == entityType);
+        }
 
         if (entityId.HasValue)
+        {
             query = query.Where(a => a.EntityId == entityId.Value);
+        }
 
         if (userId.HasValue)
+        {
             query = query.Where(a => a.UserId == userId.Value);
+        }
 
         if (!string.IsNullOrEmpty(action))
+        {
             query = query.Where(a => a.Action == action);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt <= toDate.Value);
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -349,10 +361,14 @@ public class AuditLogService : IAuditLogService
             .Where(a => !a.IsDeleted && a.EntityType == entityType && a.EntityId == entityId);
 
         if (fromDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt <= toDate.Value);
+        }
 
         var logs = await query.OrderBy(a => a.CreatedAt).ToListAsync(cancellationToken);
 
@@ -422,13 +438,19 @@ public class AuditLogService : IAuditLogService
             .Where(a => !a.IsDeleted);
 
         if (!string.IsNullOrEmpty(entityType))
+        {
             query = query.Where(a => a.EntityType == entityType);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt <= toDate.Value);
+        }
 
         var logs = await query.OrderByDescending(a => a.CreatedAt).ToListAsync(cancellationToken);
 
@@ -461,13 +483,19 @@ public class AuditLogService : IAuditLogService
             .Where(a => !a.IsDeleted);
 
         if (!string.IsNullOrEmpty(entityType))
+        {
             query = query.Where(a => a.EntityType == entityType);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt <= toDate.Value);
+        }
 
         var logs = await query.OrderByDescending(a => a.CreatedAt).ToListAsync(cancellationToken);
         var dtos = logs.Select(MapToDto).ToList();
@@ -511,13 +539,19 @@ public class AuditLogService : IAuditLogService
             .Where(a => !a.IsDeleted);
 
         if (!string.IsNullOrEmpty(entityType))
+        {
             query = query.Where(a => a.EntityType == entityType);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(a => a.CreatedAt <= toDate.Value);
+        }
 
         var logs = await query.OrderByDescending(a => a.CreatedAt).ToListAsync(cancellationToken);
 
@@ -539,9 +573,13 @@ public class AuditLogService : IAuditLogService
         sb.AppendLine($"<p>Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC</p>");
         sb.AppendLine($"<p>Total Records: {logs.Count}</p>");
         if (!string.IsNullOrEmpty(entityType))
+        {
             sb.AppendLine($"<p>Entity Type: {entityType}</p>");
+        }
         if (fromDate.HasValue || toDate.HasValue)
+        {
             sb.AppendLine($"<p>Date Range: {fromDate?.ToString("yyyy-MM-dd") ?? "N/A"} to {toDate?.ToString("yyyy-MM-dd") ?? "N/A"}</p>");
+        }
         sb.AppendLine("</div>");
 
         sb.AppendLine("<table>");
@@ -661,7 +699,9 @@ public class AuditLogService : IAuditLogService
     private static string? SerializeValues(Dictionary<string, object>? values)
     {
         if (values == null || values.Count == 0)
+        {
             return null;
+        }
 
         return JsonSerializer.Serialize(values, JsonOptions);
     }
@@ -669,7 +709,9 @@ public class AuditLogService : IAuditLogService
     private static Dictionary<string, object>? DeserializeValues(string? json)
     {
         if (string.IsNullOrEmpty(json))
+        {
             return null;
+        }
 
         try
         {
@@ -684,7 +726,9 @@ public class AuditLogService : IAuditLogService
     private static string EscapeCsv(string? value)
     {
         if (string.IsNullOrEmpty(value))
+        {
             return string.Empty;
+        }
 
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
         {

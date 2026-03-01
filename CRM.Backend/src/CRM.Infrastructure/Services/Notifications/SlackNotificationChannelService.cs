@@ -52,10 +52,14 @@ public class SlackNotificationChannelService : ISlackNotificationChannel
             };
 
             if (!string.IsNullOrEmpty(username))
+            {
                 payload["username"] = username;
+            }
 
             if (!string.IsNullOrEmpty(iconEmoji))
+            {
                 payload["icon_emoji"] = iconEmoji;
+            }
 
             if (_httpClientFactory != null)
             {

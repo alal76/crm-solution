@@ -350,7 +350,9 @@ public class MergeService : IMergeService
             .FirstOrDefaultAsync(g => g.Id == mergeGroupId && !g.IsDeleted);
 
         if (group == null)
+        {
             return null;
+        }
 
         return new MergeGroupInfo
         {
@@ -864,11 +866,15 @@ public class MergeService : IMergeService
         foreach (var fieldName in fieldNames)
         {
             if (!snapshot.TryGetProperty(fieldName, out var jsonValue))
+            {
                 continue;
+            }
 
             var property = entityType.GetProperty(fieldName);
             if (property == null || !property.CanWrite)
+            {
                 continue;
+            }
 
             try
             {
@@ -938,7 +944,9 @@ public class MergeService : IMergeService
         }
 
         if (relinked == null || relinked.Count == 0)
+        {
             return;
+        }
 
         switch (entityType)
         {
@@ -1122,7 +1130,9 @@ public class MergeService : IMergeService
         }
 
         if (fieldsUsed == null || fieldsUsed.Count == 0)
+        {
             return;
+        }
 
         object? masterEntity = entityType switch
         {
@@ -1184,7 +1194,9 @@ public class MergeService : IMergeService
         {
             var property = entityType.GetProperty(fieldName);
             if (property == null || !property.CanWrite)
+            {
                 continue;
+            }
 
             if (property.PropertyType == typeof(string) ||
                 Nullable.GetUnderlyingType(property.PropertyType) != null)
@@ -1200,7 +1212,9 @@ public class MergeService : IMergeService
     private static Task<int> CountRelinkedRecordsAsync(string? relinkedRecordsJson)
     {
         if (string.IsNullOrEmpty(relinkedRecordsJson))
+        {
             return Task.FromResult(0);
+        }
 
         try
         {
@@ -1409,7 +1423,9 @@ public class MergeService : IMergeService
         };
 
         if (record == null)
+        {
             return null;
+        }
 
         var property = record.GetType().GetProperty(fieldName);
         return property?.GetValue(record)?.ToString();
@@ -1431,7 +1447,9 @@ public class MergeService : IMergeService
         };
 
         if (record == null)
+        {
             return;
+        }
 
         var property = record.GetType().GetProperty(fieldName);
         if (property != null && property.CanWrite)

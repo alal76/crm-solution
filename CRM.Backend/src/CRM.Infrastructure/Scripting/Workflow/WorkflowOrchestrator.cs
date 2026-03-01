@@ -74,7 +74,9 @@ public class WorkflowOrchestrator
 
             // Bind step output into variable bag
             if (result.Success && result.Output != null)
+            {
                 context.Variables[$"steps.{step.Name}.output"] = result.Output;
+            }
 
             // SARCH-055: Register saga compensation after every successful, non-skipped step.
             // These are unwound in LIFO order if a later step fails.
@@ -149,7 +151,9 @@ public class WorkflowOrchestrator
     {
         var stateJson = await _stateStore.GetStringAsync($"workflow:instance:{instanceId}", ct);
         if (stateJson == null)
+        {
             return null;
+        }
 
         _logger.LogInformation("Replaying workflow instance {Id}", instanceId);
         return new WorkflowRunResult(true, instanceId, new List<StepResult>(), "Replayed from checkpoint");

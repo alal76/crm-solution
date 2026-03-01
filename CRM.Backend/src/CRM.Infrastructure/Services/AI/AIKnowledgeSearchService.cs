@@ -107,7 +107,9 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
     public async Task<IEnumerable<SemanticSearchResult>> SemanticSearchAsync(string query, int maxResults = 5, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(query))
+        {
             return Enumerable.Empty<SemanticSearchResult>();
+        }
 
         // Check if AI is enabled and available
         var aiPort = await GetAIPortAsync(ct);
@@ -256,11 +258,15 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
         {
             var isAIEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI);
             if (!isAIEnabled)
+            {
                 return null;
+            }
 
             var aiPort = _serviceProvider.GetService<IAIPort>();
             if (aiPort == null)
+            {
                 return null;
+            }
 
             var isAvailable = await aiPort.IsAvailableAsync(ct);
             return isAvailable ? aiPort : null;
@@ -278,7 +284,9 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
         // Embed the query
         var queryEmbedding = await aiPort.GetEmbeddingAsync(query, cancellationToken: ct);
         if (queryEmbedding.Embedding.Length == 0)
+        {
             return await KeywordSearchAsync(query, maxResults, ct);
+        }
 
         // Compute cosine similarity against all cached embeddings
         var results = new List<SemanticSearchResult>();
@@ -290,7 +298,9 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
 
             // Skip if embedding dimensions don't match
             if (articleEmbedding.Length != queryEmbedding.Embedding.Length)
+            {
                 continue;
+            }
 
             var similarity = CosineSimilarity(queryEmbedding.Embedding, articleEmbedding);
 
@@ -337,7 +347,9 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
     private static double CosineSimilarity(float[] a, float[] b)
     {
         if (a.Length != b.Length || a.Length == 0)
+        {
             return 0;
+        }
 
         double dotProduct = 0;
         double normA = 0;
@@ -358,7 +370,9 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
     {
         var parts = new List<string> { article.Title };
         if (!string.IsNullOrEmpty(article.ShortDescription))
+        {
             parts.Add(article.ShortDescription);
+        }
         parts.Add(article.ArticleBody);
         return string.Join(". ", parts);
     }
@@ -366,7 +380,9 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
     private static string GetSnippet(string body, int maxLength = 200)
     {
         if (string.IsNullOrEmpty(body))
+        {
             return string.Empty;
+        }
 
         return body.Length <= maxLength
             ? body

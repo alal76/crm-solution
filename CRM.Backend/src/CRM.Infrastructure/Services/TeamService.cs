@@ -107,7 +107,9 @@ public class TeamService : ITeamService
     {
         var team = await _context.Teams.FindAsync(new object[] { id }, cancellationToken);
         if (team == null)
+        {
             return false;
+        }
 
         team.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -160,7 +162,9 @@ public class TeamService : ITeamService
             .FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == userId && !m.IsDeleted, cancellationToken);
 
         if (member == null)
+        {
             return false;
+        }
 
         member.IsDeleted = true;
         member.EndDate = DateTime.UtcNow;
@@ -279,7 +283,9 @@ public class TeamService : ITeamService
             .FirstOrDefaultAsync(t => t.Id == territoryId && t.TeamId == teamId, cancellationToken);
 
         if (territory == null)
+        {
             return false;
+        }
 
         territory.TeamId = null;
         await _context.SaveChangesAsync(cancellationToken);
@@ -302,7 +308,9 @@ public class TeamService : ITeamService
             .FirstOrDefaultAsync(t => t.Id == territoryId, cancellationToken);
 
         if (territory?.TeamId == null)
+        {
             return null;
+        }
 
         return await GetByIdAsync(territory.TeamId.Value, cancellationToken);
     }
@@ -597,7 +605,9 @@ public class TeamService : ITeamService
     {
         var team = await GetByIdAsync(teamId, cancellationToken);
         if (team?.ParentTeamId == null)
+        {
             return null;
+        }
 
         return await GetByIdAsync(team.ParentTeamId.Value, cancellationToken);
     }

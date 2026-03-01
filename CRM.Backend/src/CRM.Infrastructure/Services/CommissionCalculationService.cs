@@ -47,14 +47,18 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, cancellationToken);
 
         if (opportunity == null)
+        {
             throw new InvalidOperationException($"Opportunity {opportunityId} not found");
+        }
 
         var plan = planId.HasValue
             ? await _context.CommissionPlans.FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken)
             : await GetDefaultPlanAsync(opportunity.SalesOwnerId ?? 0, cancellationToken);
 
         if (plan == null)
+        {
             throw new InvalidOperationException("No commission plan available for calculation");
+        }
 
         var amount = opportunity.Amount;
         var baseCommissionAmount = amount * plan.BaseRate / 100m;
@@ -89,14 +93,18 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
             .FirstOrDefaultAsync(o => o.Id == orderId && !o.IsDeleted, cancellationToken);
 
         if (order == null)
+        {
             throw new InvalidOperationException($"Order {orderId} not found");
+        }
 
         var plan = planId.HasValue
             ? await _context.CommissionPlans.FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken)
             : await GetDefaultPlanAsync(order.UserId ?? 0, cancellationToken);
 
         if (plan == null)
+        {
             throw new InvalidOperationException("No commission plan available for calculation");
+        }
 
         var amount = order.TotalAmount;
         var baseCommissionAmount = amount * plan.BaseRate / 100;
@@ -160,7 +168,9 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
     {
         // Accelerator: if achievement > 100%, add bonus rate
         if (achievementPercent <= 100)
+        {
             return baseAmount;
+        }
 
         var bonusPercentage = (achievementPercent - 100) * 0.1m; // 0.1% additional commission per 1% over target
         var bonusAmount = baseAmount * bonusPercentage / 100;

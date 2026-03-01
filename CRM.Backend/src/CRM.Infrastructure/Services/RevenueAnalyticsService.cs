@@ -61,20 +61,28 @@ public class RevenueAnalyticsService : IRevenueAnalyticsService
         var query = _dbContext.RevenueSnapshots.Where(s => !s.IsDeleted);
 
         if (from.HasValue)
+        {
             query = query.Where(s => s.SnapshotDate >= from.Value);
+        }
         if (to.HasValue)
+        {
             query = query.Where(s => s.SnapshotDate <= to.Value);
+        }
 
         var snapshots = await query.OrderBy(s => s.SnapshotDate).ToListAsync(ct);
 
         if (snapshots.Count < 2)
+        {
             return 0m;
+        }
 
         var totalChurned = snapshots.Sum(s => s.ChurnedCustomers);
         var previousCustomers = snapshots.First().CustomerCount;
 
         if (previousCustomers == 0)
+        {
             return 0m;
+        }
 
         return Math.Round((decimal)totalChurned / previousCustomers * 100m, 2);
     }
@@ -85,9 +93,13 @@ public class RevenueAnalyticsService : IRevenueAnalyticsService
         var query = _dbContext.RevenueSnapshots.Where(s => !s.IsDeleted);
 
         if (from.HasValue)
+        {
             query = query.Where(s => s.SnapshotDate >= from.Value);
+        }
         if (to.HasValue)
+        {
             query = query.Where(s => s.SnapshotDate <= to.Value);
+        }
 
         var snapshots = await query.OrderBy(s => s.SnapshotDate).ToListAsync(ct);
 

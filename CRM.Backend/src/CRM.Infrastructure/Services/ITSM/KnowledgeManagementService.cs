@@ -98,7 +98,9 @@ public class KnowledgeManagementService : IKnowledgeManagementService
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
 
         if (article == null || article.IsDeleted)
+        {
             throw new KeyNotFoundException($"Article {articleId} not found");
+        }
 
         article.Title = dto.Title;
         article.ShortDescription = dto.ShortDescription;
@@ -120,7 +122,9 @@ public class KnowledgeManagementService : IKnowledgeManagementService
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
 
         if (article == null || article.IsDeleted)
+        {
             return false;
+        }
 
         article.PublishingState = PublishingState.Published;
         article.PublishedById = publisherId;
@@ -139,7 +143,9 @@ public class KnowledgeManagementService : IKnowledgeManagementService
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
 
         if (article == null || article.IsDeleted)
+        {
             return false;
+        }
 
         article.PublishingState = PublishingState.Retired;
         article.ModifiedAt = DateTime.UtcNow;
@@ -169,9 +175,13 @@ public class KnowledgeManagementService : IKnowledgeManagementService
         if (article != null)
         {
             if (isHelpful)
+            {
                 article.HelpfulCount++;
+            }
             else
+            {
                 article.NotHelpfulCount++;
+            }
         }
 
         await context.SaveChangesAsync();
@@ -359,13 +369,17 @@ public class KnowledgeManagementService : IKnowledgeManagementService
             .FirstOrDefaultAsync(a => a.ArticleId == articleId && !a.IsDeleted);
 
         if (article == null)
+        {
             return null;
+        }
 
         var version = await context.Set<ArticleVersion>()
             .FirstOrDefaultAsync(v => v.Id == versionId && v.ArticleId == articleId);
 
         if (version == null)
+        {
             return null;
+        }
 
         // Save current state as a new version before restoring
         var currentVersion = new ArticleVersion

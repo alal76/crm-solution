@@ -76,28 +76,50 @@ public class ModuleFieldConfigurationService
     {
         var entity = await _context.ModuleFieldConfigurations.FindAsync(id);
         if (entity == null)
+        {
             return null;
+        }
 
         if (dto.FieldLabel != null)
+        {
             entity.FieldLabel = dto.FieldLabel;
+        }
         if (dto.TabIndex.HasValue)
+        {
             entity.TabIndex = dto.TabIndex.Value;
+        }
         if (dto.TabName != null)
+        {
             entity.TabName = dto.TabName;
+        }
         if (dto.DisplayOrder.HasValue)
+        {
             entity.DisplayOrder = dto.DisplayOrder.Value;
+        }
         if (dto.IsEnabled.HasValue)
+        {
             entity.IsEnabled = dto.IsEnabled.Value;
+        }
         if (dto.IsRequired.HasValue)
+        {
             entity.IsRequired = dto.IsRequired.Value;
+        }
         if (dto.GridSize.HasValue)
+        {
             entity.GridSize = dto.GridSize.Value;
+        }
         if (dto.Placeholder != null)
+        {
             entity.Placeholder = dto.Placeholder;
+        }
         if (dto.HelpText != null)
+        {
             entity.HelpText = dto.HelpText;
+        }
         if (dto.Options != null)
+        {
             entity.Options = dto.Options;
+        }
 
         await _context.SaveChangesAsync();
 
@@ -109,7 +131,9 @@ public class ModuleFieldConfigurationService
     {
         var entity = await _context.ModuleFieldConfigurations.FindAsync(id);
         if (entity == null)
+        {
             return false;
+        }
 
         _context.ModuleFieldConfigurations.Remove(entity);
         await _context.SaveChangesAsync();

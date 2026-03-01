@@ -49,7 +49,9 @@ public class AutoAssignmentService : IAutoAssignmentService
         {
             var suggestion = await SuggestAssignmentAsync(serviceRequestId, ct);
             if (!suggestion.Success || suggestion.AssignedUserId == null)
+            {
                 return suggestion;
+            }
 
             // Apply the assignment
             var sr = await _dbContext.ServiceRequests
@@ -177,7 +179,9 @@ public class AutoAssignmentService : IAutoAssignmentService
     {
         var agents = await GetActiveAgentsAsync(ct);
         if (agents.Count == 0)
+        {
             return null;
+        }
 
         int index;
         if (queueId.HasValue)
@@ -205,11 +209,15 @@ public class AutoAssignmentService : IAutoAssignmentService
             .FirstOrDefaultAsync(s => s.Id == serviceRequestId && !s.IsDeleted, ct);
 
         if (sr == null)
+        {
             return null;
+        }
 
         var agents = await GetActiveAgentsAsync(ct);
         if (agents.Count == 0)
+        {
             return null;
+        }
 
         // Find rules that match and have required skills defined
         var matchingRule = FindMatchingRule(sr);
@@ -232,7 +240,9 @@ public class AutoAssignmentService : IAutoAssignmentService
         }
 
         if (requiredSkills.Count == 0)
+        {
             return await GetNextRoundRobinAgentAsync(null, ct);
+        }
 
         // Match agents by role — Support agents are preferred for support categories
         // A more advanced implementation would check a user skills table
@@ -267,7 +277,9 @@ public class AutoAssignmentService : IAutoAssignmentService
     {
         var agents = await GetActiveAgentsAsync(ct);
         if (agents.Count == 0)
+        {
             return null;
+        }
 
         var agentLoads = new List<(User Agent, int OpenCount)>();
         foreach (var agent in agents)
@@ -313,7 +325,9 @@ public class AutoAssignmentService : IAutoAssignmentService
     public Task<AssignmentRuleDto> CreateRuleAsync(CreateAssignmentRuleDto dto, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
+        {
             throw new ArgumentException("Rule name is required", nameof(dto));
+        }
 
         // Validate strategy value
         var validStrategies = new[] { "RoundRobin", "SkillBased", "LeastLoaded" };
@@ -345,7 +359,9 @@ public class AutoAssignmentService : IAutoAssignmentService
     public Task<AssignmentRuleDto?> UpdateRuleAsync(int id, UpdateAssignmentRuleDto dto, CancellationToken ct = default)
     {
         if (!_rules.TryGetValue(id, out var existing))
+        {
             return Task.FromResult<AssignmentRuleDto?>(null);
+        }
 
         if (dto.Name != null) existing.Name = dto.Name;
         if (dto.Strategy != null)
@@ -371,7 +387,9 @@ public class AutoAssignmentService : IAutoAssignmentService
     {
         var removed = _rules.TryRemove(id, out _);
         if (removed)
+        {
             _logger.LogInformation("Deleted assignment rule {RuleId}", id);
+        }
         return Task.FromResult(removed);
     }
 
@@ -404,7 +422,9 @@ public class AutoAssignmentService : IAutoAssignmentService
         foreach (var rule in activeRules)
         {
             if (RuleMatchesServiceRequest(rule, sr))
+            {
                 return rule;
+            }
         }
 
         return null;
@@ -420,7 +440,9 @@ public class AutoAssignmentService : IAutoAssignmentService
         {
             var categoryId = sr.CategoryId?.ToString() ?? string.Empty;
             if (!rule.CategoryFilter.Equals(categoryId, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
+            }
         }
 
         // Priority filter: if set, SR priority must match
@@ -428,7 +450,9 @@ public class AutoAssignmentService : IAutoAssignmentService
         {
             var priorityStr = sr.Priority.ToString();
             if (!rule.PriorityFilter.Equals(priorityStr, StringComparison.OrdinalIgnoreCase))
+            {
                 return false;
+            }
         }
 
         return true;

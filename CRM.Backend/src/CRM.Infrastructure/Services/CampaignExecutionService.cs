@@ -85,9 +85,13 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         var workflow = await _context.WorkflowDefinitions.FindAsync(workflowDefinitionId);
 
         if (campaign == null)
+        {
             throw new ArgumentException("Campaign not found");
+        }
         if (workflow == null)
+        {
             throw new ArgumentException("Workflow not found");
+        }
 
         // Check for existing link
         var existingLink = await _context.CampaignWorkflows
@@ -98,7 +102,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
                 !cw.IsDeleted);
 
         if (existingLink != null)
+        {
             throw new InvalidOperationException("This workflow is already linked to the campaign with the same trigger");
+        }
 
         var campaignWorkflow = new CampaignWorkflow
         {
@@ -134,16 +140,26 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     {
         var campaignWorkflow = await _context.CampaignWorkflows.FindAsync(id);
         if (campaignWorkflow == null || campaignWorkflow.IsDeleted)
+        {
             return null;
+        }
 
         if (isActive.HasValue)
+        {
             campaignWorkflow.IsActive = isActive.Value;
+        }
         if (triggerConditions != null)
+        {
             campaignWorkflow.TriggerConditions = triggerConditions;
+        }
         if (maxExecutionsPerContact.HasValue)
+        {
             campaignWorkflow.MaxExecutionsPerContact = maxExecutionsPerContact.Value;
+        }
         if (cooldownHours.HasValue)
+        {
             campaignWorkflow.CooldownHours = cooldownHours.Value;
+        }
 
         await _context.SaveChangesAsync();
 
@@ -157,7 +173,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     {
         var campaignWorkflow = await _context.CampaignWorkflows.FindAsync(campaignWorkflowId);
         if (campaignWorkflow == null)
+        {
             return false;
+        }
 
         campaignWorkflow.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -179,7 +197,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             .FirstOrDefaultAsync(c => c.Id == campaignId);
 
         if (campaign == null)
+        {
             throw new ArgumentException("Campaign not found");
+        }
 
         if (campaign.Status != CampaignStatus.Scheduled)
         {
@@ -251,7 +271,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             .Where(r => r.CampaignId == campaignId && !r.IsDeleted);
 
         if (specificContactId.HasValue)
+        {
             query = query.Where(r => r.ContactId == specificContactId.Value);
+        }
 
         var recipients = await query.ToListAsync();
         var triggeredCount = 0;
@@ -259,11 +281,15 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         foreach (var recipient in recipients)
         {
             if (!recipient.ContactId.HasValue)
+            {
                 continue;
+            }
 
             // Check execution limits
             if (!await CanExecuteWorkflowForRecipientAsync(campaignWorkflow, recipient.ContactId.Value))
+            {
                 continue;
+            }
 
             // Create workflow instance
             var contextData = new Dictionary<string, object>
@@ -311,7 +337,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
 
         // Check max executions
         if (executions.Count >= campaignWorkflow.MaxExecutionsPerContact)
+        {
             return false;
+        }
 
         // Check cooldown
         var lastExecution = executions.FirstOrDefault();
@@ -319,7 +347,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         {
             var cooldownEnd = lastExecution.CreatedAt.AddHours(campaignWorkflow.CooldownHours);
             if (DateTime.UtcNow < cooldownEnd)
+            {
                 return false;
+            }
         }
 
         return true;
@@ -348,7 +378,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             if (!string.IsNullOrEmpty(workflow.TriggerConditions))
             {
                 if (!EvaluateTriggerConditions(workflow.TriggerConditions, eventData))
+                {
                     continue;
+                }
             }
 
             await TriggerWorkflowForCampaignAsync(campaignId, workflow.WorkflowDefinitionId, eventType, contactId);
@@ -361,22 +393,30 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     private bool EvaluateTriggerConditions(string conditions, Dictionary<string, object>? eventData)
     {
         if (eventData == null)
+        {
             return false;
+        }
 
         try
         {
             var conditionObj = JsonSerializer.Deserialize<Dictionary<string, object>>(conditions);
             if (conditionObj == null)
+            {
                 return true;
+            }
 
             foreach (var condition in conditionObj)
             {
                 if (!eventData.TryGetValue(condition.Key, out var value))
+                {
                     return false;
+                }
 
                 // Simple equality check - can be extended for complex conditions
                 if (value?.ToString() != condition.Value?.ToString())
+                {
                     return false;
+                }
             }
 
             return true;
@@ -409,7 +449,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             .Where(r => r.CampaignId == campaignId && !r.IsDeleted);
 
         if (!string.IsNullOrEmpty(status))
+        {
             query = query.Where(r => r.Status == status);
+        }
 
         if (hasOpened is true)
         {
@@ -455,7 +497,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     {
         var recipient = await _context.CampaignRecipients.FindAsync(recipientId);
         if (recipient == null || recipient.IsDeleted)
+        {
             return;
+        }
 
         recipient.OpenCount++;
         recipient.LastOpenedAt = DateTime.UtcNow;
@@ -488,7 +532,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     {
         var recipient = await _context.CampaignRecipients.FindAsync(recipientId);
         if (recipient == null || recipient.IsDeleted)
+        {
             throw new ArgumentException("Recipient not found");
+        }
 
         recipient.ClickCount++;
         recipient.LastClickedAt = DateTime.UtcNow;
@@ -542,7 +588,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             .FirstOrDefaultAsync(r => r.Id == recipientId);
 
         if (recipient == null || recipient.IsDeleted)
+        {
             throw new ArgumentException("Recipient not found");
+        }
 
         if (recipient.ConvertedAt == null)
         {
@@ -656,10 +704,14 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     {
         var test = await _context.CampaignABTests.FindAsync(testId);
         if (test == null || test.IsDeleted)
+        {
             return false;
+        }
 
         if (test.Status != "Draft")
+        {
             return false;
+        }
 
         test.Status = "Running";
         test.TestStartedAt = DateTime.UtcNow;
@@ -675,13 +727,19 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     {
         var test = await _context.CampaignABTests.FindAsync(testId);
         if (test == null || test.IsDeleted)
+        {
             return false;
+        }
 
         if (test.Status != "Running")
+        {
             return false;
+        }
 
         if (string.IsNullOrEmpty(winningVariant) || !new[] { "A", "B", "C" }.Contains(winningVariant.ToUpper()))
+        {
             throw new ArgumentException("Invalid winning variant. Must be A, B, or C.");
+        }
 
         test.Status = "Completed";
         test.WinnerVariant = winningVariant.ToUpper();
@@ -701,15 +759,21 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     {
         var test = await _context.CampaignABTests.FindAsync(testId);
         if (test == null || test.Status != "Running")
+        {
             throw new InvalidOperationException("A/B test is not running");
+        }
 
         var recipient = await _context.CampaignRecipients.FindAsync(recipientId);
         if (recipient == null)
+        {
             throw new ArgumentException("Recipient not found");
+        }
 
         // Already assigned?
         if (!string.IsNullOrEmpty(recipient.ABTestVariant))
+        {
             return recipient.ABTestVariant;
+        }
 
         // Randomly assign based on traffic split
         int splitA = 50;
@@ -719,7 +783,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             {
                 var split = JsonSerializer.Deserialize<Dictionary<string, int>>(test.TrafficSplit);
                 if (split != null && split.TryGetValue("A", out var aPercent))
+                {
                     splitA = aPercent;
+                }
             }
             catch (Exception ex) { _logger.LogDebug(ex, "Failed to deserialize AB test traffic split, using default 50/50"); }
         }
@@ -742,7 +808,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     {
         var campaign = await _context.MarketingCampaigns.FindAsync(campaignId);
         if (campaign == null)
+        {
             throw new ArgumentException("Campaign not found");
+        }
 
         var recipients = await _context.CampaignRecipients
             .Where(r => r.CampaignId == campaignId && !r.IsDeleted)
@@ -802,7 +870,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             throw new InvalidOperationException($"Campaign {campaignId} not found");
+        }
 
         // Stub implementation - returns basic success result
         return new CampaignExecutionResultDto
@@ -830,7 +900,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             return false;
+        }
 
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
@@ -849,7 +921,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             return false;
+        }
 
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
@@ -868,7 +942,9 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             return false;
+        }
 
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);

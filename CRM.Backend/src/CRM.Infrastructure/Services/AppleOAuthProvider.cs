@@ -157,7 +157,9 @@ public class AppleOAuthProvider
         try
         {
             if (string.IsNullOrEmpty(_options.PrivateKey))
+            {
                 throw new InvalidOperationException("Apple private key is not configured");
+            }
 
             var header = new JwtHeader(
                 new SigningCredentials(
@@ -244,9 +246,13 @@ public class AppleOAuthProvider
 
             var success = response.IsSuccessStatusCode;
             if (success)
+            {
                 _logger.LogInformation("Successfully revoked Apple access token");
+            }
             else
+            {
                 _logger.LogWarning($"Failed to revoke Apple token: {response.StatusCode}");
+            }
 
             return success;
         }
@@ -306,13 +312,21 @@ public class AppleOAuthOptions
     public void Validate()
     {
         if (string.IsNullOrEmpty(ClientId))
+        {
             throw new InvalidOperationException("Apple ClientId is required");
+        }
         if (string.IsNullOrEmpty(TeamId))
+        {
             throw new InvalidOperationException("Apple TeamId is required");
+        }
         if (string.IsNullOrEmpty(KeyId))
+        {
             throw new InvalidOperationException("Apple KeyId is required");
+        }
         if (string.IsNullOrEmpty(PrivateKey))
+        {
             throw new InvalidOperationException("Apple PrivateKey is required");
+        }
     }
 }
 

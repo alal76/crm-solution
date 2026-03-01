@@ -120,22 +120,38 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (rule == null)
+            {
                 return null;
+            }
 
             if (!string.IsNullOrEmpty(dto.Name))
+            {
                 rule.Name = dto.Name;
+            }
             if (dto.RuleType.HasValue)
+            {
                 rule.Type = dto.RuleType.Value;
+            }
             if (dto.Rate.HasValue)
+            {
                 rule.BaseRate = dto.Rate.Value;
+            }
             if (dto.MinAmount.HasValue)
+            {
                 rule.MinAmount = dto.MinAmount;
+            }
             if (dto.MaxAmount.HasValue)
+            {
                 rule.MaxAmount = dto.MaxAmount;
+            }
             if (!string.IsNullOrEmpty(dto.Description))
+            {
                 rule.Description = dto.Description;
+            }
             if (dto.IsActive.HasValue)
+            {
                 rule.IsActive = dto.IsActive.Value;
+            }
 
 
             _context.CommissionRules.Update(rule);
@@ -160,7 +176,9 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (rule == null)
+            {
                 return false;
+            }
 
             rule.IsDeleted = true;
 
@@ -262,28 +280,50 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (rule == null)
+            {
                 return null;
+            }
 
             if (!string.IsNullOrEmpty(dto.Name))
+            {
                 rule.Name = dto.Name;
+            }
             if (dto.Type.HasValue)
+            {
                 rule.DiscountType = dto.Type.Value;
+            }
             if (dto.Value.HasValue)
+            {
                 rule.DiscountValue = dto.Value.Value;
+            }
             if (dto.MinOrderAmount.HasValue)
+            {
                 rule.MinOrderAmount = dto.MinOrderAmount;
+            }
             if (dto.MinQuantity.HasValue)
+            {
                 rule.MinQuantity = dto.MinQuantity;
+            }
             if (dto.MaxDiscount.HasValue)
+            {
                 rule.MaxDiscountValue = dto.MaxDiscount;
+            }
             if (dto.EffectiveDate.HasValue)
+            {
                 rule.ValidFrom = dto.EffectiveDate.Value;
+            }
             if (dto.ExpiryDate.HasValue)
+            {
                 rule.ValidUntil = dto.ExpiryDate;
+            }
             if (dto.IsActive.HasValue)
+            {
                 rule.IsActive = dto.IsActive.Value;
+            }
             if (dto.IsCumulative.HasValue)
+            {
                 rule.CumulativeWithOther = dto.IsCumulative.Value;
+            }
 
 
             _context.DiscountRules.Update(rule);
@@ -308,7 +348,9 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (rule == null)
+            {
                 return false;
+            }
 
             rule.IsDeleted = true;
 
@@ -403,24 +445,42 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (policy == null)
+            {
                 return null;
+            }
 
             if (!string.IsNullOrEmpty(request.Name))
+            {
                 policy.Name = request.Name;
+            }
             if (!string.IsNullOrEmpty(request.Description))
+            {
                 policy.Description = request.Description;
+            }
             if (!string.IsNullOrEmpty(request.Priority))
+            {
                 policy.Priority = Enum.Parse<ServicePriority>(request.Priority);
+            }
             if (request.InitialResponseTimeMinutes.HasValue)
+            {
                 policy.InitialResponseTimeMinutes = request.InitialResponseTimeMinutes.Value;
+            }
             if (request.ResolutionTimeMinutes.HasValue)
+            {
                 policy.ResolutionTimeMinutes = request.ResolutionTimeMinutes.Value;
+            }
             if (request.WorkingHoursOnly.HasValue)
+            {
                 policy.WorkingHoursOnly = request.WorkingHoursOnly.Value;
+            }
             if (request.EscalationPathUserIds != null)
+            {
                 policy.EscalationPath = JsonSerializer.Serialize(request.EscalationPathUserIds);
+            }
             if (request.IsActive.HasValue)
+            {
                 policy.IsActive = request.IsActive.Value;
+            }
 
 
             _context.SLAPolicies.Update(policy);
@@ -445,7 +505,9 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (policy == null)
+            {
                 return false;
+            }
 
             policy.IsDeleted = true;
 
@@ -545,19 +607,31 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (rule == null)
+            {
                 return null;
+            }
 
             if (!string.IsNullOrEmpty(request.Name))
+            {
                 rule.Name = request.Name;
+            }
             if (!string.IsNullOrEmpty(request.Description))
+            {
                 rule.Description = request.Description;
+            }
             // TODO: ITSM.EscalationRule uses Conditions/Priority/AgeInMinutes instead of Condition/ConditionMetric/ThresholdValue // NOSONAR
             if (!string.IsNullOrEmpty(request.Condition))
+            {
                 rule.Conditions = request.Condition;
+            }
             if (!string.IsNullOrEmpty(request.ConditionMetric))
+            {
                 rule.Priority = request.ConditionMetric;
+            }
             if (request.ThresholdValue.HasValue)
+            {
                 rule.AgeInMinutes = request.ThresholdValue.Value;
+            }
             if (request.EscalateToUserId.HasValue)
             {
                 rule.TargetId = request.EscalateToUserId;
@@ -570,7 +644,9 @@ public class AdminConfigurationService : IAdminConfigurationService
             }
             // TODO: SendNotification not available on ITSM.EscalationRule - skipped // NOSONAR
             if (request.IsActive.HasValue)
+            {
                 rule.IsActive = request.IsActive.Value;
+            }
 
 
             _context.ITSMEscalationRules.Update(rule);
@@ -595,7 +671,9 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (rule == null)
+            {
                 return false;
+            }
 
             rule.IsDeleted = true;
 
@@ -695,12 +773,18 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (queue == null)
+            {
                 return null;
+            }
 
             if (!string.IsNullOrEmpty(request.Name))
+            {
                 queue.Name = request.Name;
+            }
             if (!string.IsNullOrEmpty(request.Description))
+            {
                 queue.Description = request.Description;
+            }
             // TODO: ITSM.ServiceQueue lacks RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements, DisplayOrder. // NOSONAR
             // Update the RoutingConfiguration JSON field with any changed extended properties.
             if (request.RoutingType != null || request.AssignedUserIds != null ||
@@ -718,7 +802,9 @@ public class AdminConfigurationService : IAdminConfigurationService
                 queue.RoutingConfiguration = JsonSerializer.Serialize(existingConfig);
             }
             if (request.IsActive.HasValue)
+            {
                 queue.IsActive = request.IsActive.Value;
+            }
 
 
             _context.ServiceQueues.Update(queue);
@@ -743,7 +829,9 @@ public class AdminConfigurationService : IAdminConfigurationService
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (queue == null)
+            {
                 return false;
+            }
 
             queue.IsDeleted = true;
 
@@ -927,7 +1015,9 @@ public class AdminConfigurationService : IAdminConfigurationService
         // Extract DisplayOrder, RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements from JSON.
         System.Text.Json.JsonElement? config = null;
         if (!string.IsNullOrEmpty(entity.RoutingConfiguration))
+        {
             config = JsonSerializer.Deserialize<System.Text.Json.JsonElement>(entity.RoutingConfiguration);
+        }
         return new ServiceQueueDto
         {
             Id = entity.Id,

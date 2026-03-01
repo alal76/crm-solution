@@ -286,13 +286,19 @@ public partial class SystemConfigurationService : ISystemConfigurationService
     private static void ValidateEmailConfig(EmailServerConfigDto config)
     {
         if (string.IsNullOrWhiteSpace(config.SmtpServer))
+        {
             throw new ArgumentException("SMTP server address is required.", nameof(config));
+        }
 
         if (config.SmtpPort < 1 || config.SmtpPort > 65535)
+        {
             throw new ArgumentException($"SMTP port must be between 1 and 65535. Got: {config.SmtpPort}", nameof(config));
+        }
 
         if (!string.IsNullOrWhiteSpace(config.FromEmail) && !EmailRegex().IsMatch(config.FromEmail))
+        {
             throw new ArgumentException($"Invalid email format: {config.FromEmail}", nameof(config));
+        }
     }
 
     private static List<string> ValidateRequiredCredentials(

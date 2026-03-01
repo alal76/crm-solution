@@ -211,7 +211,9 @@ public class RedisStreamService : IRedisStreamService
         CancellationToken cancellationToken = default)
     {
         if (_redis == null || !_redis.IsConnected)
+        {
             return Enumerable.Empty<StreamPendingMessageInfo>();
+        }
 
         var db = _redis.GetDatabase();
         var pending = await db.StreamPendingMessagesAsync(

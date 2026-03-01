@@ -38,7 +38,9 @@ public class ProblemManagementService : IProblemManagementService
         _logger.LogInformation("Creating new problem: {ShortDescription}", dto.ShortDescription);
 
         if (string.IsNullOrWhiteSpace(dto.ShortDescription))
+        {
             throw new ValidationException(nameof(dto.ShortDescription), "Short description is required");
+        }
 
         var problem = new Problem
         {
@@ -60,7 +62,9 @@ public class ProblemManagementService : IProblemManagementService
                 .ToListAsync(cancellationToken);
 
             if (!incidents.Any())
+            {
                 throw new ValidationException("incidents", "No valid incidents found for the provided IDs");
+            }
 
             problem.ProblemIncidents = new List<ProblemIncident>();
             foreach (var incident in incidents)
@@ -95,7 +99,9 @@ public class ProblemManagementService : IProblemManagementService
             .FirstOrDefaultAsync(p => p.ProblemId == problemId && !p.IsDeleted, cancellationToken);
 
         if (problem == null)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         return await MapToDto(problem, cancellationToken);
     }
@@ -112,16 +118,24 @@ public class ProblemManagementService : IProblemManagementService
 
         // Apply filters
         if (!string.IsNullOrEmpty(filter.SearchTerm))
+        {
             query = query.Where(p => p.Number.Contains(filter.SearchTerm) || p.ShortDescription.Contains(filter.SearchTerm));
+        }
 
         if (filter.State.HasValue)
+        {
             query = query.Where(p => p.State == filter.State.Value);
+        }
 
         if (filter.Priority.HasValue)
+        {
             query = query.Where(p => p.Priority == filter.Priority.Value);
+        }
 
         if (filter.KnownError.HasValue)
+        {
             query = query.Where(p => p.KnownError == filter.KnownError.Value);
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
@@ -146,31 +160,49 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (!string.IsNullOrEmpty(dto.ShortDescription))
+        {
             problem.ShortDescription = dto.ShortDescription;
+        }
 
         if (dto.Description != null)
+        {
             problem.Description = dto.Description;
+        }
 
         if (dto.State.HasValue)
+        {
             problem.State = dto.State.Value;
+        }
 
         if (!string.IsNullOrEmpty(dto.RootCause))
+        {
             problem.RootCause = dto.RootCause;
+        }
 
         if (!string.IsNullOrEmpty(dto.Workaround))
+        {
             problem.Workaround = dto.Workaround;
+        }
 
         if (!string.IsNullOrEmpty(dto.Solution))
+        {
             problem.Solution = dto.Solution;
+        }
 
         if (dto.KnownError.HasValue)
+        {
             problem.KnownError = dto.KnownError.Value;
+        }
 
         if (dto.ProblemInvestigatorId.HasValue)
+        {
             problem.ProblemInvestigatorId = dto.ProblemInvestigatorId.Value;
+        }
 
         problem.ModifiedAt = DateTime.UtcNow;
 
@@ -187,7 +219,9 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         problem.IsDeleted = true;
         problem.ModifiedAt = DateTime.UtcNow;
@@ -203,14 +237,18 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         var incidents = await _dbContext.Incidents
             .Where(i => incidentIds.Contains(i.IncidentId) && !i.IsDeleted)
             .ToListAsync(cancellationToken);
 
         if (!incidents.Any())
+        {
             throw new ValidationException("incidents", "No valid incidents found");
+        }
 
         foreach (var incident in incidents)
         {
@@ -241,7 +279,9 @@ public class ProblemManagementService : IProblemManagementService
             .FirstOrDefaultAsync(pi => pi.ProblemId == problemId && pi.IncidentId == incidentId, cancellationToken);
 
         if (relation == null)
+        {
             throw new EntityNotFoundException("ProblemIncident relation");
+        }
 
         _dbContext.ProblemIncidents.Remove(relation);
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -258,7 +298,9 @@ public class ProblemManagementService : IProblemManagementService
             .FirstOrDefaultAsync(p => p.ProblemId == problemId && !p.IsDeleted, cancellationToken);
 
         if (problem == null)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         var incidents = problem.ProblemIncidents?
             .Where(pi => pi.Incident != null && !pi.Incident.IsDeleted)
@@ -274,10 +316,14 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (string.IsNullOrEmpty(problem.RootCause))
+        {
             throw new BusinessRuleException("KnownError", "Root cause analysis must be completed before marking as known error");
+        }
 
         problem.KnownError = true;
         problem.KnownErrorDate = DateTime.UtcNow;
@@ -295,13 +341,19 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (string.IsNullOrWhiteSpace(dto.RootCause))
+        {
             throw new ValidationException(nameof(dto.RootCause), "Root cause is required");
+        }
 
         if (string.IsNullOrWhiteSpace(dto.Solution))
+        {
             throw new ValidationException(nameof(dto.Solution), "Solution is required");
+        }
 
         problem.RootCause = dto.RootCause;
         problem.Workaround = dto.Workaround;
@@ -326,10 +378,14 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (problem.State != ProblemState.Resolved && problem.State != ProblemState.KnownError)
+        {
             throw new BusinessRuleException("CloseProblem", "Only resolved or known error problems can be closed");
+        }
 
         problem.State = ProblemState.Closed;
         problem.ClosedAt = DateTime.UtcNow;
@@ -356,10 +412,14 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (problem.State != ProblemState.Closed && problem.State != ProblemState.Resolved)
+        {
             throw new BusinessRuleException("ReopenProblem", "Only closed or resolved problems can be reopened");
+        }
 
         problem.State = ProblemState.Investigating;
         problem.ModifiedAt = DateTime.UtcNow;
@@ -389,14 +449,18 @@ public class ProblemManagementService : IProblemManagementService
         List<int> incidentIds, int createdById, CancellationToken cancellationToken = default)
     {
         if (!incidentIds.Any())
+        {
             throw new ValidationException(nameof(incidentIds), "At least one incident ID is required");
+        }
 
         var incidents = await _dbContext.Incidents
             .Where(i => incidentIds.Contains(i.IncidentId) && !i.IsDeleted)
             .ToListAsync(cancellationToken);
 
         if (!incidents.Any())
+        {
             throw new ValidationException(nameof(incidentIds), "No valid incidents found");
+        }
 
         var analysis = new ProblemRootCauseAnalysisDto
         {
@@ -416,10 +480,14 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (string.IsNullOrWhiteSpace(rootCause))
+        {
             throw new ValidationException(nameof(rootCause), "Root cause cannot be empty");
+        }
 
         problem.RootCause = rootCause;
         problem.Workaround = workaround;
@@ -440,10 +508,14 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (string.IsNullOrWhiteSpace(workaround))
+        {
             throw new ValidationException(nameof(workaround), "Workaround cannot be empty");
+        }
 
         problem.Workaround = workaround;
         problem.ModifiedAt = DateTime.UtcNow;
@@ -462,7 +534,9 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         problem.FiveWhysAnalysis = analysisDto.FiveWhysAnalysis;
         problem.FishboneAnalysis = analysisDto.FishboneAnalysis;
@@ -483,10 +557,14 @@ public class ProblemManagementService : IProblemManagementService
         var query = _dbContext.Problems.Where(p => !p.IsDeleted);
 
         if (fromDate.HasValue)
+        {
             query = query.Where(p => p.CreatedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(p => p.CreatedAt <= toDate.Value);
+        }
 
         var problems = await query.ToListAsync(cancellationToken);
 
@@ -518,10 +596,14 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (string.IsNullOrEmpty(problem.Solution))
+        {
             throw new BusinessRuleException("CreateArticle", "Problem must have a solution before creating knowledge article");
+        }
 
         // Create knowledge article
         var article = new KnowledgeArticle
@@ -559,7 +641,9 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         var task = new ProblemTask
         {
@@ -596,7 +680,9 @@ public class ProblemManagementService : IProblemManagementService
         var task = await _dbContext.ProblemTasks.FindAsync(new object[] { taskId }, cancellationToken: cancellationToken);
 
         if (task == null || task.IsDeleted)
+        {
             throw new EntityNotFoundException("ProblemTask", taskId);
+        }
 
         task.IsCompleted = true;
         task.CompletedAt = DateTime.UtcNow;
@@ -615,7 +701,9 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         var comment = new ProblemComment
         {
@@ -653,16 +741,24 @@ public class ProblemManagementService : IProblemManagementService
         var problem = await _dbContext.Problems.FindAsync(new object[] { problemId }, cancellationToken: cancellationToken);
 
         if (problem == null || problem.IsDeleted)
+        {
             throw new EntityNotFoundException(nameof(Problem), problemId);
+        }
 
         if (dto.ProblemInvestigatorId.HasValue)
+        {
             problem.ProblemInvestigatorId = dto.ProblemInvestigatorId.Value;
+        }
 
         if (dto.ProblemManagerId.HasValue)
+        {
             problem.ProblemManagerId = dto.ProblemManagerId.Value;
+        }
 
         if (dto.AssignmentGroupId.HasValue)
+        {
             problem.AssignmentGroupId = dto.AssignmentGroupId.Value;
+        }
 
         problem.State = ProblemState.Investigating;
         problem.ModifiedAt = DateTime.UtcNow;

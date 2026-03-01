@@ -238,7 +238,9 @@ public class ContractExportService : IContractExportService
     private static string EscapeRtf(string text)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return "";
+        }
 
         return text
             .Replace("\\", "\\\\")

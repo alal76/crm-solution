@@ -119,10 +119,10 @@ public class ContractsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateContractRequest request, CancellationToken cancellationToken = default)
     {
-                if (!ModelState.IsValid)
-                {
+        if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
-                }
+        }
 
         var contract = new Contract
         {
@@ -636,10 +636,10 @@ public class ContractsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Search([FromQuery] string q = "", CancellationToken cancellationToken = default)
     {
-                if (string.IsNullOrWhiteSpace(q))
-                {
+        if (string.IsNullOrWhiteSpace(q))
+        {
             return BadRequest(new { message = "Search query is required" });
-                }
+        }
 
         var contracts = await _contractService.SearchAsync(q, cancellationToken);
         return Ok(contracts.Select(c => MapToDto(c)));
@@ -694,10 +694,10 @@ public class ContractsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> BulkUpdateStatus([FromBody] BulkStatusUpdateRequest request, CancellationToken cancellationToken = default)
     {
-                if (request.ContractIds == null || request.ContractIds.Count == 0)
-                {
+        if (request.ContractIds == null || request.ContractIds.Count == 0)
+        {
             return BadRequest(new { message = "At least one contract ID is required" });
-                }
+        }
 
         if (!Enum.IsDefined(typeof(ContractStatus), request.Status))
         {
@@ -765,10 +765,10 @@ public class ContractsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ExportBulk([FromBody] BulkExportRequest request, CancellationToken cancellationToken = default)
     {
-                if (request.ContractIds == null || request.ContractIds.Length == 0)
-                {
+        if (request.ContractIds == null || request.ContractIds.Length == 0)
+        {
             return BadRequest(new { message = "At least one contract ID is required" });
-                }
+        }
 
         var result = await _contractExportService.ExportBulkAsync(
             request.ContractIds,

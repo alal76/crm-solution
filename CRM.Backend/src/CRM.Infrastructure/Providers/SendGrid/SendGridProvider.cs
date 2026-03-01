@@ -259,7 +259,9 @@ public class SendGridProvider : INotificationPort
         foreach (var batch in batches)
         {
             if (cancellationToken.IsCancellationRequested)
+            {
                 break;
+            }
 
             // For bulk, send individually but in parallel with rate limiting
             var tasks = batch.Select(async request =>
@@ -274,9 +276,13 @@ public class SendGridProvider : INotificationPort
             {
                 results.Add(result);
                 if (result.Success)
+                {
                     successCount++;
+                }
                 else
+                {
                     failureCount++;
+                }
             }
 
             // Respect rate limiting between batches
@@ -517,7 +523,9 @@ public class SendGridProvider : INotificationPort
 
                 channelResults["email"] = result;
                 if (result.Success)
+                {
                     overallSuccess = true;
+                }
             }
             else
             {

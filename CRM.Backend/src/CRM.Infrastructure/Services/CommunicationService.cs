@@ -68,7 +68,9 @@ public class CommunicationService : ICommunicationService
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
         if (channel == null)
+        {
             return null;
+        }
 
         return MapToDetail(channel);
     }

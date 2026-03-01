@@ -203,7 +203,7 @@ public class CampaignsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddMetric(int id, [FromBody] CampaignMetric metric)
     {
-                if (!ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }

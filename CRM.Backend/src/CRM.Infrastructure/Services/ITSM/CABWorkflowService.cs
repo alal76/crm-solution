@@ -314,7 +314,9 @@ public class CABWorkflowService : ICABWorkflowService
             .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null)
+        {
             return null;
+        }
 
         var approvals = await context.ChangeApprovals
             .Where(a => a.ChangeId == changeRequestId)
@@ -322,7 +324,9 @@ public class CABWorkflowService : ICABWorkflowService
             .ToListAsync();
 
         if (approvals.Count == 0)
+        {
             return null;
+        }
 
         var status = new CABWorkflowStatus
         {
@@ -396,7 +400,9 @@ public class CABWorkflowService : ICABWorkflowService
             .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null)
+        {
             return false;
+        }
 
         // Standard and Emergency changes require CAB review
         // Normal changes with high risk also require CAB

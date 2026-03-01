@@ -101,7 +101,9 @@ public class TwoFactorPolicyService : ITwoFactorPolicyService
                 .ToListAsync(ct);
 
             if (userGroupIds.Count == 0)
+            {
                 return false;
+            }
 
             // Check group-level RequireTwoFactor / EnforceTwoFactor flags on UserGroup entities
             var hasRequiredGroup = await _dbContext.UserGroups

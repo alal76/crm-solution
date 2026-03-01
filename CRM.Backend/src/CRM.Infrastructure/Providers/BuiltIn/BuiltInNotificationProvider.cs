@@ -57,11 +57,17 @@ public class BuiltInNotificationProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (request == null)
+        {
             throw new ArgumentNullException(nameof(request));
+        }
         if (string.IsNullOrWhiteSpace(request.To))
+        {
             throw new ArgumentException("Recipient email is required", nameof(request));
+        }
         if (string.IsNullOrWhiteSpace(request.Subject))
+        {
             throw new ArgumentException("Subject is required", nameof(request));
+        }
 
         try
         {
@@ -213,7 +219,9 @@ public class BuiltInNotificationProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (request == null)
+        {
             throw new ArgumentNullException(nameof(request));
+        }
 
         var result = new MultiChannelNotificationResult
         {
@@ -277,7 +285,9 @@ public class BuiltInNotificationProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (requests == null)
+        {
             throw new ArgumentNullException(nameof(requests));
+        }
 
         var requestList = requests.ToList();
         var result = new BulkNotificationResult
@@ -288,15 +298,21 @@ public class BuiltInNotificationProvider : INotificationPort
         foreach (var request in requestList)
         {
             if (cancellationToken.IsCancellationRequested)
+            {
                 break;
+            }
 
             var sendResult = await SendEmailAsync(request, cancellationToken);
             result.Results.Add(sendResult);
 
             if (sendResult.Success)
+            {
                 result.SuccessCount++;
+            }
             else
+            {
                 result.FailureCount++;
+            }
         }
 
         return result;

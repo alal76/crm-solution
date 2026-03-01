@@ -46,16 +46,22 @@ public class SmsOtpService : ISmsOtpService
         {
             // Validate phone number
             if (string.IsNullOrWhiteSpace(phoneNumber))
+            {
                 return new SmsOtpResult { Success = false, ErrorMessage = "Phone number is required" };
+            }
 
             // Normalize phone number
             var normalizedPhone = NormalizePhoneNumber(phoneNumber);
             if (!IsValidPhoneNumber(normalizedPhone))
+            {
                 return new SmsOtpResult { Success = false, ErrorMessage = "Invalid phone number format" };
+            }
 
             // Check rate limiting (max 3 SMS per hour per phone)
             if (IsRateLimited(normalizedPhone, RateLimitType.Sms))
+            {
                 return new SmsOtpResult { Success = false, ErrorMessage = "Too many SMS requests. Please try again later." };
+            }
 
             // Generate 6-digit OTP
             var otp = GenerateOtp(6);
@@ -103,7 +109,9 @@ public class SmsOtpService : ISmsOtpService
         try
         {
             if (string.IsNullOrWhiteSpace(phoneNumber) || string.IsNullOrWhiteSpace(code))
+            {
                 return false;
+            }
 
             var normalizedPhone = NormalizePhoneNumber(phoneNumber);
 
@@ -165,7 +173,9 @@ public class SmsOtpService : ISmsOtpService
         try
         {
             if (string.IsNullOrWhiteSpace(phoneNumber))
+            {
                 return false;
+            }
 
             var normalizedPhone = NormalizePhoneNumber(phoneNumber);
             var (hash, expiresAt, attempts) = RetrieveOtpHash(normalizedPhone, userId);
@@ -190,7 +200,9 @@ public class SmsOtpService : ISmsOtpService
         try
         {
             if (string.IsNullOrWhiteSpace(phoneNumber))
+            {
                 return 0;
+            }
 
             var normalizedPhone = NormalizePhoneNumber(phoneNumber);
             var (_, _, attempts) = RetrieveOtpHash(normalizedPhone, userId);
@@ -218,7 +230,9 @@ public class SmsOtpService : ISmsOtpService
 
             // Check cooldown period (5 seconds between resends)
             if (!CanResendOtp(normalizedPhone))
+            {
                 return new SmsOtpResult { Success = false, ErrorMessage = "Please wait before requesting a new code." };
+            }
 
             // Clear old OTP record
             ClearOtpRecord(normalizedPhone, userId);
@@ -227,7 +241,9 @@ public class SmsOtpService : ISmsOtpService
             var result = await SendOtpAsync(phoneNumber, userId, cancellationToken);
 
             if (result.Success)
+            {
                 UpdateResendTimestamp(normalizedPhone);
+            }
 
             return result;
         }
@@ -265,7 +281,9 @@ public class SmsOtpService : ISmsOtpService
         var normalized = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"[\s\-\.\(\)]", "");
         // Add + if not present and doesn't start with +1
         if (!normalized.StartsWith("+"))
+        {
             normalized = "+" + normalized;
+        }
         return normalized;
     }
 
@@ -280,7 +298,9 @@ public class SmsOtpService : ISmsOtpService
     {
         // Mask phone number for logging: +1234*****890
         if (phoneNumber.Length <= 6)
+        {
             return "****";
+        }
         return phoneNumber.Substring(0, 6) + "*****" + phoneNumber.Substring(phoneNumber.Length - 3);
     }
 
@@ -290,7 +310,9 @@ public class SmsOtpService : ISmsOtpService
         // This is a simplified in-memory implementation
         var key = $"{type}:{phoneNumber}";
         if (!_otp_rate_limits.TryGetValue(key, out var lastAttempt))
+        {
             return false;
+        }
 
         var cooldownSeconds = type == RateLimitType.Sms ? 60 : 5;
         return DateTime.UtcNow.Subtract(lastAttempt).TotalSeconds < cooldownSeconds;
@@ -301,7 +323,9 @@ public class SmsOtpService : ISmsOtpService
         // Check if enough time has passed since last resend
         var key = $"resend:{phoneNumber}";
         if (!_otp_rate_limits.TryGetValue(key, out var lastResend))
+        {
             return true;
+        }
 
         return DateTime.UtcNow.Subtract(lastResend).TotalSeconds >= 5; // 5 second cooldown
     }
@@ -323,7 +347,9 @@ public class SmsOtpService : ISmsOtpService
     {
         var key = $"otp:{phoneNumber}:{userId}";
         if (_otp_records.TryGetValue(key, out var record))
+        {
             return record;
+        }
         return (null, DateTime.MinValue, 0);
     }
 
@@ -367,10 +393,16 @@ public class SmsOtpSettings
     public void Validate()
     {
         if (string.IsNullOrEmpty(AccountSid))
+        {
             throw new InvalidOperationException("Twilio AccountSid is required");
+        }
         if (string.IsNullOrEmpty(AuthToken))
+        {
             throw new InvalidOperationException("Twilio AuthToken is required");
+        }
         if (string.IsNullOrEmpty(FromPhoneNumber))
+        {
             throw new InvalidOperationException("Twilio FromPhoneNumber is required");
+        }
     }
 }

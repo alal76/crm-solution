@@ -91,16 +91,24 @@ public class SupersetConfiguration
     public (bool IsValid, string? Error) Validate()
     {
         if (string.IsNullOrWhiteSpace(BaseUrl))
+        {
             return (false, "Superset BaseUrl is required");
+        }
 
         if (string.IsNullOrWhiteSpace(Username))
+        {
             return (false, "Superset Username is required");
+        }
 
         if (string.IsNullOrWhiteSpace(Password))
+        {
             return (false, "Superset Password is required");
+        }
 
         if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out _))
+        {
             return (false, $"Superset BaseUrl '{BaseUrl}' is not a valid URL");
+        }
 
         return (true, null);
     }

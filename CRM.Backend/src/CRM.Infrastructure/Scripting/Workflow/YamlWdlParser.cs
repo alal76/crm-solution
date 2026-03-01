@@ -32,7 +32,9 @@ public class YamlWdlParser
     public WorkflowDefinition Parse(string yamlContent)
     {
         if (string.IsNullOrWhiteSpace(yamlContent))
+        {
             throw new ArgumentException("YAML content cannot be empty", nameof(yamlContent));
+        }
 
         return _deserializer.Deserialize<WorkflowDefinition>(yamlContent);
     }
@@ -50,13 +52,19 @@ public class YamlWdlParser
         var errors = new List<string>();
 
         if (string.IsNullOrEmpty(definition.Id))
+        {
             errors.Add("Workflow 'id' is required");
+        }
 
         if (string.IsNullOrEmpty(definition.Name))
+        {
             errors.Add("Workflow 'name' is required");
+        }
 
         if (definition.Steps.Count == 0)
+        {
             errors.Add("Workflow must have at least one step");
+        }
 
         var stepNames = new HashSet<string>(StringComparer.Ordinal);
         foreach (var step in definition.Steps)
@@ -68,13 +76,19 @@ public class YamlWdlParser
             }
 
             if (!stepNames.Add(step.Name))
+            {
                 errors.Add($"Duplicate step name: '{step.Name}'");
+            }
 
             if (step.Type == WorkflowStepType.Script && string.IsNullOrEmpty(step.Script))
+            {
                 errors.Add($"Step '{step.Name}': script steps require 'script' field");
+            }
 
             if (step.Type == WorkflowStepType.Tool && string.IsNullOrEmpty(step.Tool))
+            {
                 errors.Add($"Step '{step.Name}': tool steps require 'tool' field");
+            }
         }
 
         return new WdlValidationResult(errors.Count == 0, errors);

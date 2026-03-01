@@ -135,7 +135,9 @@ public class UserService : IUserService, IUserInputPort
                 .FirstOrDefaultAsync(u => u.Email == email);
 
             if (existingUser != null)
+            {
                 throw new InvalidOperationException("User with this email already exists");
+            }
 
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
 
@@ -197,7 +199,9 @@ public class UserService : IUserService, IUserInputPort
                 .FirstOrDefaultAsync(u => u.Email == email);
 
             if (existingUser != null)
+            {
                 throw new InvalidOperationException("User with this email already exists");
+            }
 
             // Create user with a placeholder hash and PasswordNeverSet flag
             var user = new User
@@ -260,7 +264,9 @@ public class UserService : IUserService, IUserInputPort
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
+            {
                 throw new KeyNotFoundException($"User with ID {id} not found");
+            }
 
             user.FirstName = userDto.FirstName;
             user.LastName = userDto.LastName;
@@ -308,7 +314,9 @@ public class UserService : IUserService, IUserInputPort
         {
             var user = await _context.Users.FindAsync(id);
             if (user == null)
+            {
                 throw new KeyNotFoundException($"User with ID {id} not found");
+            }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
@@ -341,7 +349,9 @@ public class UserService : IUserService, IUserInputPort
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
+            {
                 return false;
+            }
 
             return BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
         }
@@ -358,10 +368,14 @@ public class UserService : IUserService, IUserInputPort
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
+            {
                 throw new KeyNotFoundException($"User with ID {userId} not found");
+            }
 
             if (!BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash))
+            {
                 throw new InvalidOperationException("Current password is incorrect");
+            }
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             _context.Users.Update(user);

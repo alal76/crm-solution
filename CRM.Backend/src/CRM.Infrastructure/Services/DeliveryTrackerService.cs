@@ -101,10 +101,14 @@ public class DeliveryTrackerService : IDeliveryTracker
             .Where(d => !d.IsDeleted && d.CreatedAt >= startDate && d.CreatedAt <= endDate);
 
         if (filter.WebhookId.HasValue)
+        {
             query = query.Where(d => d.WebhookSubscriptionId == filter.WebhookId.Value);
+        }
 
         if (!string.IsNullOrEmpty(filter.EventType))
+        {
             query = query.Where(d => d.EventType == filter.EventType);
+        }
 
         var deliveries = await query.ToListAsync(cancellationToken);
 
@@ -187,13 +191,19 @@ public class DeliveryTrackerService : IDeliveryTracker
     private static DeliveryStatus MapToStatus(CRM.Core.Entities.ITSM.WebhookDelivery delivery)
     {
         if (delivery.Success)
+        {
             return DeliveryStatus.Succeeded;
+        }
 
         if (delivery.AttemptNumber >= 3)
+        {
             return DeliveryStatus.FailedPermanent;
+        }
 
         if (delivery.AttemptNumber > 0)
+        {
             return DeliveryStatus.FailedRetrying;
+        }
 
         return DeliveryStatus.Pending;
     }
@@ -201,14 +211,18 @@ public class DeliveryTrackerService : IDeliveryTracker
     private static double GetPercentile(List<double> sortedData, int percentile)
     {
         if (sortedData.Count == 0)
+        {
             return 0;
+        }
 
         var index = (percentile / 100.0) * (sortedData.Count - 1);
         var lower = (int)Math.Floor(index);
         var upper = (int)Math.Ceiling(index);
 
         if (lower == upper)
+        {
             return sortedData[lower];
+        }
 
         return sortedData[lower] + (index - lower) * (sortedData[upper] - sortedData[lower]);
     }

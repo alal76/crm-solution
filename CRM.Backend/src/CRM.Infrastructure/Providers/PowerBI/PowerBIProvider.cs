@@ -58,7 +58,9 @@ public class PowerBIProvider : IAnalyticsPort
     {
         var (isValid, _) = _config.Validate();
         if (!isValid)
+        {
             return false;
+        }
 
         try
         {
@@ -117,11 +119,15 @@ public class PowerBIProvider : IAnalyticsPort
         {
             var response = await _httpClient.GetAsync(url, cancellationToken);
             if (!response.IsSuccessStatusCode)
+            {
                 return null;
+            }
 
             var dashboard = await response.Content.ReadFromJsonAsync<PowerBIDashboard>(JsonOptions, cancellationToken);
             if (dashboard == null)
+            {
                 return null;
+            }
 
             return new DashboardInfo
             {
@@ -368,7 +374,9 @@ public class PowerBIProvider : IAnalyticsPort
         {
             var response = await _httpClient.GetAsync(url, cancellationToken);
             if (!response.IsSuccessStatusCode)
+            {
                 return Enumerable.Empty<ChartInfo>();
+            }
 
             var result = await response.Content.ReadFromJsonAsync<PowerBITileListResponse>(JsonOptions, cancellationToken);
 

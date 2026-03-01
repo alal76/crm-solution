@@ -211,7 +211,9 @@ public class CustomFieldValidationService : ICustomFieldValidationService
     public async Task<List<CustomFieldDefinition>> GetDefinitionsAsync(string entityType, CancellationToken ct = default)
     {
         if (_definitionCache.TryGetValue(entityType, out var cached))
+        {
             return cached;
+        }
 
         var records = await _context.CustomFields
             .Where(cf => cf.EntityType == entityType &&

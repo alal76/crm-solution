@@ -171,7 +171,9 @@ public class EventChainTrackerService : IEventChainTracker
                 .FirstOrDefaultAsync(e => e.Id == currentEventId && !e.IsDeleted, cancellationToken);
 
             if (webEvent == null)
+            {
                 break;
+            }
 
             // Find delivery for this event to get parent info
             var delivery = await _context.WebhookDeliveriesGeneral

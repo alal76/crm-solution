@@ -104,7 +104,9 @@ public class DynamicPricingEngine : IDynamicPricingEngine
     {
         // Check quantity threshold
         if (rule.MinQuantity.HasValue && quantity < rule.MinQuantity.Value)
+        {
             return 0;
+        }
 
         // Check volume tiers
         if (!string.IsNullOrEmpty(rule.VolumeTiers))
@@ -133,17 +135,23 @@ public class DynamicPricingEngine : IDynamicPricingEngine
         {
             case DiscountMethod.PercentOff:
                 if (rule.DiscountValue.HasValue)
+                {
                     return listPrice * rule.DiscountValue.Value / 100;
+                }
                 break;
 
             case DiscountMethod.AmountOff:
                 if (rule.DiscountValue.HasValue)
+                {
                     return rule.DiscountValue.Value;
+                }
                 break;
 
             case DiscountMethod.FixedPrice:
                 if (rule.FixedPrice.HasValue && rule.FixedPrice.Value < listPrice)
+                {
                     return listPrice - rule.FixedPrice.Value;
+                }
                 break;
         }
 

@@ -232,7 +232,9 @@ public class DashboardBuilderService : IDashboardBuilderService
     public async Task<CustomDashboard?> GetDashboardAsync(string dashboardId, CancellationToken ct = default)
     {
         if (!int.TryParse(dashboardId, out var id))
+        {
             return null;
+        }
 
         var entity = await _context.Dashboards
             .Include(d => d.Widgets)
@@ -274,14 +276,18 @@ public class DashboardBuilderService : IDashboardBuilderService
     public async Task<CustomDashboard?> UpdateDashboardAsync(CustomDashboard dashboard, CancellationToken ct = default)
     {
         if (!int.TryParse(dashboard.Id, out var id))
+        {
             return null;
+        }
 
         var entity = await _context.Dashboards
             .Include(d => d.Widgets)
             .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, ct);
 
         if (entity == null)
+        {
             return null;
+        }
 
         entity.Name = dashboard.Name;
         entity.Description = dashboard.Description;
@@ -318,14 +324,18 @@ public class DashboardBuilderService : IDashboardBuilderService
     public async Task<bool> DeleteDashboardAsync(string dashboardId, CancellationToken ct = default)
     {
         if (!int.TryParse(dashboardId, out var id))
+        {
             return false;
+        }
 
         var entity = await _context.Dashboards
             .Include(d => d.Widgets)
             .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, ct);
 
         if (entity == null)
+        {
             return false;
+        }
 
         entity.IsDeleted = true;
 
@@ -344,14 +354,18 @@ public class DashboardBuilderService : IDashboardBuilderService
     public async Task<WidgetData?> GetWidgetDataAsync(string widgetId, CancellationToken ct = default)
     {
         if (!int.TryParse(widgetId, out var id))
+        {
             return null;
+        }
 
         var widgetEntity = await _context.DashboardWidgets
             .AsNoTracking()
             .FirstOrDefaultAsync(w => w.Id == id && !w.IsDeleted, ct);
 
         if (widgetEntity == null)
+        {
             return null;
+        }
 
         var dtoWidget = MapWidgetToDto(widgetEntity);
         var data = await FetchWidgetDataAsync(dtoWidget, ct);
@@ -414,7 +428,9 @@ public class DashboardBuilderService : IDashboardBuilderService
     private static Dictionary<string, object> DeserializeConfig(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
+        {
             return new Dictionary<string, object>();
+        }
 
         try
         {

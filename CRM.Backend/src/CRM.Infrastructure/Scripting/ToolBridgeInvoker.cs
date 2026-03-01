@@ -151,7 +151,9 @@ public class ToolBridgeInvoker : IToolInvoker
             }
 
             if (resultObj is Task baseTask)
+            {
                 await baseTask.ConfigureAwait(false);
+            }
 
             ResetCircuit(toolName);
             return new ToolResult<TResult>
@@ -197,7 +199,9 @@ public class ToolBridgeInvoker : IToolInvoker
             while (window.Count > 0 && window.Peek() < cutoff)
                 window.Dequeue();
             if (window.Count >= ToolRateLimitPerMinute)
+            {
                 return false;
+            }
             window.Enqueue(now);
             return true;
         }

@@ -50,7 +50,9 @@ public static class DuplicateCheckHelper
         CancellationToken cancellationToken = default)
     {
         if (duplicateDetection == null)
+        {
             return 0;
+        }
 
         DuplicateCheckResult result;
         try
@@ -66,7 +68,9 @@ public static class DuplicateCheckHelper
         }
 
         if (result == null || !result.HasDuplicates)
+        {
             return 0;
+        }
 
         // Check for exact matches (score >= ExactMatchThreshold)
         var exactMatch = result.Duplicates
@@ -94,7 +98,9 @@ public static class DuplicateCheckHelper
                 entityType, fuzzyMatch.RecordId, fuzzyMatch.MatchScore);
 
             if (!Enum.TryParse<DuplicateEntityType>(entityType, true, out var dupEntityType))
+            {
                 continue;
+            }
 
             var candidate = new DuplicateCandidate
             {
@@ -133,7 +139,9 @@ public static class DuplicateCheckHelper
         CancellationToken cancellationToken = default)
     {
         if (!Enum.TryParse<DuplicateEntityType>(entityType, true, out var dupEntityType))
+        {
             return;
+        }
 
         // Find candidates that were just created with SourceRecordId = 0
         var pendingCandidates = dbContext.Set<DuplicateCandidate>()

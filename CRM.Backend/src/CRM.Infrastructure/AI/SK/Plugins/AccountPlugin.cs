@@ -108,7 +108,9 @@ public class AccountPlugin : CrmPluginBase
         {
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
+            {
                 return ErrorResult("GetAccountHealth", $"Account with ID {accountId} not found.");
+            }
 
             // Extract health-related properties via reflection since DTO shape may vary
             var healthScore = account.GetType().GetProperty("CustomerHealthScore")?.GetValue(account)
@@ -174,7 +176,9 @@ public class AccountPlugin : CrmPluginBase
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
 
             if (property == null)
+            {
                 return ErrorResult("UpdateAccount", $"Unknown field: '{fieldName}'. Check the field name and try again.");
+            }
 
             var convertedValue = Convert.ChangeType(newValue, Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType);
             property.SetValue(dto, convertedValue);
@@ -206,7 +210,9 @@ public class AccountPlugin : CrmPluginBase
         {
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
+            {
                 return ErrorResult("AddAccountNote", $"Account with ID {accountId} not found.");
+            }
 
             var note = new Note
             {

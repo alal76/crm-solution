@@ -225,16 +225,24 @@ public class IntercomProvider : IChatPort
         var updateRequest = new Dictionary<string, object?>();
 
         if (!string.IsNullOrEmpty(request.Email))
+        {
             updateRequest["email"] = request.Email;
+        }
 
         if (!string.IsNullOrEmpty(request.Phone))
+        {
             updateRequest["phone"] = request.Phone;
+        }
 
         if (!string.IsNullOrEmpty(request.Name))
+        {
             updateRequest["name"] = request.Name;
+        }
 
         if (request.CustomAttributes != null && request.CustomAttributes.Count > 0)
+        {
             updateRequest["custom_attributes"] = request.CustomAttributes;
+        }
 
         var httpRequest = new HttpRequestMessage(HttpMethod.Put, $"/contacts/{externalId}")
         {
@@ -795,7 +803,9 @@ public class IntercomProvider : IChatPort
     private bool ValidateWebhookSignature(string payload, string signature)
     {
         if (string.IsNullOrEmpty(_config.WebhookSecret))
+        {
             return true;
+        }
 
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_config.WebhookSecret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
@@ -866,10 +876,14 @@ public class IntercomProvider : IChatPort
         var attributes = new Dictionary<string, object>();
 
         if (crmContactId.HasValue)
+        {
             attributes["crm_contact_id"] = crmContactId.Value;
+        }
 
         if (crmAccountId.HasValue)
+        {
             attributes["crm_account_id"] = crmAccountId.Value;
+        }
 
         if (additionalAttributes != null)
         {

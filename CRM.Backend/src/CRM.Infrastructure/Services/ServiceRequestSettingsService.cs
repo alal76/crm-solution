@@ -88,7 +88,9 @@ public class ServiceRequestCategoryService : IServiceRequestCategoryService
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
         if (category == null)
+        {
             return null;
+        }
 
         return new ServiceRequestCategoryDto
         {
@@ -156,7 +158,9 @@ public class ServiceRequestCategoryService : IServiceRequestCategoryService
     {
         var category = await _context.ServiceRequestCategories.FindAsync(id);
         if (category == null)
+        {
             return false;
+        }
 
         category.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -294,7 +298,9 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
     {
         var subcategory = await _context.ServiceRequestSubcategories.FindAsync(id);
         if (subcategory == null)
+        {
             return false;
+        }
 
         subcategory.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -477,7 +483,9 @@ public class ServiceRequestCustomFieldService : IServiceRequestCustomFieldServic
     {
         var field = await _context.ServiceRequestCustomFieldDefinitions.FindAsync(id);
         if (field == null)
+        {
             return false;
+        }
 
         field.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -725,7 +733,9 @@ public class ServiceRequestTypeService : IServiceRequestTypeService
     {
         var type = await _context.ServiceRequestTypes.FindAsync(id);
         if (type == null)
+        {
             return false;
+        }
 
         type.IsDeleted = true;
         await _context.SaveChangesAsync();

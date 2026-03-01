@@ -808,15 +808,25 @@ public class DocuSealProvider : ISignaturePort
                 sb.AppendLine($"  Status: {submitter.Status}");
 
                 if (submitter.SentAt.HasValue)
+                {
                     sb.AppendLine($"  Sent: {submitter.SentAt:yyyy-MM-dd HH:mm:ss} UTC");
+                }
                 if (submitter.OpenedAt.HasValue)
+                {
                     sb.AppendLine($"  Opened: {submitter.OpenedAt:yyyy-MM-dd HH:mm:ss} UTC");
+                }
                 if (submitter.CompletedAt.HasValue)
+                {
                     sb.AppendLine($"  Signed: {submitter.CompletedAt:yyyy-MM-dd HH:mm:ss} UTC");
+                }
                 if (!string.IsNullOrEmpty(submitter.Ip))
+                {
                     sb.AppendLine($"  IP Address: {submitter.Ip}");
+                }
                 if (!string.IsNullOrEmpty(submitter.UserAgent))
+                {
                     sb.AppendLine($"  User Agent: {submitter.UserAgent}");
+                }
 
                 sb.AppendLine();
             }
@@ -840,7 +850,9 @@ public class DocuSealProvider : ISignaturePort
         };
 
         if (activityType == null)
+        {
             return null;
+        }
 
         return new SignatureActivityMapping
         {

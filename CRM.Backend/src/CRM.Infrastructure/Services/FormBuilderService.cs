@@ -48,13 +48,19 @@ public class FormBuilderService : IFormBuilderService
             .Where(f => !f.IsDeleted);
 
         if (status.HasValue)
+        {
             query = query.Where(f => f.Status == status.Value);
+        }
 
         if (ownerId.HasValue)
+        {
             query = query.Where(f => f.OwnerId == ownerId.Value);
+        }
 
         if (campaignId.HasValue)
+        {
             query = query.Where(f => f.CampaignId == campaignId.Value);
+        }
 
         return await query.OrderBy(f => f.Name).ToListAsync(cancellationToken);
     }
@@ -100,7 +106,9 @@ public class FormBuilderService : IFormBuilderService
             .FirstOrDefaultAsync(f => f.Id == form.Id && !f.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException($"Form {form.Id} not found");
+        }
 
         existing.Name = form.Name;
         existing.Description = form.Description;
@@ -147,7 +155,9 @@ public class FormBuilderService : IFormBuilderService
             .FirstOrDefaultAsync(f => f.Id == formId && !f.IsDeleted, cancellationToken);
 
         if (form == null)
+        {
             return false;
+        }
 
         form.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -160,7 +170,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var original = await GetFormByIdAsync(formId, cancellationToken);
         if (original == null)
+        {
             throw new InvalidOperationException($"Form {formId} not found");
+        }
 
         var clone = new FormDefinition
         {
@@ -255,7 +267,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var form = await GetFormByIdAsync(formId, cancellationToken);
         if (form == null)
+        {
             throw new InvalidOperationException($"Form {formId} not found");
+        }
 
         var previousStatus = form.Status;
         form.Status = status;
@@ -316,7 +330,9 @@ public class FormBuilderService : IFormBuilderService
             .FirstOrDefaultAsync(f => f.Id == field.Id && !f.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException($"Field {field.Id} not found");
+        }
 
         existing.FieldName = field.FieldName;
         existing.Label = field.Label;
@@ -354,7 +370,9 @@ public class FormBuilderService : IFormBuilderService
             .FirstOrDefaultAsync(f => f.Id == fieldId && !f.IsDeleted, cancellationToken);
 
         if (field == null)
+        {
             return false;
+        }
 
         field.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -421,13 +439,19 @@ public class FormBuilderService : IFormBuilderService
             .Where(s => s.FormDefinitionId == formId && !s.IsDeleted);
 
         if (status.HasValue)
+        {
             query = query.Where(s => s.Status == status.Value);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(s => s.SubmittedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(s => s.SubmittedAt <= toDate.Value);
+        }
 
         return await query.OrderByDescending(s => s.SubmittedAt).ToListAsync(cancellationToken);
     }
@@ -456,15 +480,21 @@ public class FormBuilderService : IFormBuilderService
     {
         var form = await GetFormByIdAsync(formId, cancellationToken);
         if (form == null)
+        {
             return new FormSubmissionResult { Success = false, ErrorMessage = "Form not found" };
+        }
 
         if (form.Status != FormStatus.Published)
+        {
             return new FormSubmissionResult { Success = false, ErrorMessage = "Form is not accepting submissions" };
+        }
 
         // Validate form data
         var validation = await ValidateFormDataAsync(formId, formData, cancellationToken);
         if (!validation.IsValid)
+        {
             return new FormSubmissionResult { Success = false, ValidationResult = validation };
+        }
 
         // Check for spam
         if (form.SpamProtection)
@@ -533,7 +563,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var submission = await GetSubmissionByIdAsync(submissionId, cancellationToken);
         if (submission == null)
+        {
             return new FormSubmissionResult { Success = false, ErrorMessage = "Submission not found" };
+        }
 
         var formData = JsonSerializer.Deserialize<Dictionary<string, object>>(submission.FormData) ?? new();
         return await ProcessSubmissionAsync(submission.FormDefinitionId, formData, null, cancellationToken);
@@ -543,7 +575,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var submission = await GetSubmissionByIdAsync(submissionId, cancellationToken);
         if (submission == null)
+        {
             throw new InvalidOperationException($"Submission {submissionId} not found");
+        }
 
         submission.Status = SubmissionStatus.Spam;
         submission.IsSpam = true;
@@ -555,7 +589,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var submission = await GetSubmissionByIdAsync(submissionId, cancellationToken);
         if (submission == null)
+        {
             throw new InvalidOperationException($"Submission {submissionId} not found");
+        }
 
         submission.Status = SubmissionStatus.New;
         submission.IsSpam = false;
@@ -569,7 +605,9 @@ public class FormBuilderService : IFormBuilderService
             .FirstOrDefaultAsync(s => s.Id == submissionId && !s.IsDeleted, cancellationToken);
 
         if (submission == null)
+        {
             return false;
+        }
 
         submission.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -584,7 +622,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var submission = await GetSubmissionByIdAsync(submissionId, cancellationToken);
         if (submission?.FormDefinition?.DoubleOptIn != true)
+        {
             return false;
+        }
 
         if (submission.OptInConfirmed)
         {
@@ -603,7 +643,9 @@ public class FormBuilderService : IFormBuilderService
             {
                 var existing = JsonSerializer.Deserialize<Dictionary<string, object>>(submission.RawData);
                 if (existing != null)
+                {
                     metadata = existing;
+                }
             }
             catch (JsonException)
             {
@@ -726,7 +768,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var field = await GetFieldByIdAsync(fieldId, cancellationToken);
         if (field == null)
+        {
             return new FieldValidationResult { IsValid = false, ErrorMessage = "Field not found" };
+        }
 
         return await ValidateFieldValueAsync(field, value);
     }
@@ -748,7 +792,9 @@ public class FormBuilderService : IFormBuilderService
         }
 
         if (isEmpty)
+        {
             return Task.FromResult(new FieldValidationResult { IsValid = true });
+        }
 
         // Length validation
         if (field.MinLength.HasValue && stringValue!.Length < field.MinLength.Value)
@@ -873,7 +919,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var form = await GetFormByIdAsync(formId, cancellationToken);
         if (form == null)
+        {
             return 0;
+        }
 
         int score = 0;
 
@@ -946,10 +994,14 @@ public class FormBuilderService : IFormBuilderService
     {
         var form = await GetFormByIdAsync(formId, cancellationToken);
         if (form == null)
+        {
             return false;
+        }
 
         if (string.IsNullOrEmpty(form.AllowedDomains))
+        {
             return true; // No restrictions
+        }
 
         var allowed = form.AllowedDomains.Split(',', StringSplitOptions.RemoveEmptyEntries);
         return allowed.Any(d => d.Trim().Equals(domain, StringComparison.OrdinalIgnoreCase));
@@ -979,7 +1031,9 @@ public class FormBuilderService : IFormBuilderService
     {
         var form = await GetFormByIdAsync(formId, cancellationToken);
         if (form == null)
+        {
             throw new InvalidOperationException($"Form {formId} not found");
+        }
 
         var from = fromDate ?? DateTime.UtcNow.AddMonths(-1);
         var to = toDate ?? DateTime.UtcNow;
@@ -1158,7 +1212,9 @@ public class FormBuilderService : IFormBuilderService
         var template = templates.FirstOrDefault(t => t.Key == templateKey);
 
         if (template == null)
+        {
             throw new InvalidOperationException($"Template {templateKey} not found");
+        }
 
         var form = new FormDefinition
         {
@@ -1288,7 +1344,9 @@ public class FormBuilderService : IFormBuilderService
     private string? GetFormValue(Dictionary<string, object> formData, string key)
     {
         if (formData.TryGetValue(key, out var value))
+        {
             return value?.ToString();
+        }
         return null;
     }
 
@@ -1308,7 +1366,9 @@ public class FormBuilderService : IFormBuilderService
     private static LeadSource ParseLeadSource(string? source)
     {
         if (string.IsNullOrEmpty(source))
+        {
             return LeadSource.Web;
+        }
 
         return source.ToLowerInvariant() switch
         {

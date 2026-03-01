@@ -189,13 +189,19 @@ public class CICDIntegrationService : ICICDIntegrationService
         var query = _deployments.AsEnumerable();
 
         if (!string.IsNullOrEmpty(environment))
+        {
             query = query.Where(d => d.Environment.Equals(environment, StringComparison.OrdinalIgnoreCase));
+        }
 
         if (startDate.HasValue)
+        {
             query = query.Where(d => d.RequestedAt >= startDate.Value);
+        }
 
         if (endDate.HasValue)
+        {
             query = query.Where(d => d.RequestedAt <= endDate.Value);
+        }
 
         var history = query.OrderByDescending(d => d.RequestedAt)
             .Select(d => new DeploymentHistoryDto
@@ -313,7 +319,9 @@ public class CICDIntegrationService : ICICDIntegrationService
     {
         var pipeline = _pipelines.FirstOrDefault(p => p.Id == id);
         if (pipeline == null)
+        {
             return Task.FromResult(false);
+        }
 
         _pipelines.Remove(pipeline);
         _logger.LogInformation("Deleted pipeline {Id}", id);

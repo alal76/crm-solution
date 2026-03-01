@@ -45,16 +45,24 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .Where(t => !t.IsDeleted);
 
         if (workflowDefinitionId.HasValue)
+        {
             query = query.Where(t => t.WorkflowDefinitionId == workflowDefinitionId.Value);
+        }
 
         if (triggerType.HasValue)
+        {
             query = query.Where(t => t.TriggerType == triggerType.Value);
+        }
 
         if (!string.IsNullOrEmpty(entityType))
+        {
             query = query.Where(t => t.EntityType == entityType);
+        }
 
         if (isActive.HasValue)
+        {
             query = query.Where(t => t.IsActive == isActive.Value);
+        }
 
         var triggers = await query
             .OrderBy(t => t.Priority)
@@ -96,7 +104,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .AnyAsync(w => w.Id == dto.WorkflowDefinitionId && !w.IsDeleted, cancellationToken);
 
         if (!workflowExists)
+        {
             throw new ArgumentException($"Workflow definition {dto.WorkflowDefinitionId} not found.");
+        }
 
         // Validate trigger type specific requirements
         ValidateTriggerTypeRequirements(dto);
@@ -148,39 +158,71 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .FirstOrDefaultAsync(t => t.Id == dto.Id && !t.IsDeleted, cancellationToken);
 
         if (trigger == null)
+        {
             throw new KeyNotFoundException($"Workflow trigger {dto.Id} not found.");
+        }
 
         // Update fields
         if (dto.Name != null)
+        {
             trigger.Name = dto.Name;
+        }
         if (dto.TriggerType.HasValue)
+        {
             trigger.TriggerType = dto.TriggerType.Value;
+        }
         if (dto.EntityType != null)
+        {
             trigger.EntityType = dto.EntityType;
+        }
         if (dto.EventName != null)
+        {
             trigger.EventName = dto.EventName;
+        }
         if (dto.CronExpression != null)
+        {
             trigger.CronExpression = dto.CronExpression;
+        }
         if (dto.FilterConditions != null)
+        {
             trigger.FilterConditions = dto.FilterConditions;
+        }
         if (dto.WatchedField != null)
+        {
             trigger.WatchedField = dto.WatchedField;
+        }
         if (dto.OldValue != null)
+        {
             trigger.OldValue = dto.OldValue;
+        }
         if (dto.NewValue != null)
+        {
             trigger.NewValue = dto.NewValue;
+        }
         if (dto.IsActive.HasValue)
+        {
             trigger.IsActive = dto.IsActive.Value;
+        }
         if (dto.Priority.HasValue)
+        {
             trigger.Priority = dto.Priority.Value;
+        }
         if (dto.Description != null)
+        {
             trigger.Description = dto.Description;
+        }
         if (dto.DelaySeconds.HasValue)
+        {
             trigger.DelaySeconds = dto.DelaySeconds.Value;
+        }
         if (dto.RunAsync.HasValue)
+        {
             trigger.RunAsync = dto.RunAsync.Value;
+        }
         if (dto.MaxRetries.HasValue)
+        {
             trigger.MaxRetries = dto.MaxRetries.Value;
+        }
 
 
         // Recalculate next scheduled time if cron changed
@@ -205,7 +247,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
 
         if (trigger == null)
+        {
             return false;
+        }
 
         trigger.IsDeleted = true;
 
@@ -229,7 +273,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
 
         if (trigger == null)
+        {
             throw new KeyNotFoundException($"Workflow trigger {id} not found.");
+        }
 
         trigger.IsActive = true;
 
@@ -255,7 +301,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted, cancellationToken);
 
         if (trigger == null)
+        {
             throw new KeyNotFoundException($"Workflow trigger {id} not found.");
+        }
 
         trigger.IsActive = false;
 
@@ -387,7 +435,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             }
 
             if (result.Errors.Count > 0 && result.WorkflowsTriggered == 0)
+            {
                 result.Success = false;
+            }
         }
         catch (Exception ex)
         {
@@ -463,7 +513,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
                 && t.TriggerType == triggerType);
 
         if (!string.IsNullOrEmpty(eventName))
+        {
             query = query.Where(t => !string.IsNullOrEmpty(t.EventName) && t.EventName.ToLower() == eventName.ToLower());
+        }
 
         var triggers = await query
             .OrderBy(t => t.Priority)
@@ -512,7 +564,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .FirstOrDefaultAsync(t => t.Id == triggerId && !t.IsDeleted, cancellationToken);
 
         if (trigger == null)
+        {
             throw new KeyNotFoundException($"Trigger with ID {triggerId} not found");
+        }
 
         trigger.LastTriggeredAt = DateTime.UtcNow;
         trigger.ExecutionCount++;
@@ -619,19 +673,27 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             case WorkflowTriggerType.OnDelete:
             case WorkflowTriggerType.OnFieldChange:
                 if (string.IsNullOrEmpty(dto.EntityType))
+                {
                     throw new ArgumentException($"EntityType is required for {dto.TriggerType} triggers.");
+                }
                 break;
 
             case WorkflowTriggerType.Scheduled:
                 if (string.IsNullOrEmpty(dto.CronExpression))
+                {
                     throw new ArgumentException("CronExpression is required for Scheduled triggers.");
+                }
                 if (!ValidateCronExpression(dto.CronExpression, out var cronError))
+                {
                     throw new ArgumentException($"Invalid cron expression: {cronError}");
+                }
                 break;
 
             case WorkflowTriggerType.OnEvent:
                 if (string.IsNullOrEmpty(dto.EventName))
+                {
                     throw new ArgumentException("EventName is required for OnEvent triggers.");
+                }
                 break;
         }
 
@@ -644,7 +706,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
     private DateTime? CalculateNextScheduledTime(string? cronExpression)
     {
         if (string.IsNullOrEmpty(cronExpression))
+        {
             return null;
+        }
 
         try
         {
@@ -663,7 +727,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
 
         // If no filter conditions, always match
         if (string.IsNullOrEmpty(trigger.FilterConditions))
+        {
             return true;
+        }
 
         try
         {
@@ -689,7 +755,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             // Determine logical operator (AND by default)
             var logicOperator = "and";
             if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("logic", out var logicProp))
+            {
                 logicOperator = logicProp.GetString()?.ToLowerInvariant() ?? "and";
+            }
 
             // Parse context/entity data if present. Combine into a single, case-insensitive dictionary.
             Dictionary<string, string>? dataFields = null;
@@ -737,7 +805,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
                 }
 
                 if (dataFields.Count == 0)
+                {
                     dataFields = null;
+                }
             }
             catch
             {
@@ -753,7 +823,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             }
 
             if (results.Count == 0)
+            {
                 return true;
+            }
 
             var match = logicOperator == "or"
                 ? results.Any(r => r)
@@ -819,11 +891,15 @@ public class WorkflowTriggerService : IWorkflowTriggerService
         {
             // Try exact match first, then case-insensitive
             if (contextFields.TryGetValue(fieldName, out var val))
+            {
                 return val;
+            }
 
             var key = contextFields.Keys.FirstOrDefault(k => string.Equals(k, fieldName, StringComparison.OrdinalIgnoreCase));
             if (key != null)
+            {
                 return contextFields[key];
+            }
         }
 
         // Special built-in fields
@@ -905,14 +981,18 @@ public class WorkflowTriggerService : IWorkflowTriggerService
 
             case "in":
                 if (string.IsNullOrEmpty(expected))
+                {
                     return false;
+                }
                 var inValues = expected.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 return inValues.Any(v => string.Equals(v, actual, StringComparison.OrdinalIgnoreCase));
 
             case "notin":
             case "not_in":
                 if (string.IsNullOrEmpty(expected))
+                {
                     return true;
+                }
                 var notInValues = expected.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 return !notInValues.Any(v => string.Equals(v, actual, StringComparison.OrdinalIgnoreCase));
 
@@ -921,7 +1001,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
 
             case "regex":
                 if (string.IsNullOrEmpty(expected))
+                {
                     return true;
+                }
                 try
                 {
                     return System.Text.RegularExpressions.Regex.IsMatch(actual ?? "", expected, System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
@@ -977,7 +1059,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
     private static bool EvaluateBetween(string? actual, string? low, string? high)
     {
         if (string.IsNullOrEmpty(low) || string.IsNullOrEmpty(high))
+        {
             return true; // Incomplete between — skip
+        }
 
         return CompareNumeric(actual, low) >= 0 && CompareNumeric(actual, high) <= 0;
     }
@@ -1040,10 +1124,14 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .FirstOrDefaultAsync(w => w.Id == trigger.WorkflowDefinitionId && !w.IsDeleted, cancellationToken);
 
         if (workflow == null)
+        {
             throw new InvalidOperationException($"Workflow definition {trigger.WorkflowDefinitionId} not found.");
+        }
 
         if (workflow.Status != WorkflowStatus.Active)
+        {
             throw new InvalidOperationException($"Workflow {workflow.Name} is not active (Status: {workflow.Status}).");
+        }
 
         var activeVersion = workflow.Versions
             .Where(v => v.Status == WorkflowVersionStatus.Active && !v.IsDeleted)
@@ -1051,7 +1139,9 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             .FirstOrDefault();
 
         if (activeVersion == null)
+        {
             throw new InvalidOperationException($"Workflow {workflow.Name} has no active version.");
+        }
 
         // Create workflow instance
         var instance = new WorkflowInstance

@@ -90,7 +90,9 @@ public class WorkflowStepExecutor
     {
         var start = DateTime.UtcNow;
         if (string.IsNullOrEmpty(step.Script))
+        {
             return new StepResult(step.Name, false, null, "Script ID or source is required", DateTime.UtcNow - start);
+        }
 
         var resolvedInput = ResolveInput(step.Input, ctx);
 
@@ -105,7 +107,9 @@ public class WorkflowStepExecutor
 
         var compiled = await _scriptEngine.CompileAsync(definition, null, ct);
         if (!compiled.Success)
+        {
             return new StepResult(step.Name, false, null, "Script compilation failed", DateTime.UtcNow - start);
+        }
 
         return new StepResult(step.Name, true, resolvedInput, null, DateTime.UtcNow - start);
     }
@@ -116,7 +120,9 @@ public class WorkflowStepExecutor
     {
         var start = DateTime.UtcNow;
         if (string.IsNullOrEmpty(step.Tool))
+        {
             return new StepResult(step.Name, false, null, "Tool name is required", DateTime.UtcNow - start);
+        }
 
         var resolvedInput = ResolveInput(step.Input, ctx);
         var result = await _toolInvoker.CallAsync<object>(step.Tool, resolvedInput, ct);
@@ -153,7 +159,9 @@ public class WorkflowStepExecutor
         var start = DateTime.UtcNow;
         var delayMs = (step.DelaySeconds ?? 0) * 1000;
         if (delayMs > 0)
+        {
             await Task.Delay(Math.Min(delayMs, 5000), ct); // Cap at 5 s in unit tests
+        }
 
         return new StepResult(step.Name, true, null, null, DateTime.UtcNow - start);
     }

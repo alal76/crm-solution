@@ -33,7 +33,9 @@ public class CelExpressionEvaluator
     public string Resolve(string template, IReadOnlyDictionary<string, object?> context)
     {
         if (string.IsNullOrEmpty(template) || !template.Contains("${", StringComparison.Ordinal))
+        {
             return template;
+        }
 
         return ExpressionPattern.Replace(template, match =>
         {
@@ -47,15 +49,21 @@ public class CelExpressionEvaluator
     public bool EvaluateCondition(string celExpression, IReadOnlyDictionary<string, object?> context)
     {
         if (string.IsNullOrEmpty(celExpression))
+        {
             return true;
+        }
 
         var resolved = Resolve(celExpression, context);
 
         if (resolved.Equals("true", StringComparison.OrdinalIgnoreCase))
+        {
             return true;
+        }
 
         if (resolved.Equals("false", StringComparison.OrdinalIgnoreCase))
+        {
             return false;
+        }
 
         // Simple equality: value == 'other'
         var eqMatch = EqualityPattern.Match(resolved);
@@ -82,15 +90,21 @@ public class CelExpressionEvaluator
     {
         var parts = expr.Split('.');
         if (parts.Length == 0)
+        {
             return null;
+        }
 
         if (!context.TryGetValue(parts[0], out var current))
+        {
             return null;
+        }
 
         for (int i = 1; i < parts.Length; i++)
         {
             if (current == null)
+            {
                 return null;
+            }
 
             if (current is Dictionary<string, object?> dict)
             {
@@ -99,9 +113,13 @@ public class CelExpressionEvaluator
             else if (current is JsonElement elem)
             {
                 if (elem.ValueKind == JsonValueKind.Object && elem.TryGetProperty(parts[i], out var prop))
+                {
                     current = prop.GetRawText().Trim('"');
+                }
                 else
+                {
                     return null;
+                }
             }
             else
             {

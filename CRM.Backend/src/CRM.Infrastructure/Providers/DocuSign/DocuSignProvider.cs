@@ -137,7 +137,9 @@ public class DocuSignProvider : ISignaturePort
             // Check if configured
             var (isValid, _) = _config.Validate();
             if (!isValid)
+            {
                 return false;
+            }
 
             var client = await GetAuthenticatedClientAsync(cancellationToken);
             var accountsApi = new AccountsApi(client);
@@ -376,7 +378,9 @@ public class DocuSignProvider : ISignaturePort
                 }).ToList();
 
                 if (envelopeDefinition.Recipients == null)
+                {
                     envelopeDefinition.Recipients = new Recipients();
+                }
 
                 envelopeDefinition.Recipients.CarbonCopies = ccList;
             }
@@ -458,7 +462,9 @@ public class DocuSignProvider : ISignaturePort
                 envelopesApi.GetEnvelope(_config.AccountId, requestId), cancellationToken);
 
             if (envelope == null)
+            {
                 return null;
+            }
 
             // Get recipients for signer status
             var recipients = await Task.Run(() =>

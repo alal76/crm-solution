@@ -31,6 +31,8 @@ public class QuotesController : CrmControllerBase
     private readonly NormalizationService _normalization;
     private readonly IPdfGenerationService _pdfService;
 
+    private const string QuoteEntityName = "Quote";
+
     public QuotesController(
         CrmDbContext context,
         ILogger<QuotesController> logger,
@@ -91,12 +93,12 @@ public class QuotesController : CrmControllerBase
         var quotes = await query.OrderByDescending(q => q.CreatedAt).ToListAsync();
         foreach (var q in quotes)
         {
-            var nt = await _normalization.GetTagsAsync("Quote", q.Id);
+            var nt = await _normalization.GetTagsAsync(QuoteEntityName, q.Id);
             if (!string.IsNullOrWhiteSpace(nt))
             {
                 q.Tags = nt;
             }
-            var cf = await _normalization.GetCustomFieldsAsync("Quote", q.Id);
+            var cf = await _normalization.GetCustomFieldsAsync(QuoteEntityName, q.Id);
             if (!string.IsNullOrWhiteSpace(cf))
             {
                 q.CustomFields = cf;
@@ -133,12 +135,12 @@ public class QuotesController : CrmControllerBase
             return NotFound();
         }
 
-        var nt = await _normalization.GetTagsAsync("Quote", quote.Id);
+        var nt = await _normalization.GetTagsAsync(QuoteEntityName, quote.Id);
         if (!string.IsNullOrWhiteSpace(nt))
         {
             quote.Tags = nt;
         }
-        var cf = await _normalization.GetCustomFieldsAsync("Quote", quote.Id);
+        var cf = await _normalization.GetCustomFieldsAsync(QuoteEntityName, quote.Id);
         if (!string.IsNullOrWhiteSpace(cf))
         {
             quote.CustomFields = cf;
@@ -171,12 +173,12 @@ public class QuotesController : CrmControllerBase
             return NotFound();
         }
 
-        var nt = await _normalization.GetTagsAsync("Quote", quote.Id);
+        var nt = await _normalization.GetTagsAsync(QuoteEntityName, quote.Id);
         if (!string.IsNullOrWhiteSpace(nt))
         {
             quote.Tags = nt;
         }
-        var cf = await _normalization.GetCustomFieldsAsync("Quote", quote.Id);
+        var cf = await _normalization.GetCustomFieldsAsync(QuoteEntityName, quote.Id);
         if (!string.IsNullOrWhiteSpace(cf))
         {
             quote.CustomFields = cf;

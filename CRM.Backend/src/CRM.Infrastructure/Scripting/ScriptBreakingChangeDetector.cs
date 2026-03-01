@@ -26,13 +26,19 @@ public class ScriptBreakingChangeDetector
         var issues = new List<string>();
 
         if (previous.Runtime != next.Runtime)
+        {
             issues.Add($"Runtime changed: {previous.Runtime} → {next.Runtime}");
+        }
 
         if (IsBreakingSchemaChange(previous.InputSchema, next.InputSchema))
+        {
             issues.Add("Input schema has breaking changes (required fields added or types changed).");
+        }
 
         if (IsBreakingSchemaChange(previous.OutputSchema, next.OutputSchema))
+        {
             issues.Add("Output schema has breaking changes (fields removed or types changed).");
+        }
 
         var removedPermissions = previous.Permissions
             .Select(p => p.Name)
@@ -40,7 +46,9 @@ public class ScriptBreakingChangeDetector
             .ToList();
 
         if (removedPermissions.Count > 0)
+        {
             issues.Add($"Permissions removed: {string.Join(", ", removedPermissions)}");
+        }
 
         return new BreakingChangeReport(issues.Count == 0, issues);
     }

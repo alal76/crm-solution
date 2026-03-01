@@ -31,7 +31,9 @@ public class TerritoryAssignmentService : ITerritoryAssignmentService
     {
         var territory = await GetMatchingTerritoryAsync(lead, cancellationToken);
         if (territory?.OwnerUserId == null)
+        {
             return null;
+        }
 
         // Assign lead to territory owner
         lead.OwnerId = territory.OwnerUserId;

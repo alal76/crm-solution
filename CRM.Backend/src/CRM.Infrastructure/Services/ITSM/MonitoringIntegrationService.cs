@@ -267,7 +267,9 @@ public class MonitoringIntegrationService : IMonitoringIntegrationService
     {
         var integration = _integrations.FirstOrDefault(i => i.Id == id);
         if (integration == null)
+        {
             return Task.FromResult<MonitoringIntegrationDto?>(null);
+        }
 
         if (dto.Name != null) integration.Name = dto.Name;
         if (dto.IsEnabled.HasValue) integration.IsEnabled = dto.IsEnabled.Value;
@@ -288,7 +290,9 @@ public class MonitoringIntegrationService : IMonitoringIntegrationService
     {
         var integration = _integrations.FirstOrDefault(i => i.Id == id);
         if (integration == null)
+        {
             return Task.FromResult(false);
+        }
 
         _integrations.Remove(integration);
         _logger.LogInformation("Deleted monitoring integration {Id}", id);
@@ -322,13 +326,19 @@ public class MonitoringIntegrationService : IMonitoringIntegrationService
         var query = _alertHistory.AsEnumerable();
 
         if (integrationId.HasValue)
+        {
             query = query.Where(h => h.IntegrationId == integrationId.Value);
+        }
 
         if (startDate.HasValue)
+        {
             query = query.Where(h => h.ProcessedAt >= startDate.Value);
+        }
 
         if (endDate.HasValue)
+        {
             query = query.Where(h => h.ProcessedAt <= endDate.Value);
+        }
 
         return Task.FromResult(query.OrderByDescending(h => h.ProcessedAt).ToList());
     }

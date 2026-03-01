@@ -256,7 +256,9 @@ public class CommissionRulesEngine : ICommissionRulesEngine
         var applicableRules = rules.Where(r =>
         {
             if (string.IsNullOrEmpty(r.ApplicableUserIds))
+            {
                 return true;
+            }
 
             try
             {
@@ -275,7 +277,9 @@ public class CommissionRulesEngine : ICommissionRulesEngine
             applicableRules = applicableRules.Where(r =>
             {
                 if (string.IsNullOrEmpty(r.ApplicableProductIds))
+                {
                     return true;
+                }
 
                 try
                 {
@@ -293,7 +297,9 @@ public class CommissionRulesEngine : ICommissionRulesEngine
         applicableRules = applicableRules.Where(r =>
         {
             if (r.RuleType != CommissionRuleType.Tiered)
+            {
                 return true;
+            }
 
             var minOk = !r.MinAmount.HasValue || dealAmount >= r.MinAmount.Value;
             var maxOk = !r.MaxAmount.HasValue || dealAmount <= r.MaxAmount.Value;
@@ -312,14 +318,18 @@ public class CommissionRulesEngine : ICommissionRulesEngine
         foreach (var tier in orderedTiers)
         {
             if (remainingAmount <= 0)
+            {
                 break;
+            }
 
             var tierMax = tier.MaxAmount ?? decimal.MaxValue;
             var tierRange = tierMax - tier.MinAmount;
             var amountInTier = Math.Min(remainingAmount, tierRange);
 
             if (amountInTier <= 0)
+            {
                 continue;
+            }
 
             // Calculate commission for this tier
             var tierCommission = tier.FixedAmount.HasValue && tier.FixedAmount.Value > 0
@@ -350,7 +360,9 @@ public class CommissionRulesEngine : ICommissionRulesEngine
     {
         // Try to parse max commission from Configuration JSON
         if (string.IsNullOrEmpty(rule.Configuration))
+        {
             return null;
+        }
 
         try
         {

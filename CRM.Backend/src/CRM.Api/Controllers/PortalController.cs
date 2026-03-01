@@ -31,6 +31,7 @@ public class PortalController : CrmControllerBase
 {
     private readonly IPortalService _portalService;
     private readonly IConfiguration _configuration;
+    private const string PortalAuthRequired = "Portal authentication required.";
 
     public PortalController(
         IPortalService portalService,
@@ -60,7 +61,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         var result = await _portalService.GetMyTicketsAsync(userId.Value, page, pageSize, ct);
@@ -80,7 +81,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         try
@@ -101,7 +102,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         var ticket = await _portalService.GetTicketAsync(userId.Value, id, ct);
@@ -120,7 +121,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         var comments = await _portalService.GetTicketCommentsAsync(userId.Value, id, ct);
@@ -140,7 +141,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         try
@@ -189,7 +190,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         var profile = await _portalService.GetProfileAsync(userId.Value, ct);
@@ -208,7 +209,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         try
@@ -234,7 +235,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         try
@@ -258,7 +259,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         if (file == null || file.Length == 0)
@@ -286,7 +287,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         var attachments = await _portalService.GetAttachmentsAsync(ticketId, userId.Value, ct);
@@ -302,7 +303,7 @@ public class PortalController : CrmControllerBase
         var userId = ExtractPortalUserId();
         if (userId == null)
         {
-            return Unauthorized(new { message = "Portal authentication required." });
+            return Unauthorized(new { message = PortalAuthRequired });
         }
 
         try

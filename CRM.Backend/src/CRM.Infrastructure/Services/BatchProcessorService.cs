@@ -88,14 +88,20 @@ public sealed class BatchProcessorService<T> : IBatchProcessor<T>
                         lock (errors)
                         {
                             if (errors.Count < 500)        // cap to avoid memory blow-up
+                            {
                                 errors.Add(message);
+                            }
                         }
                     }
 
                     if (success)
+                    {
                         Interlocked.Increment(ref succeeded);
+                    }
                     else
+                    {
                         Interlocked.Increment(ref failed);
+                    }
                 }
                 finally
                 {
@@ -166,7 +172,9 @@ public sealed class BatchProcessorService<T> : IBatchProcessor<T>
 
                 // Stop streaming once all items are accounted for
                 if (snapshot.Total > 0 && snapshot.Processed >= snapshot.Total)
+                {
                     break;
+                }
             }
             else
             {

@@ -118,25 +118,39 @@ public class PowerBIConfiguration
     public (bool IsValid, string? Error) Validate()
     {
         if (string.IsNullOrWhiteSpace(TenantId))
+        {
             return (false, "TenantId is required");
+        }
         if (string.IsNullOrWhiteSpace(ClientId))
+        {
             return (false, "ClientId is required");
+        }
         if (string.IsNullOrWhiteSpace(WorkspaceId))
+        {
             return (false, "WorkspaceId is required");
+        }
 
         if (AuthMethod == PowerBIAuthMethod.ServicePrincipal)
         {
             if (string.IsNullOrWhiteSpace(ClientSecret))
+            {
                 return (false, "ClientSecret is required for service principal authentication");
+            }
         }
         else if (AuthMethod == PowerBIAuthMethod.MasterUser)
         {
             if (MasterUser == null)
+            {
                 return (false, "MasterUser credentials are required for master user authentication");
+            }
             if (string.IsNullOrWhiteSpace(MasterUser.Username))
+            {
                 return (false, "MasterUser.Username is required");
+            }
             if (string.IsNullOrWhiteSpace(MasterUser.Password))
+            {
                 return (false, "MasterUser.Password is required");
+            }
         }
 
         return (true, null);

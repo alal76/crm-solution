@@ -62,22 +62,34 @@ public class LeadAgingAlertService : ILeadAgingAlertService
         };
 
         if (openLeads.Count == 0)
+        {
             return stats;
+        }
 
         foreach (var lead in openLeads)
         {
             var ageDays = (now - lead.AgeDate).TotalDays;
             
             if (ageDays < 7)
+            {
                 stats.Under7Days++;
+            }
             else if (ageDays < 15)
+            {
                 stats.Days7To14++;
+            }
             else if (ageDays < 31)
+            {
                 stats.Days15To30++;
+            }
             else if (ageDays < 61)
+            {
                 stats.Days31To60++;
+            }
             else
+            {
                 stats.Over60Days++;
+            }
         }
 
         stats.AverageAgeDays = openLeads.Average(l => (now - l.AgeDate).TotalDays);

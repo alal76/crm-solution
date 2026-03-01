@@ -142,29 +142,53 @@ public class CampaignConversionService : ICampaignConversionService
 
         // Update only non-null fields
         if (dto.CampaignRecipientId.HasValue)
+        {
             conversion.CampaignRecipientId = dto.CampaignRecipientId;
+        }
         if (dto.ContactId.HasValue)
+        {
             conversion.ContactId = dto.ContactId;
+        }
         if (dto.AccountId.HasValue)
+        {
             conversion.AccountId = dto.AccountId;
+        }
         if (!string.IsNullOrEmpty(dto.ConversionType))
+        {
             conversion.ConversionType = dto.ConversionType;
+        }
         if (dto.ConversionValue.HasValue)
+        {
             conversion.ConversionValue = dto.ConversionValue;
+        }
         if (!string.IsNullOrEmpty(dto.ConversionCurrency))
+        {
             conversion.ConversionCurrency = dto.ConversionCurrency;
+        }
         if (!string.IsNullOrEmpty(dto.AttributionModel))
+        {
             conversion.AttributionModel = dto.AttributionModel;
+        }
         if (dto.AttributionPercentage.HasValue)
+        {
             conversion.AttributionPercentage = dto.AttributionPercentage.Value;
+        }
         if (dto.ConversionData != null)
+        {
             conversion.ConversionData = dto.ConversionData;
+        }
         if (dto.ConvertedAt.HasValue)
+        {
             conversion.ConvertedAt = dto.ConvertedAt.Value;
+        }
         if (dto.ExternalOrderId != null)
+        {
             conversion.ExternalOrderId = dto.ExternalOrderId;
+        }
         if (dto.ExternalTransactionId != null)
+        {
             conversion.ExternalTransactionId = dto.ExternalTransactionId;
+        }
 
 
         _context.CampaignConversions.Update(conversion);

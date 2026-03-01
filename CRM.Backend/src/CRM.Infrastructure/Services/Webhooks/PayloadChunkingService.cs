@@ -36,7 +36,9 @@ public class PayloadChunkingService : IPayloadChunkingService
     public bool NeedsChunking(string payload)
     {
         if (string.IsNullOrEmpty(payload))
+        {
             return false;
+        }
 
         return Encoding.UTF8.GetByteCount(payload) > MaxPayloadSizeBytes;
     }
@@ -93,7 +95,9 @@ public class PayloadChunkingService : IPayloadChunkingService
     public Task<string> ReassembleAsync(IReadOnlyList<PayloadChunk> chunks, CancellationToken cancellationToken = default)
     {
         if (chunks == null || chunks.Count == 0)
+        {
             return Task.FromResult(string.Empty);
+        }
 
         var ordered = chunks.OrderBy(c => c.SequenceNumber).ToList();
 
@@ -177,7 +181,9 @@ public class PayloadChunkingService : IPayloadChunkingService
                 }
 
                 if (items.Count <= 1) // NOSONAR - array with 0 or 1 items cannot be split into chunks
+                {
                     return false;
+                }
 
                 // Group items into chunks that fit the size limit
                 var currentItems = new List<string>();

@@ -468,7 +468,9 @@ public class ContactInfoService : IContactInfoService
     {
         var parts = new List<string> { phone.CountryCode };
         if (!string.IsNullOrEmpty(phone.AreaCode))
+        {
             parts.Add(phone.AreaCode);
+        }
         parts.Add(phone.Number);
         var formatted = string.Join(" ", parts);
         if (!string.IsNullOrEmpty(phone.Extension))

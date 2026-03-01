@@ -47,7 +47,9 @@ public class EscalationAnalyticsService : IEscalationAnalyticsService
 
             var totalCount = escalationLogs.Count;
             if (totalCount == 0)
+            {
                 return Array.Empty<EscalationByCategoryDto>();
+            }
 
             var grouped = escalationLogs
                 .GroupBy(e => new
@@ -176,7 +178,9 @@ public class EscalationAnalyticsService : IEscalationAnalyticsService
                 }
 
                 if (periodEnd > endDate)
+                {
                     periodEnd = endDate.AddDays(1);
+                }
 
                 var periodEscalations = escalations
                     .Count(e => e.EscalatedAt >= currentDate && e.EscalatedAt < periodEnd);

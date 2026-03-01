@@ -34,11 +34,15 @@ public class EncryptionService : IEncryptionService
     public string Encrypt(string plaintext)
     {
         if (string.IsNullOrWhiteSpace(plaintext))
+        {
             return plaintext;
+        }
 
         // Don't double-encrypt
         if (IsEncrypted(plaintext))
+        {
             return plaintext;
+        }
 
         var encrypted = _protector.Protect(plaintext);
         return $"{EncryptedPrefix}{encrypted}";
@@ -48,10 +52,14 @@ public class EncryptionService : IEncryptionService
     public string? Decrypt(string ciphertext)
     {
         if (string.IsNullOrWhiteSpace(ciphertext))
+        {
             return ciphertext;
+        }
 
         if (!IsEncrypted(ciphertext))
+        {
             return ciphertext;
+        }
 
         try
         {

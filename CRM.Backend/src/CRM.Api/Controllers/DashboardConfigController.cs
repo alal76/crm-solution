@@ -296,10 +296,10 @@ public class DashboardConfigController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateDashboard([FromBody] CreateDashboardDto dto)
     {
-                if (string.IsNullOrWhiteSpace(dto.Name))
-                {
+        if (string.IsNullOrWhiteSpace(dto.Name))
+        {
             return BadRequest(new { message = "Dashboard name is required" });
-                }
+        }
 
         var userId = GetCurrentUserId();
 
@@ -509,10 +509,10 @@ public class DashboardConfigController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateWidget([FromBody] CreateWidgetDto dto)
     {
-                if (string.IsNullOrWhiteSpace(dto.Title))
-                {
+        if (string.IsNullOrWhiteSpace(dto.Title))
+        {
             return BadRequest(new { message = "Widget title is required" });
-                }
+        }
 
         var dashboard = await _context.Dashboards.FindAsync(dto.DashboardId);
         if (dashboard == null || dashboard.IsDeleted)

@@ -53,7 +53,9 @@ public class ContactsService : IContactsService, IContactInputPort
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (contact == null)
+        {
             throw new InvalidOperationException($"Contact with ID {id} not found");
+        }
 
         return await MapToDtoAsync(contact);
     }
@@ -77,7 +79,9 @@ public class ContactsService : IContactsService, IContactInputPort
     public async Task<List<ContactDto>> GetByTypeAsync(string contactType)
     {
         if (!Enum.TryParse<ContactType>(contactType, true, out var type))
+        {
             return new List<ContactDto>();
+        }
 
         var contacts = await _context.Contacts
             .Include(c => c.SocialMediaLinks)
@@ -97,7 +101,9 @@ public class ContactsService : IContactsService, IContactInputPort
     public async Task<ContactDto> CreateAsync(CreateContactRequest request, string modifiedBy)
     {
         if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
+        {
             throw new ArgumentException("First name and last name are required");
+        }
 
         // Duplicate detection check before creation
         var fieldValues = new Dictionary<string, string?>
@@ -279,7 +285,9 @@ public class ContactsService : IContactsService, IContactInputPort
 
         // Update any queued duplicate candidates with the new entity ID
         if (candidatesQueued > 0)
+        {
             await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_context, "Contact", contact.Id);
+        }
 
         // Fire workflow triggers for entity creation
         _eventDispatcher.DispatchEntityEvent("Contact", contact.Id, WorkflowTriggerType.OnCreate);
@@ -294,178 +302,292 @@ public class ContactsService : IContactsService, IContactInputPort
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (contact == null)
+        {
             throw new InvalidOperationException($"Contact with ID {id} not found");
+        }
 
         if (!string.IsNullOrWhiteSpace(request.ContactType))
         {
             if (Enum.TryParse<ContactType>(request.ContactType, true, out var type))
+            {
                 contact.ContactType = type;
+            }
         }
 
         if (!string.IsNullOrWhiteSpace(request.FirstName))
+        {
             contact.FirstName = request.FirstName;
+        }
 
         if (!string.IsNullOrWhiteSpace(request.LastName))
+        {
             contact.LastName = request.LastName;
+        }
 
         if (request.MiddleName != null)
+        {
             contact.MiddleName = request.MiddleName;
+        }
 
         if (request.EmailPrimary != null)
+        {
             contact.EmailPrimary = request.EmailPrimary;
+        }
 
         if (request.EmailSecondary != null)
+        {
             contact.EmailSecondary = request.EmailSecondary;
+        }
 
         if (request.PhonePrimary != null)
+        {
             contact.PhonePrimary = request.PhonePrimary;
+        }
 
         if (request.PhoneSecondary != null)
+        {
             contact.PhoneSecondary = request.PhoneSecondary;
+        }
 
         if (request.Address != null)
+        {
             contact.Address = request.Address;
+        }
 
         if (request.City != null)
+        {
             contact.City = request.City;
+        }
 
         if (request.State != null)
+        {
             contact.State = request.State;
+        }
 
         if (request.Country != null)
+        {
             contact.Country = request.Country;
+        }
 
         if (request.ZipCode != null)
+        {
             contact.ZipCode = request.ZipCode;
+        }
 
         if (request.JobTitle != null)
+        {
             contact.JobTitle = request.JobTitle;
+        }
 
         if (request.Department != null)
+        {
             contact.Department = request.Department;
+        }
 
         if (request.Company != null)
+        {
             contact.Company = request.Company;
+        }
 
         if (request.ReportsTo != null)
+        {
             contact.ReportsTo = request.ReportsTo;
+        }
 
         if (request.Notes != null)
+        {
             contact.Notes = request.Notes;
+        }
 
         if (request.DateOfBirth.HasValue)
+        {
             contact.DateOfBirth = request.DateOfBirth;
+        }
 
         if (request.EmailWork != null)
+        {
             contact.EmailWork = request.EmailWork;
+        }
 
         if (request.PhoneWork != null)
+        {
             contact.PhoneWork = request.PhoneWork;
+        }
 
         if (request.MailingAddress != null)
+        {
             contact.MailingAddress = request.MailingAddress;
+        }
 
         if (request.MailingCity != null)
+        {
             contact.MailingCity = request.MailingCity;
+        }
 
         if (request.MailingState != null)
+        {
             contact.MailingState = request.MailingState;
+        }
 
         if (request.MailingCountry != null)
+        {
             contact.MailingCountry = request.MailingCountry;
+        }
 
         if (request.MailingZipCode != null)
+        {
             contact.MailingZipCode = request.MailingZipCode;
+        }
 
         if (request.ReportsToContactId.HasValue)
+        {
             contact.ReportsToContactId = request.ReportsToContactId;
+        }
 
         if (request.AssistantContactId.HasValue)
+        {
             contact.AssistantContactId = request.AssistantContactId;
+        }
 
         if (request.AssistantName != null)
+        {
             contact.AssistantName = request.AssistantName;
+        }
 
         if (request.AssistantPhone != null)
+        {
             contact.AssistantPhone = request.AssistantPhone;
+        }
 
         if (request.FacebookUrl != null)
+        {
             contact.FacebookUrl = request.FacebookUrl;
+        }
 
         if (request.InstagramHandle != null)
+        {
             contact.InstagramHandle = request.InstagramHandle;
+        }
 
         if (request.BlogUrl != null)
+        {
             contact.BlogUrl = request.BlogUrl;
+        }
 
         if (request.PreferredContactTime != null)
+        {
             contact.PreferredContactTime = request.PreferredContactTime;
+        }
 
         if (request.Timezone != null)
+        {
             contact.Timezone = request.Timezone;
+        }
 
         if (request.PreferredLanguage != null)
+        {
             contact.PreferredLanguage = request.PreferredLanguage;
+        }
 
         if (request.OptInEmail.HasValue)
+        {
             contact.OptInEmail = request.OptInEmail.Value;
+        }
 
         if (request.OptInSms.HasValue)
+        {
             contact.OptInSms = request.OptInSms.Value;
+        }
 
         if (request.OptInPhone.HasValue)
+        {
             contact.OptInPhone = request.OptInPhone.Value;
+        }
 
         if (request.OptInMail.HasValue)
+        {
             contact.OptInMail = request.OptInMail.Value;
+        }
 
         if (request.LastOptInDate.HasValue)
+        {
             contact.LastOptInDate = request.LastOptInDate;
+        }
 
         if (request.LastOptOutDate.HasValue)
+        {
             contact.LastOptOutDate = request.LastOptOutDate;
+        }
 
         if (request.LeadSource != null)
+        {
             contact.LeadSource = request.LeadSource;
+        }
 
         if (request.LeadScore.HasValue)
+        {
             contact.LeadScore = request.LeadScore;
+        }
 
         if (request.IsQualified.HasValue)
+        {
             contact.IsQualified = request.IsQualified;
+        }
 
         if (request.QualifiedDate.HasValue)
+        {
             contact.QualifiedDate = request.QualifiedDate;
+        }
 
         if (request.ConvertedDate.HasValue)
+        {
             contact.ConvertedDate = request.ConvertedDate;
+        }
 
         if (request.ConvertedToAccountId.HasValue)
+        {
             contact.ConvertedToAccountId = request.ConvertedToAccountId;
+        }
 
         if (request.LeadRating != null)
+        {
             contact.LeadRating = request.LeadRating;
+        }
 
         if (request.OwnerId.HasValue)
+        {
             contact.OwnerId = request.OwnerId;
+        }
 
         if (request.AssignedToUserId.HasValue)
+        {
             contact.AssignedToUserId = request.AssignedToUserId;
+        }
 
         if (request.Territory != null)
+        {
             contact.Territory = request.Territory;
+        }
 
         if (request.Tags != null)
+        {
             contact.Tags = request.Tags;
+        }
 
         if (request.CustomFields != null)
+        {
             contact.CustomFields = request.CustomFields;
+        }
 
         if (request.PhotoUrl != null)
+        {
             contact.PhotoUrl = request.PhotoUrl;
+        }
 
         if (request.Description != null)
+        {
             contact.Description = request.Description;
+        }
 
         contact.LastModified = DateTime.UtcNow;
         contact.ModifiedBy = modifiedBy;
@@ -600,7 +722,9 @@ public class ContactsService : IContactsService, IContactInputPort
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (contact == null)
+        {
             throw new InvalidOperationException($"Contact with ID {id} not found");
+        }
 
         // Delete associated social media links
         _context.SocialMediaLinks.RemoveRange(contact.SocialMediaLinks);
@@ -617,7 +741,9 @@ public class ContactsService : IContactsService, IContactInputPort
     {
         var contact = await _context.Contacts.FindAsync(contactId);
         if (contact == null)
+        {
             throw new InvalidOperationException($"Contact with ID {contactId} not found");
+        }
 
         var platform = Enum.TryParse<SocialPlatform>(request.Platform, true, out var p)
             ? p
@@ -648,7 +774,9 @@ public class ContactsService : IContactsService, IContactInputPort
     {
         var link = await _context.SocialMediaLinks.FindAsync(linkId);
         if (link == null)
+        {
             throw new InvalidOperationException($"Social media link with ID {linkId} not found");
+        }
 
         _context.SocialMediaLinks.Remove(link);
         await _context.SaveChangesAsync();
@@ -781,7 +909,9 @@ public class ContactsService : IContactsService, IContactInputPort
     {
         var contact = await _context.Contacts.FindAsync(contactId);
         if (contact == null)
+        {
             throw new InvalidOperationException($"Contact with ID {contactId} not found");
+        }
 
         contact.AccountId = accountId;
         contact.LastModified = DateTime.UtcNow;
@@ -792,7 +922,9 @@ public class ContactsService : IContactsService, IContactInputPort
     {
         var contact = await _context.Contacts.FindAsync(contactId);
         if (contact == null)
+        {
             throw new InvalidOperationException($"Contact with ID {contactId} not found");
+        }
 
         contact.AccountId = null;
         contact.LastModified = DateTime.UtcNow;

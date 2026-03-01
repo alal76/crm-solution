@@ -85,7 +85,7 @@ jobs:
           mkdir -p dist
           helm package kubernetes/helm/monolith -d dist --version "$RELEASE_VERSION" --app-version "$RELEASE_VERSION"
           helm package kubernetes/helm/microservices -d dist --version "$RELEASE_VERSION" --app-version "$RELEASE_VERSION"
-          (cd dist && sha256sum *.tgz > checksums.txt)
+          (cd dist && sha256sum ./*.tgz > checksums.txt)
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2

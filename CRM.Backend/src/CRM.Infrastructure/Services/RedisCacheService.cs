@@ -100,7 +100,9 @@ public class RedisCacheService : IRedisCacheService
     public async Task<T?> GetAsync<T>(string key, CancellationToken cancellationToken = default) where T : class
     {
         if (!_options.Enabled)
+        {
             return null;
+        }
 
         try
         {
@@ -129,7 +131,9 @@ public class RedisCacheService : IRedisCacheService
     public async Task SetAsync<T>(string key, T value, TimeSpan expiration, CancellationToken cancellationToken = default) where T : class
     {
         if (!_options.Enabled)
+        {
             return;
+        }
 
         try
         {
@@ -184,7 +188,9 @@ public class RedisCacheService : IRedisCacheService
     public async Task RemoveAsync(string key, CancellationToken cancellationToken = default)
     {
         if (!_options.Enabled)
+        {
             return;
+        }
 
         try
         {
@@ -207,7 +213,9 @@ public class RedisCacheService : IRedisCacheService
     public async Task RemoveByPrefixAsync(string prefix, CancellationToken cancellationToken = default)
     {
         if (!_options.Enabled)
+        {
             return;
+        }
 
         try
         {
@@ -241,7 +249,9 @@ public class RedisCacheService : IRedisCacheService
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         if (!_options.Enabled)
+        {
             return false;
+        }
 
         try
         {
@@ -295,7 +305,9 @@ public class FallbackCacheService : IRedisCacheService
         {
             var result = await _redisCache.GetAsync<T>(key, cancellationToken);
             if (result != null)
+            {
                 return result;
+            }
         }
 
         // Fallback to memory cache
@@ -326,11 +338,15 @@ public class FallbackCacheService : IRedisCacheService
     {
         var cached = await GetAsync<T>(key, cancellationToken);
         if (cached != null)
+        {
             return cached;
+        }
 
         var value = await factory();
         if (value == null)
+        {
             return null;
+        }
 
         await SetAsync(key, value, expiration ?? TimeSpan.FromMinutes(_options.DefaultExpirationMinutes), cancellationToken);
         return value;
@@ -362,7 +378,9 @@ public class FallbackCacheService : IRedisCacheService
     private async Task<bool> ShouldUseRedisAsync(CancellationToken cancellationToken)
     {
         if (!_options.Enabled)
+        {
             return false;
+        }
 
         // Periodically recheck Redis availability
         if (!_redisAvailable && DateTime.UtcNow - _lastRedisCheck > RedisCheckInterval)

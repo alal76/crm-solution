@@ -467,7 +467,9 @@ public class ZipCodeImportService : IZipCodeImportService
         // Parse header row to map column indices
         var headerLine = await reader.ReadLineAsync(cancellationToken);
         if (string.IsNullOrWhiteSpace(headerLine))
+        {
             return records;
+        }
 
         // Support both comma and tab delimiters
         var delimiter = headerLine.Contains('\t') ? '\t' : ',';
@@ -520,7 +522,9 @@ public class ZipCodeImportService : IZipCodeImportService
             var city       = GetField(idxCity);
 
             if (string.IsNullOrWhiteSpace(postalCode) || string.IsNullOrWhiteSpace(city))
+            {
                 continue;
+            }
 
             var countryName = GetField(idxCountry);
             // Derive country code from name if we can; fall back to first 2 chars of name
@@ -602,25 +606,33 @@ public class ZipCodeImportService : IZipCodeImportService
         foreach (var entry in archive.Entries)
         {
             if (!entry.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+            {
                 continue;
+            }
 
             using var reader = new StreamReader(entry.Open());
             string? line;
             while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
             {
                 if (cancellationToken.IsCancellationRequested)
+                {
                     break;
+                }
 
                 var parts = line.Split('\t');
                 if (parts.Length < 10)
+                {
                     continue;
+                }
 
                 var countryCode = parts[0];
                 var postalCode = parts[1];
                 var city = parts[2];
 
                 if (string.IsNullOrWhiteSpace(postalCode) || string.IsNullOrWhiteSpace(city))
+                {
                     continue;
+                }
 
                 decimal.TryParse(parts.Length > 9 ? parts[9] : "0", out var latitude);
                 decimal.TryParse(parts.Length > 10 ? parts[10] : "0", out var longitude);
@@ -681,7 +693,9 @@ public class ZipCodeImportService : IZipCodeImportService
             for (int i = 0; i < newRecords.Count; i += batchSize)
             {
                 if (cancellationToken.IsCancellationRequested)
+                {
                     break;
+                }
 
                 var batch = newRecords.Skip(i).Take(batchSize).ToList();
                 _context.ZipCodes.AddRange(batch);
@@ -724,7 +738,9 @@ public class ZipCodeImportService : IZipCodeImportService
     private static string GetCountryName(string? countryCode)
     {
         if (string.IsNullOrEmpty(countryCode))
+        {
             return "Unknown";
+        }
         return CountryNames.TryGetValue(countryCode.ToUpperInvariant(), out var name)
             ? name
             : countryCode;

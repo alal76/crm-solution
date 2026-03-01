@@ -24,6 +24,8 @@ public class LeadScoreRulesController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<LeadScoreRulesController> _logger;
+    private const string FieldTypeString = "string";
+    private const string FieldTypeNumber = "number";
 
     public LeadScoreRulesController(CrmDbContext context, ILogger<LeadScoreRulesController> logger)
     {
@@ -246,24 +248,24 @@ public class LeadScoreRulesController : CrmControllerBase
     {
         var fields = new List<FieldDefinition>
         {
-            new("JobTitle", "Job Title", "string"),
-            new("Company", "Company Name", "string"),
-            new("Industry", "Industry", "string"),
-            new("CompanySize", "Company Size", "number"),
+            new("JobTitle", "Job Title", FieldTypeString),
+            new("Company", "Company Name", FieldTypeString),
+            new("Industry", "Industry", FieldTypeString),
+            new("CompanySize", "Company Size", FieldTypeNumber),
             new("AnnualRevenue", "Annual Revenue", "decimal"),
-            new("Country", "Country", "string"),
-            new("State", "State/Region", "string"),
-            new("City", "City", "string"),
-            new("LeadSource", "Lead Source", "string"),
-            new("Website", "Website", "string"),
-            new("Email", "Email Domain", "string"),
+            new("Country", "Country", FieldTypeString),
+            new("State", "State/Region", FieldTypeString),
+            new("City", "City", FieldTypeString),
+            new("LeadSource", "Lead Source", FieldTypeString),
+            new("Website", "Website", FieldTypeString),
+            new("Email", "Email Domain", FieldTypeString),
             new("Phone", "Has Phone", "boolean"),
-            new("TotalInteractions", "Total Interactions", "number"),
-            new("LastActivityDate", "Days Since Last Activity", "number"),
-            new("EmailOpens", "Email Opens", "number"),
-            new("EmailClicks", "Email Clicks", "number"),
-            new("PageViews", "Page Views", "number"),
-            new("FormSubmissions", "Form Submissions", "number")
+            new("TotalInteractions", "Total Interactions", FieldTypeNumber),
+            new("LastActivityDate", "Days Since Last Activity", FieldTypeNumber),
+            new("EmailOpens", "Email Opens", FieldTypeNumber),
+            new("EmailClicks", "Email Clicks", FieldTypeNumber),
+            new("PageViews", "Page Views", FieldTypeNumber),
+            new("FormSubmissions", "Form Submissions", FieldTypeNumber)
         };
 
         return Ok(fields);

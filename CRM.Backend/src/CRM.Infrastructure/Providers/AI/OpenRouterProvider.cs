@@ -91,11 +91,17 @@ public class OpenRouterConfiguration
     public (bool IsValid, string? Error) Validate()
     {
         if (string.IsNullOrWhiteSpace(ApiKey))
+        {
             return (false, "ApiKey is required");
+        }
         if (string.IsNullOrWhiteSpace(BaseUrl))
+        {
             return (false, "BaseUrl is required");
+        }
         if (string.IsNullOrWhiteSpace(DefaultModel))
+        {
             return (false, "DefaultModel is required");
+        }
         return (true, null);
     }
 }
@@ -521,13 +527,19 @@ public class OpenRouterProvider : IAIPort
         while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
         {
             if (string.IsNullOrWhiteSpace(line))
+            {
                 continue;
+            }
             if (!line.StartsWith("data: "))
+            {
                 continue;
+            }
 
             var data = line.Substring(6);
             if (data == "[DONE]")
+            {
                 break;
+            }
 
             try
             {
@@ -658,15 +670,25 @@ Then write the email body.";
         userPrompt.AppendLine($"Purpose: {request.Purpose}");
 
         if (!string.IsNullOrEmpty(request.RecipientName))
+        {
             userPrompt.AppendLine($"Recipient: {request.RecipientName}");
+        }
         if (!string.IsNullOrEmpty(request.CompanyName))
+        {
             userPrompt.AppendLine($"Company: {request.CompanyName}");
+        }
         if (request.KeyPoints?.Any() == true)
+        {
             userPrompt.AppendLine($"Key points: {string.Join(", ", request.KeyPoints)}");
+        }
         if (!string.IsNullOrEmpty(request.Context))
+        {
             userPrompt.AppendLine($"Additional context: {request.Context}");
+        }
         if (!string.IsNullOrEmpty(request.Length))
+        {
             userPrompt.AppendLine($"Length: {request.Length}");
+        }
 
         var chatRequest = new AIChatRequest
         {
@@ -696,9 +718,13 @@ Then write the reply body.";
         userPrompt.AppendLine(originalEmail);
 
         if (!string.IsNullOrEmpty(context))
+        {
             userPrompt.AppendLine($"\nContext: {context}");
+        }
         if (!string.IsNullOrEmpty(tone))
+        {
             userPrompt.AppendLine($"\nTone: {tone}");
+        }
 
         var chatRequest = new AIChatRequest
         {
@@ -817,7 +843,9 @@ Analyze the sentiment and return JSON format:
                     emotionsDict[prop.Name] = prop.Value.GetDouble();
                 }
                 if (emotionsDict.Count > 0) // NOSONAR S2583 - populated by EnumerateObject foreach above
+                {
                     emotions = emotionsDict;
+                }
             }
 
             return new AISentimentResult
@@ -854,11 +882,17 @@ Return JSON format:
         userPrompt.AppendLine($"Entity Type: {context.EntityType}");
         userPrompt.AppendLine($"Entity ID: {context.EntityId}");
         if (context.EntityData != null)
+        {
             userPrompt.AppendLine($"Entity Data: {JsonSerializer.Serialize(context.EntityData)}");
+        }
         if (context.RecentActivities?.Any() == true)
+        {
             userPrompt.AppendLine($"Recent Activities: {string.Join("; ", context.RecentActivities)}");
+        }
         if (!string.IsNullOrEmpty(context.Goal))
+        {
             userPrompt.AppendLine($"Goal: {context.Goal}");
+        }
 
         var chatRequest = new AIChatRequest
         {
@@ -909,7 +943,9 @@ Return JSON format:
     public int EstimateTokens(string text)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return 0;
+        }
         // Rough estimation: ~4 characters per token for English
         return (int)Math.Ceiling(text.Length / 4.0);
     }
@@ -1009,7 +1045,9 @@ Return JSON format:
 
                     response = await _httpClient.PostAsync("/chat/completions", content, cancellationToken);
                     if (response.IsSuccessStatusCode)
+                    {
                         break;
+                    }
                 }
             }
 
@@ -1029,11 +1067,17 @@ Return JSON format:
         var modelId = model.Id.ToLowerInvariant();
 
         if (modality.Contains("image") || modelId.Contains("vision") || modelId.Contains("gpt-4o"))
+        {
             capabilities.Add("vision");
+        }
         if (modelId.Contains("embed"))
+        {
             capabilities.Add("embedding");
+        }
         if (modelId.Contains("code") || modelId.Contains("deepseek-coder"))
+        {
             capabilities.Add("code");
+        }
 
         return capabilities;
     }
@@ -1041,7 +1085,9 @@ Return JSON format:
     private decimal? ParseCost(string? costString)
     {
         if (string.IsNullOrEmpty(costString))
+        {
             return null;
+        }
         if (decimal.TryParse(costString, out var cost))
         {
             // OpenRouter reports cost per token, multiply by 1000 for per-1K

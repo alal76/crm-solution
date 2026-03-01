@@ -111,7 +111,7 @@ public class AuditLogsController : CrmControllerBase
         [FromBody] CreateAuditLogDto dto,
         CancellationToken cancellationToken = default)
     {
-                if (dto == null)
+        if (dto == null)
         {
             return BadRequest(new { error = "Request body is required" });
         }
@@ -204,7 +204,7 @@ public class AuditLogsController : CrmControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken cancellationToken = default)
     {
-                if (string.IsNullOrWhiteSpace(query))
+        if (string.IsNullOrWhiteSpace(query))
         {
             return BadRequest(new { error = "Query parameter is required" });
         }
@@ -230,7 +230,7 @@ public class AuditLogsController : CrmControllerBase
         [FromQuery] DateTime toDate,
         CancellationToken cancellationToken = default)
     {
-                if (fromDate > toDate)
+        if (fromDate > toDate)
         {
             return BadRequest(new { error = "fromDate must be before toDate" });
         }

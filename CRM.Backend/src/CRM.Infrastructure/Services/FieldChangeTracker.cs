@@ -125,7 +125,9 @@ public class FieldChangeTracker : IFieldChangeTracker
 
                 // Skip if both are null
                 if (oldVal == null && newVal == null)
+                {
                     continue;
+                }
 
                 // Detect change
                 bool changed = oldVal == null || newVal == null || !oldVal.Equals(newVal);
@@ -154,7 +156,9 @@ public class FieldChangeTracker : IFieldChangeTracker
     public async Task<IReadOnlyList<FieldChangeRecord>> GetFieldHistoryAsync(string entityType, int entityId, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(entityType))
+        {
             throw new ArgumentException("Entity type is required.", nameof(entityType));
+        }
 
         var logs = await _dbContext.FieldChangeLogs
             .Where(f => f.EntityType == entityType && f.EntityId == entityId && !f.IsDeleted)
@@ -182,9 +186,13 @@ public class FieldChangeTracker : IFieldChangeTracker
     public async Task RecordChangesAsync(string entityType, int entityId, int userId, IReadOnlyList<FieldChange> changes, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(entityType))
+        {
             throw new ArgumentException("Entity type is required.", nameof(entityType));
+        }
         if (changes == null || changes.Count == 0)
+        {
             return;
+        }
 
         var now = DateTime.UtcNow;
         var entities = changes.Select(c => new FieldChangeLog
@@ -213,7 +221,9 @@ public class FieldChangeTracker : IFieldChangeTracker
     private static string? SerializeValue(object? value)
     {
         if (value == null)
+        {
             return null;
+        }
 
         return value switch
         {

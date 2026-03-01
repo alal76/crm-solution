@@ -32,6 +32,8 @@ public class MonitoringController : CrmControllerBase
     private readonly IConfiguration _configuration;
     private readonly ILogger<MonitoringController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private const string StatusDegraded = "degraded";
+    private const string StatusOffline = "offline";
 
     public MonitoringController(
         IMonitoringService monitoringService,
@@ -174,7 +176,7 @@ public class MonitoringController : CrmControllerBase
 
                 return Ok(new
                 {
-                    status = pingResponse.IsSuccessStatusCode ? "online" : "degraded",
+                    status = pingResponse.IsSuccessStatusCode ? "online" : StatusDegraded,
                     source = "ping",
                     httpStatus = (int)pingResponse.StatusCode,
                     message = pingResponse.IsSuccessStatusCode ? "Uptime Kuma is running" : "Uptime Kuma returned error",
@@ -185,7 +187,7 @@ public class MonitoringController : CrmControllerBase
             {
                 return Ok(new
                 {
-                    status = "offline",
+                    status = StatusOffline,
                     source = "ping",
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
@@ -241,7 +243,7 @@ public class MonitoringController : CrmControllerBase
 
                 return Ok(new
                 {
-                    status = "degraded",
+                    status = StatusDegraded,
                     httpStatus = (int)response.StatusCode,
                     message = "Portainer returned error",
                     timestamp = DateTime.UtcNow
@@ -251,7 +253,7 @@ public class MonitoringController : CrmControllerBase
             {
                 return Ok(new
                 {
-                    status = "offline",
+                    status = StatusOffline,
                     message = ex.Message,
                     timestamp = DateTime.UtcNow
                 });
@@ -452,14 +454,14 @@ public class MonitoringController : CrmControllerBase
 
             return new
             {
-                status = response.IsSuccessStatusCode ? "online" : "degraded",
+                status = response.IsSuccessStatusCode ? "online" : StatusDegraded,
                 url = $"http://localhost:{uptimeKumaPort}",
                 port = uptimeKumaPort
             };
         }
         catch
         {
-            return new { status = "offline", url = "http://localhost:3001", port = 3001 };
+            return new { status = StatusOffline, url = "http://localhost:3001", port = 3001 };
         }
     }
 
@@ -488,7 +490,7 @@ public class MonitoringController : CrmControllerBase
 
             return new
             {
-                status = response.IsSuccessStatusCode ? "online" : "degraded",
+                status = response.IsSuccessStatusCode ? "online" : StatusDegraded,
                 version = version,
                 url = $"http://localhost:{portainerPort}",
                 port = portainerPort
@@ -496,7 +498,7 @@ public class MonitoringController : CrmControllerBase
         }
         catch
         {
-            return new { status = "offline", url = "http://localhost:9000", port = 9000, version = (string?)null };
+            return new { status = StatusOffline, url = "http://localhost:9000", port = 9000, version = (string?)null };
         }
     }
 
@@ -621,7 +623,7 @@ public class MonitoringController : CrmControllerBase
 
         return Ok(new
         {
-            status = dbHealthy ? "healthy" : "degraded",
+            status = dbHealthy ? "healthy" : StatusDegraded,
             timestamp = DateTime.UtcNow,
             version = GetAssemblyVersion(),
             database = new

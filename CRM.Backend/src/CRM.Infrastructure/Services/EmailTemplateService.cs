@@ -106,7 +106,9 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var template = await _context.EmailTemplates.FindAsync(new object[] { id }, cancellationToken);
         if (template == null)
+        {
             return false;
+        }
 
         if (template.IsSystem)
         {
@@ -671,7 +673,9 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var template = await _context.EmailTemplates.FindAsync(new object[] { templateId }, cancellationToken);
         if (template == null)
+        {
             return;
+        }
 
         template.UsageCount = template.UsageCount + 1;
         template.LastUsedAt = DateTime.UtcNow;

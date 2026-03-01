@@ -455,7 +455,9 @@ public class SagaOrchestrator : ISagaOrchestrator
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
                 if (attempt == step.MaxRetries)
+                {
                     return SagaStepResult.Failed($"Step '{step.Name}' timed out after {step.MaxRetries + 1} attempts");
+                }
             }
             catch (Exception ex) when (attempt < step.MaxRetries)
             {
@@ -496,7 +498,9 @@ public class SagaOrchestrator : ISagaOrchestrator
         {
             var step = definition.Steps[i];
             if (step.Compensate == null || state.StepStates[i].Status != SagaStepStatus.Completed)
+            {
                 continue;
+            }
 
             try
             {

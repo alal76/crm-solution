@@ -335,9 +335,13 @@ public class AILeadScoringService : IAILeadScoringService
         {
             var daysSinceActivity = (DateTime.UtcNow - lead.LastActivityDate.Value).TotalDays;
             if (daysSinceActivity < 7)
+            {
                 score = Math.Min(score + 20, 100);
+            }
             else if (daysSinceActivity < 30)
+            {
                 score = Math.Min(score + 10, 100);
+            }
         }
 
         return score;
@@ -357,7 +361,9 @@ public class AILeadScoringService : IAILeadScoringService
 
         // Estimate from available data
         if (!string.IsNullOrWhiteSpace(lead.CompanyName))
+        {
             score += 30;
+        }
 
         if (!string.IsNullOrWhiteSpace(lead.Title))
         {
@@ -379,7 +385,9 @@ public class AILeadScoringService : IAILeadScoringService
         }
 
         if (!string.IsNullOrWhiteSpace(lead.Website))
+        {
             score += 15;
+        }
 
         if (!string.IsNullOrWhiteSpace(lead.QualificationNotes))
         {
@@ -406,9 +414,13 @@ public class AILeadScoringService : IAILeadScoringService
             return 85;
         }
         if (daysSince < 14)
+        {
             return 70;
+        }
         if (daysSince < 30)
+        {
             return 50;
+        }
         if (daysSince < 60)
         {
             factors.Add("Aging lead (30-60 days)");
@@ -440,16 +452,22 @@ public class AILeadScoringService : IAILeadScoringService
         {
             var isAIEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI);
             if (!isAIEnabled)
+            {
                 return null;
+            }
 
             var aiPort = _serviceProvider.GetService<IAIPort>();
             if (aiPort == null)
+            {
                 return null;
+            }
 
             // Analyze sentiment of qualification notes if present
             var text = lead.QualificationNotes;
             if (string.IsNullOrWhiteSpace(text))
+            {
                 return null;
+            }
 
             var sentiment = await aiPort.AnalyzeSentimentAsync(text, ct);
             return sentiment.Score;

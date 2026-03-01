@@ -47,7 +47,9 @@ public class RelationshipService
         var query = _context.RelationshipTypes.Where(t => !t.IsDeleted);
 
         if (!includeInactive)
+        {
             query = query.Where(t => t.IsActive);
+        }
 
         var types = await query
             .OrderBy(t => t.DisplayOrder)
@@ -120,7 +122,9 @@ public class RelationshipService
     {
         var type = await _context.RelationshipTypes.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
         if (type == null)
+        {
             return null;
+        }
 
         if (type.IsSystem)
         {
@@ -149,7 +153,9 @@ public class RelationshipService
     {
         var type = await _context.RelationshipTypes.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
         if (type == null)
+        {
             return false;
+        }
 
         if (type.IsSystem)
         {
@@ -189,10 +195,14 @@ public class RelationshipService
             .Where(r => !r.IsDeleted && (r.SourceAccountId == accountId || r.TargetAccountId == accountId));
 
         if (!string.IsNullOrEmpty(status))
+        {
             query = query.Where(r => r.Status == status);
+        }
 
         if (relationshipTypeId.HasValue)
+        {
             query = query.Where(r => r.RelationshipTypeId == relationshipTypeId.Value);
+        }
 
         var relationships = await query.OrderByDescending(r => r.CreatedAt).ToListAsync();
         return relationships.Select(r => MapToDto(r, accountId)).ToList();
@@ -217,13 +227,19 @@ public class RelationshipService
             .Where(r => !r.IsDeleted);
 
         if (!string.IsNullOrEmpty(status))
+        {
             query = query.Where(r => r.Status == status);
+        }
 
         if (relationshipTypeId.HasValue)
+        {
             query = query.Where(r => r.RelationshipTypeId == relationshipTypeId.Value);
+        }
 
         if (!string.IsNullOrEmpty(strategicImportance))
+        {
             query = query.Where(r => r.StrategicImportance == strategicImportance);
+        }
 
         if (!string.IsNullOrEmpty(search))
         {
@@ -265,19 +281,25 @@ public class RelationshipService
     {
         // Validate RelationshipTypeId is provided and valid
         if (dto.RelationshipTypeId <= 0)
+        {
             throw new InvalidOperationException("A valid RelationshipTypeId is required");
+        }
 
         // Validate accounts exist
         var sourceExists = await _context.Accounts.AnyAsync(c => c.Id == dto.SourceAccountId && !c.IsDeleted);
         var targetExists = await _context.Accounts.AnyAsync(c => c.Id == dto.TargetAccountId && !c.IsDeleted);
 
         if (!sourceExists || !targetExists)
+        {
             throw new InvalidOperationException("Source or target account does not exist");
+        }
 
         // Validate relationship type exists
         var typeExists = await _context.RelationshipTypes.AnyAsync(t => t.Id == dto.RelationshipTypeId && !t.IsDeleted);
         if (!typeExists)
+        {
             throw new InvalidOperationException($"Relationship type with ID {dto.RelationshipTypeId} does not exist");
+        }
 
         // Check for duplicate
         var exists = await _context.AccountRelationships.AnyAsync(r =>
@@ -287,7 +309,9 @@ public class RelationshipService
             r.RelationshipTypeId == dto.RelationshipTypeId);
 
         if (exists)
+        {
             throw new InvalidOperationException("This relationship already exists");
+        }
 
         var relationship = new AccountRelationship
         {
@@ -357,7 +381,9 @@ public class RelationshipService
     {
         var relationship = await _context.AccountRelationships.FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
         if (relationship == null)
+        {
             return null;
+        }
 
         relationship.Status = dto.Status;
         relationship.StrengthScore = dto.StrengthScore;
@@ -382,7 +408,9 @@ public class RelationshipService
     {
         var relationship = await _context.AccountRelationships.FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
         if (relationship == null)
+        {
             return false;
+        }
 
         relationship.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -465,7 +493,9 @@ public class RelationshipService
         // Start with central account
         var centralAccount = await _context.Accounts.FindAsync(centralAccountId);
         if (centralAccount == null)
+        {
             return new RelationshipMapVisualizationDto();
+        }
 
         var context = new BuildMapContext(
             nodes,
@@ -494,11 +524,15 @@ public class RelationshipService
         bool isCentral)
     {
         if (remainingDepth < 0 || context.Nodes.ContainsKey(accountId))
+        {
             return;
+        }
 
         var account = await _context.Accounts.FindAsync(accountId);
         if (account == null || account.IsDeleted)
+        {
             return;
+        }
 
         // Add node
         context.Nodes[accountId] = new RelationshipNodeDto
@@ -512,7 +546,9 @@ public class RelationshipService
         };
 
         if (remainingDepth == 0)
+        {
             return;
+        }
 
         // Get relationships
         var relationships = await _context.AccountRelationships
@@ -523,12 +559,16 @@ public class RelationshipService
             .ToListAsync();
 
         if (context.IncludeTypeIds?.Any() == true)
+        {
             relationships = relationships.Where(r => context.IncludeTypeIds.Contains(r.RelationshipTypeId)).ToList();
+        }
 
         foreach (var rel in relationships)
         {
             if (context.ProcessedRelationships.Contains(rel.Id))
+            {
                 continue;
+            }
 
             context.ProcessedRelationships.Add(rel.Id);
 
@@ -571,10 +611,14 @@ public class RelationshipService
             .Where(s => s.AccountId == accountId && !s.IsDeleted);
 
         if (startDate.HasValue)
+        {
             query = query.Where(s => s.SnapshotDate >= startDate.Value);
+        }
 
         if (endDate.HasValue)
+        {
             query = query.Where(s => s.SnapshotDate <= endDate.Value);
+        }
 
         var snapshots = await query.OrderByDescending(s => s.SnapshotDate).ToListAsync();
         return snapshots.Select(MapToDto).ToList();
@@ -628,7 +672,9 @@ public class RelationshipService
                 _ => "Stable"
             };
             if (dto.OverallHealthScore < 30)
+            {
                 snapshot.HealthTrend = "Critical";
+            }
         }
 
         _context.AccountHealthSnapshots.Add(snapshot);

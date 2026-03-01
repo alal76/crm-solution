@@ -59,7 +59,9 @@ public class OidcProviderService : IOidcProviderService
         CancellationToken cancellationToken = default)
     {
         if (_discoveryCache.TryGetValue(discoveryUrl, out var cached))
+        {
             return cached;
+        }
 
         try
         {
@@ -223,7 +225,9 @@ public class OidcProviderService : IOidcProviderService
         {
             var parts = idToken.Split('.');
             if (parts.Length != 3)
+            {
                 return new OidcTokenValidationResult { IsValid = false, Error = "Invalid token format" };
+            }
 
             var payload = parts[1];
             var paddedPayload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
@@ -235,7 +239,9 @@ public class OidcProviderService : IOidcProviderService
             {
                 var tokenNonce = GetStringClaim(claims, "nonce");
                 if (tokenNonce != nonce)
+                {
                     return new OidcTokenValidationResult { IsValid = false, Error = "Nonce mismatch" };
+                }
             }
 
             // Validate expiration
@@ -244,7 +250,9 @@ public class OidcProviderService : IOidcProviderService
                 var expTime = exp.GetInt64();
                 var expDateTime = DateTimeOffset.FromUnixTimeSeconds(expTime).UtcDateTime;
                 if (expDateTime < DateTime.UtcNow)
+                {
                     return new OidcTokenValidationResult { IsValid = false, Error = "Token expired" };
+                }
             }
 
             return new OidcTokenValidationResult
@@ -345,7 +353,9 @@ public class OidcProviderService : IOidcProviderService
     private static string? GetStringClaim(Dictionary<string, JsonElement>? claims, string key)
     {
         if (claims?.TryGetValue(key, out var value) == true && value.ValueKind == JsonValueKind.String)
+        {
             return value.GetString();
+        }
         return null;
     }
 

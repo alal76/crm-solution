@@ -116,11 +116,15 @@ public class ProrateCalculator : IProrateCalculator
     public decimal CalculateProRata(decimal fullCycleAmount, DateTime cycleStart, DateTime cycleEnd, DateTime changeDate)
     {
         if (changeDate < cycleStart)
+        {
             return 0m;
+        }
 
         var daysInCycle = (cycleEnd - cycleStart).Days;
         if (daysInCycle <= 0)
+        {
             return fullCycleAmount;
+        }
 
         // Ensure changeDate is within cycle
         var effectiveChangeDate = changeDate > cycleEnd ? cycleEnd : changeDate;

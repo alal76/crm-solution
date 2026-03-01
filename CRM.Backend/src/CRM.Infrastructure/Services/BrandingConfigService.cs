@@ -106,17 +106,23 @@ public class BrandingConfigService : IBrandingConfigService
         try
         {
             if (string.IsNullOrWhiteSpace(solutionName))
+            {
                 throw new ArgumentException("Solution name cannot be empty", nameof(solutionName));
+            }
 
             if (solutionName.Length > MaxSolutionNameLength)
+            {
                 throw new ArgumentException($"Solution name cannot exceed {MaxSolutionNameLength} characters", nameof(solutionName));
+            }
 
             var config = await GetOrCreateBrandingConfigAsync(cancellationToken);
             var oldValue = config.SolutionName;
 
             var normalizedSolutionName = solutionName.Trim();
             if (!SolutionNameRegex.IsMatch(normalizedSolutionName))
+            {
                 throw new ArgumentException("Solution name can only contain letters, numbers, and spaces", nameof(solutionName));
+            }
 
             config.SolutionName = normalizedSolutionName;
 
@@ -357,16 +363,24 @@ public class BrandingConfigService : IBrandingConfigService
         try
         {
             if (string.IsNullOrWhiteSpace(fileName))
+            {
                 return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "File name cannot be empty"));
+            }
 
             if (!AllowedLogoMimeTypes.Split(',').Contains(mimeType, StringComparer.OrdinalIgnoreCase))
+            {
                 return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Only PNG and JPEG files are allowed for logos"));
+            }
 
             if (fileSizeBytes > MaxLogoSizeBytes)
+            {
                 return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, $"Logo file size cannot exceed {MaxLogoSizeBytes / (1024 * 1024)} MB"));
+            }
 
             if (fileSizeBytes == 0)
+            {
                 return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Logo file cannot be empty"));
+            }
 
             return Task.FromResult<(bool IsValid, string? ErrorMessage)>((true, null));
         }
@@ -385,16 +399,24 @@ public class BrandingConfigService : IBrandingConfigService
         try
         {
             if (string.IsNullOrWhiteSpace(fileName))
+            {
                 return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "File name cannot be empty"));
+            }
 
             if (!AllowedFaviconMimeTypes.Split(',').Contains(mimeType, StringComparer.OrdinalIgnoreCase))
+            {
                 return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Only ICO and PNG files are allowed for favicons"));
+            }
 
             if (fileSizeBytes > MaxFaviconSizeBytes)
+            {
                 return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, $"Favicon file size cannot exceed {MaxFaviconSizeBytes / 1024} KB"));
+            }
 
             if (fileSizeBytes == 0)
+            {
                 return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Favicon file cannot be empty"));
+            }
 
             return Task.FromResult<(bool IsValid, string? ErrorMessage)>((true, null));
         }
@@ -411,7 +433,9 @@ public class BrandingConfigService : IBrandingConfigService
         {
             using var image = Image.Load(fileData);
             if (image.Width != image.Height)
+            {
                 return (false, "Logo must be a square image");
+            }
 
             if (image.Width < MinLogoDimension || image.Width > MaxLogoDimension)
             {
@@ -432,10 +456,14 @@ public class BrandingConfigService : IBrandingConfigService
         {
             using var image = Image.Load(fileData);
             if (image.Width != image.Height)
+            {
                 return (false, "Favicon must be a square image");
+            }
 
             if (!AllowedFaviconDimensions.Contains(image.Width))
+            {
                 return (false, "Favicon dimensions must be 32x32 or 64x64px");
+            }
 
             return (true, null);
         }

@@ -67,11 +67,17 @@ public class DunningManager : IDunningManager
                     // TODO: Track successful retries when payment gateway is integrated // NOSONAR
                     // (retryResult.PaymentSucceeded is always false until then)
                     if (retryResult.EscalationLevel == DunningEscalationLevel.Escalated)
+                    {
                         result.EscalatedCount++;
+                    }
                     else if (retryResult.EscalationLevel == DunningEscalationLevel.Final)
+                    {
                         result.PausedSubscriptions++;
+                    }
                     else if (retryResult.IsExhausted)
+                    {
                         result.CancelledSubscriptions++;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -102,7 +108,9 @@ public class DunningManager : IDunningManager
             .FirstOrDefaultAsync(p => p.Id == paymentId && !p.IsDeleted, cancellationToken);
 
         if (payment == null)
+        {
             throw new InvalidOperationException($"Payment {paymentId} not found");
+        }
 
         // --- TODO-SALES006-025: Load invoice + subscription early for grace period check ---
         Invoice? linkedInvoice = null;
@@ -226,7 +234,9 @@ public class DunningManager : IDunningManager
 
         var nextRetryDate = payment.ScheduledDate;
         if (payment.RetryCount > 3)
+        {
             nextRetryDate = null;
+        }
 
         return new DunningRetryResultDto
         {
@@ -250,13 +260,17 @@ public class DunningManager : IDunningManager
         CancellationToken cancellationToken)
     {
         if (!payment.InvoiceId.HasValue)
+        {
             return null;
+        }
 
         var invoice = await _context.Invoices
             .FirstOrDefaultAsync(i => i.Id == payment.InvoiceId, cancellationToken);
 
         if (invoice?.SubscriptionId.HasValue != true)
+        {
             return null;
+        }
 
         return await _context.Subscriptions
             .FirstOrDefaultAsync(s => s.Id == invoice.SubscriptionId && !s.IsDeleted, cancellationToken);
@@ -275,7 +289,9 @@ public class DunningManager : IDunningManager
             .FirstOrDefaultAsync(p => p.Id == paymentId && !p.IsDeleted, cancellationToken);
 
         if (payment == null)
+        {
             throw new InvalidOperationException($"Payment {paymentId} not found");
+        }
 
         var customer = await _context.Accounts
             .AsNoTracking()
@@ -308,7 +324,9 @@ public class DunningManager : IDunningManager
             .FirstOrDefaultAsync(s => s.Id == subscriptionId && !s.IsDeleted, cancellationToken);
 
         if (subscription == null)
+        {
             throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
 
         subscription.SubscriptionStatus = SubscriptionStatus.Paused;
         _context.Subscriptions.Update(subscription);
@@ -335,7 +353,9 @@ public class DunningManager : IDunningManager
             .FirstOrDefaultAsync(s => s.Id == subscriptionId && !s.IsDeleted, cancellationToken);
 
         if (subscription == null)
+        {
             throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
 
         subscription.SubscriptionStatus = SubscriptionStatus.Cancelled;
         subscription.EndDate = DateTime.UtcNow;
@@ -379,7 +399,9 @@ public class DunningManager : IDunningManager
             .FirstOrDefaultAsync(i => i.SubscriptionId == subscriptionId && !i.IsDeleted, cancellationToken);
 
         if (invoice == null)
+        {
             return new List<DunningRecordDto>();
+        }
 
         var payments = await _context.Payments
             .AsNoTracking()
@@ -413,7 +435,9 @@ public class DunningManager : IDunningManager
             .FirstOrDefaultAsync(s => s.Id == subscriptionId && !s.IsDeleted, cancellationToken);
 
         if (subscription == null)
+        {
             throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
 
         var invoice = await _context.Invoices
             .AsNoTracking()

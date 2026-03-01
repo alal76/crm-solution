@@ -184,7 +184,9 @@ public class EmailToTicketService : IEmailToTicketService
     public int? ExtractIncidentReference(string subject)
     {
         if (string.IsNullOrWhiteSpace(subject))
+        {
             return null;
+        }
 
         var match = IncidentReferencePattern.Match(subject);
         if (match.Success && int.TryParse(match.Groups[1].Value, out var incidentId))
@@ -228,7 +230,9 @@ public class EmailToTicketService : IEmailToTicketService
     private static string CleanEmailBody(string body)
     {
         if (string.IsNullOrWhiteSpace(body))
+        {
             return string.Empty;
+        }
 
         // Remove quoted lines
         var cleaned = EmailQuotePattern.Replace(body, string.Empty);
@@ -251,12 +255,16 @@ public class EmailToTicketService : IEmailToTicketService
     {
         var atIndex = email.IndexOf('@');
         if (atIndex < 0 || atIndex >= email.Length - 1)
+        {
             return string.Empty;
+        }
 
         var domain = email.Substring(atIndex + 1);
         var gtIndex = domain.IndexOf('>');
         if (gtIndex > 0)
+        {
             domain = domain.Substring(0, gtIndex);
+        }
 
         return domain.Trim().ToLower();
     }

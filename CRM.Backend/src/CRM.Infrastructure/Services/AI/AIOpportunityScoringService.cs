@@ -260,7 +260,9 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
         if (StageProbability.TryGetValue(opp.Stage, out var baseProb))
         {
             if (baseProb >= 55)
+            {
                 result.PositiveSignals.Add($"Advanced stage: {opp.Stage}");
+            }
             return baseProb;
         }
         return 20; // Default
@@ -299,7 +301,9 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
         var daysInPipeline = (DateTime.UtcNow - opp.CreatedAt).TotalDays;
 
         if (daysInPipeline < 1)
+        {
             return 90; // Very new
+        }
 
         if (daysInPipeline < 30)
         {
@@ -307,7 +311,9 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
             return 85;
         }
         if (daysInPipeline < 60)
+        {
             return 70;
+        }
         if (daysInPipeline < 90)
         {
             result.RiskFactors.Add("Aging deal (60-90 days in pipeline)");
@@ -329,7 +335,9 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
         if (opp.Probability > 0)
         {
             if (opp.Probability >= 70)
+            {
                 result.PositiveSignals.Add("High probability assigned");
+            }
             return Math.Min(opp.Probability, 100);
         }
 
@@ -359,19 +367,31 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
         var score = 0.0;
 
         if (opp.Amount > 0)
+        {
             score += 25;
+        }
         else
+        {
             result.RiskFactors.Add("Missing deal amount");
+        }
 
         if (opp.ExpectedCloseDate.HasValue)
+        {
             score += 20;
+        }
         else
+        {
             result.RiskFactors.Add("Missing expected close date");
+        }
 
         if (opp.AccountId > 0)
+        {
             score += 20;
+        }
         else
+        {
             result.RiskFactors.Add("No account linked");
+        }
 
         if (opp.SalesOwnerId.HasValue && opp.SalesOwnerId > 0)
         {
@@ -380,9 +400,13 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
         }
 
         if (!string.IsNullOrWhiteSpace(opp.SolutionNotes))
+        {
             score += 10;
+        }
         if (opp.PrimaryContactId.HasValue && opp.PrimaryContactId > 0)
+        {
             score += 10;
+        }
 
         return Math.Min(score, 100);
     }

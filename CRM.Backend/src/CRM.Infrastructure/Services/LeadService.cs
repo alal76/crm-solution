@@ -126,7 +126,9 @@ public class LeadService : ILeadService
 
         // Update any queued duplicate candidates with the new entity ID
         if (candidatesQueued > 0)
+        {
             await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_context, "Lead", lead.Id);
+        }
 
         // Fire workflow triggers for entity creation
         _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnCreate);
@@ -152,7 +154,9 @@ public class LeadService : ILeadService
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
         if (lead == null)
+        {
             return false;
+        }
 
         // FEAT-AISCORING: capture score before changes to detect drift
         var previousFitScore = lead.FitScore;
@@ -183,7 +187,9 @@ public class LeadService : ILeadService
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
         if (lead == null)
+        {
             return false;
+        }
 
         lead.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -196,9 +202,13 @@ public class LeadService : ILeadService
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
         if (lead == null)
+        {
             throw new InvalidOperationException($"Lead with ID {id} not found");
+        }
         if (lead.Status == LeadLifecycleStatus.Converted)
+        {
             throw new InvalidOperationException("Lead has already been converted");
+        }
 
         var opportunity = new Opportunity
         {
@@ -308,7 +318,9 @@ public class LeadService : ILeadService
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted);
         if (lead == null)
+        {
             return false;
+        }
 
         lead.OwnerId = ownerId;
         await _context.SaveChangesAsync();
@@ -335,7 +347,9 @@ public class LeadService : ILeadService
                 .FirstOrDefaultAsync(ct);
 
             if (byEmail != 0)
+            {
                 return (true, byEmail, "email");
+            }
         }
 
         // Name + company check
@@ -351,11 +365,15 @@ public class LeadService : ILeadService
                     && l.LastName.ToLower() == ln);
 
             if (!string.IsNullOrWhiteSpace(co))
+            {
                 query = query.Where(l => (l.CompanyName ?? "").ToLower() == co);
+            }
 
             var byName = await query.Select(l => l.Id).FirstOrDefaultAsync(ct);
             if (byName != 0)
+            {
                 return (true, byName, "name");
+            }
         }
 
         return (false, null, null);
@@ -368,14 +386,18 @@ public class LeadService : ILeadService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, ct);
 
         if (lead == null)
+        {
             return false;
+        }
 
         // Verify campaign exists
         var campaign = await _context.MarketingCampaigns
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, ct);
 
         if (campaign == null)
+        {
             return false;
+        }
 
         lead.NurtureCampaignId = campaignId;
 
@@ -397,7 +419,9 @@ public class LeadService : ILeadService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, ct);
 
         if (lead?.NurtureCampaignId == null)
+        {
             return null;
+        }
 
         return await _context.MarketingCampaigns
             .AsNoTracking()
@@ -414,7 +438,9 @@ public class LeadService : ILeadService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, ct);
 
         if (lead == null || lead.NurtureCampaignId != campaignId)
+        {
             return false;
+        }
 
         lead.NurtureCampaignId = null;
 

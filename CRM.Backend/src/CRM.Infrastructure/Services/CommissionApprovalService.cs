@@ -35,7 +35,9 @@ public class CommissionApprovalService : ICommissionApprovalService, ICommission
             .FirstOrDefaultAsync(c => c.Id == commissionId && !c.IsDeleted, cancellationToken);
 
         if (commission == null)
+        {
             return false;
+        }
 
         commission.Status = CommissionStatus.Approved;
         commission.ApprovedById = approvedById;
@@ -64,7 +66,9 @@ public class CommissionApprovalService : ICommissionApprovalService, ICommission
             .FirstOrDefaultAsync(c => c.Id == commissionId && !c.IsDeleted, cancellationToken);
 
         if (commission == null)
+        {
             return false;
+        }
 
         commission.Status = CommissionStatus.Rejected;
 
@@ -117,7 +121,9 @@ public class CommissionApprovalService : ICommissionApprovalService, ICommission
     public async Task<int> BulkApproveAsync(List<int> commissionIds, int approvedById, CancellationToken cancellationToken = default)
     {
         if (!commissionIds.Any())
+        {
             return 0;
+        }
 
         var commissions = await _context.Commissions
             .Where(c => commissionIds.Contains(c.Id) && !c.IsDeleted && c.Status == CommissionStatus.Pending)
@@ -156,7 +162,9 @@ public class CommissionApprovalService : ICommissionApprovalService, ICommission
             .FirstOrDefaultAsync(c => c.Id == commissionId && !c.IsDeleted, cancellationToken);
 
         if (commission == null)
+        {
             return false;
+        }
 
         _logger.LogInformation("Commission {CommissionId} notification sent to user {UserId}", commissionId, commission.UserId);
         return true;

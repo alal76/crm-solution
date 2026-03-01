@@ -59,7 +59,9 @@ public class IncidentCategoryService : IIncidentCategoryService
     {
         var query = _dbContext.IncidentCategories.Where(e => !e.IsDeleted);
         if (!includeInactive)
+        {
             query = query.Where(e => e.IsActive);
+        }
 
         return await query
             .OrderBy(e => e.CategoryName)

@@ -357,7 +357,9 @@ namespace CRM.Infrastructure.Services.Authentication
         private string Base32Encode(byte[] input)
         {
             if (input == null || input.Length == 0)
+            {
                 return string.Empty;
+            }
 
             const string alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
             var bits = new StringBuilder();
@@ -392,7 +394,9 @@ namespace CRM.Infrastructure.Services.Authentication
             {
                 int index = alphabet.IndexOf(c);
                 if (index < 0)
+                {
                     throw new ArgumentException("Invalid Base32 character");
+                }
                 bits.Append(Convert.ToString(index, 2).PadLeft(5, '0'));
             }
 
@@ -425,7 +429,9 @@ namespace CRM.Infrastructure.Services.Authentication
             for (int i = 0; i < base32Secret.Length; i++)
             {
                 if (i > 0 && i % 4 == 0)
+                {
                     formatted.Append(" ");
+                }
                 formatted.Append(base32Secret[i]);
             }
             return formatted.ToString();

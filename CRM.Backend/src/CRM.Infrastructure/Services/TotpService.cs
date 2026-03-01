@@ -37,13 +37,17 @@ public class TotpService : ITotpService
     public bool VerifyCode(string secret, string code)
     {
         if (string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(code))
+        {
             return false;
+        }
 
         var secretBytes = Convert.FromBase64String(secret);
         var codeValue = code.Trim();
 
         if (!int.TryParse(codeValue, out var codeInt) || codeValue.Length != CodeDigits)
+        {
             return false;
+        }
 
         // Check current time window and ±1 time windows for tolerance
         var unixTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -56,7 +60,9 @@ public class TotpService : ITotpService
             using var hmac = new HMACSHA1(secretBytes); // NOSONAR S4790 -- TOTP (RFC 6238) mandates HMAC-SHA1; cannot substitute SHA-256 without breaking OTP compatibility // NOSONAR S4790 -- TOTP (RFC 6238) mandates HMAC-SHA1; cannot substitute SHA-256 without breaking OTP compatibility
             var timeBytes = BitConverter.GetBytes(timeWindow);
             if (BitConverter.IsLittleEndian)
+            {
                 Array.Reverse(timeBytes);
+            }
             var hash = hmac.ComputeHash(timeBytes);
             var offset = hash[hash.Length - 1] & 0x0f;
             var truncated = (hash[offset] & 0x7f) << 24
@@ -66,7 +72,9 @@ public class TotpService : ITotpService
             var totp = truncated % (int)Math.Pow(10, CodeDigits);
 
             if (totp == codeInt)
+            {
                 return true;
+            }
         }
 
         return false;

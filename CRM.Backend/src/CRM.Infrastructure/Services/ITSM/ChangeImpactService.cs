@@ -368,7 +368,9 @@ public class ChangeImpactService : IChangeImpactService
             currentDepthIds = nextDepthIds;
 
             if (!nextDepthIds.Any())
+            {
                 break;
+            }
         }
 
         return impactedCIs;
@@ -525,7 +527,9 @@ public class ChangeImpactService : IChangeImpactService
             .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null)
+        {
             return notifications;
+        }
 
         // Notify change requestor
         if (change.Requestor != null)

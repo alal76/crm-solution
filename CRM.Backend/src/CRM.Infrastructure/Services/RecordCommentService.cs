@@ -44,7 +44,9 @@ public class RecordCommentService : IRecordCommentService
             .ToListAsync(ct);
 
         if (!topLevel.Any())
+        {
             return Enumerable.Empty<RecordCommentDto>();
+        }
 
         var topLevelIds = topLevel.Select(c => c.Id).ToList();
 
@@ -209,7 +211,9 @@ public class RecordCommentService : IRecordCommentService
             .ToListAsync(ct);
 
         if (!replies.Any())
+        {
             return Enumerable.Empty<RecordCommentDto>();
+        }
 
         var authorIds = replies.Select(r => r.AuthorId).Distinct().ToList();
         var authorMap = await BuildAuthorMapAsync(authorIds, ct);

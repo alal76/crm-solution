@@ -26,6 +26,8 @@ public class ZipCodesController : CrmControllerBase
     private readonly IZipCodeImportService? _zipCodeImportService;
     private readonly IZipCodeImportQueue? _importQueue;
     private readonly ILogger<ZipCodesController> _logger;
+    private const string ImportAlreadyInProgress = "An import is already in progress";
+    private const string DefaultRequestedBy = "admin";
 
     public ZipCodesController(
         IZipCodeService zipCodeService,
@@ -290,7 +292,7 @@ public class ZipCodesController : CrmControllerBase
 
         if (_zipCodeImportService?.IsImportRunning == true)
         {
-            return Conflict(new { message = "An import is already in progress", hint = "Poll GET import/status for progress" });
+            return Conflict(new { message = ImportAlreadyInProgress, hint = "Poll GET import/status for progress" });
         }
 
         var source = request?.Source ?? "GeoNames";
@@ -298,13 +300,13 @@ public class ZipCodesController : CrmControllerBase
             Source: source,
             CountryCode: request?.CountryCode?.ToUpperInvariant(),
             Url: request?.Url,
-            RequestedBy: User.Identity?.Name ?? "admin");
+            RequestedBy: User.Identity?.Name ?? DefaultRequestedBy);
 
         _importQueue.TryEnqueue(importRequest);
 
         _logger.LogInformation(
             "ZIP import queued (source={Source}, country={Country}) by {User}",
-            source, request?.CountryCode ?? "all", User.Identity?.Name ?? "admin");
+            source, request?.CountryCode ?? "all", User.Identity?.Name ?? DefaultRequestedBy);
 
         return Accepted(new
         {
@@ -351,10 +353,10 @@ public class ZipCodesController : CrmControllerBase
         }
         if (_zipCodeImportService?.IsImportRunning == true)
         {
-            return Conflict(new { message = "An import is already in progress" });
+            return Conflict(new { message = ImportAlreadyInProgress });
         }
 
-        _importQueue.TryEnqueue(new ZipCodeImportRequest("GeoNames", RequestedBy: User.Identity?.Name ?? "admin"));
+        _importQueue.TryEnqueue(new ZipCodeImportRequest("GeoNames", RequestedBy: User.Identity?.Name ?? DefaultRequestedBy));
         _logger.LogInformation("Admin queued GeoNames all-countries ZIP import");
         return Accepted(new { message = "GeoNames all-countries import queued.", statusUrl = Url.Action(nameof(GetImportStatus)) });
     }
@@ -380,10 +382,10 @@ public class ZipCodesController : CrmControllerBase
         }
         if (_zipCodeImportService?.IsImportRunning == true)
         {
-            return Conflict(new { message = "An import is already in progress" });
+            return Conflict(new { message = ImportAlreadyInProgress });
         }
 
-        _importQueue.TryEnqueue(new ZipCodeImportRequest("GeoNames-Country", CountryCode: countryCode.ToUpperInvariant(), RequestedBy: User.Identity?.Name ?? "admin"));
+        _importQueue.TryEnqueue(new ZipCodeImportRequest("GeoNames-Country", CountryCode: countryCode.ToUpperInvariant(), RequestedBy: User.Identity?.Name ?? DefaultRequestedBy));
         _logger.LogInformation("Admin queued GeoNames ZIP import for {Country}", countryCode.ToUpperInvariant());
         return Accepted(new { message = $"GeoNames import for {countryCode.ToUpperInvariant()} queued.", statusUrl = Url.Action(nameof(GetImportStatus)) });
     }
@@ -404,10 +406,10 @@ public class ZipCodesController : CrmControllerBase
         }
         if (_zipCodeImportService?.IsImportRunning == true)
         {
-            return Conflict(new { message = "An import is already in progress" });
+            return Conflict(new { message = ImportAlreadyInProgress });
         }
 
-        _importQueue.TryEnqueue(new ZipCodeImportRequest("GitHub", Url: request?.Url, RequestedBy: User.Identity?.Name ?? "admin"));
+        _importQueue.TryEnqueue(new ZipCodeImportRequest("GitHub", Url: request?.Url, RequestedBy: User.Identity?.Name ?? DefaultRequestedBy));
         _logger.LogInformation("Admin queued GitHub ZIP import from {Url}", request?.Url ?? "default");
         return Accepted(new { message = "GitHub ZIP import queued.", statusUrl = Url.Action(nameof(GetImportStatus)) });
     }
@@ -437,7 +439,7 @@ public class ZipCodesController : CrmControllerBase
 
         if (_zipCodeImportService.IsImportRunning)
         {
-            return Conflict("An import is already in progress");
+            return Conflict(ImportAlreadyInProgress);
         }
 
         if (file == null || file.Length == 0)

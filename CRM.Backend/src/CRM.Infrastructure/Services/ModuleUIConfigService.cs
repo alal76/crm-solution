@@ -71,7 +71,9 @@ public class ModuleUIConfigService
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
         if (moduleConfig == null)
+        {
             return null;
+        }
 
         var fieldConfigs = await _context.ModuleFieldConfigurations
             .Where(f => f.ModuleName == moduleName)
@@ -176,32 +178,58 @@ public class ModuleUIConfigService
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
         if (entity == null)
+        {
             return null;
+        }
 
         if (dto.IsEnabled.HasValue)
+        {
             entity.IsEnabled = dto.IsEnabled.Value;
+        }
         if (dto.DisplayName != null)
+        {
             entity.DisplayName = dto.DisplayName;
+        }
         if (dto.Description != null)
+        {
             entity.Description = dto.Description;
+        }
         if (dto.IconName != null)
+        {
             entity.IconName = dto.IconName;
+        }
         if (dto.DisplayOrder.HasValue)
+        {
             entity.DisplayOrder = dto.DisplayOrder.Value;
+        }
         if (dto.TabsConfig != null)
+        {
             entity.TabsConfig = dto.TabsConfig;
+        }
         if (dto.LinkedEntitiesConfig != null)
+        {
             entity.LinkedEntitiesConfig = dto.LinkedEntitiesConfig;
+        }
         if (dto.ListViewConfig != null)
+        {
             entity.ListViewConfig = dto.ListViewConfig;
+        }
         if (dto.DetailViewConfig != null)
+        {
             entity.DetailViewConfig = dto.DetailViewConfig;
+        }
         if (dto.QuickCreateConfig != null)
+        {
             entity.QuickCreateConfig = dto.QuickCreateConfig;
+        }
         if (dto.SearchFilterConfig != null)
+        {
             entity.SearchFilterConfig = dto.SearchFilterConfig;
+        }
         if (dto.ModuleSettings != null)
+        {
             entity.ModuleSettings = dto.ModuleSettings;
+        }
 
         await _context.SaveChangesAsync();
 
@@ -229,9 +257,13 @@ public class ModuleUIConfigService
             if (update != null)
             {
                 if (update.IsEnabled.HasValue)
+                {
                     config.IsEnabled = update.IsEnabled.Value;
+                }
                 if (update.DisplayOrder.HasValue)
+                {
                     config.DisplayOrder = update.DisplayOrder.Value;
+                }
             }
         }
 
@@ -251,7 +283,9 @@ public class ModuleUIConfigService
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
         if (entity == null)
+        {
             return null;
+        }
 
         entity.LinkedEntitiesConfig = JsonSerializer.Serialize(linkedEntities, _jsonOptions);
         await _context.SaveChangesAsync();
@@ -270,7 +304,9 @@ public class ModuleUIConfigService
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
         if (entity == null)
+        {
             return null;
+        }
 
         entity.TabsConfig = JsonSerializer.Serialize(tabs, _jsonOptions);
         await _context.SaveChangesAsync();
@@ -289,7 +325,9 @@ public class ModuleUIConfigService
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
         if (moduleConfig == null)
+        {
             return null;
+        }
 
         // Update tabs config
         moduleConfig.TabsConfig = JsonSerializer.Serialize(dto.Tabs, _jsonOptions);
@@ -314,15 +352,25 @@ public class ModuleUIConfigService
                 field.GridSize = fieldUpdate.GridSize;
 
                 if (!string.IsNullOrEmpty(fieldUpdate.FieldType))
+                {
                     field.FieldType = fieldUpdate.FieldType;
+                }
                 if (!string.IsNullOrEmpty(fieldUpdate.FieldLabel))
+                {
                     field.FieldLabel = fieldUpdate.FieldLabel;
+                }
                 if (fieldUpdate.Placeholder != null)
+                {
                     field.Placeholder = fieldUpdate.Placeholder;
+                }
                 if (fieldUpdate.HelpText != null)
+                {
                     field.HelpText = fieldUpdate.HelpText;
+                }
                 if (fieldUpdate.Options != null)
+                {
                     field.Options = fieldUpdate.Options;
+                }
             }
         }
 
@@ -343,7 +391,9 @@ public class ModuleUIConfigService
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
         if (moduleConfig == null)
+        {
             return null;
+        }
 
         // Delete existing field configurations for this module
         var existingFields = await _context.ModuleFieldConfigurations
@@ -452,7 +502,9 @@ public class ModuleUIConfigService
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
         if (entity == null)
+        {
             return null;
+        }
 
         entity.IsEnabled = enabled;
         await _context.SaveChangesAsync();

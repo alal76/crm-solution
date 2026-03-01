@@ -98,7 +98,9 @@ public class RBACService : IRBACService
             foreach (var userRole in user.UserRoles)
             {
                 if (!userRole.IsActive || userRole.Role == null || !userRole.Role.IsActive)
+                {
                     continue;
+                }
 
                 foreach (var rolePermission in userRole.Role.RolePermissions)
                 {
@@ -221,7 +223,9 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(r => r.Name == createRoleDto.Name && !r.IsDeleted, cancellationToken);
 
             if (existing != null)
+            {
                 throw new InvalidOperationException($"Role '{createRoleDto.Name}' already exists");
+            }
 
             var role = new Role
             {
@@ -253,20 +257,30 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
 
             if (role == null)
+            {
                 throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
+            }
 
             if (role.IsSystemDefined)
+            {
                 throw new InvalidOperationException("Cannot modify system-defined roles");
+            }
 
             // Update allowed fields
             if (!string.IsNullOrWhiteSpace(updateRoleDto.Name))
+            {
                 role.Name = updateRoleDto.Name;
+            }
 
             if (!string.IsNullOrWhiteSpace(updateRoleDto.Description))
+            {
                 role.Description = updateRoleDto.Description;
+            }
 
             if (updateRoleDto.HierarchyLevel.HasValue)
+            {
                 role.HierarchyLevel = updateRoleDto.HierarchyLevel.Value;
+            }
 
             await _context.SaveChangesAsync(cancellationToken);
 
@@ -291,10 +305,14 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
 
             if (role == null)
+            {
                 throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
+            }
 
             if (role.IsSystemDefined)
+            {
                 throw new InvalidOperationException("Cannot delete system-defined roles");
+            }
 
             // Soft delete
             role.IsDeleted = true;
@@ -380,7 +398,9 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(p => p.Name == createPermissionDto.Name && !p.IsDeleted, cancellationToken);
 
             if (existing != null)
+            {
                 throw new InvalidOperationException($"Permission '{createPermissionDto.Name}' already exists");
+            }
 
             var permission = new Permission
             {
@@ -414,10 +434,14 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(p => p.Id == permissionId && !p.IsDeleted, cancellationToken);
 
             if (permission == null)
+            {
                 throw new KeyNotFoundException(string.Format(PermissionNotFoundMessage, permissionId));
+            }
 
             if (permission.IsSystemDefined)
+            {
                 throw new InvalidOperationException("Cannot delete system-defined permissions");
+            }
 
             // Soft delete
             permission.IsDeleted = true;
@@ -446,18 +470,24 @@ public class RBACService : IRBACService
         {
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
             if (role == null)
+            {
                 throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
+            }
 
             var permission = await _context.Permissions.FirstOrDefaultAsync(p => p.Id == permissionId && !p.IsDeleted, cancellationToken);
             if (permission == null)
+            {
                 throw new KeyNotFoundException(string.Format(PermissionNotFoundMessage, permissionId));
+            }
 
             // Check if already assigned
             var existing = await _context.RolePermissions
                 .FirstOrDefaultAsync(rp => rp.RoleId == roleId && rp.PermissionId == permissionId && !rp.IsDeleted, cancellationToken);
 
             if (existing != null)
+            {
                 return MapRolePermissionToDto(existing);
+            }
 
             var rolePermission = new RolePermission
             {
@@ -490,7 +520,9 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(rp => rp.RoleId == roleId && rp.PermissionId == permissionId && !rp.IsDeleted, cancellationToken);
 
             if (rolePermission == null)
+            {
                 throw new KeyNotFoundException("Role-permission assignment not found");
+            }
 
             rolePermission.IsDeleted = true;
 
@@ -514,7 +546,9 @@ public class RBACService : IRBACService
         {
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
             if (role == null)
+            {
                 throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
+            }
 
             var results = new List<RolePermissionDto>();
             var permissionIdList = permissionIds.ToList();
@@ -568,18 +602,24 @@ public class RBACService : IRBACService
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
             if (user == null)
+            {
                 throw new KeyNotFoundException(string.Format(UserNotFoundMessage, userId));
+            }
 
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
             if (role == null)
+            {
                 throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
+            }
 
             // Check if already assigned and active
             var existing = await _context.UserRoles
                 .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId && !ur.IsDeleted, cancellationToken);
 
             if (existing != null && existing.IsActive)
+            {
                 return MapUserRoleAssignmentToDto(existing);
+            }
 
             var userRole = new UserRoleAssignment
             {
@@ -614,7 +654,9 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.RoleId == roleId && !ur.IsDeleted, cancellationToken);
 
             if (userRole == null)
+            {
                 throw new KeyNotFoundException("User-role assignment not found");
+            }
 
             userRole.IsDeleted = true;
 
@@ -691,7 +733,9 @@ public class RBACService : IRBACService
             var roleB = await _context.Roles.FirstOrDefaultAsync(r => r.Id == roleIdB && !r.IsDeleted, cancellationToken);
 
             if (roleA == null || roleB == null)
+            {
                 return false;
+            }
 
             // Lower hierarchy level = higher privilege
             return roleA.HierarchyLevel < roleB.HierarchyLevel;

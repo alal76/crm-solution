@@ -73,7 +73,9 @@ public class ProviderRegistryService : IProviderRegistryService
     {
         var entry = FindEntry(category, providerType);
         if (entry == null)
+        {
             return null;
+        }
 
         var clone = entry.ShallowClone();
         EnrichWithActiveStatus(new[] { clone });
@@ -182,7 +184,9 @@ public class ProviderRegistryService : IProviderRegistryService
         {
             var configuredType = _configuration[$"Providers:{category}:Type"];
             if (!string.IsNullOrEmpty(configuredType))
+            {
                 flags.ActiveProviders[category] = configuredType;
+            }
         }
 
         return flags;

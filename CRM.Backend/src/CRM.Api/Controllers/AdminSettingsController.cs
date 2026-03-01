@@ -362,10 +362,10 @@ public class AdminSettingsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<DatabaseBackupDto>> UploadBackup([FromForm] IFormFile file, [FromForm] string? description = null, [FromForm] string? sourceDatabase = null)
     {
-                if (file == null || file.Length == 0)
-                {
+        if (file == null || file.Length == 0)
+        {
             return BadRequest(new { error = "No file provided" });
-                }
+        }
 
         var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))
@@ -395,10 +395,10 @@ public class AdminSettingsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> RestoreFromUpload([FromForm] IFormFile file)
     {
-                if (file == null || file.Length == 0)
-                {
+        if (file == null || file.Length == 0)
+        {
             return BadRequest(new { error = "No file provided" });
-                }
+        }
 
         var userId = User.FindFirst("sub")?.Value;
         if (string.IsNullOrEmpty(userId))

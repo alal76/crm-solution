@@ -40,10 +40,14 @@ public class LeadRoutingService : ILeadRoutingService
             .Where(r => !r.IsDeleted);
 
         if (status.HasValue)
+        {
             query = query.Where(r => r.Status == status.Value);
+        }
 
         if (teamId.HasValue)
+        {
             query = query.Where(r => r.TeamId == teamId.Value);
+        }
 
         return await query
             .OrderBy(r => r.Priority)
@@ -77,7 +81,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(r => r.Id == rule.Id && !r.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException($"Routing rule {rule.Id} not found");
+        }
 
         // Update fields
         existing.Name = rule.Name;
@@ -107,7 +113,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(r => r.Id == ruleId && !r.IsDeleted, cancellationToken);
 
         if (rule == null)
+        {
             return false;
+        }
 
         rule.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -120,7 +128,9 @@ public class LeadRoutingService : ILeadRoutingService
     {
         var rule = await GetRuleByIdAsync(ruleId, cancellationToken);
         if (rule == null)
+        {
             throw new InvalidOperationException($"Routing rule {ruleId} not found");
+        }
 
         rule.Status = RoutingRuleStatus.Active;
         await _context.SaveChangesAsync(cancellationToken);
@@ -133,7 +143,9 @@ public class LeadRoutingService : ILeadRoutingService
     {
         var rule = await GetRuleByIdAsync(ruleId, cancellationToken);
         if (rule == null)
+        {
             throw new InvalidOperationException($"Routing rule {ruleId} not found");
+        }
 
         rule.Status = RoutingRuleStatus.Inactive;
         await _context.SaveChangesAsync(cancellationToken);
@@ -153,7 +165,9 @@ public class LeadRoutingService : ILeadRoutingService
     {
         var rule = await GetRuleByIdAsync(ruleId, cancellationToken);
         if (rule == null)
+        {
             throw new InvalidOperationException($"Routing rule {ruleId} not found");
+        }
 
         criteria.LeadRoutingRuleId = ruleId;
         criteria.CreatedAt = DateTime.UtcNow;
@@ -171,7 +185,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(c => c.Id == criteria.Id && !c.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException($"Criteria {criteria.Id} not found");
+        }
 
         existing.CriteriaType = criteria.CriteriaType;
         existing.FieldName = criteria.FieldName;
@@ -191,7 +207,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(c => c.Id == criteriaId && !c.IsDeleted, cancellationToken);
 
         if (criteria == null)
+        {
             return false;
+        }
 
         criteria.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -219,7 +237,9 @@ public class LeadRoutingService : ILeadRoutingService
     {
         var rule = await GetRuleByIdAsync(ruleId, cancellationToken);
         if (rule == null)
+        {
             throw new InvalidOperationException($"Routing rule {ruleId} not found");
+        }
 
         target.LeadRoutingRuleId = ruleId;
         target.CreatedAt = DateTime.UtcNow;
@@ -237,7 +257,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(t => t.Id == target.Id && !t.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException($"Target {target.Id} not found");
+        }
 
         existing.UserId = target.UserId;
         existing.Weight = target.Weight;
@@ -255,7 +277,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(t => t.Id == targetId && !t.IsDeleted, cancellationToken);
 
         if (target == null)
+        {
             return false;
+        }
 
         target.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -281,7 +305,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(t => t.Id == targetId && !t.IsDeleted, cancellationToken);
 
         if (target == null)
+        {
             throw new InvalidOperationException($"Target {targetId} not found");
+        }
 
         return new TargetCapacity
         {
@@ -305,7 +331,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, cancellationToken);
 
         if (lead == null)
+        {
             return new LeadRoutingResult { Success = false, LeadId = leadId, ErrorMessage = "Lead not found" };
+        }
 
         // Get matching rules
         var matchingRules = await EvaluateMatchingRulesAsync(leadId, cancellationToken);
@@ -327,13 +355,17 @@ public class LeadRoutingService : ILeadRoutingService
     {
         var rule = await GetRuleByIdAsync(ruleId, cancellationToken);
         if (rule == null)
+        {
             return new LeadRoutingResult { Success = false, LeadId = leadId, ErrorMessage = $"Rule {ruleId} not found" };
+        }
 
         var lead = await _context.Leads
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, cancellationToken);
 
         if (lead == null)
+        {
             return new LeadRoutingResult { Success = false, LeadId = leadId, ErrorMessage = "Lead not found" };
+        }
 
         // Select target based on assignment type
         var selectedTarget = await SelectTargetAsync(rule, cancellationToken);
@@ -358,7 +390,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, cancellationToken);
 
         if (lead == null)
+        {
             return Enumerable.Empty<LeadRoutingRule>();
+        }
 
         var activeRules = await _context.LeadRoutingRules
             .Include(r => r.Criteria)
@@ -373,9 +407,13 @@ public class LeadRoutingService : ILeadRoutingService
         {
             // Check effective dates
             if (rule.EffectiveStartDate.HasValue && rule.EffectiveStartDate.Value > now)
+            {
                 continue;
+            }
             if (rule.EffectiveEndDate.HasValue && rule.EffectiveEndDate.Value < now)
+            {
                 continue;
+            }
 
             // Evaluate criteria
             if (EvaluateRuleCriteria(lead, rule))
@@ -411,7 +449,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, cancellationToken);
 
         if (lead == null)
+        {
             return new LeadRoutingResult { Success = false, LeadId = leadId, ErrorMessage = "Lead not found" };
+        }
 
         var previousOwnerId = lead.OwnerId;
         var result = await RouteLeadAsync(leadId, cancellationToken);
@@ -469,9 +509,13 @@ public class LeadRoutingService : ILeadRoutingService
             .Where(l => l.LeadRoutingRuleId == ruleId);
 
         if (fromDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt >= fromDate.Value);
+        }
         if (toDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt <= toDate.Value);
+        }
 
         return await query
             .OrderByDescending(l => l.AssignedAt)
@@ -490,9 +534,13 @@ public class LeadRoutingService : ILeadRoutingService
             .Where(l => l.AssignedToUserId == userId);
 
         if (fromDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt >= fromDate.Value);
+        }
         if (toDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt <= toDate.Value);
+        }
 
         return await query
             .OrderByDescending(l => l.AssignedAt)
@@ -512,9 +560,13 @@ public class LeadRoutingService : ILeadRoutingService
         var query = _context.LeadRoutingLogs.Where(l => l.LeadRoutingRuleId == ruleId);
 
         if (fromDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt >= fromDate.Value);
+        }
         if (toDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt <= toDate.Value);
+        }
 
         var logs = await query.ToListAsync(cancellationToken);
 
@@ -529,9 +581,13 @@ public class LeadRoutingService : ILeadRoutingService
         var query = _context.LeadRoutingLogs.AsQueryable();
 
         if (fromDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt >= fromDate.Value);
+        }
         if (toDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt <= toDate.Value);
+        }
 
         var logs = await query
             .Include(l => l.AssignedToUser)
@@ -551,13 +607,21 @@ public class LeadRoutingService : ILeadRoutingService
             .Where(l => l.ResponseTimeSeconds.HasValue);
 
         if (ruleId.HasValue)
+        {
             query = query.Where(l => l.LeadRoutingRuleId == ruleId.Value);
+        }
         if (userId.HasValue)
+        {
             query = query.Where(l => l.AssignedToUserId == userId.Value);
+        }
         if (fromDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt >= fromDate.Value);
+        }
         if (toDate.HasValue)
+        {
             query = query.Where(l => l.AssignedAt <= toDate.Value);
+        }
 
         var responseTimes = await query
             .Select(l => l.ResponseTimeSeconds!.Value)
@@ -627,7 +691,9 @@ public class LeadRoutingService : ILeadRoutingService
     private bool EvaluateRuleCriteria(Lead lead, LeadRoutingRule rule)
     {
         if (!rule.Criteria.Any())
+        {
             return true; // No criteria means rule matches all leads
+        }
 
         bool overallResult = true;
         string currentOperator = "AND";
@@ -637,9 +703,13 @@ public class LeadRoutingService : ILeadRoutingService
             bool criteriaResult = EvaluateSingleCriteria(lead, criteria);
 
             if (currentOperator == "AND")
+            {
                 overallResult = overallResult && criteriaResult;
+            }
             else
+            {
                 overallResult = overallResult || criteriaResult;
+            }
 
             currentOperator = criteria.LogicalOperator;
         }
@@ -690,18 +760,26 @@ public class LeadRoutingService : ILeadRoutingService
     private int CompareNumeric(string? value1, string? value2)
     {
         if (decimal.TryParse(value1, out var num1) && decimal.TryParse(value2, out var num2))
+        {
             return num1.CompareTo(num2);
+        }
         return 0;
     }
 
     private bool IsInRange(string? value, string? min, string? max)
     {
         if (!decimal.TryParse(value, out var num))
+        {
             return false;
+        }
         if (!decimal.TryParse(min, out var minNum))
+        {
             return false;
+        }
         if (!decimal.TryParse(max, out var maxNum))
+        {
             return false;
+        }
 
         return num >= minNum && num <= maxNum;
     }
@@ -722,7 +800,9 @@ public class LeadRoutingService : ILeadRoutingService
             .ToList();
 
         if (!availableTargets.Any())
+        {
             return null;
+        }
 
         return rule.AssignmentType switch
         {
@@ -751,7 +831,9 @@ public class LeadRoutingService : ILeadRoutingService
         {
             cumulative += target.Weight;
             if (randomValue < cumulative)
+            {
                 return target;
+            }
         }
 
         return targets.Last();
@@ -773,7 +855,9 @@ public class LeadRoutingService : ILeadRoutingService
             .FirstOrDefaultAsync(u => u.Id == assignToUserId && !u.IsDeleted, cancellationToken);
 
         if (user == null)
+        {
             return new LeadRoutingResult { Success = false, LeadId = lead.Id, ErrorMessage = "Assigned user not found" };
+        }
 
         // Update lead
         lead.OwnerId = assignToUserId;

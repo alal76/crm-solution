@@ -67,10 +67,10 @@ public class CurrenciesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Convert([FromBody] CurrencyConversionRequest request, CancellationToken ct = default)
     {
-                if (!ModelState.IsValid)
-                {
+        if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
-                }
+        }
 
         var rateDto = await _currencyService.GetRateAsync(request.FromCurrency, request.ToCurrency, null, ct);
         var converted = await _currencyService.ConvertAsync(request.Amount, request.FromCurrency, request.ToCurrency, null, ct);

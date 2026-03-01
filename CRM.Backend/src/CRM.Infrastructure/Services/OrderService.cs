@@ -112,7 +112,9 @@ public class OrderService : IOrderService
             .Include(o => o.LineItems)
             .FirstOrDefaultAsync(o => o.Id == dto.Id && !o.IsDeleted, cancellationToken);
         if (existing == null)
+        {
             throw new InvalidOperationException($"Order {dto.Id} not found");
+        }
         MapUpdateOrderDtoToEntity(dto, existing);
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated order {OrderNumber}", existing.OrderNumber);
@@ -366,17 +368,29 @@ public class OrderService : IOrderService
     private static void MapUpdateOrderDtoToEntity(UpdateOrderDto dto, Order entity)
     {
         if (dto.Name != null)
+        {
             entity.Name = dto.Name;
+        }
         if (dto.Description != null)
+        {
             entity.Description = dto.Description;
+        }
         if (dto.Status.HasValue)
+        {
             entity.Status = (OrderStatus)dto.Status.Value;
+        }
         if (dto.OrderType.HasValue)
+        {
             entity.OrderType = (OrderType)dto.OrderType.Value;
+        }
         if (dto.FulfillmentMethod.HasValue)
+        {
             entity.FulfillmentMethod = (FulfillmentMethod)dto.FulfillmentMethod.Value;
+        }
         if (dto.Priority.HasValue)
+        {
             entity.Priority = (OrderPriority)dto.Priority.Value;
+        }
         // ...map other updatable fields as needed...
         // Optionally update line items, etc.
     }
@@ -389,7 +403,9 @@ public class OrderService : IOrderService
             .Include(q => q.LineItems)
             .FirstOrDefaultAsync(q => q.Id == quoteId && !q.IsDeleted, cancellationToken);
         if (quote == null)
+        {
             throw new InvalidOperationException($"Quote {quoteId} not found");
+        }
         var order = new Order
         {
             OrderNumber = await GenerateOrderNumberAsync(cancellationToken),
@@ -436,7 +452,9 @@ public class OrderService : IOrderService
             .Include(o => o.Products)
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, cancellationToken);
         if (opportunity == null)
+        {
             throw new InvalidOperationException($"Opportunity {opportunityId} not found");
+        }
         var order = new Order
         {
             OrderNumber = await GenerateOrderNumberAsync(cancellationToken),

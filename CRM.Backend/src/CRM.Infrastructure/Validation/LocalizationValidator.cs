@@ -65,7 +65,9 @@ public static class LocalizationValidator
     public static void ValidateTimezone(string timezone)
     {
         if (string.IsNullOrWhiteSpace(timezone))
+        {
             throw new ValidationException("Timezone cannot be empty.");
+        }
 
         // Try Windows timezone (works on all OSes via .NET)
         try
@@ -78,7 +80,9 @@ public static class LocalizationValidator
 
         // Allow well-known IANA identifiers as a fallback (cross-platform)
         if (WellKnownIanaTimezones.Contains(timezone))
+        {
             return;
+        }
 
         throw new ValidationException(
             $"Invalid timezone: '{timezone}'. Use a valid IANA timezone identifier (e.g., 'America/New_York', 'Europe/London') " +
@@ -92,7 +96,9 @@ public static class LocalizationValidator
     public static void ValidateCurrency(string currency)
     {
         if (string.IsNullOrWhiteSpace(currency))
+        {
             throw new ValidationException("Currency code cannot be empty.");
+        }
 
         if (!ValidCurrencies.Contains(currency))
         {
@@ -108,7 +114,9 @@ public static class LocalizationValidator
     public static void ValidateLanguage(string language)
     {
         if (string.IsNullOrWhiteSpace(language))
+        {
             throw new ValidationException("Language code cannot be empty.");
+        }
 
         if (!ValidLanguages.Contains(language))
         {

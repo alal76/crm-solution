@@ -125,7 +125,9 @@ public class SubscriptionService : ISubscriptionService
     {
         var subscription = await _context.Subscriptions.FindAsync(new object[] { id }, cancellationToken);
         if (subscription == null)
+        {
             return false;
+        }
 
         subscription.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -915,7 +917,9 @@ public class SubscriptionService : ISubscriptionService
                 cancellationToken);
 
         if (startCount == 0)
+        {
             return 0;
+        }
 
         var churned = await _context.Subscriptions
             .CountAsync(s => !s.IsDeleted && s.SubscriptionStatus == SubscriptionStatus.Cancelled && s.UpdatedAt >= fromDate && s.UpdatedAt <= toDate, cancellationToken);
@@ -930,7 +934,9 @@ public class SubscriptionService : ISubscriptionService
     private static string NormalizeBillingCycle(string? billingCycle)
     {
         if (string.IsNullOrWhiteSpace(billingCycle))
+        {
             return "Monthly";
+        }
 
         var normalized = billingCycle.Trim().ToLowerInvariant();
         if (!AllowedBillingCycles.Contains(normalized))

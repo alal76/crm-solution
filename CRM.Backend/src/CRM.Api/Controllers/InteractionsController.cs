@@ -30,6 +30,7 @@ namespace CRM.Api.Controllers;
 public class InteractionsController : CrmControllerBase
 {
     private const string InteractionNotFoundMessage = "Interaction not found";
+    private const string InteractionEntityName = "Interaction";
 
     private readonly CrmDbContext _context;
     private readonly ILogger<InteractionsController> _logger;
@@ -107,12 +108,12 @@ public class InteractionsController : CrmControllerBase
         var interactions = await query.OrderByDescending(i => i.InteractionDate).ToListAsync();
         foreach (var it in interactions)
         {
-            var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
+            var nt = await _normalization.GetTagsAsync(InteractionEntityName, it.Id);
             if (!string.IsNullOrWhiteSpace(nt))
             {
                 it.Tags = nt;
             }
-            var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
+            var cf = await _normalization.GetCustomFieldsAsync(InteractionEntityName, it.Id);
             if (!string.IsNullOrWhiteSpace(cf))
             {
                 it.CustomFields = cf;
@@ -150,12 +151,12 @@ public class InteractionsController : CrmControllerBase
             return NotFound();
         }
 
-        var nt = await _normalization.GetTagsAsync("Interaction", interaction.Id);
+        var nt = await _normalization.GetTagsAsync(InteractionEntityName, interaction.Id);
         if (!string.IsNullOrWhiteSpace(nt))
         {
             interaction.Tags = nt;
         }
-        var cf = await _normalization.GetCustomFieldsAsync("Interaction", interaction.Id);
+        var cf = await _normalization.GetCustomFieldsAsync(InteractionEntityName, interaction.Id);
         if (!string.IsNullOrWhiteSpace(cf))
         {
             interaction.CustomFields = cf;
@@ -390,12 +391,12 @@ public class InteractionsController : CrmControllerBase
 
         foreach (var it in interactions)
         {
-            var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
+            var nt = await _normalization.GetTagsAsync(InteractionEntityName, it.Id);
             if (!string.IsNullOrWhiteSpace(nt))
             {
                 it.Tags = nt;
             }
-            var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
+            var cf = await _normalization.GetCustomFieldsAsync(InteractionEntityName, it.Id);
             if (!string.IsNullOrWhiteSpace(cf))
             {
                 it.CustomFields = cf;
@@ -434,12 +435,12 @@ public class InteractionsController : CrmControllerBase
 
         foreach (var it in interactions)
         {
-            var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
+            var nt = await _normalization.GetTagsAsync(InteractionEntityName, it.Id);
             if (!string.IsNullOrWhiteSpace(nt))
             {
                 it.Tags = nt;
             }
-            var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
+            var cf = await _normalization.GetCustomFieldsAsync(InteractionEntityName, it.Id);
             if (!string.IsNullOrWhiteSpace(cf))
             {
                 it.CustomFields = cf;

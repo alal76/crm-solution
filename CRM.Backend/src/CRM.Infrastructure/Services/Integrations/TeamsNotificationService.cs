@@ -52,7 +52,9 @@ public class TeamsNotificationService : ITeamsIntegrationService
     {
         var webhookUrl = ResolveWebhookUrl(channelId);
         if (string.IsNullOrEmpty(webhookUrl))
+        {
             return TeamsNotificationResult.Failed("Channel not configured or webhook URL not found");
+        }
 
         var payload = new { text = message };
         return await PostToTeamsAsync(webhookUrl, payload, cancellationToken);
@@ -66,7 +68,9 @@ public class TeamsNotificationService : ITeamsIntegrationService
     {
         var webhookUrl = ResolveWebhookUrl(channelId);
         if (string.IsNullOrEmpty(webhookUrl))
+        {
             return TeamsNotificationResult.Failed("Channel not configured or webhook URL not found");
+        }
 
         var payload = new
         {
@@ -110,10 +114,14 @@ public class TeamsNotificationService : ITeamsIntegrationService
     public async Task<bool> ValidateWebhookAsync(string webhookUrl, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(webhookUrl))
+        {
             return false;
+        }
 
         if (!Uri.TryCreate(webhookUrl, UriKind.Absolute, out var uri))
+        {
             return false;
+        }
 
         // Teams webhook URLs should contain ".webhook.office.com" or "webhook.office.com"
         // or the newer "*.logic.azure.com" pattern
@@ -152,7 +160,9 @@ public class TeamsNotificationService : ITeamsIntegrationService
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(config.WebhookUrl))
+        {
             return TeamsChannelConfigResult.Failed("Webhook URL is required");
+        }
 
         var isValid = await ValidateWebhookAsync(config.WebhookUrl, cancellationToken);
 
@@ -183,12 +193,16 @@ public class TeamsNotificationService : ITeamsIntegrationService
     {
         // Check if channelId is already a URL
         if (Uri.TryCreate(channelId, UriKind.Absolute, out _))
+        {
             return channelId;
+        }
 
         // Look up in configured channels
         var channel = _channels.FirstOrDefault(c => c.Id == channelId && c.IsActive);
         if (channel != null)
+        {
             return channel.WebhookUrl;
+        }
 
         // Fall back to configuration
         return _configuration[$"Integrations:Teams:Channels:{channelId}:WebhookUrl"];

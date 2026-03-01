@@ -67,7 +67,9 @@ public class ServiceQueuesController : CrmControllerBase
     {
                 var queue = await _serviceQueueService.GetByIdAsync(id, cancellationToken);
         if (queue == null)
+        {
             return NotFound(new { message = $"Service queue with ID {id} not found" });
+        }
         return Ok(queue);
     }
 
@@ -87,7 +89,9 @@ public class ServiceQueuesController : CrmControllerBase
     public async Task<IActionResult> Create([FromBody] CreateServiceQueueDto dto, CancellationToken cancellationToken = default)
     {
                 if (!ModelState.IsValid)
+                {
             return BadRequest(ModelState);
+                }
 
         var queue = await _serviceQueueService.CreateAsync(dto, cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = queue.Id }, queue);
@@ -114,7 +118,9 @@ public class ServiceQueuesController : CrmControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             var queue = await _serviceQueueService.UpdateAsync(id, dto, cancellationToken);
             return Ok(queue);

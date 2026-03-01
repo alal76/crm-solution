@@ -48,7 +48,9 @@ public class MagicLinkService : IMagicLinkService
             .FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted, cancellationToken);
 
         if (user == null)
+        {
             throw new KeyNotFoundException($"No active user found with email '{email}'.");
+        }
 
         // Invalidate any existing unused, non-expired tokens for this email
         var existing = await _dbContext.MagicLinkTokens
@@ -89,16 +91,24 @@ public class MagicLinkService : IMagicLinkService
             .FirstOrDefaultAsync(t => t.Token == token, cancellationToken);
 
         if (magic == null)
+        {
             throw new UnauthorizedAccessException("Invalid magic link token.");
+        }
 
         if (magic.IsUsed)
+        {
             throw new UnauthorizedAccessException("This magic link has already been used.");
+        }
 
         if (magic.ExpiresAt <= DateTime.UtcNow)
+        {
             throw new UnauthorizedAccessException("This magic link has expired.");
+        }
 
         if (magic.User == null || magic.User.IsDeleted)
+        {
             throw new UnauthorizedAccessException("The associated user account is no longer active.");
+        }
 
         // Mark as used (single-use)
         magic.IsUsed = true;
@@ -153,7 +163,9 @@ public class MagicLinkService : IMagicLinkService
             var result = await _notificationPort.SendEmailAsync(emailRequest, cancellationToken);
 
             if (!result.Success)
+            {
                 _logger.LogWarning("Magic link email delivery failed to {Email}: {Error}", email, result.Error);
+            }
         }
         catch (Exception ex)
         {

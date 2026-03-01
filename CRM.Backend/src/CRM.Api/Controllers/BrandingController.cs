@@ -121,7 +121,7 @@ public class BrandingController : CrmControllerBase
         [FromBody] UploadLogoRequest request,
         CancellationToken cancellationToken = default)
     {
-                if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
+        if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
         {
             return BadRequest(new BrandingOperationResponse
             {
@@ -161,7 +161,7 @@ public class BrandingController : CrmControllerBase
         [FromBody] UploadFaviconRequest request,
         CancellationToken cancellationToken = default)
     {
-                if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
+        if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
         {
             return BadRequest(new BrandingOperationResponse
             {

@@ -303,17 +303,23 @@ public class LLMService : ILLMService
     {
         // First check config (fast path)
         if (IsConfigured(provider))
+        {
             return true;
+        }
 
         // Then check DB-stored keys via settings service
         if (_settingsService == null)
+        {
             return false;
+        }
 
         try
         {
             var apiKey = await _settingsService.GetProviderApiKeyAsync(provider);
             if (!string.IsNullOrWhiteSpace(apiKey))
+            {
                 return true;
+            }
 
             // For local/ollama, check if base URL is configured
             if (provider.ToLower() is "local" or "ollama")
@@ -341,7 +347,9 @@ public class LLMService : ILLMService
             {
                 var key = await _settingsService.GetProviderApiKeyAsync(provider);
                 if (!string.IsNullOrWhiteSpace(key))
+                {
                     return key;
+                }
             }
             catch (Exception ex)
             {
@@ -362,7 +370,9 @@ public class LLMService : ILLMService
             {
                 var url = await _settingsService.GetProviderBaseUrlAsync(provider);
                 if (!string.IsNullOrWhiteSpace(url))
+                {
                     return url;
+                }
             }
             catch (Exception ex)
             {
@@ -378,11 +388,15 @@ public class LLMService : ILLMService
     private static bool IsValidApiKey(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
+        {
             return false;
+        }
 
         // Check for unresolved environment variable placeholders like ${VAR:} or ${VAR:default}
         if (value.StartsWith("${") && value.Contains(":"))
+        {
             return false;
+        }
 
         return true;
     }
@@ -581,7 +595,9 @@ public class LLMService : ILLMService
                 _logger.LogWarning(ex, "LLM call to {Provider} failed, trying fallback", provider);
 
                 if (!_options.EnableFallback)
+                {
                     break;
+                }
             }
         }
 
@@ -614,7 +630,9 @@ public class LLMService : ILLMService
     private string InterpolateVariables(string template, Dictionary<string, object>? variables)
     {
         if (variables == null || variables.Count == 0)
+        {
             return template;
+        }
 
         var result = template;
         foreach (var kvp in variables)
@@ -1298,7 +1316,9 @@ public class LLMService : ILLMService
     private string BuildPromptFromMessages(List<LLMMessage>? messages)
     {
         if (messages == null || messages.Count == 0)
+        {
             return "";
+        }
 
         var promptBuilder = new StringBuilder();
 
@@ -1388,9 +1408,13 @@ public class LLMService : ILLMService
 
         int promptTokens = 0, completionTokens = 0;
         if (root.TryGetProperty("prompt_eval_count", out var pec))
+        {
             promptTokens = pec.GetInt32();
+        }
         if (root.TryGetProperty("eval_count", out var ec))
+        {
             completionTokens = ec.GetInt32();
+        }
 
         return new LLMResponse
         {
@@ -1458,9 +1482,13 @@ public class LLMService : ILLMService
         if (root.TryGetProperty("usage", out var usage))
         {
             if (usage.TryGetProperty("prompt_tokens", out var pt))
+            {
                 promptTokens = pt.GetInt32();
+            }
             if (usage.TryGetProperty("completion_tokens", out var ct))
+            {
                 completionTokens = ct.GetInt32();
+            }
         }
 
         return new LLMResponse

@@ -128,10 +128,10 @@ public class AddressesController : CrmControllerBase
         int accountId,
         CancellationToken cancellationToken)
     {
-                if (accountId <= 0)
-                {
+        if (accountId <= 0)
+        {
             return BadRequest(new { message = "Invalid account ID. Must be greater than 0." });
-                }
+        }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
@@ -170,10 +170,10 @@ public class AddressesController : CrmControllerBase
         int addressId,
         CancellationToken cancellationToken)
     {
-                if (accountId <= 0 || addressId <= 0)
-                {
+        if (accountId <= 0 || addressId <= 0)
+        {
             return BadRequest(new { message = InvalidIdMessage });
-                }
+        }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
@@ -213,10 +213,10 @@ public class AddressesController : CrmControllerBase
         [FromBody] CreateAddressDto dto,
         CancellationToken cancellationToken)
     {
-                if (dto == null)
-                {
+        if (dto == null)
+        {
             return BadRequest(new { message = "Request body cannot be empty." });
-                }
+        }
 
         if (!ModelState.IsValid)
         {
@@ -286,10 +286,10 @@ public class AddressesController : CrmControllerBase
         [FromBody] UpdateAddressDto dto,
         CancellationToken cancellationToken)
     {
-                if (accountId <= 0 || addressId <= 0)
-                {
+        if (accountId <= 0 || addressId <= 0)
+        {
             return BadRequest(new { message = InvalidIdMessage });
-                }
+        }
 
         if (dto == null)
         {
@@ -444,10 +444,10 @@ public class AddressesController : CrmControllerBase
         int addressId,
         CancellationToken cancellationToken)
     {
-                if (accountId <= 0 || addressId <= 0)
-                {
+        if (accountId <= 0 || addressId <= 0)
+        {
             return BadRequest(new { message = InvalidIdMessage });
-                }
+        }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
@@ -491,10 +491,10 @@ public class AddressesController : CrmControllerBase
         int addressId,
         CancellationToken cancellationToken)
     {
-                if (accountId <= 0 || addressId <= 0)
-                {
+        if (accountId <= 0 || addressId <= 0)
+        {
             return BadRequest(new { message = InvalidIdMessage });
-                }
+        }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);
@@ -542,10 +542,10 @@ public class AddressesController : CrmControllerBase
         int addressId,
         CancellationToken cancellationToken)
     {
-                if (accountId <= 0 || addressId <= 0)
-                {
+        if (accountId <= 0 || addressId <= 0)
+        {
             return BadRequest(new { message = InvalidIdMessage });
-                }
+        }
 
         // Verify account exists
         var account = await _accountService.GetAccountByIdAsync(accountId);

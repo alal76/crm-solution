@@ -117,10 +117,14 @@ public class TwilioCallLoggingService : ITwilioCallLoggingService
             .Where(c => c.From == phoneNumber || c.To == phoneNumber);
 
         if (startDate.HasValue)
+        {
             query = query.Where(c => c.StartedAt >= startDate.Value);
+        }
 
         if (endDate.HasValue)
+        {
             query = query.Where(c => c.StartedAt <= endDate.Value);
+        }
 
         return Task.FromResult<IReadOnlyList<CallLogEntry>>(query.OrderByDescending(c => c.StartedAt).ToList());
     }

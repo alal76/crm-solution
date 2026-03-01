@@ -71,7 +71,9 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
         foreach (var phoneNumber in phoneNumbers)
         {
             if (cancellationToken.IsCancellationRequested)
+            {
                 break;
+            }
 
             var success = await SendSmsAsync(phoneNumber, message, cancellationToken);
             results[phoneNumber] = success;
@@ -87,7 +89,9 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
     public bool ValidatePhoneNumber(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
             return false;
+        }
 
         return E164Regex.IsMatch(phoneNumber);
     }

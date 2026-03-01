@@ -44,13 +44,19 @@ public class TerritoryService : ITerritoryService
             .Where(t => !t.IsDeleted);
 
         if (isActive.HasValue)
+        {
             query = query.Where(t => t.IsActive == isActive.Value);
+        }
 
         if (teamId.HasValue)
+        {
             query = query.Where(t => t.TeamId == teamId.Value);
+        }
 
         if (ownerId.HasValue)
+        {
             query = query.Where(t => t.PrimaryOwnerId == ownerId.Value);
+        }
 
         return await query
             .OrderBy(t => t.TerritoryName)
@@ -91,7 +97,9 @@ public class TerritoryService : ITerritoryService
             .FirstOrDefaultAsync(t => t.Id == territory.Id && !t.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException($"Territory {territory.Id} not found");
+        }
 
         existing.TerritoryName = territory.TerritoryName;
         existing.TerritoryCode = territory.TerritoryCode;
@@ -123,7 +131,9 @@ public class TerritoryService : ITerritoryService
             .FirstOrDefaultAsync(t => t.Id == territoryId && !t.IsDeleted, cancellationToken);
 
         if (territory == null)
+        {
             return false;
+        }
 
         territory.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -136,7 +146,9 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         territory.IsActive = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -147,7 +159,9 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         territory.IsActive = false;
         await _context.SaveChangesAsync(cancellationToken);
@@ -214,7 +228,9 @@ public class TerritoryService : ITerritoryService
             .FirstOrDefaultAsync(a => a.AccountId == accountId && a.TerritoryId == territoryId, cancellationToken);
 
         if (assignment == null)
+        {
             return false;
+        }
 
         _context.AccountTerritoryAssignments.Remove(assignment);
         await _context.SaveChangesAsync(cancellationToken);
@@ -309,7 +325,9 @@ public class TerritoryService : ITerritoryService
             .Where(a => a.TerritoryId == fromTerritoryId);
 
         if (accountIds != null && accountIds.Any())
+        {
             query = query.Where(a => accountIds.Contains(a.AccountId));
+        }
 
         var assignments = await query.ToListAsync(cancellationToken);
         int count = 0;
@@ -348,7 +366,9 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         territory.PrimaryOwnerId = ownerId;
         await _context.SaveChangesAsync(cancellationToken);
@@ -362,7 +382,9 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         var existingIds = string.IsNullOrEmpty(territory.TeamMemberIds)
             ? new List<int>()
@@ -371,7 +393,9 @@ public class TerritoryService : ITerritoryService
         foreach (var userId in userIds)
         {
             if (!existingIds.Contains(userId))
+            {
                 existingIds.Add(userId);
+            }
         }
 
         territory.TeamMemberIds = JsonSerializer.Serialize(existingIds);
@@ -386,10 +410,14 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         if (string.IsNullOrEmpty(territory.TeamMemberIds))
+        {
             return territory;
+        }
 
         var existingIds = JsonSerializer.Deserialize<List<int>>(territory.TeamMemberIds) ?? new List<int>();
         existingIds.RemoveAll(id => userIds.Contains(id));
@@ -421,7 +449,9 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         territory.TeamId = teamId;
         await _context.SaveChangesAsync(cancellationToken);
@@ -440,7 +470,9 @@ public class TerritoryService : ITerritoryService
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
 
         if (account == null)
+        {
             return Enumerable.Empty<AccountTerritory>();
+        }
 
         var primaryAddress = await GetPrimaryAddressAsync(accountId);
 
@@ -487,7 +519,9 @@ public class TerritoryService : ITerritoryService
         var bestMatch = matchingTerritories.FirstOrDefault();
 
         if (bestMatch == null)
+        {
             return null;
+        }
 
         return await AssignAccountAsync(accountId, bestMatch.Id, null, true, "Auto-assigned", cancellationToken);
     }
@@ -520,7 +554,9 @@ public class TerritoryService : ITerritoryService
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
 
         if (account == null || territory == null)
+        {
             return false;
+        }
 
         var primaryAddress = await GetPrimaryAddressAsync(accountId);
 
@@ -550,7 +586,9 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         territory.AnnualQuota = quota;
         territory.QuotaCurrency = currency;
@@ -565,7 +603,9 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         var date = asOfDate ?? DateTime.UtcNow;
         var startOfYear = new DateTime(date.Year, 1, 1);
@@ -627,7 +667,9 @@ public class TerritoryService : ITerritoryService
     {
         var territory = await GetTerritoryByIdAsync(territoryId, cancellationToken);
         if (territory == null)
+        {
             throw new InvalidOperationException($"Territory {territoryId} not found");
+        }
 
         var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
         var to = toDate ?? DateTime.UtcNow;
@@ -835,13 +877,21 @@ public class TerritoryService : ITerritoryService
         return territories.Where(t =>
         {
             if (country != null && !ContainsInJsonArray(t.Countries, country))
+            {
                 return false;
+            }
             if (region != null && !ContainsInJsonArray(t.Regions, region))
+            {
                 return false;
+            }
             if (state != null && !ContainsInJsonArray(t.States, state))
+            {
                 return false;
+            }
             if (city != null && !ContainsInJsonArray(t.Cities, city))
+            {
                 return false;
+            }
             return true;
         });
     }
@@ -854,7 +904,9 @@ public class TerritoryService : ITerritoryService
     public async Task<Territory?> FindMatchingTerritoryForLeadAsync(Lead lead, CancellationToken cancellationToken = default)
     {
         if (lead == null)
+        {
             throw new ArgumentNullException(nameof(lead));
+        }
 
         var territories = await _context.Territories
             .Where(t => !t.IsDeleted && t.IsActive)
@@ -875,12 +927,16 @@ public class TerritoryService : ITerritoryService
             .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, cancellationToken);
 
         if (lead == null)
+        {
             throw new InvalidOperationException($"Lead {leadId} not found.");
+        }
 
         lead.TerritoryId = territoryId;
 
         if (userId.HasValue)
+        {
             lead.OwnerId = userId;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -898,7 +954,9 @@ public class TerritoryService : ITerritoryService
     private bool LeadMatchesTerritory(Lead lead, Territory territory)
     {
         if (string.IsNullOrEmpty(lead.Region))
+        {
             return false; // Cannot match without geographic data
+        }
 
         // Try matching Region against territory Countries list
         if (!string.IsNullOrEmpty(territory.Countries) &&
@@ -923,51 +981,67 @@ public class TerritoryService : ITerritoryService
         if (!string.IsNullOrEmpty(criteria.Country) && !string.IsNullOrEmpty(territory.Countries))
         {
             if (!ContainsInJsonArray(territory.Countries, criteria.Country))
+            {
                 return false;
+            }
         }
 
         // Check region match
         if (!string.IsNullOrEmpty(criteria.Region) && !string.IsNullOrEmpty(territory.Regions))
         {
             if (!ContainsInJsonArray(territory.Regions, criteria.Region))
+            {
                 return false;
+            }
         }
 
         // Check state match
         if (!string.IsNullOrEmpty(criteria.State) && !string.IsNullOrEmpty(territory.States))
         {
             if (!ContainsInJsonArray(territory.States, criteria.State))
+            {
                 return false;
+            }
         }
 
         // Check city match
         if (!string.IsNullOrEmpty(criteria.City) && !string.IsNullOrEmpty(territory.Cities))
         {
             if (!ContainsInJsonArray(territory.Cities, criteria.City))
+            {
                 return false;
+            }
         }
 
         // Check industry match
         if (!string.IsNullOrEmpty(criteria.Industry) && !string.IsNullOrEmpty(territory.Industries))
         {
             if (!ContainsInJsonArray(territory.Industries, criteria.Industry))
+            {
                 return false;
+            }
         }
 
         // Check customer type match
         if (!string.IsNullOrEmpty(criteria.CustomerType) && !string.IsNullOrEmpty(territory.CustomerTypes))
         {
             if (!ContainsInJsonArray(territory.CustomerTypes, criteria.CustomerType))
+            {
                 return false;
+            }
         }
 
         // Check revenue range
         if (criteria.AnnualRevenue.HasValue)
         {
             if (territory.RevenueRangeMin.HasValue && criteria.AnnualRevenue < territory.RevenueRangeMin)
+            {
                 return false;
+            }
             if (territory.RevenueRangeMax.HasValue && criteria.AnnualRevenue > territory.RevenueRangeMax)
+            {
                 return false;
+            }
         }
 
         return true;
@@ -976,7 +1050,9 @@ public class TerritoryService : ITerritoryService
     private bool ContainsInJsonArray(string? jsonArray, string value)
     {
         if (string.IsNullOrEmpty(jsonArray))
+        {
             return true; // Empty means "all" / no restriction
+        }
 
         try
         {

@@ -140,9 +140,13 @@ public class ZapierProvider : IIntegrationPort
             result.Results.Add(publishResult);
 
             if (publishResult.Success)
+            {
                 result.SuccessCount++;
+            }
             else
+            {
                 result.FailureCount++;
+            }
         }
 
         return result;
@@ -411,11 +415,17 @@ public class ZapierProvider : IIntegrationPort
     private static string DetermineAction(string eventType, Dictionary<string, object>? data)
     {
         if (eventType.Contains("create", StringComparison.OrdinalIgnoreCase))
+        {
             return "create";
+        }
         if (eventType.Contains("update", StringComparison.OrdinalIgnoreCase))
+        {
             return "update";
+        }
         if (eventType.Contains("delete", StringComparison.OrdinalIgnoreCase))
+        {
             return "delete";
+        }
 
         return data?.ContainsKey("action") == true
             ? data["action"]?.ToString() ?? "unknown"

@@ -47,7 +47,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .Where(m => !m.IsDeleted);
 
         if (isActive.HasValue)
+        {
             query = query.Where(m => m.IsActive == isActive.Value);
+        }
 
         return await query.OrderBy(m => m.Priority).ThenBy(m => m.Name).ToListAsync(cancellationToken);
     }
@@ -75,7 +77,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(m => m.Id == matrix.Id && !m.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrix.Id));
+        }
 
         existing.Name = matrix.Name;
         existing.Description = matrix.Description;
@@ -101,7 +105,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(m => m.Id == matrixId && !m.IsDeleted, cancellationToken);
 
         if (matrix == null)
+        {
             return false;
+        }
 
         matrix.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -176,7 +182,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(l => l.Id == level.Id && !l.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException($"Level {level.Id} not found");
+        }
 
         existing.Name = level.Name;
         existing.LevelOrder = level.LevelOrder;
@@ -207,7 +215,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(l => l.Id == levelId && !l.IsDeleted, cancellationToken);
 
         if (level == null)
+        {
             return false;
+        }
 
         level.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -251,7 +261,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .Where(g => !g.IsDeleted);
 
         if (isActive.HasValue)
+        {
             query = query.Where(g => g.IsActive == isActive.Value);
+        }
 
         return await query.OrderBy(g => g.Name).ToListAsync(cancellationToken);
     }
@@ -280,7 +292,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(g => g.Id == group.Id && !g.IsDeleted, cancellationToken);
 
         if (existing == null)
+        {
             throw new InvalidOperationException($"Group {group.Id} not found");
+        }
 
         existing.Name = group.Name;
         existing.Description = group.Description;
@@ -296,7 +310,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(g => g.Id == groupId && !g.IsDeleted, cancellationToken);
 
         if (group == null)
+        {
             return false;
+        }
 
         group.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -338,7 +354,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(m => m.ApprovalGroupId == groupId && m.UserId == userId, cancellationToken);
 
         if (member == null)
+        {
             return false;
+        }
 
         member.IsActive = false;
         member.IsDeleted = true;
@@ -375,13 +393,19 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .Where(r => !r.IsDeleted);
 
         if (status.HasValue)
+        {
             query = query.Where(r => r.Status == status.Value);
+        }
 
         if (submitterId.HasValue)
+        {
             query = query.Where(r => r.SubmitterId == submitterId.Value);
+        }
 
         if (quoteId.HasValue)
+        {
             query = query.Where(r => r.QuoteId == quoteId.Value);
+        }
 
         return await query.OrderByDescending(r => r.SubmittedAt ?? r.CreatedAt).ToListAsync(cancellationToken);
     }
@@ -452,7 +476,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(q => q.Id == quoteId, cancellationToken);
 
         if (quote == null)
+        {
             return new ApprovalSubmissionResult { Success = false, ErrorMessage = "Quote not found" };
+        }
 
         // Determine approval requirements
         var requirements = await DetermineApprovalRequirementsAsync(quoteId, cancellationToken);
@@ -506,7 +532,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             _context.ApprovalSteps.Add(step);
 
             if (!string.IsNullOrEmpty(levelInfo.ApproverName))
+            {
                 approverNames.Add(levelInfo.ApproverName);
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -533,7 +561,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(q => q.Id == quoteId, cancellationToken);
 
         if (quote == null)
+        {
             return new ApprovalRequirementResult { RequiresApproval = false };
+        }
 
         var totalAmount = quote.TotalAmount;
         var discountPercent = quote.DiscountPercent;
@@ -618,14 +648,18 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     {
         var request = await GetRequestByIdAsync(requestId, cancellationToken);
         if (request == null)
+        {
             return new ApprovalActionResult { Success = false, ErrorMessage = RequestNotFoundMessage };
+        }
 
         // Find the pending step for this approver
         var currentStep = request.Steps
             .FirstOrDefault(s => s.Status == DiscountApprovalStatus.Pending && s.AssignedToId == approverId);
 
         if (currentStep == null)
+        {
             return new ApprovalActionResult { Success = false, ErrorMessage = "No pending step found for this approver" };
+        }
 
         // Approve the step
         currentStep.Status = DiscountApprovalStatus.Approved;
@@ -682,13 +716,17 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     {
         var request = await GetRequestByIdAsync(requestId, cancellationToken);
         if (request == null)
+        {
             return new ApprovalActionResult { Success = false, ErrorMessage = RequestNotFoundMessage };
+        }
 
         var currentStep = request.Steps
             .FirstOrDefault(s => s.Status == DiscountApprovalStatus.Pending && s.AssignedToId == approverId);
 
         if (currentStep == null)
+        {
             return new ApprovalActionResult { Success = false, ErrorMessage = "No pending step found for this approver" };
+        }
 
         // Reject the step
         currentStep.Status = DiscountApprovalStatus.Rejected;
@@ -724,10 +762,14 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             ?? throw new InvalidOperationException($"Request {requestId} not found");
 
         if (request.SubmitterId != userId)
+        {
             throw new InvalidOperationException("Only the submitter can recall a request");
+        }
 
         if (request.Status != DiscountApprovalStatus.Pending)
+        {
             throw new InvalidOperationException("Can only recall pending requests");
+        }
 
         request.Status = DiscountApprovalStatus.Recalled;
         request.CompletedAt = DateTime.UtcNow;
@@ -752,7 +794,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             ?? throw new InvalidOperationException(string.Format(StepNotFoundMessage, stepId));
 
         if (step.Status != DiscountApprovalStatus.Pending)
+        {
             throw new InvalidOperationException("Can only reassign pending steps");
+        }
 
         step.AssignedToId = newAssigneeId;
         step.AssignedAt = DateTime.UtcNow;
@@ -775,11 +819,15 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             ?? throw new InvalidOperationException(string.Format(StepNotFoundMessage, stepId));
 
         if (step.Status != DiscountApprovalStatus.Pending)
+        {
             throw new InvalidOperationException("Can only escalate pending steps");
+        }
 
         var escalationUserId = step.ApprovalLevel?.EscalationUserId;
         if (!escalationUserId.HasValue)
+        {
             throw new InvalidOperationException("No escalation path defined for this level");
+        }
 
         step.WasEscalated = true;
         step.EscalatedToId = escalationUserId;
@@ -788,7 +836,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         step.Comments = $"Escalated by user {escalatedById}. {reason}";
 
         if (step.ApprovalRequest != null)
+        {
             step.ApprovalRequest.Status = DiscountApprovalStatus.Escalated;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Step {StepId} escalated to user {UserId}", stepId, escalationUserId);
@@ -809,7 +859,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(q => q.Id == quoteId, cancellationToken);
 
         if (quote == null)
+        {
             return null;
+        }
 
         // Get active matrices ordered by priority
         var matrices = await _context.DiscountApprovalMatrices
@@ -833,7 +885,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
 
             // First matching matrix wins (by priority)
             if (matrix.Levels.Any())
+            {
                 return matrix;
+            }
         }
 
         return matrices.FirstOrDefault();
@@ -862,7 +916,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         }
 
         if (matrix?.Levels == null || !matrix.Levels.Any())
+        {
             return false;
+        }
 
         return matrix.Levels.Any(l =>
             l.ThresholdType == ApprovalThresholdType.DiscountPercent &&
@@ -877,7 +933,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .ToListAsync(cancellationToken);
 
         if (!levels.Any())
+        {
             return 0;
+        }
 
         // Return the maximum discount this user can approve
         return levels

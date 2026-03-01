@@ -116,7 +116,9 @@ public class HttpCalloutService : IHttpCalloutService
 
         sw.Stop();
         if (lastResult != null)
+        {
             lastResult.ElapsedMs = sw.ElapsedMilliseconds;
+        }
 
         return lastResult ?? new HttpCalloutResult
         {
@@ -176,7 +178,9 @@ public class HttpCalloutService : IHttpCalloutService
         foreach (var (key, value) in config.Headers)
         {
             if (key.StartsWith("Content-", StringComparison.OrdinalIgnoreCase))
+            {
                 continue; // Content headers set on content object
+            }
             request.Headers.TryAddWithoutValidation(key, value);
         }
 

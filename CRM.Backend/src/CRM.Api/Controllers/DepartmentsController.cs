@@ -114,10 +114,10 @@ public class DepartmentsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<DepartmentDto>> CreateDepartment([FromBody] CreateDepartmentDto createDto)
     {
-                if (string.IsNullOrWhiteSpace(createDto.Name))
-                {
+        if (string.IsNullOrWhiteSpace(createDto.Name))
+        {
             return BadRequest(new { message = "Department name is required" });
-                }
+        }
 
         var department = new Department
         {

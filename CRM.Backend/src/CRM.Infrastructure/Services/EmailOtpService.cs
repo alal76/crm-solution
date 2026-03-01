@@ -32,7 +32,9 @@ public class EmailOtpService : IEmailOtpService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
         if (string.IsNullOrEmpty(_settings.SendGridApiKey))
+        {
             throw new InvalidOperationException("SendGrid API key is required");
+        }
 
         _client = new SendGridClient(_settings.SendGridApiKey);
     }
@@ -49,13 +51,17 @@ public class EmailOtpService : IEmailOtpService
         {
             // Validate email
             if (string.IsNullOrWhiteSpace(email) || !IsValidEmail(email))
+            {
                 return new EmailOtpResult { Success = false, ErrorMessage = "Invalid email address" };
+            }
 
             var normalizedEmail = email.ToLowerInvariant().Trim();
 
             // Check rate limiting (max 5 emails per hour per email)
             if (IsRateLimited(normalizedEmail, RateLimitType.Email))
+            {
                 return new EmailOtpResult { Success = false, ErrorMessage = "Too many email requests. Please try again later." };
+            }
 
             // Generate 8-digit OTP (longer than SMS for email security)
             var otp = GenerateOtp(8);
@@ -119,7 +125,9 @@ public class EmailOtpService : IEmailOtpService
         try
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
+            {
                 return false;
+            }
 
             var normalizedEmail = email.ToLowerInvariant().Trim();
 
@@ -181,7 +189,9 @@ public class EmailOtpService : IEmailOtpService
         try
         {
             if (string.IsNullOrWhiteSpace(email))
+            {
                 return false;
+            }
 
             var normalizedEmail = email.ToLowerInvariant().Trim();
             var (hash, expiresAt, attempts) = RetrieveOtpHash(normalizedEmail, userId);
@@ -206,7 +216,9 @@ public class EmailOtpService : IEmailOtpService
         try
         {
             if (string.IsNullOrWhiteSpace(email))
+            {
                 return 0;
+            }
 
             var normalizedEmail = email.ToLowerInvariant().Trim();
             var (_, _, attempts) = RetrieveOtpHash(normalizedEmail, userId);
@@ -234,7 +246,9 @@ public class EmailOtpService : IEmailOtpService
 
             // Check cooldown period (10 seconds between resends)
             if (!CanResendOtp(normalizedEmail))
+            {
                 return new EmailOtpResult { Success = false, ErrorMessage = "Please wait before requesting a new code." };
+            }
 
             // Clear old OTP record
             ClearOtpRecord(normalizedEmail, userId);
@@ -243,7 +257,9 @@ public class EmailOtpService : IEmailOtpService
             var result = await SendOtpAsync(email, userId, cancellationToken);
 
             if (result.Success)
+            {
                 UpdateResendTimestamp(normalizedEmail);
+            }
 
             return result;
         }
@@ -293,7 +309,9 @@ public class EmailOtpService : IEmailOtpService
         // Mask email for logging: u***@example.com
         var parts = email.Split('@');
         if (parts.Length != 2 || parts[0].Length <= 1)
+        {
             return "****@****";
+        }
 
         return parts[0][0] + "***@" + parts[1];
     }
@@ -337,7 +355,9 @@ public class EmailOtpService : IEmailOtpService
         // This is a simplified in-memory implementation
         var key = $"{type}:{email}";
         if (!_otp_rate_limits.TryGetValue(key, out var lastAttempt))
+        {
             return false;
+        }
 
         var cooldownSeconds = type == RateLimitType.Email ? 60 : 5;
         return DateTime.UtcNow.Subtract(lastAttempt).TotalSeconds < cooldownSeconds;
@@ -348,7 +368,9 @@ public class EmailOtpService : IEmailOtpService
         // Check if enough time has passed since last resend
         var key = $"resend:{email}";
         if (!_otp_rate_limits.TryGetValue(key, out var lastResend))
+        {
             return true;
+        }
 
         return DateTime.UtcNow.Subtract(lastResend).TotalSeconds >= 10; // 10 second cooldown
     }
@@ -370,7 +392,9 @@ public class EmailOtpService : IEmailOtpService
     {
         var key = $"otp:{email}:{userId}";
         if (_otp_records.TryGetValue(key, out var record))
+        {
             return record;
+        }
         return (null, DateTime.MinValue, 0);
     }
 
@@ -413,8 +437,12 @@ public class EmailOtpSettings
     public void Validate()
     {
         if (string.IsNullOrEmpty(SendGridApiKey))
+        {
             throw new InvalidOperationException("SendGrid API key is required");
+        }
         if (string.IsNullOrEmpty(FromAddress))
+        {
             throw new InvalidOperationException("SendGrid FromAddress is required");
+        }
     }
 }

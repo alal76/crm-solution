@@ -203,10 +203,10 @@ public class AIAnalyticsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateDashboard([FromBody] CustomDashboard dashboard, CancellationToken ct)
     {
-                if (string.IsNullOrWhiteSpace(dashboard?.Name))
-                {
+        if (string.IsNullOrWhiteSpace(dashboard?.Name))
+        {
             return BadRequest("Dashboard name is required.");
-                }
+        }
 
         // Ensure Widgets is never null to prevent NullReferenceException in service
         dashboard.Widgets ??= new List<DashboardWidget>();

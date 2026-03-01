@@ -30,7 +30,9 @@ public class JwtTokenService : IJwtTokenService
             ?? throw new InvalidOperationException("JWT Secret must be configured in appsettings.json or environment variables. Set 'Jwt:Secret' with a secure key at least 32 characters long.");
 
         if (_jwtSecret.Length < 32)
+        {
             throw new InvalidOperationException("JWT Secret must be at least 32 characters long for security.");
+        }
 
         _jwtIssuer = configuration["Jwt:Issuer"] ?? "CRMApp";
         _jwtAudience = configuration["Jwt:Audience"] ?? "CRMUsers";

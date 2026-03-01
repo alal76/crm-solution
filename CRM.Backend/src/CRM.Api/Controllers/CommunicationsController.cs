@@ -124,10 +124,10 @@ public class CommunicationsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CommunicationChannelDto>> CreateChannel([FromBody] CommunicationChannelCreateDto dto)
     {
-                if (!Enum.TryParse<ChannelType>(dto.ChannelType, true, out var channelType))
-                {
+        if (!Enum.TryParse<ChannelType>(dto.ChannelType, true, out var channelType))
+        {
             return BadRequest(new { message = "Invalid channel type" });
-                }
+        }
 
         // If setting as default, unset other defaults of same type
         if (dto.IsDefault)

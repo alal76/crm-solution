@@ -65,7 +65,9 @@ public class DstAwareSlaCalculator : IDstAwareSlaCalculator
     public DateTime CalculateTargetTime(DateTime startTime, int slaMinutes, string timeZoneId, bool businessHoursOnly)
     {
         if (slaMinutes <= 0)
+        {
             return startTime;
+        }
 
         var timeZone = GetTimeZone(timeZoneId);
         if (timeZone == null)
@@ -174,7 +176,9 @@ public class DstAwareSlaCalculator : IDstAwareSlaCalculator
     {
         var timeZone = GetTimeZone(timeZoneId);
         if (timeZone == null)
+        {
             return false;
+        }
 
         // Check if this time is within 2 hours of a DST transition
         var adjustmentRules = timeZone.GetAdjustmentRules();
@@ -250,7 +254,9 @@ public class DstAwareSlaCalculator : IDstAwareSlaCalculator
     private bool IsWithinBusinessHours(DateTime localTime)
     {
         if (!BusinessDays.Contains(localTime.DayOfWeek))
+        {
             return false;
+        }
 
         var timeOfDay = localTime.TimeOfDay;
         return timeOfDay >= BusinessStartTime && timeOfDay < BusinessEndTime;
@@ -323,7 +329,9 @@ public class DstAwareSlaCalculator : IDstAwareSlaCalculator
             while (candidate.Month == transition.Month)
             {
                 if (candidate.AddDays(7).Month != transition.Month)
+                {
                     return candidate.Add(transition.TimeOfDay.TimeOfDay);
+                }
                 candidate = candidate.AddDays(7);
             }
             return firstOccurrence.Add(transition.TimeOfDay.TimeOfDay);

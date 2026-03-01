@@ -47,16 +47,24 @@ public class WorkflowService : IWorkflowService
             .Where(w => !w.IsDeleted);
 
         if (!string.IsNullOrEmpty(entityType))
+        {
             query = query.Where(w => w.EntityType == entityType);
+        }
 
         if (status.HasValue)
+        {
             query = query.Where(w => w.Status == status.Value);
+        }
 
         if (!string.IsNullOrEmpty(category))
+        {
             query = query.Where(w => w.Category == category);
+        }
 
         if (!string.IsNullOrEmpty(search))
+        {
             query = query.Where(w => w.Name.Contains(search) || (w.Description != null && w.Description.Contains(search)));
+        }
 
         return await query
             .OrderBy(w => w.Priority)
@@ -122,7 +130,9 @@ public class WorkflowService : IWorkflowService
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(id);
         if (workflow == null || workflow.IsDeleted)
+        {
             return null;
+        }
 
         workflow.Name = updates.Name;
         workflow.Description = updates.Description;
@@ -154,7 +164,9 @@ public class WorkflowService : IWorkflowService
             .FirstOrDefaultAsync(w => w.Id == sourceWorkflowId && !w.IsDeleted);
 
         if (source == null)
+        {
             throw new KeyNotFoundException($"Workflow definition with ID {sourceWorkflowId} not found");
+        }
 
         // Find the best version to clone: active first, then latest draft
         var sourceVersion = source.Versions
@@ -232,7 +244,9 @@ public class WorkflowService : IWorkflowService
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(id);
         if (workflow == null || workflow.IsSystem)
+        {
             return false;
+        }
 
         workflow.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -250,7 +264,9 @@ public class WorkflowService : IWorkflowService
         var version = await _context.WorkflowVersions.FindAsync(versionId);
 
         if (workflow == null || version == null || version.WorkflowDefinitionId != id)
+        {
             return false;
+        }
 
         // Deactivate any currently active version
         var activeVersions = await _context.WorkflowVersions
@@ -282,7 +298,9 @@ public class WorkflowService : IWorkflowService
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(id);
         if (workflow == null)
+        {
             return false;
+        }
 
         workflow.Status = WorkflowStatus.Paused;
         await _context.SaveChangesAsync();
@@ -337,7 +355,9 @@ public class WorkflowService : IWorkflowService
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(workflowId);
         if (workflow == null)
+        {
             throw new ArgumentException("Workflow not found");
+        }
 
         // Get next version number
         var maxVersion = await _context.WorkflowVersions
@@ -444,7 +464,9 @@ public class WorkflowService : IWorkflowService
     {
         var version = await _context.WorkflowVersions.FindAsync(versionId);
         if (version == null || version.Status != WorkflowVersionStatus.Draft)
+        {
             return false;
+        }
 
         version.CanvasLayout = canvasLayout;
         await _context.SaveChangesAsync();
@@ -470,12 +492,18 @@ public class WorkflowService : IWorkflowService
     {
         var version = await _context.WorkflowVersions.FindAsync(versionId);
         if (version == null || version.IsDeleted || version.Status != WorkflowVersionStatus.Draft)
+        {
             return null;
+        }
 
         if (label != null)
+        {
             version.Label = label;
+        }
         if (changeLog != null)
+        {
             version.ChangeLog = changeLog;
+        }
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated metadata for version {VersionId}: Label='{Label}'", versionId, version.Label);
@@ -491,7 +519,9 @@ public class WorkflowService : IWorkflowService
             .Include(v => v.WorkflowDefinition)
             .FirstOrDefaultAsync(v => v.Id == versionId && !v.IsDeleted);
         if (version == null || version.Status != WorkflowVersionStatus.Draft)
+        {
             return false;
+        }
 
         var workflowId = version.WorkflowDefinitionId;
 
@@ -528,7 +558,9 @@ public class WorkflowService : IWorkflowService
     {
         var version = await _context.WorkflowVersions.FindAsync(versionId);
         if (version == null || version.IsDeleted || version.Status != WorkflowVersionStatus.Draft)
+        {
             return false;
+        }
 
         version.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -545,7 +577,9 @@ public class WorkflowService : IWorkflowService
     {
         var sourceVersion = await GetWorkflowVersionAsync(sourceVersionId);
         if (sourceVersion == null || sourceVersion.WorkflowDefinitionId != workflowId)
+        {
             throw new ArgumentException("Source version not found or belongs to a different workflow");
+        }
 
         var newVersion = await CreateNewVersionAsync(workflowId, sourceVersionId);
         newVersion.Label = $"Rollback to v{sourceVersion.VersionNumber}";
@@ -566,7 +600,9 @@ public class WorkflowService : IWorkflowService
         var v1 = await GetWorkflowVersionAsync(versionId1);
         var v2 = await GetWorkflowVersionAsync(versionId2);
         if (v1 == null || v2 == null)
+        {
             throw new ArgumentException("One or both versions not found");
+        }
 
         var result = new VersionComparisonResult
         {
@@ -606,17 +642,29 @@ public class WorkflowService : IWorkflowService
             var n2 = v2Nodes[key];
             var changes = new List<string>();
             if (n1.Name != n2.Name)
+            {
                 changes.Add($"Name: '{n1.Name}' -> '{n2.Name}'");
+            }
             if (n1.NodeType != n2.NodeType)
+            {
                 changes.Add($"Type: {n1.NodeType} -> {n2.NodeType}");
+            }
             if (n1.Configuration != n2.Configuration)
+            {
                 changes.Add("Configuration changed");
+            }
             if (n1.IsStartNode != n2.IsStartNode)
+            {
                 changes.Add($"IsStartNode: {n1.IsStartNode} -> {n2.IsStartNode}");
+            }
             if (n1.IsEndNode != n2.IsEndNode)
+            {
                 changes.Add($"IsEndNode: {n1.IsEndNode} -> {n2.IsEndNode}");
+            }
             if (System.Math.Abs(n1.PositionX - n2.PositionX) > 0.1 || System.Math.Abs(n1.PositionY - n2.PositionY) > 0.1)
+            {
                 changes.Add("Position changed");
+            }
             if (changes.Count > 0)
             {
                 result.ModifiedNodes.Add(new NodeDiffItem
@@ -665,7 +713,9 @@ public class WorkflowService : IWorkflowService
     {
         var version = await _context.WorkflowVersions.FindAsync(node.WorkflowVersionId);
         if (version == null || version.Status != WorkflowVersionStatus.Draft)
+        {
             throw new InvalidOperationException(DraftVersionRequiredForNodes);
+        }
 
         node.CreatedAt = DateTime.UtcNow;
         _context.WorkflowNodes.Add(node);
@@ -685,9 +735,13 @@ public class WorkflowService : IWorkflowService
             .FirstOrDefaultAsync(n => n.Id == nodeId);
 
         if (node == null)
+        {
             return null;
+        }
         if (node.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
+        {
             throw new InvalidOperationException(DraftVersionRequiredForNodes);
+        }
 
         node.Name = updates.Name;
         node.Description = updates.Description;
@@ -722,9 +776,13 @@ public class WorkflowService : IWorkflowService
             .FirstOrDefaultAsync(n => n.Id == nodeId);
 
         if (node == null)
+        {
             return false;
+        }
         if (node.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
+        {
             throw new InvalidOperationException(DraftVersionRequiredForNodes);
+        }
 
         // Delete connected transitions
         var transitions = await _context.WorkflowTransitions
@@ -767,7 +825,9 @@ public class WorkflowService : IWorkflowService
     {
         var version = await _context.WorkflowVersions.FindAsync(transition.WorkflowVersionId);
         if (version == null || version.Status != WorkflowVersionStatus.Draft)
+        {
             throw new InvalidOperationException(DraftVersionRequiredForTransitions);
+        }
 
         transition.CreatedAt = DateTime.UtcNow;
         _context.WorkflowTransitions.Add(transition);
@@ -787,9 +847,13 @@ public class WorkflowService : IWorkflowService
             .FirstOrDefaultAsync(t => t.Id == transitionId);
 
         if (transition == null)
+        {
             return null;
+        }
         if (transition.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
+        {
             throw new InvalidOperationException(DraftVersionRequiredForTransitions);
+        }
 
         transition.Label = updates.Label;
         transition.Description = updates.Description;
@@ -817,9 +881,13 @@ public class WorkflowService : IWorkflowService
             .FirstOrDefaultAsync(t => t.Id == transitionId);
 
         if (transition == null)
+        {
             return false;
+        }
         if (transition.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
+        {
             throw new InvalidOperationException(DraftVersionRequiredForTransitions);
+        }
 
         transition.IsDeleted = true;
         await _context.SaveChangesAsync();

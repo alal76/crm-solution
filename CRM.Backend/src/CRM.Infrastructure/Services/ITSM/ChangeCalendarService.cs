@@ -495,7 +495,9 @@ public class ChangeCalendarService : IChangeCalendarService
         {
             // Skip weekends for off-hours slots
             if (day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
+            {
                 continue;
+            }
 
             // Evening slot (8 PM - midnight)
             var eveningStart = day.Date.AddHours(20);
@@ -541,10 +543,14 @@ public class ChangeCalendarService : IChangeCalendarService
                 var windowEnd = start.Date + window.EndTime;
 
                 if (window.EndTime < window.StartTime)
+                {
                     windowEnd = windowEnd.AddDays(1);
+                }
 
                 if (start >= windowStart && end <= windowEnd)
+                {
                     return true;
+                }
             }
         }
 
@@ -554,7 +560,9 @@ public class ChangeCalendarService : IChangeCalendarService
     private static bool IsRecurringInRange(BlackoutPeriod blackout, DateTime startDate, DateTime endDate)
     {
         if (!blackout.IsRecurringYearly)
+        {
             return false;
+        }
 
         // Check if the recurring dates fall within the range for the relevant year(s)
         for (var year = startDate.Year; year <= endDate.Year; year++)
@@ -563,7 +571,9 @@ public class ChangeCalendarService : IChangeCalendarService
             var recurEnd = new DateTime(year, blackout.EndDate.Month, blackout.EndDate.Day);
 
             if (recurStart <= endDate && recurEnd >= startDate)
+            {
                 return true;
+            }
         }
 
         return false;

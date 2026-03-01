@@ -848,7 +848,9 @@ public class BuiltInSearchProvider : ISearchPort
         foreach (var field in fields)
         {
             if (string.IsNullOrEmpty(field))
+            {
                 continue;
+            }
 
             var lowerField = field.ToLowerInvariant();
 
@@ -881,7 +883,9 @@ public class BuiltInSearchProvider : ISearchPort
         {
             var field = fields[i];
             if (string.IsNullOrEmpty(field))
+            {
                 continue;
+            }
 
             var lowerField = field.ToLowerInvariant();
             if (lowerField.Contains(lowerQuery))
@@ -925,7 +929,9 @@ public class BuiltInSearchProvider : ISearchPort
         List<string>? facetFields)
     {
         if (hits.Count == 0)
+        {
             return null;
+        }
 
         var facets = new Dictionary<string, List<FacetValue>>();
 
@@ -953,7 +959,9 @@ public class BuiltInSearchProvider : ISearchPort
                     .ToList();
 
                 if (fieldCounts.Count > 0)
+                {
                     facets[field] = fieldCounts;
+                }
             }
         }
 

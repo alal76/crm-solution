@@ -231,7 +231,9 @@ public class DeadLetterQueueService : IDeadLetterQueueService
         foreach (var msg in messages)
         {
             if (await RetryAsync(msg.Id, cancellationToken))
+            {
                 retried++;
+            }
         }
 
         _logger.LogInformation("Retried {Count} dead letter messages", retried);

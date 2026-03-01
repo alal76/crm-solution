@@ -486,9 +486,13 @@ Return format: [""positive"", ""neutral"", ""negative"", ...]";
             {
                 var sentiment = response.Content.Trim().ToLower();
                 if (sentiment.Contains("positive"))
+                {
                     return "positive";
+                }
                 if (sentiment.Contains("negative"))
+                {
                     return "negative";
+                }
             }
         }
         catch (Exception ex)

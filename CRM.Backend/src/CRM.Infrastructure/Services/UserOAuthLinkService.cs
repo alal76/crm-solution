@@ -106,9 +106,11 @@ public class UserOAuthLinkService : IUserOAuthLinkService
             .CountAsync(l => l.UserId == userId && l.Provider != provider, cancellationToken);
 
         if (!hasLocalPassword && otherLinks == 0)
+        {
             throw new InvalidOperationException(
                 "Cannot unlink the only remaining authentication method. " +
                 "Please set a local password or link another provider first.");
+        }
 
         _dbContext.UserOAuthLinks.Remove(link);
         await _dbContext.SaveChangesAsync(cancellationToken);

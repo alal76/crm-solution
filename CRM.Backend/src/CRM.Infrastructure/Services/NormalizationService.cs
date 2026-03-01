@@ -27,7 +27,9 @@ public class NormalizationService : INormalizationService
             .ToListAsync();
 
         if (tags == null || !tags.Any())
+        {
             return null;
+        }
         return string.Join(",", tags.Where(s => !string.IsNullOrWhiteSpace(s)));
     }
 
@@ -38,7 +40,9 @@ public class NormalizationService : INormalizationService
             .ToListAsync();
 
         if (fields == null || !fields.Any())
+        {
             return null;
+        }
         return string.Join(";", fields.Select(cf => $"{cf.Key}={cf.Value}"));
     }
 
@@ -51,9 +55,13 @@ public class NormalizationService : INormalizationService
             .FirstOrDefaultAsync();
 
         if (link == null || link.ContactDetail == null)
+        {
             return null;
+        }
         if (link.ContactDetail.DetailType != detailType)
+        {
             return null;
+        }
         return string.IsNullOrWhiteSpace(link.ContactDetail.Value) ? null : link.ContactDetail.Value;
     }
 
@@ -86,9 +94,13 @@ public class NormalizationService : INormalizationService
             .FirstOrDefaultAsync();
 
         if (link == null || link.SocialAccount == null)
+        {
             return null;
+        }
         if (link.SocialAccount.Network != network)
+        {
             return null;
+        }
         return string.IsNullOrWhiteSpace(link.SocialAccount.HandleOrUrl) ? null : link.SocialAccount.HandleOrUrl;
     }
 }

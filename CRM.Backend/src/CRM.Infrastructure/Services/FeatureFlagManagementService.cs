@@ -110,7 +110,9 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
     {
         var isFlagEnabled = await _featureManager.IsEnabledAsync(flagName);
         if (!isFlagEnabled)
+        {
             return false;
+        }
 
         // Check rollout percentage
         var rolloutPercentage = _configuration.GetValue<int?>($"FeatureFlags:{flagName}:RolloutPercentage") ?? 100;
@@ -119,7 +121,9 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
             // Use consistent hash based on userId
             var hash = Math.Abs(userId.GetHashCode()) % 100;
             if (hash >= rolloutPercentage)
+            {
                 return false;
+            }
         }
 
         // Check targeting
@@ -128,7 +132,9 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
         {
             var targetedUserIds = targetedUsers.Split(',').Select(u => int.TryParse(u.Trim(), out var id) ? id : 0).Where(id => id > 0).ToList();
             if (targetedUserIds.Count > 0 && !targetedUserIds.Contains(userId))
+            {
                 return false;
+            }
         }
 
         return true;
@@ -176,7 +182,9 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
     public async Task<bool> SetRolloutPercentageAsync(string flagName, int percentage, int updatedById, CancellationToken cancellationToken = default)
     {
         if (percentage < 0 || percentage > 100)
+        {
             throw new ArgumentException("Rollout percentage must be between 0 and 100");
+        }
 
         try
         {
@@ -234,7 +242,9 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
     public async Task<FlagVariantDto?> GetUserVariantAsync(string flagName, int userId, CancellationToken cancellationToken = default)
     {
         if (!_variantCache.TryGetValue(flagName, out var variants) || variants.Count == 0)
+        {
             return null;
+        }
 
         // Consistent hash-based assignment
         var hash = Math.Abs(userId.GetHashCode());

@@ -35,7 +35,9 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             throw new InvalidOperationException($"Campaign {campaignId} not found");
+        }
 
         var recipients = await _context.CampaignRecipients
             .Where(r => r.CampaignId == campaignId && !r.IsDeleted)
@@ -54,10 +56,14 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             throw new InvalidOperationException($"Campaign {campaignId} not found");
+        }
 
         if (dto.RecipientIds == null || !dto.RecipientIds.Any())
+        {
             return 0;
+        }
 
         // Get existing recipients for this campaign
         var existingRecipientIds = await _context.CampaignRecipients
@@ -69,13 +75,17 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
         foreach (var contactId in dto.RecipientIds)
         {
             if (existingRecipientIds.Contains(contactId))
+            {
                 continue; // Skip if already a recipient
+            }
 
             var contact = await _context.Contacts
                 .FirstOrDefaultAsync(c => c.Id == contactId, cancellationToken);
 
             if (contact == null)
+            {
                 continue;
+            }
 
             var recipient = new CampaignRecipient
             {
@@ -108,7 +118,9 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             .FirstOrDefaultAsync(r => r.Id == recipientId && r.CampaignId == campaignId && !r.IsDeleted, cancellationToken);
 
         if (recipient == null)
+        {
             return false;
+        }
 
         recipient.IsDeleted = true;
         _context.CampaignRecipients.Update(recipient);
@@ -182,7 +194,9 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             throw new InvalidOperationException($"Campaign {campaignId} not found");
+        }
 
         var recipients = await _context.CampaignRecipients
             .Where(r => r.CampaignId == campaignId && !r.IsDeleted)
@@ -236,7 +250,9 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             throw new InvalidOperationException($"Campaign {campaignId} not found");
+        }
 
         var preview = new CRM.Core.Dtos.CampaignPreviewDto
         {
@@ -254,7 +270,9 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (original == null)
+        {
             throw new InvalidOperationException($"Campaign {campaignId} not found");
+        }
 
         var copy = new MarketingCampaign
         {
@@ -278,7 +296,9 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
 
         if (campaign == null)
+        {
             return false;
+        }
 
         // Retargeting logic - mark non-converters for re-engagement
         var nonConverters = await _context.CampaignRecipients
@@ -302,15 +322,23 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         var insights = new List<string>();
 
         if (metrics.ClickThroughRate > 30)
+        {
             insights.Add("Strong email click-through rate - audience is engaged");
+        }
         else if (metrics.ClickThroughRate < 10)
+        {
             insights.Add("Low click-through rate - consider reviewing call-to-action");
+        }
 
         if (metrics.ConversionRate > 10)
+        {
             insights.Add("High conversion rate - campaign strategy is effective");
+        }
 
         if (metrics.Impressions > 0 && metrics.Clicks == 0)
+        {
             insights.Add("No clicks - audience may not be interested in the offer");
+        }
 
         return insights;
     }
@@ -320,13 +348,19 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         var recommendations = new List<string>();
 
         if (metrics.ClickThroughRate < 15)
+        {
             recommendations.Add("A/B test call-to-action to improve click-through rates");
+        }
 
         if (metrics.ConversionRate < 5)
+        {
             recommendations.Add("Review landing page experience and offer clarity");
+        }
 
         if (metrics.Impressions > 0 && (metrics.Clicks * 100m / metrics.Impressions) < 2)
+        {
             recommendations.Add("Review subject lines and preview text effectiveness");
+        }
 
         recommendations.Add("Segment recipients for more targeted campaigns");
 

@@ -115,7 +115,9 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
         try
         {
             if (string.IsNullOrWhiteSpace(formula))
+            {
                 return new FormulaResult { Success = false, Error = "Formula is empty." };
+            }
 
             // Step 1: Resolve cross-object references (e.g., {Account.AnnualRevenue})
             var resolvedFormula = ResolveFieldReferences(formula, fieldValues, relatedObjects);
@@ -289,7 +291,9 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
         {
             var parts = condition.Split(">=", 2);
             if (double.TryParse(parts[0].Trim(), out var left) && double.TryParse(parts[1].Trim(), out var right))
+            {
                 return left >= right;
+            }
         }
 
         // Try <= comparison
@@ -297,7 +301,9 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
         {
             var parts = condition.Split("<=", 2);
             if (double.TryParse(parts[0].Trim(), out var left) && double.TryParse(parts[1].Trim(), out var right))
+            {
                 return left <= right;
+            }
         }
 
         // Try > comparison
@@ -305,7 +311,9 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
         {
             var parts = condition.Split('>', 2);
             if (double.TryParse(parts[0].Trim(), out var left) && double.TryParse(parts[1].Trim(), out var right))
+            {
                 return left > right;
+            }
         }
 
         // Try < comparison
@@ -313,15 +321,21 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
         {
             var parts = condition.Split('<', 2);
             if (double.TryParse(parts[0].Trim(), out var left) && double.TryParse(parts[1].Trim(), out var right))
+            {
                 return left < right;
+            }
         }
 
         // Boolean: "true", "1", non-zero number
         if (bool.TryParse(condition.Trim(), out var boolResult))
+        {
             return boolResult;
+        }
 
         if (double.TryParse(condition.Trim(), out var numResult))
+        {
             return Math.Abs(numResult) > 1e-10;
+        }
 
         return false;
     }
@@ -343,7 +357,9 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
         formula = Regex.Replace(formula, @"ABS\s*\(\s*(.+?)\s*\)", match =>
         {
             if (double.TryParse(match.Groups[1].Value.Trim(), out var val))
+            {
                 return Math.Abs(val).ToString(CultureInfo.InvariantCulture);
+            }
             return match.Value;
         }, RegexOptions.IgnoreCase);
 
@@ -401,9 +417,13 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
 
         // If it's a quoted string, return string value
         if (expression.StartsWith('\'') && expression.EndsWith('\''))
+        {
             return expression.Trim('\'');
+        }
         if (expression.StartsWith('"') && expression.EndsWith('"'))
+        {
             return expression.Trim('"');
+        }
 
         // Try to evaluate as arithmetic
         try
@@ -436,7 +456,9 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
                 if (depth == 0 && i > 0) { allWrapped = false; break; }
             }
             if (allWrapped)
+            {
                 expression = expression[1..^1].Trim();
+            }
         }
 
         // Find the lowest precedence operator outside parentheses
@@ -452,9 +474,13 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
             if (parenDepth == 0)
             {
                 if ((c == '+' || c == '-') && i > 0 && lastAdd < 0)
+                {
                     lastAdd = i;
+                }
                 if ((c == '*' || c == '/') && lastMul < 0)
+                {
                     lastMul = i;
+                }
             }
         }
 
@@ -475,7 +501,9 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
 
         // Try parse as number
         if (double.TryParse(expression, NumberStyles.Any, CultureInfo.InvariantCulture, out var number))
+        {
             return number;
+        }
 
         throw new FormatException($"Cannot evaluate expression: {expression}");
     }

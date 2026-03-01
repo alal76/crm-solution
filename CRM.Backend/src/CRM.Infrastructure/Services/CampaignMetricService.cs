@@ -331,30 +331,48 @@ public class CampaignMetricService : ICampaignMetricService
     private static string GenerateInsights(CampaignMetricsDto? metrics)
     {
         if (metrics == null)
+        {
             return "No metrics available for analysis.";
+        }
 
         var insights = new List<string>();
 
         if (metrics.ClickThroughRate > 30)
+        {
             insights.Add("Strong click-through rate - audience is engaged");
+        }
         else if (metrics.ClickThroughRate < 10)
+        {
             insights.Add("Low click-through rate - consider reviewing call-to-action");
+        }
 
         if (metrics.ConversionRate > 10)
+        {
             insights.Add("High conversion rate - campaign strategy is effective");
+        }
         else if (metrics.ConversionRate < 5)
+        {
             insights.Add("Low conversion rate - review landing page and offer");
+        }
 
         if (metrics.OpenRate > 25)
+        {
             insights.Add("Good open rate - subject lines are effective");
+        }
         else if (metrics.OpenRate < 15)
+        {
             insights.Add("Low open rate - optimize subject lines");
+        }
 
         if (metrics.BounceRate > 5)
+        {
             insights.Add("High bounce rate - clean email list recommended");
+        }
 
         if (!insights.Any())
+        {
             insights.Add("Campaign performance is within normal range");
+        }
 
         return string.Join("; ", insights);
     }
@@ -370,19 +388,29 @@ public class CampaignMetricService : ICampaignMetricService
         }
 
         if (metrics.ClickThroughRate < 15)
+        {
             recommendations.Add("A/B test call-to-action buttons to improve click-through rates");
+        }
 
         if (metrics.ConversionRate < 5)
+        {
             recommendations.Add("Review landing page experience and offer clarity");
+        }
 
         if (metrics.OpenRate < 20)
+        {
             recommendations.Add("Test different subject lines and send times");
+        }
 
         if (metrics.BounceRate > 3)
+        {
             recommendations.Add("Validate email addresses before sending");
+        }
 
         if (metrics.Impressions > 0 && metrics.Clicks == 0)
+        {
             recommendations.Add("Review content relevance and targeting criteria");
+        }
 
         recommendations.Add("Segment recipients for more targeted campaigns");
 

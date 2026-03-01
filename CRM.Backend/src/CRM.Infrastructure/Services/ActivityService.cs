@@ -98,17 +98,29 @@ public class ActivityService : IActivityService
         var query = _context.Activities.AsQueryable();
 
         if (accountId.HasValue)
+        {
             query = query.Where(a => a.AccountId == accountId);
+        }
         if (opportunityId.HasValue)
+        {
             query = query.Where(a => a.OpportunityId == opportunityId);
+        }
         if (userId.HasValue)
+        {
             query = query.Where(a => a.UserId == userId);
+        }
         if (activityType.HasValue)
+        {
             query = query.Where(a => (int)a.ActivityType == activityType);
+        }
         if (fromDate.HasValue)
+        {
             query = query.Where(a => a.ActivityDate >= fromDate.Value);
+        }
         if (toDate.HasValue)
+        {
             query = query.Where(a => a.ActivityDate <= toDate.Value);
+        }
 
         var list = await query
             .OrderByDescending(a => a.ActivityDate)
@@ -139,7 +151,9 @@ public class ActivityService : IActivityService
     public async Task<ActivityDto> CreateAsync(Activity activity)
     {
         if (activity.ActivityDate == default)
+        {
             activity.ActivityDate = DateTime.UtcNow;
+        }
         activity.CreatedAt = DateTime.UtcNow;
         _context.Activities.Add(activity);
         await _context.SaveChangesAsync();
@@ -151,7 +165,9 @@ public class ActivityService : IActivityService
     {
         var activity = await _context.Activities.FindAsync(id);
         if (activity == null)
+        {
             return false;
+        }
         _context.Activities.Remove(activity);
         await _context.SaveChangesAsync();
         _logger.LogDebug("Deleted activity {Id}", id);
@@ -204,9 +220,13 @@ public class ActivityService : IActivityService
     {
         var query = _context.Activities.AsQueryable();
         if (fromDate.HasValue)
+        {
             query = query.Where(a => a.ActivityDate >= fromDate.Value);
+        }
         if (toDate.HasValue)
+        {
             query = query.Where(a => a.ActivityDate <= toDate.Value);
+        }
         var activities = await query.ToListAsync();
         var stats = new ActivityStats
         {
@@ -282,7 +302,9 @@ public class ActivityService : IActivityService
     private static string? ExtractConversationId(string? details)
     {
         if (string.IsNullOrEmpty(details))
+        {
             return null;
+        }
         try
         {
             using var doc = System.Text.Json.JsonDocument.Parse(details);
@@ -301,7 +323,9 @@ public class ActivityService : IActivityService
     private static string? ExtractChannel(string? details)
     {
         if (string.IsNullOrEmpty(details))
+        {
             return null;
+        }
         try
         {
             using var doc = System.Text.Json.JsonDocument.Parse(details);
@@ -320,7 +344,9 @@ public class ActivityService : IActivityService
     private static string? ExtractStatus(string? details)
     {
         if (string.IsNullOrEmpty(details))
+        {
             return null;
+        }
         try
         {
             using var doc = System.Text.Json.JsonDocument.Parse(details);

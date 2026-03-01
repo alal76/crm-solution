@@ -21,9 +21,13 @@ internal static class ProviderResolution
         where TPort : class
     {
         if (serviceProvider == null)
+        {
             throw new ArgumentNullException(nameof(serviceProvider));
+        }
         if (string.IsNullOrWhiteSpace(providerTypeName))
+        {
             return null;
+        }
 
         var key = (typeof(TPort), providerTypeName);
         var providerType = ProviderTypeCache.GetOrAdd(key, static k => FindProviderType(k.PortType, k.ProviderTypeName));

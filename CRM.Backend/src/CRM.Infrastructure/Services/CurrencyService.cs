@@ -55,7 +55,9 @@ public class CurrencyService : ICurrencyService
     public Task<decimal> ConvertAsync(decimal amount, string fromCurrency, string toCurrency, DateTime? rateDate = null, CancellationToken ct = default)
     {
         if (string.Equals(fromCurrency, toCurrency, StringComparison.OrdinalIgnoreCase))
+        {
             return Task.FromResult(amount);
+        }
 
         var rate = GetCrossRate(fromCurrency, toCurrency);
         if (rate == null)
@@ -82,7 +84,9 @@ public class CurrencyService : ICurrencyService
         foreach (var kvp in UsdBaseRates)
         {
             if (string.Equals(kvp.Key, baseCurrency, StringComparison.OrdinalIgnoreCase))
+            {
                 continue;
+            }
 
             // Cross-rate: baseCurrency -> kvp.Key
             var crossRate = kvp.Value / baseUsdRate;
@@ -103,7 +107,9 @@ public class CurrencyService : ICurrencyService
     {
         var rate = GetCrossRate(fromCurrency, toCurrency);
         if (rate == null)
+        {
             return Task.FromResult<ExchangeRateDto?>(null);
+        }
 
         return Task.FromResult<ExchangeRateDto?>(new ExchangeRateDto
         {
@@ -123,9 +129,13 @@ public class CurrencyService : ICurrencyService
     private decimal? GetCrossRate(string from, string to)
     {
         if (!UsdBaseRates.TryGetValue(from, out var fromUsdRate) || fromUsdRate == 0)
+        {
             return null;
+        }
         if (!UsdBaseRates.TryGetValue(to, out var toUsdRate))
+        {
             return null;
+        }
 
         // Convert: from -> USD -> to
         return Math.Round(toUsdRate / fromUsdRate, 6);

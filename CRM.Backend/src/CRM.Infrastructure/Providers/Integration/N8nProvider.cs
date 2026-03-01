@@ -147,9 +147,13 @@ public class N8nProvider : IIntegrationPort
             result.Results.Add(publishResult);
 
             if (publishResult.Success)
+            {
                 result.SuccessCount++;
+            }
             else
+            {
                 result.FailureCount++;
+            }
         }
 
         return result;
@@ -420,7 +424,9 @@ public class N8nProvider : IIntegrationPort
     private static string DetermineTriggerType(List<N8nNode>? nodes)
     {
         if (nodes == null || !nodes.Any())
+        {
             return "manual";
+        }
 
         var triggerNode = nodes.FirstOrDefault(n =>
             n.Type?.Contains("trigger", StringComparison.OrdinalIgnoreCase) == true ||
@@ -428,10 +434,14 @@ public class N8nProvider : IIntegrationPort
             n.Type?.Contains("schedule", StringComparison.OrdinalIgnoreCase) == true);
 
         if (triggerNode == null)
+        {
             return "manual";
+        }
 
         if (triggerNode.Type?.Contains("webhook", StringComparison.OrdinalIgnoreCase) == true)
+        {
             return "webhook";
+        }
         if (triggerNode.Type?.Contains("schedule", StringComparison.OrdinalIgnoreCase) == true ||
             triggerNode.Type?.Contains("cron", StringComparison.OrdinalIgnoreCase) == true)
             return "schedule";
@@ -684,7 +694,9 @@ public class N8nConfiguration
     public (bool IsValid, string? Error) Validate()
     {
         if (string.IsNullOrEmpty(BaseUrl))
+        {
             return (false, "BaseUrl is required");
+        }
 
         return (true, null);
     }

@@ -69,7 +69,9 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
         try
         {
             if (string.IsNullOrWhiteSpace(dto.Name))
+            {
                 throw new ArgumentException("SLA policy name is required");
+            }
 
             var policy = new CRM.Core.Entities.SLAPolicy
             {
@@ -107,25 +109,39 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
                 .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
 
             if (policy == null)
+            {
                 throw new KeyNotFoundException($"SLA policy with ID {id} not found");
+            }
 
             if (!string.IsNullOrWhiteSpace(dto.Name))
+            {
                 policy.Name = dto.Name;
+            }
 
             if (dto.Description != null)
+            {
                 policy.Description = dto.Description;
+            }
 
             if (dto.ResponseTimeHours.HasValue)
+            {
                 policy.InitialResponseTimeMinutes = dto.ResponseTimeHours.Value * 60;
+            }
 
             if (dto.ResolutionTimeHours.HasValue)
+            {
                 policy.ResolutionTimeMinutes = dto.ResolutionTimeHours.Value * 60;
+            }
 
             if (dto.BusinessHoursOnly.HasValue)
+            {
                 policy.WorkingHoursOnly = dto.BusinessHoursOnly.Value;
+            }
 
             if (dto.IsActive.HasValue)
+            {
                 policy.IsActive = dto.IsActive.Value;
+            }
 
 
             _dbContext.SLAPolicies.Update(policy);
@@ -150,7 +166,9 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
                 .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
 
             if (policy == null)
+            {
                 throw new KeyNotFoundException($"SLA policy with ID {id} not found");
+            }
 
             policy.IsDeleted = true;
 
@@ -174,13 +192,17 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
                 .FirstOrDefaultAsync(p => p.Id == policyId && !p.IsDeleted, ct);
 
             if (policy == null)
+            {
                 throw new KeyNotFoundException($"SLA policy with ID {policyId} not found");
+            }
 
             var request = await _dbContext.ServiceRequests
                 .FirstOrDefaultAsync(r => r.Id == serviceRequestId && !r.IsDeleted, ct);
 
             if (request == null)
+            {
                 throw new KeyNotFoundException($"Service request with ID {serviceRequestId} not found");
+            }
 
             _logger.LogInformation("SLA policy {PolicyId} assigned to service request {ServiceRequestId}",
                 policyId, serviceRequestId);

@@ -74,7 +74,7 @@ public class ColorPalettesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Search([FromQuery] string q, [FromQuery] int limit = 50)
     {
-                if (string.IsNullOrWhiteSpace(q))
+        if (string.IsNullOrWhiteSpace(q))
         {
             return BadRequest(new { message = "Search term is required" });
         }

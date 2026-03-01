@@ -261,7 +261,9 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
                 .FirstOrDefaultAsync(g => g.Name == request.Name);
 
             if (existingGroup != null)
+            {
                 throw new InvalidOperationException("Group with this name already exists");
+            }
 
             // TODO-SYS003-001: Enforce single default group rule
             if (request.IsDefault)
@@ -332,7 +334,9 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         {
             var group = await _context.UserGroups.FindAsync(id);
             if (group == null)
+            {
                 throw new KeyNotFoundException($"Group with ID {id} not found");
+            }
 
             // TODO-SYS003-001: Enforce single default group rule
             if (request.IsDefault && !group.IsDefault)
@@ -436,7 +440,9 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         {
             var group = await _context.UserGroups.FindAsync(id);
             if (group == null)
+            {
                 throw new KeyNotFoundException($"Group with ID {id} not found");
+            }
 
             _context.UserGroups.Remove(group);
             await _context.SaveChangesAsync();
@@ -479,17 +485,23 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         {
             var group = await _context.UserGroups.FindAsync(groupId);
             if (group == null)
+            {
                 throw new KeyNotFoundException($"Group with ID {groupId} not found");
+            }
 
             var user = await _context.Users.FindAsync(userId);
             if (user == null)
+            {
                 throw new KeyNotFoundException($"User with ID {userId} not found");
+            }
 
             var existingMember = await _context.UserGroupMembers
                 .FirstOrDefaultAsync(m => m.UserGroupId == groupId && m.UserId == userId);
 
             if (existingMember != null)
+            {
                 throw new InvalidOperationException("User is already a member of this group");
+            }
 
             var member = new UserGroupMember
             {
@@ -527,7 +539,9 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
                 .FirstOrDefaultAsync(m => m.UserGroupId == groupId && m.UserId == userId);
 
             if (member == null)
+            {
                 throw new KeyNotFoundException($"User {userId} is not a member of group {groupId}");
+            }
 
             _context.UserGroupMembers.Remove(member);
             await _context.SaveChangesAsync();
@@ -597,7 +611,9 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             .FirstOrDefaultAsync(g => g.Id == groupId && !g.IsDeleted, cancellationToken);
 
         if (group == null)
+        {
             return null;
+        }
 
         var (isValid, validItems, _) = ValidateMenuItems(group.AccessibleMenuItems);
 
@@ -659,7 +675,9 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         {
             var items = JsonSerializer.Deserialize<List<string>>(json);
             if (items == null)
+            {
                 return (false, new List<string>(), new List<string>());
+            }
 
             var valid = items.Where(k => knownKeys.Contains(k)).ToList();
             var invalid = items.Where(k => !knownKeys.Contains(k)).ToList();

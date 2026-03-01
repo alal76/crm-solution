@@ -95,13 +95,21 @@ public class ChangeService : IChangeService
             ?? throw new KeyNotFoundException($"Change {id} not found");
 
         if (!string.IsNullOrEmpty(dto.Title))
+        {
             change.ShortDescription = dto.Title;
+        }
         if (dto.Description != null)
+        {
             change.Description = dto.Description;
+        }
         if (dto.AssignedToId.HasValue)
+        {
             change.AssignedToId = dto.AssignedToId;
+        }
         if (!string.IsNullOrEmpty(dto.Status) && Enum.TryParse<ChangeState>(dto.Status, true, out var state))
+        {
             change.State = state;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -112,7 +120,9 @@ public class ChangeService : IChangeService
     {
         var change = await _context.Changes.FindAsync(new object[] { id }, cancellationToken);
         if (change == null)
+        {
             return false;
+        }
 
         _context.Changes.Remove(change);
         await _context.SaveChangesAsync(cancellationToken);

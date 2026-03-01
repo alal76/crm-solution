@@ -40,7 +40,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
         // Ensure backup directory exists
         if (!Directory.Exists(_backupDirectory))
+        {
             Directory.CreateDirectory(_backupDirectory);
+        }
     }
 
     public async Task<DatabaseBackupDto> CreateBackupAsync(int createdByUserId, CreateDatabaseBackupRequest request)
@@ -163,15 +165,21 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         {
             var backup = await _context.DatabaseBackups.FindAsync(backupId);
             if (backup == null)
+            {
                 throw new KeyNotFoundException($"Backup {backupId} not found");
+            }
 
             if (!File.Exists(backup.FilePath))
+            {
                 throw new FileNotFoundException($"Backup file not found at {backup.FilePath}");
+            }
 
             // Verify backup integrity via checksum before restoring
             var currentChecksum = CalculateChecksum(backup.FilePath);
             if (!string.Equals(currentChecksum, backup.ChecksumHash, StringComparison.OrdinalIgnoreCase))
+            {
                 throw new InvalidOperationException("Backup integrity check failed - checksums don't match");
+            }
 
             _logger.LogInformation("Restoring backup {BackupId} to {TargetDatabase} by user {UserId}", backupId, targetDatabase, performedByUserId);
 
@@ -199,7 +207,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
                     // Skip pure single-line comments
                     var trimmed = statement.TrimStart();
                     if (trimmed.StartsWith("--") && !trimmed.Contains('\n'))
+                    {
                         continue;
+                    }
 
                     try
                     {
@@ -244,10 +254,14 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         {
             var backup = await _context.DatabaseBackups.FindAsync(id);
             if (backup == null)
+            {
                 throw new KeyNotFoundException($"Backup {id} not found");
+            }
 
             if (File.Exists(backup.FilePath))
+            {
                 File.Delete(backup.FilePath);
+            }
 
             _context.DatabaseBackups.Remove(backup);
             await _context.SaveChangesAsync();
@@ -267,7 +281,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
             // Validate target configuration
             if (string.IsNullOrEmpty(config.TargetConnectionString) && string.IsNullOrEmpty(config.TargetHost))
+            {
                 throw new InvalidOperationException("Target connection string or host must be provided");
+            }
 
             _logger.LogInformation($"Database migration initiated. Target: {config.TargetDatabase} at {config.TargetHost}:{config.TargetPort}");
 
@@ -337,10 +353,14 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         {
             var backup = await _context.DatabaseBackups.FindAsync(backupId);
             if (backup == null)
+            {
                 throw new KeyNotFoundException($"Backup {backupId} not found");
+            }
 
             if (!File.Exists(backup.FilePath))
+            {
                 throw new FileNotFoundException($"Backup file not found");
+            }
 
             return await File.ReadAllBytesAsync(backup.FilePath);
         }
@@ -490,7 +510,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
     private string CalculateChecksum(string filePath)
     {
         if (!File.Exists(filePath))
+        {
             return string.Empty;
+        }
 
         using (var stream = File.OpenRead(filePath))
         using (var sha256 = System.Security.Cryptography.SHA256.Create())
@@ -633,7 +655,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
             {
                 // Clean up temp file
                 if (File.Exists(tempPath))
+                {
                     File.Delete(tempPath);
+                }
             }
         }
         catch (Exception ex)
@@ -769,7 +793,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         {
             var schedule = await _context.BackupSchedules.FindAsync(id);
             if (schedule == null || schedule.IsDeleted)
+            {
                 throw new KeyNotFoundException($"Schedule {id} not found");
+            }
 
             schedule.Name = request.Name;
             schedule.IsEnabled = request.IsEnabled;
@@ -817,7 +843,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         {
             var schedule = await _context.BackupSchedules.FindAsync(id);
             if (schedule == null)
+            {
                 throw new KeyNotFoundException($"Schedule {id} not found");
+            }
 
             schedule.IsDeleted = true;
             await _context.SaveChangesAsync();
@@ -837,7 +865,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         {
             var schedule = await _context.BackupSchedules.FindAsync(id);
             if (schedule == null || schedule.IsDeleted)
+            {
                 throw new KeyNotFoundException($"Schedule {id} not found");
+            }
 
             schedule.IsEnabled = enabled;
             schedule.NextBackupAt = enabled ? CalculateNextRun(schedule.CronExpression) : null;
@@ -859,7 +889,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
     {
         var schedule = await _context.BackupSchedules.FindAsync(scheduleId);
         if (schedule == null || schedule.IsDeleted || !schedule.IsEnabled)
+        {
             return;
+        }
 
         try
         {
@@ -937,7 +969,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
                 try
                 {
                     if (File.Exists(backup.FilePath))
+                    {
                         File.Delete(backup.FilePath);
+                    }
 
                     _context.DatabaseBackups.Remove(backup);
                     _logger.LogInformation("Deleted old backup: {BackupName}", backup.BackupName);
@@ -978,7 +1012,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
         // Ensure directory exists
         if (!Directory.Exists(_backupDirectory))
+        {
             Directory.CreateDirectory(_backupDirectory);
+        }
 
         // The path is stored in the default schedule or in-memory
         // In production, this would be persisted to a configuration store
@@ -996,7 +1032,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         // Simple cron description generator
         var parts = cronExpression.Split(' ');
         if (parts.Length < 5)
+        {
             return cronExpression;
+        }
 
         var minute = parts[0];
         var hour = parts[1];
@@ -1006,13 +1044,21 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
         // Common patterns
         if (dayOfMonth == "*" && month == "*" && dayOfWeek == "*")
+        {
             return $"Daily at {hour}:{minute.PadLeft(2, '0')}";
+        }
         if (dayOfMonth == "*" && month == "*" && dayOfWeek == "0")
+        {
             return $"Every Sunday at {hour}:{minute.PadLeft(2, '0')}";
+        }
         if (dayOfMonth == "*" && month == "*" && dayOfWeek == "1-5")
+        {
             return $"Weekdays at {hour}:{minute.PadLeft(2, '0')}";
+        }
         if (dayOfMonth == "1" && month == "*")
+        {
             return $"Monthly on the 1st at {hour}:{minute.PadLeft(2, '0')}";
+        }
 
         return cronExpression;
     }
@@ -1023,7 +1069,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         {
             var parts = cronExpression.Split(' ');
             if (parts.Length < 5)
+            {
                 return null;
+            }
 
             var minute = ParseCronField(parts[0], 0, 59);
             var hour = ParseCronField(parts[1], 0, 23);
@@ -1032,7 +1080,9 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
             var next = new DateTime(now.Year, now.Month, now.Day, hour, minute, 0, DateTimeKind.Utc);
 
             if (next <= now)
+            {
                 next = next.AddDays(1);
+            }
 
             return next;
         }
@@ -1045,9 +1095,13 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
     private static int ParseCronField(string field, int min, int max)
     {
         if (field == "*")
+        {
             return min;
+        }
         if (int.TryParse(field, out var value) && value >= min && value <= max)
+        {
             return value;
+        }
         return min;
     }
 

@@ -184,7 +184,9 @@ public class EventChainTracker : IEventChainTracker
                 .FirstOrDefaultAsync(e => e.Id == currentId, cancellationToken);
 
             if (evt?.ParentEventId == null || !int.TryParse(evt.ParentEventId, out var parentId))
+            {
                 break;
+            }
 
             depth++;
             currentId = parentId;
@@ -205,14 +207,18 @@ public class EventChainTracker : IEventChainTracker
         while (true)
         {
             if (!visited.Add(currentId))
+            {
                 break;
+            }
 
             var evt = await _context.WebhookEvents
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == currentId, cancellationToken);
 
             if (evt == null)
+            {
                 break;
+            }
 
             ancestors.Add(new EventChainNode
             {
@@ -226,7 +232,9 @@ public class EventChainTracker : IEventChainTracker
             });
 
             if (evt.ParentEventId == null || !int.TryParse(evt.ParentEventId, out var parentId))
+            {
                 break;
+            }
 
             currentId = parentId;
         }
@@ -245,7 +253,9 @@ public class EventChainTracker : IEventChainTracker
     public async Task<bool> CanProcessAsync(int? parentEventId, CancellationToken cancellationToken = default)
     {
         if (!parentEventId.HasValue)
+        {
             return true; // Root events are always allowed
+        }
 
         var depth = await GetChainDepthAsync(parentEventId.Value, cancellationToken);
         var nextDepth = depth + 1;

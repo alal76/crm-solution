@@ -142,17 +142,29 @@ public class ChangeTypeService : IChangeTypeService
             }
 
             if (dto.Description != null)
+            {
                 entity.Description = dto.Description;
+            }
             if (dto.RequiresCAB.HasValue)
+            {
                 entity.RequiresCAB = dto.RequiresCAB.Value;
+            }
             if (dto.RequiresApproval.HasValue)
+            {
                 entity.RequiresApproval = dto.RequiresApproval.Value;
+            }
             if (dto.DefaultRiskLevel != null)
+            {
                 entity.DefaultRiskLevel = dto.DefaultRiskLevel;
+            }
             if (dto.LeadTimeDays.HasValue)
+            {
                 entity.LeadTimeDays = dto.LeadTimeDays.Value;
+            }
             if (dto.IsActive.HasValue)
+            {
                 entity.IsActive = dto.IsActive.Value;
+            }
 
 
             await _dbContext.SaveChangesAsync(ct);

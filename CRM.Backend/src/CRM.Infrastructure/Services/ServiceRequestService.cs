@@ -309,31 +309,49 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         }
 
         if (filter.Statuses?.Any() == true)
+        {
             query = query.Where(sr => filter.Statuses.Contains(sr.Status));
+        }
 
         if (filter.Priorities?.Any() == true)
+        {
             query = query.Where(sr => filter.Priorities.Contains(sr.Priority));
+        }
 
         if (filter.Channels?.Any() == true)
+        {
             query = query.Where(sr => filter.Channels.Contains(sr.Channel));
+        }
 
         if (filter.CategoryIds?.Any() == true)
+        {
             query = query.Where(sr => sr.CategoryId.HasValue && filter.CategoryIds.Contains(sr.CategoryId.Value));
+        }
 
         if (filter.SubcategoryIds?.Any() == true)
+        {
             query = query.Where(sr => sr.SubcategoryId.HasValue && filter.SubcategoryIds.Contains(sr.SubcategoryId.Value));
+        }
 
         if (filter.AccountId.HasValue)
+        {
             query = query.Where(sr => sr.AccountId == filter.AccountId);
+        }
 
         if (filter.ContactId.HasValue)
+        {
             query = query.Where(sr => sr.ContactId == filter.ContactId);
+        }
 
         if (filter.AssignedToUserId.HasValue)
+        {
             query = query.Where(sr => sr.AssignedToUserId == filter.AssignedToUserId);
+        }
 
         if (filter.AssignedToGroupId.HasValue)
+        {
             query = query.Where(sr => sr.AssignedToGroupId == filter.AssignedToGroupId);
+        }
 
         if (filter.IsOpen.HasValue)
         {
@@ -352,25 +370,39 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         }
 
         if (filter.IsVipAccount.HasValue)
+        {
             query = query.Where(sr => sr.IsVipCustomer == filter.IsVipAccount);
+        }
 
         if (filter.ResponseSlaBreached.HasValue)
+        {
             query = query.Where(sr => sr.ResponseSlaBreached == filter.ResponseSlaBreached);
+        }
 
         if (filter.ResolutionSlaBreached.HasValue)
+        {
             query = query.Where(sr => sr.ResolutionSlaBreached == filter.ResolutionSlaBreached);
+        }
 
         if (filter.CreatedFrom.HasValue)
+        {
             query = query.Where(sr => sr.CreatedAt >= filter.CreatedFrom);
+        }
 
         if (filter.CreatedTo.HasValue)
+        {
             query = query.Where(sr => sr.CreatedAt <= filter.CreatedTo);
+        }
 
         if (filter.ResolvedFrom.HasValue)
+        {
             query = query.Where(sr => sr.ResolvedDate >= filter.ResolvedFrom);
+        }
 
         if (filter.ResolvedTo.HasValue)
+        {
             query = query.Where(sr => sr.ResolvedDate <= filter.ResolvedTo);
+        }
 
         if (!string.IsNullOrWhiteSpace(filter.Tags))
         {
@@ -552,9 +584,13 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.IsExpedited = dto.IsExpedited;
         entity.ExpediteReason = dto.IsExpedited ? dto.ExpediteReason : entity.ExpediteReason;
         if (dto.ExpeditedByUserId.HasValue)
+        {
             entity.ExpeditedByUserId = dto.ExpeditedByUserId;
+        }
         if (dto.ExpeditedAt.HasValue)
+        {
             entity.ExpeditedAt = dto.ExpeditedAt;
+        }
         entity.LastModifiedByUserId = modifiedByUserId;
 
         // Check SLA breaches
@@ -584,7 +620,9 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
     {
         var entity = await _context.ServiceRequests.FindAsync(id);
         if (entity == null)
+        {
             return false;
+        }
 
         entity.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -936,7 +974,9 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
     private static object? GetDisplayValue(ServiceRequestCustomFieldValue value)
     {
         if (value.CustomFieldDefinition == null)
+        {
             return value.TextValue;
+        }
 
         return value.CustomFieldDefinition.FieldType switch
         {

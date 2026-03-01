@@ -169,9 +169,13 @@ public class LinkedInOAuthOptions
     public void Validate()
     {
         if (string.IsNullOrEmpty(ClientId))
+        {
             throw new InvalidOperationException("LinkedIn ClientId is required");
+        }
         if (string.IsNullOrEmpty(ClientSecret))
+        {
             throw new InvalidOperationException("LinkedIn ClientSecret is required");
+        }
     }
 }
 

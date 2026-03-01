@@ -786,11 +786,17 @@ public class CalendarSyncService : ICalendarSyncService
             {
                 using var doc = System.Text.Json.JsonDocument.Parse(activity.Details);
                 if (doc.RootElement.TryGetProperty("location", out var locProp))
+                {
                     location = locProp.GetString();
+                }
                 if (doc.RootElement.TryGetProperty("isAllDay", out var allDayProp))
+                {
                     isAllDay = allDayProp.GetBoolean();
+                }
                 if (doc.RootElement.TryGetProperty("endTime", out var endProp))
+                {
                     endTime = DateTime.Parse(endProp.GetString() ?? DateTime.UtcNow.AddHours(1).ToString());
+                }
             }
             catch { /* Ignore parse errors */ }
         }
@@ -870,11 +876,17 @@ public class CalendarSyncService : ICalendarSyncService
             {
                 using var doc = System.Text.Json.JsonDocument.Parse(activity.Details);
                 if (doc.RootElement.TryGetProperty("location", out var locProp))
+                {
                     location = locProp.GetString();
+                }
                 if (doc.RootElement.TryGetProperty("isAllDay", out var allDayProp))
+                {
                     isAllDay = allDayProp.GetBoolean();
+                }
                 if (doc.RootElement.TryGetProperty("endTime", out var endProp))
+                {
                     endTime = DateTime.Parse(endProp.GetString() ?? DateTime.UtcNow.AddHours(1).ToString());
+                }
             }
             catch { /* Ignore parse errors */ }
         }

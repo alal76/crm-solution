@@ -106,7 +106,7 @@ public class AILeadScoringController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> BatchScoreLeads([FromBody] BatchScoreRequest request, CancellationToken cancellationToken)
     {
-                if (request.LeadIds == null || !request.LeadIds.Any())
+        if (request.LeadIds == null || !request.LeadIds.Any())
         {
             return BadRequest(new { error = "LeadIds array is required" });
         }

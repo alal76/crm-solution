@@ -34,7 +34,9 @@ public class UserApprovalService : IUserApprovalService
             var query = _context.UserApprovalRequests.AsQueryable();
 
             if (status.HasValue)
+            {
                 query = query.Where(r => r.Status == status.Value);
+            }
 
             var requests = await query
                 .Include(r => r.ReviewedByUser)
@@ -104,7 +106,9 @@ public class UserApprovalService : IUserApprovalService
                 .FirstOrDefaultAsync(r => r.Email == email && r.Status == (int)ApprovalStatus.Pending);
 
             if (existingRequest != null)
+            {
                 throw new InvalidOperationException("A pending approval request for this email already exists");
+            }
 
             var approvalRequest = new UserApprovalRequest
             {
@@ -133,10 +137,14 @@ public class UserApprovalService : IUserApprovalService
         {
             var approvalRequest = await _context.UserApprovalRequests.FindAsync(approvalRequestId);
             if (approvalRequest == null)
+            {
                 throw new KeyNotFoundException($"Approval request {approvalRequestId} not found");
+            }
 
             if (approvalRequest.Status != (int)ApprovalStatus.Pending)
+            {
                 throw new InvalidOperationException("This approval request has already been reviewed");
+            }
 
             // Use stored password hash if available, otherwise generate a temporary password
             string passwordHash;
@@ -206,10 +214,14 @@ public class UserApprovalService : IUserApprovalService
         {
             var approvalRequest = await _context.UserApprovalRequests.FindAsync(approvalRequestId);
             if (approvalRequest == null)
+            {
                 throw new KeyNotFoundException($"Approval request {approvalRequestId} not found");
+            }
 
             if (approvalRequest.Status != (int)ApprovalStatus.Pending)
+            {
                 throw new InvalidOperationException("This approval request has already been reviewed");
+            }
 
             approvalRequest.Status = (int)ApprovalStatus.Rejected;
             approvalRequest.ReviewedAt = DateTime.UtcNow;

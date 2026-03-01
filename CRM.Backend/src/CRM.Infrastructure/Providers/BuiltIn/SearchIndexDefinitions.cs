@@ -282,7 +282,9 @@ public static class SearchIndexExtensions
     public static string GetDisplayTitle(this SearchIndexConfig config, Func<string, string?> fieldGetter)
     {
         if (!config.DisplayFieldMappings.TryGetValue("title", out var mapping))
+        {
             return string.Empty;
+        }
 
         return ParseDisplayMapping(mapping, fieldGetter);
     }
@@ -293,7 +295,9 @@ public static class SearchIndexExtensions
     public static string GetDisplayDescription(this SearchIndexConfig config, Func<string, string?> fieldGetter)
     {
         if (!config.DisplayFieldMappings.TryGetValue("description", out var mapping))
+        {
             return string.Empty;
+        }
 
         return ParseDisplayMapping(mapping, fieldGetter);
     }
@@ -308,7 +312,9 @@ public static class SearchIndexExtensions
             {
                 var value = GetConcatenatedValue(part.Trim(), fieldGetter);
                 if (!string.IsNullOrEmpty(value))
+                {
                     return value;
+                }
             }
             return string.Empty;
         }

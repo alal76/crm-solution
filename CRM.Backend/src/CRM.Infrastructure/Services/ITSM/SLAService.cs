@@ -128,7 +128,9 @@ public class SLAService : ISLAService
             .FirstOrDefaultAsync(s => s.TargetId == targetId && s.TargetType == targetType && s.State == SLAState.Active);
 
         if (instance == null)
+        {
             return null;
+        }
 
         instance.State = SLAState.Paused;
         instance.PausedAt = DateTime.UtcNow;
@@ -153,7 +155,9 @@ public class SLAService : ISLAService
             .FirstOrDefaultAsync(s => s.TargetId == targetId && s.TargetType == targetType && s.State == SLAState.Paused);
 
         if (instance == null || !instance.PausedAt.HasValue)
+        {
             return null;
+        }
 
         var pausedDuration = DateTime.UtcNow - instance.PausedAt.Value;
 
@@ -183,7 +187,9 @@ public class SLAService : ISLAService
                                     (s.State == SLAState.Active || s.State == SLAState.Paused));
 
         if (instance == null)
+        {
             return null;
+        }
 
         var now = DateTime.UtcNow;
         instance.State = SLAState.Completed;
@@ -211,7 +217,9 @@ public class SLAService : ISLAService
         var query = _dbContext.ITSMSLAPolicies.Where(p => !p.IsDeleted && p.IsActive);
 
         if (targetType.HasValue)
+        {
             query = query.Where(p => p.TargetType == targetType.Value);
+        }
 
         var policies = await query.OrderBy(p => p.Name).ToListAsync();
         return policies.Select(MapPolicyToDto);

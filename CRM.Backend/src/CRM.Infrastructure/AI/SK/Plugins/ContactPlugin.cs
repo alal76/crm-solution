@@ -155,7 +155,9 @@ public class ContactPlugin : CrmPluginBase
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
 
             if (property == null)
+            {
                 return ErrorResult("UpdateContact", $"Unknown field: '{fieldName}'. Check the field name and try again.");
+            }
 
             var convertedValue = Convert.ChangeType(newValue, Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType);
             property.SetValue(req, convertedValue);
@@ -187,7 +189,9 @@ public class ContactPlugin : CrmPluginBase
         {
             var contact = await _contactsService.GetByIdAsync(contactId);
             if (contact == null)
+            {
                 return ErrorResult("AddContactNote", $"Contact with ID {contactId} not found.");
+            }
 
             var note = new Note
             {

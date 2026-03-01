@@ -88,9 +88,13 @@ public static class ScriptingTelemetry
         ExecutionCount.Add(1, new TagList { { "runtime", runtime } });
 
         if (success)
+        {
             ExecutionSuccess.Add(1, new TagList { { "runtime", runtime } });
+        }
         else
+        {
             ExecutionFailures.Add(1, new TagList { { "runtime", runtime } });
+        }
 
         ExecutionDuration.Record(durationMs, new TagList { { "runtime", runtime } });
         MemoryUsage.Record(memoryBytes, new TagList { { "runtime", runtime } });

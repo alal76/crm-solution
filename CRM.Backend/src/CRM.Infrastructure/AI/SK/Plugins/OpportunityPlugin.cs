@@ -179,11 +179,15 @@ public class OpportunityPlugin : CrmPluginBase
         {
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(opportunityId);
             if (opportunity == null)
+            {
                 return ErrorResult("UpdateStage", $"Opportunity with ID {opportunityId} not found.");
+            }
 
             var previousStage = opportunity.Stage;
             if (!Enum.TryParse<OpportunityStage>(newStage.Replace(" ", ""), true, out var parsedStage))
+            {
                 return ErrorResult("UpdateStage", $"Invalid stage '{newStage}'. Valid stages: {string.Join(", ", Enum.GetNames<OpportunityStage>())}");
+            }
 
             opportunity.Stage = parsedStage;
             opportunity.UpdatedAt = DateTime.UtcNow;
@@ -214,7 +218,9 @@ public class OpportunityPlugin : CrmPluginBase
         {
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(opportunityId);
             if (opportunity == null)
+            {
                 return ErrorResult("AddOpportunityNote", $"Opportunity with ID {opportunityId} not found.");
+            }
 
             var note = new Note
             {

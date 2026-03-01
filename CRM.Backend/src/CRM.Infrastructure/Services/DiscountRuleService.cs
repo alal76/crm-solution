@@ -36,9 +36,13 @@ public class DiscountRuleService : IDiscountRuleService
     public async Task<DiscountRuleDto> CreateAsync(CreateDiscountRuleDto dto, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
+        {
             throw new ArgumentException("Discount rule name is required");
+        }
         if (dto.Value < 0)
+        {
             throw new ArgumentException("Discount value cannot be negative");
+        }
 
         var rule = new DiscountRule
         {
@@ -70,31 +74,57 @@ public class DiscountRuleService : IDiscountRuleService
             ?? throw new KeyNotFoundException($"Discount rule with ID {id} not found");
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
             rule.Name = dto.Name;
+        }
         if (dto.Description != null)
+        {
             rule.Description = dto.Description;
+        }
         if (dto.Type.HasValue)
+        {
             rule.Type = dto.Type.Value;
+        }
         if (dto.Value.HasValue)
+        {
             rule.Value = dto.Value.Value;
+        }
         if (dto.MinOrderAmount.HasValue)
+        {
             rule.MinOrderAmount = dto.MinOrderAmount;
+        }
         if (dto.MinQuantity.HasValue)
+        {
             rule.MinQuantity = dto.MinQuantity;
+        }
         if (dto.CustomerTier != null)
+        {
             rule.CustomerTier = dto.CustomerTier;
+        }
         if (dto.ProductCategory != null)
+        {
             rule.ProductCategory = dto.ProductCategory;
+        }
         if (dto.MaxDiscount.HasValue)
+        {
             rule.MaxDiscount = dto.MaxDiscount;
+        }
         if (dto.EffectiveDate.HasValue)
+        {
             rule.EffectiveDate = dto.EffectiveDate.Value;
+        }
         if (dto.ExpiryDate.HasValue)
+        {
             rule.ExpiryDate = dto.ExpiryDate;
+        }
         if (dto.IsActive.HasValue)
+        {
             rule.IsActive = dto.IsActive.Value;
+        }
         if (dto.IsCumulative.HasValue)
+        {
             rule.IsCumulative = dto.IsCumulative.Value;
+        }
 
         await _ruleRepository.UpdateAsync(rule);
         _logger.LogInformation("Discount rule updated: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
@@ -170,7 +200,9 @@ public class DiscountRuleService : IDiscountRuleService
         foreach (var ruleDto in applicableRules)
         {
             if (!ruleDto.IsCumulative && appliedRules.Any())
+            {
                 continue;
+            }
 
             decimal ruleDiscount = 0;
 
@@ -189,7 +221,9 @@ public class DiscountRuleService : IDiscountRuleService
 
             // Apply max discount cap
             if (ruleDto.MaxDiscount.HasValue && ruleDiscount > ruleDto.MaxDiscount)
+            {
                 ruleDiscount = ruleDto.MaxDiscount.Value;
+            }
 
             totalDiscount += ruleDiscount;
             appliedRules.Add(ruleDto);

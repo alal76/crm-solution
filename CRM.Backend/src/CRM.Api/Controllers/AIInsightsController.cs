@@ -55,7 +55,7 @@ public class AIInsightsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetChurnRisk(int id, CancellationToken ct)
     {
-                var result = await _churnService.PredictChurnAsync(id, ct);
+        var result = await _churnService.PredictChurnAsync(id, ct);
         return result is null ? NotFound(new { message = $"Account {id} not found" }) : Ok(result);
     }
 
@@ -70,7 +70,7 @@ public class AIInsightsController : CrmControllerBase
     [ProducesResponseType(typeof(IEnumerable<NextBestActionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetNextBestActions(int id, CancellationToken ct)
     {
-                var result = await _nbaService.GetRecommendationsAsync(id, ct);
+        var result = await _nbaService.GetRecommendationsAsync(id, ct);
         return Ok(result);
     }
 
@@ -87,7 +87,7 @@ public class AIInsightsController : CrmControllerBase
         [FromBody] EmailSentimentRequest request,
         CancellationToken ct)
     {
-                var result = await _sentimentService.AnalyzeSentimentAsync(request.Body, ct);
+        var result = await _sentimentService.AnalyzeSentimentAsync(request.Body, ct);
         return Ok(result);
     }
 
@@ -103,7 +103,7 @@ public class AIInsightsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GenerateMeetingSummary(int id, CancellationToken ct)
     {
-                var result = await _summaryService.GenerateSummaryAsync(id, ct);
+        var result = await _summaryService.GenerateSummaryAsync(id, ct);
         return result is null ? NotFound(new { message = $"Interaction {id} not found" }) : Ok(result);
     }
 
@@ -119,7 +119,7 @@ public class AIInsightsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDealRisk(int id, CancellationToken ct)
     {
-                var result = await _dealRiskService.CalculateRiskAsync(id, ct);
+        var result = await _dealRiskService.CalculateRiskAsync(id, ct);
         return result is null ? NotFound(new { message = $"Opportunity {id} not found" }) : Ok(result);
     }
 
@@ -134,7 +134,7 @@ public class AIInsightsController : CrmControllerBase
     [ProducesResponseType(typeof(RevenueForecastDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRevenueForecast([FromQuery] int months = 6, CancellationToken ct = default)
     {
-                var result = await _forecastService.ForecastRevenueAsync(months, ct);
+        var result = await _forecastService.ForecastRevenueAsync(months, ct);
         return Ok(result);
     }
 }

@@ -114,7 +114,9 @@ public class ServiceRequestPlugin : CrmPluginBase
         {
             var ticket = await _serviceRequestService.GetServiceRequestByIdAsync(ticketId);
             if (ticket == null)
+            {
                 return ErrorResult("GetSLAStatus", $"Ticket with ID {ticketId} not found.");
+            }
 
             return SuccessResult(new
             {
@@ -179,7 +181,9 @@ public class ServiceRequestPlugin : CrmPluginBase
                 .FirstOrDefaultAsync(sr => sr.Id == ticketId && !sr.IsDeleted, cancellationToken);
 
             if (entity == null)
+            {
                 return ErrorResult("UpdatePriority", $"Ticket with ID {ticketId} not found.");
+            }
 
             if (Enum.TryParse<ServiceRequestPriority>(priority, true, out var parsedPriority))
             {
@@ -213,7 +217,9 @@ public class ServiceRequestPlugin : CrmPluginBase
         {
             var ticket = await _serviceRequestService.GetServiceRequestByIdAsync(ticketId);
             if (ticket == null)
+            {
                 return ErrorResult("AddComment", $"Ticket with ID {ticketId} not found.");
+            }
 
             var note = new Note
             {

@@ -98,7 +98,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
 
         // Update any queued duplicate candidates with the new entity ID
         if (candidatesQueued > 0)
+        {
             await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Opportunity", opportunity.Id);
+        }
 
         // Fire workflow triggers for entity creation
         _eventDispatcher.DispatchEntityEvent("Opportunity", opportunity.Id, WorkflowTriggerType.OnCreate);
@@ -179,7 +181,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(p => p.OpportunityId == opportunityId && p.ProductId == productId && !p.IsDeleted, ct);
 
         if (existing == null)
+        {
             return null;
+        }
 
         existing.Quantity = updated.Quantity;
         existing.UnitPrice = updated.UnitPrice;
@@ -198,7 +202,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(p => p.OpportunityId == opportunityId && p.ProductId == productId && !p.IsDeleted, ct);
 
         if (product == null)
+        {
             return false;
+        }
 
         product.IsDeleted = true;
         await _dbContext.SaveChangesAsync(ct);
@@ -210,7 +216,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
     {
         var opportunity = await _repository.GetByIdAsync(opportunityId);
         if (opportunity == null)
+        {
             return;
+        }
 
         var products = await _dbContext.Set<OpportunityProduct>()
             .Where(p => p.OpportunityId == opportunityId && !p.IsDeleted)
@@ -228,11 +236,15 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
     private static decimal? CalculateLineTotal(OpportunityProduct p)
     {
         if (p.UnitPrice == null)
+        {
             return null;
+        }
 
         var lineTotal = p.Quantity * p.UnitPrice.Value;
         if (p.DiscountPercent.HasValue && p.DiscountPercent.Value > 0)
+        {
             lineTotal = lineTotal * (1 - p.DiscountPercent.Value / 100);
+        }
 
         return Math.Round(lineTotal, 2);
     }
@@ -250,7 +262,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (original == null)
+        {
             throw new EntityNotFoundException(string.Format(OpportunityNotFoundMessage, opportunityId));
+        }
 
         // Create the cloned opportunity
         var cloned = new Opportunity
@@ -379,7 +393,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (opportunity == null)
+        {
             throw new EntityNotFoundException(string.Format(OpportunityNotFoundMessage, opportunityId));
+        }
 
         // If this is primary, remove primary flag from others
         if (member.IsPrimary)
@@ -413,7 +429,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(tm => tm.Id == memberId && tm.OpportunityId == opportunityId && !tm.IsDeleted, ct);
 
         if (existing == null)
+        {
             return null;
+        }
 
         // If setting as primary, remove primary flag from others
         if (updated.IsPrimary && !existing.IsPrimary)
@@ -447,7 +465,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(tm => tm.Id == memberId && tm.OpportunityId == opportunityId && !tm.IsDeleted, ct);
 
         if (member == null)
+        {
             return false;
+        }
 
         member.IsDeleted = true;
         await _dbContext.SaveChangesAsync(ct);
@@ -478,14 +498,18 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (opportunity == null)
+        {
             throw new EntityNotFoundException(string.Format(OpportunityNotFoundMessage, opportunityId));
+        }
 
         // Check if competitor already exists on this opportunity
         var existing = await _dbContext.OpportunityCompetitors
             .FirstOrDefaultAsync(c => c.OpportunityId == opportunityId && c.CompetitorId == competitor.CompetitorId, ct);
 
         if (existing != null)
+        {
             throw new ValidationException($"Competitor {competitor.CompetitorId} already exists on this opportunity");
+        }
 
         competitor.OpportunityId = opportunityId;
         _dbContext.OpportunityCompetitors.Add(competitor);
@@ -503,7 +527,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(c => c.OpportunityId == opportunityId && c.CompetitorId == competitorId, ct);
 
         if (competitor == null)
+        {
             return false;
+        }
 
         _dbContext.OpportunityCompetitors.Remove(competitor);
         await _dbContext.SaveChangesAsync(ct);
@@ -520,16 +546,24 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(c => c.OpportunityId == opportunityId && c.CompetitorId == competitorId, ct);
 
         if (existing == null)
+        {
             return null;
+        }
 
         existing.ThreatLevel = updated.ThreatLevel;
         existing.Status = updated.Status;
         if (updated.CompetitorPrice.HasValue)
+        {
             existing.CompetitorPrice = updated.CompetitorPrice;
+        }
         if (updated.Notes != null)
+        {
             existing.Notes = updated.Notes;
+        }
         if (updated.WonAgainst.HasValue)
+        {
             existing.WonAgainst = updated.WonAgainst;
+        }
 
         await _dbContext.SaveChangesAsync(ct);
 
@@ -548,7 +582,9 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (opportunity == null)
+        {
             return false;
+        }
 
         opportunity.ForecastCategory = category;
         await _dbContext.SaveChangesAsync(ct);

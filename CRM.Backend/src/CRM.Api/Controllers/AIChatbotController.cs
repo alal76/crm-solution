@@ -209,7 +209,7 @@ public class AIChatbotController : CrmControllerBase
 
             // Get account-specific context if accounts are selected
             var accountInfo = "";
-            if (request.AccountIds?.Any() is true)
+            if (request.AccountIds?.Any() ?? false)
             {
                 accountInfo = await GetAccountContextAsync(request.AccountIds);
             }
@@ -231,7 +231,7 @@ public class AIChatbotController : CrmControllerBase
             }
 
             // Add conversation history if available (limited to last 10 exchanges for context window management)
-            if (request.ConversationHistory?.Any() is true)
+            if (request.ConversationHistory?.Any() ?? false)
             {
                 var recentHistory = request.ConversationHistory
                     .Where(m => !string.IsNullOrEmpty(m.Content) && (m.Role == "user" || m.Role == "assistant"))
@@ -315,19 +315,17 @@ public class AIChatbotController : CrmControllerBase
             "How do I manage service requests?"
         };
 
-        if (!string.IsNullOrEmpty(context))
+        if (!string.IsNullOrEmpty(context) &&
+            (context.ToLower().Contains("customer") || context.ToLower().Contains("account")))
         {
             // Add context-specific suggestions
-            if (context.ToLower().Contains("customer") || context.ToLower().Contains("account"))
+            var contextSuggestions = new[]
             {
-                var contextSuggestions = new[]
-                {
-                    "Show me recent activities for this customer",
-                    "What opportunities are open for this account?",
-                    "How do I add a contact to this customer?"
-                };
-                suggestions.InsertRange(0, contextSuggestions);
-            }
+                "Show me recent activities for this customer",
+                "What opportunities are open for this account?",
+                "How do I add a contact to this customer?"
+            };
+            suggestions.InsertRange(0, contextSuggestions);
         }
 
         return Ok(new { suggestions = suggestions.Take(5) });

@@ -181,7 +181,9 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
     public async Task<int> GetElapsedBusinessMinutesAsync(DateTime startTime, DateTime endTime, int? scheduleId = null)
     {
         if (endTime <= startTime)
+        {
             return 0;
+        }
 
         var schedule = await GetScheduleAsync(scheduleId);
         var tz = GetTimeZone(schedule.TimeZoneId);
@@ -239,12 +241,16 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
 
         // Check if holiday
         if (await IsHolidayAsync(localTime.Date, scheduleId))
+        {
             return false;
+        }
 
         // Check day schedule
         var daySchedule = GetDaySchedule(schedule, localTime.DayOfWeek);
         if (!daySchedule.IsWorkingDay)
+        {
             return false;
+        }
 
         var timeOfDay = localTime.TimeOfDay;
         return timeOfDay >= daySchedule.StartTime && timeOfDay < daySchedule.EndTime;
@@ -273,12 +279,16 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
             {
                 // Check month and day only
                 if (holiday.Date.Month == dateOnly.Month && holiday.Date.Day == dateOnly.Day)
+                {
                     return true;
+                }
             }
             else
             {
                 if (holiday.Date.Date == dateOnly)
+                {
                     return true;
+                }
             }
         }
 

@@ -218,8 +218,10 @@ public class PortalService : IPortalService
             .Where(a => !a.IsDeleted && a.Status == CRM.Core.Entities.KnowledgeBase.ArticleStatus.Published);
 
         if (!string.IsNullOrWhiteSpace(search))
+        {
             query = query.Where(a => a.Title.Contains(search) ||
                                      (a.Summary != null && a.Summary.Contains(search)));
+        }
 
         var total = await query.CountAsync(ct);
         var items = await query

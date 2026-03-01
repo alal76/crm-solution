@@ -112,7 +112,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     {
         var account = await _accountRepository.GetByIdAsync(id);
         if (account == null || account.IsDeleted)
+        {
             return null;
+        }
 
         return await MapToDto(account);
     }
@@ -365,7 +367,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         // Update any queued duplicate candidates with the new entity ID
         if (candidatesQueued > 0)
+        {
             await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Account", account.Id);
+        }
 
         // Fire workflow triggers for entity creation
         _eventDispatcher.DispatchEntityEvent("Account", account.Id, WorkflowTriggerType.OnCreate);
@@ -377,7 +381,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     {
         var account = await _accountRepository.GetByIdAsync(id);
         if (account == null || account.IsDeleted)
+        {
             return null;
+        }
 
         // TODO-CRM001-08: Validate duplicate email (if email is being updated)
         if (dto.Email != null && dto.Email != account.Email)
@@ -406,178 +412,346 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         // Update fields if provided
         if (dto.Category.HasValue)
+        {
             account.Category = dto.Category.Value;
+        }
         if (dto.FirstName != null)
+        {
             account.FirstName = dto.FirstName;
+        }
         if (dto.LastName != null)
+        {
             account.LastName = dto.LastName;
+        }
         if (dto.Salutation != null)
+        {
             account.Salutation = dto.Salutation;
+        }
         if (dto.Suffix != null)
+        {
             account.Suffix = dto.Suffix;
+        }
         if (dto.DateOfBirth.HasValue)
+        {
             account.DateOfBirth = dto.DateOfBirth;
+        }
         if (dto.Gender != null)
+        {
             account.Gender = dto.Gender;
+        }
         if (dto.LinkedContactId.HasValue)
+        {
             account.LinkedContactId = dto.LinkedContactId;
+        }
         if (dto.Company != null)
+        {
             account.Company = dto.Company;
+        }
         if (dto.LegalName != null)
+        {
             account.LegalName = dto.LegalName;
+        }
         if (dto.DbaName != null)
+        {
             account.DbaName = dto.DbaName;
+        }
         if (dto.TaxId != null)
+        {
             account.TaxId = dto.TaxId;
+        }
         if (dto.RegistrationNumber != null)
+        {
             account.RegistrationNumber = dto.RegistrationNumber;
+        }
         if (dto.YearFounded.HasValue)
+        {
             account.YearFounded = dto.YearFounded;
+        }
         if (dto.PrimaryContactId.HasValue)
+        {
             account.PrimaryContactId = dto.PrimaryContactId;
+        }
         if (dto.Email != null)
+        {
             account.Email = dto.Email;
+        }
         if (dto.SecondaryEmail != null)
+        {
             account.SecondaryEmail = dto.SecondaryEmail;
+        }
         if (dto.Phone != null)
+        {
             account.Phone = dto.Phone;
+        }
         if (dto.MobilePhone != null)
+        {
             account.MobilePhone = dto.MobilePhone;
+        }
         if (dto.FaxNumber != null)
+        {
             account.FaxNumber = dto.FaxNumber;
+        }
         if (dto.JobTitle != null)
+        {
             account.JobTitle = dto.JobTitle;
+        }
         if (dto.Website != null)
+        {
             account.Website = dto.Website;
+        }
         if (dto.Industry != null)
+        {
             account.Industry = dto.Industry;
+        }
         if (dto.SubIndustry != null)
+        {
             account.SubIndustry = dto.SubIndustry;
+        }
         if (dto.NumberOfEmployees.HasValue)
+        {
             account.NumberOfEmployees = dto.NumberOfEmployees;
+        }
         if (dto.EmployeeRange != null)
+        {
             account.EmployeeRange = dto.EmployeeRange;
+        }
         if (dto.AnnualRevenue.HasValue)
+        {
             account.AnnualRevenue = dto.AnnualRevenue.Value;
+        }
         if (dto.RevenueRange != null)
+        {
             account.RevenueRange = dto.RevenueRange;
+        }
         if (dto.AccountType.HasValue)
+        {
             account.AccountType = dto.AccountType.Value;
+        }
         if (dto.Priority.HasValue)
+        {
             account.Priority = dto.Priority.Value;
+        }
         if (dto.StockSymbol != null)
+        {
             account.StockSymbol = dto.StockSymbol;
+        }
         if (dto.Ownership != null)
+        {
             account.Ownership = dto.Ownership;
+        }
         if (dto.LifecycleStage.HasValue)
+        {
             account.LifecycleStage = dto.LifecycleStage.Value;
+        }
         if (dto.LeadSource != null)
+        {
             account.LeadSource = dto.LeadSource;
+        }
         if (dto.NextFollowUpDate.HasValue)
+        {
             account.NextFollowUpDate = dto.NextFollowUpDate;
+        }
         if (dto.CreditLimit.HasValue)
+        {
             account.CreditLimit = dto.CreditLimit.Value;
+        }
         if (dto.PaymentTerms != null)
+        {
             account.PaymentTerms = dto.PaymentTerms;
+        }
         if (dto.PreferredPaymentMethod != null)
+        {
             account.PreferredPaymentMethod = dto.PreferredPaymentMethod;
+        }
         if (dto.Currency != null)
+        {
             account.Currency = dto.Currency;
+        }
         if (dto.BillingCycle != null)
+        {
             account.BillingCycle = dto.BillingCycle;
+        }
         if (dto.LeadScore.HasValue)
+        {
             account.LeadScore = dto.LeadScore.Value;
+        }
         if (dto.AccountHealthScore.HasValue)
+        {
             account.AccountHealthScore = dto.AccountHealthScore.Value;
+        }
         if (dto.NpsScore.HasValue)
+        {
             account.NpsScore = dto.NpsScore.Value;
+        }
         if (dto.SatisfactionRating.HasValue)
+        {
             account.SatisfactionRating = dto.SatisfactionRating.Value;
+        }
         if (dto.AssignedToUserId.HasValue)
+        {
             account.AssignedToUserId = dto.AssignedToUserId;
+        }
         if (dto.AccountManagerId.HasValue)
+        {
             account.AccountManagerId = dto.AccountManagerId;
+        }
         if (dto.Territory != null)
+        {
             account.Territory = dto.Territory;
+        }
         if (dto.Region != null)
+        {
             account.Region = dto.Region;
+        }
         if (dto.Tags != null)
+        {
             account.Tags = dto.Tags;
+        }
         if (dto.Segment != null)
+        {
             account.Segment = dto.Segment;
+        }
         if (dto.ReferralSource != null)
+        {
             account.ReferralSource = dto.ReferralSource;
+        }
         if (dto.ReferredByAccountId.HasValue)
+        {
             account.ReferredByAccountId = dto.ReferredByAccountId;
+        }
         if (dto.ParentAccountId.HasValue)
+        {
             account.ParentAccountId = dto.ParentAccountId;
+        }
         if (dto.Notes != null)
+        {
             account.Notes = dto.Notes;
+        }
         if (dto.InternalNotes != null)
+        {
             account.InternalNotes = dto.InternalNotes;
+        }
         if (dto.Description != null)
+        {
             account.Description = dto.Description;
+        }
         if (dto.CustomFields != null)
+        {
             account.CustomFields = dto.CustomFields;
+        }
 
         if (dto.PreferredContactTime != null)
+        {
             account.PreferredContactTime = dto.PreferredContactTime;
+        }
         if (dto.LinkedInUrl != null)
+        {
             account.LinkedInUrl = dto.LinkedInUrl;
+        }
         if (dto.TwitterHandle != null)
+        {
             account.TwitterHandle = dto.TwitterHandle;
+        }
         if (dto.FacebookUrl != null)
+        {
             account.FacebookUrl = dto.FacebookUrl;
+        }
 
         // Compliance & Verification
         if (dto.VerificationStatus != null)
+        {
             account.VerificationStatus = dto.VerificationStatus;
+        }
         if (dto.VerificationDate.HasValue)
+        {
             account.VerificationDate = dto.VerificationDate;
+        }
         if (dto.VerificationMethod != null)
+        {
             account.VerificationMethod = dto.VerificationMethod;
+        }
         if (dto.VerifiedByUserId.HasValue)
+        {
             account.VerifiedByUserId = dto.VerifiedByUserId;
+        }
         if (dto.RequiresNda.HasValue)
+        {
             account.RequiresNda = dto.RequiresNda.Value;
+        }
         if (dto.NdaSigned.HasValue)
+        {
             account.NdaSigned = dto.NdaSigned.Value;
+        }
         if (dto.NdaSignedDate.HasValue)
+        {
             account.NdaSignedDate = dto.NdaSignedDate;
+        }
         if (dto.NdaReferenceId != null)
+        {
             account.NdaReferenceId = dto.NdaReferenceId;
+        }
         if (dto.DataClassification != null)
+        {
             account.DataClassification = dto.DataClassification;
+        }
         if (dto.DunsNumber != null)
+        {
             account.DunsNumber = dto.DunsNumber;
+        }
         if (dto.BusinessLicense != null)
+        {
             account.BusinessLicense = dto.BusinessLicense;
+        }
         if (dto.ComplianceCheckDate.HasValue)
+        {
             account.ComplianceCheckDate = dto.ComplianceCheckDate;
+        }
         if (dto.ComplianceNotes != null)
+        {
             account.ComplianceNotes = dto.ComplianceNotes;
+        }
 
         // Partnership & Reseller
         if (dto.IsReseller.HasValue)
+        {
             account.IsReseller = dto.IsReseller;
+        }
         if (dto.IsPartner.HasValue)
+        {
             account.IsPartner = dto.IsPartner;
+        }
         if (dto.IsIntegrationPartner.HasValue)
+        {
             account.IsIntegrationPartner = dto.IsIntegrationPartner;
+        }
         if (dto.PartnerTier != null)
+        {
             account.PartnerTier = dto.PartnerTier;
+        }
         if (dto.PartnerEnrolledDate.HasValue)
+        {
             account.PartnerEnrolledDate = dto.PartnerEnrolledDate;
+        }
         if (dto.PartnerStatus != null)
+        {
             account.PartnerStatus = dto.PartnerStatus;
+        }
         if (dto.ParentResellerAccountId.HasValue)
+        {
             account.ParentResellerAccountId = dto.ParentResellerAccountId;
+        }
         if (dto.CompetitorAccountId.HasValue)
+        {
             account.CompetitorAccountId = dto.CompetitorAccountId;
+        }
         if (dto.TechStack != null)
+        {
             account.TechStack = dto.TechStack;
+        }
         if (dto.IntegrationPartnerType != null)
+        {
             account.IntegrationPartnerType = dto.IntegrationPartnerType;
+        }
 
         account.LastActivityDate = DateTime.UtcNow;
 
@@ -703,7 +877,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     {
         var account = await _accountRepository.GetByIdAsync(id);
         if (account == null)
+        {
             return false;
+        }
 
         account.IsDeleted = true;
 
@@ -746,18 +922,24 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     {
         var account = await _accountRepository.GetByIdAsync(accountId);
         if (account == null || account.IsDeleted)
+        {
             return null;
+        }
 
         // Verify contact exists
         var contact = await _contactsService.GetByIdAsync(dto.ContactId);
         if (contact == null)
+        {
             return null;
+        }
 
         // Check if already linked
         var existingLinks = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && cc.ContactId == dto.ContactId && !cc.IsDeleted);
         if (existingLinks.Any())
+        {
             return null;
+        }
 
         // If this is primary contact, unset others
         if (dto.IsPrimaryContact)
@@ -809,7 +991,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         var link = links.FirstOrDefault();
         if (link == null)
+        {
             return false;
+        }
 
         link.IsDeleted = true;
         link.RelationshipEndDate = DateTime.UtcNow;
@@ -836,26 +1020,46 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         var link = links.FirstOrDefault();
         if (link == null)
+        {
             return null;
+        }
 
         if (dto.Role.HasValue)
+        {
             link.Role = dto.Role.Value;
+        }
         if (dto.IsDecisionMaker.HasValue)
+        {
             link.IsDecisionMaker = dto.IsDecisionMaker.Value;
+        }
         if (dto.ReceivesBillingNotifications.HasValue)
+        {
             link.ReceivesBillingNotifications = dto.ReceivesBillingNotifications.Value;
+        }
         if (dto.ReceivesMarketingEmails.HasValue)
+        {
             link.ReceivesMarketingEmails = dto.ReceivesMarketingEmails.Value;
+        }
         if (dto.ReceivesTechnicalUpdates.HasValue)
+        {
             link.ReceivesTechnicalUpdates = dto.ReceivesTechnicalUpdates.Value;
+        }
         if (dto.PositionAtAccount != null)
+        {
             link.PositionAtAccount = dto.PositionAtAccount;
+        }
         if (dto.DepartmentAtAccount != null)
+        {
             link.DepartmentAtAccount = dto.DepartmentAtAccount;
+        }
         if (dto.RelationshipEndDate.HasValue)
+        {
             link.RelationshipEndDate = dto.RelationshipEndDate;
+        }
         if (dto.Notes != null)
+        {
             link.Notes = dto.Notes;
+        }
 
         // Handle primary contact change
         if (dto.IsPrimaryContact.HasValue)
@@ -910,7 +1114,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
         var link = links.FirstOrDefault();
         if (link == null)
+        {
             return false;
+        }
 
         // Unset all other primary contacts
         var allLinks = await _accountContactRepository.FindAsync(cc =>
@@ -959,11 +1165,15 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     {
         var account = await _accountRepository.GetByIdAsync(accountId);
         if (account == null || account.IsDeleted)
+        {
             return false;
+        }
 
         var contact = await _contactsService.GetByIdAsync(contactId);
         if (contact == null)
+        {
             return false;
+        }
 
         // Update the contact's AccountId
         await _contactsService.AssignToAccountAsync(contactId, accountId);
@@ -974,11 +1184,15 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     {
         var account = await _accountRepository.GetByIdAsync(accountId);
         if (account == null || account.IsDeleted)
+        {
             return false;
+        }
 
         var contact = await _contactsService.GetByIdAsync(contactId);
         if (contact == null || contact.AccountId != accountId)
+        {
             return false;
+        }
 
         // Clear the contact's AccountId
         await _contactsService.UnassignFromAccountAsync(contactId);
@@ -1498,7 +1712,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     private static bool IsValidPhoneFormat(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
             return true;
+        }
 
         var phoneRegex = new System.Text.RegularExpressions.Regex(@"^\+?[0-9\s\-\(\)]+$");
         return phoneRegex.IsMatch(phoneNumber);

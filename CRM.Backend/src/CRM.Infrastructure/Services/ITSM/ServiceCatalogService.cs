@@ -33,10 +33,14 @@ public class ServiceCatalogService : IServiceCatalogService
             .Where(c => !c.IsDeleted && c.IsActive);
 
         if (categoryId.HasValue)
+        {
             query = query.Where(c => c.CategoryId == categoryId.Value);
+        }
 
         if (featuredOnly.HasValue && featuredOnly.Value)
+        {
             query = query.Where(c => c.IsFeatured);
+        }
 
         var items = await query
             .OrderBy(c => c.DisplayOrder)
@@ -160,14 +164,20 @@ public class ServiceCatalogService : IServiceCatalogService
             .FirstOrDefaultAsync(r => r.RequestId == requestId && !r.IsDeleted);
 
         if (request == null)
+        {
             return false;
+        }
 
         // Only allow cancellation by requester or admin, and only if in initial states
         if (request.RequestedById != userId)
+        {
             return false;
+        }
 
         if (request.State != CatalogRequestState.Requested && request.State != CatalogRequestState.PendingApproval)
+        {
             return false;
+        }
 
         request.State = CatalogRequestState.Cancelled;
         request.ModifiedAt = DateTime.UtcNow;

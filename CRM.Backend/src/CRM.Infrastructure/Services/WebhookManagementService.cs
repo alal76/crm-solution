@@ -39,7 +39,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
         var query = _context.WebhookSubscriptions.Where(w => !w.IsDeleted);
 
         if (isActive.HasValue)
+        {
             query = query.Where(w => w.IsActive == isActive.Value);
+        }
 
         var webhooks = await query.OrderBy(w => w.TargetUrl).ToListAsync(cancellationToken);
         return webhooks.Select(MapToDto);
@@ -57,7 +59,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
     public async Task<WebhookDto> CreateAsync(CreateWebhookDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Url))
+        {
             throw new ArgumentException("Webhook URL is required", nameof(dto.Url));
+        }
 
         var webhook = new WebhookSubscription
         {
@@ -86,28 +90,44 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
+        {
             throw new InvalidOperationException($"Webhook {id} not found");
+        }
 
         if (!string.IsNullOrWhiteSpace(dto.Url))
+        {
             webhook.TargetUrl = dto.Url;
+        }
 
         if (!string.IsNullOrWhiteSpace(dto.Description))
+        {
             webhook.Description = dto.Description!;
+        }
 
         if (!string.IsNullOrWhiteSpace(dto.Secret))
+        {
             webhook.Secret = dto.Secret;
+        }
 
         if (dto.EventTypes != null && dto.EventTypes.Any())
+        {
             webhook.EventTypes = System.Text.Json.JsonSerializer.Serialize(dto.EventTypes);
+        }
 
         if (dto.IsActive.HasValue)
+        {
             webhook.IsActive = dto.IsActive.Value;
+        }
 
         if (dto.MaxRetries.HasValue)
+        {
             webhook.RetryCount = dto.MaxRetries.Value;
+        }
 
         if (dto.TimeoutSeconds.HasValue)
+        {
             webhook.TimeoutSeconds = dto.TimeoutSeconds.Value;
+        }
 
         _context.WebhookSubscriptions.Update(webhook);
         await _context.SaveChangesAsync(cancellationToken);
@@ -122,7 +142,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
+        {
             return false;
+        }
 
         webhook.IsDeleted = true;
         _context.WebhookSubscriptions.Update(webhook);
@@ -142,7 +164,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
+        {
             throw new InvalidOperationException($"Webhook {id} not found");
+        }
 
         webhook.IsActive = !webhook.IsActive;
         _context.WebhookSubscriptions.Update(webhook);
@@ -158,7 +182,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
+        {
             throw new InvalidOperationException($"Webhook {id} not found");
+        }
 
         var delivery = new WebhookDelivery
         {
@@ -203,7 +229,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == webhookId && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
+        {
             throw new InvalidOperationException($"Webhook {webhookId} not found");
+        }
 
         var deliveries = await _context.WebhookDeliveries
             .Where(d => d.WebhookSubscriptionId == webhookId && !d.IsDeleted)
@@ -244,7 +272,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .FirstOrDefaultAsync(d => d.WebhookDeliveryId == deliveryId && d.WebhookSubscriptionId == webhookId && !d.IsDeleted, cancellationToken);
 
         if (delivery == null)
+        {
             throw new InvalidOperationException($"Delivery {deliveryId} not found");
+        }
 
         delivery.Success = false;
         delivery.AttemptNumber += 1;
@@ -262,7 +292,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
+        {
             throw new InvalidOperationException($"Webhook {id} not found");
+        }
 
         var deliveries = await _context.WebhookDeliveries
             .Where(d => d.WebhookSubscriptionId == id && !d.IsDeleted)
@@ -298,9 +330,13 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
         foreach (var delivery in deliveries.OrderByDescending(d => d.CreatedAt))
         {
             if (!delivery.Success)
+            {
                 consecutiveFailures++;
+            }
             else
+            {
                 break;
+            }
         }
         return consecutiveFailures;
     }
@@ -468,7 +504,9 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
         {
             var events = DeserializeEvents(webhook.EventTypes);
             if (!events.Contains(eventType) && !events.Contains("*"))
+            {
                 continue;
+            }
 
             var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
             var payloadSizeBytes = System.Text.Encoding.UTF8.GetByteCount(payloadJson);
@@ -651,7 +689,9 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
         foreach (var delivery in pendingDeliveries)
         {
             if (delivery.Subscription == null || delivery.Subscription.IsDeleted || !delivery.Subscription.IsActive)
+            {
                 continue;
+            }
 
             try
             {

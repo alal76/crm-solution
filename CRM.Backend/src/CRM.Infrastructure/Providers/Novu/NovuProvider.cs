@@ -89,7 +89,9 @@ public class NovuProvider : INotificationPort
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.To))
+        {
             throw new ArgumentException("Recipient email is required", nameof(request));
+        }
 
         if (!_isConfigured)
         {
@@ -120,9 +122,13 @@ public class NovuProvider : INotificationPort
             };
 
             if (!string.IsNullOrEmpty(request.From))
+            {
                 triggerPayload.Payload["from"] = request.From;
+            }
             if (!string.IsNullOrEmpty(request.ReplyTo))
+            {
                 triggerPayload.Payload["replyTo"] = request.ReplyTo;
+            }
 
             var response = await _httpClient.PostAsJsonAsync(
                 "v1/events/trigger",
@@ -164,9 +170,13 @@ public class NovuProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(templateId))
+        {
             throw new ArgumentException("Template ID is required", nameof(templateId));
+        }
         if (string.IsNullOrWhiteSpace(recipientEmail))
+        {
             throw new ArgumentException("Recipient email is required", nameof(recipientEmail));
+        }
 
         if (!_isConfigured)
         {
@@ -226,7 +236,9 @@ public class NovuProvider : INotificationPort
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.To))
+        {
             throw new ArgumentException("Phone number is required", nameof(request));
+        }
 
         if (!_isConfigured)
         {
@@ -292,7 +304,9 @@ public class NovuProvider : INotificationPort
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.To))
+        {
             throw new ArgumentException("Device token or subscriber ID is required", nameof(request));
+        }
 
         if (!_isConfigured)
         {
@@ -313,11 +327,17 @@ public class NovuProvider : INotificationPort
             };
 
             if (!string.IsNullOrEmpty(request.Icon))
+            {
                 triggerPayload.Payload["icon"] = request.Icon;
+            }
             if (!string.IsNullOrEmpty(request.ActionUrl))
+            {
                 triggerPayload.Payload["actionUrl"] = request.ActionUrl;
+            }
             if (request.Data != null)
+            {
                 triggerPayload.Payload["data"] = request.Data;
+            }
 
             var response = await _httpClient.PostAsJsonAsync(
                 "v1/events/trigger",
@@ -358,7 +378,9 @@ public class NovuProvider : INotificationPort
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.UserId))
+        {
             throw new ArgumentException("User ID is required", nameof(request));
+        }
 
         if (!_isConfigured)
         {
@@ -379,13 +401,21 @@ public class NovuProvider : INotificationPort
             };
 
             if (!string.IsNullOrEmpty(request.Type))
+            {
                 triggerPayload.Payload["type"] = request.Type;
+            }
             if (!string.IsNullOrEmpty(request.ActionUrl))
+            {
                 triggerPayload.Payload["actionUrl"] = request.ActionUrl;
+            }
             if (!string.IsNullOrEmpty(request.Avatar))
+            {
                 triggerPayload.Payload["avatar"] = request.Avatar;
+            }
             if (request.Data != null)
+            {
                 triggerPayload.Payload["data"] = request.Data;
+            }
 
             var response = await _httpClient.PostAsJsonAsync(
                 "v1/events/trigger",
@@ -426,7 +456,9 @@ public class NovuProvider : INotificationPort
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.SubscriberId))
+        {
             throw new ArgumentException("Subscriber ID is required", nameof(request));
+        }
 
         var result = new MultiChannelNotificationResult
         {
@@ -513,9 +545,13 @@ public class NovuProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(workflowId))
+        {
             throw new ArgumentException("Workflow ID is required", nameof(workflowId));
+        }
         if (string.IsNullOrWhiteSpace(subscriberId))
+        {
             throw new ArgumentException("Subscriber ID is required", nameof(subscriberId));
+        }
 
         if (!_isConfigured)
         {
@@ -583,9 +619,13 @@ public class NovuProvider : INotificationPort
             result.Results.Add(sendResult);
 
             if (sendResult.Success)
+            {
                 result.SuccessCount++;
+            }
             else
+            {
                 result.FailureCount++;
+            }
         }
 
         return result;
@@ -610,9 +650,13 @@ public class NovuProvider : INotificationPort
             result.Results.Add(sendResult);
 
             if (sendResult.Success)
+            {
                 result.SuccessCount++;
+            }
             else
+            {
                 result.FailureCount++;
+            }
         }
 
         return result;
@@ -629,7 +673,9 @@ public class NovuProvider : INotificationPort
     {
         ArgumentNullException.ThrowIfNull(request);
         if (string.IsNullOrWhiteSpace(request.SubscriberId))
+        {
             throw new ArgumentException("Subscriber ID is required", nameof(request));
+        }
 
         if (!_isConfigured)
         {
@@ -678,7 +724,9 @@ public class NovuProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(subscriberId))
+        {
             throw new ArgumentException("Subscriber ID is required", nameof(subscriberId));
+        }
 
         if (!_isConfigured)
         {
@@ -712,7 +760,9 @@ public class NovuProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(subscriberId))
+        {
             throw new ArgumentException("Subscriber ID is required", nameof(subscriberId));
+        }
 
         if (!_isConfigured)
         {
@@ -752,7 +802,9 @@ public class NovuProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(subscriberId))
+        {
             throw new ArgumentException("Subscriber ID is required", nameof(subscriberId));
+        }
         ArgumentNullException.ThrowIfNull(preferences);
 
         if (!_isConfigured)
@@ -795,7 +847,9 @@ public class NovuProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(notificationId))
+        {
             throw new ArgumentException("Notification ID is required", nameof(notificationId));
+        }
 
         if (!_isConfigured)
         {
@@ -840,9 +894,13 @@ public class NovuProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(eventType))
+        {
             throw new ArgumentException("Event type is required", nameof(eventType));
+        }
         if (string.IsNullOrWhiteSpace(payload))
+        {
             throw new ArgumentException("Payload is required", nameof(payload));
+        }
 
         try
         {
@@ -857,11 +915,17 @@ public class NovuProvider : INotificationPort
             if (webhookData != null)
             {
                 if (webhookData.TryGetValue("notificationId", out var notifId))
+                {
                     deliveryEvent.NotificationId = notifId.GetString() ?? string.Empty;
+                }
                 if (webhookData.TryGetValue("subscriberId", out var subId))
+                {
                     deliveryEvent.SubscriberId = subId.GetString() ?? string.Empty;
+                }
                 if (webhookData.TryGetValue("channel", out var channel))
+                {
                     deliveryEvent.Channel = channel.GetString() ?? string.Empty;
+                }
 
                 deliveryEvent.Data = webhookData.ToDictionary(
                     kvp => kvp.Key,
@@ -955,7 +1019,9 @@ public class NovuProvider : INotificationPort
                 var nameParts = name.Split(' ', 2);
                 subscriberData.FirstName = nameParts[0];
                 if (nameParts.Length > 1)
+                {
                     subscriberData.LastName = nameParts[1];
+                }
             }
 
             var response = await _httpClient.PostAsJsonAsync(
@@ -1016,7 +1082,9 @@ public class NovuProvider : INotificationPort
         foreach (var pref in novuPrefs)
         {
             if (pref.Template?.Critical == true)
+            {
                 continue; // Critical notifications can't be disabled
+            }
 
             var category = pref.Template?.Name ?? pref.Template?.Identifier ?? "default";
             prefs.CategoryPreferences[category] = new SubscriberCategoryPreference

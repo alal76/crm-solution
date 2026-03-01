@@ -53,7 +53,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
     public async Task<CommissionPlanDto> CreateAsync(CreateCommissionPlanDto dto, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
+        {
             throw new ArgumentException("Plan name is required.", nameof(dto.Name));
+        }
 
         var plan = new CommissionPlan
         {
@@ -91,22 +93,34 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
 
         if (plan == null)
+        {
             throw new InvalidOperationException($"Commission plan {id} not found");
+        }
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
             plan.Name = dto.Name;
+        }
 
         if (dto.Code != null)
+        {
             plan.Code = dto.Code;
+        }
 
         if (dto.Description != null)
+        {
             plan.Description = dto.Description;
+        }
 
         if (dto.CommissionType.HasValue)
+        {
             plan.CommissionType = (CommissionType)dto.CommissionType.Value;
+        }
 
         if (dto.Trigger.HasValue)
+        {
             plan.Trigger = (CommissionTrigger)dto.Trigger.Value;
+        }
 
         if (dto.BaseRate.HasValue)
         {
@@ -115,37 +129,59 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
         }
 
         if (dto.IsActive.HasValue)
+        {
             plan.IsActive = dto.IsActive.Value;
+        }
 
         if (dto.Status.HasValue)
+        {
             plan.Status = (CommissionPlanStatus)dto.Status.Value;
+        }
 
         if (dto.EffectiveStartDate.HasValue)
+        {
             plan.EffectiveStartDate = dto.EffectiveStartDate.Value;
+        }
 
         if (dto.EffectiveEndDate.HasValue)
+        {
             plan.EffectiveEndDate = dto.EffectiveEndDate.Value;
+        }
 
         if (dto.FiscalYear.HasValue)
+        {
             plan.FiscalYear = dto.FiscalYear.Value;
+        }
 
         if (dto.ClawbackPeriodDays.HasValue)
+        {
             plan.ClawbackPeriodDays = dto.ClawbackPeriodDays.Value;
+        }
 
         if (dto.MinDealSize.HasValue)
+        {
             plan.MinDealSize = dto.MinDealSize.Value;
+        }
 
         if (dto.MaxCommissionPerDeal.HasValue)
+        {
             plan.MaxCommissionPerDeal = dto.MaxCommissionPerDeal.Value;
+        }
 
         if (dto.MaxCommissionPerPeriod.HasValue)
+        {
             plan.MaxCommissionPerPeriod = dto.MaxCommissionPerPeriod.Value;
+        }
 
         if (dto.AllowSplits.HasValue)
+        {
             plan.AllowSplits = dto.AllowSplits.Value;
+        }
 
         if (dto.DefaultOverlayPercent.HasValue)
+        {
             plan.DefaultOverlayPercent = dto.DefaultOverlayPercent.Value;
+        }
 
         _context.CommissionPlans.Update(plan);
         await _context.SaveChangesAsync(cancellationToken);
@@ -160,7 +196,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, cancellationToken);
 
         if (plan == null)
+        {
             return false;
+        }
 
         plan.IsDeleted = true;
         _context.CommissionPlans.Update(plan);
@@ -180,7 +218,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken);
 
         if (plan == null)
+        {
             return false;
+        }
 
         plan.IsActive = true;
         _context.CommissionPlans.Update(plan);
@@ -196,7 +236,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken);
 
         if (plan == null)
+        {
             return false;
+        }
 
         plan.IsActive = false;
         _context.CommissionPlans.Update(plan);
@@ -212,13 +254,17 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken);
 
         if (plan == null)
+        {
             return false;
+        }
 
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
 
         if (user == null)
+        {
             return false;
+        }
 
         // Soft-delete previous assignments for this user
         var previousAssignments = await _context.CommissionPlanAssignments
@@ -252,7 +298,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(a => a.CommissionPlanId == planId && a.UserId == userId && !a.IsDeleted, cancellationToken);
 
         if (assignment == null)
+        {
             return false;
+        }
 
         assignment.IsDeleted = true;
         _context.CommissionPlanAssignments.Update(assignment);
@@ -274,7 +322,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(a => a.UserId == userId && !a.IsDeleted && a.EffectiveDate <= DateTime.UtcNow, cancellationToken);
 
         if (assignment == null)
+        {
             return null;
+        }
 
         return await GetByIdAsync(assignment.CommissionPlanId, cancellationToken);
     }
@@ -321,7 +371,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken);
 
         if (plan == null)
+        {
             throw new InvalidOperationException($"Commission plan {planId} not found");
+        }
 
         var tier = new CommissionTier
         {
@@ -347,19 +399,29 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(t => t.Id == tierId && !t.IsDeleted, cancellationToken);
 
         if (tier == null)
+        {
             throw new InvalidOperationException($"Commission tier {tierId} not found");
+        }
 
         if (dto.MinimumAmount.HasValue)
+        {
             tier.MinimumAmount = dto.MinimumAmount.Value;
+        }
 
         if (dto.MaximumAmount.HasValue)
+        {
             tier.MaximumAmount = dto.MaximumAmount;
+        }
 
         if (dto.CommissionRate.HasValue)
+        {
             tier.CommissionRate = dto.CommissionRate.Value;
+        }
 
         if (dto.Sequence.HasValue)
+        {
             tier.Sequence = dto.Sequence.Value;
+        }
 
         _context.CommissionTiers.Update(tier);
         await _context.SaveChangesAsync(cancellationToken);
@@ -374,7 +436,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(t => t.Id == tierId && !t.IsDeleted, cancellationToken);
 
         if (tier == null)
+        {
             return false;
+        }
 
         tier.IsDeleted = true;
         _context.CommissionTiers.Update(tier);
@@ -405,7 +469,9 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
             .FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken);
 
         if (original == null)
+        {
             throw new InvalidOperationException($"Commission plan {planId} not found");
+        }
 
         var copy = new CommissionPlan
         {

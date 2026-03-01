@@ -49,7 +49,9 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(o => o.Id == dealId && !o.IsDeleted, cancellationToken);
 
         if (opportunity == null)
+        {
             throw new InvalidOperationException(string.Format(OpportunityNotFoundMessage, dealId));
+        }
 
         var amount = opportunity.Amount;
 
@@ -59,7 +61,9 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(r => r.IsActive && !r.IsDeleted, cancellationToken);
 
         if (rule == null)
+        {
             throw new InvalidOperationException($"No active commission rule found for trigger {trigger}");
+        }
 
         var result = new CommissionEvaluationDto
         {
@@ -106,7 +110,9 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(r => r.Id == ruleId && !r.IsDeleted, cancellationToken);
 
         if (rule == null)
+        {
             throw new InvalidOperationException(string.Format(CommissionRuleNotFoundMessage, ruleId));
+        }
 
         var result = new TieredCommissionDto
         {
@@ -164,7 +170,9 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(r => r.Id == ruleId && !r.IsDeleted, cancellationToken);
 
         if (rule == null)
+        {
             throw new InvalidOperationException(string.Format(CommissionRuleNotFoundMessage, ruleId));
+        }
 
         decimal finalAmount = baseCommission;
 
@@ -197,18 +205,24 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             dealId, repIds.Count);
 
         if (repIds.Count != splitPercentages.Count)
+        {
             throw new ArgumentException("Rep IDs and split percentages must have same count");
+        }
 
         var totalPercentage = splitPercentages.Sum();
         if (Math.Abs(totalPercentage - 100m) > 0.01m)
+        {
             throw new ArgumentException($"Split percentages must sum to 100, got {totalPercentage}");
+        }
 
         var opportunity = await _context.Opportunities
             .AsNoTracking()
             .FirstOrDefaultAsync(o => o.Id == dealId && !o.IsDeleted, cancellationToken);
 
         if (opportunity == null)
+        {
             throw new InvalidOperationException(string.Format(OpportunityNotFoundMessage, dealId));
+        }
 
         // Get base commission for the deal
         var rule = await _context.CommissionRules
@@ -255,7 +269,9 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(o => o.Id == dealId && !o.IsDeleted, cancellationToken);
 
         if (opportunity == null)
+        {
             throw new InvalidOperationException(string.Format(OpportunityNotFoundMessage, dealId));
+        }
 
         var clawbackAmount = originalCommission * clawbackPercentage / 100;
 

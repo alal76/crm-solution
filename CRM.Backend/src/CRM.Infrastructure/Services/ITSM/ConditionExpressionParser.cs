@@ -59,7 +59,9 @@ public class ComparisonNode : ExpressionNode
     public override bool Evaluate(Dictionary<string, object> context)
     {
         if (!context.TryGetValue(FieldName, out var fieldValue))
+        {
             return false;
+        }
 
         return Operator switch
         {
@@ -87,7 +89,9 @@ public class ComparisonNode : ExpressionNode
 
         // Try numeric comparison
         if (double.TryParse(a.ToString(), out var numA) && double.TryParse(b.ToString(), out var numB))
+        {
             return numA.CompareTo(numB);
+        }
 
         // String comparison
         return string.Compare(a.ToString(), b.ToString(), StringComparison.OrdinalIgnoreCase);
@@ -170,7 +174,9 @@ public class ConditionExpressionParser : IConditionExpressionParser
     public ExpressionNode Parse(string expression)
     {
         if (string.IsNullOrWhiteSpace(expression))
+        {
             throw new ArgumentException("Expression cannot be empty", nameof(expression));
+        }
 
         var tokens = Tokenize(expression);
         var index = 0;
@@ -276,7 +282,9 @@ public class ConditionExpressionParser : IConditionExpressionParser
     private ExpressionNode ParseTerm(List<string> tokens, ref int index)
     {
         if (index >= tokens.Count)
+        {
             throw new ArgumentException("Unexpected end of expression");
+        }
 
         var token = tokens[index];
 
@@ -307,13 +315,17 @@ public class ConditionExpressionParser : IConditionExpressionParser
     private ComparisonNode ParseComparison(List<string> tokens, ref int index)
     {
         if (index >= tokens.Count)
+        {
             throw new ArgumentException("Expected field name");
+        }
 
         var fieldName = tokens[index];
         index++;
 
         if (index >= tokens.Count)
+        {
             throw new ArgumentException($"Expected operator after '{fieldName}'");
+        }
 
         var opToken = tokens[index];
         index++;
@@ -321,7 +333,9 @@ public class ConditionExpressionParser : IConditionExpressionParser
         var op = ParseOperator(opToken);
 
         if (index >= tokens.Count)
+        {
             throw new ArgumentException($"Expected value after operator");
+        }
 
         var valueToken = tokens[index];
         index++;
@@ -383,7 +397,9 @@ public class ConditionExpressionParser : IConditionExpressionParser
 
         // Try to parse as number
         if (double.TryParse(token, out var number))
+        {
             return number;
+        }
 
         // Return as string
         return token;

@@ -90,7 +90,9 @@ public class RbacNormalizationService : IRbacNormalizationService
                 var navKey = navItem.Key?.ToLowerInvariant() ?? string.Empty;
                 
                 if (!NavigationPermissionMap.TryGetValue(navKey, out var permissionFlags))
+                {
                     continue;
+                }
 
                 // Get current permission state from group
                 var hasPermission = GetPermissionValue(group, permissionFlags[0]);

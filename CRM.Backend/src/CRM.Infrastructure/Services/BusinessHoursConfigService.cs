@@ -107,7 +107,9 @@ public class BusinessHoursConfigService : IBusinessHoursConfigService
                 .FirstOrDefaultAsync(b => b.Id == id, ct);
 
             if (config == null)
+            {
                 return null;
+            }
 
             // Enforce single default rule
             if (request.IsDefault && !config.IsDefault)
@@ -145,7 +147,9 @@ public class BusinessHoursConfigService : IBusinessHoursConfigService
                 .FirstOrDefaultAsync(b => b.Id == id, ct);
 
             if (config == null)
+            {
                 return false;
+            }
 
             config.IsDeleted = true;
 
@@ -171,7 +175,9 @@ public class BusinessHoursConfigService : IBusinessHoursConfigService
                 .FirstOrDefaultAsync(b => b.Id == id, ct);
 
             if (config == null)
+            {
                 return null;
+            }
 
             // Unset any existing default
             await ClearExistingDefaultAsync(ct);

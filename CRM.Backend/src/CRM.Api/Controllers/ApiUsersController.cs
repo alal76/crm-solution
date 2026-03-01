@@ -103,10 +103,10 @@ public class ApiUsersController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ApiKeyResponse>> Create([FromBody] CreateApiUserRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.Name))
-                {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
             return BadRequest(new { error = "Name is required" });
-                }
+        }
         if (string.IsNullOrWhiteSpace(request.Email))
         {
             return BadRequest(new { error = "Email is required" });

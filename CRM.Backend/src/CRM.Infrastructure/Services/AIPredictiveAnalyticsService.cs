@@ -113,7 +113,9 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
         // Factor 4: Company presence (weight 15%)
         double companyScore = string.IsNullOrWhiteSpace(lead.CompanyName) ? 20 : 70;
         if (!string.IsNullOrWhiteSpace(lead.Title))
+        {
             companyScore += 15;
+        }
         companyScore = Math.Min(companyScore, 100);
         totalScore += companyScore * 0.15;
         factorCount++;
@@ -201,13 +203,17 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
             Value = $"{healthScore}"
         });
         if (healthScore < 40)
+        {
             actions.Add("Schedule executive business review to address account health concerns");
+        }
 
         // Factor 2: NPS score (negative NPS = high risk)
         var nps = account.NpsScore;
         double npsRisk = nps < 0 ? Math.Abs(nps) / 100.0 : 0;
         if (nps <= -50)
+        {
             npsRisk = 1.0;
+        }
         riskScore += npsRisk * 0.20;
         factors.Add(new PredictionFactor
         {
@@ -217,7 +223,9 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
             Value = $"{nps}"
         });
         if (nps < 0)
+        {
             actions.Add("Conduct NPS follow-up survey and address detractor concerns");
+        }
 
         // Factor 3: Activity recency
         double activityRisk = 0;
@@ -246,7 +254,9 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
             Value = account.LastActivityDate?.ToString("yyyy-MM-dd") ?? "Never"
         });
         if (activityRisk > 0.50)
+        {
             actions.Add("Re-engage account with proactive outreach or check-in call");
+        }
 
         // Factor 4: Open service request volume (high volume = risk signal)
         var openTickets = await _context.ServiceRequests
@@ -271,7 +281,9 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
             Value = $"{openTickets}"
         });
         if (openTickets > 3)
+        {
             actions.Add("Prioritize resolution of open support tickets");
+        }
 
         // Factor 5: Satisfaction rating
         var satisfaction = account.SatisfactionRating;
@@ -285,7 +297,9 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
             Value = $"{satisfaction:F1}"
         });
         if (satisfaction < 3.0)
+        {
             actions.Add("Launch customer success improvement plan");
+        }
 
         riskScore = Math.Clamp(riskScore, 0, 1.0);
 
@@ -298,7 +312,9 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
         };
 
         if (actions.Count == 0)
+        {
             actions.Add("Continue regular engagement cadence");
+        }
 
         _logger.LogInformation("Account {AccountId} churn risk: {RiskLevel} ({RiskScore:F2})", accountId, riskLevel, riskScore);
 

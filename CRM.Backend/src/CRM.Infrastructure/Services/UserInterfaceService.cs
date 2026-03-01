@@ -34,7 +34,9 @@ public class UserInterfaceService : IUserInterfaceService
             .FirstOrDefaultAsync(p => p.UserId == userId && !p.IsDeleted, cancellationToken);
 
         if (preference == null)
+        {
             return null;
+        }
 
         return MapToDto(preference);
     }
@@ -52,27 +54,49 @@ public class UserInterfaceService : IUserInterfaceService
 
         // Update only provided properties
         if (dto.Theme != null)
+        {
             preference.Theme = dto.Theme;
+        }
         if (dto.SidebarPosition != null)
+        {
             preference.SidebarPosition = dto.SidebarPosition;
+        }
         if (dto.SidebarWidth.HasValue)
+        {
             preference.SidebarWidth = dto.SidebarWidth.Value;
+        }
         if (dto.FontSize != null)
+        {
             preference.FontSize = dto.FontSize;
+        }
         if (dto.ShowBreadcrumbs.HasValue)
+        {
             preference.ShowBreadcrumbs = dto.ShowBreadcrumbs.Value;
+        }
         if (dto.ShowStatusBar.HasValue)
+        {
             preference.ShowStatusBar = dto.ShowStatusBar.Value;
+        }
         if (dto.ShowTopNavigation.HasValue)
+        {
             preference.ShowTopNavigation = dto.ShowTopNavigation.Value;
+        }
         if (dto.DefaultPageSize.HasValue)
+        {
             preference.DefaultPageSize = dto.DefaultPageSize.Value;
+        }
         if (dto.DateFormat != null)
+        {
             preference.DateFormat = dto.DateFormat;
+        }
         if (dto.TimeFormat != null)
+        {
             preference.TimeFormat = dto.TimeFormat;
+        }
         if (dto.CustomColorScheme != null)
+        {
             preference.CustomColorScheme = dto.CustomColorScheme;
+        }
 
         preference.LastPreferenceUpdate = DateTime.UtcNow;
 
@@ -88,7 +112,9 @@ public class UserInterfaceService : IUserInterfaceService
             .FirstOrDefaultAsync(p => p.UserId == userId && !p.IsDeleted, cancellationToken);
 
         if (preference == null)
+        {
             return true;
+        }
 
         preference.Theme = "auto";
         preference.SidebarPosition = "left";
@@ -145,25 +171,45 @@ public class UserInterfaceService : IUserInterfaceService
         }
 
         if (dto.VisibleColumns != null)
+        {
             customization.VisibleColumns = string.Join(",", dto.VisibleColumns);
+        }
         if (dto.DefaultSortColumn != null)
+        {
             customization.DefaultSortColumn = dto.DefaultSortColumn;
+        }
         if (dto.DefaultSortOrder != null)
+        {
             customization.DefaultSortOrder = dto.DefaultSortOrder;
+        }
         if (dto.StoredFilters != null)
+        {
             customization.StoredFilters = JsonConvert.SerializeObject(dto.StoredFilters);
+        }
         if (dto.SavedSearches != null)
+        {
             customization.SavedSearches = JsonConvert.SerializeObject(dto.SavedSearches);
+        }
         if (dto.RowHeight != null)
+        {
             customization.RowHeight = dto.RowHeight;
+        }
         if (dto.ShowRowNumbers.HasValue)
+        {
             customization.ShowRowNumbers = dto.ShowRowNumbers.Value;
+        }
         if (dto.ShowFilters.HasValue)
+        {
             customization.ShowFilters = dto.ShowFilters.Value;
+        }
         if (dto.ColumnWidths != null)
+        {
             customization.ColumnWidths = JsonConvert.SerializeObject(dto.ColumnWidths);
+        }
         if (dto.RowsPerPage.HasValue)
+        {
             customization.RowsPerPage = dto.RowsPerPage.Value;
+        }
 
 
         await _dbContext.SaveChangesAsync(cancellationToken);
@@ -178,7 +224,9 @@ public class UserInterfaceService : IUserInterfaceService
             .FirstOrDefaultAsync(c => c.UserId == userId && c.ModuleName == moduleName && c.PageName == pageName && !c.IsDeleted, cancellationToken);
 
         if (customization == null)
+        {
             return true;
+        }
 
         customization.IsDeleted = true;
 
@@ -224,9 +272,13 @@ public class UserInterfaceService : IUserInterfaceService
         }
 
         if (dto.LayoutConfig != null)
+        {
             dashboard.LayoutConfig = JsonConvert.SerializeObject(dto.LayoutConfig);
+        }
         if (dto.Widgets != null)
+        {
             dashboard.Widgets = JsonConvert.SerializeObject(dto.Widgets);
+        }
         if (dto.IsDefault.HasValue)
         {
             if (dto.IsDefault.Value)
@@ -241,11 +293,17 @@ public class UserInterfaceService : IUserInterfaceService
             dashboard.IsDefault = dto.IsDefault.Value;
         }
         if (dto.GridColumns.HasValue)
+        {
             dashboard.GridColumns = dto.GridColumns.Value;
+        }
         if (dto.AutoRefresh.HasValue)
+        {
             dashboard.AutoRefresh = dto.AutoRefresh.Value;
+        }
         if (dto.RefreshIntervalSeconds.HasValue)
+        {
             dashboard.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
+        }
 
         dashboard.LastModified = DateTime.UtcNow;
 
@@ -261,7 +319,9 @@ public class UserInterfaceService : IUserInterfaceService
             .FirstOrDefaultAsync(d => d.UserId == userId && d.DashboardName == dashboardName && !d.IsDeleted, cancellationToken);
 
         if (dashboard == null)
+        {
             return true;
+        }
 
         dashboard.IsDeleted = true;
 
@@ -277,7 +337,9 @@ public class UserInterfaceService : IUserInterfaceService
             .FirstOrDefaultAsync(d => d.UserId == userId && d.DashboardName == dashboardName && !d.IsDeleted, cancellationToken);
 
         if (dashboard == null)
+        {
             return false;
+        }
 
         var others = await _dbContext.DashboardCustomizations
             .Where(d => d.UserId == userId && d.IsDefault && !d.IsDeleted)
@@ -299,7 +361,9 @@ public class UserInterfaceService : IUserInterfaceService
             .FirstOrDefaultAsync(c => c.UserId == userId && c.ModuleName == moduleName && !c.IsDeleted, cancellationToken);
 
         if (customization?.SavedSearches == null)
+        {
             return Array.Empty<string>();
+        }
 
         try
         {
@@ -339,7 +403,9 @@ public class UserInterfaceService : IUserInterfaceService
         }
 
         if (!views.Contains(viewName))
+        {
             views.Add(viewName);
+        }
 
         customization.SavedSearches = JsonConvert.SerializeObject(views);
 
@@ -353,7 +419,9 @@ public class UserInterfaceService : IUserInterfaceService
             .FirstOrDefaultAsync(c => c.UserId == userId && c.ModuleName == moduleName && !c.IsDeleted, cancellationToken);
 
         if (customization?.SavedSearches == null)
+        {
             return true;
+        }
 
         try
         {

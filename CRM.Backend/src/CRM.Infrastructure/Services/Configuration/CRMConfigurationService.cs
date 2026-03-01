@@ -370,7 +370,9 @@ public class CRMConfigurationService : ICRMConfigurationService
     private static void AddAIAuthHeaders(HttpClient client, string provider, AIProviderConfigDto config)
     {
         if (string.IsNullOrEmpty(config.ApiKey))
+        {
             return;
+        }
 
         switch (provider.ToLowerInvariant())
         {
@@ -378,7 +380,9 @@ public class CRMConfigurationService : ICRMConfigurationService
             case "openrouter":
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", $"Bearer {config.ApiKey}");
                 if (!string.IsNullOrEmpty(config.OrganizationId))
+                {
                     client.DefaultRequestHeaders.TryAddWithoutValidation("OpenAI-Organization", config.OrganizationId);
+                }
                 break;
             case "anthropic":
                 client.DefaultRequestHeaders.TryAddWithoutValidation("x-api-key", config.ApiKey);
@@ -401,7 +405,9 @@ public class CRMConfigurationService : ICRMConfigurationService
             ?? config.TestEndpoint;
 
         if (string.IsNullOrEmpty(baseUrl))
+        {
             return null;
+        }
 
         var trimmedUrl = baseUrl.TrimEnd('/');
 
@@ -423,7 +429,9 @@ public class CRMConfigurationService : ICRMConfigurationService
     private static string? GetConfigString(Dictionary<string, object>? config, string key)
     {
         if (config == null || !config.TryGetValue(key, out var value))
+        {
             return null;
+        }
 
         return value?.ToString();
     }
@@ -442,7 +450,9 @@ public class CRMConfigurationService : ICRMConfigurationService
         {
             var existing = await _providerConfig.GetConfigurationAsync(configKey, cancellationToken);
             if (existing == null)
+            {
                 return;
+            }
 
             // We store the test status via a lightweight update (re-save current data with unchanged content).
             // The ProviderConfigurationService handles the actual DB write.

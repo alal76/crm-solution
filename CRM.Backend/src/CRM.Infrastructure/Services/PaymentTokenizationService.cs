@@ -221,7 +221,9 @@ public class PaymentTokenizationService : IPaymentTokenizationService
     public Task<bool> ValidateTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(token))
+        {
             return Task.FromResult(false);
+        }
 
         lock (_lock)
         {
@@ -248,7 +250,9 @@ public class PaymentTokenizationService : IPaymentTokenizationService
     public Task<bool> RevokeTokenAsync(string token, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(token))
+        {
             return Task.FromResult(false);
+        }
 
         lock (_lock)
         {

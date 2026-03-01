@@ -95,7 +95,9 @@ public class CommissionService : ICommissionService
     {
         var commission = await _context.Commissions.FindAsync(new object[] { id }, cancellationToken);
         if (commission == null)
+        {
             return false;
+        }
 
         commission.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -291,7 +293,9 @@ public class CommissionService : ICommissionService
     {
         var plan = await _context.CommissionPlans.FindAsync(new object[] { planId }, cancellationToken);
         if (plan == null)
+        {
             return false;
+        }
 
         plan.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -722,7 +726,9 @@ public class CommissionService : ICommissionService
     {
         var tier = await _context.CommissionTiers.FindAsync(new object[] { tierId }, cancellationToken);
         if (tier == null)
+        {
             return false;
+        }
 
         tier.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);

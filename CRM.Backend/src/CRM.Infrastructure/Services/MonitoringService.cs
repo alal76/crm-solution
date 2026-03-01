@@ -697,7 +697,9 @@ public class MonitoringService : IMonitoringService
 
         sw.Stop();
         if (metrics.ResponseTimeMs == 0)
+        {
             metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
+        }
 
         return metrics;
     }
@@ -1194,7 +1196,9 @@ public class MonitoringService : IMonitoringService
 
             using var process = Process.Start(psi);
             if (process == null)
+            {
                 return containers;
+            }
 
             var output = await process.StandardOutput.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
@@ -1270,7 +1274,9 @@ public class MonitoringService : IMonitoringService
 
             using var process = Process.Start(psi);
             if (process == null)
+            {
                 return pods;
+            }
 
             var output = await process.StandardOutput.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
@@ -1327,7 +1333,9 @@ public class MonitoringService : IMonitoringService
 
         var cached = await _cache.GetAsync<MonitoringData>(cacheKey, ct);
         if (cached != null)
+        {
             return cached;
+        }
 
         var data = new MonitoringData
         {
@@ -1382,9 +1390,13 @@ public class MonitoringService : IMonitoringService
     private static string FormatUptime(TimeSpan uptime)
     {
         if (uptime.TotalDays >= 1)
+        {
             return $"{(int)uptime.TotalDays}d {uptime.Hours}h {uptime.Minutes}m";
+        }
         if (uptime.TotalHours >= 1)
+        {
             return $"{(int)uptime.TotalHours}h {uptime.Minutes}m";
+        }
         return $"{uptime.Minutes}m {uptime.Seconds}s";
     }
 

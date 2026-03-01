@@ -66,7 +66,9 @@ public class DeliveryTrackerService : IDeliveryTracker
             .FirstOrDefaultAsync(d => d.Id == deliveryId && !d.IsDeleted, cancellationToken);
 
         if (delivery == null)
+        {
             return null;
+        }
 
         return new DeliveryStatusInfo
         {
@@ -94,13 +96,19 @@ public class DeliveryTrackerService : IDeliveryTracker
             .Where(d => !d.IsDeleted && d.CreatedAt >= startDate && d.CreatedAt <= endDate);
 
         if (filter.WebhookId.HasValue)
+        {
             query = query.Where(d => d.WebhookEndpointId == filter.WebhookId.Value);
+        }
 
         if (!string.IsNullOrEmpty(filter.EventType))
+        {
             query = query.Where(d => d.EntityType == filter.EventType);
+        }
 
         if (filter.Status.HasValue)
+        {
             query = query.Where(d => d.Status == MapStatusToString(filter.Status.Value));
+        }
 
         var deliveries = await query.ToListAsync(cancellationToken);
 

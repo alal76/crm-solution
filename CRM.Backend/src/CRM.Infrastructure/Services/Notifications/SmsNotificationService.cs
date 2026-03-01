@@ -87,7 +87,9 @@ public partial class SmsNotificationService : ISmsNotificationService
     public bool IsValidPhoneNumber(string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
             return false;
+        }
 
         // E.164 format: +[country code][subscriber number], 7-15 digits
         return PhoneNumberRegex().IsMatch(phoneNumber);

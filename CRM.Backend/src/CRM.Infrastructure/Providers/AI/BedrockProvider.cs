@@ -82,11 +82,17 @@ public class BedrockConfiguration
     public (bool IsValid, string? Error) Validate()
     {
         if (string.IsNullOrWhiteSpace(Region))
+        {
             return (false, "Region is required");
+        }
         if (!UseDefaultCredentials && (string.IsNullOrWhiteSpace(AccessKeyId) || string.IsNullOrWhiteSpace(SecretAccessKey)))
+        {
             return (false, "AccessKeyId and SecretAccessKey are required when not using default credentials");
+        }
         if (string.IsNullOrWhiteSpace(DefaultModelId))
+        {
             return (false, "DefaultModelId is required");
+        }
         return (true, null);
     }
 }
@@ -531,17 +537,23 @@ public class BedrockProvider : IAIPort
         while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
         {
             if (string.IsNullOrWhiteSpace(line))
+            {
                 continue;
+            }
 
             try
             {
                 // Bedrock streaming uses event-stream format
                 if (line.StartsWith(":") || !line.Contains("{"))
+                {
                     continue;
+                }
 
                 var eventStart = line.IndexOf('{');
                 if (eventStart < 0)
+                {
                     continue;
+                }
 
                 var jsonData = line.Substring(eventStart);
                 var streamEvent = JsonSerializer.Deserialize<BedrockStreamEvent>(jsonData, JsonOptions);
@@ -650,17 +662,29 @@ Maintain a professional yet approachable tone.";
         userPrompt.AppendLine($"Purpose: {request.Purpose}");
 
         if (!string.IsNullOrEmpty(request.RecipientName))
+        {
             userPrompt.AppendLine($"Recipient: {request.RecipientName}");
+        }
         if (!string.IsNullOrEmpty(request.CompanyName))
+        {
             userPrompt.AppendLine($"Company: {request.CompanyName}");
+        }
         if (request.KeyPoints?.Any() == true)
+        {
             userPrompt.AppendLine($"Key points to include: {string.Join(", ", request.KeyPoints)}");
+        }
         if (!string.IsNullOrEmpty(request.Context))
+        {
             userPrompt.AppendLine($"Additional context: {request.Context}");
+        }
         if (!string.IsNullOrEmpty(request.PreviousEmail))
+        {
             userPrompt.AppendLine($"\nPrevious email in thread:\n{request.PreviousEmail}");
+        }
         if (!string.IsNullOrEmpty(request.Length))
+        {
             userPrompt.AppendLine($"Desired length: {request.Length}");
+        }
 
         var chatRequest = new AIChatRequest
         {
@@ -692,9 +716,13 @@ Then write the reply body.";
         userPrompt.AppendLine("---");
 
         if (!string.IsNullOrEmpty(context))
+        {
             userPrompt.AppendLine($"\nContext about the relationship/situation: {context}");
+        }
         if (!string.IsNullOrEmpty(tone))
+        {
             userPrompt.AppendLine($"Desired tone: {tone}");
+        }
 
         var chatRequest = new AIChatRequest
         {
@@ -822,10 +850,14 @@ Return only the JSON object, nothing else.";
                 foreach (var prop in emotionsProp.EnumerateObject())
                 {
                     if (prop.Value.TryGetDouble(out var value))
+                    {
                         emotionsDict[prop.Name] = value;
+                    }
                 }
                 if (emotionsDict.Count > 0) // NOSONAR S2583 - populated by EnumerateObject foreach above
+                {
                     emotions = emotionsDict;
+                }
             }
 
             return new AISentimentResult
@@ -864,11 +896,17 @@ Return only the JSON array.";
         userPrompt.AppendLine($"Entity Type: {context.EntityType}");
         userPrompt.AppendLine($"Entity ID: {context.EntityId}");
         if (context.EntityData != null)
+        {
             userPrompt.AppendLine($"Entity Data: {JsonSerializer.Serialize(context.EntityData)}");
+        }
         if (context.RecentActivities?.Any() == true)
+        {
             userPrompt.AppendLine($"Recent Activities:\n- {string.Join("\n- ", context.RecentActivities)}");
+        }
         if (!string.IsNullOrEmpty(context.Goal))
+        {
             userPrompt.AppendLine($"Current Goal: {context.Goal}");
+        }
 
         var chatRequest = new AIChatRequest
         {
@@ -920,7 +958,9 @@ Return only the JSON array.";
     public int EstimateTokens(string text)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return 0;
+        }
         // Claude tokenization is similar to GPT: roughly 4 characters per token
         return (int)Math.Ceiling(text.Length / 4.0);
     }
@@ -1061,7 +1101,9 @@ Return only the JSON array.";
                 subject = line.Substring(8).Trim();
                 var subjectIndex = content.IndexOf('\n');
                 if (subjectIndex >= 0)
+                {
                     body = content.Substring(subjectIndex + 1).Trim();
+                }
                 break;
             }
         }

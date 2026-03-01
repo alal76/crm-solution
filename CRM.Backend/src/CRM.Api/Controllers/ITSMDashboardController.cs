@@ -23,6 +23,7 @@ public class ITSMDashboardController : CrmControllerBase
 {
     private readonly IITSMDashboardService _dashboardService;
     private readonly ILogger<ITSMDashboardController> _logger;
+    private const string Last30Days = "last30days";
 
     public ITSMDashboardController(
         IITSMDashboardService dashboardService,
@@ -110,7 +111,7 @@ public class ITSMDashboardController : CrmControllerBase
             var trends = await _dashboardService.GetIncidentTrendsAsync(start, end);
             return Ok(new
             {
-                period = "last30days",
+                period = Last30Days,
                 trends = trends.ByPriority ?? new List<PriorityBreakdown>(),
                 totalCreated = trends.TotalIncidents,
                 totalResolved = trends.ResolvedIncidents
@@ -121,7 +122,7 @@ public class ITSMDashboardController : CrmControllerBase
             _logger.LogError(ex, "Failed to fetch incident trends");
             return Ok(new
             {
-                period = "last30days",
+                period = Last30Days,
                 trends = new List<object>(),
                 totalCreated = 0,
                 totalResolved = 0,
@@ -152,7 +153,7 @@ public class ITSMDashboardController : CrmControllerBase
                 resolutionTimeCompliance = sla.OverallComplianceRate,
                 byPriority = sla.ByPriority ?? new List<SLAByPriority>(),
                 byCategory = sla.ByCategory ?? new List<SLAByCategory>(),
-                period = "last30days"
+                period = Last30Days
             });
         }
         catch (Exception ex)
@@ -165,7 +166,7 @@ public class ITSMDashboardController : CrmControllerBase
                 resolutionTimeCompliance = 0.0,
                 byPriority = new List<object>(),
                 byCategory = new List<object>(),
-                period = "last30days",
+                period = Last30Days,
                 errors = new[] { new { endpoint = "sla-compliance", message = ex.Message } }
             });
         }
@@ -220,7 +221,7 @@ public class ITSMDashboardController : CrmControllerBase
 
             return Ok(new
             {
-                period = "last30days",
+                period = Last30Days,
                 incidentSummary = new
                 {
                     total = incidents.TotalIncidents,
@@ -252,7 +253,7 @@ public class ITSMDashboardController : CrmControllerBase
             _logger.LogError(ex, "Failed to fetch executive summary");
             return Ok(new
             {
-                period = "last30days",
+                period = Last30Days,
                 incidentSummary = new { total = 0, open = 0, resolved = 0, critical = 0 },
                 problemSummary = new { total = 0, open = 0, resolved = 0 },
                 changeSummary = new { total = 0, pending = 0, approved = 0, implemented = 0 },
@@ -285,7 +286,7 @@ public class ITSMDashboardController : CrmControllerBase
             {
                 categories = sla.ByCategory ?? new List<SLAByCategory>(),
                 totalIncidents = incidents.TotalIncidents,
-                period = "last30days"
+                period = Last30Days
             });
         }
         catch (Exception ex)
@@ -295,7 +296,7 @@ public class ITSMDashboardController : CrmControllerBase
             {
                 categories = new List<object>(),
                 totalIncidents = 0,
-                period = "last30days",
+                period = Last30Days,
                 errors = new[] { new { endpoint = "category-breakdown", message = ex.Message } }
             });
         }

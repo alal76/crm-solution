@@ -76,7 +76,9 @@ public class SecureScriptAnalyzer : DiagnosticAnalyzer
             {
                 var fullName = symbol.ContainingType.ToDisplayString();
                 if (ForbiddenTypes.Contains(fullName))
+                {
                     ctx.ReportDiagnostic(Diagnostic.Create(ForbiddenApiRule, memberAccess.GetLocation(), fullName));
+                }
             }
         }
     }

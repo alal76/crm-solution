@@ -116,7 +116,9 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
             .FirstOrDefaultAsync(s => s.Id == subscriptionId && !s.IsDeleted, cancellationToken);
 
         if (subscription == null)
+        {
             throw new InvalidOperationException($"Subscription {subscriptionId} not found");
+        }
 
         var daysUntilExpiry = subscription.EndDate.HasValue
             ? (int)(subscription.EndDate.Value - DateTime.UtcNow).TotalDays
@@ -255,7 +257,9 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
                              cancellationToken);
 
         if (activeAtStart == 0)
+        {
             return 0m;
+        }
 
         // Count subscriptions cancelled in this month
         var cancelledInMonth = await _context.Subscriptions
@@ -291,7 +295,9 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
         var previousMrr = subscriptionsOneMonthAgo.Sum(s => NormalizeToMonthly(s.Amount, s.BillingCycle ?? "Monthly"));
 
         if (previousMrr <= 0)
+        {
             return 100m; // If no prior MRR, NRR = 100% (base case)
+        }
 
         var nrr = (currentMrr / previousMrr) * 100;
         return Math.Round(nrr, 2);

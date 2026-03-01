@@ -280,10 +280,10 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
     {
-                if (!ModelState.IsValid)
-                {
+        if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
-                }
+        }
 
         var response = await _authenticationService.OAuthLoginAsync(request);
         return Ok(response);
@@ -380,10 +380,10 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Verify2FA([FromBody] TwoFactorVerification request)
     {
-                if (!ModelState.IsValid)
-                {
+        if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
-                }
+        }
 
         var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
@@ -417,10 +417,10 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Enable2FA([FromBody] TwoFactorEnableRequest request)
     {
-                if (!ModelState.IsValid)
-                {
+        if (!ModelState.IsValid)
+        {
             return BadRequest(ModelState);
-                }
+        }
 
         var userIdClaim = User.FindFirst("sub") ?? User.FindFirst(NameIdentifierClaimType);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
@@ -794,10 +794,10 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> LinkedInCallback([FromBody] OAuthCallbackDto dto, CancellationToken ct)
     {
-                if (string.IsNullOrWhiteSpace(dto.Code))
-                {
+        if (string.IsNullOrWhiteSpace(dto.Code))
+        {
             return BadRequest(new { message = "Authorization code is required" });
-                }
+        }
 
         var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/linkedin/callback";
 
@@ -880,10 +880,10 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AppleCallback([FromBody] OAuthCallbackDto dto, CancellationToken ct)
     {
-                if (string.IsNullOrWhiteSpace(dto.Code))
-                {
+        if (string.IsNullOrWhiteSpace(dto.Code))
+        {
             return BadRequest(new { message = "Authorization code is required" });
-                }
+        }
 
         var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/apple/callback";
 
@@ -1219,10 +1219,10 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult ValidateOAuthState([FromBody] OAuthStateValidateRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.State))
-                {
+        if (string.IsNullOrWhiteSpace(request.State))
+        {
             return BadRequest(new { message = "State parameter is required" });
-                }
+        }
 
         var isValid = _oauthStateService.ValidateState(request.State, out var returnUrl);
         if (!isValid)
@@ -1357,10 +1357,10 @@ public class AuthController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Set2FAPolicy(int groupId, [FromBody] TwoFactorPolicyDto policy, CancellationToken ct)
     {
-                if (groupId <= 0)
-                {
+        if (groupId <= 0)
+        {
             return BadRequest(new { message = "Invalid group ID" });
-                }
+        }
 
         await _twoFactorPolicyService.SetPolicyForGroupAsync(groupId, policy, ct);
 
@@ -1482,10 +1482,10 @@ public class AuthController : CrmControllerBase
         [FromBody] MagicLinkRequestDto request,
         CancellationToken ct = default)
     {
-                if (string.IsNullOrWhiteSpace(request?.Email))
-                {
+        if (string.IsNullOrWhiteSpace(request?.Email))
+        {
             return BadRequest(new { message = "Email is required." });
-                }
+        }
 
         MagicLinkToken? magic = null;
         try
@@ -1664,10 +1664,10 @@ public class AuthController : CrmControllerBase
         [FromQuery] string? redirectUri = null,
         CancellationToken ct = default)
     {
-                if (string.IsNullOrWhiteSpace(provider))
-                {
+        if (string.IsNullOrWhiteSpace(provider))
+        {
             return BadRequest(new { message = "Provider name is required." });
-                }
+        }
 
         if (!_openIdConnectService.IsProviderConfigured(provider))
         {
@@ -1699,10 +1699,10 @@ public class AuthController : CrmControllerBase
         [FromBody] OidcCallbackDto dto,
         CancellationToken ct = default)
     {
-                if (string.IsNullOrWhiteSpace(dto.Code))
-                {
+        if (string.IsNullOrWhiteSpace(dto.Code))
+        {
             return BadRequest(new { message = "Authorization code is required." });
-                }
+        }
 
         // Retrieve stored state data
         var provider = dto.Provider;
@@ -1800,10 +1800,10 @@ public class AuthController : CrmControllerBase
         [FromBody] BiometricAuthenticationResponse request,
         CancellationToken ct = default)
     {
-                if (string.IsNullOrWhiteSpace(request.CredentialId))
-                {
+        if (string.IsNullOrWhiteSpace(request.CredentialId))
+        {
             return BadRequest(new { message = "Credential ID is required." });
-                }
+        }
 
         var result = await _biometricAuthService.ValidateAuthenticationAsync(request, ct);
 
@@ -1909,10 +1909,10 @@ public class AuthController : CrmControllerBase
         [FromBody] OktaSsoCallbackDto dto,
         CancellationToken ct = default)
     {
-                if (string.IsNullOrWhiteSpace(dto.Code))
-                {
+        if (string.IsNullOrWhiteSpace(dto.Code))
+        {
             return BadRequest(new { message = "Authorization code is required." });
-                }
+        }
 
         var redirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/sso/okta/callback";
         var tokens = await _oktaSsoService.ExchangeCodeForTokenAsync(dto.Code, redirectUri, ct);

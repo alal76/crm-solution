@@ -37,11 +37,15 @@ public class WebhookAnalyticsService : IWebhookAnalyticsService
             .Where(d => !d.IsDeleted && d.CreatedAt >= startDate && d.CreatedAt <= endDate);
 
         if (webhookId.HasValue)
+        {
             query = query.Where(d => d.WebhookSubscriptionId == webhookId.Value);
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
         if (totalCount == 0)
+        {
             return 0;
+        }
 
         var successCount = await query.CountAsync(d => d.Success, cancellationToken);
         return successCount * 100.0 / totalCount;
@@ -58,7 +62,9 @@ public class WebhookAnalyticsService : IWebhookAnalyticsService
             .Where(d => !d.IsDeleted && d.CreatedAt >= startDate && d.CreatedAt <= endDate && d.DurationMs.HasValue);
 
         if (webhookId.HasValue)
+        {
             query = query.Where(d => d.WebhookSubscriptionId == webhookId.Value);
+        }
 
         var avgLatency = await query
             .Select(d => d.DurationMs!.Value)
@@ -168,7 +174,9 @@ public class WebhookAnalyticsService : IWebhookAnalyticsService
             .Where(d => !d.IsDeleted && d.CreatedAt >= startDate && d.CreatedAt <= endDate);
 
         if (webhookId.HasValue)
+        {
             query = query.Where(d => d.WebhookSubscriptionId == webhookId.Value);
+        }
 
         var deliveries = await query.ToListAsync(cancellationToken);
 
@@ -194,9 +202,13 @@ public class WebhookAnalyticsService : IWebhookAnalyticsService
         foreach (var delivery in deliveries.OrderByDescending(d => d.CreatedAt))
         {
             if (!delivery.Success)
+            {
                 consecutiveFailures++;
+            }
             else
+            {
                 break;
+            }
         }
         return consecutiveFailures;
     }
@@ -204,14 +216,18 @@ public class WebhookAnalyticsService : IWebhookAnalyticsService
     private static double GetPercentile(List<double> sortedData, int percentile)
     {
         if (sortedData.Count == 0)
+        {
             return 0;
+        }
 
         var index = (percentile / 100.0) * (sortedData.Count - 1);
         var lower = (int)Math.Floor(index);
         var upper = (int)Math.Ceiling(index);
 
         if (lower == upper)
+        {
             return sortedData[lower];
+        }
 
         return sortedData[lower] + (index - lower) * (sortedData[upper] - sortedData[lower]);
     }

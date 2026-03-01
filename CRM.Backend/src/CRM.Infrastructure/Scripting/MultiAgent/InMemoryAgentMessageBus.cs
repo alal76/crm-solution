@@ -40,7 +40,9 @@ public class InMemoryAgentMessageBus : IAgentMessageBus
 
         // Invoke registered handler if any
         if (_handlers.TryGetValue(message.ToAgentId, out var handler))
+        {
             await handler(message, ct);
+        }
     }
 
     public Task SubscribeAsync(

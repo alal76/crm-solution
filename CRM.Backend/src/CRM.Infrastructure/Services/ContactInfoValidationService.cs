@@ -276,27 +276,41 @@ public class ContactInfoValidationService : IContactInfoValidationService
             case "CA":
                 // Remove leading 1 if present
                 if (digits.StartsWith("1") && digits.Length == 11)
+                {
                     digits = digits[1..];
+                }
 
                 if (digits.Length == 10)
+                {
                     return $"+1 ({digits[..3]}) {digits[3..6]}-{digits[6..]}";
+                }
                 break;
 
             case "GB":
             case "UK":
                 if (digits.StartsWith("44"))
+                {
                     digits = digits[2..];
+                }
                 if (digits.StartsWith("0"))
+                {
                     digits = digits[1..];
+                }
                 if (digits.Length >= 10)
+                {
                     return $"+44 {digits[..4]} {digits[4..]}";
+                }
                 break;
 
             case "IN":
                 if (digits.StartsWith("91"))
+                {
                     digits = digits[2..];
+                }
                 if (digits.Length == 10)
+                {
                     return $"+91 {digits[..5]} {digits[5..]}";
+                }
                 break;
         }
 
@@ -308,14 +322,20 @@ public class ContactInfoValidationService : IContactInfoValidationService
     public string? ExtractSocialMediaHandle(string url, SocialMediaPlatform platform)
     {
         if (string.IsNullOrWhiteSpace(url))
+        {
             return null;
+        }
 
         if (!SocialMediaPatterns.TryGetValue(platform, out var patterns))
+        {
             return url.TrimStart('@');
+        }
 
         var match = Regex.Match(url, patterns.UrlPattern, RegexOptions.IgnoreCase);
         if (match.Success && match.Groups.Count >= 2)
+        {
             return match.Groups[1].Value;
+        }
 
         // Might be just a handle
         return url.TrimStart('@');
@@ -325,12 +345,16 @@ public class ContactInfoValidationService : IContactInfoValidationService
     public string? GenerateProfileUrl(string handle, SocialMediaPlatform platform)
     {
         if (string.IsNullOrWhiteSpace(handle))
+        {
             return null;
+        }
 
         handle = handle.TrimStart('@');
 
         if (!SocialMediaPatterns.TryGetValue(platform, out var patterns))
+        {
             return null;
+        }
 
         return patterns.BaseUrl + handle;
     }

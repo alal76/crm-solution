@@ -63,7 +63,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (request == null)
+        {
             throw new ArgumentNullException(nameof(request));
+        }
 
         var contactId = $"builtin_contact_{Interlocked.Increment(ref _contactIdCounter)}";
 
@@ -92,7 +94,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(externalId))
+        {
             throw new ArgumentException("External ID is required", nameof(externalId));
+        }
 
         _contacts.TryGetValue(externalId, out var contact);
         return Task.FromResult(contact);
@@ -104,7 +108,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(email))
+        {
             throw new ArgumentException("Email is required", nameof(email));
+        }
 
         var contact = _contacts.Values
             .FirstOrDefault(c => c.Email?.Equals(email, StringComparison.OrdinalIgnoreCase) == true);
@@ -118,7 +124,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(phone))
+        {
             throw new ArgumentException("Phone is required", nameof(phone));
+        }
 
         var normalizedPhone = NormalizePhone(phone);
         var contact = _contacts.Values
@@ -134,18 +142,28 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(externalId))
+        {
             throw new ArgumentException("External ID is required", nameof(externalId));
+        }
         if (request == null)
+        {
             throw new ArgumentNullException(nameof(request));
+        }
 
         if (_contacts.TryGetValue(externalId, out var contact))
         {
             if (request.Email != null)
+            {
                 contact.Email = request.Email;
+            }
             if (request.Phone != null)
+            {
                 contact.Phone = request.Phone;
+            }
             if (request.Name != null)
+            {
                 contact.Name = request.Name;
+            }
             if (request.CustomAttributes != null)
             {
                 contact.CustomAttributes = request.CustomAttributes;
@@ -172,9 +190,13 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (request == null)
+        {
             throw new ArgumentNullException(nameof(request));
+        }
         if (string.IsNullOrWhiteSpace(request.ContactExternalId))
+        {
             throw new ArgumentException("Contact external ID is required", nameof(request));
+        }
 
         var conversationId = $"builtin_conv_{Interlocked.Increment(ref _conversationIdCounter)}";
 
@@ -215,7 +237,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
+        {
             throw new ArgumentException("Conversation ID is required", nameof(conversationId));
+        }
 
         _conversations.TryGetValue(conversationId, out var conversation);
 
@@ -234,7 +258,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(contactExternalId))
+        {
             throw new ArgumentException("Contact external ID is required", nameof(contactExternalId));
+        }
 
         var conversations = _conversations.Values
             .Where(c => c.ContactExternalId == contactExternalId);
@@ -254,11 +280,17 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
+        {
             throw new ArgumentException("Conversation ID is required", nameof(conversationId));
+        }
         if (request == null)
+        {
             throw new ArgumentNullException(nameof(request));
+        }
         if (string.IsNullOrWhiteSpace(request.Content))
+        {
             throw new ArgumentException("Message content is required", nameof(request));
+        }
 
         if (!_conversations.TryGetValue(conversationId, out var conversation))
         {
@@ -298,7 +330,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
+        {
             throw new ArgumentException("Conversation ID is required", nameof(conversationId));
+        }
 
         if (!_messages.TryGetValue(conversationId, out var messages))
         {
@@ -325,7 +359,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
+        {
             throw new ArgumentException("Conversation ID is required", nameof(conversationId));
+        }
 
         if (_conversations.TryGetValue(conversationId, out var conversation))
         {
@@ -346,7 +382,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
+        {
             throw new ArgumentException("Conversation ID is required", nameof(conversationId));
+        }
 
         if (_conversations.TryGetValue(conversationId, out var conversation))
         {
@@ -372,9 +410,13 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(conversationId))
+        {
             throw new ArgumentException("Conversation ID is required", nameof(conversationId));
+        }
         if (string.IsNullOrWhiteSpace(agentExternalId))
+        {
             throw new ArgumentException("Agent external ID is required", nameof(agentExternalId));
+        }
 
         if (!_conversations.TryGetValue(conversationId, out var conversation))
         {
@@ -412,7 +454,9 @@ public class BuiltInChatProvider : IChatPort
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(agentExternalId))
+        {
             throw new ArgumentException("Agent external ID is required", nameof(agentExternalId));
+        }
 
         _agents.TryGetValue(agentExternalId, out var agent);
         return Task.FromResult(agent);
@@ -489,7 +533,9 @@ public class BuiltInChatProvider : IChatPort
     private static string? NormalizePhone(string? phone)
     {
         if (string.IsNullOrWhiteSpace(phone))
+        {
             return null;
+        }
         return new string(phone.Where(char.IsDigit).ToArray());
     }
 

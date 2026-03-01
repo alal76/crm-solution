@@ -118,10 +118,10 @@ public class CompetitorsController : CrmControllerBase
     [ProducesResponseType(400)]
     public async Task<IActionResult> Create([FromBody] CreateCompetitorDto request, CancellationToken ct = default)
     {
-                if (string.IsNullOrWhiteSpace(request.Name))
-                {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
             return BadRequest(new { message = "Name is required" });
-                }
+        }
 
         var competitor = new Competitor
         {

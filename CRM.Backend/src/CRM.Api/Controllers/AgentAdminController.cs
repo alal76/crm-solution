@@ -81,7 +81,7 @@ public class AgentAdminController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAgentConfigs()
     {
-                if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
+        if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
         {
             return Ok(new { disabled = true, message = "AI Agent subsystem is currently disabled.", agents = Array.Empty<object>() });
         }

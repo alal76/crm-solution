@@ -183,7 +183,7 @@ public class AgentController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAgent(int agentId)
     {
-                if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
+        if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
         {
             return NotFound("AI Agent subsystem is currently disabled.");
         }
@@ -211,7 +211,7 @@ public class AgentController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.Name))
+        if (string.IsNullOrWhiteSpace(request.Name))
         {
             return BadRequest("Agent name is required.");
         }
@@ -410,7 +410,7 @@ public class AgentController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetNextBestActions(string entityType, int entityId)
     {
-                if (string.IsNullOrWhiteSpace(entityType))
+        if (string.IsNullOrWhiteSpace(entityType))
         {
             return BadRequest("Entity type is required.");
         }
@@ -474,7 +474,7 @@ public class AgentController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DraftEmail([FromBody] DraftEmailRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.Context))
+        if (string.IsNullOrWhiteSpace(request.Context))
         {
             return BadRequest("Email context is required.");
         }
@@ -553,7 +553,7 @@ public class AgentController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Orchestrate([FromBody] OrchestrateRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.Message))
+        if (string.IsNullOrWhiteSpace(request.Message))
         {
             return BadRequest("Message is required.");
         }
@@ -636,7 +636,7 @@ public class AgentController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RejectAction(int id, [FromBody] RejectRequest request)
     {
-                if (string.IsNullOrWhiteSpace(request.Reason))
+        if (string.IsNullOrWhiteSpace(request.Reason))
         {
             return BadRequest("Rejection reason is required.");
         }

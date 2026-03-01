@@ -41,14 +41,18 @@ public class SecureReferenceResolver : MetadataReferenceResolver
     {
         var assemblyName = Path.GetFileNameWithoutExtension(reference);
         if (!AllowedAssemblyNames.Contains(assemblyName))
+        {
             return ImmutableArray<PortableExecutableReference>.Empty;
+        }
 
         try
         {
             var assembly = Assembly.Load(assemblyName);
             var location = assembly.Location;
             if (!string.IsNullOrEmpty(location))
+            {
                 return ImmutableArray.Create(MetadataReference.CreateFromFile(location));
+            }
         }
         catch
         {

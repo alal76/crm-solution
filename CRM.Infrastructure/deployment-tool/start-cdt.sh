@@ -46,7 +46,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 check_python() {
-  log_step 1 5 "Detecting Python 3.10+"
+  log_step 2 7 "Detecting Python 3.10+"
   local PYTHON=""
   for candidate in python3.12 python3.11 python3.10 python3 python; do
     if command -v "$candidate" &>/dev/null; then
@@ -112,7 +112,7 @@ check_python() {
 
 setup_venv() {
   local python_cmd="$1"
-  log_step 2 5 "Setting up Python virtual environment"
+  log_step 3 7 "Setting up Python virtual environment"
   if [[ "$RESET_VENV" == "true" && -d "$VENV_DIR" ]]; then
     log_warn "Removing existing venv (--reset-venv)"
     rm -rf "$VENV_DIR"
@@ -130,7 +130,7 @@ setup_venv() {
 }
 
 bootstrap_system_tools() {
-  log_step 3 6 "Checking system tools (Docker, Git, curl)"
+  log_step 4 7 "Checking system tools (Docker, Git, curl)"
   local OS_TYPE
   OS_TYPE=$(uname -s)
 
@@ -223,7 +223,7 @@ bootstrap_system_tools() {
 }
 
 download_cli_tools() {
-  log_step 4 6 "Checking CLI tools (kubectl, helm)"
+  log_step 5 7 "Checking CLI tools (kubectl, helm)"
   mkdir -p "$CDT_BIN_DIR"
   mkdir -p "$CDT_SNAP_DIR"
 
@@ -274,7 +274,7 @@ open_browser() {
   if [[ "$NO_BROWSER" == "true" ]]; then
     return
   fi
-  log_step 4 5 "Opening browser"
+  log_step 6 7 "Opening browser"
   local URL="http://localhost:${PORT}"
   sleep 2  # Let Flask start
   if [[ "$(uname -s)" == "Darwin" ]]; then
@@ -290,6 +290,56 @@ open_browser() {
   fi
 }
 
+kill_existing_cdt() {
+  log_step 1 7 "Checking for existing CDT instances"
+  local found=false
+
+  # 1. Kill any process listening on the target port
+  local port_pids
+  port_pids=$(lsof -ti :"$PORT" 2>/dev/null || true)
+  if [[ -n "$port_pids" ]]; then
+    found=true
+    log_warn "Found existing process(es) on port $PORT: $port_pids"
+    for pid in $port_pids; do
+      log_info "Sending SIGTERM to PID $pid..."
+      kill "$pid" 2>/dev/null || true
+    done
+    sleep 2
+    # Force-kill any survivors
+    local survivors
+    survivors=$(lsof -ti :"$PORT" 2>/dev/null || true)
+    if [[ -n "$survivors" ]]; then
+      log_warn "Force-killing stubborn process(es): $survivors"
+      for pid in $survivors; do
+        kill -9 "$pid" 2>/dev/null || true
+      done
+      sleep 1
+    fi
+  fi
+
+  # 2. Kill any orphaned gui/app.py processes not on the port
+  local app_pids
+  app_pids=$(pgrep -f 'gui/app\.py' 2>/dev/null || true)
+  if [[ -n "$app_pids" ]]; then
+    for pid in $app_pids; do
+      # Skip if already killed above
+      if kill -0 "$pid" 2>/dev/null; then
+        found=true
+        log_warn "Killing orphaned CDT process PID $pid"
+        kill "$pid" 2>/dev/null || true
+        sleep 1
+        kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
+      fi
+    done
+  fi
+
+  if [[ "$found" == "true" ]]; then
+    log_info "Old CDT instance(s) terminated"
+  else
+    log_info "No existing CDT instance found — clean start"
+  fi
+}
+
 cleanup() {
   echo -e "\n${YELLOW}[CDT]${RESET} Stopping CRM Deployment Tool..."
 }
@@ -297,14 +347,15 @@ trap cleanup SIGINT SIGTERM
 
 main() {
   log_banner
+  kill_existing_cdt
   local PYTHON
   PYTHON=$(check_python)
   bootstrap_system_tools
   setup_venv "$PYTHON"
   download_cli_tools
-  log_step 5 6 "Opening browser"
+  log_step 6 7 "Opening browser"
   open_browser &
-  log_step 6 6 "Starting CDT server on port $PORT"
+  log_step 7 7 "Starting CDT server on port $PORT"
   log_info "CDT wizard available at: http://localhost:${PORT}"
   log_info "Day-2 operations at:     http://localhost:${PORT}/day2"
   log_info "Press Ctrl+C to stop"

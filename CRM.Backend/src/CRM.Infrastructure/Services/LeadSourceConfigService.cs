@@ -105,14 +105,20 @@ public class LeadSourceConfigService : ILeadSourceConfigService
     {
         var source = await GetByIdAsync(sourceId, ct);
         if (source?.CostPerLead == null || source.CostPerLead == 0)
+        {
             return null;
+        }
 
         var query = _dbContext.Leads.Where(l => !l.IsDeleted && l.LeadSourceId == sourceId);
 
         if (startDate.HasValue)
+        {
             query = query.Where(l => l.CreatedAt >= startDate.Value);
+        }
         if (endDate.HasValue)
+        {
             query = query.Where(l => l.CreatedAt <= endDate.Value);
+        }
 
         var leadCount = await query.CountAsync(ct);
         if (leadCount == 0) return 0;

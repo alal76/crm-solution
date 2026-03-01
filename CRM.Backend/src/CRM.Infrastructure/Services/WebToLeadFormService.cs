@@ -111,11 +111,15 @@ public class WebToLeadFormService : IWebToLeadFormService
         {
             var form = await GetByEmbedKeyAsync(submission.FormEmbedKey, ct);
             if (form == null)
+            {
                 return (false, null, "Form not found or inactive");
+            }
 
             // TODO: Validate CAPTCHA if enabled // NOSONAR
             if (form.CaptchaEnabled && string.IsNullOrEmpty(submission.CaptchaToken))
+            {
                 return (false, null, "CAPTCHA validation required");
+            }
 
             // Create lead from field values
             var lead = new Lead
@@ -159,7 +163,9 @@ public class WebToLeadFormService : IWebToLeadFormService
     {
         var form = await GetByIdAsync(formId, ct);
         if (form == null)
+        {
             throw new ArgumentException("Form not found", nameof(formId));
+        }
 
         form.EmbedKey = GenerateEmbedKey();
         await _dbContext.SaveChangesAsync(ct);
@@ -170,7 +176,9 @@ public class WebToLeadFormService : IWebToLeadFormService
     {
         var form = await GetByIdAsync(formId, ct);
         if (form == null)
+        {
             throw new ArgumentException("Form not found", nameof(formId));
+        }
 
         // Generate basic embed HTML
         return $@"

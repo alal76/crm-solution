@@ -103,7 +103,9 @@ public class ContractService : IContractService
     {
         var contract = await _context.Contracts.FindAsync(new object[] { id }, cancellationToken);
         if (contract == null)
+        {
             return false;
+        }
 
         contract.IsDeleted = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -573,7 +575,9 @@ public class ContractService : IContractService
     private double CalculateAverageContractLength(List<Contract> contracts)
     {
         if (!contracts.Any())
+        {
             return 0;
+        }
 
         var totalDays = contracts.Sum(c => (c.EndDate - c.StartDate).TotalDays);
         return totalDays / contracts.Count;
@@ -766,7 +770,9 @@ public class ContractService : IContractService
     private static string EscapePdfString(string text)
     {
         if (string.IsNullOrEmpty(text))
+        {
             return "";
+        }
         var sb = new System.Text.StringBuilder(text.Length);
         foreach (var c in text)
         {
@@ -945,15 +951,25 @@ public class ContractService : IContractService
         var root = snapshot.RootElement;
 
         if (root.TryGetProperty("Name", out var name))
+        {
             contract.Name = name.GetString() ?? contract.Name;
+        }
         if (root.TryGetProperty("Description", out var desc))
+        {
             contract.Description = desc.GetString();
+        }
         if (root.TryGetProperty("TotalValue", out var value))
+        {
             contract.TotalValue = value.GetDecimal();
+        }
         if (root.TryGetProperty("TermsAndConditions", out var terms))
+        {
             contract.TermsAndConditions = terms.GetString();
+        }
         if (root.TryGetProperty("PaymentTerms", out var payment))
+        {
             contract.PaymentTerms = payment.GetString();
+        }
 
 
         // Create a new version recording the restore

@@ -46,10 +46,14 @@ public class LocalFileStorageService : IFileStorageService
         try
         {
             if (fileContent == null || fileContent.Length == 0)
+            {
                 throw new ArgumentException("File content cannot be empty", nameof(fileContent));
+            }
 
             if (string.IsNullOrWhiteSpace(fileName))
+            {
                 throw new ArgumentException("File name cannot be empty", nameof(fileName));
+            }
 
             // Create category subdirectory
             var categoryPath = Path.Combine(_basePath, category);
@@ -83,7 +87,9 @@ public class LocalFileStorageService : IFileStorageService
         try
         {
             if (string.IsNullOrWhiteSpace(filePath))
+            {
                 return Task.FromResult(false);
+            }
 
             // Convert URL path to file system path
             var localPath = ConvertUrlToLocalPath(filePath);
@@ -111,11 +117,15 @@ public class LocalFileStorageService : IFileStorageService
     public string GetFileUrl(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
+        {
             return string.Empty;
+        }
 
         // If already a URL path, return as-is
         if (filePath.StartsWith("/"))
+        {
             return filePath;
+        }
 
         // If it's a full local path, convert to URL
         return ConvertLocalPathToUrl(filePath);
@@ -148,7 +158,9 @@ public class LocalFileStorageService : IFileStorageService
             var localPath = ConvertUrlToLocalPath(filePath);
 
             if (!File.Exists(localPath))
+            {
                 return Task.FromResult(null as long?);
+            }
 
             var fileInfo = new FileInfo(localPath);
             return Task.FromResult((long?)fileInfo.Length);
@@ -166,7 +178,9 @@ public class LocalFileStorageService : IFileStorageService
     private string ConvertUrlToLocalPath(string urlPath)
     {
         if (string.IsNullOrWhiteSpace(urlPath))
+        {
             return string.Empty;
+        }
 
         // Remove leading slash and base URL prefix
         var relativePath = urlPath
@@ -183,7 +197,9 @@ public class LocalFileStorageService : IFileStorageService
     private string ConvertLocalPathToUrl(string localPath)
     {
         if (string.IsNullOrWhiteSpace(localPath))
+        {
             return string.Empty;
+        }
 
         var relativePath = localPath
             .Replace(_basePath, string.Empty)

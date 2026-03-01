@@ -93,28 +93,44 @@ public class IncidentService : IIncidentService
         }
 
         if (filter.State.HasValue)
+        {
             query = query.Where(i => i.State == filter.State.Value);
+        }
 
         if (filter.Priority.HasValue)
+        {
             query = query.Where(i => i.Priority == filter.Priority.Value);
+        }
 
         if (filter.AssignedToId.HasValue)
+        {
             query = query.Where(i => i.AssignedToId == filter.AssignedToId.Value);
+        }
 
         if (filter.AssignmentGroupId.HasValue)
+        {
             query = query.Where(i => i.AssignmentGroupId == filter.AssignmentGroupId.Value);
+        }
 
         if (filter.SLABreached.HasValue)
+        {
             query = query.Where(i => i.SLABreached == filter.SLABreached.Value);
+        }
 
         if (filter.MajorIncident.HasValue)
+        {
             query = query.Where(i => i.MajorIncident == filter.MajorIncident.Value);
+        }
 
         if (filter.CreatedFrom.HasValue)
+        {
             query = query.Where(i => i.CreatedAt >= filter.CreatedFrom.Value);
+        }
 
         if (filter.CreatedTo.HasValue)
+        {
             query = query.Where(i => i.CreatedAt <= filter.CreatedTo.Value);
+        }
 
         var totalCount = await query.CountAsync();
 
@@ -138,7 +154,9 @@ public class IncidentService : IIncidentService
         var incident = await _dbContext.Incidents.FindAsync(incidentId);
 
         if (incident == null || incident.IsDeleted)
+        {
             throw new KeyNotFoundException($"Incident {incidentId} not found");
+        }
 
         var changes = new List<string>();
 
@@ -149,13 +167,19 @@ public class IncidentService : IIncidentService
         }
 
         if (dto.Description != null)
+        {
             incident.Description = dto.Description;
+        }
 
         if (dto.CategoryId.HasValue)
+        {
             incident.CategoryId = dto.CategoryId.Value;
+        }
 
         if (dto.SubcategoryId.HasValue)
+        {
             incident.SubcategoryId = dto.SubcategoryId.Value;
+        }
 
         if (dto.Impact.HasValue)
         {
@@ -225,13 +249,17 @@ public class IncidentService : IIncidentService
         var incident = await _dbContext.Incidents.FindAsync(incidentId);
 
         if (incident == null || incident.IsDeleted)
+        {
             return false;
+        }
 
         incident.AssignedToId = assignedToId;
         incident.AssignmentGroupId = assignmentGroupId;
 
         if (incident.State == IncidentState.New)
+        {
             incident.State = IncidentState.Assigned;
+        }
 
         incident.ModifiedAt = DateTime.UtcNow;
 
@@ -248,7 +276,9 @@ public class IncidentService : IIncidentService
         var incident = await _dbContext.Incidents.FindAsync(incidentId);
 
         if (incident == null || incident.IsDeleted)
+        {
             return false;
+        }
 
         incident.EscalationLevel++;
         incident.State = IncidentState.InProgress;
@@ -267,7 +297,9 @@ public class IncidentService : IIncidentService
         var incident = await _dbContext.Incidents.FindAsync(incidentId);
 
         if (incident == null || incident.IsDeleted)
+        {
             throw new KeyNotFoundException($"Incident {incidentId} not found");
+        }
 
         incident.State = IncidentState.Resolved;
         incident.ResolutionCode = dto.ResolutionCode;
@@ -291,10 +323,14 @@ public class IncidentService : IIncidentService
         var incident = await _dbContext.Incidents.FindAsync(incidentId);
 
         if (incident == null || incident.IsDeleted)
+        {
             return false;
+        }
 
         if (incident.State != IncidentState.Resolved)
+        {
             throw new InvalidOperationException("Cannot close incident that is not resolved");
+        }
 
         incident.State = IncidentState.Closed;
         incident.ClosedAt = DateTime.UtcNow;
@@ -313,10 +349,14 @@ public class IncidentService : IIncidentService
         var incident = await _dbContext.Incidents.FindAsync(incidentId);
 
         if (incident == null || incident.IsDeleted)
+        {
             return false;
+        }
 
         if (incident.State != IncidentState.Resolved && incident.State != IncidentState.Closed)
+        {
             throw new InvalidOperationException("Can only reopen resolved or closed incidents");
+        }
 
         incident.State = IncidentState.InProgress;
         incident.ResolvedAt = null;

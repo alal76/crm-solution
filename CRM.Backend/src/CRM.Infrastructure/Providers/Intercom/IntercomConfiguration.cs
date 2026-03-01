@@ -100,16 +100,24 @@ public class IntercomConfiguration
         var errors = new List<string>();
 
         if (string.IsNullOrWhiteSpace(AccessToken))
+        {
             errors.Add("Intercom AccessToken is required");
+        }
 
         if (string.IsNullOrWhiteSpace(AppId))
+        {
             errors.Add("Intercom AppId is required");
+        }
 
         if (string.IsNullOrWhiteSpace(BaseUrl))
+        {
             errors.Add("Intercom BaseUrl is required");
+        }
 
         if (TimeoutSeconds <= 0)
+        {
             errors.Add("Intercom TimeoutSeconds must be positive");
+        }
 
         return (errors.Count == 0, errors);
     }

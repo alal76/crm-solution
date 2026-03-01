@@ -232,7 +232,9 @@ public class AlgoliaProvider : ISearchPort
         CancellationToken cancellationToken = default) where T : class
     {
         if (_client == null || document == null)
+        {
             return;
+        }
 
         try
         {
@@ -261,11 +263,15 @@ public class AlgoliaProvider : ISearchPort
         CancellationToken cancellationToken = default) where T : class
     {
         if (_client == null || documents == null)
+        {
             return;
+        }
 
         var docList = documents.ToList();
         if (!docList.Any())
+        {
             return;
+        }
 
         try
         {
@@ -303,7 +309,9 @@ public class AlgoliaProvider : ISearchPort
         CancellationToken cancellationToken = default) where T : class
     {
         if (_client == null || string.IsNullOrEmpty(id))
+        {
             return;
+        }
 
         try
         {
@@ -370,7 +378,9 @@ public class AlgoliaProvider : ISearchPort
     public async Task ClearIndexAsync<T>(CancellationToken cancellationToken = default) where T : class
     {
         if (_client == null)
+        {
             return;
+        }
 
         try
         {
@@ -395,7 +405,9 @@ public class AlgoliaProvider : ISearchPort
         CancellationToken cancellationToken = default) where T : class
     {
         if (_client == null || documents == null)
+        {
             return;
+        }
 
         var docList = documents.ToList();
 
@@ -489,22 +501,34 @@ public class AlgoliaProvider : ISearchPort
     private static string GetTitle(Dictionary<string, object> hit)
     {
         if (hit.TryGetValue("name", out var name) && name != null)
+        {
             return name.ToString() ?? "";
+        }
         if (hit.TryGetValue("title", out var title) && title != null)
+        {
             return title.ToString() ?? "";
+        }
         if (hit.TryGetValue("firstName", out var firstName) && hit.TryGetValue("lastName", out var lastName))
+        {
             return $"{firstName} {lastName}".Trim();
+        }
         return "";
     }
 
     private static string GetSuggestionText(Dictionary<string, object> hit)
     {
         if (hit.TryGetValue("name", out var name) && name != null)
+        {
             return name.ToString() ?? "";
+        }
         if (hit.TryGetValue("title", out var title) && title != null)
+        {
             return title.ToString() ?? "";
+        }
         if (hit.TryGetValue("firstName", out var firstName) && hit.TryGetValue("lastName", out var lastName))
+        {
             return $"{firstName} {lastName}".Trim();
+        }
         return "";
     }
     /// <inheritdoc />

@@ -63,7 +63,9 @@ public class WebhookAnalyticsPortService : CRM.Core.Ports.Input.IWebhookAnalytic
             .Where(d => !d.IsDeleted && d.CreatedAt >= start && d.CreatedAt <= end);
 
         if (webhookId.HasValue)
+        {
             query = query.Where(d => d.WebhookEndpointId == webhookId.Value);
+        }
 
         var all = await query.ToListAsync(cancellationToken);
 
@@ -182,7 +184,9 @@ public class WebhookAnalyticsPortService : CRM.Core.Ports.Input.IWebhookAnalytic
             .Where(d => !d.IsDeleted && d.CreatedAt >= start && d.CreatedAt <= end);
 
         if (webhookId.HasValue)
+        {
             query = query.Where(d => d.WebhookEndpointId == webhookId.Value);
+        }
 
         var deliveries = await query.ToListAsync(cancellationToken);
 

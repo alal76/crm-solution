@@ -34,7 +34,9 @@ public static class ScriptSecurityPolicy
         foreach (var p in suspiciousPatterns)
         {
             if (definition.Source.Contains(p, StringComparison.OrdinalIgnoreCase))
+            {
                 return true;
+            }
         }
 
         return false;

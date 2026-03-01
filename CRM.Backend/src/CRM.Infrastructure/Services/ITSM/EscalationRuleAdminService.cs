@@ -41,11 +41,17 @@ public class EscalationRuleAdminService : IEscalationRuleService, IEscalationRul
     public async Task<EscalationRuleDto> CreateAsync(CreateEscalationRuleDto dto, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
+        {
             throw new ArgumentException("Escalation rule name is required");
+        }
         if (string.IsNullOrWhiteSpace(dto.Priority))
+        {
             throw new ArgumentException("Priority is required");
+        }
         if (dto.AgeInMinutes <= 0)
+        {
             throw new ArgumentException("Age in minutes must be greater than 0");
+        }
 
         var rule = new CRM.Core.Entities.ITSM.EscalationRule
         {
@@ -77,29 +83,53 @@ public class EscalationRuleAdminService : IEscalationRuleService, IEscalationRul
             ?? throw new KeyNotFoundException($"Escalation rule with ID {id} not found");
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
             rule.Name = dto.Name;
+        }
         if (dto.Description != null)
+        {
             rule.Description = dto.Description;
+        }
         if (!string.IsNullOrWhiteSpace(dto.Priority))
+        {
             rule.Priority = dto.Priority;
+        }
         if (dto.Category != null)
+        {
             rule.Category = dto.Category;
+        }
         if (dto.Queue != null)
+        {
             rule.Queue = dto.Queue;
+        }
         if (dto.AgeInMinutes.HasValue)
+        {
             rule.AgeInMinutes = dto.AgeInMinutes.Value;
+        }
         if (!string.IsNullOrWhiteSpace(dto.TargetType))
+        {
             rule.TargetType = Enum.Parse<EscalationTargetType>(dto.TargetType);
+        }
         if (dto.TargetId.HasValue)
+        {
             rule.TargetId = dto.TargetId;
+        }
         if (dto.TargetName != null)
+        {
             rule.TargetName = dto.TargetName;
+        }
         if (dto.MaxAttempts.HasValue)
+        {
             rule.MaxAttempts = dto.MaxAttempts.Value;
+        }
         if (dto.RetryIntervalMinutes.HasValue)
+        {
             rule.RetryIntervalMinutes = dto.RetryIntervalMinutes.Value;
+        }
         if (dto.IsActive.HasValue)
+        {
             rule.IsActive = dto.IsActive.Value;
+        }
 
         await _ruleRepository.UpdateAsync(rule);
         await _ruleRepository.SaveAsync();

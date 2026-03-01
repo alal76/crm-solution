@@ -42,7 +42,9 @@ public class ScriptChaosMiddleware : ICompiledScriptEngine
     {
         await InjectChaosDelay(cancellationToken);
         if (ShouldFail())
+        {
             throw new InvalidOperationException("[CHAOS] Random compilation failure injected");
+        }
         return await _inner.CompileAsync(definition, options, cancellationToken);
     }
 
@@ -54,7 +56,9 @@ public class ScriptChaosMiddleware : ICompiledScriptEngine
     {
         await InjectChaosDelay(cancellationToken);
         if (ShouldFail())
+        {
             return new ExecutionResult<TOut> { Success = false, Error = "[CHAOS] Random execution failure injected" };
+        }
         return await _inner.ExecuteAsync<TIn, TOut>(compiledRef, context, options, cancellationToken);
     }
 

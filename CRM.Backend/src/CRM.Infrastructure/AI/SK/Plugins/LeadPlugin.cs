@@ -101,7 +101,9 @@ public class LeadPlugin : CrmPluginBase
         {
             var lead = await _leadService.GetByIdAsync(leadId);
             if (lead == null)
+            {
                 return ErrorResult("GetLeadScore", $"Lead with ID {leadId} not found.");
+            }
 
             // Extract score via reflection since GetByIdAsync returns object
             var score = lead.GetType().GetProperty("Score")?.GetValue(lead)
@@ -155,7 +157,9 @@ public class LeadPlugin : CrmPluginBase
         try
         {
             if (score < 0 || score > 100)
+            {
                 return ErrorResult("UpdateLeadScore", "Score must be between 0 and 100.");
+            }
 
             var success = await _leadService.UpdateAsync(leadId, lead =>
             {

@@ -84,19 +84,29 @@ public class ChangeManagementService : IChangeManagementService
         }
 
         if (filter.State.HasValue)
+        {
             query = query.Where(c => c.State == filter.State.Value);
+        }
 
         if (filter.Type.HasValue)
+        {
             query = query.Where(c => c.Type == filter.Type.Value);
+        }
 
         if (filter.ApprovalStatus.HasValue)
+        {
             query = query.Where(c => c.ApprovalStatus == filter.ApprovalStatus.Value);
+        }
 
         if (filter.PlannedStartFrom.HasValue)
+        {
             query = query.Where(c => c.PlannedStartDate.HasValue && c.PlannedStartDate.Value >= filter.PlannedStartFrom.Value);
+        }
 
         if (filter.PlannedStartTo.HasValue)
+        {
             query = query.Where(c => c.PlannedStartDate.HasValue && c.PlannedStartDate.Value <= filter.PlannedStartTo.Value);
+        }
 
 
         var totalCount = await query.CountAsync();
@@ -122,10 +132,14 @@ public class ChangeManagementService : IChangeManagementService
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || change.IsDeleted)
+        {
             throw new KeyNotFoundException($"Change {changeId} not found");
+        }
 
         if (change.State != ChangeState.New)
+        {
             throw new InvalidOperationException($"Change must be in New state to submit for approval");
+        }
 
         change.State = ChangeState.Assess;
         change.ModifiedAt = DateTime.UtcNow;
@@ -171,7 +185,9 @@ public class ChangeManagementService : IChangeManagementService
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || change.IsDeleted)
+        {
             throw new KeyNotFoundException($"Change {changeId} not found");
+        }
 
         // Check for conflicts with blackout periods
         var conflicts = await CheckBlackoutConflictsAsync(plannedStart, plannedEnd);
@@ -197,7 +213,9 @@ public class ChangeManagementService : IChangeManagementService
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || !change.PlannedStartDate.HasValue || !change.PlannedEndDate.HasValue)
+        {
             return false;
+        }
 
         var startDate = change.PlannedStartDate.Value;
         var endDate = change.PlannedEndDate.Value;
@@ -205,7 +223,9 @@ public class ChangeManagementService : IChangeManagementService
         // Check blackout periods
         var blackoutConflicts = await CheckBlackoutConflictsAsync(startDate, endDate);
         if (blackoutConflicts.Any())
+        {
             return true;
+        }
 
         // Check overlapping changes
         var hasOverlap = await context.Changes
@@ -228,7 +248,9 @@ public class ChangeManagementService : IChangeManagementService
             .AnyAsync(ci => ci.ChangeId == changeId && ci.CIId == ciId);
 
         if (existing)
+        {
             return false;
+        }
 
         context.ChangeImpactedCIs.Add(new ChangeImpactedCI
         {
@@ -319,7 +341,9 @@ public class ChangeManagementService : IChangeManagementService
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || change.IsDeleted)
+        {
             throw new KeyNotFoundException($"Change {changeId} not found");
+        }
 
         change.ShortDescription = dto.ShortDescription;
         change.Description = dto.Description;
@@ -342,7 +366,9 @@ public class ChangeManagementService : IChangeManagementService
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || change.IsDeleted)
+        {
             return false;
+        }
 
         change.State = ChangeState.Cancelled;
         change.ModifiedAt = DateTime.UtcNow;

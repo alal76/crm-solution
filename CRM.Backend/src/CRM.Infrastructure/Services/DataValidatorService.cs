@@ -177,7 +177,9 @@ public sealed partial class DataValidatorService : IDataValidator
 
             // Skip format / length checks when value is empty and field is optional
             if (string.IsNullOrWhiteSpace(stringValue))
+            {
                 continue;
+            }
 
             // Format checks
             if (!string.IsNullOrEmpty(rule.Format))
@@ -186,22 +188,28 @@ public sealed partial class DataValidatorService : IDataValidator
                 {
                     case "email":
                         if (!EmailRegex().IsMatch(stringValue))
+                        {
                             errors.Add(new FieldValidationError
                             {
                                 Field = rule.Field,
                                 Message = $"'{rule.Field}' must be a valid email address.",
                                 Code = "INVALID_EMAIL",
                             });
+                        }
+
                         break;
 
                     case "phone":
                         if (!PhoneRegex().IsMatch(stringValue))
+                        {
                             errors.Add(new FieldValidationError
                             {
                                 Field = rule.Field,
                                 Message = $"'{rule.Field}' must be a valid phone number.",
                                 Code = "INVALID_PHONE",
                             });
+                        }
+
                         break;
 
                     case "date":

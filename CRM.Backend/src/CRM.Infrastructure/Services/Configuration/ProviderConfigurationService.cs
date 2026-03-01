@@ -58,7 +58,9 @@ public class ProviderConfigurationService : IProviderConfigurationService
             .FirstOrDefaultAsync(cancellationToken);
 
         if (entity == null)
+        {
             return null;
+        }
 
         return MapToDto(entity);
     }
@@ -580,9 +582,13 @@ public class ProviderConfigurationService : IProviderConfigurationService
         if (data.TryGetValue(key, out var value))
         {
             if (value is JsonElement je && je.TryGetInt32(out var intVal))
+            {
                 return intVal;
+            }
             if (int.TryParse(value?.ToString(), out var parsed))
+            {
                 return parsed;
+            }
         }
 
         return defaultValue;

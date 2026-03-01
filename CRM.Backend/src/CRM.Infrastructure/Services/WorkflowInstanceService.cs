@@ -59,22 +59,34 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .Where(i => !i.IsDeleted);
 
         if (workflowDefinitionId.HasValue)
+        {
             query = query.Where(i => i.WorkflowDefinitionId == workflowDefinitionId.Value);
+        }
 
         if (!string.IsNullOrEmpty(entityType))
+        {
             query = query.Where(i => i.EntityType == entityType);
+        }
 
         if (entityId.HasValue)
+        {
             query = query.Where(i => i.EntityId == entityId.Value);
+        }
 
         if (status.HasValue)
+        {
             query = query.Where(i => i.Status == status.Value);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(i => i.CreatedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(i => i.CreatedAt <= toDate.Value);
+        }
 
         return await query
             .OrderByDescending(i => i.CreatedAt)
@@ -128,11 +140,15 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(workflowDefinitionId);
         if (workflow == null || workflow.Status != WorkflowStatus.Active)
+        {
             throw new InvalidOperationException("Workflow is not active");
+        }
 
         var version = await _workflowService.GetActiveVersionAsync(workflowDefinitionId);
         if (version == null)
+        {
             throw new InvalidOperationException("No active version found");
+        }
 
         // Check concurrent instance limit
         if (workflow.MaxConcurrentInstances > 0)
@@ -142,12 +158,16 @@ public class WorkflowInstanceService : IWorkflowInstanceService
                                  i.Status == WorkflowInstanceStatus.Running);
 
             if (runningCount >= workflow.MaxConcurrentInstances)
+            {
                 throw new InvalidOperationException($"Maximum concurrent instances ({workflow.MaxConcurrentInstances}) reached");
+            }
         }
 
         var startNode = version.Nodes.FirstOrDefault(n => n.IsStartNode);
         if (startNode == null)
+        {
             throw new InvalidOperationException("No start node found in workflow");
+        }
 
         var instance = new WorkflowInstance
         {
@@ -202,7 +222,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         object? inputData = null)
     {
         if (entityIds == null || entityIds.Count == 0)
+        {
             throw new ArgumentException("At least one entity ID is required", nameof(entityIds));
+        }
 
         var sw = System.Diagnostics.Stopwatch.StartNew();
         var result = new BulkStartResult { TotalRequested = entityIds.Count };
@@ -253,7 +275,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
         if (instance == null)
+        {
             return false;
+        }
 
         if (instance.Status == WorkflowInstanceStatus.Completed ||
             instance.Status == WorkflowInstanceStatus.Cancelled)
@@ -290,7 +314,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
         if (instance == null || instance.Status != WorkflowInstanceStatus.Running)
+        {
             return false;
+        }
 
         instance.Status = WorkflowInstanceStatus.Paused;
         await _context.SaveChangesAsync();
@@ -306,7 +332,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
         if (instance == null || instance.Status != WorkflowInstanceStatus.Paused)
+        {
             return false;
+        }
 
         instance.Status = WorkflowInstanceStatus.Running;
         await _context.SaveChangesAsync();
@@ -322,7 +350,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
         if (instance == null || instance.Status != WorkflowInstanceStatus.Failed)
+        {
             return false;
+        }
 
         instance.Status = WorkflowInstanceStatus.Running;
         instance.RetryCount++;
@@ -356,7 +386,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
         if (instance == null)
+        {
             throw new ArgumentException("Instance not found");
+        }
 
         var sequence = await _context.WorkflowNodeInstances
             .Where(ni => ni.WorkflowInstanceId == instanceId)
@@ -396,7 +428,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(ni => ni.Id == nodeInstanceId);
 
         if (nodeInstance == null)
+        {
             return null;
+        }
 
         nodeInstance.Status = WorkflowNodeInstanceStatus.Completed;
         nodeInstance.CompletedAt = DateTime.UtcNow;
@@ -426,7 +460,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(ni => ni.Id == nodeInstanceId);
 
         if (nodeInstance == null)
+        {
             return null;
+        }
 
         nodeInstance.Status = WorkflowNodeInstanceStatus.Failed;
         nodeInstance.CompletedAt = DateTime.UtcNow;
@@ -474,7 +510,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
         if (instance == null)
+        {
             return false;
+        }
 
         var nodeInstance = await _context.WorkflowNodeInstances
             .FirstOrDefaultAsync(ni => ni.WorkflowInstanceId == instanceId &&
@@ -604,7 +642,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var task = await _context.WorkflowTasks.FindAsync(taskId);
         if (task == null)
+        {
             return false;
+        }
 
         // Check if already locked
         if (task.Status == WorkflowTaskStatus.Locked &&
@@ -634,7 +674,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var task = await _context.WorkflowTasks.FindAsync(taskId);
         if (task == null)
+        {
             return false;
+        }
 
         task.Status = WorkflowTaskStatus.Completed;
         task.CompletedAt = DateTime.UtcNow;
@@ -653,7 +695,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .Include(t => t.WorkflowNode)
             .FirstOrDefaultAsync(t => t.Id == taskId);
         if (task == null)
+        {
             return false;
+        }
 
         task.ErrorMessage = errorMessage;
         task.ErrorStackTrace = stackTrace;
@@ -793,10 +837,14 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .Where(l => l.WorkflowInstanceId == instanceId);
 
         if (minLevel.HasValue)
+        {
             query = query.Where(l => l.Level >= minLevel.Value);
+        }
 
         if (!string.IsNullOrEmpty(category))
+        {
             query = query.Where(l => l.Category == category);
+        }
 
         return await query
             .OrderByDescending(l => l.Timestamp)
@@ -817,9 +865,13 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var task = await _context.WorkflowTasks.FindAsync(taskId);
         if (task == null)
+        {
             return false;
+        }
         if (task.AssignedToId != null)
+        {
             return false;
+        }
 
         task.AssignedToId = userId;
         await _context.SaveChangesAsync();
@@ -835,9 +887,13 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     {
         var task = await _context.WorkflowTasks.FindAsync(taskId);
         if (task == null)
+        {
             return false;
+        }
         if (task.AssignedToId != userId)
+        {
             return false;
+        }
 
         task.FormData = formData;
         task.OutputData = outputData;
@@ -883,13 +939,19 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(eventCategory))
+        {
             query = query.Where(l => l.Category == eventCategory);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(l => l.Timestamp >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(l => l.Timestamp <= toDate.Value);
+        }
 
         var logs = await query.Skip(skip).Take(take).ToListAsync();
         return (logs, logs.Count == take);
@@ -912,10 +974,14 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .AsQueryable();
 
         if (fromDate.HasValue)
+        {
             query = query.Where(l => l.Timestamp >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(l => l.Timestamp <= toDate.Value);
+        }
 
         var logs = await query.Take(10000).ToListAsync();
 
@@ -958,13 +1024,19 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         var query = _context.WorkflowInstances.Where(i => !i.IsDeleted);
 
         if (workflowDefinitionId.HasValue)
+        {
             query = query.Where(i => i.WorkflowDefinitionId == workflowDefinitionId.Value);
+        }
 
         if (fromDate.HasValue)
+        {
             query = query.Where(i => i.CreatedAt >= fromDate.Value);
+        }
 
         if (toDate.HasValue)
+        {
             query = query.Where(i => i.CreatedAt <= toDate.Value);
+        }
 
         var stats = new WorkflowInstanceStatistics
         {
@@ -1184,7 +1256,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(ni => ni.Id == completedNodeInstanceId);
 
         if (nodeInstance == null)
+        {
             throw new ArgumentException($"Node instance {completedNodeInstanceId} not found");
+        }
 
         var instance = await _context.WorkflowInstances
             .Include(i => i.WorkflowVersion)
@@ -1194,7 +1268,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(i => i.Id == instanceId);
 
         if (instance == null)
+        {
             throw new ArgumentException($"Workflow instance {instanceId} not found");
+        }
 
         var currentNode = nodeInstance.WorkflowNode;
         var startedInstances = new List<WorkflowNodeInstance>();
@@ -1208,7 +1284,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
 
             // If this is a child instance, notify parent
             if (instance.ParentInstanceId.HasValue)
+            {
                 await OnChildWorkflowCompletedAsync(instance.Id);
+            }
 
             await LogAsync(instanceId, WorkflowLogLevel.Info, "Execution", "Workflow completed");
             return startedInstances;
@@ -1299,13 +1377,17 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(i => i.Id == instanceId);
 
         if (instance == null)
+        {
             throw new ArgumentException($"Workflow instance {instanceId} not found");
+        }
 
         var gatewayNode = instance.WorkflowVersion.Nodes
             .FirstOrDefault(n => n.Id == gatewayNodeId && !n.IsDeleted);
 
         if (gatewayNode == null || gatewayNode.NodeType != WorkflowNodeType.ParallelGateway)
+        {
             throw new ArgumentException($"Node {gatewayNodeId} is not a ParallelGateway");
+        }
 
         // Record the gateway node as completed (it's a pass-through)
         var gatewayNi = await StartNodeExecutionAsync(instanceId, gatewayNodeId);
@@ -1325,7 +1407,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
                 .FirstOrDefault(n => n.Id == transition.TargetNodeId && !n.IsDeleted);
 
             if (targetNode == null)
+            {
                 continue;
+            }
 
             var ni = await StartNodeExecutionAsync(instanceId, targetNode.Id);
             ni.InputData = inputData;
@@ -1355,7 +1439,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(i => i.Id == instanceId);
 
         if (instance == null)
+        {
             throw new ArgumentException($"Workflow instance {instanceId} not found");
+        }
 
         // Get all incoming transitions to the join node
         var incomingTransitions = instance.WorkflowVersion.Transitions
@@ -1363,7 +1449,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .ToList();
 
         if (!incomingTransitions.Any())
+        {
             return true; // No incoming = can proceed
+        }
 
         // Check each source node — it must have a Completed node instance
         var sourceNodeIds = incomingTransitions.Select(t => t.SourceNodeId).Distinct().ToList();
@@ -1397,24 +1485,32 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(i => i.Id == instanceId);
 
         if (instance == null)
+        {
             throw new ArgumentException($"Workflow instance {instanceId} not found");
+        }
 
         var subprocessNode = instance.WorkflowVersion.Nodes
             .FirstOrDefault(n => n.Id == subprocessNodeId && !n.IsDeleted);
 
         if (subprocessNode == null || subprocessNode.NodeType != WorkflowNodeType.Subprocess)
+        {
             throw new ArgumentException($"Node {subprocessNodeId} is not a Subprocess node");
+        }
 
         // Parse configuration to get the target workflow definition ID
         int subWorkflowDefinitionId;
         if (string.IsNullOrWhiteSpace(subprocessNode.Configuration))
+        {
             throw new InvalidOperationException($"Subprocess node {subprocessNode.Name} has no configuration");
+        }
 
         try
         {
             using var doc = JsonDocument.Parse(subprocessNode.Configuration);
             if (!doc.RootElement.TryGetProperty("subWorkflowDefinitionId", out var prop))
+            {
                 throw new InvalidOperationException("Missing subWorkflowDefinitionId in configuration");
+            }
             subWorkflowDefinitionId = prop.GetInt32();
         }
         catch (JsonException ex)
@@ -1464,7 +1560,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(i => i.Id == childInstanceId);
 
         if (child?.ParentInstanceId == null)
+        {
             return;
+        }
 
         var parentInstanceId = child.ParentInstanceId.Value;
 
@@ -1573,9 +1671,13 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         var node = await _context.WorkflowNodes
             .FirstOrDefaultAsync(n => n.Id == waitNodeId && !n.IsDeleted);
         if (node == null)
+        {
             throw new ArgumentException($"Wait node {waitNodeId} not found");
+        }
         if (node.NodeType != WorkflowNodeType.Wait)
+        {
             throw new ArgumentException($"Node {waitNodeId} is not a Wait node (type: {node.NodeType})");
+        }
 
         // Create node instance in Running state first
         var nodeInstance = await StartNodeExecutionAsync(instanceId, waitNodeId);
@@ -1611,7 +1713,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .ToListAsync(cancellationToken);
 
         if (dueNodes.Count == 0)
+        {
             return 0;
+        }
 
         _logger.LogInformation("Processing {Count} due wait node(s)", dueNodes.Count);
 
@@ -1619,7 +1723,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         foreach (var nodeInstance in dueNodes)
         {
             if (cancellationToken.IsCancellationRequested)
+            {
                 break;
+            }
 
             try
             {
@@ -1653,7 +1759,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         }
 
         if (processed > 0)
+        {
             _logger.LogInformation("Processed {Count} due wait node(s)", processed);
+        }
 
         return processed;
     }
@@ -1675,7 +1783,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         foreach (var instance in timedOutInstances)
         {
             if (cancellationToken.IsCancellationRequested)
+            {
                 break;
+            }
 
             try
             {
@@ -1708,7 +1818,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         foreach (var nodeInstance in timedOutNodes)
         {
             if (cancellationToken.IsCancellationRequested)
+            {
                 break;
+            }
 
             try
             {
@@ -1748,7 +1860,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
                       && !ni.IsDeleted);
 
         if (instanceId.HasValue)
+        {
             query = query.Where(ni => ni.WorkflowInstanceId == instanceId.Value);
+        }
 
         return await query.OrderBy(ni => ni.NextRetryAt).ToListAsync();
     }
@@ -1761,7 +1875,9 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .FirstOrDefaultAsync(ni => ni.Id == nodeInstanceId && !ni.IsDeleted);
 
         if (nodeInstance == null)
+        {
             throw new ArgumentException($"Node instance {nodeInstanceId} not found");
+        }
 
         if (nodeInstance.Status != WorkflowNodeInstanceStatus.Waiting)
         {
@@ -1795,26 +1911,34 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     private async Task ExecuteHttpCalloutNodeAsync(int nodeInstanceId, WorkflowNode node)
     {
         if (string.IsNullOrWhiteSpace(node.Configuration))
+        {
             return; // No config — nothing to execute automatically
+        }
 
         try
         {
             using var doc = JsonDocument.Parse(node.Configuration);
             if (!doc.RootElement.TryGetProperty("httpCallout", out var calloutElement))
+            {
                 return; // No httpCallout section — regular action node
+            }
 
             var config = JsonSerializer.Deserialize<HttpCalloutConfig>(
                 calloutElement.GetRawText(),
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
             if (config == null)
+            {
                 return;
+            }
 
             config.Name ??= node.Name;
 
             var nodeInstance = await _context.WorkflowNodeInstances.FindAsync(nodeInstanceId);
             if (nodeInstance == null)
+            {
                 return;
+            }
 
             _logger.LogInformation(
                 "Executing HTTP callout for node instance {NodeInstanceId}: {Method} {Url}",
@@ -1874,26 +1998,38 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             if (root.TryGetProperty("waitUntil", out var waitUntilProp))
             {
                 if (DateTime.TryParse(waitUntilProp.GetString(), out var waitUntil))
+                {
                     return waitUntil.ToUniversalTime();
+                }
             }
 
             // Check for relative delays
             var totalMinutes = 0.0;
 
             if (root.TryGetProperty("delaySeconds", out var secProp) && secProp.TryGetInt32(out var secs))
+            {
                 totalMinutes += secs / 60.0;
+            }
 
             if (root.TryGetProperty("delayMinutes", out var minProp) && minProp.TryGetInt32(out var mins))
+            {
                 totalMinutes += mins;
+            }
 
             if (root.TryGetProperty("delayHours", out var hrProp) && hrProp.TryGetInt32(out var hrs))
+            {
                 totalMinutes += hrs * 60.0;
+            }
 
             if (root.TryGetProperty("delayDays", out var dayProp) && dayProp.TryGetInt32(out var days))
+            {
                 totalMinutes += days * 24 * 60.0;
+            }
 
             if (totalMinutes > 0)
+            {
                 return DateTime.UtcNow.AddMinutes(totalMinutes);
+            }
         }
         catch (System.Text.Json.JsonException ex)
         {

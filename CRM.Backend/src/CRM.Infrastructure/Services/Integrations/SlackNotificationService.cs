@@ -40,7 +40,9 @@ public class SlackNotificationService : ISlackIntegrationService
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(webhookUrl))
+        {
             return SlackNotificationResult.Failed("Webhook URL is required");
+        }
 
         var payload = new { text = message };
         return await PostToSlackAsync(webhookUrl, payload, cancellationToken);
@@ -54,7 +56,9 @@ public class SlackNotificationService : ISlackIntegrationService
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(webhookUrl))
+        {
             return SlackNotificationResult.Failed("Webhook URL is required");
+        }
 
         try
         {
@@ -81,7 +85,9 @@ public class SlackNotificationService : ISlackIntegrationService
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(webhookUrl))
+        {
             return SlackNotificationResult.Failed("Webhook URL is required");
+        }
 
         // Build Block Kit message
         var blocks = new List<object>
@@ -160,10 +166,14 @@ public class SlackNotificationService : ISlackIntegrationService
     public async Task<bool> ValidateWebhookAsync(string webhookUrl, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(webhookUrl))
+        {
             return false;
+        }
 
         if (!Uri.TryCreate(webhookUrl, UriKind.Absolute, out var uri))
+        {
             return false;
+        }
 
         // Slack webhook URLs are at hooks.slack.com
         if (!uri.Host.Contains("hooks.slack.com", StringComparison.OrdinalIgnoreCase))

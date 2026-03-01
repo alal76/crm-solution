@@ -36,11 +36,17 @@ public class CommissionRuleService : ICommissionRuleService
     public async Task<CommissionRuleDto> CreateAsync(CreateCommissionRuleDto dto, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(dto.Name))
+        {
             throw new ArgumentException("Commission rule name is required");
+        }
         if (string.IsNullOrWhiteSpace(dto.SaleType))
+        {
             throw new ArgumentException("Sale type is required");
+        }
         if (dto.Rate < 0)
+        {
             throw new ArgumentException("Commission rate cannot be negative");
+        }
 
         var rule = new CommissionRule
         {
@@ -69,25 +75,45 @@ public class CommissionRuleService : ICommissionRuleService
             ?? throw new KeyNotFoundException($"Commission rule with ID {id} not found");
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
+        {
             rule.Name = dto.Name;
+        }
         if (dto.Description != null)
+        {
             rule.Description = dto.Description;
+        }
         if (!string.IsNullOrWhiteSpace(dto.SaleType))
+        {
             rule.SaleType = dto.SaleType;
+        }
         if (dto.RuleType.HasValue)
+        {
             rule.RuleType = dto.RuleType.Value;
+        }
         if (dto.Rate.HasValue)
+        {
             rule.Rate = dto.Rate.Value;
+        }
         if (dto.MinAmount.HasValue)
+        {
             rule.MinAmount = dto.MinAmount;
+        }
         if (dto.MaxAmount.HasValue)
+        {
             rule.MaxAmount = dto.MaxAmount;
+        }
         if (dto.EffectiveDate.HasValue)
+        {
             rule.EffectiveDate = dto.EffectiveDate.Value;
+        }
         if (dto.ExpiryDate.HasValue)
+        {
             rule.ExpiryDate = dto.ExpiryDate;
+        }
         if (dto.IsActive.HasValue)
+        {
             rule.IsActive = dto.IsActive.Value;
+        }
 
         await _ruleRepository.UpdateAsync(rule);
         _logger.LogInformation("Commission rule updated: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
@@ -141,7 +167,9 @@ public class CommissionRuleService : ICommissionRuleService
         var applicableRules = await GetApplicableRulesAsync(saleType, ct);
 
         if (!applicableRules.Any())
+        {
             throw new InvalidOperationException($"No applicable commission rules found for sale type: {saleType}");
+        }
 
         // Find matching rule based on tiers or flat rates
         CommissionRuleDto? matchedRule = null;
@@ -151,7 +179,9 @@ public class CommissionRuleService : ICommissionRuleService
         {
             var rule = await _ruleRepository.GetByIdAsync(ruleDto.Id);
             if (rule == null)
+            {
                 continue;
+            }
 
             if (rule.RuleType == CommissionRuleType.Tiered)
             {
@@ -177,7 +207,9 @@ public class CommissionRuleService : ICommissionRuleService
         }
 
         if (matchedRule == null)
+        {
             throw new InvalidOperationException("Could not calculate commission: no matching rule found");
+        }
 
         return new CommissionCalculationDto
         {

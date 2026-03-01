@@ -76,7 +76,9 @@ public class CMDBService : ICMDBService
         }
 
         if (type.HasValue)
+        {
             query = query.Where(c => c.CIType == type.Value);
+        }
 
         var cis = await query
             .OrderBy(c => c.CIName)
@@ -93,7 +95,9 @@ public class CMDBService : ICMDBService
         var ci = await context.ConfigurationItems.FindAsync(ciId);
 
         if (ci == null || ci.IsDeleted)
+        {
             throw new KeyNotFoundException($"CI {ciId} not found");
+        }
 
         ci.CIName = dto.CIName;
         ci.CIType = dto.CIType;
@@ -118,7 +122,9 @@ public class CMDBService : ICMDBService
             .AnyAsync(r => r.ParentCIId == parentCIId && r.ChildCIId == childCIId && !r.IsDeleted);
 
         if (existing)
+        {
             return false;
+        }
 
         context.CIRelationships.Add(new CIRelationship
         {
@@ -176,7 +182,9 @@ public class CMDBService : ICMDBService
             .ToListAsync();
 
         if (services.Any())
+        {
             impacts.Add($"Affects {services.Count} services: {string.Join(", ", services)}");
+        }
 
         // Get active incidents related to this CI
         var incidents = await context.Incidents
@@ -184,7 +192,9 @@ public class CMDBService : ICMDBService
             .CountAsync();
 
         if (incidents > 0)
+        {
             impacts.Add($"{incidents} active incidents related to this CI");
+        }
 
         return impacts;
     }
@@ -194,7 +204,9 @@ public class CMDBService : ICMDBService
         visited ??= new HashSet<int>();
 
         if (visited.Contains(ciId))
+        {
             return new List<int>();
+        }
 
         visited.Add(ciId);
 

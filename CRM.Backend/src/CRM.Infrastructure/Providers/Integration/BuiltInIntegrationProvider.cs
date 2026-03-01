@@ -120,9 +120,13 @@ public class BuiltInIntegrationProvider : IIntegrationPort
             result.Results.Add(publishResult);
 
             if (publishResult.Success)
+            {
                 result.SuccessCount++;
+            }
             else
+            {
                 result.FailureCount++;
+            }
         }
 
         return result;

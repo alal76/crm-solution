@@ -82,7 +82,9 @@ public class ConditionEvaluator
     public bool Evaluate(string? conditionJson, ServiceRequest request)
     {
         if (string.IsNullOrWhiteSpace(conditionJson))
+        {
             return true; // No conditions — always matches.
+        }
 
         JsonConditionNode? root;
         try
@@ -96,7 +98,9 @@ public class ConditionEvaluator
         }
 
         if (root == null)
+        {
             return true;
+        }
 
         return EvaluateNode(root, request);
     }
@@ -107,7 +111,9 @@ public class ConditionEvaluator
     public bool EvaluateNode(JsonConditionNode node, ServiceRequest request)
     {
         if (node.IsCompound)
+        {
             return EvaluateCompound(node, request);
+        }
 
         return EvaluateSimple(node, request);
     }
@@ -122,7 +128,9 @@ public class ConditionEvaluator
         var children = node.Conditions!;
 
         if (children.Count == 0)
+        {
             return true;
+        }
 
         return op switch
         {
@@ -164,9 +172,13 @@ public class ConditionEvaluator
         {
             // Also accept integer strings
             if (int.TryParse(rawValue, out var intVal))
+            {
                 expected = (ServiceRequestPriority)intVal;
+            }
             else
+            {
                 return false;
+            }
         }
 
         return op switch
@@ -186,9 +198,13 @@ public class ConditionEvaluator
         if (!Enum.TryParse<ServiceRequestStatus>(rawValue, ignoreCase: true, out var expected))
         {
             if (int.TryParse(rawValue, out var intVal))
+            {
                 expected = (ServiceRequestStatus)intVal;
+            }
             else
+            {
                 return false;
+            }
         }
 
         return op switch
@@ -202,7 +218,9 @@ public class ConditionEvaluator
     private static bool CompareInt(int? actual, string op, string rawValue)
     {
         if (!int.TryParse(rawValue, out var expected))
+        {
             return false;
+        }
 
         return op switch
         {
@@ -219,7 +237,9 @@ public class ConditionEvaluator
     private static bool CompareDate(DateTime? actual, string op, string rawValue)
     {
         if (!DateTime.TryParse(rawValue, out var expected))
+        {
             return false;
+        }
 
         return op switch
         {

@@ -215,15 +215,21 @@ public class PricingRulesService : IPricingRulesService
         foreach (var rule in promoRules.OrderBy(r => r.Priority))
         {
             if (!TryMatchPromoCode(rule.Conditions!, normalizedCode))
+            {
                 continue;
+            }
 
             var discount = CalculatePromoDiscount(rule, basePrice);
             if (discount <= 0)
+            {
                 continue;
+            }
 
             // Respect MaxDiscountAmount cap
             if (rule.MaxDiscountAmount.HasValue)
+            {
                 discount = Math.Min(discount, rule.MaxDiscountAmount.Value);
+            }
 
             breakdown.AppliedRules.Add(new AppliedRuleSummary
             {
@@ -239,7 +245,9 @@ public class PricingRulesService : IPricingRulesService
 
             // If rule doesn't combine with others, stop here
             if (!rule.CombineWithOtherRules)
+            {
                 break;
+            }
         }
 
         return breakdown.AppliedRules
