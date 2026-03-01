@@ -403,7 +403,11 @@ const LoginPage: React.FC = () => {
   );
 
   const handleQuickLogin = useCallback(() => {
-    setFormData({ email: 'admin@crm.local', password: 'Admin@123' });
+    // Credentials sourced from env vars only — never hardcoded in source
+    setFormData({
+      email: process.env.REACT_APP_QUICK_LOGIN_EMAIL ?? 'admin@crm.local',
+      password: process.env.REACT_APP_QUICK_LOGIN_PASSWORD ?? '',
+    });
     setError('');
   }, []);
 

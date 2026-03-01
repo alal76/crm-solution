@@ -53,6 +53,7 @@ import { useApiState } from '../hooks/useApiState';
 import { useProfile } from '../contexts/ProfileContext';
 import { TabPanel } from '../components/common';
 import { usePagination } from '../hooks/usePagination';
+import { createSafeHtml } from '../utils/sanitize';
 
 // Template categories
 const TEMPLATE_CATEGORIES = [
@@ -597,7 +598,7 @@ function EmailTemplatesPage() {
               <Paper 
                 variant="outlined" 
                 sx={{ p: 2, mt: 1, maxHeight: 400, overflow: 'auto' }}
-                dangerouslySetInnerHTML={{ __html: previewContent.body }}
+                dangerouslySetInnerHTML={createSafeHtml(previewContent.body)}
               />
             </Box>
           )}

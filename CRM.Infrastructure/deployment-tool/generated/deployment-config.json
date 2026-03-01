@@ -1,20 +1,23 @@
 {
-  "name": "crm-test",
-  "description": "CRM Solution Deployment",
-  "expected_users": 100,
-  "platform": "on_premises",
+  "name": "crm-dev",
+  "description": "Developer / Lab environment",
+  "expected_users": 10,
+  "platform": "azure",
   "architecture": "monolithic",
   "database_type": "mariadb",
-  "database_name": "crm-db",
+  "database_name": "crm",
   "database_port": 3306,
   "search_provider": "meilisearch",
   "chat_provider": "chatwoot",
   "notification_provider": "novu",
-  "analytics_provider": "superset",
+  "analytics_provider": "powerbi",
   "ai_provider": "ollama",
-  "onprem_virtualization": "vmware",
-  "onprem_container_runtime": "docker",
-  "onprem_orchestration": "docker_compose",
-  "database_ha": false,
-  "signature_provider": "docuseal"
+  "signature_provider": "docuseal",
+  "azure_region": "eastus",
+  "azure_resource_group": "rg-crm-prod",
+  "azure_subscription": "",
+  "migration": {
+    "enabled": true
+  },
+  "database_ha": false
 }

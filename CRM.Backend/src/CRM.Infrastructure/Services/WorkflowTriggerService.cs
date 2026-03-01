@@ -924,7 +924,11 @@ public class WorkflowTriggerService : IWorkflowTriggerService
                     return true;
                 try
                 {
-                    return System.Text.RegularExpressions.Regex.IsMatch(actual ?? "", expected, System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                    return System.Text.RegularExpressions.Regex.IsMatch(actual ?? "", expected, System.Text.RegularExpressions.RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
+                }
+                catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
+                {
+                    return false; // Regex evaluation timed out (potential ReDoS pattern)
                 }
                 catch
                 {

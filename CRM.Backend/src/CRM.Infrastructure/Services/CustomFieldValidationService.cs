@@ -280,11 +280,16 @@ public class CustomFieldValidationService : ICustomFieldValidationService
         {
             try
             {
-                if (!Regex.IsMatch(value!, definition.RegexPattern))
+                if (!Regex.IsMatch(value!, definition.RegexPattern, RegexOptions.None, TimeSpan.FromSeconds(1)))
                 {
                     result.IsValid = false;
                     result.Errors.Add(definition.RegexErrorMessage ?? $"'{definition.Label}' does not match required pattern.");
                 }
+            }
+            catch (RegexMatchTimeoutException)
+            {
+                result.IsValid = false;
+                result.Errors.Add($"'{definition.Label}' pattern validation timed out.");
             }
             catch (RegexParseException ex)
             {

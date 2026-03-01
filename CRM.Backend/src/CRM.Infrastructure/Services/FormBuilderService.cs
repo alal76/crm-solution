@@ -774,14 +774,25 @@ public class FormBuilderService : IFormBuilderService
         // Pattern validation
         if (!string.IsNullOrEmpty(field.ValidationPattern))
         {
-            var regex = new Regex(field.ValidationPattern);
-            if (!regex.IsMatch(stringValue!))
+            try
+            {
+                if (!Regex.IsMatch(stringValue!, field.ValidationPattern, RegexOptions.None, TimeSpan.FromSeconds(1)))
+                {
+                    return Task.FromResult(new FieldValidationResult
+                    {
+                        IsValid = false,
+                        ErrorMessage = field.ValidationMessage ?? $"{field.Label} format is invalid",
+                        ErrorCode = "PATTERN"
+                    });
+                }
+            }
+            catch (RegexMatchTimeoutException)
             {
                 return Task.FromResult(new FieldValidationResult
                 {
                     IsValid = false,
-                    ErrorMessage = field.ValidationMessage ?? $"{field.Label} format is invalid",
-                    ErrorCode = "PATTERN"
+                    ErrorMessage = field.ValidationMessage ?? $"{field.Label} validation timed out",
+                    ErrorCode = "PATTERN_TIMEOUT"
                 });
             }
         }

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-03-01",
-  "description": "refactor(deployment-tool): v0.614.1 - add _fetch_json helper; replace 20 repeated json.loads patterns in cloud discovery methods",
+  "description": "fix(infra/cdt): v0.614.3 - wire actual deployment execution in wizard; align JS with blueprint API (session_id, profile wrapper, /stop, /download); fix race condition in _active_deploys; emit success flag in SSE done sentinel",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

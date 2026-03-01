@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Deployment management routes."""
+import io
 import sys
 import queue
 import threading
 import json
 import time
+import zipfile
 from pathlib import Path
 
 try:
@@ -63,26 +65,33 @@ def start_deploy():
             result.output_dir or Path("/tmp"), profile, log_q, dry_run=dry_run
         )
 
+    # Register session BEFORE starting background task to avoid race condition
+    _active_deploys[session_id] = {
+        "deployer": deployer,
+        "thread": None,  # will be set below
+        "log_queue": log_q,
+        "started": time.time(),
+        "output_dir": str(result.output_dir or ""),
+        "success": None,
+    }
+
     def run():
+        success = False
         emit_log(session_id, "INFO", "Deployment started")
         emit_progress(session_id, 5, "initializing")
         try:
-            deployer.deploy()
+            success = bool(deployer.deploy())
             emit_log(session_id, "SUCCESS", "Deployment finished")
             emit_done(session_id, success=True, result={"session_id": session_id})
         except Exception as exc:  # noqa: BLE001
             emit_log(session_id, "ERROR", f"Deployment error: {exc}")
             emit_done(session_id, success=False, result={"error": str(exc)})
         finally:
+            _active_deploys[session_id]["success"] = success
             log_q.put(None)  # sentinel
 
     t = start_background_task(run)
-    _active_deploys[session_id] = {
-        "deployer": deployer,
-        "thread": t,
-        "log_queue": log_q,
-        "started": time.time(),
-    }
+    _active_deploys[session_id]["thread"] = t
     return jsonify(
         {
             "session_id": session_id,
@@ -105,7 +114,8 @@ def stream_deploy(session_id: str):
             try:
                 event = log_q.get(timeout=30)
                 if event is None:
-                    yield f"data: {json.dumps({'done': True})}\n\n"
+                    success = dep.get("success", False)
+                    yield f"data: {json.dumps({'done': True, 'success': success})}\n\n"
                     break
                 yield f"data: {json.dumps(event.to_dict())}\n\n"
             except queue.Empty:
@@ -125,12 +135,13 @@ def deploy_status(session_id: str):
     dep = _active_deploys[session_id]
     t = dep["thread"]
     elapsed = time.time() - dep["started"]
-    alive = t.is_alive()
+    alive = t.is_alive() if hasattr(t, "is_alive") else True
     return jsonify(
         {
             "session_id": session_id,
             "running": alive,
             "elapsed_seconds": round(elapsed, 1),
+            "success": dep.get("success"),
         }
     )
 
@@ -152,6 +163,34 @@ def deploy_history():
         except Exception:
             pass
     return jsonify([])
+
+
+@deploy_bp.route("/api/download", methods=["GET"])
+def download_generated_files():
+    """Zip the output_dir for a completed deployment and stream it to the browser."""
+    from flask import send_file  # noqa: PLC0415
+    session_id = request.args.get("session_id", "")
+    entry = _active_deploys.get(session_id)
+    if not entry:
+        return jsonify({"error": "Session not found"}), 404
+    output_dir = entry.get("output_dir")
+    if not output_dir:
+        return jsonify({"error": "No output directory recorded for this session"}), 400
+    p = Path(output_dir)
+    if not p.exists() or not p.is_dir():
+        return jsonify({"error": "Output directory no longer exists"}), 410
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in p.rglob("*"):
+            if f.is_file():
+                zf.write(f, f.relative_to(p))
+    buf.seek(0)
+    return send_file(
+        buf,
+        mimetype="application/zip",
+        as_attachment=True,
+        download_name=f"crm-deploy-{session_id}.zip",
+    )
 
 
 @deploy_bp.route("/api/config/preview", methods=["POST"])

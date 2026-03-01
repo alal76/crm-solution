@@ -2052,7 +2052,54 @@
 
                 <div class="alert alert-success">
                     <i class="bi bi-rocket-takeoff me-2"></i>
-                    All set! Click <strong>Generate Configuration</strong> below to create your deployment files.
+                    All set! Click <strong>Generate &amp; Deploy</strong> below to create files and start deployment.
+                </div>
+
+                <!-- ── Deploy panel (hidden until generation is triggered) ─── -->
+                <div id="deployPanel" class="deploy-panel" style="display:none">
+                    <div class="deploy-panel-header">
+                        <i class="bi bi-terminal fs-5"></i>
+                        <span class="dp-title">Deployment Console</span>
+                        <span class="deploy-status-badge ds-idle" id="deployStatusBadge">Idle</span>
+                    </div>
+                    <div class="deploy-panel-body">
+                        <!-- Generated files list -->
+                        <div id="generatedFilesInline" class="px-3 py-2 border-bottom bg-light" style="display:none">
+                            <p class="small mb-1 fw-semibold"><i class="bi bi-folder2-open me-1"></i>Generated files:</p>
+                            <ul class="deploy-files-tree" id="generatedFilesList"></ul>
+                        </div>
+                        <!-- Phase tracker -->
+                        <div class="deploy-progress-row">
+                            <div class="deploy-progress-bar-wrap"><div class="deploy-progress-bar-inner" id="deployProgressBar"></div></div>
+                            <div class="deploy-phases" id="deployPhases">
+                                <span class="dp-phase" id="dp-generate">📄 Generate</span>
+                                <span class="dp-phase" id="dp-pull">📦 Pull images</span>
+                                <span class="dp-phase" id="dp-start">🚀 Start services</span>
+                                <span class="dp-phase" id="dp-health">❤️ Health checks</span>
+                                <span class="dp-phase" id="dp-done">✅ Complete</span>
+                            </div>
+                        </div>
+                        <!-- Live log -->
+                        <div class="deploy-log-wrap" id="deployLog">
+                            <span class="dl-info">Waiting for deployment to start…</span>
+                        </div>
+                        <!-- Actions -->
+                        <div class="deploy-actions">
+                            <button class="btn btn-danger btn-sm" id="btnCancelDeploy" onclick="cancelDeployment()" style="display:none">
+                                <i class="bi bi-stop-circle me-1"></i>Cancel
+                            </button>
+                            <button class="btn btn-success btn-sm" id="btnDeployNow" onclick="startDeployment()">
+                                <i class="bi bi-rocket-takeoff me-1"></i>Deploy Now
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm" id="btnReDeployNow" onclick="startDeployment()" style="display:none">
+                                <i class="bi bi-arrow-repeat me-1"></i>Re-deploy
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm ms-auto" id="btnDownloadFiles" onclick="downloadGeneratedFiles()" style="display:none">
+                                <i class="bi bi-download me-1"></i>Download files
+                            </button>
+                            <span class="text-muted small ms-2" id="deployElapsed"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -2525,7 +2572,7 @@
                         Next<i class="bi bi-arrow-right ms-2"></i>
                     </button>
                     <button class="btn btn-success btn-wizard" id="btnGenerate" onclick="generateConfig()" style="display: none;">
-                        <i class="bi bi-download me-2"></i>Generate Configuration
+                        <i class="bi bi-rocket-takeoff me-2"></i>Generate &amp; Deploy
                     </button>
                 </div>
             </div>
@@ -3786,37 +3833,254 @@
             checks.forEach(c => { const el = document.getElementById(c.id); if (el) el.textContent = c.ok ? c.ok_msg : c.fail_msg; });
         }
 
+        // ── state for the current deploy job ──────────────────────────────────────────────
+        const _deploy = {
+            jobId: null,
+            evtSource: null,
+            startTs: null,
+            elapsedTimer: null,
+            outputDir: null,
+            generatedFiles: [],
+        };
+
+        const DEPLOY_PHASE_KEYS = ['generate','pull','start','health','done'];
+        const DEPLOY_PHASE_PATTERNS = {
+            pull:     /pulling|docker pull|Pulling\s/i,
+            start:    /starting|docker-compose up|Creating|Starting\s/i,
+            health:   /health.?check|healthy|waiting for/i,
+            done:     /deployment complete|all services up|done\s*$/i,
+        };
+
+        function _deployLog(msg, cls = 'dl-info') {
+            const box = document.getElementById('deployLog');
+            if (!box) return;
+            const ts  = new Date().toTimeString().slice(0, 8);
+            const line = document.createElement('div');
+            line.innerHTML = `<span class="dl-ts">${ts}</span><span class="${cls}">${_escHtml(msg)}</span>`;
+            box.appendChild(line);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function _escHtml(s) {
+            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        function _setDeployPhase(activeKey) {
+            const pct = { generate:10, pull:30, start:60, health:85, done:100 };
+            DEPLOY_PHASE_KEYS.forEach(k => {
+                const el = document.getElementById('dp-' + k);
+                if (!el) return;
+                el.classList.remove('active','done','errored');
+                const idx = DEPLOY_PHASE_KEYS.indexOf(k);
+                const activeIdx = DEPLOY_PHASE_KEYS.indexOf(activeKey);
+                if (idx < activeIdx) el.classList.add('done');
+                else if (idx === activeIdx) el.classList.add('active');
+            });
+            const bar = document.getElementById('deployProgressBar');
+            if (bar) bar.style.width = (pct[activeKey] || 0) + '%';
+        }
+
+        function _setDeployStatus(status) {
+            const badge = document.getElementById('deployStatusBadge');
+            if (!badge) return;
+            badge.className = 'deploy-status-badge ds-' + status;
+            const labels = { running:'🔄 Running…', success:'✅ Success', failed:'❌ Failed', cancelled:'⚠️ Cancelled', idle:'Idle' };
+            badge.textContent = labels[status] || status;
+        }
+
+        function _deployElapsed() {
+            if (!_deploy.startTs) return;
+            const s = Math.floor((Date.now() - _deploy.startTs) / 1000);
+            const el = document.getElementById('deployElapsed');
+            if (el) el.textContent = `${s}s elapsed`;
+        }
+
         async function generateConfig() {
+            const btn = document.getElementById('btnGenerate');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generating…'; }
             try {
                 // Save config to server
                 await fetch('/api/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config)
+                    body: JSON.stringify(config),
                 });
-                
+
                 // Generate files
                 const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(config)
+                    body: JSON.stringify(config),
                 });
-                
                 const result = await response.json();
-                
-                // Show success modal
-                document.getElementById('generatedFiles').innerHTML = `
-                    <strong>Output Directory:</strong><br>
-                    <code>${result.output_dir}</code><br><br>
-                    <strong>Files Generated:</strong><br>
-                    ${result.files.map(f => `<code>${f.split('/').pop()}</code>`).join('<br>')}
-                `;
-                
-                const modal = new bootstrap.Modal(document.getElementById('successModal'));
-                modal.show();
+                _deploy.outputDir = result.output_dir;
+                _deploy.generatedFiles = result.files || [];
+
+                // Show generated files inline
+                const filesList = document.getElementById('generatedFilesList');
+                if (filesList) {
+                    filesList.innerHTML = _deploy.generatedFiles
+                        .map(f => `<li>${f.split('/').pop()}</li>`).join('');
+                    document.getElementById('generatedFilesInline').style.display = '';
+                }
+
+                // Reveal the deploy panel
+                const panel = document.getElementById('deployPanel');
+                if (panel) {
+                    panel.style.display = '';
+                    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+
+                // Log first message
+                const box = document.getElementById('deployLog');
+                if (box) box.innerHTML = '';
+                _deployLog(`✅ Files generated in: ${result.output_dir}`, 'dl-success');
+                _deployLog(`📄 ${_deploy.generatedFiles.length} file(s) ready. Click Deploy Now to start.`, 'dl-info');
+
+                _setDeployPhase('generate');
+                _setDeployStatus('idle');
+                document.getElementById('btnDownloadFiles').style.display = '';
+
+                // Also populate the legacy success modal
+                const legacyDiv = document.getElementById('generatedFiles');
+                if (legacyDiv) {
+                    legacyDiv.innerHTML = `<strong>Output Directory:</strong><br><code>${result.output_dir}</code><br><br>
+                        <strong>Files Generated:</strong><br>${_deploy.generatedFiles.map(f => `<code>${f.split('/').pop()}</code>`).join('<br>')}`;
+                }
             } catch (e) {
+                _deployLog('Error generating configuration: ' + e.message, 'dl-error');
                 alert('Error generating configuration: ' + e.message);
+            } finally {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-rocket-takeoff me-2"></i>Generate &amp; Deploy'; }
             }
+        }
+
+        async function startDeployment() {
+            if (_deploy.evtSource) { _deploy.evtSource.close(); }
+
+            // Reset UI
+            const box = document.getElementById('deployLog');
+            if (box) box.innerHTML = '';
+            _deployLog('Starting deployment…', 'dl-info');
+            _setDeployStatus('running');
+            _setDeployPhase('generate');
+
+            document.getElementById('btnDeployNow').style.display = 'none';
+            document.getElementById('btnCancelDeploy').style.display = '';
+            document.getElementById('btnReDeployNow').style.display = 'none';
+
+            _deploy.startTs = Date.now();
+            _deploy.elapsedTimer = setInterval(_deployElapsed, 1000);
+
+            try {
+                const sessionId = 'dep_' + Date.now();
+                const resp = await fetch('/api/deploy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        profile: config,
+                        session_id: sessionId,
+                        dry_run: config.dry_run || false,
+                    }),
+                });
+                const data = await resp.json();
+                if (data.error) throw new Error(data.error);
+                _deploy.jobId = data.session_id;
+                _deploy.outputDir = data.output_dir || '';
+                _deployLog(`🔧 Session: ${data.session_id}  Output: ${data.output_dir || ''}`, 'dl-info');
+                _streamDeployLogs(data.session_id);
+            } catch (e) {
+                _deployLog('Failed to start deployment: ' + e.message, 'dl-error');
+                _setDeployStatus('failed');
+                _onDeployFinished(false);
+            }
+        }
+
+        function _streamDeployLogs(jobId) {
+            const src = new EventSource(`/api/deploy/${jobId}/stream`);
+            _deploy.evtSource = src;
+
+            src.onmessage = (ev) => {
+                const msg = JSON.parse(ev.data);
+
+                if (msg.done) {
+                    src.close();
+                    _onDeployFinished(msg.success === true);
+                    return;
+                }
+
+                // Log line
+                const level = msg.level || 'info';
+                const cls = level === 'error' ? 'dl-error'
+                          : level === 'warn'  ? 'dl-warn'
+                          : level === 'success' ? 'dl-success'
+                          : level === 'cmd'   ? 'dl-cmd'
+                          : 'dl-info';
+                _deployLog(msg.message || msg.text || '', cls);
+
+                // Use server-reported percent if available, else pattern-match
+                if (msg.percent) {
+                    const bar = document.getElementById('deployProgressBar');
+                    if (bar) bar.style.width = msg.percent + '%';
+                }
+
+                // Auto-advance phases based on message content
+                const m = msg.message || '';
+                if (DEPLOY_PHASE_PATTERNS.done.test(m))        _setDeployPhase('done');
+                else if (DEPLOY_PHASE_PATTERNS.health.test(m)) _setDeployPhase('health');
+                else if (DEPLOY_PHASE_PATTERNS.start.test(m))  _setDeployPhase('start');
+                else if (DEPLOY_PHASE_PATTERNS.pull.test(m))   _setDeployPhase('pull');
+            };
+
+            src.onerror = () => {
+                src.close();
+                // Fallback: poll status endpoint to determine outcome
+                fetch(`/api/deploy/${jobId}/status`)
+                    .then(r => r.json())
+                    .then(d => {
+                        if (!d.running) {
+                            _onDeployFinished(d.success === true);
+                        }
+                    })
+                    .catch(() => _onDeployFinished(false));
+            };
+        }
+
+        function _onDeployFinished(success) {
+            clearInterval(_deploy.elapsedTimer);
+            _deployElapsed();
+            _setDeployStatus(success ? 'success' : 'failed');
+            if (success) {
+                _setDeployPhase('done');
+                _deployLog('🎉 Deployment complete! Your CRM is up and running.', 'dl-success');
+                const port = config.api_port || 5000;
+                const host = config.deployment_host || 'localhost';
+                _deployLog(`🌐 Frontend: http://${host}:${config.frontend_port || 80}/`, 'dl-success');
+                _deployLog(`🔌 API:      http://${host}:${port}/health`, 'dl-success');
+            } else {
+                _deployLog('❌ Deployment failed. Check the logs above for details.', 'dl-error');
+            }
+            document.getElementById('btnCancelDeploy').style.display = 'none';
+            document.getElementById('btnReDeployNow').style.display = '';
+            document.getElementById('btnDeployNow').style.display = 'none';
+        }
+
+        async function cancelDeployment() {
+            if (!_deploy.jobId) return;
+            try {
+                await fetch(`/api/deploy/${_deploy.jobId}/stop`, { method: 'POST' });
+                _deployLog('⚠️ Abort signal sent…', 'dl-warn');
+                _setDeployStatus('cancelled');
+                document.getElementById('btnCancelDeploy').style.display = 'none';
+                document.getElementById('btnDeployNow').style.display = '';
+            } catch (e) {
+                _deployLog('Failed to abort: ' + e.message, 'dl-error');
+            }
+        }
+
+        function downloadGeneratedFiles() {
+            if (!_deploy.jobId) { alert('No deployment session active. Run a deployment first.'); return; }
+            window.open(`/api/download?session_id=${encodeURIComponent(_deploy.jobId)}`, '_blank');
         }
     </script>
 <script>
@@ -4234,6 +4498,37 @@ function togglePasswordVisibility(id) {
         style.textContent = `
             @keyframes spin { to { transform: rotate(360deg); } }
             .spin-icon { display: inline-block; animation: spin 1s linear infinite; }
+
+            /* ── Deploy panel ───────────────────────────────────────────── */
+            .deploy-panel { border:2px solid #dde0e8; border-radius:12px; overflow:hidden; margin-top:20px; }
+            .deploy-panel-header { background:#1e2235; color:#fff; padding:12px 18px; display:flex; align-items:center; gap:10px; }
+            .deploy-panel-header .dp-title { font-weight:700; font-size:.95rem; flex:1; }
+            .deploy-panel-body { padding:0; }
+            .deploy-log-wrap { background:#1a1b2e; padding:12px 14px; height:320px; overflow-y:auto; font-family:'JetBrains Mono',Consolas,monospace; font-size:.72rem; line-height:1.5; color:#cdd6f4; }
+            .deploy-log-wrap .dl-info    { color:#89dceb; }
+            .deploy-log-wrap .dl-warn    { color:#f9e2af; }
+            .deploy-log-wrap .dl-error   { color:#f38ba8; }
+            .deploy-log-wrap .dl-success { color:#a6e3a1; font-weight:600; }
+            .deploy-log-wrap .dl-cmd     { color:#cba6f7; }
+            .deploy-log-wrap .dl-ts      { color:#6c7086; margin-right:6px; user-select:none; }
+            .deploy-progress-row { background:#fff; padding:10px 16px; border-top:1px solid #f0f0f0; }
+            .deploy-progress-bar-wrap { height:6px; background:#e9ecef; border-radius:3px; overflow:hidden; margin-bottom:8px; }
+            .deploy-progress-bar-inner { height:100%; width:0; background:linear-gradient(90deg,#667eea,#764ba2); transition:width .4s ease; border-radius:3px; }
+            .deploy-phases { display:flex; gap:6px; flex-wrap:wrap; }
+            .dp-phase { display:flex; align-items:center; gap:4px; font-size:.72rem; padding:2px 8px; border-radius:12px; background:#f0f0f8; color:#666; }
+            .dp-phase.done    { background:#dcfce7; color:#166534; }
+            .dp-phase.active  { background:#fef3c7; color:#92400e; }
+            .dp-phase.errored { background:#fee2e2; color:#991b1b; }
+            .deploy-actions { padding:12px 16px; border-top:1px solid #f0f0f0; display:flex; gap:8px; align-items:center; background:#fff; }
+            .deploy-status-badge { padding:4px 12px; border-radius:20px; font-size:.8rem; font-weight:700; }
+            .ds-running  { background:#fef3c7; color:#92400e; }
+            .ds-success  { background:#dcfce7; color:#166534; }
+            .ds-failed   { background:#fee2e2; color:#991b1b; }
+            .ds-cancelled{ background:#f0f0f8; color:#555; }
+            .ds-idle     { background:#e0e7ff; color:#3730a3; }
+            .deploy-files-tree { list-style:none; padding:0; margin:0; }
+            .deploy-files-tree li { font-size:.8rem; padding:2px 0; color:#555; }
+            .deploy-files-tree li:before { content:'📄 '; }
             .smaller { font-size: 0.7rem; }
             .hover-shadow:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); }
             .day2-tab-pane { animation: fadeIn .2s ease; }
