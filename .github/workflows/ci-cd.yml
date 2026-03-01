@@ -586,6 +586,9 @@ jobs:
           exit 0
         fi
 
+        # NOTE: sonar.exclusions, sonar.sources, sonar.coverage.exclusions etc. are defined
+        # in sonar-project.properties at the repo root — do NOT duplicate them here as
+        # inline /d: parameters override the properties file and cause conflicts.
         dotnet sonarscanner begin \
           /k:"alal76_crm-solution" \
           /o:"alal76" \
@@ -594,8 +597,6 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="CRM.Backend/tests/TestResults/**/coverage.cobertura.xml" \
           /d:sonar.javascript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
           /d:sonar.typescript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
-          /d:sonar.exclusions="**/node_modules/**,**/obj/**,**/bin/**,**/dist/**,**/build/**,**/coverage/**,**/publish/**,**/migrations/**,**/*.min.js,**/*.generated.cs,.github/workflows/**,e2e-tests/**,scripts/**,database/**,docker/**,kubernetes/**,azure/**,CRM.Infrastructure/deployment-tool/**" \
-          /d:sonar.coverage.exclusions="**/tests/**,**/Tests/**,**/*.spec.ts,**/*.test.tsx,**/Program.cs,**/Migrations/**" \
           /d:sonar.links.homepage="https://github.com/alal76/crm-solution" \
           /d:sonar.links.ci="https://github.com/alal76/crm-solution/actions"
 
