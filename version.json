@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 42,
-  "lastUpdate": "2026-03-01",
-  "description": "fix(tests): v0.614.42 - fix all 27 CI test failures: restore try/catch in controllers (OpportunitiesController, ProductsController, SystemSettingsController, AuthController, TerritoriesController, EscalationRulesController, AddressesController) and UpdatedAt timestamps in services (CommissionService, TaskService, LandingPageService, InteractionService, EmailSequenceService, CurrencyService null guard)",
+  "patch": 45,
+  "lastUpdate": "2026-03-02",
+  "description": "fix(sonar): v0.614.45 - Fix 98 SonarCloud maintainability blockers: S3237 property setters using value keyword, S2699 test assertions, function always-same-return in service-worker/docker_compose/load_data",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

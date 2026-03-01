@@ -72,7 +72,7 @@ self.addEventListener('fetch', (event) => {
           if (!response || response.status !== 200) return response;
           const cloned = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
-          return response;
+          return cloned;
         }).catch(() => {
           // Return offline fallback for navigation requests
           if (event.request.mode === 'navigate') {

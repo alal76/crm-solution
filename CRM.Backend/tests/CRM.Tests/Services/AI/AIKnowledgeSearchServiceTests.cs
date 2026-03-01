@@ -149,8 +149,11 @@ public class AIKnowledgeSearchServiceTests
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
-        // Act & Assert - should complete without throwing
-        await _service.IndexArticleAsync(1);
+        // Act
+        var ex = await Record.ExceptionAsync(() => _service.IndexArticleAsync(1));
+
+        // Assert
+        ex.Should().BeNull();
     }
 
     [Fact]
@@ -161,8 +164,11 @@ public class AIKnowledgeSearchServiceTests
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
-        // Act & Assert - should complete without throwing even if article not found
-        await _service.IndexArticleAsync(999);
+        // Act
+        var ex = await Record.ExceptionAsync(() => _service.IndexArticleAsync(999));
+
+        // Assert
+        ex.Should().BeNull();
     }
 
     // ========================================================================
@@ -182,8 +188,11 @@ public class AIKnowledgeSearchServiceTests
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
-        // Act & Assert - should complete without throwing
-        await _service.ReindexAllAsync();
+        // Act
+        var ex = await Record.ExceptionAsync(() => _service.ReindexAllAsync());
+
+        // Assert
+        ex.Should().BeNull();
     }
 
     [Fact]
@@ -197,8 +206,11 @@ public class AIKnowledgeSearchServiceTests
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
-        // Act & Assert - should complete without throwing
-        await _service.ReindexAllAsync();
+        // Act
+        var ex = await Record.ExceptionAsync(() => _service.ReindexAllAsync());
+
+        // Assert
+        ex.Should().BeNull();
     }
 
     // ========================================================================

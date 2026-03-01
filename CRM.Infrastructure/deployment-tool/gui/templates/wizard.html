@@ -655,6 +655,39 @@
         .components-nav .nav-link:hover:not(.active) {
             border-bottom-color: #ccc;
         }
+
+        /* ── Sidebar provider sub-items ─────────────────────── */
+        .sidebar-providers-group {
+            margin-left: 6px;
+            border-left: 2px solid #e0e3eb;
+            padding-left: 8px;
+        }
+        .sidebar-prov-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 6px;
+            font-size: .75rem;
+            color: #555;
+            border-radius: 6px;
+            margin-bottom: 2px;
+        }
+        .sidebar-prov-item .spi-label { flex: 1; color: #777; }
+        .sidebar-prov-item .spi-val { font-weight: 600; color: #333; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* ── Network topology radio cards ──────────────────── */
+        .net-topo-card {
+            border: 2px solid #e0e3eb;
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: border-color .2s, box-shadow .2s;
+            background: #fff;
+        }
+        .net-topo-card:hover { border-color: #b0b8d6; }
+        .net-topo-card.selected { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(102,126,234,.18); }
+        .net-topo-card h6 { margin-bottom: 4px; }
+        .net-topo-card p { font-size: .8rem; margin-bottom: 0; }
     </style>
 </head>
 <body>
@@ -1922,6 +1955,104 @@
                 </div>
 
                 </div>
+
+                <!-- Network Topology (collapsible) -->
+                <hr class="my-4">
+                <div class="d-flex align-items-center justify-content-between mb-3" data-bs-toggle="collapse" data-bs-target="#networkCollapseInArch" style="cursor:pointer">
+                    <h5 class="mb-0"><i class="bi bi-hdd-network me-2"></i>Network Topology</h5>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+                <div class="collapse" id="networkCollapseInArch">
+                    <p class="text-muted small mb-3">Choose how containers communicate. This affects Docker network creation, firewall rules, and cloud VPC/subnet layout.</p>
+
+                    <div class="row g-3 mb-3" id="networkTopoGrid">
+                        <div class="col-md-6">
+                            <div class="net-topo-card selected" onclick="selectNetworkTopology('single')">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-circle text-primary"></i>
+                                    <h6 class="mb-0">Single Network</h6>
+                                    <span class="badge bg-success ms-auto">Simple</span>
+                                </div>
+                                <p class="text-muted">All containers (API, frontend, DB, providers) on one flat bridge network. Best for dev/small teams.</p>
+                                <ul class="small text-muted ps-3 mb-0">
+                                    <li>All services can reach each other by container name</li>
+                                    <li>Minimal configuration</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="net-topo-card" onclick="selectNetworkTopology('segmented')">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-diagram-2 text-info"></i>
+                                    <h6 class="mb-0">Segmented (Recommended)</h6>
+                                    <span class="badge bg-primary ms-auto">Production</span>
+                                </div>
+                                <p class="text-muted">Three isolated networks: <strong>core</strong> (API+Frontend), <strong>data</strong> (DB+Redis), <strong>components</strong> (providers). API bridges all three.</p>
+                                <ul class="small text-muted ps-3 mb-0">
+                                    <li>DB never exposed to providers or frontend</li>
+                                    <li>Matches cloud VPC subnet best practices</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="net-topo-card" onclick="selectNetworkTopology('dmz')">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-shield-check text-warning"></i>
+                                    <h6 class="mb-0">DMZ + Internal</h6>
+                                    <span class="badge bg-warning text-dark ms-auto">High Security</span>
+                                </div>
+                                <p class="text-muted">Public-facing <strong>DMZ</strong> (Frontend + reverse proxy) and private <strong>internal</strong> network (API, DB, providers). Only the proxy bridges both.</p>
+                                <ul class="small text-muted ps-3 mb-0">
+                                    <li>API &amp; DB never directly reachable from outside</li>
+                                    <li>Ideal for cloud with public/private subnets</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="net-topo-card" onclick="selectNetworkTopology('host')">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-pc-display text-secondary"></i>
+                                    <h6 class="mb-0">Host Networking</h6>
+                                    <span class="badge bg-secondary ms-auto">Advanced</span>
+                                </div>
+                                <p class="text-muted">Containers bind directly to the host network stack. No Docker bridge overhead, but requires careful port management.</p>
+                                <ul class="small text-muted ps-3 mb-0">
+                                    <li>Maximum performance, zero NAT overhead</li>
+                                    <li>Linux only — not supported on macOS/Windows Docker</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Forwarding & communication rules -->
+                    <div id="networkRulesPanel" class="mt-3" style="display:none">
+                        <h6><i class="bi bi-arrow-left-right me-1"></i>Inter-Network Communication Rules</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered small mb-2">
+                                <thead class="table-light">
+                                    <tr><th>From</th><th>To</th><th>Allowed</th><th>Purpose</th></tr>
+                                </thead>
+                                <tbody id="networkRulesBody">
+                                    <!-- Populated by selectNetworkTopology() -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" id="networkExposeDb" onchange="config.network_expose_db = this.checked">
+                            <label class="form-check-label small" for="networkExposeDb">Expose database port to host (for external tools / debugging)</label>
+                        </div>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="checkbox" id="networkExposeRedis" onchange="config.network_expose_redis = this.checked">
+                            <label class="form-check-label small" for="networkExposeRedis">Expose Redis port to host</label>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info small py-2 mt-3" id="networkInfo">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <span id="networkInfoText">Single bridge network — all containers communicate freely. Suitable for development and small deployments.</span>
+                    </div>
+                </div>
+
             </div>
 
             <!-- Step 4: Components (Database + Providers + Secrets) -->
@@ -3382,12 +3513,20 @@
                         <span class="si-value" id="sb-db">MariaDB</span>
                         <span class="si-status pending" id="sb-db-status">⏳</span>
                     </div>
+                    <div class="sidebar-item" onclick="goToStep(3)">
+                        <span class="si-icon"><i class="bi bi-hdd-network"></i></span>
+                        <span class="si-label">Network</span>
+                        <span class="si-value" id="sb-network">Single</span>
+                        <span class="si-status pending" id="sb-network-status">⏳</span>
+                    </div>
                     <div class="sidebar-item" onclick="goToStep(4)">
                         <span class="si-icon"><i class="bi bi-puzzle"></i></span>
                         <span class="si-label">Providers</span>
                         <span class="si-value" id="sb-providers">All Built-in</span>
                         <span class="si-status pending" id="sb-providers-status">⏳</span>
                     </div>
+                    <!-- Expanded provider detail rows (populated by JS) -->
+                    <div class="sidebar-providers-group" id="sb-providers-detail"></div>
                     <div class="sidebar-item" onclick="goToStep(4)">
                         <span class="si-icon"><i class="bi bi-shield-lock"></i></span>
                         <span class="si-label">Secrets</span>
@@ -3466,6 +3605,10 @@
             notification_provider: 'builtin',
             analytics_provider: 'builtin',
             ai_provider: 'ollama',
+            signature_provider: 'builtin',
+            network_topology: 'single',
+            network_expose_db: false,
+            network_expose_redis: false,
             secrets: {},
             ssl: { ssl_enabled: false },
             service_accounts: {},
@@ -4564,8 +4707,63 @@
                 const nm = document.getElementById('deploymentName');   if (nm) config.name = nm.value;
                 const ds = document.getElementById('deploymentDescription'); if (ds) config.description = ds.value;
                 const eu = document.getElementById('expectedUsers');    if (eu) config.expected_users = parseInt(eu.value)||100;
+                collectStepData();
                 localStorage.setItem(DRAFT_KEY, JSON.stringify({ config, step: currentStep }));
-                showToast?.('Draft saved successfully', 'success');
+
+                // Also persist to server as a named profile
+                const profileName = config.name || 'Untitled-Draft';
+                const profileData = {
+                    meta: {
+                        profile_name: profileName,
+                        created_at: config._profile_created_at || new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                        crm_version: config._crm_version || '',
+                    },
+                    target: {
+                        host: config.target?.host || config.deployment_host || '',
+                        ssh_user: config.target?.ssh_user || '',
+                        ssh_port: config.target?.ssh_port || 22,
+                        api_port: config.target?.api_port || '5000',
+                        frontend_port: config.target?.frontend_port || '80',
+                        environment_type: config.deployment_type || 'development',
+                    },
+                    platform: config.platform || '',
+                    architecture: config.architecture || 'monolithic',
+                    database: {
+                        type: config.database_type || 'mariadb',
+                        name: config.database_name || 'crm_db',
+                        port: config.database_port || 3306,
+                        ha: config.database_ha || false,
+                    },
+                    network: {
+                        topology: config.network_topology || 'single',
+                        expose_db: config.network_expose_db || false,
+                        expose_redis: config.network_expose_redis || false,
+                    },
+                    ssl: config.ssl || {},
+                    providers: {
+                        search: config.search_provider || 'builtin',
+                        chat: config.chat_provider || 'builtin',
+                        notification: config.notification_provider || 'builtin',
+                        analytics: config.analytics_provider || 'builtin',
+                        signature: config.signature_provider || 'builtin',
+                        ai: config.ai_provider || 'ollama',
+                        integration: config.integration_provider || 'builtin',
+                    },
+                    wizard_config: config,  // full config for restore
+                    wizard_step: currentStep,
+                };
+                config._profile_created_at = config._profile_created_at || profileData.meta.created_at;
+                fetch('/api/profiles', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name: profileName, data: profileData }),
+                }).then(r => {
+                    if (r.ok) showToast?.('Draft saved to server', 'success');
+                    else showToast?.('Draft saved locally (server save failed)', 'warning');
+                }).catch(() => {
+                    showToast?.('Draft saved locally only', 'info');
+                });
             } catch(e) { console.warn('Draft save failed:', e); }
         }
 
@@ -5169,13 +5367,24 @@
             const arch = config.architecture || '';
             const sslEnabled = config.ssl?.ssl_enabled;
             const db = config.database_type || 'mariadb';
+            const netTopo = config.network_topology || 'single';
             const hasSecrets = !!(config.secrets?.db_password || config.secrets?.jwt_secret);
             const users = config.expected_users || 100;
             const estMins = users < 50 ? 5 : users < 200 ? 20 : users < 500 ? 45 : 120;
 
-            // Count non-builtin providers
-            const provList = ['search', 'chat', 'notification', 'analytics', 'ai'].map(t => config[t + '_provider'] || 'builtin');
-            const nonBuiltinCount = provList.filter(p => p !== 'builtin').length;
+            // Build per-provider map {category: providerName}
+            const provCategories = [
+                { key: 'search_provider',       label: 'Search',        icon: 'bi-search' },
+                { key: 'chat_provider',         label: 'Chat',          icon: 'bi-chat-dots' },
+                { key: 'notification_provider', label: 'Notifications', icon: 'bi-bell' },
+                { key: 'analytics_provider',    label: 'Analytics',     icon: 'bi-bar-chart' },
+                { key: 'signature_provider',    label: 'Signatures',    icon: 'bi-pen' },
+                { key: 'ai_provider',           label: 'AI / LLM',     icon: 'bi-cpu' },
+            ];
+            const nonBuiltinCount = provCategories.filter(c => {
+                const v = config[c.key] || 'builtin';
+                return v !== 'builtin';
+            }).length;
             const provSummary = nonBuiltinCount === 0 ? 'All Built-in' : `${nonBuiltinCount} external`;
 
             // Helper
@@ -5194,9 +5403,24 @@
             setItem('sb-platform', platform ? platform.replace('_', ' ').toUpperCase() : '—', !!platform);
             setItem('sb-arch', arch ? arch.charAt(0).toUpperCase() + arch.slice(1) : '—', !!arch);
             setItem('sb-ssl', sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replace('_', ' ') : 'Disabled', sslEnabled);
+            const netLabels = { single: 'Single', segmented: 'Segmented', dmz: 'DMZ + Internal', host: 'Host' };
+            setItem('sb-network', netLabels[netTopo] || netTopo, true);
             setItem('sb-db', db.toUpperCase(), true);
             setItem('sb-providers', provSummary, true);
             setItem('sb-secrets', hasSecrets ? 'Configured' : 'Auto-generate', hasSecrets);
+
+            // ── Expanded provider detail rows ──
+            const detailEl = document.getElementById('sb-providers-detail');
+            if (detailEl) {
+                let html = '';
+                provCategories.forEach(c => {
+                    const val = config[c.key] || 'builtin';
+                    const display = val === 'builtin' ? 'Built-in' : val.charAt(0).toUpperCase() + val.slice(1);
+                    const cls = val === 'builtin' ? 'text-muted' : 'text-primary fw-bold';
+                    html += `<div class="sidebar-prov-item"><i class="bi ${c.icon}" style="width:16px"></i><span class="spi-label">${c.label}</span><span class="spi-val ${cls}">${display}</span></div>`;
+                });
+                detailEl.innerHTML = html;
+            }
 
             // Est time
             const estEl = document.getElementById('sidebarEstTime');
@@ -5264,6 +5488,52 @@
             grid.querySelectorAll('.provider-option, .pv2-card').forEach(el => el.classList.remove('selected'));
             const clicked = event && event.target ? event.target.closest('.provider-option, .pv2-card') : null;
             if (clicked) clicked.classList.add('selected');
+            updateSidebar();
+        }
+
+        // ── Network Topology ────────────────────────────────────────────────
+        const NETWORK_RULES = {
+            single: [],
+            segmented: [
+                ['core', 'data',       '✅', 'API reads/writes database & cache'],
+                ['core', 'components', '✅', 'API calls provider APIs (search, AI, etc.)'],
+                ['data', 'components', '❌', 'DB & Redis isolated from providers'],
+                ['components', 'core', '⚠️', 'Webhooks / callbacks only via API gateway'],
+            ],
+            dmz: [
+                ['dmz', 'internal',  '✅', 'Reverse-proxy forwards to API (port 5000)'],
+                ['internal', 'dmz',  '❌', 'Backend never initiates to DMZ'],
+                ['internal', 'data', '✅', 'API accesses DB & Redis'],
+                ['dmz', 'data',      '❌', 'Frontend / proxy cannot reach DB'],
+            ],
+            host: [],
+        };
+        const NETWORK_INFO = {
+            single:    'Single bridge network — all containers communicate freely. Suitable for development and small deployments.',
+            segmented: 'Three isolated networks (core, data, components). API bridges them — DB is never exposed to providers or frontend.',
+            dmz:       'Public DMZ (frontend + reverse proxy) separated from private internal (API, DB, providers). Maximum external isolation.',
+            host:      'Containers share the host network stack — best performance, but requires manual port management. Linux only.',
+        };
+
+        function selectNetworkTopology(topo) {
+            config.network_topology = topo;
+            // Update card selection
+            document.querySelectorAll('#networkTopoGrid .net-topo-card').forEach(c => c.classList.remove('selected'));
+            if (event && event.target) {
+                const card = event.target.closest('.net-topo-card');
+                if (card) card.classList.add('selected');
+            }
+            // Show/hide rules panel
+            const rulesPanel = document.getElementById('networkRulesPanel');
+            const rules = NETWORK_RULES[topo] || [];
+            if (rulesPanel) rulesPanel.style.display = rules.length ? '' : 'none';
+            // Populate rules table
+            const tbody = document.getElementById('networkRulesBody');
+            if (tbody) tbody.innerHTML = rules.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join('');
+            // Info text
+            const infoText = document.getElementById('networkInfoText');
+            if (infoText) infoText.textContent = NETWORK_INFO[topo] || '';
+            updateSidebar();
         }
 
         function updateStepIndicator() {
@@ -5428,7 +5698,19 @@
 
         function collectStepData() {
             // Collect data from current step
-            if (currentStep === 1) {
+            if (currentStep === 0) {
+                // Discovery step: capture target host into config.target early
+                const dHost = _getDeploymentHost();
+                if (dHost) {
+                    if (!config.target) config.target = {};
+                    config.target.host = dHost;
+                    config.target.ssh_user = document.getElementById('discoveryUsername')?.value || 'root';
+                    config.target.ssh_port = parseInt(document.getElementById('discoveryPort')?.value || '22');
+                    config.target.api_port = config.target.api_port || '5000';
+                    config.target.frontend_port = config.target.frontend_port || '80';
+                    config.deployment_host = dHost;
+                }
+            } else if (currentStep === 1) {
                 config.name = document.getElementById('deploymentName').value;
                 config.description = document.getElementById('deploymentDescription').value;
                 config.expected_users = parseInt(document.getElementById('expectedUsers').value);
@@ -5452,8 +5734,11 @@
                 // Auto-populate recommended registry for selected platform
                 autoPopulateRegistry(config.platform || 'local_docker');
             } else if (currentStep === 3) {
-                // Architecture step now also includes SSL
+                // Architecture step now also includes SSL + Network topology
                 _collectSslData();
+                // network_topology already set by selectNetworkTopology onclick
+                config.network_expose_db = document.getElementById('networkExposeDb')?.checked || false;
+                config.network_expose_redis = document.getElementById('networkExposeRedis')?.checked || false;
             } else if (currentStep === 4) {
                 // Components step: collect DB + Secrets
                 config.database_name = document.getElementById('dbName').value;
@@ -5788,6 +6073,19 @@
             const btn = document.getElementById('btnGenerate');
             if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generating…'; }
             try {
+                // Ensure config.target is populated from the Discovery form fields
+                // before sending to the backend (it needs target.host to generate compose).
+                const _host = _getDeploymentHost();
+                if (_host) {
+                    if (!config.target) config.target = {};
+                    config.target.host = config.target.host || _host;
+                    config.target.ssh_user = config.target.ssh_user || document.getElementById('discoveryUsername')?.value || 'root';
+                    config.target.ssh_port = config.target.ssh_port || parseInt(document.getElementById('discoveryPort')?.value || '22');
+                    config.target.api_port = config.target.api_port || '5000';
+                    config.target.frontend_port = config.target.frontend_port || '80';
+                    config.deployment_host = config.deployment_host || _host;
+                }
+
                 // Save config to server
                 await fetch('/api/config', {
                     method: 'POST',
@@ -6593,7 +6891,8 @@ async function refreshProfileBrowser() {
     try {
         const r = await fetch('/api/profiles');
         if (!r.ok) throw new Error('Failed to load profiles');
-        const profiles = await r.json();
+        const data = await r.json();
+        const profiles = Array.isArray(data) ? data : (data.profiles || []);
         renderProfileCards(profiles);
     } catch (e) {
         grid.innerHTML = `<div class="col-12"><div class="alert alert-danger">${e.message}</div></div>`;
@@ -6638,11 +6937,14 @@ function selectProfileCard(name) {
     document.getElementById('btnLoadSelectedProfile').disabled = false;
     document.getElementById('profileSelectedSummary').style.display = 'block';
     fetch(`/api/profiles/${encodeURIComponent(name)}`).then(_safeJson).then(p => {
-        document.getElementById('pbs-name').textContent = p.name || '—';
-        document.getElementById('pbs-target').textContent = p.target || '—';
-        document.getElementById('pbs-runtime').textContent = p.runtime || '—';
-        document.getElementById('pbs-db').textContent = p.db_type || '—';
-        document.getElementById('pbs-modified').textContent = p.modified ? new Date(p.modified).toLocaleString() : '—';
+        const meta = p.meta || {};
+        const tgt = p.target || {};
+        const db = p.database || {};
+        document.getElementById('pbs-name').textContent = meta.profile_name || p.name || name;
+        document.getElementById('pbs-target').textContent = tgt.host || tgt.environment_type || p.platform || '—';
+        document.getElementById('pbs-runtime').textContent = p.architecture || '—';
+        document.getElementById('pbs-db').textContent = db.type || '—';
+        document.getElementById('pbs-modified').textContent = meta.updated_at ? new Date(meta.updated_at).toLocaleString() : '—';
     }).catch(() => {});
 }
 async function applySelectedProfile() {
@@ -6651,11 +6953,68 @@ async function applySelectedProfile() {
         const r = await fetch(`/api/profiles/${encodeURIComponent(_selectedProfileName)}`);
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const p = await r.json();
-        // Apply to wizard fields
-        if (p.name) { const el = document.getElementById('deploymentName'); if(el) el.value = p.name; }
-        if (p.environment) { const el = document.getElementById('environment'); if(el) el.value = p.environment; }
+
+        // If the profile contains the full wizard_config, restore it entirely
+        if (p.wizard_config && typeof p.wizard_config === 'object') {
+            Object.assign(config, p.wizard_config);
+            if (typeof p.wizard_step === 'number') currentStep = p.wizard_step;
+        } else {
+            // Map structured profile sections back to flat wizard config
+            const meta = p.meta || {};
+            const tgt = p.target || {};
+            const db = p.database || {};
+            const net = p.network || {};
+            const prov = p.providers || {};
+
+            if (meta.profile_name) config.name = meta.profile_name;
+            if (p.platform) config.platform = p.platform;
+            if (p.architecture) config.architecture = p.architecture;
+
+            // Target
+            if (tgt.host) {
+                if (!config.target) config.target = {};
+                config.target.host = tgt.host;
+                config.target.ssh_user = tgt.ssh_user || config.target.ssh_user;
+                config.target.ssh_port = tgt.ssh_port || config.target.ssh_port;
+                config.target.api_port = tgt.api_port || config.target.api_port;
+                config.target.frontend_port = tgt.frontend_port || config.target.frontend_port;
+                config.deployment_host = tgt.host;
+            }
+            if (tgt.environment_type) config.deployment_type = tgt.environment_type;
+
+            // Database
+            if (db.type) config.database_type = db.type;
+            if (db.name) config.database_name = db.name;
+            if (db.port) config.database_port = db.port;
+            if (db.ha !== undefined) config.database_ha = db.ha;
+
+            // Network
+            if (net.topology) config.network_topology = net.topology;
+            if (net.expose_db !== undefined) config.network_expose_db = net.expose_db;
+            if (net.expose_redis !== undefined) config.network_expose_redis = net.expose_redis;
+
+            // SSL
+            if (p.ssl && Object.keys(p.ssl).length) config.ssl = p.ssl;
+
+            // Providers
+            if (prov.search) config.search_provider = prov.search;
+            if (prov.chat) config.chat_provider = prov.chat;
+            if (prov.notification) config.notification_provider = prov.notification;
+            if (prov.analytics) config.analytics_provider = prov.analytics;
+            if (prov.signature) config.signature_provider = prov.signature;
+            if (prov.ai) config.ai_provider = prov.ai;
+            if (prov.integration) config.integration_provider = prov.integration;
+        }
+
+        // Refresh UI to reflect loaded config
+        const nm = document.getElementById('deploymentName'); if (nm) nm.value = config.name || '';
+        const ds = document.getElementById('deploymentDescription'); if (ds) ds.value = config.description || '';
+        const eu = document.getElementById('expectedUsers'); if (eu) eu.value = config.expected_users || 100;
+        updateStepIndicator();
+        updateSidebar();
+
         document.getElementById('step-profile-browser').style.display = 'none';
-        showToast?.('Profile loaded', 'success');
+        showToast?.('Profile loaded — wizard fields updated', 'success');
     } catch(e) { showErrorPopup('Profile Load Error', 'Failed to load profile', e.message); }
 }
 function closeProfileBrowser() {

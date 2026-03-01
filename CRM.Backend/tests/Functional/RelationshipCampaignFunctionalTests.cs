@@ -284,6 +284,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         {
             _output.WriteLine($"FT-122 INFO: Create returned {response.StatusCode}");
         }
+        Assert.NotNull(response);
     }
 
     #endregion
@@ -375,6 +376,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         {
             _output.WriteLine($"FT-133 INFO: Create snapshot returned {response.StatusCode}");
         }
+        Assert.NotNull(response);
     }
 
     #endregion
@@ -458,6 +460,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         {
             _output.WriteLine($"FT-142 INFO: Link workflow returned {response.StatusCode}");
         }
+        Assert.NotNull(response);
     }
 
     #endregion
@@ -520,6 +523,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         {
             _output.WriteLine($"FT-152 INFO: Add recipients returned {response.StatusCode}");
         }
+        Assert.NotNull(response);
     }
 
     #endregion
@@ -588,6 +592,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         {
             _output.WriteLine($"FT-162 INFO: Create A/B test returned {response.StatusCode}");
         }
+        Assert.NotNull(response);
     }
 
     #endregion
@@ -647,6 +652,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         {
             _output.WriteLine($"FT-172 INFO: Get analytics returned {response.StatusCode}");
         }
+        Assert.NotNull(response);
     }
 
     [Fact]
@@ -685,6 +691,7 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
         {
             _output.WriteLine($"FT-173 INFO: Record conversion returned {response.StatusCode}");
         }
+        Assert.NotNull(response);
     }
 
     #endregion

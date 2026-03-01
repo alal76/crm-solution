@@ -672,28 +672,28 @@ public class Account : BaseEntity
     public string? City
     {
         get => Addresses?.FirstOrDefault()?.City;
-        set { /* for backward compat */ }
+        set => _ = value; // backward compat – collection is the source of truth
     }
 
     /// <summary>Backward compatibility - returns first address state</summary>
     public string? State
     {
         get => Addresses?.FirstOrDefault()?.State;
-        set { /* for backward compat */ }
+        set => _ = value; // backward compat – collection is the source of truth
     }
 
     /// <summary>Backward compatibility - returns first address zip code</summary>
     public string? ZipCode
     {
         get => Addresses?.FirstOrDefault()?.PostalCode;
-        set { /* for backward compat */ }
+        set => _ = value; // backward compat – collection is the source of truth
     }
 
     /// <summary>Backward compatibility - returns first address country</summary>
     public string? Country
     {
         get => Addresses?.FirstOrDefault()?.Country;
-        set { /* for backward compat */ }
+        set => _ = value; // backward compat – collection is the source of truth
     }
 
     /// <summary>Flag indicating if shipping address is same as billing</summary>

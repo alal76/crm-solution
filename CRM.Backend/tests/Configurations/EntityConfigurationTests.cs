@@ -557,7 +557,8 @@ public class EntityConfigurationTests
     [Fact]
     public void Dispose()
     {
-        _context?.Dispose();
+        Action act = () => _context?.Dispose();
+        act.Should().NotThrow("Disposing the context should not throw an exception");
     }
 
     #endregion

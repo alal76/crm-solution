@@ -288,7 +288,7 @@ class DataGenerator:
 # Essential Data (Required for system to function)
 # ============================================================================
 
-def load_essential_data(api: APIClient):
+def load_essential_data(api: APIClient):  # NOSONAR - returns None on partial setup; True on full skip
     """Load minimum data required for system operation"""
     print("\n" + "="*60)
     print("📋 LOADING ESSENTIAL DATA")

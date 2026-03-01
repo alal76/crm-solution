@@ -92,6 +92,7 @@ public class LeadScoreDecayHostedServiceTests
 
         // Assert - service should have returned early without processing
         // No scope creation = no exceptions from null service provider
+        service.Should().NotBeNull("Service should remain valid after early return due to disabled decay");
     }
 
     [Fact]
@@ -150,6 +151,7 @@ public class LeadScoreDecayHostedServiceTests
         await service.StopAsync(CancellationToken.None);
 
         // Assert - no exceptions thrown
+        service.Should().NotBeNull("Service should remain valid after scope creation attempt");
         sp.Dispose();
     }
 

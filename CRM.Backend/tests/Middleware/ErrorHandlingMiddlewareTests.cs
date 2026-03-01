@@ -445,6 +445,14 @@ public class ErrorHandlingMiddlewareTests
 
         // Assert
         // Task cancellations should be handled gracefully without error logging
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Never);
     }
 
     [Fact]
@@ -460,6 +468,14 @@ public class ErrorHandlingMiddlewareTests
 
         // Assert
         // Operation cancellations should be handled gracefully
+        _mockLogger.Verify(
+            x => x.Log(
+                LogLevel.Error,
+                It.IsAny<EventId>(),
+                It.IsAny<It.IsAnyType>(),
+                It.IsAny<Exception>(),
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
+            Times.Never);
     }
 
     #endregion

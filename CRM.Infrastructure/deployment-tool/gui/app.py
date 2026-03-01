@@ -1087,7 +1087,55 @@ def generate_docker_compose(config):
     import yaml
     
     version = "3.8"
-    network_name = "crm-network"
+    network_topology = config.get('network_topology', 'single')
+    expose_db = config.get('network_expose_db', False)
+    expose_redis = config.get('network_expose_redis', False)
+    
+    # Build network names based on topology
+    if network_topology == 'segmented':
+        net_core = 'crm-core-network'
+        net_data = 'crm-data-network'
+        net_comp = 'crm-components-network'
+        compose_networks = {
+            net_core: {'driver': 'bridge'},
+            net_data: {'driver': 'bridge'},
+            net_comp: {'driver': 'bridge'},
+        }
+    elif network_topology == 'dmz':
+        net_core = 'crm-dmz-network'      # public-facing (frontend, reverse proxy)
+        net_data = 'crm-internal-network'  # private (API, DB, providers)
+        net_comp = 'crm-internal-network'
+        compose_networks = {
+            net_core: {'driver': 'bridge'},
+            net_data: {'driver': 'bridge'},
+        }
+    elif network_topology == 'host':
+        net_core = None  # use network_mode: host
+        net_data = None
+        net_comp = None
+        compose_networks = {}
+    else:  # 'single'
+        net_core = 'crm-network'
+        net_data = 'crm-network'
+        net_comp = 'crm-network'
+        compose_networks = {
+            'crm-network': {'driver': 'bridge'},
+        }
+
+    def _svc_networks(nets):
+        """Return network list or network_mode for host topology."""
+        if network_topology == 'host':
+            return {}            # will add network_mode: host separately
+        return {'networks': list(set(n for n in nets if n))}
+
+    def _apply_host_mode(svc_dict):
+        """For host topology, replace networks with network_mode: host."""
+        if network_topology == 'host':
+            svc_dict.pop('networks', None)
+            svc_dict['network_mode'] = 'host'
+
+    # Keep a single name for _add_provider_services compatibility
+    provider_network_name = net_comp or 'crm-network'
     
     services = {}
     volumes = {}
@@ -1130,7 +1178,7 @@ def generate_docker_compose(config):
     # Database
     db_host = get_host_config('database', 'localhost', 3306)
     if config.get('database_type', 'mariadb') == 'mariadb':
-        services['mariadb'] = {
+        db_svc = {
             'image': 'mariadb:11',
             'container_name': 'crm-mariadb',
             'restart': 'unless-stopped',
@@ -1141,8 +1189,7 @@ def generate_docker_compose(config):
                 'MARIADB_PASSWORD': '${DB_PASSWORD}'
             },
             'volumes': ['db_data:/var/lib/mysql'],
-            'ports': [f"{db_host['port']}:3306"],
-            'networks': [network_name],
+            **_svc_networks([net_data]),
             'healthcheck': {
                 'test': ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"],
                 'interval': '10s',
@@ -1150,17 +1197,24 @@ def generate_docker_compose(config):
                 'retries': 3
             }
         }
+        if expose_db:
+            db_svc['ports'] = [f"{db_host['port']}:3306"]
+        _apply_host_mode(db_svc)
+        services['mariadb'] = db_svc
         volumes['db_data'] = {'driver': 'local'}
     
     # Redis
     redis_host = get_host_config('redis', 'localhost', 6379)
-    services['redis'] = {
+    redis_svc = {
         'image': 'redis:alpine',
         'container_name': 'crm-redis',
         'restart': 'unless-stopped',
-        'ports': [f"{redis_host['port']}:6379"],
-        'networks': [network_name]
+        **_svc_networks([net_data])
     }
+    if expose_redis:
+        redis_svc['ports'] = [f"{redis_host['port']}:6379"]
+    _apply_host_mode(redis_svc)
+    services['redis'] = redis_svc
     
     # API
     api_host = get_host_config('api', 'localhost', 5000)
@@ -1250,14 +1304,21 @@ def generate_docker_compose(config):
             'Providers__Integrations__N8n__ApiKey': '${N8N_API_KEY}'
         })
     
-    services['api'] = {
+    # API bridges all networks so it can reach DB, Redis, and provider services
+    if network_topology == 'segmented':
+        api_nets = [net_core, net_data, net_comp]
+    elif network_topology == 'dmz':
+        api_nets = [net_data]          # API is internal-only; proxy bridges DMZ→internal
+    else:
+        api_nets = [net_core] if net_core else []
+    api_svc = {
         'image': 'crm-api:latest',
         'container_name': 'crm-api',
         'restart': 'unless-stopped',
         'environment': api_env,
         'ports': [f"{api_host['port']}:5000"],
         'depends_on': ['mariadb', 'redis'],
-        'networks': [network_name],
+        **_svc_networks(api_nets),
         'healthcheck': {
             'test': ["CMD", "curl", "-f", "http://localhost:5000/health"],
             'interval': '30s',
@@ -1265,15 +1326,17 @@ def generate_docker_compose(config):
             'retries': 3
         }
     }
+    _apply_host_mode(api_svc)
+    services['api'] = api_svc
     
     # Add SSL volumes if SSL is enabled
     if ssl_enabled:
         services['api']['volumes'] = ['ssl_certs:/app/ssl']
         volumes['ssl_certs'] = {'driver': 'local'}
     
-    # Frontend
+    # Frontend — sits on the public-facing / core network
     frontend_host = get_host_config('frontend', 'localhost', 80)
-    services['frontend'] = {
+    fe_svc = {
         'image': 'crm-frontend:latest',
         'container_name': 'crm-frontend',
         'restart': 'unless-stopped',
@@ -1282,20 +1345,21 @@ def generate_docker_compose(config):
         },
         'ports': [f"{frontend_host['port']}:80"],
         'depends_on': ['api'],
-        'networks': [network_name]
+        **_svc_networks([net_core])
     }
+    _apply_host_mode(fe_svc)
+    services['frontend'] = fe_svc
     
-    # Add provider services based on selection
-    _add_provider_services(config, services, volumes, network_name, get_host_config, redis_host)
+    # Add provider services based on selection (providers go on components network)
+    _add_provider_services(config, services, volumes, provider_network_name, get_host_config, redis_host)
     
     compose = {
         'version': version,
         'services': services,
         'volumes': volumes,
-        'networks': {
-            network_name: {'driver': 'bridge'}
-        }
     }
+    if compose_networks:
+        compose['networks'] = compose_networks
     
     return yaml.dump(compose, default_flow_style=False, sort_keys=False)
 

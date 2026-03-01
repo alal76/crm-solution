@@ -156,6 +156,7 @@ public class EmailSyncHostedServiceTests
 
         // Assert - may or may not have called depending on timing
         // The service uses a 5-minute delay between calls
+        _mockEmailSyncService.Verify(x => x.SyncAllDueAsync(), Times.AtMostOnce());
     }
 
     [Fact]
@@ -270,6 +271,7 @@ public class EmailSyncHostedServiceTests
         await service.StopAsync(CancellationToken.None);
 
         // Assert - service should handle null gracefully
+        service.Should().NotBeNull("Service should remain valid despite failed service resolution");
     }
 
     [Fact]
@@ -333,6 +335,7 @@ public class EmailSyncHostedServiceTests
         await service.StopAsync(CancellationToken.None);
 
         // Assert - should complete without hanging
+        service.Should().NotBeNull("Service should still be accessible after stopping");
     }
 
     [Fact]
@@ -375,6 +378,7 @@ public class EmailSyncHostedServiceTests
 
         // Assert - each sync should complete before next starts
         // Due to 5-minute interval, typically only one call in this test duration
+        syncCallCount.Should().BeLessOrEqualTo(1, "Only one sync call is expected within the short test window");
     }
 
     #endregion

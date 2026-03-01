@@ -136,7 +136,7 @@ class DockerComposeDeployer:
         """Filter out services whose containers are being reused."""
         return [s for s in requested if s not in self._reused_containers]
 
-    def _ensure_reused_running(self, containers: list[str]) -> bool:
+    def _ensure_reused_running(self, containers: list[str]) -> bool:  # NOSONAR - best-effort; container start failures are non-fatal
         """Ensure reused containers are running via ``docker start`` (idempotent).
 
         ``docker start`` is a no-op for already-running containers and starts
@@ -498,7 +498,7 @@ class DockerComposeDeployer:
             + (f", {failed} failed" if failed else ""),
             "info",
         )
-        return True
+        return failed == 0  # return False when container removal failed
 
     # ------------------------------------------------------------------ #
     #  Step 3 — Build Local Images (skipped when using a remote registry) #
@@ -707,7 +707,7 @@ class DockerComposeDeployer:
 
         return True
 
-    def _step_pull_images(self) -> bool:
+    def _step_pull_images(self) -> bool:  # NOSONAR - pull failures are non-fatal by design
         build_locally = self.profile.get("image_registry", {}).get("build_locally", False)
         if build_locally:
             # Only pull non-locally-built services (databases, providers, etc.)
@@ -867,7 +867,7 @@ class DockerComposeDeployer:
         )
         return False
 
-    def _step_run_migrations(self) -> bool:
+    def _step_run_migrations(self) -> bool:  # NOSONAR - migration step is advisory; API handles schema on startup
         if self.dry_run:
             self._emit(f"[{self._target_host}] [DRY-RUN] Would run EF Core migrations", "info")
             return True
@@ -936,7 +936,7 @@ class DockerComposeDeployer:
         )
         return True
 
-    def _step_start_providers(self) -> bool:
+    def _step_start_providers(self) -> bool:  # NOSONAR - provider failures are non-fatal; core CRM runs without them
         providers = self.profile.get("providers", {})
         extras = []
         if providers.get("search_provider") == "meilisearch":

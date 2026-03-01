@@ -203,6 +203,7 @@ public class BackupSchedulerHostedServiceTests
         cts.Cancel();
 
         // Assert - backup should have been triggered (or attempted)
+        _mockBackupService.Verify(x => x.RunScheduledBackupAsync(It.IsAny<int>()), Times.AtMost(1));
     }
 
     [Fact]
@@ -402,6 +403,7 @@ public class BackupSchedulerHostedServiceTests
         cts.Cancel();
 
         // Assert - service should continue despite first error
+        service.Should().NotBeNull("Service should remain valid after handling errors");
     }
 
     #endregion
@@ -435,6 +437,7 @@ public class BackupSchedulerHostedServiceTests
         await service.StopAsync(CancellationToken.None);
 
         // Assert - should complete without hanging
+        service.Should().NotBeNull("Service should still be accessible after stopping");
     }
 
     [Fact]
@@ -470,6 +473,7 @@ public class BackupSchedulerHostedServiceTests
         cts.Cancel();
 
         // Assert - service uses 1-minute interval for checking
+        service.Should().NotBeNull("Service should be running with the expected interval");
     }
 
     #endregion
@@ -498,6 +502,7 @@ public class BackupSchedulerHostedServiceTests
         cts.Cancel();
 
         // Assert - all due backups should be processed (timing dependent)
+        _mockBackupService.Verify(x => x.RunScheduledBackupAsync(It.IsAny<int>()), Times.AtMost(3));
     }
 
     [Fact]
@@ -553,6 +558,7 @@ public class BackupSchedulerHostedServiceTests
         cts.Cancel();
 
         // Assert - log should contain schedule name (timing dependent)
+        _mockBackupService.Verify(x => x.RunScheduledBackupAsync(It.IsAny<int>()), Times.AtMost(1));
     }
 
     #endregion

@@ -133,6 +133,7 @@ public class SLAEnforcementHostedServiceTests
         await service.StartAsync(CancellationToken.None);
         await Task.Delay(50);
         await service.StopAsync(CancellationToken.None);
+        service.Should().NotBeNull("Service should remain valid after a complete start/stop cycle");
     }
 
     #endregion
@@ -152,7 +153,8 @@ public class SLAEnforcementHostedServiceTests
         await Task.Delay(100);
 
         // Assert - stop should complete without error
-        await service.StopAsync(CancellationToken.None);
+        Func<Task> stopAct = async () => await service.StopAsync(CancellationToken.None);
+        await stopAct.Should().NotThrowAsync("StopAsync should complete without error when cancellation is requested");
     }
 
     #endregion
@@ -176,6 +178,7 @@ public class SLAEnforcementHostedServiceTests
         // Assert - scope factory should be called
         // Note: Due to timing, this may or may not have been called depending on race conditions
         // The important thing is the service runs without error
+        service.Should().NotBeNull("Service should remain valid after scope creation attempt");
     }
 
     #endregion

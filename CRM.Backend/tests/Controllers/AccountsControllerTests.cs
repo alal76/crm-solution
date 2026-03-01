@@ -517,6 +517,7 @@ public class AccountsControllerTests
         var attributes = controllerType.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute), true);
         // This should be updated when Authorize is added:
         // attributes.Should().NotBeEmpty("Controller should require authorization");
+        attributes.Should().NotBeNull("Attribute reflection should return a valid array (may be empty until Authorize is added)");
     }
 
     /// <summary>

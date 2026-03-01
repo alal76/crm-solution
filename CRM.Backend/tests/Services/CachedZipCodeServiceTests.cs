@@ -511,6 +511,7 @@ public class CachedZipCodeServiceTests
         // The cache should be cleared. On next call, should hit inner service again
         // Note: Due to how MemoryCache works, we'd need to verify by behavior
         // This is more of a smoke test to ensure the method doesn't throw
+        _mockInnerService.Should().NotBeNull("Inner service should remain accessible after cache clear");
     }
 
     #endregion

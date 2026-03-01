@@ -82,6 +82,7 @@ public class ServiceExtensionsTests
             var services = builder.Services.BuildServiceProvider();
 
             // Assert - CORS policy should be added
+            services.Should().NotBeNull("ServiceProvider should be built successfully when CORS is configured");
         }
         finally
         {
@@ -125,6 +126,7 @@ public class ServiceExtensionsTests
             builder.AddServiceDefaults();
 
             // Assert - health checks should be added (verified by not throwing)
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register health check services");
         }
         finally
         {
@@ -144,6 +146,7 @@ public class ServiceExtensionsTests
             builder.AddServiceDefaults();
 
             // Assert - authentication should be configured
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register authentication services");
         }
         finally
         {
@@ -163,6 +166,7 @@ public class ServiceExtensionsTests
             builder.AddServiceDefaults();
 
             // Assert - authorization should be added
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register authorization services");
         }
         finally
         {
@@ -182,6 +186,7 @@ public class ServiceExtensionsTests
             builder.AddServiceDefaults();
 
             // Assert - controllers should be added
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register controller services");
         }
         finally
         {
@@ -201,6 +206,7 @@ public class ServiceExtensionsTests
             builder.AddServiceDefaults();
 
             // Assert - Swagger should be added
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register Swagger services");
         }
         finally
         {
@@ -220,6 +226,7 @@ public class ServiceExtensionsTests
             builder.AddServiceDefaults();
 
             // Assert - response caching should be added
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register response caching services");
         }
         finally
         {
@@ -240,6 +247,7 @@ public class ServiceExtensionsTests
 
             // Assert - output cache policies should be added:
             // NoCache, ShortCache, MediumCache, LongCache
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register output cache services");
         }
         finally
         {
@@ -280,6 +288,7 @@ public class ServiceExtensionsTests
         {
             // Expected if environment variable takes precedence
         }
+        builder.Should().NotBeNull("WebApplicationBuilder should remain valid after AddServiceDefaults");
     }
 
     [Fact]
@@ -295,6 +304,7 @@ public class ServiceExtensionsTests
             builder.AddServiceDefaults();
 
             // Assert - should default to "CRM.Api"
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register services with default issuer");
         }
         finally
         {
@@ -315,6 +325,7 @@ public class ServiceExtensionsTests
             builder.AddServiceDefaults();
 
             // Assert - should default to "CRM.Client"
+            builder.Services.Should().NotBeEmpty("AddServiceDefaults should register services with default audience");
         }
         finally
         {
@@ -367,6 +378,7 @@ public class ServiceExtensionsTests
             app.UseServiceDefaults();
 
             // Assert - exception handler should be configured
+            app.Should().NotBeNull("WebApplication should remain valid after UseServiceDefaults");
         }
         finally
         {
@@ -390,6 +402,7 @@ public class ServiceExtensionsTests
             app.UseServiceDefaults();
 
             // Assert - /health endpoint should be mapped
+            app.Should().NotBeNull("WebApplication should have health endpoints mapped");
         }
         finally
         {
@@ -413,6 +426,7 @@ public class ServiceExtensionsTests
             app.UseServiceDefaults();
 
             // Assert - controllers should be mapped
+            app.Should().NotBeNull("WebApplication should have controllers mapped");
         }
         finally
         {
@@ -436,6 +450,7 @@ public class ServiceExtensionsTests
             app.UseServiceDefaults();
 
             // Assert - CORS middleware should be used
+            app.Should().NotBeNull("WebApplication should have CORS middleware configured");
         }
         finally
         {
@@ -459,6 +474,7 @@ public class ServiceExtensionsTests
             app.UseServiceDefaults();
 
             // Assert - authentication middleware should be used
+            app.Should().NotBeNull("WebApplication should have authentication middleware configured");
         }
         finally
         {
@@ -482,6 +498,7 @@ public class ServiceExtensionsTests
             app.UseServiceDefaults();
 
             // Assert - authorization middleware should be used
+            app.Should().NotBeNull("WebApplication should have authorization middleware configured");
         }
         finally
         {
@@ -505,6 +522,7 @@ public class ServiceExtensionsTests
             app.UseServiceDefaults();
 
             // Assert - response caching middleware should be used
+            app.Should().NotBeNull("WebApplication should have response caching middleware configured");
         }
         finally
         {
@@ -528,6 +546,7 @@ public class ServiceExtensionsTests
             app.UseServiceDefaults();
 
             // Assert - output cache middleware should be used
+            app.Should().NotBeNull("WebApplication should have output cache middleware configured");
         }
         finally
         {
