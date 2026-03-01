@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-03-01",
-  "description": "feat(frontend): v0.614.0 - createCrudService factory, useLoadingState hook, apiErrorHandler utility; refactored 5 service files to eliminate CRUD boilerplate",
+  "description": "refactor(deployment-tool): v0.614.1 - add _fetch_json helper; replace 20 repeated json.loads patterns in cloud discovery methods",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

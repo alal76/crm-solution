@@ -1145,7 +1145,21 @@ class CloudCLIManager:
             return result.returncode == 0, result.stdout + result.stderr
         except Exception as e:
             return False, str(e)
-    
+
+    def _fetch_json(self, command: str, default=None):
+        """
+        Runs a CLI command and parses its stdout as JSON.
+        Returns parsed JSON on success, or `default` if the command fails or output is not valid JSON.
+        Eliminates repeated try/except json.loads patterns in cloud discovery methods.
+        """
+        success, output = self._run_command(command)
+        if not success:
+            return default
+        try:
+            return json.loads(output)
+        except Exception:
+            return default
+
     def check_cli_installed(self, provider: str) -> Tuple[bool, str]:
         """Check if CLI is installed and return (installed, version)."""
         if provider not in self.CLI_INFO:
@@ -1249,30 +1263,15 @@ class CloudCLIManager:
         }
         
         # Get regions
-        success, output = self._run_command("aws ec2 describe-regions --query 'Regions[].RegionName' --output json")
-        if success:
-            try:
-                resources["regions"] = json.loads(output)
-            except Exception:
-                pass
-        
+        resources["regions"] = self._fetch_json("aws ec2 describe-regions --query 'Regions[].RegionName' --output json") or []
+
         # Get VPCs
-        success, output = self._run_command(f"aws ec2 describe-vpcs --region {region} --query 'Vpcs[].VpcId' --output json")
-        if success:
-            try:
-                resources["vpcs"] = json.loads(output)
-            except Exception:
-                pass
-        
+        resources["vpcs"] = self._fetch_json(f"aws ec2 describe-vpcs --region {region} --query 'Vpcs[].VpcId' --output json") or []
+
         # Get ECS clusters
-        success, output = self._run_command(f"aws ecs list-clusters --region {region} --query 'clusterArns[*]' --output json")
-        if success:
-            try:
-                arns = json.loads(output)
-                resources["ecs_clusters"] = [arn.split("/")[-1] for arn in arns]
-            except Exception:
-                pass
-        
+        _arns = self._fetch_json(f"aws ecs list-clusters --region {region} --query 'clusterArns[*]' --output json") or []
+        resources["ecs_clusters"] = [arn.split("/")[-1] for arn in _arns]
+
         return resources
     
     def get_azure_resources(self) -> Dict[str, List[Any]]:
@@ -1286,31 +1285,16 @@ class CloudCLIManager:
         }
         
         # Get subscriptions
-        success, output = self._run_command("az account list --query '[].{id:id, name:name}' --output json")
-        if success:
-            try:
-                resources["subscriptions"] = json.loads(output)
-            except Exception:
-                pass
-        
+        resources["subscriptions"] = self._fetch_json("az account list --query '[].{id:id, name:name}' --output json") or []
+
         # Get resource groups
-        success, output = self._run_command("az group list --query '[].name' --output json")
-        if success:
-            try:
-                resources["resource_groups"] = json.loads(output)
-            except Exception:
-                pass
-        
+        resources["resource_groups"] = self._fetch_json("az group list --query '[].name' --output json") or []
+
         # Get locations
-        success, output = self._run_command("az account list-locations --query '[].name' --output json")
-        if success:
-            try:
-                resources["locations"] = json.loads(output)
-            except Exception:
-                pass
-        
+        resources["locations"] = self._fetch_json("az account list-locations --query '[].name' --output json") or []
+
         return resources
-    
+
     def get_gcp_resources(self) -> Dict[str, List[Any]]:
         """Get existing GCP resources for auto-population."""
         resources = {
@@ -1327,21 +1311,11 @@ class CloudCLIManager:
             resources["current_project"] = output.strip()
         
         # Get all projects
-        success, output = self._run_command("gcloud projects list --format='json(projectId,name)'")
-        if success:
-            try:
-                resources["projects"] = json.loads(output)
-            except:
-                pass
-        
+        resources["projects"] = self._fetch_json("gcloud projects list --format='json(projectId,name)'") or []
+
         # Get regions
-        success, output = self._run_command("gcloud compute regions list --format='json(name)' --filter='status=UP'")
-        if success:
-            try:
-                regions = json.loads(output)
-                resources["regions"] = [r.get("name") for r in regions if r.get("name")]
-            except:
-                pass
+        _regions = self._fetch_json("gcloud compute regions list --format='json(name)' --filter='status=UP'") or []
+        resources["regions"] = [r.get("name") for r in _regions if r.get("name")]
         
         return resources
     
@@ -1398,7 +1372,21 @@ class CloudDeployer:
         except Exception as e:
             self.log("error", str(e))
             return False, str(e)
-    
+
+    def _fetch_json(self, command: str, default=None):
+        """
+        Runs a CLI command and parses its stdout as JSON.
+        Returns parsed JSON on success, or `default` if the command fails or output is not valid JSON.
+        Eliminates repeated try/except json.loads patterns in cloud discovery methods.
+        """
+        success, output = self._run_command(command)
+        if not success:
+            return default
+        try:
+            return json.loads(output)
+        except Exception:
+            return default
+
     def check_cli(self) -> bool:
         """Check if cloud CLI is installed."""
         raise NotImplementedError
@@ -1473,47 +1461,27 @@ class AWSDeployer(CloudDeployer):
             return info
         
         # Get available regions
-        success, output = self._run_command("aws ec2 describe-regions --query 'Regions[].RegionName' --output json")
-        if success:
-            try:
-                info["regions"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        info["regions"] = self._fetch_json("aws ec2 describe-regions --query 'Regions[].RegionName' --output json") or []
+
         # Get VPCs in current region
         region = self.config.aws_region or "us-east-1"
-        success, output = self._run_command(
+        info["vpcs"] = self._fetch_json(
             f"aws ec2 describe-vpcs --region {region} --query 'Vpcs[].{{VpcId:VpcId,CidrBlock:CidrBlock,IsDefault:IsDefault}}' --output json"
-        )
-        if success:
-            try:
-                info["vpcs"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        ) or []
+
         # Get ECS clusters
-        success, output = self._run_command(
+        _clusters = self._fetch_json(
             f"aws ecs list-clusters --region {region} --query 'clusterArns' --output json"
-        )
-        if success:
-            try:
-                clusters = json.loads(output)
-                info["ecs_clusters"] = [c.split("/")[-1] for c in clusters]
-            except json.JSONDecodeError:
-                pass
-        
+        ) or []
+        info["ecs_clusters"] = [c.split("/")[-1] for c in _clusters]
+
         # Get ECR repositories
-        success, output = self._run_command(
+        info["ecr_repositories"] = self._fetch_json(
             f"aws ecr describe-repositories --region {region} --query 'repositories[].repositoryName' --output json"
-        )
-        if success:
-            try:
-                info["ecr_repositories"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        ) or []
+
         return info
-    
+
     def create_infrastructure(self) -> bool:
         """Create AWS infrastructure (ECS cluster, RDS, ElastiCache)."""
         self.log("info", "Creating AWS infrastructure...")
@@ -1676,47 +1644,22 @@ class AzureDeployer(CloudDeployer):
             return info
         
         # Get all subscriptions
-        success, output = self._run_command("az account list --query '[].{id:id,name:name,isDefault:isDefault}' --output json")
-        if success:
-            try:
-                info["subscriptions"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        info["subscriptions"] = self._fetch_json("az account list --query '[].{id:id,name:name,isDefault:isDefault}' --output json") or []
+
         # Get resource groups
-        success, output = self._run_command("az group list --query '[].{name:name,location:location}' --output json")
-        if success:
-            try:
-                info["resource_groups"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        info["resource_groups"] = self._fetch_json("az group list --query '[].{name:name,location:location}' --output json") or []
+
         # Get available locations
-        success, output = self._run_command("az account list-locations --query '[].{name:name,displayName:displayName}' --output json")
-        if success:
-            try:
-                info["locations"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        info["locations"] = self._fetch_json("az account list-locations --query '[].{name:name,displayName:displayName}' --output json") or []
+
         # Get ACR registries
-        success, output = self._run_command("az acr list --query '[].{name:name,loginServer:loginServer,resourceGroup:resourceGroup}' --output json")
-        if success:
-            try:
-                info["acr_registries"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        info["acr_registries"] = self._fetch_json("az acr list --query '[].{name:name,loginServer:loginServer,resourceGroup:resourceGroup}' --output json") or []
+
         # Get AKS clusters
-        success, output = self._run_command("az aks list --query '[].{name:name,resourceGroup:resourceGroup,location:location}' --output json")
-        if success:
-            try:
-                info["aks_clusters"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        info["aks_clusters"] = self._fetch_json("az aks list --query '[].{name:name,resourceGroup:resourceGroup,location:location}' --output json") or []
+
         return info
-    
+
     def create_infrastructure(self) -> bool:
         """Create Azure infrastructure."""
         self.log("info", "Creating Azure infrastructure...")
@@ -1873,52 +1816,27 @@ class GCPDeployer(CloudDeployer):
             info["project_id"] = output.strip()
         
         # Get all projects
-        success, output = self._run_command("gcloud projects list --format='json(projectId,name)'")
-        if success:
-            try:
-                info["projects"] = json.loads(output)
-            except json.JSONDecodeError:
-                pass
-        
+        info["projects"] = self._fetch_json("gcloud projects list --format='json(projectId,name)'") or []
+
         # Get available regions
-        success, output = self._run_command("gcloud compute regions list --format='json(name,status)'")
-        if success:
-            try:
-                regions = json.loads(output)
-                info["regions"] = [r.get("name") for r in regions if r.get("status") == "UP"]
-            except json.JSONDecodeError:
-                pass
-        
+        _regions = self._fetch_json("gcloud compute regions list --format='json(name,status)'") or []
+        info["regions"] = [r.get("name") for r in _regions if r.get("status") == "UP"]
+
         # Get available zones
-        success, output = self._run_command("gcloud compute zones list --format='json(name,region,status)' 2>/dev/null")
-        if success:
-            try:
-                zones = json.loads(output)
-                info["zones"] = [z.get("name") for z in zones if z.get("status") == "UP"]
-            except json.JSONDecodeError:
-                pass
-        
+        _zones = self._fetch_json("gcloud compute zones list --format='json(name,region,status)' 2>/dev/null") or []
+        info["zones"] = [z.get("name") for z in _zones if z.get("status") == "UP"]
+
         # Get GKE clusters
         if info["project_id"]:
-            success, output = self._run_command(
+            info["gke_clusters"] = self._fetch_json(
                 f"gcloud container clusters list --project {info['project_id']} --format='json(name,zone,status)' 2>/dev/null"
-            )
-            if success:
-                try:
-                    info["gke_clusters"] = json.loads(output)
-                except json.JSONDecodeError:
-                    pass
-        
+            ) or []
+
             # Get Cloud Run services
-            success, output = self._run_command(
+            info["cloud_run_services"] = self._fetch_json(
                 f"gcloud run services list --project {info['project_id']} --format='json(metadata.name,status.url)' 2>/dev/null"
-            )
-            if success:
-                try:
-                    info["cloud_run_services"] = json.loads(output)
-                except json.JSONDecodeError:
-                    pass
-        
+            ) or []
+
         return info
     
     def create_infrastructure(self) -> bool:
