@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 12,
+  "patch": 13,
   "lastUpdate": "2026-03-01",
-  "description": "fix(cdt): v0.614.12 — Fix deploy failures: remove $ from password gen, local image defaults, docker_escape filter, .env.j2 template, all-provider deployer",
+  "description": "fix(tests): v0.614.13 — Fix CI build: remove ILogger constructor args from 10 test files after _logger removal refactor; clean orphaned XML doc param tags",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
