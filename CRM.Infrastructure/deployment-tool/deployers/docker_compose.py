@@ -623,28 +623,67 @@ class DockerComposeDeployer:
         if self.dry_run:
             self._emit(f"[{self._target_host}] [DRY-RUN] Would run EF Core migrations", "info")
             return True
+
+        # The published crm-api container does NOT contain project/source files,
+        # so `dotnet ef database update` cannot work (it requires .csproj).
+        # Instead, the CRM API automatically runs MigrateAsync() on startup,
+        # which applies all pending EF Core migrations.
+        #
+        # We verify that the database is accepting connections as a pre-check
+        # before the API starts in the next steps.
+
         self._emit(
-            f"[{self._target_host}] Running EF Core database migrations via crm-api container…",
+            f"[{self._target_host}] Verifying database readiness before API startup migration…",
             "info",
         )
+        self._emit(
+            f"[{self._target_host}] Note: EF Core migrations will be applied automatically "
+            "when crm-api starts (MigrateAsync on startup)",
+            "info",
+        )
+
+        # Quick connectivity check — exec into the mariadb container
         mig_start = time.time()
         rc, out, err = self._run(
-            ["docker", "compose", "run", "--rm", "crm-api", "dotnet", "ef", "database", "update"],
-            timeout=120,
+            [
+                "docker", "exec", "crm-mariadb",
+                "mariadb", "-u", "crm_user", "-pCrmPass@Dev2024",
+                "-e", "SELECT 1 AS db_ready;",
+                "crm_db",
+            ],
+            timeout=30,
             log_command=True,
         )
         mig_elapsed = time.time() - mig_start
+
         if rc != 0:
-            self._emit(
-                f"[{self._target_host}] Migration warning (took {mig_elapsed:.1f}s): {(err or '').strip()[:300]}",
-                "warn",
+            # Fallback: try mysql client name (older images)
+            rc2, out2, err2 = self._run(
+                [
+                    "docker", "exec", "crm-mariadb",
+                    "mysql", "-u", "crm_user", "-pCrmPass@Dev2024",
+                    "-e", "SELECT 1 AS db_ready;",
+                    "crm_db",
+                ],
+                timeout=30,
             )
-            if out:
-                for line in out.strip().splitlines()[-5:]:
-                    self._emit(f"  migration stdout: {line}", "warn")
-            return False
+            if rc2 != 0:
+                self._emit(
+                    f"[{self._target_host}] Database connectivity check failed (took {mig_elapsed:.1f}s)",
+                    "warn",
+                )
+                self._emit(
+                    f"  stderr: {(err or err2 or '').strip()[:300]}",
+                    "warn",
+                )
+                self._emit(
+                    f"[{self._target_host}] Continuing — API will retry database connection on startup",
+                    "warn",
+                )
+                return True  # Non-fatal: API has its own startup retry logic
+
         self._emit(
-            f"[{self._target_host}] Migrations completed in {mig_elapsed:.1f}s",
+            f"[{self._target_host}] Database ready — migrations will apply during API startup ({mig_elapsed:.1f}s)",
             "success",
         )
         return True

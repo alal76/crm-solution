@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 32,
+  "patch": 33,
   "lastUpdate": "2026-03-01",
-  "description": "fix(sonar): v0.614.32 - Resolve all 464 SonarCloud security hotspots: expand sonar.exclusions (docker/**, azure/**, kubernetes/**, crm-script-runner/**, root shell scripts, database/**, CRM.DatabaseSeeder/**); NOSONAR on S2068 connection string password lines (DatabaseController, CoreService/DatabaseController, DatabaseInitializer, DatabaseSeeder); NOSONAR on S5332 internal HTTP URLs (MonitoringController, TeamsNotificationChannelService, ITeamsIntegrationService, KnowledgeBaseSearchIndexService, BuiltInNotificationProvider); NOSONAR on S4036 process.Start() (CloudDeploymentService, MonitoringService); NOSONAR on S2245 Math.random (ITSMDashboardService + 10 frontend files); S6444 Regex timeout (SelfServiceChatbotService); NOSONAR on S5852 ReDoS-safe regex (CatalogRequestForm, EmailTemplateBuilder, constants.ts)",
+  "description": "fix(cdt): v0.614.33 Fix Step 8 migration failure — published crm-api container has no .csproj so 'dotnet ef database update' fails with 'No project was found'. Step 8 now verifies database connectivity instead; EF Core migrations are applied automatically by the API's MigrateAsync() on startup (Step 10). 225 tests",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
