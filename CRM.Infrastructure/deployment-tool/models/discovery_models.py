@@ -481,7 +481,7 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
         try:
             azure_container = _lazy_import("azure.mgmt.containerinstance")
             container_client = azure_container.ContainerInstanceManagementClient(credential, subscription_id)
-        except (ImportError, ModuleNotFoundError):
+        except ImportError:
             logger.warning(
                 "azure.mgmt.containerinstance not installed — Azure Container Instance "
                 "discovery skipped. Install it with: pip install azure-mgmt-containerinstance"
@@ -545,9 +545,8 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
             return []
 
     @staticmethod
-    def _scan_resource_group(compute_client, container_client,
-                              rg: str) -> List[DeploymentComponent]:
-        """Discover CRM VMs and container instances in a single resource group."""
+    def _scan_vms_in_rg(compute_client, rg: str) -> List[DeploymentComponent]:
+        """Discover CRM virtual machines in a single resource group."""
         out: List[DeploymentComponent] = []
         try:
             for vm in compute_client.virtual_machines.list(rg):
@@ -561,20 +560,36 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
                     ))
         except Exception:
             pass
-        if container_client is not None:
-            try:
-                for cg in container_client.container_groups.list_by_resource_group(rg):
-                    if 'crm' in cg.name.lower():
-                        for c in cg.containers:
-                            out.append(DeploymentComponent(
-                                name=f"{cg.name}/{c.name}", type="container", status="running",
-                                image=c.image,
-                                ports=[p.port for p in c.ports] if c.ports else [],
-                                metadata={"resource_group": rg}
-                            ))
-            except Exception:
-                pass
         return out
+
+    @staticmethod
+    def _scan_containers_in_rg(container_client, rg: str) -> List[DeploymentComponent]:
+        """Discover CRM container instances in a single resource group."""
+        out: List[DeploymentComponent] = []
+        if container_client is None:
+            return out
+        try:
+            for cg in container_client.container_groups.list_by_resource_group(rg):
+                if 'crm' in cg.name.lower():
+                    for c in cg.containers:
+                        out.append(DeploymentComponent(
+                            name=f"{cg.name}/{c.name}", type="container", status="running",
+                            image=c.image,
+                            ports=[p.port for p in c.ports] if c.ports else [],
+                            metadata={"resource_group": rg}
+                        ))
+        except Exception:
+            pass
+        return out
+
+    @staticmethod
+    def _scan_resource_group(compute_client, container_client,
+                              rg: str) -> List[DeploymentComponent]:
+        """Discover CRM VMs and container instances in a single resource group."""
+        return (
+            AzureDiscoveryClient._scan_vms_in_rg(compute_client, rg)
+            + AzureDiscoveryClient._scan_containers_in_rg(container_client, rg)
+        )
 
 
 class AWSDiscoveryClient(BaseDiscoveryClient):

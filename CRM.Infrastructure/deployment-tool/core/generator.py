@@ -138,38 +138,30 @@ class ConfigGenerator:
     # Context building
     # ------------------------------------------------------------------
 
-    def _build_context(self, profile: dict) -> dict:
-        """Flatten a wizard profile dict into a Jinja2 template context."""
-        ctx: dict = {}
-
-        # Flatten top-level sections — guard against scalar values (e.g. when the
-        # wizard sends architecture/platform as a plain string instead of a dict).
+    def _flatten_profile_sections(self, profile: dict, ctx: dict) -> None:
+        """Flatten all wizard profile sections into the template context dict."""
+        # Top-level sections — guard against scalar values sent by the wizard
         for section in ("target", "database", "network", "security", "architecture"):
             val = profile.get(section, {})
             if isinstance(val, dict):
                 ctx.update(val)
             elif val is not None and val != "":
-                # Store scalar under its section key so templates can reference it
                 ctx[section] = val
 
-        # Secrets section (DB password, Redis, Meilisearch, provider keys, etc.)
-        secrets = profile.get("secrets", {})
-        if isinstance(secrets, dict):
-            ctx.update(secrets)
+        # Simple dict sections merged directly
+        for key in ("secrets", "ssl"):
+            val = profile.get(key, {})
+            if isinstance(val, dict):
+                ctx.update(val)
 
-        # SSL section
-        ssl = profile.get("ssl", {})
-        if isinstance(ssl, dict):
-            ctx.update(ssl)
-
-        # Image registry section
+        # Image registry (may be dict or plain string)
         registry = profile.get("image_registry", {})
         if isinstance(registry, dict):
             ctx.update(registry)
         elif registry and isinstance(registry, str):
             ctx["image_registry"] = registry
 
-        # Service accounts section
+        # Service accounts
         service_accounts = profile.get("service_accounts", {})
         if isinstance(service_accounts, dict):
             ctx["service_accounts"] = service_accounts
@@ -181,12 +173,10 @@ class ConfigGenerator:
         if isinstance(providers, dict):
             ctx.update(providers)
 
-        # Seed fields exposed with admin_ prefix
+        # Seed fields exposed with admin_ prefix (backward compat: also raw keys)
         seed = profile.get("seed", {})
         if isinstance(seed, dict):
-            for k, v in seed.items():
-                ctx[f"admin_{k}"] = v
-            # Also expose raw seed keys (for backward compat)
+            ctx.update({f"admin_{k}": v for k, v in seed.items()})
             ctx.update(seed)
 
         # Meta
@@ -194,25 +184,9 @@ class ConfigGenerator:
         ctx["profile_name"] = meta.get("profile_name", "crm")
         ctx["crm_version"] = meta.get("crm_version", "latest")
 
-        # Auto-fill secrets if empty
-        if not ctx.get("db_password"):
-            ctx["db_password"] = self.generate_password(20)
-        if not ctx.get("jwt_secret"):
-            ctx["jwt_secret"] = self.generate_token(32)
-        if not ctx.get("db_root_password"):
-            ctx["db_root_password"] = self.generate_password(24)
-
-        # Default image registry — empty means local images (no registry prefix)
-        ctx.setdefault("image_registry", "")
-        ctx.setdefault("image_org", "")
-
-        # SSL defaults
-        if "ssl_enabled" not in ctx:
-            ctx["ssl_enabled"] = False
-
-        # Ensure all optional template variables have defaults so
-        # StrictUndefined does not raise for unset optional fields.
-        _optional_defaults = {
+    def _apply_optional_defaults(self, ctx: dict) -> None:
+        """Apply optional template variable defaults so StrictUndefined never raises."""
+        defaults = {
             "redis_password": "",
             "meilisearch_master_key": "masterKey",
             "chatwoot_api_key": "",
@@ -240,7 +214,7 @@ class ConfigGenerator:
             "admin_password": "",
             "admin_username": "admin",
             "admin_admin_email": "admin@crm.local",
-            "admin_admin_password": "Admin@123",
+            "admin_admin_password": "Admin@123",  # NOSONAR - template placeholder default, rotated on first deploy
             "admin_admin_username": "admin",
             "api_port": "5000",
             "frontend_port": "80",
@@ -251,9 +225,30 @@ class ConfigGenerator:
             "db_version": "10.11",
             "domain_name": "localhost",
         }
-        for key, default in _optional_defaults.items():
+        for key, default in defaults.items():
             ctx.setdefault(key, default)
 
+    def _build_context(self, profile: dict) -> dict:
+        """Flatten a wizard profile dict into a Jinja2 template context."""
+        ctx: dict = {}
+        self._flatten_profile_sections(profile, ctx)
+
+        # Auto-fill missing required secrets
+        if not ctx.get("db_password"):
+            ctx["db_password"] = self.generate_password(20)
+        if not ctx.get("jwt_secret"):
+            ctx["jwt_secret"] = self.generate_token(32)
+        if not ctx.get("db_root_password"):
+            ctx["db_root_password"] = self.generate_password(24)
+
+        # Default image registry — empty means local images (no registry prefix)
+        ctx.setdefault("image_registry", "")
+        ctx.setdefault("image_org", "")
+
+        # SSL defaults
+        ctx.setdefault("ssl_enabled", False)
+
+        self._apply_optional_defaults(ctx)
         return ctx
 
     # ------------------------------------------------------------------

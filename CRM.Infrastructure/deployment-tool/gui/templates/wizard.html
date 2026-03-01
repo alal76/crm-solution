@@ -2065,15 +2065,15 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-4">
-                                <label class="form-label">Registry URL</label>
+                                <label class="form-label" for="secretImageRegistry">Registry URL</label>
                                 <input type="text" class="form-control" id="secretImageRegistry" placeholder="Leave blank for local images (e.g. ghcr.io)">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Organisation / Namespace</label>
+                                <label class="form-label" for="secretImageOrg">Organisation / Namespace</label>
                                 <input type="text" class="form-control" id="secretImageOrg" placeholder="Leave blank for local images (e.g. crm)">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Registry Token / Password</label>
+                                <label class="form-label" for="secretRegistryToken">Registry Token / Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretRegistryToken" placeholder="Optional">
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretRegistryToken')"><i class="bi bi-eye"></i></button>
@@ -2089,11 +2089,11 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Database User</label>
+                                <label class="form-label" for="secretDbUser">Database User</label>
                                 <input type="text" class="form-control" id="secretDbUser" value="crm_user">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Database Password</label>
+                                <label class="form-label" for="secretDbPassword">Database Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretDbPassword" placeholder="Auto-generated if blank">
                                     <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretDbPassword')"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2101,7 +2101,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Root Password</label>
+                                <label class="form-label" for="secretDbRootPassword">Root Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretDbRootPassword" placeholder="Auto-generated if blank">
                                     <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretDbRootPassword')"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2109,7 +2109,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Redis Password</label>
+                                <label class="form-label" for="secretRedisPassword">Redis Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretRedisPassword" placeholder="Optional — blank = no auth">
                                     <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretRedisPassword')"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2126,7 +2126,7 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-12">
-                                <label class="form-label">JWT Secret (min 32 chars)</label>
+                                <label class="form-label" for="secretJwtSecret">JWT Secret (min 32 chars)</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretJwtSecret" placeholder="Auto-generated if blank">
                                     <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretJwtSecret', 64)"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2134,15 +2134,15 @@
                                 </div>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Admin Username</label>
+                                <label class="form-label" for="secretAdminUsername">Admin Username</label>
                                 <input type="text" class="form-control" id="secretAdminUsername" value="admin">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Admin Email</label>
+                                <label class="form-label" for="secretAdminEmail">Admin Email</label>
                                 <input type="email" class="form-control" id="secretAdminEmail" value="admin@crm.local">
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Admin Password</label>
+                                <label class="form-label" for="secretAdminPassword">Admin Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretAdminPassword" placeholder="Auto-generated if blank">
                                     <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretAdminPassword')"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2162,7 +2162,7 @@
                     <div class="card-body">
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label">Meilisearch Master Key</label>
+                                <label class="form-label" for="secretMeilisearchKey">Meilisearch Master Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretMeilisearchKey" placeholder="masterKey">
                                     <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretMeilisearchKey')"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2170,7 +2170,7 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Superset Secret Key</label>
+                                <label class="form-label" for="secretSupersetKey">Superset Secret Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretSupersetKey" placeholder="Auto-generated if blank">
                                     <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretSupersetKey', 42)"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2178,28 +2178,28 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Chatwoot API Key</label>
+                                <label class="form-label" for="secretChatwootKey">Chatwoot API Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretChatwootKey" placeholder="From Chatwoot dashboard">
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretChatwootKey')"><i class="bi bi-eye"></i></button>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Novu API Key</label>
+                                <label class="form-label" for="secretNovuKey">Novu API Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretNovuKey" placeholder="From Novu dashboard">
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretNovuKey')"><i class="bi bi-eye"></i></button>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">DocuSeal API Key</label>
+                                <label class="form-label" for="secretDocusealKey">DocuSeal API Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretDocusealKey" placeholder="From DocuSeal dashboard">
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretDocusealKey')"><i class="bi bi-eye"></i></button>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">n8n Password</label>
+                                <label class="form-label" for="secretN8nPassword">n8n Password</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretN8nPassword" placeholder="Auto-generated if blank">
                                     <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretN8nPassword')"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2207,14 +2207,14 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">OpenAI API Key</label>
+                                <label class="form-label" for="secretOpenaiKey">OpenAI API Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretOpenaiKey" placeholder="sk-...">
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretOpenaiKey')"><i class="bi bi-eye"></i></button>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Anthropic API Key</label>
+                                <label class="form-label" for="secretAnthropicKey">Anthropic API Key</label>
                                 <div class="input-group">
                                     <input type="password" class="form-control" id="secretAnthropicKey" placeholder="sk-ant-...">
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretAnthropicKey')"><i class="bi bi-eye"></i></button>
@@ -2237,17 +2237,17 @@
                             <!-- GCP Service Account -->
                             <div class="tab-pane fade show active" id="sa-gcp">
                                 <div class="mb-3">
-                                    <label class="form-label">Service Account JSON Key</label>
+                                    <label class="form-label" for="secretGcpSaJson">Service Account JSON Key</label>
                                     <textarea class="form-control" id="secretGcpSaJson" rows="4" placeholder='Paste your GCP service account JSON key here...'></textarea>
                                     <div class="form-text">Or upload: <input type="file" class="form-control form-control-sm mt-1" id="secretGcpSaFile" accept=".json" onchange="loadFileToField(this, 'secretGcpSaJson')"></div>
                                 </div>
                                 <div class="row g-2">
                                     <div class="col-md-6">
-                                        <label class="form-label">GCP Project ID</label>
+                                        <label class="form-label" for="secretGcpProject">GCP Project ID</label>
                                         <input type="text" class="form-control" id="secretGcpProject" placeholder="my-project-id">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">GCP Region</label>
+                                        <label class="form-label" for="secretGcpRegion">GCP Region</label>
                                         <input type="text" class="form-control" id="secretGcpRegion" placeholder="us-central1">
                                     </div>
                                 </div>
@@ -2256,19 +2256,19 @@
                             <div class="tab-pane fade" id="sa-azure">
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label">Tenant ID</label>
+                                        <label class="form-label" for="secretAzureTenantId">Tenant ID</label>
                                         <input type="text" class="form-control" id="secretAzureTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Subscription ID</label>
+                                        <label class="form-label" for="secretAzureSubId">Subscription ID</label>
                                         <input type="text" class="form-control" id="secretAzureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Client (App) ID</label>
+                                        <label class="form-label" for="secretAzureClientId">Client (App) ID</label>
                                         <input type="text" class="form-control" id="secretAzureClientId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Client Secret</label>
+                                        <label class="form-label" for="secretAzureClientSecret">Client Secret</label>
                                         <div class="input-group">
                                             <input type="password" class="form-control" id="secretAzureClientSecret">
                                             <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretAzureClientSecret')"><i class="bi bi-eye"></i></button>
@@ -2280,22 +2280,22 @@
                             <div class="tab-pane fade" id="sa-aws">
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label">Access Key ID</label>
+                                        <label class="form-label" for="secretAwsAccessKey">Access Key ID</label>
                                         <input type="text" class="form-control" id="secretAwsAccessKey" placeholder="AKIA...">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Secret Access Key</label>
+                                        <label class="form-label" for="secretAwsSecretKey">Secret Access Key</label>
                                         <div class="input-group">
                                             <input type="password" class="form-control" id="secretAwsSecretKey">
                                             <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretAwsSecretKey')"><i class="bi bi-eye"></i></button>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">AWS Region</label>
+                                        <label class="form-label" for="secretAwsRegion">AWS Region</label>
                                         <input type="text" class="form-control" id="secretAwsRegion" placeholder="us-east-1">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label">Session Token (optional)</label>
+                                        <label class="form-label" for="secretAwsSessionToken">Session Token (optional)</label>
                                         <input type="password" class="form-control" id="secretAwsSessionToken" placeholder="For temporary credentials">
                                     </div>
                                 </div>
@@ -2327,7 +2327,7 @@
                     <!-- SSL Mode -->
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">SSL Mode</label>
+                            <label class="form-label fw-semibold" for="sslMode">SSL Mode</label>
                             <select class="form-select" id="sslMode" onchange="toggleSslMode(this.value)">
                                 <option value="self_signed">Generate Self-Signed Certificate</option>
                                 <option value="upload">Upload Existing Certificate</option>
@@ -2335,7 +2335,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">Domain Name</label>
+                            <label class="form-label fw-semibold" for="sslDomain">Domain Name</label>
                             <input type="text" class="form-control" id="sslDomain" placeholder="crm.example.com">
                             <div class="form-text">Required for Let's Encrypt; used as CN for self-signed.</div>
                         </div>
@@ -2347,11 +2347,11 @@
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label class="form-label">Validity (days)</label>
+                                    <label class="form-label" for="sslDays">Validity (days)</label>
                                     <input type="number" class="form-control" id="sslDays" value="365" min="30" max="3650">
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="form-label">Organisation</label>
+                                    <label class="form-label" for="sslOrg">Organisation</label>
                                     <input type="text" class="form-control" id="sslOrg" value="CRM Solution">
                                 </div>
                                 <div class="col-md-4 d-flex align-items-end">
@@ -2370,11 +2370,11 @@
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">Certificate File (.crt / .pem)</label>
+                                    <label class="form-label" for="sslCertFile">Certificate File (.crt / .pem)</label>
                                     <input type="file" class="form-control" id="sslCertFile" accept=".crt,.pem,.cer">
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Private Key File (.key / .pem)</label>
+                                    <label class="form-label" for="sslKeyFile">Private Key File (.key / .pem)</label>
                                     <input type="file" class="form-control" id="sslKeyFile" accept=".key,.pem">
                                 </div>
                                 <div class="col-12">
@@ -2393,7 +2393,7 @@
                         <div class="card-body">
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="form-label">Contact Email</label>
+                                    <label class="form-label" for="sslLetsEncryptEmail">Contact Email</label>
                                     <input type="email" class="form-control" id="sslLetsEncryptEmail" placeholder="admin@example.com">
                                 </div>
                                 <div class="col-md-6">

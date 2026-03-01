@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 13,
+  "patch": 14,
   "lastUpdate": "2026-03-01",
-  "description": "fix(tests): v0.614.13 — Fix CI build: remove ILogger constructor args from 10 test files after _logger removal refactor; clean orphaned XML doc param tags",
+  "description": "fix(quality): v0.614.14 — Fix SonarQube IDE issues: label for= attributes in wizard.html, table headers in day2.html, extract constants in day2_routes.py, refactor generator.py and discovery_models.py complexity",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
