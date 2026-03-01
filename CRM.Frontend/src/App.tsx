@@ -92,6 +92,9 @@ const CampaignExecutionPage = lazy(() => import('./pages/CampaignExecutionPage')
 const EmailTemplatesPage = lazy(() => import('./pages/EmailTemplatesPage'));
 const LandingPagesPage = lazy(() => import('./pages/LandingPagesPage'));
 const LeadRoutingPage = lazy(() => import('./pages/LeadRoutingPage'));
+// MKT-002, MKT-003: New marketing sub-pages
+const MarketingEmailSequencesPage = lazy(() => import('./pages/marketing/EmailTemplatesPage'));
+const CampaignAnalyticsPage = lazy(() => import('./pages/marketing/CampaignAnalyticsPage'));
 
 // ----------------------------------------------------------------------------
 // Service Module - Lazy Loaded
@@ -203,6 +206,7 @@ const ModuleFieldSettingsPage = lazy(() => import('./pages/admin/ModuleFieldSett
 const ServiceRequestDefinitionsPage = lazy(() => import('./pages/admin/ServiceRequestDefinitionsPage'));
 const MasterDataSettingsPage = lazy(() => import('./pages/admin/MasterDataSettingsPage'));
 const EnumManagementPage = lazy(() => import('./pages/admin/EnumManagementPage'));
+const EnumEditorPage = lazy(() => import('./pages/admin/EnumEditorPage'));
 const DashboardSettingsPage = lazy(() => import('./pages/admin/DashboardSettingsPage'));
 const WorkflowListPage = lazy(() => import('./pages/admin/WorkflowListPage'));
 const WorkflowDesignerPage = lazy(() => import('./pages/admin/WorkflowDesignerPage'));
@@ -265,7 +269,12 @@ const PortalLoginPage = lazy(() => import('./pages/portal/PortalLoginPage'));
 const PortalRegisterPage = lazy(() => import('./pages/portal/PortalRegisterPage'));
 const PortalDashboardPage = lazy(() => import('./pages/portal/PortalDashboardPage'));
 const PortalTicketListPage = lazy(() => import('./pages/portal/PortalTicketListPage'));
+const PortalNewTicketPage = lazy(() => import('./pages/portal/PortalNewTicketPage'));
+const PortalTicketDetailPage = lazy(() => import('./pages/portal/PortalTicketDetailPage'));
+const PortalProfilePage = lazy(() => import('./pages/portal/PortalProfilePage'));
 const PortalKBPage = lazy(() => import('./pages/portal/PortalKBPage'));
+const PortalForgotPasswordPage = lazy(() => import('./pages/portal/PortalForgotPasswordPage'));
+const PortalResetPasswordPage = lazy(() => import('./pages/portal/PortalResetPasswordPage'));
 const PortalConfigPage = lazy(() => import('./pages/PortalConfigPage'));
 
 // Inner component that can access the theme context
@@ -437,6 +446,28 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Campaigns">
                       <CampaignExecutionPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              {/* MKT-002: Email Sequences page */}
+              <Route
+                path="/marketing/templates"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Campaigns">
+                      <MarketingEmailSequencesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              {/* MKT-003: Campaign Analytics page */}
+              <Route
+                path="/marketing/analytics"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Campaigns">
+                      <CampaignAnalyticsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
@@ -1265,6 +1296,9 @@ function ThemedApp() {
                 <Route path="service-requests" element={<ServiceRequestDefinitionsPage />} />
                 <Route path="master-data" element={<MasterDataSettingsPage />} />
                 <Route path="enum-management" element={<EnumManagementPage />} />
+                <Route path="enum-management/:categoryName" element={<EnumEditorPage />} />
+                <Route path="master-data/enums" element={<EnumManagementPage />} />
+                <Route path="master-data/enums/:categoryName" element={<EnumEditorPage />} />
                 <Route path="dashboards" element={<DashboardSettingsPage />} />
                 <Route path="workflows" element={<WorkflowListPage />} />
                 <Route path="workflows/:id/designer" element={<WorkflowDesignerPage />} />
@@ -1403,11 +1437,18 @@ function ThemedApp() {
                 }
               />
               {/* Customer Portal Routes (FEAT-PORTAL) - public-facing, no CRM auth */}
+              <Route path="/portal" element={<Navigate to="/portal/login" replace />} />
               <Route path="/portal/login" element={<PortalLoginPage />} />
               <Route path="/portal/register" element={<PortalRegisterPage />} />
+              <Route path="/portal/forgot-password" element={<PortalForgotPasswordPage />} />
+              <Route path="/portal/reset-password" element={<PortalResetPasswordPage />} />
               <Route path="/portal/dashboard" element={<PortalDashboardPage />} />
               <Route path="/portal/tickets" element={<PortalTicketListPage />} />
+              <Route path="/portal/tickets/new" element={<PortalNewTicketPage />} />
+              <Route path="/portal/tickets/:id" element={<PortalTicketDetailPage />} />
+              <Route path="/portal/profile" element={<PortalProfilePage />} />
               <Route path="/portal/knowledge-base" element={<PortalKBPage />} />
+              <Route path="/portal/knowledge" element={<Navigate to="/portal/knowledge-base" replace />} />
               <Route path="/admin/portal" element={<ProtectedRoute><PortalConfigPage /></ProtectedRoute>} />
               <Route path="/survey/:token" element={<SurveyResponsePage />} />
                         </Routes>

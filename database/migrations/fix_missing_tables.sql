@@ -2,6 +2,10 @@
 -- These tables were part of migration 20260214195347 which partially failed
 
 -- 1. Quotes
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 CREATE TABLE IF NOT EXISTS `Quotes` (
   `Id` int NOT NULL AUTO_INCREMENT,
   `QuoteNumber` varchar(50) NOT NULL,
@@ -81,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `Quotes` (
   `IsDeleted` tinyint(1) NOT NULL DEFAULT 0,
   `RowVersion` binary(8) NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. QuoteLineItems
 CREATE TABLE IF NOT EXISTS `QuoteLineItems` (
@@ -130,7 +134,7 @@ CREATE TABLE IF NOT EXISTS `QuoteLineItems` (
   `RowVersion` binary(8) NULL,
   PRIMARY KEY (`Id`),
   CONSTRAINT `FK_QuoteLineItems_Quotes_QuoteId` FOREIGN KEY (`QuoteId`) REFERENCES `Quotes` (`Id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 3. Subscriptions
 CREATE TABLE IF NOT EXISTS `Subscriptions` (
@@ -191,7 +195,7 @@ CREATE TABLE IF NOT EXISTS `Subscriptions` (
   `RowVersion` binary(8) NULL,
   PRIMARY KEY (`Id`),
   CONSTRAINT `FK_Subscriptions_Accounts_AccountId` FOREIGN KEY (`AccountId`) REFERENCES `Accounts` (`Id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 4. Invoices
 CREATE TABLE IF NOT EXISTS `Invoices` (
@@ -265,7 +269,7 @@ CREATE TABLE IF NOT EXISTS `Invoices` (
   `RowVersion` binary(8) NULL,
   PRIMARY KEY (`Id`),
   CONSTRAINT `FK_Invoices_Accounts_AccountId` FOREIGN KEY (`AccountId`) REFERENCES `Accounts` (`Id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 5. InvoiceLineItems
 CREATE TABLE IF NOT EXISTS `InvoiceLineItems` (
@@ -302,7 +306,7 @@ CREATE TABLE IF NOT EXISTS `InvoiceLineItems` (
   `RowVersion` binary(8) NULL,
   PRIMARY KEY (`Id`),
   CONSTRAINT `FK_InvoiceLineItems_Invoices_InvoiceId` FOREIGN KEY (`InvoiceId`) REFERENCES `Invoices` (`Id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 6. Contracts
 CREATE TABLE IF NOT EXISTS `Contracts` (
@@ -352,7 +356,7 @@ CREATE TABLE IF NOT EXISTS `Contracts` (
   `RowVersion` binary(8) NULL,
   PRIMARY KEY (`Id`),
   CONSTRAINT `FK_Contracts_Accounts_AccountId` FOREIGN KEY (`AccountId`) REFERENCES `Accounts` (`Id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 7. Payments
 CREATE TABLE IF NOT EXISTS `Payments` (
@@ -423,7 +427,7 @@ CREATE TABLE IF NOT EXISTS `Payments` (
   CONSTRAINT `FK_Payments_Orders_OrderId` FOREIGN KEY (`OrderId`) REFERENCES `Orders` (`Id`),
   CONSTRAINT `FK_Payments_Payments_OriginalPaymentId` FOREIGN KEY (`OriginalPaymentId`) REFERENCES `Payments` (`Id`),
   CONSTRAINT `FK_Payments_Subscriptions_SubscriptionId` FOREIGN KEY (`SubscriptionId`) REFERENCES `Subscriptions` (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 8. Commissions
 CREATE TABLE IF NOT EXISTS `Commissions` (
@@ -469,4 +473,4 @@ CREATE TABLE IF NOT EXISTS `Commissions` (
   PRIMARY KEY (`Id`),
   CONSTRAINT `FK_Commissions_CommissionPlans_CommissionPlanId` FOREIGN KEY (`CommissionPlanId`) REFERENCES `CommissionPlans` (`Id`) ON DELETE CASCADE,
   CONSTRAINT `FK_Commissions_Users_UserId` FOREIGN KEY (`UserId`) REFERENCES `Users` (`Id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -7,6 +7,8 @@
 using CRM.Api.Controllers;
 using CRM.Core.DTOs;
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using FluentAssertions;
@@ -41,7 +43,8 @@ public class QuotesControllerTests : IDisposable
         _context = new CrmDbContext(options, mockConfig.Object);
         _normalizationService = new NormalizationService(_context);
         _mockLogger = new Mock<ILogger<QuotesController>>();
-        _controller = new QuotesController(_context, _mockLogger.Object, _normalizationService);
+        var mockPdfService = new Mock<IPdfGenerationService>();
+        _controller = new QuotesController(_context, _mockLogger.Object, _normalizationService, mockPdfService.Object);
     }
 
     private static Quote CreateQuote(int accountId = 10, QuoteStatus status = QuoteStatus.Draft) => new()

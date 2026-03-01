@@ -4,7 +4,11 @@
 -- Date: 2026-02-02
 -- License: AGPL-3.0
 
-USE crm_dev;
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
+USE crm_db;
 
 -- ====================================
 -- Phase 1.1: Incident Management
@@ -81,7 +85,7 @@ CREATE TABLE IF NOT EXISTS Incidents (
     FOREIGN KEY (ResolvedById) REFERENCES Users(UserId),
     FOREIGN KEY (ClosedById) REFERENCES Users(UserId),
     FOREIGN KEY (ParentIncidentId) REFERENCES Incidents(IncidentId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS IncidentComments (
     CommentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -97,7 +101,7 @@ CREATE TABLE IF NOT EXISTS IncidentComments (
     
     FOREIGN KEY (IncidentId) REFERENCES Incidents(IncidentId) ON DELETE CASCADE,
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS IncidentAttachments (
     AttachmentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -114,7 +118,7 @@ CREATE TABLE IF NOT EXISTS IncidentAttachments (
     
     FOREIGN KEY (IncidentId) REFERENCES Incidents(IncidentId) ON DELETE CASCADE,
     FOREIGN KEY (UploadedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS IncidentHistory (
     HistoryId INT PRIMARY KEY AUTO_INCREMENT,
@@ -130,7 +134,7 @@ CREATE TABLE IF NOT EXISTS IncidentHistory (
     
     FOREIGN KEY (IncidentId) REFERENCES Incidents(IncidentId) ON DELETE CASCADE,
     FOREIGN KEY (ChangedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ====================================
 -- Phase 1.2: Problem Management
@@ -197,7 +201,7 @@ CREATE TABLE IF NOT EXISTS Problems (
     FOREIGN KEY (AssignmentGroupId) REFERENCES UserGroups(GroupId),
     FOREIGN KEY (ClosedById) REFERENCES Users(UserId),
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ProblemIncidents (
     ProblemIncidentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -212,7 +216,7 @@ CREATE TABLE IF NOT EXISTS ProblemIncidents (
     FOREIGN KEY (ProblemId) REFERENCES Problems(ProblemId) ON DELETE CASCADE,
     FOREIGN KEY (IncidentId) REFERENCES Incidents(IncidentId),
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ProblemTasks (
     TaskId INT PRIMARY KEY AUTO_INCREMENT,
@@ -231,7 +235,7 @@ CREATE TABLE IF NOT EXISTS ProblemTasks (
     
     FOREIGN KEY (ProblemId) REFERENCES Problems(ProblemId) ON DELETE CASCADE,
     FOREIGN KEY (AssignedToId) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ProblemComments (
     CommentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -246,7 +250,7 @@ CREATE TABLE IF NOT EXISTS ProblemComments (
     
     FOREIGN KEY (ProblemId) REFERENCES Problems(ProblemId) ON DELETE CASCADE,
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ProblemAttachments (
     AttachmentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -263,7 +267,7 @@ CREATE TABLE IF NOT EXISTS ProblemAttachments (
     
     FOREIGN KEY (ProblemId) REFERENCES Problems(ProblemId) ON DELETE CASCADE,
     FOREIGN KEY (UploadedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add FK from Incidents to Problems now that Problems table exists
 ALTER TABLE Incidents ADD CONSTRAINT fk_incidents_problem 
@@ -286,7 +290,7 @@ CREATE TABLE IF NOT EXISTS BusinessHoursSchedules (
     IsDeleted BOOLEAN DEFAULT FALSE,
     
     INDEX idx_business_hours_active (IsActive)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS SLAPolicies (
     SLAPolicyId INT PRIMARY KEY AUTO_INCREMENT,
@@ -322,7 +326,7 @@ CREATE TABLE IF NOT EXISTS SLAPolicies (
     
     FOREIGN KEY (BusinessHoursScheduleId) REFERENCES BusinessHoursSchedules(ScheduleId),
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS SLAInstances (
     SLAInstanceId INT PRIMARY KEY AUTO_INCREMENT,
@@ -366,7 +370,7 @@ CREATE TABLE IF NOT EXISTS SLAInstances (
     INDEX idx_sla_instances_state (State),
     
     FOREIGN KEY (SLAPolicyId) REFERENCES SLAPolicies(SLAPolicyId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ====================================
 -- Phase 2.1: CMDB
@@ -439,7 +443,7 @@ CREATE TABLE IF NOT EXISTS ConfigurationItems (
     FOREIGN KEY (SupportGroupId) REFERENCES UserGroups(GroupId),
     FOREIGN KEY (ManagedById) REFERENCES Users(UserId),
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CIRelationships (
     RelationshipId INT PRIMARY KEY AUTO_INCREMENT,
@@ -458,7 +462,7 @@ CREATE TABLE IF NOT EXISTS CIRelationships (
     FOREIGN KEY (ParentCIId) REFERENCES ConfigurationItems(CIId),
     FOREIGN KEY (ChildCIId) REFERENCES ConfigurationItems(CIId),
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS Services (
     ServiceId INT PRIMARY KEY AUTO_INCREMENT,
@@ -486,7 +490,7 @@ CREATE TABLE IF NOT EXISTS Services (
     FOREIGN KEY (OwnerId) REFERENCES Users(UserId),
     FOREIGN KEY (TechnicalOwnerId) REFERENCES Users(UserId),
     FOREIGN KEY (SupportGroupId) REFERENCES UserGroups(GroupId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ServiceCIs (
     ServiceCIId INT PRIMARY KEY AUTO_INCREMENT,
@@ -501,7 +505,7 @@ CREATE TABLE IF NOT EXISTS ServiceCIs (
     
     FOREIGN KEY (ServiceId) REFERENCES Services(ServiceId) ON DELETE CASCADE,
     FOREIGN KEY (CIId) REFERENCES ConfigurationItems(CIId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add FK from Incidents to ConfigurationItems and Services now that tables exist
 ALTER TABLE Incidents ADD CONSTRAINT fk_incidents_ci 
@@ -591,7 +595,7 @@ CREATE TABLE IF NOT EXISTS Changes (
     FOREIGN KEY (AssignedToId) REFERENCES Users(UserId),
     FOREIGN KEY (ImplementationGroupId) REFERENCES UserGroups(GroupId),
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeApprovals (
     ApprovalId INT PRIMARY KEY AUTO_INCREMENT,
@@ -610,7 +614,7 @@ CREATE TABLE IF NOT EXISTS ChangeApprovals (
     
     FOREIGN KEY (ChangeId) REFERENCES Changes(ChangeId) ON DELETE CASCADE,
     FOREIGN KEY (ApproverId) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeBlackouts (
     BlackoutId INT PRIMARY KEY AUTO_INCREMENT,
@@ -626,7 +630,7 @@ CREATE TABLE IF NOT EXISTS ChangeBlackouts (
     INDEX idx_change_blackouts_dates (StartDate, EndDate),
     
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeImpactedCIs (
     ChangeImpactedCIId INT PRIMARY KEY AUTO_INCREMENT,
@@ -641,7 +645,7 @@ CREATE TABLE IF NOT EXISTS ChangeImpactedCIs (
     
     FOREIGN KEY (ChangeId) REFERENCES Changes(ChangeId) ON DELETE CASCADE,
     FOREIGN KEY (CIId) REFERENCES ConfigurationItems(CIId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeTasks (
     TaskId INT PRIMARY KEY AUTO_INCREMENT,
@@ -664,7 +668,7 @@ CREATE TABLE IF NOT EXISTS ChangeTasks (
     
     FOREIGN KEY (ChangeId) REFERENCES Changes(ChangeId) ON DELETE CASCADE,
     FOREIGN KEY (AssignedToId) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeComments (
     CommentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -679,7 +683,7 @@ CREATE TABLE IF NOT EXISTS ChangeComments (
     
     FOREIGN KEY (ChangeId) REFERENCES Changes(ChangeId) ON DELETE CASCADE,
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeAttachments (
     AttachmentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -696,7 +700,7 @@ CREATE TABLE IF NOT EXISTS ChangeAttachments (
     
     FOREIGN KEY (ChangeId) REFERENCES Changes(ChangeId) ON DELETE CASCADE,
     FOREIGN KEY (UploadedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add FK from Incidents to Changes now that Changes table exists
 ALTER TABLE Incidents ADD CONSTRAINT fk_incidents_change 
@@ -761,7 +765,7 @@ CREATE TABLE IF NOT EXISTS KnowledgeArticles (
     FOREIGN KEY (OwnerId) REFERENCES Users(UserId),
     FOREIGN KEY (PublishedById) REFERENCES Users(UserId),
     FOREIGN KEY (ModifiedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ArticleRelationships (
     RelationshipId INT PRIMARY KEY AUTO_INCREMENT,
@@ -775,7 +779,7 @@ CREATE TABLE IF NOT EXISTS ArticleRelationships (
     
     FOREIGN KEY (ArticleId) REFERENCES KnowledgeArticles(ArticleId) ON DELETE CASCADE,
     FOREIGN KEY (RelatedArticleId) REFERENCES KnowledgeArticles(ArticleId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ArticleIncidents (
     ArticleIncidentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -792,7 +796,7 @@ CREATE TABLE IF NOT EXISTS ArticleIncidents (
     FOREIGN KEY (ArticleId) REFERENCES KnowledgeArticles(ArticleId) ON DELETE CASCADE,
     FOREIGN KEY (IncidentId) REFERENCES Incidents(IncidentId),
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ArticleFeedback (
     FeedbackId INT PRIMARY KEY AUTO_INCREMENT,
@@ -808,7 +812,7 @@ CREATE TABLE IF NOT EXISTS ArticleFeedback (
     
     FOREIGN KEY (ArticleId) REFERENCES KnowledgeArticles(ArticleId) ON DELETE CASCADE,
     FOREIGN KEY (UserId) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ArticleAttachments (
     AttachmentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -825,7 +829,7 @@ CREATE TABLE IF NOT EXISTS ArticleAttachments (
     
     FOREIGN KEY (ArticleId) REFERENCES KnowledgeArticles(ArticleId) ON DELETE CASCADE,
     FOREIGN KEY (UploadedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add FK from Problems to KnowledgeArticles now that table exists
 ALTER TABLE Problems ADD CONSTRAINT fk_problems_knowledge 
@@ -848,7 +852,7 @@ CREATE TABLE IF NOT EXISTS CatalogCategories (
     
     INDEX idx_catalog_categories_active (IsActive),
     INDEX idx_catalog_categories_order (DisplayOrder)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CatalogItems (
     CatalogItemId INT PRIMARY KEY AUTO_INCREMENT,
@@ -900,7 +904,7 @@ CREATE TABLE IF NOT EXISTS CatalogItems (
     FOREIGN KEY (CategoryId) REFERENCES CatalogCategories(CategoryId),
     FOREIGN KEY (WorkflowDefinitionId) REFERENCES WorkflowDefinitions(WorkflowDefinitionId),
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CatalogVariables (
     VariableId INT PRIMARY KEY AUTO_INCREMENT,
@@ -934,7 +938,7 @@ CREATE TABLE IF NOT EXISTS CatalogVariables (
     INDEX idx_catalog_variables_order (CatalogItemId, DisplayOrder),
     
     FOREIGN KEY (CatalogItemId) REFERENCES CatalogItems(CatalogItemId) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CatalogRequests (
     RequestId INT PRIMARY KEY AUTO_INCREMENT,
@@ -971,7 +975,7 @@ CREATE TABLE IF NOT EXISTS CatalogRequests (
     FOREIGN KEY (ServiceRequestId) REFERENCES ServiceRequests(ServiceRequestId),
     FOREIGN KEY (WorkflowInstanceId) REFERENCES WorkflowInstances(WorkflowInstanceId),
     FOREIGN KEY (AssignedToId) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CatalogRequestApprovals (
     ApprovalId INT PRIMARY KEY AUTO_INCREMENT,
@@ -988,7 +992,7 @@ CREATE TABLE IF NOT EXISTS CatalogRequestApprovals (
     
     FOREIGN KEY (CatalogRequestId) REFERENCES CatalogRequests(RequestId) ON DELETE CASCADE,
     FOREIGN KEY (ApproverId) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CatalogRequestComments (
     CommentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -1003,7 +1007,7 @@ CREATE TABLE IF NOT EXISTS CatalogRequestComments (
     
     FOREIGN KEY (CatalogRequestId) REFERENCES CatalogRequests(RequestId) ON DELETE CASCADE,
     FOREIGN KEY (CreatedById) REFERENCES Users(UserId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ====================================
 -- Create Sequences for Auto-Number Generation
@@ -1014,7 +1018,7 @@ CREATE TABLE IF NOT EXISTS ITSMNumberSequences (
     CurrentNumber INT NOT NULL DEFAULT 1,
     Prefix VARCHAR(10) NOT NULL,
     UpdatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO ITSMNumberSequences (SequenceType, CurrentNumber, Prefix) VALUES
 ('Incident', 1, 'INC'),

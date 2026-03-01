@@ -185,6 +185,17 @@ public class OrderReturn : BaseEntity
 
     #endregion
 
+    #region Credit Note
+
+    /// <summary>ID of the credit note issued for this return (null until issued).</summary>
+    public int? CreditNoteId { get; set; }
+
+    /// <summary>Navigation to the associated credit note.</summary>
+    [ForeignKey("CreditNoteId")]
+    public CreditNote? CreditNote { get; set; }
+
+    #endregion
+
     #region Line Items (JSON serialized for simplicity)
 
     /// <summary>JSON array of return line items</summary>

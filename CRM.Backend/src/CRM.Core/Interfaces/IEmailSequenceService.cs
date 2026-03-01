@@ -108,6 +108,13 @@ namespace CRM.Core.Interfaces
         /// Get recipient progress through a sequence.
         /// </summary>
         Task<EnrollmentProgressDto> GetRecipientProgressAsync(int enrollmentId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Advances all enrollments whose next step is due. Called by background service every 5 minutes.
+        /// </summary>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>True if any steps were processed.</returns>
+        Task<bool> ProcessDueStepsAsync(CancellationToken cancellationToken = default);
     }
 
     /// <summary>

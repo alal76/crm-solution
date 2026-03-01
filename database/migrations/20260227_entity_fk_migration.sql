@@ -10,6 +10,10 @@
 -- ============================================================================
 -- LEADS: Add StatusId FK column
 -- ============================================================================
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 ALTER TABLE Leads
 ADD COLUMN IF NOT EXISTS StatusId INT NULL COMMENT 'FK to LookupItems (LeadStatus category)';
 

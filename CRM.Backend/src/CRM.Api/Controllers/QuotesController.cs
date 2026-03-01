@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.DTOs;
 using CRM.Core.Entities;
+using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -27,12 +28,18 @@ public class QuotesController : ControllerBase
     private readonly CrmDbContext _context;
     private readonly ILogger<QuotesController> _logger;
     private readonly NormalizationService _normalization;
+    private readonly IPdfGenerationService _pdfService;
 
-    public QuotesController(CrmDbContext context, ILogger<QuotesController> logger, NormalizationService normalization)
+    public QuotesController(
+        CrmDbContext context,
+        ILogger<QuotesController> logger,
+        NormalizationService normalization,
+        IPdfGenerationService pdfService)
     {
         _context = context;
         _logger = logger;
         _normalization = normalization;
+        _pdfService = pdfService;
     }
 
     /// <summary>
@@ -799,6 +806,37 @@ public class QuotesController : ControllerBase
 
         await _context.SaveChangesAsync();
         return Ok();
+    }
+
+    #endregion
+
+    #region PDF Generation
+
+    /// <summary>
+    /// Downloads a quote as a PDF document.
+    /// BACK-008: PDF Generation
+    /// </summary>
+    /// <param name="id">Quote ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>PDF file</returns>
+    /// <response code="200">Returns PDF bytes with content-type application/pdf</response>
+    /// <response code="404">Quote not found</response>
+    [HttpGet("{id:int}/pdf")]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetQuotePdf(
+        [FromRoute] int id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var bytes = await _pdfService.GenerateQuotePdfAsync(id, cancellationToken);
+            return File(bytes, "application/pdf", $"quote-{id}.pdf");
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { Message = $"Quote {id} not found." });
+        }
     }
 
     #endregion

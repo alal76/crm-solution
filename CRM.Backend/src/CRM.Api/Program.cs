@@ -24,6 +24,7 @@ using CRM.Infrastructure.Services.AI;
 using CRM.Infrastructure.Services.Authentication;
 using CRM.Infrastructure.Services.Configuration;
 using CRM.Infrastructure.Services.Authentication.OAuth;
+using CRM.Infrastructure.Scripting;
 using CRM.Infrastructure.Jobs;
 using Hangfire;
 using Hangfire.InMemory;
@@ -111,6 +112,11 @@ Log.Information("Pluggable Providers configured - Factory pattern enabled for pr
 // Add scripting engines (Jint by default; extensible for Python/others)
 builder.Services.AddScriptingEngines(builder.Configuration);
 Log.Information("Scripting engines configured - ScriptEngineFactory ready");
+
+// SARCH-028: Roslyn compiled scripting engine + registry lifecycle service
+builder.Services.AddCrmScripting();
+builder.Services.AddScoped<IScriptRegistryService, ScriptRegistryService>();
+Log.Information("Roslyn scripting engine and script registry service registered");
 
 // Configure options from appsettings.json - Phase 1 through Phase 4 Authentication
 builder.Services.Configure<CRM.Core.Options.LinkedInOAuthOptions>(builder.Configuration.GetSection("Phase1:LinkedIn"));
@@ -812,6 +818,11 @@ builder.Services.AddScoped<ICampaignConversionService, CampaignConversionService
 // Email Sequence Management Service (enhanced)
 builder.Services.AddScoped<IEmailSequenceManagementService, EmailSequenceManagementService>();
 
+// Marketing Execution Engine — MKT-001, MKT-005, MKT-006
+builder.Services.AddScoped<CRM.Core.Interfaces.IUnsubscribeService, CRM.Infrastructure.Services.UnsubscribeService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IUtmTrackingService, CRM.Infrastructure.Services.UtmTrackingService>();
+builder.Services.AddHostedService<CRM.Infrastructure.BackgroundServices.NurtureSequenceBackgroundService>();
+
 // Webhook Management Services (2 services)
 builder.Services.AddScoped<IWebhookManagementService, WebhookManagementService>();
 builder.Services.AddScoped<IWebhookDispatcherService, WebhookDispatcherService>();
@@ -840,11 +851,13 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IProductBundleService, CRM.Infras
 builder.Services.AddScoped<ILeadSourceConfigService, LeadSourceConfigService>();
 builder.Services.AddScoped<IWebToLeadFormService, WebToLeadFormService>();
 builder.Services.AddScoped<ILeadAgingAlertService, LeadAgingAlertService>();
+builder.Services.AddScoped<ILeadAlertService, LeadAlertService>();
 builder.Services.AddScoped<IWinLossAnalysisService, WinLossAnalysisService>();
 builder.Services.AddScoped<ITerritoryAssignmentService, TerritoryAssignmentService>();
 builder.Services.AddScoped<IDynamicPricingEngine, DynamicPricingEngine>();
 builder.Services.AddScoped<IPricingRulesService, PricingRulesService>();
 builder.Services.AddScoped<ICompetitorService, CompetitorService>();
+builder.Services.AddScoped<ILeadCaptureService, LeadCaptureService>();
 builder.Services.AddScoped<ILeadQualificationService, LeadQualificationService>();
 
 // Credit Memo service
@@ -865,6 +878,8 @@ Log.Information("Commission & Contract Enhancement Services registered: Commissi
 builder.Services.AddScoped<IDunningManager, DunningManager>();
 // Dunning Scheduler - runs every 4 hours, uses IServiceScopeFactory for scoped IDunningManager (TODO-SALES003-012)
 builder.Services.AddHostedService<DunningSchedulerService>();
+// Dunning Schedule Service - CRUD for dunning schedule steps (BACK-010)
+builder.Services.AddScoped<IDunningScheduleService, CRM.Infrastructure.Services.DunningScheduleService>();
 // Proration Calculator - 4 proration algorithms (ProRata, FullPrice, OneMonth, None)
 builder.Services.AddScoped<CRM.Infrastructure.Services.IProrateCalculator, ProrateCalculator>();
 // Billing Timezone Service - timezone-aware billing date calculations (TODO-SALES006-023)
@@ -1090,6 +1105,10 @@ builder.Services.AddSingleton<CRM.Infrastructure.Services.Search.ISearchAnalytic
 builder.Services.AddScoped<IPortalAuthService, PortalAuthService>();
 builder.Services.AddScoped<IPortalService, PortalService>();
 builder.Services.AddScoped<IPortalAdminService, PortalAdminService>();
+builder.Services.AddScoped<IPartnerPortalService, PartnerPortalService>(); // PORTAL-025
+
+// Configurable Enums (ENUM-BE-012)
+builder.Services.AddScoped<IEnumManagementService, EnumManagementService>();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"];
@@ -1274,7 +1293,7 @@ using (var scope = app.Services.CreateScope())
             if (missingTables.Count > 0)
             {
                 Log.Fatal("Database migration incomplete. Missing tables: {MissingTables}. Aborting seeding.", string.Join(", ", missingTables));
-                throw new Exception($"Missing tables after migration: {string.Join(", ", missingTables)}");
+                throw new InvalidOperationException($"Missing tables after migration: {string.Join(", ", missingTables)}");
             }
         }
 
@@ -1285,7 +1304,7 @@ using (var scope = app.Services.CreateScope())
             if (scope.ServiceProvider.GetService(serviceType) == null)
             {
                 Log.Fatal("Required service not registered in DI: {ServiceName}", serviceType.Name);
-                throw new Exception($"Missing DI registration: {serviceType.Name}");
+                throw new InvalidOperationException($"Missing DI registration: {serviceType.Name}");
             }
         }
 

@@ -174,6 +174,13 @@ public interface ICrmDbContext
     DbSet<EmailSequenceEnrollment> EmailSequenceEnrollments { get; }
     DbSet<EmailSequenceStepExecution> EmailSequenceStepExecutions { get; }
 
+    // Marketing Execution Engine — UTM Tracking, Unsubscribe, Nurture, Email Events
+    DbSet<NurtureEnrollment> NurtureEnrollments { get; }
+    DbSet<CampaignEmailTracking> CampaignEmailTrackings { get; }
+    DbSet<UnsubscribeRecord> UnsubscribeRecords { get; }
+    DbSet<UtmLinkClick> UtmLinkClicks { get; }
+    DbSet<CampaignTrackingLink> CampaignTrackingLinks { get; }
+
     // Phase 4 - Teams
     DbSet<Team> Teams { get; }
     DbSet<TeamMember> TeamMembers { get; }
@@ -394,6 +401,10 @@ public interface ICrmDbContext
     // AI Script Plugins
     DbSet<ScriptPlugin> ScriptPlugins { get; }
 
+    // Script Registry Lifecycle (SARCH-011 / SARCH-012)
+    DbSet<ScriptVersion> ScriptVersions { get; }
+    DbSet<ScriptAuditLog> ScriptAuditLogs { get; }
+
     // Satisfaction surveys (CSAT / NPS / CES)
     DbSet<SatisfactionSurvey> SatisfactionSurveys { get; }
     DbSet<SatisfactionResponse> SatisfactionResponses { get; }
@@ -407,6 +418,17 @@ public interface ICrmDbContext
 
     // FEAT-AISCORING: Lead Score History
     DbSet<LeadScoreHistory> LeadScoreHistories { get; }
+
+    // ENUM-BE-004: Configurable Enum entities
+    DbSet<EnumCategory> EnumCategories { get; }
+    DbSet<EnumValue> EnumValues { get; }
+    DbSet<EnumTransition> EnumTransitions { get; }
+
+    // BACK-007: Credit Notes
+    DbSet<CreditNote> CreditNotes { get; }
+
+    // BACK-010: Dunning Schedules
+    DbSet<DunningSchedule> DunningSchedules { get; }
 
     DatabaseFacade Database { get; }
 

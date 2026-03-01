@@ -40,6 +40,32 @@ public class PdfGenerationService : IPdfGenerationService
         return Task.FromResult(bytes);
     }
 
+    /// <inheritdoc />
+    public Task<byte[]> GenerateQuotePdfAsync(int quoteId, CancellationToken ct = default)
+    {
+        _logger.LogWarning(
+            "PdfGenerationService: Returning stub PDF for quote {QuoteId}. " +
+            "PDF generation requires a PDF library to be configured.",
+            quoteId);
+
+        var message = $"PDF generation requires a PDF library to be configured.\nQuote ID: {quoteId}";
+        var bytes = BuildMinimalPdf(message);
+        return Task.FromResult(bytes);
+    }
+
+    /// <inheritdoc />
+    public Task<byte[]> GenerateFromHtmlAsync(string htmlContent, PdfOptions? options = null, CancellationToken ct = default)
+    {
+        _logger.LogWarning(
+            "PdfGenerationService: PDF library not configured — returning UTF-8 HTML bytes. " +
+            "Install QuestPDF, PdfSharpCore, or configure wkhtmltopdf/Playwright to enable real PDF output.");
+
+        // Prefix so consumers can detect that this is HTML, not binary PDF.
+        const string HtmlPrefix = "<!-- PDF generation requires wkhtmltopdf or Playwright - returning HTML bytes -->\n";
+        var bytes = Encoding.UTF8.GetBytes(HtmlPrefix + htmlContent);
+        return Task.FromResult(bytes);
+    }
+
     /// <summary>
     /// Builds the smallest well-formed PDF that contains a single text page.
     /// This is intentionally minimal and does NOT require any NuGet packages.

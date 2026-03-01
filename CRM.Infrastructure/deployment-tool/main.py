@@ -1253,7 +1253,7 @@ class CloudCLIManager:
         if success:
             try:
                 resources["regions"] = json.loads(output)
-            except:
+            except Exception:
                 pass
         
         # Get VPCs
@@ -1261,7 +1261,7 @@ class CloudCLIManager:
         if success:
             try:
                 resources["vpcs"] = json.loads(output)
-            except:
+            except Exception:
                 pass
         
         # Get ECS clusters
@@ -1270,7 +1270,7 @@ class CloudCLIManager:
             try:
                 arns = json.loads(output)
                 resources["ecs_clusters"] = [arn.split("/")[-1] for arn in arns]
-            except:
+            except Exception:
                 pass
         
         return resources
@@ -1290,7 +1290,7 @@ class CloudCLIManager:
         if success:
             try:
                 resources["subscriptions"] = json.loads(output)
-            except:
+            except Exception:
                 pass
         
         # Get resource groups
@@ -1298,7 +1298,7 @@ class CloudCLIManager:
         if success:
             try:
                 resources["resource_groups"] = json.loads(output)
-            except:
+            except Exception:
                 pass
         
         # Get locations
@@ -1306,7 +1306,7 @@ class CloudCLIManager:
         if success:
             try:
                 resources["locations"] = json.loads(output)
-            except:
+            except Exception:
                 pass
         
         return resources

@@ -76,6 +76,7 @@ public class SampleDataSeederService
             await SeedContactsToContextAsync(dbContext);
             await SeedLeadsToContextAsync(dbContext);
             await SeedOpportunitiesToContextAsync(dbContext);
+            await SeedDefaultPortalConfigToContextAsync(dbContext); // PORTAL-017
 
             // Update settings to mark sample data as seeded
 #pragma warning disable CS0618 // SampleDataSeeded/SampleDataLastSeeded are obsolete but deliberately used by seeder
@@ -1643,6 +1644,28 @@ public class SampleDataSeederService
         context.Opportunities.AddRange(opportunities);
         await context.SaveChangesAsync();
         _logger.LogInformation("Seeded {Count} demo opportunities", opportunities.Count);
+    }
+
+    /// <summary>PORTAL-017: Seed a default PortalConfig row if none exists.</summary>
+    private async Task SeedDefaultPortalConfigToContextAsync(CrmDbContext context)
+    {
+        if (!await context.PortalConfigs.AnyAsync())
+        {
+            var now = DateTime.UtcNow;
+            context.PortalConfigs.Add(new PortalConfig
+            {
+                IsEnabled = false,
+                AllowSelfRegistration = false,
+                PortalTitle = "Customer Portal",
+                WelcomeMessage = "Welcome to the Customer Support Portal.",
+                SupportEmail = "support@crm.local",
+                PrimaryColor = "#1976d2",
+                CreatedAt = now,
+                UpdatedAt = now
+            });
+            await context.SaveChangesAsync();
+            _logger.LogInformation("Seeded default PortalConfig");
+        }
     }
 
     /// <summary>

@@ -870,6 +870,174 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         return true;
     }
 
+    /// <summary>
+    /// Gets current execution statistics for a campaign.
+    /// </summary>
+    public async Task<CampaignExecutionStatusDto> GetExecutionStatusAsync(int campaignId, CancellationToken cancellationToken = default)
+    {
+        var campaign = await _context.MarketingCampaigns
+            .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
+
+        if (campaign == null)
+        {
+            return new CampaignExecutionStatusDto { CampaignId = campaignId };
+        }
+
+        var totalRecipients = await _context.CampaignRecipients
+            .CountAsync(r => r.CampaignId == campaignId && !r.IsDeleted, cancellationToken);
+
+        var trackingGroups = await _context.CampaignEmailTrackings
+            .Where(t => t.CampaignId == campaignId && !t.IsDeleted)
+            .GroupBy(t => t.Event)
+            .Select(g => new { Event = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var sendCount = trackingGroups.FirstOrDefault(g => g.Event == EmailTrackingEvent.Sent)?.Count ?? 0;
+        var openCount = trackingGroups.FirstOrDefault(g => g.Event == EmailTrackingEvent.Opened)?.Count ?? 0;
+        var clickCount = trackingGroups.FirstOrDefault(g => g.Event == EmailTrackingEvent.Clicked)?.Count ?? 0;
+        var bounceCount = trackingGroups.FirstOrDefault(g => g.Event == EmailTrackingEvent.Bounced)?.Count ?? 0;
+        var unsubCount = trackingGroups.FirstOrDefault(g => g.Event == EmailTrackingEvent.Unsubscribed)?.Count ?? 0;
+
+        return new CampaignExecutionStatusDto
+        {
+            CampaignId = campaignId,
+            Status = campaign.Status,
+            TotalRecipients = totalRecipients,
+            SendCount = sendCount,
+            OpenCount = openCount,
+            ClickCount = clickCount,
+            BounceCount = bounceCount,
+            UnsubscribeCount = unsubCount,
+            OpenRate = sendCount > 0 ? Math.Round((double)openCount / sendCount * 100, 2) : 0,
+            ClickRate = sendCount > 0 ? Math.Round((double)clickCount / sendCount * 100, 2) : 0,
+            UnsubscribeRate = sendCount > 0 ? Math.Round((double)unsubCount / sendCount * 100, 2) : 0,
+            StartedAt = campaign.StartedAt,
+            CompletedAt = campaign.CompletedAt
+        };
+    }
+
+    /// <summary>
+    /// Starts a campaign immediately (Draft → Active).
+    /// </summary>
+    public async Task<CampaignExecutionStatusDto> StartCampaignAsync(int campaignId, CancellationToken cancellationToken = default)
+    {
+        var campaign = await _context.MarketingCampaigns
+            .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
+
+        if (campaign == null)
+        {
+            return new CampaignExecutionStatusDto { CampaignId = campaignId };
+        }
+
+        if (campaign.Status != CampaignStatus.Draft && campaign.Status != CampaignStatus.Scheduled)
+        {
+            _logger.LogWarning("Cannot start campaign {CampaignId} in status {Status}", campaignId, campaign.Status);
+            return await GetExecutionStatusAsync(campaignId, cancellationToken);
+        }
+
+        campaign.Status = CampaignStatus.Active;
+        campaign.StartedAt = DateTime.UtcNow;
+        campaign.UpdatedAt = DateTime.UtcNow;
+        _context.MarketingCampaigns.Update(campaign);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Campaign {CampaignId} started", campaignId);
+        return await GetExecutionStatusAsync(campaignId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Cancels a campaign (Active/Scheduled/Paused → Cancelled).
+    /// </summary>
+    public async Task<CampaignExecutionStatusDto> CancelCampaignAsync(int campaignId, CancellationToken cancellationToken = default)
+    {
+        var campaign = await _context.MarketingCampaigns
+            .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
+
+        if (campaign == null)
+        {
+            return new CampaignExecutionStatusDto { CampaignId = campaignId };
+        }
+
+        campaign.Status = CampaignStatus.Cancelled;
+        campaign.CompletedAt = DateTime.UtcNow;
+        campaign.UpdatedAt = DateTime.UtcNow;
+        _context.MarketingCampaigns.Update(campaign);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Campaign {CampaignId} cancelled", campaignId);
+        return await GetExecutionStatusAsync(campaignId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Schedules a campaign using a DTO carrying the desired UTC send time.
+    /// </summary>
+    public async Task<CampaignExecutionStatusDto> ScheduleWithDtoAsync(int campaignId, ScheduleCampaignDto dto, CancellationToken cancellationToken = default)
+    {
+        var campaign = await _context.MarketingCampaigns
+            .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
+
+        if (campaign == null)
+        {
+            return new CampaignExecutionStatusDto { CampaignId = campaignId };
+        }
+
+        campaign.Status = CampaignStatus.Scheduled;
+        campaign.ScheduledAt = dto.ScheduledDate.ToUniversalTime();
+        campaign.UpdatedAt = DateTime.UtcNow;
+        _context.MarketingCampaigns.Update(campaign);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Campaign {CampaignId} scheduled for {ScheduledAt}", campaignId, dto.ScheduledDate);
+        return await GetExecutionStatusAsync(campaignId, cancellationToken);
+    }
+
+    /// <summary>
+    /// Processes an email-provider tracking webhook and persists the event.
+    /// </summary>
+    public async Task ProcessTrackingWebhookAsync(EmailTrackingWebhookDto dto, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Processing tracking webhook: messageId={MessageId}, event={Event}", dto.MessageId, dto.Event);
+
+        var mappedEvent = dto.Event.ToLowerInvariant() switch
+        {
+            "delivered" or "delivery" => EmailTrackingEvent.Delivered,
+            "open" or "opened" => EmailTrackingEvent.Opened,
+            "click" or "clicked" => EmailTrackingEvent.Clicked,
+            "bounce" or "bounced" => EmailTrackingEvent.Bounced,
+            "unsubscribe" or "unsubscribed" or "optout" => EmailTrackingEvent.Unsubscribed,
+            "spam" or "spamreport" or "spamreported" => EmailTrackingEvent.SpamReported,
+            _ => EmailTrackingEvent.Sent
+        };
+
+        // Resolve campaign reference via message ID
+        int? campaignId = null;
+        var recipient = await _context.CampaignRecipients
+            .FirstOrDefaultAsync(r => !r.IsDeleted && r.Email == dto.RecipientEmail, cancellationToken);
+        if (recipient != null)
+        {
+            campaignId = recipient.CampaignId;
+        }
+
+        var trackingRecord = new CampaignEmailTracking
+        {
+            CampaignId = campaignId,
+            RecipientEmail = dto.RecipientEmail ?? string.Empty,
+            Event = mappedEvent,
+            ClickedUrl = dto.ClickedUrl,
+            UserAgent = dto.UserAgent,
+            IpAddress = dto.IpAddress,
+            MessageId = dto.MessageId,
+            EventAt = dto.Timestamp.HasValue
+                ? DateTimeOffset.FromUnixTimeSeconds(dto.Timestamp.Value).UtcDateTime
+                : DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.CampaignEmailTrackings.Add(trackingRecord);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     #endregion
 }
 

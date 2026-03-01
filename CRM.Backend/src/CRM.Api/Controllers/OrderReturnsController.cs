@@ -470,6 +470,49 @@ public class OrderReturnsController : ControllerBase
 
     #endregion
 
+    #region Credit Notes
+
+    /// <summary>
+    /// Issues a credit note for an approved order return.
+    /// Generates CreditNoteNumber in the format CN-{year}-{id:D5}.
+    /// BACK-007: Order Returns + Credit Notes
+    /// </summary>
+    /// <param name="orderId">Parent order ID</param>
+    /// <param name="id">Order return ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Newly created credit note</returns>
+    /// <response code="200">Credit note created successfully</response>
+    /// <response code="400">Return is not Approved, or credit note already issued</response>
+    /// <response code="404">Order return not found</response>
+    [HttpPost("{id:int}/credit-note")]
+    [ProducesResponseType(typeof(CreditNoteDto), 200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> IssueCreditNote(
+        [FromRoute] int orderId,
+        [FromRoute] int id,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var creditNote = await _returnService.IssueCreditNoteAsync(id, cancellationToken);
+            _logger.LogInformation(
+                "CreditNote {CreditNoteNumber} issued for return {ReturnId} on order {OrderId}.",
+                creditNote.CreditNoteNumber, id, orderId);
+            return Ok(creditNote);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { ex.Message });
+        }
+    }
+
+    #endregion
+
     #region Request DTOs
 
     public class ApproveRejectRequest

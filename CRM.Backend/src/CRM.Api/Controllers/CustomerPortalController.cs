@@ -15,13 +15,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
+// CRM staff portal proxy — route moved to /api/portal/crm to avoid conflict with customer PortalController
+// PORTAL-014: Route conflict fix — CustomerPortalController moved from /api/portal to /api/portal/crm
 /// <summary>
-/// Customer self-service portal endpoints (PORTAL-01/02/03/04).
-/// Customers authenticate via their portal token (passed as X-Portal-Token header).
-/// Internally the same JWT [Authorize] is used when accessed from an authenticated session.
+/// CRM staff-facing portal proxy endpoints (PORTAL-01/02/03/04).
+/// Staff access tickets/articles on behalf of customers.
+/// Route changed to /api/portal/crm to avoid ambiguity with the public PortalController.
 /// </summary>
 [ApiController]
-[Route("api/portal")]
+[Route("api/portal/crm")]
 [Authorize]
 public class CustomerPortalController : ControllerBase
 {

@@ -404,4 +404,75 @@ public class OrderReturnService : IOrderReturnService
     }
 
     #endregion
+
+    #region Credit Notes
+
+    /// <inheritdoc />
+    public async Task<CreditNoteDto> IssueCreditNoteAsync(
+        int returnId,
+        CancellationToken cancellationToken = default)
+    {
+        var orderReturn = await _context.OrderReturns
+            .FirstOrDefaultAsync(r => r.Id == returnId && !r.IsDeleted, cancellationToken)
+            ?? throw new KeyNotFoundException(string.Format(OrderReturnNotFoundMessage, returnId));
+
+        if (orderReturn.Status != OrderReturnStatus.Approved)
+        {
+            throw new InvalidOperationException(
+                $"Cannot issue a credit note for return {returnId}: status is '{orderReturn.Status}' (must be Approved).");
+        }
+
+        if (orderReturn.CreditNoteId.HasValue)
+        {
+            throw new InvalidOperationException(
+                $"Credit note already issued for return {returnId} (CreditNoteId={orderReturn.CreditNoteId}).");
+        }
+
+        // Persist a placeholder first to obtain the Id for number generation.
+        var creditNote = new CreditNote
+        {
+            OrderId = orderReturn.OrderId,
+            Amount = orderReturn.RefundAmount,
+            Reason = orderReturn.Notes ?? "Order return refund",
+            IssuedAt = DateTime.UtcNow,
+            IsApplied = false,
+            CreditNoteNumber = string.Empty, // placeholder — replaced below
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.CreditNotes.Add(creditNote);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Now that we have the Id, generate the human-readable number.
+        creditNote.CreditNoteNumber = $"CN-{DateTime.UtcNow.Year}-{creditNote.Id:D5}";
+        orderReturn.CreditNoteId = creditNote.Id;
+        orderReturn.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "CreditNote {CreditNoteNumber} (Id={CreditNoteId}) issued for OrderReturn {ReturnId}.",
+            creditNote.CreditNoteNumber, creditNote.Id, returnId);
+
+        return MapToCreditNoteDto(creditNote);
+    }
+
+    private static CreditNoteDto MapToCreditNoteDto(CreditNote cn) =>
+        new()
+        {
+            Id = cn.Id,
+            CreditNoteNumber = cn.CreditNoteNumber,
+            OrderId = cn.OrderId,
+            InvoiceId = cn.InvoiceId,
+            Amount = cn.Amount,
+            Reason = cn.Reason,
+            IssuedAt = cn.IssuedAt,
+            IsApplied = cn.IsApplied,
+            AppliedAt = cn.AppliedAt,
+            CreatedAt = cn.CreatedAt,
+            UpdatedAt = cn.UpdatedAt.GetValueOrDefault(cn.CreatedAt)
+        };
+
+    #endregion
 }

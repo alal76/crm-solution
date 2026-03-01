@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM CDT - Day-2 Operations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .stat-card { transition: all 0.3s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+        .log-output { font-family: monospace; font-size: 12px; background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius:.5rem; height:300px; overflow-y:auto; }
+        .health-dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-dark bg-dark mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/"><i class="bi bi-cloud-arrow-up"></i> CRM CDT</a>
+        <span class="navbar-text text-light fw-bold">Day-2 Operations</span>
+        <div class="d-flex gap-2">
+            <a href="/" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i> Wizard</a>
+            <button class="btn btn-sm btn-outline-light" onclick="loadStatus()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    <!-- Status Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card text-center p-3">
+                <div class="fs-4 fw-bold text-primary" id="cards-version">—</div>
+                <div class="text-muted small">CRM Version</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card text-center p-3">
+                <div id="card-api-health"><span class="health-dot bg-secondary"></span></div>
+                <div class="text-muted small">API Health</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card text-center p-3">
+                <div class="fs-4 fw-bold" id="card-containers">—</div>
+                <div class="text-muted small">Running Containers</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card text-center p-3">
+                <div class="fs-6 fw-bold" id="card-refreshed">—</div>
+                <div class="text-muted small">Last Refreshed</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Tabs -->
+    <ul class="nav nav-tabs mb-3" id="day2Tabs">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-upgrade"><i class="bi bi-arrow-up-circle"></i> Upgrade</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rollback"><i class="bi bi-arrow-counterclockwise"></i> Rollback</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-scale"><i class="bi bi-diagram-3"></i> Scale</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-secrets"><i class="bi bi-shield-lock"></i> Secrets</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-containers"><i class="bi bi-boxes"></i> Containers</button></li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Upgrade Tab -->
+        <div class="tab-pane fade show active" id="tab-upgrade">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-arrow-up-circle"></i> Upgrade CRM</h5>
+                    <div class="mb-2">Current version: <strong id="upgrade-current-version">loading...</strong></div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="upgrade-version-select">Target Version</label>
+                            <select class="form-select" id="upgrade-version-select">
+                                <option value="latest">latest</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8 d-flex align-items-end gap-3">
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="upgrade-backup" checked><label class="form-check-label" for="upgrade-backup">Backup DB first</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="upgrade-snapshot" checked><label class="form-check-label" for="upgrade-snapshot">Create snapshot</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="upgrade-dry-run"><label class="form-check-label" for="upgrade-dry-run">Dry run</label></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="startUpgrade()"><i class="bi bi-play-circle"></i> Start Upgrade</button>
+                    <div class="mt-3">
+                        <div class="progress mb-2" style="height:8px"><progress id="upgrade-progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%; height:8px; border:none" value="0" max="100" aria-label="Upgrade progress"></progress></div>
+                        <div class="log-output mt-2" id="upgrade-log"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rollback Tab -->
+        <div class="tab-pane fade" id="tab-rollback">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5 class="card-title mb-0"><i class="bi bi-arrow-counterclockwise"></i> Snapshots &amp; Rollback</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadSnapshots()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                    </div>
+                    <div id="snapshots-table-container">
+                        <div class="text-muted">Loading snapshots...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scale Tab -->
+        <div class="tab-pane fade" id="tab-scale">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-diagram-3"></i> Scale Services</h5>
+                    <div id="scale-services-list">
+                        <div class="text-muted">Loading service list...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secrets Tab -->
+        <div class="tab-pane fade" id="tab-secrets">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6><i class="bi bi-key"></i> JWT Secret</h6>
+                            <p class="text-muted small">Rotating invalidates all active sessions.</p>
+                            <div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle"></i> All users will be logged out</div>
+                            <button class="btn btn-warning w-100" onclick="rotateSecret('jwt')"><i class="bi bi-arrow-repeat"></i> Rotate JWT Secret</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6><i class="bi bi-database-lock"></i> Database Password</h6>
+                            <p class="text-muted small">Updates MariaDB user and .env file.</p>
+                            <button class="btn btn-warning w-100" onclick="rotateSecret('db_password')"><i class="bi bi-arrow-repeat"></i> Rotate DB Password</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h6><i class="bi bi-plug"></i> All Secrets</h6>
+                            <p class="text-muted small">Rotate JWT + DB password together.</p>
+                            <div class="alert alert-danger py-2 small"><i class="bi bi-exclamation-octagon"></i> Service downtime expected</div>
+                            <button class="btn btn-danger w-100" onclick="rotateSecret('all')"><i class="bi bi-arrow-repeat"></i> Rotate All</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12"><div id="rotation-result"></div></div>
+            </div>
+        </div>
+
+        <!-- Containers Tab -->
+        <div class="tab-pane fade" id="tab-containers">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5 class="card-title mb-0"><i class="bi bi-boxes"></i> Containers</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadContainers()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                    </div>
+                    <div id="containers-table"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="confirmModalTitle">Confirm</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body" id="confirmModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmModalBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="text-center text-muted small py-4 mt-4">CRM CDT v0.609.1 | <a href="https://github.com/your-org/crm-solution" target="_blank">GitHub</a></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+let _confirmCallback = null;
+
+function showConfirm(title, body, cb) {
+    document.getElementById('confirmModalTitle').textContent = title;
+    document.getElementById('confirmModalBody').textContent = body;
+    _confirmCallback = cb;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('confirmModal')).show();
+}
+document.getElementById('confirmModalBtn').addEventListener('click', () => {
+    bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+    if (_confirmCallback) _confirmCallback();
+});
+
+async function loadStatus() {
+    try {
+        const r = await fetch('/api/day2/status');
+        const d = await r.json();
+        document.getElementById('cards-version').textContent = d.crm_version || '—';
+        const apiDot = d.health?.api ? '<span class="health-dot bg-success"></span> Healthy' : '<span class="health-dot bg-danger"></span> Down';
+        document.getElementById('card-api-health').innerHTML = apiDot;
+        document.getElementById('card-containers').textContent = d.container_count ?? 0;
+        document.getElementById('card-refreshed').textContent = new Date().toLocaleTimeString();
+        document.getElementById('upgrade-current-version').textContent = d.crm_version || 'unknown';
+        loadContainerList(d.containers || []);
+    } catch(e) { console.error('Status load failed', e); }
+}
+
+async function loadVersions() {
+    try {
+        const r = await fetch('/api/day2/versions');
+        const versions = await r.json();
+        const sel = document.getElementById('upgrade-version-select');
+        sel.innerHTML = versions.map(v => `<option value="${v}">${v}</option>`).join('') || '<option value="latest">latest</option>';
+    } catch(e) { console.warn('Versions load failed', e); }
+}
+
+async function loadSnapshots() {
+    const container = document.getElementById('snapshots-table-container');
+    try {
+        const r = await fetch('/api/day2/snapshots');
+        const snaps = await r.json();
+        if (!snaps.length) { container.innerHTML = '<div class="alert alert-info">No snapshots found.</div>'; return; }
+        container.innerHTML = `<table class="table table-sm table-hover"><thead><tr><th>Snapshot ID</th><th>Version</th><th>Date</th><th>Reason</th><th>Actions</th></tr></thead><tbody>${
+            snaps.map(s => `<tr><td><code>${s.snapshot_id||'—'}</code></td><td>${s.version||'—'}</td><td>${s.timestamp ? new Date(s.timestamp).toLocaleString() : '—'}</td><td>${s.reason||'—'}</td><td>
+                <button class="btn btn-sm btn-warning me-1" onclick="restoreSnapshot('${s.snapshot_id}')"><i class="bi bi-arrow-counterclockwise"></i> Restore</button>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteSnapshot('${s.snapshot_id}')"><i class="bi bi-trash"></i></button>
+            </td></tr>`).join('')
+        }</tbody></table>`;
+    } catch(e) { container.innerHTML = `<div class="alert alert-danger">Load failed: ${e.message}</div>`; }
+}
+
+function restoreSnapshot(id) {
+    showConfirm('Restore Snapshot', `Restore snapshot ${id}? This will replace current deployment.`, async () => {
+        const r = await fetch('/api/day2/rollback', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({snapshot_id: id})});
+        const d = await r.json();
+        alert(d.success ? 'Rollback complete: ' + (d.messages||[]).join(', ') : 'Rollback failed: ' + (d.errors||[]).join(', '));
+        loadSnapshots();
+    });
+}
+
+async function deleteSnapshot(id) {
+    showConfirm('Delete Snapshot', `Permanently delete snapshot ${id}?`, async () => {
+        await fetch(`/api/day2/snapshots/${id}`, {method:'DELETE'});
+        loadSnapshots();
+    });
+}
+
+function loadContainerList(containers) {
+    const el = document.getElementById('containers-table');
+    if (!containers.length) { el.innerHTML = '<div class="alert alert-info">No CRM containers found.</div>'; return; }
+    el.innerHTML = `<table class="table table-sm table-hover"><thead><tr><th>Name</th><th>Image</th><th>Status</th><th>Actions</th></tr></thead><tbody>${
+        containers.map(c => `<tr><td>${c.Names||c.name||'—'}</td><td><small>${c.Image||c.image||'—'}</small></td><td><span class="badge bg-${(c.Status||'').includes('Up') ? 'success' : 'secondary'}">${c.Status||c.status||'—'}</span></td><td>
+            <button class="btn btn-sm btn-outline-primary me-1" onclick="restartContainer('${c.Names||c.name}')"><i class="bi bi-arrow-repeat"></i></button>
+        </td></tr>`).join('')
+    }</tbody></table>`;
+}
+
+async function loadContainers() { await loadStatus(); }
+
+async function restartContainer(name) {
+    if (!confirm(`Restart ${name}?`)) return;
+    try {
+        const r = await fetch('/api/day2/status');
+        alert('Restart initiated (use docker restart manually if not automated)');
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+const SCALE_SERVICES = ['crm-api', 'crm-frontend'];
+function buildScaleList() {
+    const el = document.getElementById('scale-services-list');
+    el.innerHTML = SCALE_SERVICES.map(svc => `
+        <div class="d-flex align-items-center mb-3 gap-3">
+            <div class="fw-semibold" style="min-width:140px">${svc}</div>
+            <button class="btn btn-sm btn-outline-secondary" onclick="adjustReplica('${svc}', -1)"><i class="bi bi-dash"></i></button>
+            <input type="number" class="form-control form-control-sm" id="scale-${svc}" value="1" min="0" max="20" style="width:70px">
+            <button class="btn btn-sm btn-outline-secondary" onclick="adjustReplica('${svc}', 1)"><i class="bi bi-plus"></i></button>
+            <button class="btn btn-sm btn-primary" onclick="applyScale('${svc}')">Apply</button>
+        </div>`).join('');
+}
+
+function adjustReplica(svc, delta) {
+    const el = document.getElementById(`scale-${svc}`);
+    el.value = Math.max(0, parseInt(el.value || 1) + delta);
+}
+
+async function applyScale(svc) {
+    const replicas = parseInt(document.getElementById(`scale-${svc}`).value || 1);
+    const r = await fetch('/api/day2/scale', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({service: svc, replicas})});
+    const d = await r.json();
+    alert(d.success ? `Scaled ${svc} to ${replicas}` : 'Scale failed: ' + JSON.stringify(d));
+}
+
+async function rotateSecret(type) {
+    const labels = {jwt: 'JWT Secret', db_password: 'Database Password', all: 'ALL secrets'};
+    showConfirm('Rotate Secret', `Rotate ${labels[type] || type}? This may cause brief downtime.`, async () => {
+        const r = await fetch('/api/day2/rotate-secret', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({secret_type: type})});
+        const d = await r.json();
+        const resultEl = document.getElementById('rotation-result');
+        if (d.success) {
+            resultEl.innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle"></i> Rotated: ${d.rotated_secrets.join(', ')}</div>`;
+        } else {
+            resultEl.innerHTML = `<div class="alert alert-danger">Rotation failed: ${(d.errors||[]).join(', ')}</div>`;
+        }
+    });
+}
+
+async function startUpgrade() {
+    const version = document.getElementById('upgrade-version-select').value;
+    const backup = document.getElementById('upgrade-backup').checked;
+    const dryRun = document.getElementById('upgrade-dry-run').checked;
+    const log = document.getElementById('upgrade-log');
+    const prog = document.getElementById('upgrade-progress');
+    log.textContent = `Starting upgrade to ${version}${dryRun ? ' (DRY RUN)' : ''}...\n`;
+    prog.style.width = '10%';
+    try {
+        const r = await fetch('/api/day2/upgrade', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({target_version: version, backup, dry_run: dryRun})});
+        const d = await r.json();
+        const jobId = d.job_id;
+        log.textContent += `Job started: ${jobId}\n`;
+        // Poll for status
+        const poll = setInterval(async () => {
+            try {
+                const sr = await fetch(`/api/day2/upgrade/${jobId}/status`);
+                const sd = await sr.json();
+                if (sd.result) {
+                    (sd.result.messages||[]).forEach(m => { log.textContent += m + '\n'; log.scrollTop = log.scrollHeight; });
+                }
+                if (sd.done) {
+                    clearInterval(poll);
+                    prog.style.width = '100%';
+                    prog.classList.remove('progress-bar-animated');
+                    log.textContent += sd.result?.success ? '\n✓ Upgrade successful\n' : '\n✗ Upgrade failed\n';
+                }
+            } catch(e) { clearInterval(poll); }
+        }, 2000);
+    } catch(e) { log.textContent += 'Error: ' + e.message; }
+}
+
+// Init on load
+loadStatus();
+loadVersions();
+loadSnapshots();
+buildScaleList();
+setInterval(loadStatus, 30000);
+</script>
+</body>
+</html>

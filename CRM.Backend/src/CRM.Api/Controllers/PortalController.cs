@@ -7,9 +7,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using CRM.Core.Dtos;
+using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.FeatureManagement.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
 namespace CRM.Api.Controllers;
@@ -19,9 +21,11 @@ namespace CRM.Api.Controllers;
 /// Portal auth uses its own JWT (claim: portal_user_id) separate from CRM auth.
 /// All endpoints require a valid portal JWT token in the Authorization header.
 /// </summary>
+/// <remarks>PORTAL-015: Gated by EnableCustomerPortal feature flag.</remarks>
 [ApiController]
 [Route("api/portal")]
 [AllowAnonymous] // Route-level; actual auth done via ExtractPortalUserId helper
+[FeatureGate(FeatureFlags.EnableCustomerPortal)]
 public class PortalController : ControllerBase
 {
     private readonly IPortalService _portalService;
@@ -157,7 +161,123 @@ public class PortalController : ControllerBase
 
         return Ok(article);
     }
+    // ── Profile (PORTAL-019) ────────────────────────────────────────────────────────────
 
+    /// <summary>GET /api/portal/profile</summary>
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile(CancellationToken ct)
+    {
+        var userId = ExtractPortalUserId();
+        if (userId == null)
+            return Unauthorized(new { message = "Portal authentication required." });
+
+        var profile = await _portalService.GetProfileAsync(userId.Value, ct);
+        return Ok(profile);
+    }
+
+    /// <summary>PUT /api/portal/profile</summary>
+    [HttpPut("profile")]
+    public async Task<IActionResult> UpdateProfile([FromBody] UpdatePortalProfileDto dto, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userId = ExtractPortalUserId();
+        if (userId == null)
+            return Unauthorized(new { message = "Portal authentication required." });
+
+        try
+        {
+            var profile = await _portalService.UpdateProfileAsync(userId.Value, dto, ct);
+            return Ok(profile);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>POST /api/portal/profile/change-password</summary>
+    [HttpPost("profile/change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePortalPasswordDto dto, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var userId = ExtractPortalUserId();
+        if (userId == null)
+            return Unauthorized(new { message = "Portal authentication required." });
+
+        try
+        {
+            await _portalService.ChangePasswordAsync(userId.Value, dto, ct);
+            return Ok(new { message = "Password changed successfully." });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    // ── Attachments (PORTAL-022) ────────────────────────────────────────────────────
+
+    /// <summary>POST /api/portal/tickets/{ticketId}/attachments</summary>
+    [HttpPost("tickets/{ticketId:int}/attachments")]
+    [RequestSizeLimit(10_485_760)] // 10 MB
+    public async Task<IActionResult> UploadAttachment(int ticketId, IFormFile file, CancellationToken ct)
+    {
+        var userId = ExtractPortalUserId();
+        if (userId == null)
+            return Unauthorized(new { message = "Portal authentication required." });
+
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "No file provided." });
+
+        try
+        {
+            await using var stream = file.OpenReadStream();
+            var dto = await _portalService.UploadAttachmentAsync(
+                ticketId, userId.Value, file.FileName, file.ContentType, stream, file.Length, ct);
+            return Ok(dto);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>GET /api/portal/tickets/{ticketId}/attachments</summary>
+    [HttpGet("tickets/{ticketId:int}/attachments")]
+    public async Task<IActionResult> GetAttachments(int ticketId, CancellationToken ct)
+    {
+        var userId = ExtractPortalUserId();
+        if (userId == null)
+            return Unauthorized(new { message = "Portal authentication required." });
+
+        var attachments = await _portalService.GetAttachmentsAsync(ticketId, userId.Value, ct);
+        return Ok(attachments);
+    }
+
+    // ── Cancel ticket (PORTAL-023) ───────────────────────────────────────────────────
+
+    /// <summary>PATCH /api/portal/tickets/{ticketId}/cancel</summary>
+    [HttpPatch("tickets/{ticketId:int}/cancel")]
+    public async Task<IActionResult> CancelTicket(int ticketId, CancellationToken ct)
+    {
+        var userId = ExtractPortalUserId();
+        if (userId == null)
+            return Unauthorized(new { message = "Portal authentication required." });
+
+        try
+        {
+            await _portalService.CancelTicketAsync(ticketId, userId.Value, ct);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     /// <summary>

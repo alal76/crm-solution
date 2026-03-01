@@ -1,6 +1,10 @@
 -- ITSM Module Simplified Migration (No Foreign Keys)
 -- Creates core ITSM tables for Incident, Problem, SLA, CMDB, Change, Knowledge, Service Catalog
 
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 USE crm_db;
 
 -- Incident Management
@@ -41,7 +45,7 @@ CREATE TABLE IF NOT EXISTS Incidents (
     INDEX idx_incidents_state (State),
     INDEX idx_incidents_caller (CallerId),
     INDEX idx_incidents_number (Number)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS IncidentComments (
     CommentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -52,7 +56,7 @@ CREATE TABLE IF NOT EXISTS IncidentComments (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_incident_comments_incident (IncidentId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS IncidentHistory (
     HistoryId INT PRIMARY KEY AUTO_INCREMENT,
@@ -63,7 +67,7 @@ CREATE TABLE IF NOT EXISTS IncidentHistory (
     ChangedById INT NOT NULL,
     ChangedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_incident_history_incident (IncidentId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS IncidentAttachments (
     AttachmentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -76,7 +80,7 @@ CREATE TABLE IF NOT EXISTS IncidentAttachments (
     UploadedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_incident_attachments_incident (IncidentId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Problem Management
 CREATE TABLE IF NOT EXISTS Problems (
@@ -112,7 +116,7 @@ CREATE TABLE IF NOT EXISTS Problems (
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_problems_state (State),
     INDEX idx_problems_priority (Priority)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ProblemIncidents (
     ProblemIncidentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -121,7 +125,7 @@ CREATE TABLE IF NOT EXISTS ProblemIncidents (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CreatedById INT,
     INDEX idx_problem_incidents_problem (ProblemId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ProblemComments (
     CommentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -132,7 +136,7 @@ CREATE TABLE IF NOT EXISTS ProblemComments (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_problem_comments_problem (ProblemId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ProblemTasks (
     TaskId INT PRIMARY KEY AUTO_INCREMENT,
@@ -146,7 +150,7 @@ CREATE TABLE IF NOT EXISTS ProblemTasks (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_problem_tasks_problem (ProblemId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ProblemAttachments (
     AttachmentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -159,7 +163,7 @@ CREATE TABLE IF NOT EXISTS ProblemAttachments (
     UploadedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_problem_attachments_problem (ProblemId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- SLA Management
 CREATE TABLE IF NOT EXISTS SLAPolicies (
@@ -184,7 +188,7 @@ CREATE TABLE IF NOT EXISTS SLAPolicies (
     ModifiedAt DATETIME,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_sla_policies_active (IsActive)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS SLAInstances (
     SLAInstanceId INT PRIMARY KEY AUTO_INCREMENT,
@@ -204,7 +208,7 @@ CREATE TABLE IF NOT EXISTS SLAInstances (
     ModifiedAt DATETIME,
     INDEX idx_sla_instances_target (TargetId, TargetType),
     INDEX idx_sla_instances_state (State)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- CMDB
 CREATE TABLE IF NOT EXISTS ConfigurationItems (
@@ -234,7 +238,7 @@ CREATE TABLE IF NOT EXISTS ConfigurationItems (
     INDEX idx_ci_number (CINumber),
     INDEX idx_ci_type (CIType),
     INDEX idx_ci_status (OperationalStatus)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CIRelationships (
     RelationshipId INT PRIMARY KEY AUTO_INCREMENT,
@@ -246,7 +250,7 @@ CREATE TABLE IF NOT EXISTS CIRelationships (
     CreatedById INT,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_ci_relationships_parent (ParentCIId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS Services (
     ServiceId INT PRIMARY KEY AUTO_INCREMENT,
@@ -263,7 +267,7 @@ CREATE TABLE IF NOT EXISTS Services (
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_services_type (ServiceType),
     INDEX idx_services_active (IsActive)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ServiceCIs (
     ServiceCIId INT PRIMARY KEY AUTO_INCREMENT,
@@ -273,7 +277,7 @@ CREATE TABLE IF NOT EXISTS ServiceCIs (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_service_cis_service (ServiceId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Change Management
 CREATE TABLE IF NOT EXISTS Changes (
@@ -309,7 +313,7 @@ CREATE TABLE IF NOT EXISTS Changes (
     INDEX idx_changes_type (Type),
     INDEX idx_changes_state (State),
     INDEX idx_changes_approval (ApprovalStatus)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeApprovals (
     ApprovalId INT PRIMARY KEY AUTO_INCREMENT,
@@ -322,7 +326,7 @@ CREATE TABLE IF NOT EXISTS ChangeApprovals (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_change_approvals_change (ChangeId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeBlackouts (
     BlackoutId INT PRIMARY KEY AUTO_INCREMENT,
@@ -335,7 +339,7 @@ CREATE TABLE IF NOT EXISTS ChangeBlackouts (
     CreatedById INT,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_change_blackouts_dates (StartDate, EndDate)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeTasks (
     TaskId INT PRIMARY KEY AUTO_INCREMENT,
@@ -350,7 +354,7 @@ CREATE TABLE IF NOT EXISTS ChangeTasks (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_change_tasks_change (ChangeId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeComments (
     CommentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -361,7 +365,7 @@ CREATE TABLE IF NOT EXISTS ChangeComments (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_change_comments_change (ChangeId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ChangeImpactedCIs (
     ChangeImpactedCIId INT PRIMARY KEY AUTO_INCREMENT,
@@ -371,7 +375,7 @@ CREATE TABLE IF NOT EXISTS ChangeImpactedCIs (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_change_impacted_cis_change (ChangeId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Knowledge Management
 CREATE TABLE IF NOT EXISTS KnowledgeArticles (
@@ -408,7 +412,7 @@ CREATE TABLE IF NOT EXISTS KnowledgeArticles (
     INDEX idx_knowledge_type (ArticleType),
     INDEX idx_knowledge_state (PublishingState),
     FULLTEXT INDEX idx_knowledge_search (Title, ShortDescription, ArticleBody)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ArticleRelationships (
     RelationshipId INT PRIMARY KEY AUTO_INCREMENT,
@@ -417,7 +421,7 @@ CREATE TABLE IF NOT EXISTS ArticleRelationships (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_article_relationships_article (ArticleId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ArticleFeedback (
     FeedbackId INT PRIMARY KEY AUTO_INCREMENT,
@@ -428,7 +432,7 @@ CREATE TABLE IF NOT EXISTS ArticleFeedback (
     CreatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_article_feedback_article (ArticleId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS ArticleAttachments (
     AttachmentId INT PRIMARY KEY AUTO_INCREMENT,
@@ -441,7 +445,7 @@ CREATE TABLE IF NOT EXISTS ArticleAttachments (
     UploadedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_article_attachments_article (ArticleId)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Service Catalog
 CREATE TABLE IF NOT EXISTS CatalogItems (
@@ -467,7 +471,7 @@ CREATE TABLE IF NOT EXISTS CatalogItems (
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_catalog_items_category (CategoryId),
     INDEX idx_catalog_items_active (IsActive)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS CatalogRequests (
     RequestId INT PRIMARY KEY AUTO_INCREMENT,
@@ -486,6 +490,6 @@ CREATE TABLE IF NOT EXISTS CatalogRequests (
     IsDeleted BOOLEAN DEFAULT FALSE,
     INDEX idx_catalog_requests_item (CatalogItemId),
     INDEX idx_catalog_requests_state (State)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SELECT 'ITSM Module Migration Completed Successfully!' AS Status;

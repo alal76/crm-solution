@@ -8,6 +8,10 @@
 -- =============================================================================
 
 -- PRE-CHECK: Verify categories exist
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 SELECT 'PRE-CHECK: LookupCategories' AS Step;
 SELECT Id, Name, EntityType, PropertyName FROM LookupCategories ORDER BY Id;
 

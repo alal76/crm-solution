@@ -81,4 +81,18 @@ public interface IOrderReturnService
     Task<string> GenerateReturnNumberAsync(CancellationToken cancellationToken = default);
 
     #endregion
+
+    #region Credit Notes
+
+    /// <summary>
+    /// Issues a credit note for an approved order return.
+    /// Generates a CreditNoteNumber in the format CN-{year}-{id:D5} and creates a CreditNote record.
+    /// BACK-007: Order Returns + Credit Notes
+    /// </summary>
+    /// <param name="returnId">ID of the approved order return.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The newly created CreditNote DTO.</returns>
+    Task<CreditNoteDto> IssueCreditNoteAsync(int returnId, CancellationToken cancellationToken = default);
+
+    #endregion
 }

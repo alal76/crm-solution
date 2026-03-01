@@ -291,3 +291,33 @@ VALUES ('20260225222952_AddAuthAuditLogs', '9.0.1');
 2. Re-run `dotnet ef database update` so the full migration executes cleanly
    
 **Where seen:** v0.593.5-0.593.6, Feb 25-26 2026 — `/api/tasks/my-queue` returned 400; audit archive warnings logged.
+
+---
+
+### Issue 1b: MariaDB "Duplicate column name" on EF Migrations (partial apply from prior crash)
+
+- **Symptom:** `crm-api` restart-loops after a fresh deploy; `docker logs crm-api` shows `Duplicate column name 'ColumnName'` inside EF Core migration runner.
+- **Root cause:** A previous deploy crashed mid-migration. Because MariaDB auto-commits every DDL statement (no transaction rollback), some `ADD COLUMN` statements from the migration executed and committed before the crash. The migration is NOT recorded in `__EFMigrationsHistory`, so EF tries to re-run it from the beginning, failing on the already-existing column.
+- **Fix (idempotent repair SQL):**
+  ```sql
+  SET FOREIGN_KEY_CHECKS = 0;
+
+  -- Re-apply each AddColumn idempotently
+  ALTER TABLE `AffectedTable` ADD COLUMN IF NOT EXISTS `ColumnName` int NULL;
+  -- ... repeat for all columns in the failing migration ...
+
+  -- Re-create any new tables with IF NOT EXISTS
+  CREATE TABLE IF NOT EXISTS `NewTable` ( ... ) CHARACTER SET utf8mb4;
+
+  -- Mark the migration as applied so EF skips it
+  INSERT IGNORE INTO `__EFMigrationsHistory` (`MigrationId`, `ProductVersion`)
+  VALUES ('20260228053352_AddScriptRegistryEnhancements', '10.0.0');
+
+  SET FOREIGN_KEY_CHECKS = 1;
+  ```
+  Apply: `docker exec -i crm-mariadb mariadb -u crm_user -pCrmPass@Dev2024 crm_db < /tmp/repair.sql`  
+  Then `docker restart crm-api` and let EF apply any remaining clean migrations.
+- **Important:** Only mark the FAILING migration as applied. Any subsequent unapplied clean migrations (e.g., the Marketing migration) should be left for EF to apply normally.
+- **Helper script:** `/tmp/gen_repair_sql.py` (parses C# migration files and generates idempotent SQL automatically)
+- **Prevention:** Ensure the deploy script uses `--force-recreate` on containers and that all new migrations are smoke-tested locally against a fresh MariaDB volume before pushing to the dev server.
+- **Where seen:** v0.610.1, Feb 28 2026 — `AddScriptRegistryEnhancements` partially pre-applied `PriorityId` column; repair SQL fixed + Marketing migration applied cleanly.

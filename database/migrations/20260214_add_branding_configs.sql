@@ -3,6 +3,10 @@
 -- Date: 2026-02-14
 -- ============================================================================
 
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 CREATE TABLE IF NOT EXISTS `BrandingConfigs` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `SolutionName` varchar(100) NOT NULL DEFAULT 'CRM Solution',
@@ -22,4 +26,4 @@ CREATE TABLE IF NOT EXISTS `BrandingConfigs` (
   `IsDeleted` tinyint(1) NOT NULL DEFAULT 0,
   `RowVersion` binary(8) DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

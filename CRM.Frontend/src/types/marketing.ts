@@ -626,3 +626,130 @@ export interface CampaignAnalytics {
   roi: number;
   cost: number;
 }
+
+// ============================================================================
+// NEW DTO TYPES — MKT-002, MKT-003, MKT-007, MKT-008
+// ============================================================================
+
+/**
+ * Numeric campaign execution status enum (matches backend CampaignStatus int)
+ * Use CampaignExecutionStatus to avoid conflict with existing string-based CampaignStatus.
+ */
+export enum CampaignExecutionStatus {
+  Draft = 0,
+  Scheduled = 1,
+  Running = 2,
+  Paused = 3,
+  Completed = 4,
+  Cancelled = 5,
+}
+
+/** Simple API DTO for email sequence list responses */
+export interface EmailSequenceDto {
+  id: number;
+  name: string;
+  description: string;
+  isActive: boolean;
+  campaignId?: number;
+  stepCount: number;
+  activeEnrollmentCount: number;
+  createdAt: string;
+}
+
+/** Payload for creating a new email sequence */
+export interface CreateEmailSequenceSimpDto {
+  name: string;
+  description: string;
+  campaignId?: number;
+}
+
+/** Payload for updating an email sequence */
+export interface UpdateEmailSequenceSimpDto {
+  name: string;
+  description: string;
+  isActive: boolean;
+}
+
+/** Enrollment record for a lead/contact in an email sequence */
+export interface NurtureEnrollmentDto {
+  id: number;
+  sequenceId: number;
+  enrolleeEmail: string;
+  enrolleeName?: string;
+  currentStep: number;
+  isCompleted: boolean;
+  isUnsubscribed: boolean;
+  nextStepAt?: string;
+}
+
+/** Campaign execution metrics/status DTO */
+export interface CampaignExecutionStatusDto {
+  campaignId: number;
+  status: CampaignExecutionStatus;
+  totalRecipients: number;
+  sendCount: number;
+  openCount: number;
+  clickCount: number;
+  unsubscribeCount: number;
+  bounceCount: number;
+  openRate: number;
+  clickRate: number;
+  unsubscribeRate: number;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+/** UTM tracking link DTO */
+export interface CampaignTrackingLinkDto {
+  id: number;
+  campaignId: number;
+  originalUrl: string;
+  trackedUrl: string;
+  linkAlias?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  clickCount: number;
+}
+
+/** Payload for creating a tracking link */
+export interface CreateTrackingLinkDto {
+  originalUrl: string;
+  linkAlias?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+}
+
+/** Unsubscribe status for an email address */
+export interface UnsubscribeStatusDto {
+  email: string;
+  isUnsubscribed: boolean;
+  receiveProductUpdates: boolean;
+  receiveTransactional: boolean;
+  unsubscribedAt?: string;
+}
+
+/** Segment rule for recipient segmentation */
+export interface SegmentRule {
+  id: string;
+  field: 'status' | 'leadScore' | 'industry' | 'country' | 'source' | 'tag';
+  operator: 'is' | 'is not' | 'contains' | '>=' | '<=' | '=' | 'is one of';
+  value: string;
+}
+
+/** Segment config saved to campaign.SegmentRulesJson */
+export interface SegmentConfig {
+  matchMode: 'AND' | 'OR';
+  rules: SegmentRule[];
+}
+
+/** A/B test config saved to campaign.CampaignAbTestJson */
+export interface AbTestConfig {
+  enabled: boolean;
+  subjectA: string;
+  subjectB: string;
+  autoSelectAfterHours: number;
+  winnerMetric: 'openRate' | 'clickRate';
+}

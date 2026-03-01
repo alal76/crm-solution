@@ -21,6 +21,8 @@ public class LeadSummaryDto
     public string? CompanyName { get; set; }
     public string? Title { get; set; }
     public string Status { get; set; } = string.Empty;
+    /// <summary>Configurable status FK (ENUM-MIG-001)</summary>
+    public int? StatusId { get; set; }
     public string Source { get; set; } = string.Empty;
     public int Score { get; set; }
     public int FitScore { get; set; }

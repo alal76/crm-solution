@@ -104,6 +104,25 @@ public class UpdateOrderReturnDto
 }
 
 /// <summary>
+/// DTO for a credit note associated with an order return.
+/// BACK-007: Order Returns + Credit Notes
+/// </summary>
+public class CreditNoteDto
+{
+    public int Id { get; set; }
+    public string CreditNoteNumber { get; set; } = string.Empty;
+    public int? OrderId { get; set; }
+    public int? InvoiceId { get; set; }
+    public decimal Amount { get; set; }
+    public string? Reason { get; set; }
+    public DateTime IssuedAt { get; set; }
+    public bool IsApplied { get; set; }
+    public DateTime? AppliedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+/// <summary>
 /// DTO for order return statistics.
 /// </summary>
 public class OrderReturnStatisticsDto

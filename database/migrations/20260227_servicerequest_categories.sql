@@ -10,6 +10,10 @@
 -- Create ServiceRequestStatus Category and Items
 -- ============================================================================
 
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 INSERT INTO LookupCategories (Name, Description, IsActive, CreatedAt, IsDeleted, EntityType, PropertyName, IsSystemManaged, AllowCustomValues)
 VALUES ('ServiceRequestStatus', 'Service Request lifecycle statuses', 1, NOW(), 0, 'ServiceRequest', 'Status', 1, 1)
 ON DUPLICATE KEY UPDATE 

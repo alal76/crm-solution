@@ -220,8 +220,12 @@ public class ServiceRequestDto
     public string ChannelName { get; set; } = string.Empty;
     public ServiceRequestStatus Status { get; set; }
     public string StatusName { get; set; } = string.Empty;
+    /// <summary>Configurable status FK (ENUM-MIG-009)</summary>
+    public int? StatusId { get; set; }
     public ServiceRequestPriority Priority { get; set; }
     public string PriorityName { get; set; } = string.Empty;
+    /// <summary>Configurable priority FK (ENUM-MIG-013)</summary>
+    public int? PriorityId { get; set; }
 
     // Categorization
     public int? CategoryId { get; set; }
@@ -321,6 +325,10 @@ public class CreateServiceRequestDto
     public string? Description { get; set; }
     public ServiceRequestChannel Channel { get; set; } = ServiceRequestChannel.SelfServicePortal;
     public ServiceRequestPriority Priority { get; set; } = ServiceRequestPriority.Medium;
+    /// <summary>Configurable status FK (ENUM-MIG-009)</summary>
+    public int? StatusId { get; set; }
+    /// <summary>Configurable priority FK (ENUM-MIG-013)</summary>
+    public int? PriorityId { get; set; }
 
     // Categorization
     public int? CategoryId { get; set; }
@@ -372,6 +380,10 @@ public class UpdateServiceRequestDto
     public ServiceRequestChannel Channel { get; set; }
     public ServiceRequestStatus Status { get; set; }
     public ServiceRequestPriority Priority { get; set; }
+    /// <summary>Configurable status FK (ENUM-MIG-009)</summary>
+    public int? StatusId { get; set; }
+    /// <summary>Configurable priority FK (ENUM-MIG-013)</summary>
+    public int? PriorityId { get; set; }
 
     // Categorization
     public int? CategoryId { get; set; }

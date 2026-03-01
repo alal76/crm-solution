@@ -3,6 +3,10 @@
 -- Date: 2026-02-03
 
 -- Add CanAccessITSM column to UserGroups table
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 ALTER TABLE UserGroups ADD COLUMN IF NOT EXISTS CanAccessITSM BOOLEAN NOT NULL DEFAULT FALSE;
 
 -- Grant ITSM access to system admin groups (IsSystemAdmin = true)

@@ -247,7 +247,7 @@ function NavigationContent() {
         expandAdminSection('system-config');
       } else if (path.includes('/users') || path.includes('/approvals') || path.includes('/groups') || path.includes('/social-login') || path.includes('/security')) {
         expandAdminSection('user-management');
-      } else if (path.includes('/config/crm') || path.includes('/settings/sales') || path.includes('/settings/service-desk') || path.includes('/modules') || path.includes('/master-data') || path.includes('/duplicate-rules') || path.includes('/lead-score-rules') || path.includes('/service-requests')) {
+      } else if (path.includes('/config/crm') || path.includes('/settings/sales') || path.includes('/settings/service-desk') || path.includes('/modules') || path.includes('/master-data') || path.includes('/enum-management') || path.includes('/duplicate-rules') || path.includes('/lead-score-rules') || path.includes('/service-requests')) {
         expandAdminSection('crm-config');
       } else if (path.includes('/llm') || path.includes('/integrations') || path.includes('/analytics') || path.includes('/agents')) {
         expandAdminSection('ai-integrations');
@@ -311,6 +311,10 @@ function NavigationContent() {
     'campaign-execution': { label: 'Campaign Execution', icon: CampaignExecutionIcon, path: '/campaign-execution', menuName: 'CampaignExecution' },
     'landing-pages': { label: 'Landing Pages', icon: ViewQuiltIcon, path: '/landing-pages', menuName: 'LandingPages' },
     'forms': { label: 'Forms', icon: QuoteIcon, path: '/forms', menuName: 'Forms' },
+    // MKT-002: Email Sequences
+    'marketing-templates': { label: 'Email Sequences', icon: EmailIcon, path: '/marketing/templates', menuName: 'EmailSequences' },
+    // MKT-003: Campaign Analytics
+    'campaign-analytics': { label: 'Campaign Analytics', icon: BarChartIcon, path: '/marketing/analytics', menuName: 'CampaignAnalytics' },
     'knowledge-base': { label: 'Knowledge Base', icon: QuoteIcon, path: '/knowledge-base', menuName: 'KnowledgeBase' },
     'relationships': { label: 'Relationships', icon: RelationshipsIcon, path: '/relationships', menuName: 'Relationships' },
     'territories': { label: 'Territories', icon: BusinessIcon, path: '/territories', menuName: 'Territories' },
@@ -363,6 +367,7 @@ function NavigationContent() {
     'service-desk-config': { label: 'Service Desk', icon: SupportAgentIcon, path: '/admin/settings/service-desk', menuName: 'ServiceDeskConfig' },
     'module-fields': { label: 'Modules & Fields', icon: ModuleIcon, path: '/admin/modules', menuName: 'ModuleFields' },
     'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
+    'enum-management': { label: 'Enum Management', icon: CategoryIcon, path: '/admin/enum-management', menuName: 'EnumManagement' },
     'duplicate-rules': { label: 'Duplicate Rules', icon: MergeIcon, path: '/admin/duplicate-rules', menuName: 'DuplicateRules' },
     'lead-score-rules': { label: 'Lead Score Rules', icon: ScoreIcon as typeof DashboardIcon, path: '/admin/lead-score-rules', menuName: 'LeadScoreRules' },
     'sr-definitions': { label: 'Service Requests', icon: SupportAgentIcon, path: '/admin/service-requests', menuName: 'ServiceRequestDefinitions' },
@@ -540,7 +545,7 @@ function NavigationContent() {
   // Default order for nav items
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'accounts', 'accounts-360', 'contacts', 'relationships', 'leads', 'opportunities',
-    'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
+    'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'forms', 'marketing-templates', 'campaign-analytics', 'quotes',
     'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'teams',
     'territories', 'lead-routing', 'approvals',
     'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics', 'itsm-escalation-rules', 'itsm-escalation-dashboard', 'itsm-escalation-policies', 'itsm-sla-policies', 'itsm-service-queues',
@@ -549,7 +554,7 @@ function NavigationContent() {
   const defaultAdminOrder = useMemo(() => [
     'general-settings', 'feature-management', 'navigation-settings',
     'user-management', 'group-management', 'user-approvals', 'security-settings', 'social-login',
-    'crm-config-page', 'sales-config', 'service-desk-config', 'module-fields', 'master-data', 'duplicate-rules', 'lead-score-rules', 'sr-definitions',
+    'crm-config-page', 'sales-config', 'service-desk-config', 'module-fields', 'master-data', 'enum-management', 'duplicate-rules', 'lead-score-rules', 'sr-definitions',
     'llm-settings', 'integrations', 'analytics-settings', 'agent-management', 'agent-approvals', 'agent-analytics',
     'database-settings', 'monitoring-settings', 'deployment-settings', 'worker-ops',
     'branding-settings', 'dashboard-settings', 'ui-customization', 'portal-config',
@@ -638,6 +643,8 @@ function NavigationContent() {
     { id: 'campaign-execution', order: 9.2, visible: true, category: 'marketing' },
     { id: 'landing-pages', order: 9.5, visible: true, category: 'marketing' },
     { id: 'forms', order: 9.6, visible: true, category: 'marketing' },
+    { id: 'marketing-templates', order: 9.7, visible: true, category: 'marketing' },
+    { id: 'campaign-analytics', order: 9.8, visible: true, category: 'marketing' },
     { id: 'quotes', order: 10, visible: true, category: 'sales' },
     { id: 'territories', order: 10.1, visible: true, category: 'sales' },
     { id: 'lead-routing', order: 10.2, visible: true, category: 'sales' },
@@ -685,6 +692,7 @@ function NavigationContent() {
     { id: 'service-desk-config', order: 70, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'module-fields', order: 71, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'master-data', order: 72, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'enum-management', order: 72.5, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'duplicate-rules', order: 73, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'lead-score-rules', order: 74, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'sr-definitions', order: 75, visible: true, category: 'admin', adminSubcategory: 'crm-config' },

@@ -450,8 +450,14 @@ public class ServiceRequest : BaseEntity
     /// <summary>Current status of the request</summary>
     public ServiceRequestStatus Status { get; set; } = ServiceRequestStatus.New;
 
+    /// <summary>Configurable status FK for gradual migration to DB-driven enum (ENUM-MIG-009)</summary>
+    public int? StatusId { get; set; }
+
     /// <summary>Priority level</summary>
     public ServiceRequestPriority Priority { get; set; } = ServiceRequestPriority.Medium;
+
+    /// <summary>Configurable priority FK for gradual migration to DB-driven enum (ENUM-MIG-013)</summary>
+    public int? PriorityId { get; set; }
 
     #endregion
 
@@ -681,6 +687,14 @@ public class ServiceRequest : BaseEntity
     public virtual ICollection<ServiceRequestCustomFieldValue> CustomFieldValues { get; set; } = new List<ServiceRequestCustomFieldValue>();
     public virtual ICollection<Note> Notes { get; set; } = new List<Note>();
     public virtual ICollection<Activity> Activities { get; set; } = new List<Activity>();
+
+    /// <summary>Navigation: configurable status enum value (ENUM-MIG-009)</summary>
+    [ForeignKey("StatusId")]
+    public virtual EnumValue? StatusValue { get; set; }
+
+    /// <summary>Navigation: configurable priority enum value (ENUM-MIG-013)</summary>
+    [ForeignKey("PriorityId")]
+    public virtual EnumValue? PriorityValue { get; set; }
 
     #endregion
 

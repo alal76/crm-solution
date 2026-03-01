@@ -98,6 +98,25 @@ export interface PortalKBArticleDto {
   createdAt: string;
 }
 
+export interface UpdatePortalProfileDto {
+  displayName?: string;
+  phone?: string;
+}
+
+export interface ChangePortalPasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface PortalAttachmentDto {
+  id: number;
+  fileName: string;
+  fileSize: number;
+  contentType: string;
+  uploadedAt: string;
+  downloadUrl?: string;
+}
+
 export interface PagedResult<T> {
   items: T[];
   totalCount: number;
@@ -221,6 +240,42 @@ export const portalService = {
   },
 
   // Knowledge Base
+  async cancelTicket(id: number): Promise<void> {
+    await apiClient.post(`/portal/tickets/${id}/cancel`, {}, { headers: portalHeaders() });
+  },
+
+  async getProfile(): Promise<PortalUserDto> {
+    const { data } = await apiClient.get<PortalUserDto>('/portal/profile', { headers: portalHeaders() });
+    return data;
+  },
+
+  async updateProfile(dto: UpdatePortalProfileDto): Promise<PortalUserDto> {
+    const { data } = await apiClient.put<PortalUserDto>('/portal/profile', dto, { headers: portalHeaders() });
+    return data;
+  },
+
+  async changePassword(dto: ChangePortalPasswordDto): Promise<void> {
+    await apiClient.post('/portal/profile/change-password', dto, { headers: portalHeaders() });
+  },
+
+  async getAttachments(ticketId: number): Promise<PortalAttachmentDto[]> {
+    const { data } = await apiClient.get<PortalAttachmentDto[]>(`/portal/tickets/${ticketId}/attachments`, {
+      headers: portalHeaders(),
+    });
+    return data;
+  },
+
+  async uploadAttachment(ticketId: number, file: File): Promise<PortalAttachmentDto> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await apiClient.post<PortalAttachmentDto>(
+      `/portal/tickets/${ticketId}/attachments`,
+      formData,
+      { headers: { ...portalHeaders(), 'Content-Type': 'multipart/form-data' } }
+    );
+    return data;
+  },
+
   async getKBArticles(search?: string, page = 1, pageSize = 20): Promise<PagedResult<PortalKBArticleDto>> {
     const { data } = await apiClient.get<PagedResult<PortalKBArticleDto>>('/portal/knowledge-base', {
       params: { search, page, pageSize },

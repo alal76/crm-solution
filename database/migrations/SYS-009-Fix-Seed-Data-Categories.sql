@@ -9,6 +9,10 @@
 -- =============================================================================
 
 -- DIAGNOSTIC: Show current state of LeadStatus category items
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 SELECT 'DIAGNOSTIC: Items in LeadStatus (ID=2) before fix' AS Step;
 SELECT Id, `Key`, Value, LookupCategoryId FROM LookupItems
 WHERE LookupCategoryId = 2

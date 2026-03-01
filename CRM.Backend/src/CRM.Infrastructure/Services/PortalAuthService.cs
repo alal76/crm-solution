@@ -120,6 +120,17 @@ public class PortalAuthService : IPortalAuthService
         _db.PortalUsers.Add(portalUser);
         await _db.SaveChangesAsync(ct);
 
+        // PORTAL-020: Email verification notification (best-effort)
+        // TODO: Inject INotificationPort or email service and send verification email:
+        // try
+        // {
+        //     var verificationUrl = $"/portal/verify-email?token={portalUser.EmailVerificationToken}";
+        //     await _emailService.SendAsync(new EmailMessage { To = portalUser.Email,
+        //         Subject = "Verify your portal email",
+        //         Body = $"Please verify your email by clicking: {verificationUrl}" });
+        // }
+        // catch (Exception ex) { _logger.LogWarning(ex, "Failed to send verification email to {Email}", portalUser.Email); }
+
         _logger.LogInformation("New portal user registered: {Email} (Id={Id})", portalUser.Email, portalUser.Id);
 
         return MapToDto(portalUser);

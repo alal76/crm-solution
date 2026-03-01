@@ -166,6 +166,9 @@ public class Opportunity : BaseEntity
     /// <summary>Current sales stage</summary>
     public OpportunityStage Stage { get; set; } = OpportunityStage.Discovery;
 
+    /// <summary>Configurable stage FK for gradual migration to DB-driven enum (ENUM-MIG-005)</summary>
+    public int? StageId { get; set; }
+
     /// <summary>Probability of closing (0-100%)</summary>
     [Range(0, 100)]
     public int Probability { get; set; } = 10;
@@ -298,6 +301,10 @@ public class Opportunity : BaseEntity
 
     /// <summary>Team members working on this opportunity (TODO-CRM003-08)</summary>
     public virtual ICollection<OpportunityTeamMember> TeamMembers { get; set; } = new List<OpportunityTeamMember>();
+
+    /// <summary>Navigation: configurable stage enum value (ENUM-MIG-005)</summary>
+    [ForeignKey("StageId")]
+    public virtual EnumValue? StageValue { get; set; }
 
     #endregion
 

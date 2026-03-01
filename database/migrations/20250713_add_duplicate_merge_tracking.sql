@@ -7,6 +7,10 @@
 -- Tracks groups of merged records
 -- =====================================================
 
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 CREATE TABLE IF NOT EXISTS DuplicateMergeGroups (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     EntityType VARCHAR(50) NOT NULL COMMENT 'Lead, Contact, or Account',

@@ -287,3 +287,91 @@ public enum SuccessMetric
     /// <summary>Trial signups</summary>
     Trials = 14
 }
+
+/// <summary>
+/// FUNCTIONAL: Type of email sequence step.
+/// TECHNICAL: Determines step behaviour in nurture flows.
+/// </summary>
+public enum SequenceStepType
+{
+    /// <summary>Send an email</summary>
+    Email = 0,
+
+    /// <summary>Wait/delay before next step</summary>
+    Wait = 1,
+
+    /// <summary>Conditional branch</summary>
+    Condition = 2,
+
+    /// <summary>Apply a tag to the lead/contact</summary>
+    Tag = 3
+}
+
+/// <summary>
+/// FUNCTIONAL: Tracking events captured per email send.
+/// TECHNICAL: Fired by email provider webhooks.
+/// </summary>
+public enum EmailTrackingEvent
+{
+    /// <summary>Email was handed off to provider</summary>
+    Sent = 0,
+
+    /// <summary>Email reached recipient inbox</summary>
+    Delivered = 1,
+
+    /// <summary>Recipient opened the email</summary>
+    Opened = 2,
+
+    /// <summary>Recipient clicked a link</summary>
+    Clicked = 3,
+
+    /// <summary>Email hard/soft bounced</summary>
+    Bounced = 4,
+
+    /// <summary>Recipient unsubscribed</summary>
+    Unsubscribed = 5,
+
+    /// <summary>Marked as spam</summary>
+    SpamReported = 6
+}
+
+/// <summary>
+/// FUNCTIONAL: What triggered a lead's enrolment in a nurture sequence.
+/// TECHNICAL: Stored on NurtureEnrollment for auditing.
+/// </summary>
+public enum NurtureEnrollmentTrigger
+{
+    /// <summary>Lead record was created</summary>
+    LeadCreated = 0,
+
+    /// <summary>Lead status changed to a qualifying state</summary>
+    LeadStatusChanged = 1,
+
+    /// <summary>Manually enrolled by a user</summary>
+    ManualEnroll = 2,
+
+    /// <summary>Web form submission triggered enrolment</summary>
+    WebFormSubmit = 3
+}
+
+/// <summary>
+/// FUNCTIONAL: Reason a contact chose to unsubscribe.
+/// TECHNICAL: Stored on UnsubscribeRecord for reporting.
+/// </summary>
+public enum UnsubscribeReason
+{
+    /// <summary>Not interested in content</summary>
+    NotInterested = 0,
+
+    /// <summary>Receiving emails too frequently</summary>
+    TooFrequent = 1,
+
+    /// <summary>Content is not relevant</summary>
+    Irrelevant = 2,
+
+    /// <summary>Never subscribed voluntarily</summary>
+    NeverSubscribed = 3,
+
+    /// <summary>Other reason</summary>
+    Other = 4
+}

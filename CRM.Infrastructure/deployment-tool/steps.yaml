@@ -1,0 +1,481 @@
+steps:
+  - id: welcome
+    title: "Welcome"
+    template: welcome.html
+    description: "Welcome to the CRM Deployment Tool"
+    fields: []
+
+  - id: profile
+    title: "Profile"
+    template: profile.html
+    description: "Load or create a deployment profile"
+    fields:
+      - id: profile_name
+        type: text
+        label: "Profile Name"
+        required: true
+        default: "my-deployment"
+        help_text: "A unique name for this deployment configuration"
+        validators: [required, max_length_50]
+
+  - id: probe
+    title: "Environment Probe"
+    template: probe.html
+    description: "Connect to target and detect existing components"
+    fields:
+      - id: connection_type
+        type: select
+        label: "Connection Type"
+        required: true
+        default: local
+        options:
+          - value: local
+            label: "Local Docker"
+          - value: ssh
+            label: "Remote SSH"
+          - value: cloud_aws
+            label: "AWS"
+          - value: cloud_azure
+            label: "Azure"
+          - value: cloud_gcp
+            label: "GCP"
+          - value: kubernetes
+            label: "Kubernetes (any)"
+      - id: ssh_host
+        type: text
+        label: "SSH Host"
+        required: false
+        conditional: "connection_type == ssh"
+        help_text: "Hostname or IP of target server"
+      - id: ssh_user
+        type: text
+        label: "SSH User"
+        required: false
+        default: root
+        conditional: "connection_type == ssh"
+      - id: ssh_key_path
+        type: text
+        label: "SSH Key Path"
+        required: false
+        conditional: "connection_type == ssh"
+        help_text: "Path to SSH private key (e.g. ~/.ssh/id_rsa)"
+
+  - id: target
+    title: "Target"
+    template: target.html
+    description: "Select deployment target and environment"
+    fields:
+      - id: provider
+        type: select
+        label: "Cloud / Platform"
+        required: true
+        default: local_docker
+        options:
+          - value: local_docker
+            label: "Local Docker"
+          - value: aws
+            label: "Amazon Web Services"
+          - value: azure
+            label: "Microsoft Azure"
+          - value: gcp
+            label: "Google Cloud Platform"
+          - value: on_prem_vm
+            label: "On-Premises (VM)"
+          - value: on_prem_bare
+            label: "On-Premises (Bare Metal)"
+          - value: kubernetes
+            label: "Kubernetes (Generic)"
+      - id: environment_type
+        type: select
+        label: "Environment"
+        required: true
+        default: development
+        options:
+          - value: development
+            label: "Development"
+          - value: staging
+            label: "Staging"
+          - value: production
+            label: "Production"
+      - id: region
+        type: text
+        label: "Region"
+        required: false
+        conditional: "provider in [aws, azure, gcp]"
+        help_text: "Cloud region e.g. us-east-1, eastus, us-central1"
+      - id: deployment_name
+        type: text
+        label: "Deployment Name"
+        required: true
+        default: "crm-prod"
+        help_text: "Used as resource prefix"
+      - id: domain_name
+        type: text
+        label: "Domain Name"
+        required: false
+        default: "localhost"
+        help_text: "Primary domain for the CRM (e.g. crm.example.com)"
+      - id: use_ssl
+        type: toggle
+        label: "Enable SSL/HTTPS"
+        default: false
+      - id: ssl_source
+        type: select
+        label: "SSL Certificate Source"
+        conditional: "use_ssl == true"
+        options:
+          - value: letsencrypt
+            label: "Let's Encrypt (auto)"
+          - value: upload
+            label: "Upload existing certificate"
+          - value: self_signed
+            label: "Self-signed (development only)"
+          - value: cloud_managed
+            label: "Cloud-managed certificate"
+
+  - id: architecture
+    title: "Architecture"
+    template: architecture.html
+    description: "Select deployment architecture and container runtime"
+    fields:
+      - id: mode
+        type: select
+        label: "Architecture Mode"
+        required: true
+        default: monolith
+        options:
+          - value: monolith
+            label: "Monolithic (single API + frontend)"
+          - value: microservices
+            label: "Microservices (7 services)"
+      - id: container_runtime
+        type: select
+        label: "Container Runtime"
+        required: true
+        default: docker_compose
+        options:
+          - value: docker_compose
+            label: "Docker Compose"
+          - value: kubernetes
+            label: "Kubernetes (kubectl/Helm)"
+          - value: ecs_fargate
+            label: "AWS ECS Fargate"
+          - value: aca
+            label: "Azure Container Apps"
+          - value: cloud_run
+            label: "GCP Cloud Run"
+      - id: image_tag
+        type: text
+        label: "Image Tag"
+        required: true
+        default: "latest"
+        help_text: "Docker image tag e.g. latest, 0.608.1"
+      - id: build_locally
+        type: toggle
+        label: "Build images locally"
+        default: false
+        help_text: "Build Docker images on this machine before deploying"
+
+  - id: database
+    title: "Database"
+    template: database.html
+    description: "Configure primary database and component database sharing"
+    fields:
+      - id: db_provider
+        type: select
+        label: "Database Provider"
+        required: true
+        default: mariadb
+        options:
+          - value: mariadb
+            label: "MariaDB (recommended)"
+          - value: mysql
+            label: "MySQL"
+          - value: postgresql
+            label: "PostgreSQL"
+          - value: sql_server
+            label: "SQL Server"
+          - value: rds_mysql
+            label: "AWS RDS MySQL"
+          - value: azure_mysql
+            label: "Azure Database for MySQL"
+          - value: cloud_sql
+            label: "GCP Cloud SQL"
+      - id: db_deployment
+        type: select
+        label: "Database Deployment"
+        required: true
+        default: new_container
+        options:
+          - value: new_container
+            label: "Deploy new container"
+          - value: existing
+            label: "Use detected existing instance"
+          - value: cloud_managed
+            label: "Cloud-managed service"
+      - id: db_host
+        type: text
+        label: "Database Host"
+        default: "crm-mariadb"
+      - id: db_port
+        type: number
+        label: "Database Port"
+        default: 3306
+      - id: db_name
+        type: text
+        label: "Database Name"
+        default: "crm_db"
+      - id: db_user
+        type: text
+        label: "Database User"
+        default: "crm_user"
+      - id: db_password
+        type: password
+        label: "Database Password"
+        help_text: "Leave blank to auto-generate"
+      - id: db_version
+        type: text
+        label: "Database Version"
+        default: "10.11"
+      - id: db_sharing
+        type: select
+        label: "Component Database Sharing"
+        default: shared_server
+        options:
+          - value: shared_server
+            label: "Shared server, separate schemas (recommended)"
+          - value: separate
+            label: "Separate containers per component"
+          - value: use_existing
+            label: "Use existing databases (map manually)"
+      - id: ha_enabled
+        type: toggle
+        label: "High Availability"
+        default: false
+        help_text: "Enable primary/replica configuration"
+      - id: backup_enabled
+        type: toggle
+        label: "Enable Automated Backups"
+        default: true
+
+  - id: network
+    title: "Network"
+    template: network.html
+    description: "Configure networking, reverse proxy, and SSL"
+    fields:
+      - id: proxy_type
+        type: select
+        label: "Reverse Proxy"
+        default: nginx
+        options:
+          - value: nginx
+            label: "Nginx"
+          - value: traefik
+            label: "Traefik"
+          - value: haproxy
+            label: "HAProxy"
+          - value: alb
+            label: "AWS ALB"
+          - value: agw
+            label: "Azure Application Gateway"
+          - value: gcp_lb
+            label: "GCP Load Balancer"
+      - id: enable_hsts
+        type: toggle
+        label: "Enable HSTS"
+        default: true
+      - id: cors_origins
+        type: textarea
+        label: "CORS Allowed Origins"
+        help_text: "One origin per line"
+
+  - id: security
+    title: "Security"
+    template: security.html
+    description: "Configure secrets, authentication, and hardening"
+    fields:
+      - id: jwt_secret
+        type: password
+        label: "JWT Signing Secret"
+        help_text: "Min 32 chars. Leave blank to auto-generate (recommended)"
+        validators: [min_length_32_or_empty]
+      - id: jwt_access_ttl
+        type: number
+        label: "JWT Access Token TTL (minutes)"
+        default: 60
+      - id: jwt_refresh_ttl_days
+        type: number
+        label: "JWT Refresh Token TTL (days)"
+        default: 7
+      - id: enable_2fa
+        type: toggle
+        label: "Enable Two-Factor Authentication"
+        default: false
+      - id: session_idle_timeout
+        type: number
+        label: "Session Idle Timeout (minutes)"
+        default: 30
+
+  - id: providers
+    title: "Providers"
+    template: providers.html
+    description: "Configure pluggable provider integrations"
+    fields:
+      - id: search_provider
+        type: select
+        label: "Search Provider"
+        default: builtin
+        options:
+          - value: builtin
+            label: "Built-In SQL Search"
+          - value: meilisearch
+            label: "Meilisearch (self-hosted)"
+          - value: algolia
+            label: "Algolia"
+      - id: ai_provider
+        type: select
+        label: "AI / LLM Provider"
+        default: builtin
+        options:
+          - value: builtin
+            label: "None / Disabled"
+          - value: ollama
+            label: "Ollama (local)"
+          - value: openai
+            label: "OpenAI"
+          - value: azure_openai
+            label: "Azure OpenAI"
+          - value: anthropic
+            label: "Anthropic"
+      - id: chat_provider
+        type: select
+        label: "Chat Provider"
+        default: builtin
+        options:
+          - value: builtin
+            label: "Built-In"
+          - value: chatwoot
+            label: "Chatwoot"
+      - id: notification_provider
+        type: select
+        label: "Notification Provider"
+        default: builtin
+        options:
+          - value: builtin
+            label: "Built-In SMTP"
+          - value: novu
+            label: "Novu"
+          - value: sendgrid
+            label: "SendGrid"
+      - id: analytics_provider
+        type: select
+        label: "Analytics Provider"
+        default: builtin
+        options:
+          - value: builtin
+            label: "Built-In"
+          - value: superset
+            label: "Apache Superset"
+      - id: signature_provider
+        type: select
+        label: "E-Signature Provider"
+        default: builtin
+        options:
+          - value: builtin
+            label: "Built-In"
+          - value: docuseal
+            label: "DocuSeal"
+      - id: integration_provider
+        type: select
+        label: "Integration / Workflow Provider"
+        default: builtin
+        options:
+          - value: builtin
+            label: "Built-In"
+          - value: n8n
+            label: "n8n"
+      - id: monitoring_stack
+        type: select
+        label: "Monitoring Stack"
+        default: none
+        options:
+          - value: none
+            label: "None"
+          - value: prometheus_grafana
+            label: "Prometheus + Grafana"
+
+  - id: seed
+    title: "Admin & Seed"
+    template: seed.html
+    description: "Create admin user and select data seeding options"
+    fields:
+      - id: admin_username
+        type: text
+        label: "Admin Username"
+        required: true
+        default: "admin"
+        validators: [required, min_length_3, valid_username]
+      - id: admin_email
+        type: email
+        label: "Admin Email"
+        required: true
+        validators: [required, valid_email]
+      - id: admin_first_name
+        type: text
+        label: "First Name"
+        required: true
+        validators: [required]
+      - id: admin_last_name
+        type: text
+        label: "Last Name"
+        required: true
+        validators: [required]
+      - id: admin_password
+        type: password
+        label: "Admin Password"
+        required: true
+        help_text: "Min 12 chars, mixed case, number, special character"
+        validators: [required, password_strength_min_2]
+      - id: admin_password_confirm
+        type: password
+        label: "Confirm Password"
+        required: true
+        validators: [required, passwords_match]
+      - id: seed_master_data
+        type: toggle
+        label: "Seed Master Data"
+        default: true
+        help_text: "Countries, currencies, timezones, lookup categories, templates"
+      - id: seed_sample_data
+        type: toggle
+        label: "Seed Sample / Demo Data"
+        default: false
+        help_text: "50 accounts, 200 contacts, 100 opportunities, etc."
+      - id: seed_default_groups
+        type: toggle
+        label: "Create Default User Groups"
+        default: true
+      - id: pull_ollama_models
+        type: toggle
+        label: "Pull Default Ollama Models"
+        default: false
+        conditional: "ai_provider == ollama"
+        help_text: "Pulls llama3.1:8b and nomic-embed-text (~5GB)"
+
+  - id: review
+    title: "Review"
+    template: review.html
+    description: "Review configuration before deploying"
+    fields: []
+
+  - id: deploy
+    title: "Deploy"
+    template: deploy.html
+    description: "Build and deploy the CRM solution"
+    fields: []
+
+  - id: done
+    title: "Done"
+    template: done.html
+    description: "Deployment complete"
+    fields: []

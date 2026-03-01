@@ -5,18 +5,22 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
+using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.FeatureManagement.Mvc;
 
 namespace CRM.Api.Controllers;
 
 /// <summary>
 /// Customer Portal authentication endpoints (public — no CRM auth required).
 /// </summary>
+/// <remarks>PORTAL-015: Gated by EnableCustomerPortal feature flag.</remarks>
 [ApiController]
 [Route("api/portal/auth")]
 [AllowAnonymous]
+[FeatureGate(FeatureFlags.EnableCustomerPortal)]
 public class PortalAuthController : ControllerBase
 {
     private readonly IPortalAuthService _portalAuth;

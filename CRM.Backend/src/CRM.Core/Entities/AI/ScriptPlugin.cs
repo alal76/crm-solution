@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Enums;
+using CRM.Core.Scripting;
 
 namespace CRM.Core.Entities.AI;
 
@@ -93,6 +94,31 @@ public class ScriptPlugin : BaseEntity
     /// Defaults to <c>1</c>.
     /// </summary>
     public int Version { get; set; } = 1;
+
+    /// <summary>SemVer string (e.g., "1.0.0") that tracks the published release version.</summary>
+    [MaxLength(20)]
+    public string SemVersion { get; set; } = "1.0.0";
+
+    /// <summary>Runtime engine used to execute this script (DotNet or TypeScript).</summary>
+    public ScriptRuntime Runtime { get; set; } = ScriptRuntime.DotNet;
+
+    /// <summary>Current position in the approval workflow.</summary>
+    public ScriptLifecycleState LifecycleState { get; set; } = ScriptLifecycleState.Draft;
+
+    /// <summary>JSON Schema describing the expected input for this script.</summary>
+    public string? InputSchemaJson { get; set; }
+
+    /// <summary>JSON Schema describing the output produced by this script.</summary>
+    public string? OutputSchemaJson { get; set; }
+
+    /// <summary>JSON array of required permission names (e.g., ["crm:read:customer"]).</summary>
+    public string? PermissionsJson { get; set; }
+
+    /// <summary>Maximum heap memory the script may consume, in megabytes.</summary>
+    public int MemoryLimitMb { get; set; } = 64;
+
+    /// <summary>Maximum wall-clock execution time, in seconds.</summary>
+    public int TimeoutSeconds { get; set; } = 30;
 
     #endregion
 

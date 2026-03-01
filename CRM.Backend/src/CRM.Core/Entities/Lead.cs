@@ -108,6 +108,9 @@ public class Lead : BaseEntity
     /// <summary>Lead lifecycle status</summary>
     public LeadLifecycleStatus Status { get; set; } = LeadLifecycleStatus.New;
 
+    /// <summary>Configurable status FK for gradual migration to DB-driven enum (ENUM-MIG-001)</summary>
+    public int? StatusId { get; set; }
+
     /// <summary>Original source channel</summary>
     public LeadSource Source { get; set; } = LeadSource.Web;
 
@@ -369,6 +372,10 @@ public class Lead : BaseEntity
 
     /// <summary>Opportunities created from this lead</summary>
     public virtual ICollection<Opportunity> Opportunities { get; set; } = new List<Opportunity>();
+
+    /// <summary>Navigation: configurable status enum value (ENUM-MIG-001)</summary>
+    [ForeignKey("StatusId")]
+    public virtual EnumValue? StatusValue { get; set; }
 
     #endregion
 

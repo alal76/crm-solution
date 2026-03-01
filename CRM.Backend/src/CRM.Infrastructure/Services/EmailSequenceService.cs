@@ -474,5 +474,60 @@ namespace CRM.Infrastructure.Services
                 ClickCount = enrollment.TotalClicks
             };
         }
+
+        /// <summary>
+        /// Advances all NurtureEnrollments whose NextStepAt is due. Called by the background service.
+        /// </summary>
+        public async Task<bool> ProcessDueStepsAsync(CancellationToken cancellationToken = default)
+        {
+            var now = DateTime.UtcNow;
+            var dueEnrollments = await _context.NurtureEnrollments
+                .Include(e => e.Sequence)
+                    .ThenInclude(s => s.Steps.OrderBy(step => step.StepOrder))
+                .Where(e => !e.IsCompleted && !e.IsUnsubscribed && !e.IsDeleted && e.NextStepAt.HasValue && e.NextStepAt <= now)
+                .ToListAsync(cancellationToken);
+
+            if (dueEnrollments.Count == 0)
+            {
+                return false;
+            }
+
+            _logger.LogInformation("Processing {Count} due nurture sequence steps", dueEnrollments.Count);
+
+            foreach (var enrollment in dueEnrollments)
+            {
+                var steps = enrollment.Sequence?.Steps?.OrderBy(s => s.StepOrder).ToList();
+                if (steps == null || steps.Count == 0)
+                {
+                    enrollment.IsCompleted = true;
+                    enrollment.CompletedAt = now;
+                    enrollment.UpdatedAt = now;
+                    continue;
+                }
+
+                var nextStepIndex = enrollment.CurrentStep + 1;
+                if (nextStepIndex >= steps.Count)
+                {
+                    enrollment.IsCompleted = true;
+                    enrollment.CompletedAt = now;
+                    enrollment.NextStepAt = null;
+                    enrollment.UpdatedAt = now;
+                    continue;
+                }
+
+                var nextStep = steps[nextStepIndex];
+                var delayHours = nextStep.DelayDays * 24 + nextStep.DelayHours;
+
+                enrollment.CurrentStep = nextStepIndex;
+                enrollment.NextStepAt = delayHours > 0 ? now.AddHours(delayHours) : now.AddMinutes(5);
+                enrollment.UpdatedAt = now;
+
+                _logger.LogDebug("Advanced enrollment {EnrollmentId} to step {Step} for {Email}", enrollment.Id, nextStepIndex, enrollment.EnrolleeEmail);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
     }
 }
+

@@ -1,0 +1,71 @@
+# ============================================================
+# CRM Deployment Tool (CDT) — Standalone Docker Compose
+# Usage: docker-compose -f docker-compose.tool.yml up
+# ============================================================
+# Opens the wizard at http://localhost:5050
+# ============================================================
+
+version: "3.9"
+
+services:
+  crm-cdt:
+    build:
+      context: .
+      dockerfile: Dockerfile.tool
+      args:
+        KUBECTL_VERSION: v1.31.4
+        HELM_VERSION:    v3.17.0
+    image: crm-cdt:latest
+    container_name: crm-cdt
+    restart: unless-stopped
+
+    ports:
+      - "${CDT_PORT:-5050}:5050"
+
+    environment:
+      # Runtime settings (override in .env or with -e)
+      CDT_NO_BROWSER: "true"
+      CDT_PORT: "5050"
+      PYTHONUNBUFFERED: "1"
+
+      # Pass through host Docker credentials if needed
+      DOCKER_HOST: "${DOCKER_HOST:-}"
+
+    volumes:
+      # Docker socket — lets CDT manage host containers (on-prem workflows)
+      - /var/run/docker.sock:/var/run/docker.sock
+
+      # Kubeconfig — lets CDT run kubectl against your cluster
+      - ${KUBECONFIG:-~/.kube}:/root/.kube:ro
+
+      # Persistent data: saved configs, deployment profiles, snapshots
+      - cdt-configs:/app/data/configs
+      - cdt-profiles:/app/data/profiles
+      - cdt-snapshots:/app/data/snapshots
+      - cdt-generated:/app/data/generated
+
+      # Logs
+      - cdt-logs:/app/logs
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    labels:
+      com.crm.service: "deployment-tool"
+      com.crm.version: "0.611.0"
+
+volumes:
+  cdt-configs:
+    name: crm-cdt-configs
+  cdt-profiles:
+    name: crm-cdt-profiles
+  cdt-snapshots:
+    name: crm-cdt-snapshots
+  cdt-generated:
+    name: crm-cdt-generated
+  cdt-logs:
+    name: crm-cdt-logs

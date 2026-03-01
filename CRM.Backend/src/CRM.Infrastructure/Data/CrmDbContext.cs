@@ -126,6 +126,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<LookupCategory> LookupCategories { get; set; }
     public DbSet<LookupItem> LookupItems { get; set; }
 
+    // ENUM-BE-004: Configurable Enum entities
+    public DbSet<EnumCategory> EnumCategories { get; set; }
+    public DbSet<EnumValue> EnumValues { get; set; }
+    public DbSet<EnumTransition> EnumTransitions { get; set; }
+
     // Normalization helper tables
     public DbSet<CRM.Core.Entities.Tag> Tags { get; set; }
     public DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; set; }
@@ -244,6 +249,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<WorkflowCircuitBreakerState> WorkflowCircuitBreakerStates { get; set; }
     public DbSet<ScriptPlugin> ScriptPlugins { get; set; }
 
+    // Script Registry Lifecycle (SARCH-011 / SARCH-012)
+    public DbSet<ScriptVersion> ScriptVersions { get; set; } = null!;
+    public DbSet<ScriptAuditLog> ScriptAuditLogs { get; set; } = null!;
+
     // Relationship Management entities
     public DbSet<CRM.Core.Entities.RelationshipType> RelationshipTypes { get; set; }
     public DbSet<AccountRelationship> AccountRelationships { get; set; }
@@ -279,6 +288,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<ContractVersion> ContractVersions { get; set; }
     public DbSet<OrderReturn> OrderReturns { get; set; }
+    public DbSet<CreditNote> CreditNotes { get; set; } // BACK-007: Credit Notes
+    public DbSet<DunningSchedule> DunningSchedules { get; set; } // BACK-010: Dunning Schedule CRUD
     public DbSet<CreditMemo> CreditMemos { get; set; }
     public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }
     public DbSet<CreditApplication> CreditApplications { get; set; }
@@ -334,6 +345,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<AttributionSetting> AttributionSettings { get; set; }
     public DbSet<CampaignTouchpoint> CampaignTouchpoints { get; set; }
     public DbSet<CampaignAttributionSummary> CampaignAttributionSummaries { get; set; }
+
+    // Marketing Execution Engine — UTM Tracking, Unsubscribe, Nurture, Email Events
+    public DbSet<NurtureEnrollment> NurtureEnrollments { get; set; }
+    public DbSet<CampaignEmailTracking> CampaignEmailTrackings { get; set; }
+    public DbSet<UnsubscribeRecord> UnsubscribeRecords { get; set; }
+    public DbSet<UtmLinkClick> UtmLinkClicks { get; set; }
+    public DbSet<CampaignTrackingLink> CampaignTrackingLinks { get; set; }
 
     // =============================================================================
     // CPQ Entities (Product Bundles, Pricing Rules, Discounts)
@@ -1783,6 +1801,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Score);
+
+            // ENUM-MIG-001: Lead -> EnumValue (configurable status)
+            entity.HasOne(l => l.StatusValue)
+                .WithMany()
+                .HasForeignKey(l => l.StatusId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure MarketingCampaign Lead collections (without inverse navigation)
@@ -1829,6 +1854,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
             entity.HasIndex(e => e.Stage);
             entity.HasIndex(e => e.ExpectedCloseDate);
+
+            // ENUM-MIG-005: Opportunity -> EnumValue (configurable stage)
+            entity.HasOne(o => o.StageValue)
+                .WithMany()
+                .HasForeignKey(o => o.StageId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure OpportunityProduct (junction table)
@@ -2018,6 +2050,20 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasOne(e => e.AssignedToGroup)
                 .WithMany()
                 .HasForeignKey(e => e.AssignedToGroupId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // ENUM-MIG-009: ServiceRequest -> EnumValue (configurable status)
+            entity.HasOne(sr => sr.StatusValue)
+                .WithMany()
+                .HasForeignKey(sr => sr.StatusId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // ENUM-MIG-013: ServiceRequest -> EnumValue (configurable priority)
+            entity.HasOne(sr => sr.PriorityValue)
+                .WithMany()
+                .HasForeignKey(sr => sr.PriorityId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure Tags
@@ -2735,9 +2781,51 @@ public class CrmDbContext : DbContext, ICrmDbContext
             e.Property(p => p.ParameterSchema).HasMaxLength(5000);
             e.Property(p => p.ReturnValueDescription).HasMaxLength(1000);
             e.Property(p => p.LastTestResult).HasMaxLength(2000);
+            e.Property(p => p.SemVersion).HasMaxLength(20);
+            e.Property(p => p.InputSchemaJson).HasColumnType(longTextType);
+            e.Property(p => p.OutputSchemaJson).HasColumnType(longTextType);
+            e.Property(p => p.PermissionsJson).HasColumnType(textType);
+            e.Property(p => p.Runtime).HasConversion<int>();
+            e.Property(p => p.LifecycleState).HasConversion<int>();
             e.HasIndex(p => p.Language);
             e.HasIndex(p => p.IsActive);
+            e.HasIndex(p => p.LifecycleState);
             e.HasQueryFilter(p => !p.IsDeleted);
+        });
+
+        // ScriptVersion (SARCH-011)
+        modelBuilder.Entity<ScriptVersion>(e =>
+        {
+            e.Property(p => p.Version).HasMaxLength(20).IsRequired();
+            e.Property(p => p.Source).HasColumnType(longTextType);
+            e.Property(p => p.ContentHash).HasMaxLength(64).IsRequired();
+            e.Property(p => p.ChangeNotes).HasMaxLength(2000);
+            e.Property(p => p.ApprovedBy).HasMaxLength(200);
+            e.Property(p => p.LifecycleState).HasConversion<int>();
+            e.HasIndex(p => p.ScriptPluginId);
+            e.HasIndex(p => new { p.ScriptPluginId, p.IsCurrent });
+            e.HasOne(p => p.ScriptPlugin)
+                .WithMany()
+                .HasForeignKey(p => p.ScriptPluginId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ScriptAuditLog (SARCH-012) — immutable; exclude from soft-delete global filter
+        modelBuilder.Entity<ScriptAuditLog>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.EventType).HasMaxLength(100).IsRequired();
+            e.Property(p => p.PerformedBy).HasMaxLength(200).IsRequired();
+            e.Property(p => p.Notes).HasMaxLength(2000);
+            e.Property(p => p.PreviousState).HasMaxLength(50);
+            e.Property(p => p.NewState).HasMaxLength(50);
+            e.Property(p => p.Metadata).HasColumnType(textType);
+            e.HasIndex(p => p.ScriptPluginId);
+            e.HasIndex(p => p.PerformedAt);
+            e.HasOne(p => p.ScriptPlugin)
+                .WithMany()
+                .HasForeignKey(p => p.ScriptPluginId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ===================================================================
@@ -3787,8 +3875,74 @@ public class CrmDbContext : DbContext, ICrmDbContext
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceStepExecutionConfiguration());
 
         // =============================================================================
-        // Configuration Management (System & CRM Config)
+        // Marketing Execution Engine — NurtureEnrollment, EmailTracking, Unsubscribe, UTM
         // =============================================================================
+        modelBuilder.Entity<NurtureEnrollment>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.EnrolleeEmail).IsRequired().HasMaxLength(320);
+            e.Property(x => x.EnrolleeName).HasMaxLength(200);
+            e.HasIndex(x => new { x.SequenceId, x.EnrolleeEmail }).HasDatabaseName("IX_NurtureEnrollments_SeqEmail");
+            e.HasOne(x => x.Sequence).WithMany().HasForeignKey(x => x.SequenceId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+        modelBuilder.Entity<CampaignEmailTracking>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.RecipientEmail).IsRequired().HasMaxLength(320);
+            e.Property(x => x.ClickedUrl).HasMaxLength(2048);
+            e.Property(x => x.UserAgent).HasMaxLength(500);
+            e.Property(x => x.IpAddress).HasMaxLength(45);
+            e.Property(x => x.MessageId).HasMaxLength(200);
+            e.HasIndex(x => new { x.CampaignId, x.Event }).HasDatabaseName("IX_CampaignEmailTracking_CampaignEvent");
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+        modelBuilder.Entity<UnsubscribeRecord>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Email).IsRequired().HasMaxLength(320);
+            e.Property(x => x.ReasonNote).HasMaxLength(1000);
+            e.Property(x => x.Token).HasMaxLength(500);
+            e.HasIndex(x => x.Email).HasDatabaseName("IX_UnsubscribeRecords_Email");
+            e.HasIndex(x => x.Token).HasDatabaseName("IX_UnsubscribeRecords_Token");
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+        modelBuilder.Entity<UtmLinkClick>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.UtmSource).HasMaxLength(200);
+            e.Property(x => x.UtmMedium).HasMaxLength(200);
+            e.Property(x => x.UtmCampaign).HasMaxLength(200);
+            e.Property(x => x.UtmContent).HasMaxLength(200);
+            e.Property(x => x.UtmTerm).HasMaxLength(200);
+            e.Property(x => x.OriginalUrl).HasMaxLength(2048);
+            e.Property(x => x.LandingUrl).HasMaxLength(2048);
+            e.Property(x => x.VisitorIp).HasMaxLength(45);
+            e.Property(x => x.VisitorUserAgent).HasMaxLength(500);
+            e.HasIndex(x => new { x.UtmSource, x.UtmCampaign }).HasDatabaseName("IX_UtmLinkClicks_SourceCampaign");
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+        modelBuilder.Entity<CampaignTrackingLink>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.OriginalUrl).IsRequired().HasMaxLength(2048);
+            e.Property(x => x.TrackedUrl).IsRequired().HasMaxLength(2048);
+            e.Property(x => x.LinkAlias).HasMaxLength(100);
+            e.Property(x => x.UtmSource).HasMaxLength(200);
+            e.Property(x => x.UtmMedium).HasMaxLength(200);
+            e.Property(x => x.UtmCampaign).HasMaxLength(200);
+            e.Property(x => x.UtmContent).HasMaxLength(200);
+            e.Property(x => x.TrackingToken).HasMaxLength(50);
+            e.HasIndex(x => x.TrackingToken).HasDatabaseName("IX_CampaignTrackingLinks_Token");
+            e.HasOne(x => x.Campaign).WithMany(c => c.TrackingLinks).HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.ProviderConfigurationConfiguration());
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.ConfigurationChangeLogConfiguration());
 
@@ -4963,6 +5117,62 @@ public class CrmDbContext : DbContext, ICrmDbContext
                   .WithMany()
                   .HasForeignKey(e => e.LeadId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ENUM-BE-004: Configurable Enum entities
+        modelBuilder.Entity<EnumCategory>(entity =>
+        {
+            entity.ToTable("EnumCategories");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.HasIndex(e => e.Name).IsUnique().HasDatabaseName("IX_EnumCategories_Name");
+            entity.Property(e => e.DisplayName).HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.EntityType).HasMaxLength(100);
+            entity.Property(e => e.PropertyName).HasMaxLength(100);
+            entity.Property(e => e.ValidationSchema).HasColumnType("TEXT");
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        modelBuilder.Entity<EnumValue>(entity =>
+        {
+            entity.ToTable("EnumValues");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Key).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Label).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.Property(e => e.Icon).HasMaxLength(100);
+            entity.Property(e => e.Metadata).HasColumnType("TEXT");
+            entity.Property(e => e.ValidationRules).HasColumnType("TEXT");
+            entity.HasIndex(e => new { e.CategoryId, e.Key }).IsUnique().HasDatabaseName("IX_EnumValues_CategoryId_Key");
+            entity.HasOne(e => e.Category)
+                  .WithMany(c => c.Values)
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        modelBuilder.Entity<EnumTransition>(entity =>
+        {
+            entity.ToTable("EnumTransitions");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.AllowedRoles).HasMaxLength(1000);
+            entity.Property(e => e.ValidateExpression).HasMaxLength(2000);
+            entity.HasOne(e => e.Category)
+                  .WithMany(c => c.Transitions)
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.FromValue)
+                  .WithMany(v => v.AsFromTransitions)
+                  .HasForeignKey(e => e.FromValueId)
+                  .OnDelete(DeleteBehavior.Restrict)
+                  .IsRequired(false);
+            entity.HasOne(e => e.ToValue)
+                  .WithMany(v => v.AsToTransitions)
+                  .HasForeignKey(e => e.ToValueId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         providerStrategy.ApplyPostConfiguration(modelBuilder);

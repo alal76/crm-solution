@@ -75,6 +75,8 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 // FEAT-AISCORING: Score analysis drawer
 import LeadScoreExplanationDrawer from '../components/leads/LeadScoreExplanationDrawer';
+import enumCacheService from '../services/enumCacheService';
+import type { EnumValue } from '../types/enums';
 
 // Lead sources for the dropdown
 const LEAD_SOURCES = [
@@ -182,6 +184,8 @@ const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'company', 'emailPrimary', '
 function LeadsPage() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  // ENUM-FE-015: Dynamic lead status options loaded from enum cache (falls back to LEAD_STATUSES)
+  const [dynamicLeadStatuses, setDynamicLeadStatuses] = useState<EnumValue[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
@@ -320,6 +324,11 @@ function LeadsPage() {
     setSearchFilters(filters);
     setSearchText(text);
   };
+
+  // ENUM-FE-015: Load dynamic lead status options from enumCacheService
+  useEffect(() => {
+    enumCacheService.getValues('LeadStatus').then(setDynamicLeadStatuses).catch(() => {/* fallback to static LEAD_STATUSES */});
+  }, []);
 
   useEffect(() => {
     fetchLeads();
@@ -1188,9 +1197,14 @@ function LeadsPage() {
                 onChange={(e: SelectChangeEvent) => setBulkFormData(prev => ({ ...prev, status: e.target.value }))}
               >
                 <MenuItem value="">-- No Change --</MenuItem>
-                {LEAD_STATUSES.map(status => (
-                  <MenuItem key={status.value} value={status.value}>{status.label}</MenuItem>
-                ))}
+                {dynamicLeadStatuses.length > 0
+                  ? dynamicLeadStatuses.map(opt => (
+                    <MenuItem key={opt.key} value={opt.key}>{opt.label}</MenuItem>
+                  ))
+                  : LEAD_STATUSES.map(status => (
+                    <MenuItem key={status.value} value={status.value}>{status.label}</MenuItem>
+                  ))
+                }
               </Select>
             </FormControl>
             

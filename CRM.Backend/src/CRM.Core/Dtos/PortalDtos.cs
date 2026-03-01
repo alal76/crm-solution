@@ -166,3 +166,41 @@ public class PortalKBArticleDto
     public int ViewCount { get; set; }
     public DateTime CreatedAt { get; set; }
 }
+
+// ── Profile update DTOs (PORTAL-019) ─────────────────────────────────────────
+
+/// <summary>Payload to update a portal user's profile.</summary>
+public class UpdatePortalProfileDto
+{
+    [MaxLength(100)]
+    public string? DisplayName { get; set; }
+
+    // TODO: Phone field to be added to PortalUser entity in a future migration (PORTAL-019)
+}
+
+/// <summary>Payload for a portal user to change their own password.</summary>
+public class ChangePortalPasswordDto
+{
+    [Required]
+    public string CurrentPassword { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(8)]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [Required]
+    [Compare(nameof(NewPassword))]
+    public string ConfirmNewPassword { get; set; } = string.Empty;
+}
+
+// ── Attachment DTOs (PORTAL-022) ──────────────────────────────────────────────
+
+/// <summary>Represents a file attachment on a portal ticket.</summary>
+public class PortalAttachmentDto
+{
+    public string FileName { get; set; } = string.Empty;
+    public long FileSize { get; set; }
+    public string ContentType { get; set; } = string.Empty;
+    public DateTime UploadedAt { get; set; }
+    public string DownloadUrl { get; set; } = string.Empty;
+}
