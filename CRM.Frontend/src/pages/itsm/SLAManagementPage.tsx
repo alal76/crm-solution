@@ -90,7 +90,7 @@ const SLAManagementPage: React.FC = () => {
     setError(null);
     try {
       const data = await slaService.getAll();
-      setPolicies(data);
+      setPolicies(data.items ?? []);
     } catch (err) {
       console.error('Failed to load SLA policies', err);
       setError('Failed to load SLA policies. Please try again.');

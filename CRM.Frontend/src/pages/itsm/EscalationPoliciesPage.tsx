@@ -117,7 +117,7 @@ const EscalationPoliciesPage: React.FC = () => {
     setError(null);
     try {
       const data = await escalationPolicyService.getAll();
-      setPolicies(data);
+      setPolicies(data.items ?? []);
     } catch (err) {
       console.error('Failed to load escalation policies', err);
       setError('Failed to load escalation policies. The API may not be available yet.');

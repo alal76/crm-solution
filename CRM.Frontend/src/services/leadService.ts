@@ -1,9 +1,18 @@
-/**
- * Lead Service - API service for lead management
- */
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// Lead Service — generated via createCrudService factory.
+// All CRUD operations are provided by the factory; see
+// src/services/crudServiceFactory.ts for implementation details.
+//
+// MIGRATION NOTE: This service previously returned the raw Axios response
+// object from each method. It now returns unwrapped data directly (matching the
+// factory contract). Callers that previously accessed `(await leadService.getAll()).data`
+// should now use the result directly, e.g. `(await leadService.getAll()).items`.
 
-import apiClient from './apiClient';
-import { PaginatedResponse } from '../types/common';
+import { createCrudService } from './crudServiceFactory';
+
+// ── Entity type ──────────────────────────────────────────────────────────────────
 
 export interface Lead {
   id: number;
@@ -20,29 +29,9 @@ export interface Lead {
   updatedAt?: string;
 }
 
-const leadService = {
-  getAll: async (page: number = 1, pageSize: number = 20) => {
-    return apiClient.get<PaginatedResponse<Lead>>('/leads', {
-      params: { page, pageSize },
-    });
-  },
+// ── Service ────────────────────────────────────────────────────────────────────────
 
-  getById: async (id: number) => {
-    return apiClient.get<Lead>(`/leads/${id}`);
-  },
-
-  create: async (data: Partial<Lead>) => {
-    return apiClient.post<Lead>('/leads', data);
-  },
-
-  update: async (id: number, data: Partial<Lead>) => {
-    return apiClient.patch<Lead>(`/leads/${id}`, data);
-  },
-
-  delete: async (id: number) => {
-    return apiClient.delete(`/leads/${id}`);
-  },
-};
+const leadService = createCrudService<Lead>('/leads');
 
 export { leadService };
 export default leadService;

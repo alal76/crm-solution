@@ -40,7 +40,7 @@ const EscalationDashboardPage: React.FC = () => {
     setError(null);
     try {
       const data = await escalationService.getAll();
-      setRules(data);
+      setRules(data.items ?? []);
     } catch (err) {
       console.error('Failed to load escalation rules', err);
       setError('Failed to load escalation data. The escalation rules API may not be available yet.');

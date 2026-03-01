@@ -1,4 +1,17 @@
-import apiClient from './apiClient';
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// Escalation Policy Service — generated via createCrudService factory.
+// All CRUD operations are provided by the factory; see
+// src/services/crudServiceFactory.ts for implementation details.
+//
+// MIGRATION NOTE: getAll now returns PaginatedResponse<EscalationPolicyDto>
+// (paginated, with .items / .totalCount etc.) instead of the previous flat
+// EscalationPolicyDto[]. Callers should read .items to get the entity array.
+
+import { createCrudService } from './crudServiceFactory';
+
+// ── Types ───────────────────────────────────────────────────────────────────────────
 
 export interface EscalationLevelDto {
   id?: number;
@@ -29,30 +42,12 @@ export interface CreateEscalationPolicyDto {
   triggerConditions?: string;
 }
 
-const escalationPolicyService = {
-  getAll: async (): Promise<EscalationPolicyDto[]> => {
-    const response = await apiClient.get<EscalationPolicyDto[]>('/escalationpolicies');
-    return response.data;
-  },
+// ── Service ───────────────────────────────────────────────────────────────────────────
 
-  getById: async (id: number): Promise<EscalationPolicyDto> => {
-    const response = await apiClient.get<EscalationPolicyDto>(`/escalationpolicies/${id}`);
-    return response.data;
-  },
-
-  create: async (dto: CreateEscalationPolicyDto): Promise<EscalationPolicyDto> => {
-    const response = await apiClient.post<EscalationPolicyDto>('/escalationpolicies', dto);
-    return response.data;
-  },
-
-  update: async (id: number, dto: Partial<CreateEscalationPolicyDto>): Promise<EscalationPolicyDto> => {
-    const response = await apiClient.put<EscalationPolicyDto>(`/escalationpolicies/${id}`, dto);
-    return response.data;
-  },
-
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(`/escalationpolicies/${id}`);
-  },
-};
+const escalationPolicyService = createCrudService<
+  EscalationPolicyDto,
+  CreateEscalationPolicyDto,
+  Partial<CreateEscalationPolicyDto>
+>('/escalationpolicies');
 
 export default escalationPolicyService;

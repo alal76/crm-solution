@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 613,
+  "minor": 614,
   "patch": 0,
   "lastUpdate": "2026-03-01",
-  "description": "feat(interceptor): v0.613.0 - AuditSaveChangesInterceptor auto-timestamps, SoftDelete helper, removed 579 manual UpdatedAt assignments across 115 service files",
+  "description": "feat(frontend): v0.614.0 - createCrudService factory, useLoadingState hook, apiErrorHandler utility; refactored 5 service files to eliminate CRUD boilerplate",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
