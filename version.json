@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 6,
+  "patch": 7,
   "lastUpdate": "2026-03-01",
-  "description": "fix(infra/cdt): v0.614.6 — make azure.mgmt.containerinstance optional in Azure discovery",
+  "description": "fix(api): v0.614.7 — S126 curly-brace fix across all M-Z controllers (75 files, 518+ brace pairs); restore ILogger injection in PricingRulesController + SubscriptionAnalyticsController; fix bool?-to-bool CS0266 in CampaignExecutionService + CloudDeploymentService",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
