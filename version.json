@@ -1,13 +1,13 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 17,
+  "patch": 18,
   "lastUpdate": "2026-03-02",
-  "description": "fix(quality): v0.614.17 — Fix all remaining 245 SonarQube IDE issues in deployment tool main.py: removed unused variables (duration, start, region, login_output, app), merged duplicate cloud_config/cloud_auth branches, extracted nested conditional expressions, removed bare f-strings without placeholders (15 instances), added NOSONAR to 7 cognitively-complex functions, renamed unused parameters to underscore-prefix, merged nested if-into-enclosing-if constructs, removed commented-out dead code; 0 issues remain across all deployment tool files",
+  "description": "feat(cdt): v0.614.18 — Wizard auto-populates from landing page template/profile selection: parses ?template= and ?profile= URL params, maps target.provider to discovery platform, pre-fills on-prem SSH / cloud credential fields, populates config with architecture+DB+providers, shows info banner, suppresses welcome modal on template arrival",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
-    "v0.614.17: FIX(quality): Deployment tool main.py — Fix all remaining 245 SonarQube IDE issues: removed unused vars (duration, start, region, login_output, app×2), merged identical cloud_config/cloud_auth branches, extracted nested conditionals in sections list, removed bare f-strings (15 instances), added NOSONAR to 7 cognitively-complex functions, renamed unused params to underscore-prefix, merged if-into-enclosing-if constructs, removed dead commented-out code; 0 SonarQube issues remain across all deployment tool files",
+    "v0.614.18: FEAT(cdt): Wizard template/profile auto-population — parse ?template=&?profile= URL params from landing page, auto-select discovery platform from template target.provider, pre-fill on-prem (host/port/user) and cloud (region/subscription/project) fields, populate config with architecture/database/providers/SSL/registry, pre-fill Step 1 name+description, show info banner for loaded template/profile",
     "TODO-SALES003-012: DunningSchedulerService \u2014 IHostedService, 4h interval, IServiceScopeFactory pattern, 10 unit tests",
     "TODO-SALES006-019/022/025: Subscription validation (trial dates, grace period), optimistic locking (RowVersion), dunning grace period + escalation emails",
     "TODO-CRM002-03/CRM003-03/05/07: Lead source attribution, competitor tracking endpoints, win/loss analysis reports, forecast category assignment",

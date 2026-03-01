@@ -4139,6 +4139,169 @@
             </div>`;
         }
 
+        // ── Template / Profile auto-population from URL query params ───────────
+
+        // Map template target.provider → discovery platform key
+        const _providerToDiscoveryPlatform = {
+            'local_docker': 'on_premises', 'on_prem_vm': 'on_premises', 'on_prem_bare': 'on_premises',
+            'azure': 'azure', 'aws': 'aws', 'gcp': 'gcp',
+        };
+
+        // Map architecture mode → wizard arch value
+        const _archModeMap = { 'monolith': 'monolithic', 'monolithic': 'monolithic', 'microservices': 'microservices' };
+
+        // Map template DB provider → wizard DB type
+        const _dbProviderMap = {
+            'mariadb': 'mariadb', 'mysql': 'mariadb', 'rds_mysql': 'mariadb',
+            'azure_mysql': 'mariadb', 'postgresql': 'postgresql', 'cloud_sql': 'mariadb',
+            'sqlserver': 'sqlserver',
+        };
+
+        /**
+         * Apply a template or profile data object to the entire wizard.
+         * This auto-selects the discovery platform, pre-fills credential fields,
+         * and populates Step-1+ config values so the user can review and proceed.
+         */
+        function applyTemplateToWizard(data, sourceName, isTemplate) {
+            const target = data.target || {};
+            const arch   = data.architecture || {};
+            const db     = data.database || {};
+            const prov   = data.providers || {};
+            const meta   = data.meta || {};
+            const sec    = data.secrets || {};
+            const ssl    = data.ssl || {};
+            const imgReg = data.image_registry || {};
+            const svcAcc = data.service_accounts || {};
+
+            // ─── 1. Auto-select discovery platform and pre-fill fields ────────
+            const discPlatform = _providerToDiscoveryPlatform[target.provider] || '';
+            if (discPlatform) {
+                selectDiscoveryPlatform(discPlatform);
+
+                if (discPlatform === 'on_premises') {
+                    // Pre-fill On-Premises fields from template
+                    _setVal('discoveryHost',            target.host || target.domain_name || '192.168.0.9');
+                    _setVal('discoveryPort',            target.ssh_port || 22);
+                    _setVal('discoveryUsername',        target.ssh_user || 'root');
+                    _setVal('discoveryContainerPrefix', 'crm-');
+                    _setVal('discoveryNetwork',         'crm_crm-network');
+                } else if (discPlatform === 'azure') {
+                    _setVal('discAzureRegion', target.azure_region || 'eastus');
+                    const azSvcAcc = svcAcc.azure || {};
+                    _setVal('discAzureSubId',       azSvcAcc.azure_subscription_id || '');
+                    _setVal('discAzureTenantId',    azSvcAcc.azure_tenant_id || '');
+                    _setVal('discAzureClientId',    azSvcAcc.azure_client_id || '');
+                    _setVal('discAzureClientSecret', azSvcAcc.azure_client_secret || '');
+                } else if (discPlatform === 'aws') {
+                    _setVal('discAwsRegion', target.aws_region || 'us-east-1');
+                    const awsSvcAcc = svcAcc.aws || {};
+                    _setVal('discAwsAccessKey',    awsSvcAcc.aws_access_key_id || '');
+                    _setVal('discAwsSecretKey',    awsSvcAcc.aws_secret_access_key || '');
+                } else if (discPlatform === 'gcp') {
+                    _setVal('discGcpRegion',    target.gcp_region || 'us-central1');
+                    _setVal('discGcpProjectId', target.gcp_project || '');
+                    const gcpSvcAcc = svcAcc.gcp || {};
+                    _setVal('discGcpSaJson',    gcpSvcAcc.gcp_sa_json || '');
+                }
+            }
+
+            // ─── 2. Populate config object ─────────────────────────────────────
+            const profileName = meta.profile_name || sourceName || 'crm-deployment';
+            config.name        = profileName;
+            config.description = meta.description || data.description || '';
+            config.platform    = target.provider || '';
+            config.ssl         = Object.assign(config.ssl || {}, ssl);
+            config.image_registry = Object.assign(config.image_registry || {}, imgReg);
+            config.service_accounts = Object.assign(config.service_accounts || {}, svcAcc);
+            config.secrets     = Object.assign(config.secrets || {}, sec);
+
+            // Architecture
+            const archMode = _archModeMap[arch.mode] || '';
+            if (archMode) config.architecture = archMode;
+
+            // Database
+            const dbType = _dbProviderMap[db.db_provider] || '';
+            if (dbType) {
+                config.database_type = dbType;
+                if (db.db_port) config.database_port = db.db_port;
+                if (db.db_name) config.database_name = db.db_name;
+            }
+
+            // Providers
+            if (prov.search_provider)       config.search_provider       = prov.search_provider;
+            if (prov.chat_provider)         config.chat_provider         = prov.chat_provider;
+            if (prov.notification_provider) config.notification_provider = prov.notification_provider;
+            if (prov.analytics_provider)    config.analytics_provider    = prov.analytics_provider;
+            if (prov.ai_provider)           config.ai_provider           = prov.ai_provider;
+            if (prov.signature_provider)    config.signature_provider    = prov.signature_provider;
+
+            // ─── 3. Pre-fill Step 1 form fields ───────────────────────────────
+            _setVal('deploymentName',        profileName);
+            _setVal('deploymentDescription', config.description);
+
+            // ─── 4. Show info banner ──────────────────────────────────────────
+            _showTemplateBanner(sourceName, meta.description || data.description || '', isTemplate);
+        }
+
+        /** Safely set a form field value by id. */
+        function _setVal(id, val) {
+            const el = document.getElementById(id);
+            if (el && val !== undefined && val !== null) el.value = val;
+        }
+
+        /** Show an info banner at the top of discovery step indicating which template/profile is loaded. */
+        function _showTemplateBanner(name, desc, isTemplate) {
+            const label = isTemplate ? 'Template' : 'Profile';
+            const icon  = isTemplate ? 'bi-lightning-charge' : 'bi-folder2-open';
+            const existing = document.getElementById('templateBanner');
+            if (existing) existing.remove();
+            const banner = document.createElement('div');
+            banner.id = 'templateBanner';
+            banner.className = 'alert alert-info d-flex align-items-center gap-2 mb-3';
+            banner.innerHTML = '<i class="bi ' + icon + ' fs-5"></i>' +
+                '<div><strong>' + label + ':</strong> ' + _esc(name) +
+                (desc ? ' <span class="text-muted small">— ' + _esc(desc) + '</span>' : '') +
+                '</div>' +
+                '<button type="button" class="btn-close ms-auto" onclick="this.parentElement.remove()"></button>';
+            // Insert before the discovery layout
+            const sect = document.querySelector('[data-section="0"]');
+            if (sect) {
+                const layout = sect.querySelector('.discovery-layout');
+                if (layout) sect.insertBefore(banner, layout);
+            }
+        }
+
+        function _esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        /** Load a template by name from the templates API, then apply it. */
+        async function _loadAndApplyTemplate(name) {
+            try {
+                const resp = await fetch('/api/profiles/templates');
+                const data = await resp.json();
+                const templates = data.templates || [];
+                const tpl = templates.find(t => (t.meta && t.meta.profile_name) === name || t.name === name);
+                if (tpl) {
+                    applyTemplateToWizard(tpl, name, true);
+                } else {
+                    console.warn('[CDT] Template not found:', name);
+                }
+            } catch (e) {
+                console.error('[CDT] Failed to load template:', e);
+            }
+        }
+
+        /** Load a saved profile by name, then apply it. */
+        async function _loadAndApplyProfile(name) {
+            try {
+                const resp = await fetch('/api/profiles/' + encodeURIComponent(name));
+                if (!resp.ok) { console.warn('[CDT] Profile not found:', name); return; }
+                const data = await resp.json();
+                applyTemplateToWizard(data, name, false);
+            } catch (e) {
+                console.error('[CDT] Failed to load profile:', e);
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadEnums();
@@ -4167,15 +4330,26 @@
             loadRecommendation();
             updateArchSuggestion();
 
-            // Show welcome modal unless user opted out
-            if (!localStorage.getItem('cdt_skip_welcome')) {
-                const wm = document.getElementById('welcomeModal');
-                if (wm) { const m = new bootstrap.Modal(wm); m.show(); }
+            // ── Auto-populate from URL query params (landing page linkage) ────
+            const params = new URLSearchParams(window.location.search);
+            const tplName     = params.get('template');
+            const profileName = params.get('profile');
+            if (tplName) {
+                // Suppress welcome modal when arriving from landing page
+                _loadAndApplyTemplate(tplName);
+            } else if (profileName) {
+                _loadAndApplyProfile(profileName);
+            } else {
+                // Show welcome modal unless user opted out
+                if (!localStorage.getItem('cdt_skip_welcome')) {
+                    const wm = document.getElementById('welcomeModal');
+                    if (wm) { const m = new bootstrap.Modal(wm); m.show(); }
+                }
             }
 
             // Try to restore draft
             const hasDraft = localStorage.getItem(DRAFT_KEY);
-            if (hasDraft && !localStorage.getItem('cdt_skip_welcome')) {
+            if (hasDraft && !tplName && !profileName && !localStorage.getItem('cdt_skip_welcome')) {
                 // Will be offered via welcome modal if implemented
             }
         });
