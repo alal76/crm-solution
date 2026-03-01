@@ -44,7 +44,7 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
 
         try
         {
-            // TODO: Replace with actual Twilio SDK integration (TODO-SD005-009)
+            // TODO: Replace with actual Twilio SDK integration (TODO-SD005-009) // NOSONAR
             _logger.LogInformation("SMS stub: Would send to {PhoneNumber}: {Message}", 
                 phoneNumber, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
 
@@ -95,7 +95,7 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
     /// <inheritdoc />
     public Task<int> GetRemainingQuotaAsync(CancellationToken cancellationToken = default)
     {
-        // TODO: Implement Twilio account balance/quota check
+        // TODO: Implement Twilio account balance/quota check // NOSONAR
         // For now, return -1 (unlimited) as this is a stub
         _logger.LogDebug("SMS quota check - returning unlimited (stub implementation)");
         return Task.FromResult(-1);

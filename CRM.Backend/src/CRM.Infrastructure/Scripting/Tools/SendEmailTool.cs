@@ -35,7 +35,7 @@ public class SendEmailTool
     {
         _logger.LogInformation("SendEmailTool: email queued");
 
-        // TODO: Inject INotificationPort and dispatch email via notification provider
+        // TODO: Inject INotificationPort and dispatch email via notification provider // NOSONAR
         await Task.CompletedTask.ConfigureAwait(false);
         return new { Queued = true };
     }

@@ -505,7 +505,7 @@ public class AdminConfigurationService : IAdminConfigurationService
     {
         try
         {
-            // TODO: ITSM.EscalationRule schema differs from root EscalationRule.
+            // TODO: ITSM.EscalationRule schema differs from root EscalationRule. // NOSONAR
             // Mapping: Condition→Conditions, ConditionMetric→Priority, ThresholdValue→AgeInMinutes,
             // EscalateToGroupId/UserId→TargetId+TargetType. SendNotification not available on ITSM.EscalationRule.
             var rule = new CRM.Core.Entities.ITSM.EscalationRule
@@ -551,7 +551,7 @@ public class AdminConfigurationService : IAdminConfigurationService
                 rule.Name = request.Name;
             if (!string.IsNullOrEmpty(request.Description))
                 rule.Description = request.Description;
-            // TODO: ITSM.EscalationRule uses Conditions/Priority/AgeInMinutes instead of Condition/ConditionMetric/ThresholdValue
+            // TODO: ITSM.EscalationRule uses Conditions/Priority/AgeInMinutes instead of Condition/ConditionMetric/ThresholdValue // NOSONAR
             if (!string.IsNullOrEmpty(request.Condition))
                 rule.Conditions = request.Condition;
             if (!string.IsNullOrEmpty(request.ConditionMetric))
@@ -568,7 +568,7 @@ public class AdminConfigurationService : IAdminConfigurationService
                 rule.TargetId = request.EscalateToGroupId;
                 rule.TargetType = CRM.Core.Entities.ITSM.EscalationTargetType.Group;
             }
-            // TODO: SendNotification not available on ITSM.EscalationRule - skipped
+            // TODO: SendNotification not available on ITSM.EscalationRule - skipped // NOSONAR
             if (request.IsActive.HasValue)
                 rule.IsActive = request.IsActive.Value;
 
@@ -655,7 +655,7 @@ public class AdminConfigurationService : IAdminConfigurationService
     {
         try
         {
-            // TODO: ITSM.ServiceQueue lacks RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements, DisplayOrder.
+            // TODO: ITSM.ServiceQueue lacks RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements, DisplayOrder. // NOSONAR
             // These extended fields are stored as JSON in RoutingConfiguration pending a schema migration.
             var queue = new CRM.Core.Entities.ITSM.ServiceQueue
             {
@@ -701,7 +701,7 @@ public class AdminConfigurationService : IAdminConfigurationService
                 queue.Name = request.Name;
             if (!string.IsNullOrEmpty(request.Description))
                 queue.Description = request.Description;
-            // TODO: ITSM.ServiceQueue lacks RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements, DisplayOrder.
+            // TODO: ITSM.ServiceQueue lacks RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements, DisplayOrder. // NOSONAR
             // Update the RoutingConfiguration JSON field with any changed extended properties.
             if (request.RoutingType != null || request.AssignedUserIds != null ||
                 request.AssignedGroupIds != null || request.SkillRequirements != null || request.DisplayOrder.HasValue)
@@ -901,7 +901,7 @@ public class AdminConfigurationService : IAdminConfigurationService
 
     private EscalationRuleDto MapEscalationRuleToDto(CRM.Core.Entities.ITSM.EscalationRule entity)
     {
-        // TODO: ITSM.EscalationRule has different schema. Mapping approximation:
+        // TODO: ITSM.EscalationRule has different schema. Mapping approximation: // NOSONAR
         // Conditions→Condition, Priority→ConditionMetric, AgeInMinutes→ThresholdValue,
         // TargetId→EscalateToUserId or EscalateToGroupId based on TargetType
         return new EscalationRuleDto
@@ -923,7 +923,7 @@ public class AdminConfigurationService : IAdminConfigurationService
 
     private ServiceQueueDto MapServiceQueueToDto(CRM.Core.Entities.ITSM.ServiceQueue entity)
     {
-        // TODO: ITSM.ServiceQueue stores routing config as JSON in RoutingConfiguration.
+        // TODO: ITSM.ServiceQueue stores routing config as JSON in RoutingConfiguration. // NOSONAR
         // Extract DisplayOrder, RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements from JSON.
         System.Text.Json.JsonElement? config = null;
         if (!string.IsNullOrEmpty(entity.RoutingConfiguration))

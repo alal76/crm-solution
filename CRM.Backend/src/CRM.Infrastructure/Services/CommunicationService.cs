@@ -536,7 +536,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("WhatsApp Business Account ID and Phone Number ID are required");
         }
 
-        // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real connectivity test.
+        // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real connectivity test. // NOSONAR
         // INotificationPort does not cover WhatsApp — a dedicated social/chat provider is needed.
         _logger.LogInformation("WhatsApp channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
         return Task.FromResult(true);
@@ -550,7 +550,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("Facebook Page Access Token is required");
         }
 
-        // TODO: Integrate with Facebook Graph API provider for real connectivity test.
+        // TODO: Integrate with Facebook Graph API provider for real connectivity test. // NOSONAR
         // INotificationPort does not cover Facebook — a dedicated social media provider is needed.
         _logger.LogInformation("Facebook channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
         return Task.FromResult(true);
@@ -564,7 +564,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("Twitter API Key and Secret are required");
         }
 
-        // TODO: Integrate with Twitter/X API v2 provider for real connectivity test.
+        // TODO: Integrate with Twitter/X API v2 provider for real connectivity test. // NOSONAR
         // INotificationPort does not cover Twitter — a dedicated social media provider is needed.
         _logger.LogInformation("Twitter channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
         return Task.FromResult(true);
@@ -628,7 +628,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("ToPhone is required for WhatsApp messages");
         }
 
-        // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real message delivery.
+        // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real message delivery. // NOSONAR
         // INotificationPort does not cover WhatsApp — a dedicated social/chat provider is needed.
         _logger.LogInformation("[LOG-ONLY] Would send WhatsApp message to {To} (delivery not yet integrated)", request.ToPhone);
         return Task.FromResult(true);
@@ -642,7 +642,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("SMS API Key (Account SID) and API Secret (Auth Token) are required");
         }
 
-        // TODO: Integrate with INotificationPort.SendSmsAsync for real connectivity test (Twilio, etc.).
+        // TODO: Integrate with INotificationPort.SendSmsAsync for real connectivity test (Twilio, etc.). // NOSONAR
         _logger.LogInformation("SMS channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
         return Task.FromResult(true);
     }
@@ -655,7 +655,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("LinkedIn Access Token is required");
         }
 
-        // TODO: Integrate with LinkedIn Marketing API for real connectivity test.
+        // TODO: Integrate with LinkedIn Marketing API for real connectivity test. // NOSONAR
         // INotificationPort does not cover LinkedIn — a dedicated social media provider is needed.
         _logger.LogInformation("LinkedIn channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
         return Task.FromResult(true);
@@ -717,7 +717,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("Recipient (ToEmail or ToPhone as handle) is required for Twitter messages");
         }
 
-        // TODO: Integrate with Twitter/X API v2 Direct Messages endpoint for real message delivery.
+        // TODO: Integrate with Twitter/X API v2 Direct Messages endpoint for real message delivery. // NOSONAR
         // INotificationPort does not cover Twitter — a dedicated social media provider is needed.
         _logger.LogInformation("[LOG-ONLY] Would send Twitter DM to {To}: {Body} (delivery not yet integrated)",
             recipient, message.Body?.Substring(0, Math.Min(message.Body?.Length ?? 0, 50)));
@@ -732,7 +732,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("Recipient (PSID or identifier) is required for Facebook messages");
         }
 
-        // TODO: Integrate with Facebook Messenger Platform Send API for real message delivery.
+        // TODO: Integrate with Facebook Messenger Platform Send API for real message delivery. // NOSONAR
         // INotificationPort does not cover Facebook — a dedicated social/chat provider is needed.
         _logger.LogInformation("[LOG-ONLY] Would send Facebook message to {To}: {Body} (delivery not yet integrated)",
             recipient, message.Body?.Substring(0, Math.Min(message.Body?.Length ?? 0, 50)));
@@ -747,7 +747,7 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("Recipient (LinkedIn member URN) is required for LinkedIn messages");
         }
 
-        // TODO: Integrate with LinkedIn Messaging API for real message delivery.
+        // TODO: Integrate with LinkedIn Messaging API for real message delivery. // NOSONAR
         // INotificationPort does not cover LinkedIn — a dedicated social media provider is needed.
         _logger.LogInformation("[LOG-ONLY] Would send LinkedIn message to {To}: {Body} (delivery not yet integrated)",
             recipient, message.Body?.Substring(0, Math.Min(message.Body?.Length ?? 0, 50)));

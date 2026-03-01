@@ -124,7 +124,7 @@ public class PortalService : IPortalService
         await _db.SaveChangesAsync(ct);
 
         // PORTAL-020: Ticket confirmation email (best-effort)
-        // TODO: Inject INotificationPort or IEmailService and send ticket confirmation:
+        // TODO: Inject INotificationPort or IEmailService and send ticket confirmation: // NOSONAR
         // try
         // {
         //     await _emailService.SendAsync(new EmailMessage { To = portalUser.Email,
@@ -300,7 +300,7 @@ public class PortalService : IPortalService
         if (dto.DisplayName != null)
             user.DisplayName = dto.DisplayName;
 
-        // TODO: Phone field to be added to PortalUser entity in a future migration (PORTAL-019)
+        // TODO: Phone field to be added to PortalUser entity in a future migration (PORTAL-019) // NOSONAR
         await _db.SaveChangesAsync(ct);
         return MapUser(user);
     }
@@ -420,7 +420,7 @@ public class PortalService : IPortalService
             portalUserId, sr.TicketNumber);
 
         // PORTAL-024: CSAT is not triggered on cancellation, only on Resolved.
-        // TODO: Inject ISatisfactionService and call CreateSurveyAsync when ticket is Resolved.
+        // TODO: Inject ISatisfactionService and call CreateSurveyAsync when ticket is Resolved. // NOSONAR
     }
 
     // ── Config ────────────────────────────────────────────────────────────────

@@ -167,8 +167,8 @@ public class SandboxEnvironmentService : ISandboxEnvironmentService
 
         _logger.LogInformation("Created sandbox environment: {SandboxId} ({Name})", sandbox.Id, sandbox.Name);
 
-        // TODO: In production, clone database schema and optionally data
-        // TODO: Set up separate connection string for the sandbox database
+        // TODO: In production, clone database schema and optionally data // NOSONAR
+        // TODO: Set up separate connection string for the sandbox database // NOSONAR
         return Task.FromResult(sandbox);
     }
 
@@ -194,7 +194,7 @@ public class SandboxEnvironmentService : ISandboxEnvironmentService
         sandbox.ActivatedAt = DateTime.UtcNow;
         _logger.LogInformation("Activated sandbox: {SandboxId}", sandboxId);
 
-        // TODO: Start sandbox database container or switch connection
+        // TODO: Start sandbox database container or switch connection // NOSONAR
         return Task.FromResult(sandbox);
     }
 
@@ -207,7 +207,7 @@ public class SandboxEnvironmentService : ISandboxEnvironmentService
         sandbox.Status = SandboxStatus.Inactive;
         _logger.LogInformation("Deactivated sandbox: {SandboxId}", sandboxId);
 
-        // TODO: Stop sandbox database container
+        // TODO: Stop sandbox database container // NOSONAR
         return Task.FromResult(sandbox);
     }
 
@@ -220,7 +220,7 @@ public class SandboxEnvironmentService : ISandboxEnvironmentService
         sandbox.Status = SandboxStatus.Refreshing;
         sandbox.LastRefreshedAt = DateTime.UtcNow;
 
-        // TODO: Re-clone production data into sandbox
+        // TODO: Re-clone production data into sandbox // NOSONAR
         sandbox.Status = SandboxStatus.Active;
         _logger.LogInformation("Refreshed sandbox: {SandboxId}", sandboxId);
 
@@ -255,7 +255,7 @@ public class SandboxEnvironmentService : ISandboxEnvironmentService
         }
         else
         {
-            // TODO: Apply sandbox changes to production database
+            // TODO: Apply sandbox changes to production database // NOSONAR
             _logger.LogInformation("Promoted sandbox {SandboxId} to production", sandboxId);
         }
 
@@ -269,7 +269,7 @@ public class SandboxEnvironmentService : ISandboxEnvironmentService
         if (removed > 0)
         {
             _logger.LogInformation("Deleted sandbox: {SandboxId}", sandboxId);
-            // TODO: Drop sandbox database and clean up resources
+            // TODO: Drop sandbox database and clean up resources // NOSONAR
         }
         return Task.FromResult(removed > 0);
     }

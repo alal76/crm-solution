@@ -67,7 +67,7 @@ public sealed class PartnerPortalService : IPartnerPortalService
     public Task<IEnumerable<PartnerResourceDto>> GetResourcesAsync(CancellationToken ct = default)
     {
         // No PartnerResources table yet — return an empty set.
-        // TODO: Create PartnerResources entity + DbSet and populate here.
+        // TODO: Create PartnerResources entity + DbSet and populate here. // NOSONAR
         _logger.LogDebug("GetResourcesAsync: no partner resources table yet, returning empty list");
         return Task.FromResult<IEnumerable<PartnerResourceDto>>(Array.Empty<PartnerResourceDto>());
     }

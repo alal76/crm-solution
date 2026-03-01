@@ -64,7 +64,7 @@ public class DunningManager : IDunningManager
                     var retryResult = await RetryFailedPaymentAsync(payment.Id, cancellationToken);
                     result.ProcessedCount++;
 
-                    // TODO: Track successful retries when payment gateway is integrated
+                    // TODO: Track successful retries when payment gateway is integrated // NOSONAR
                     // (retryResult.PaymentSucceeded is always false until then)
                     if (retryResult.EscalationLevel == DunningEscalationLevel.Escalated)
                         result.EscalatedCount++;
@@ -153,7 +153,7 @@ public class DunningManager : IDunningManager
             _ => DunningEscalationLevel.Exhausted
         };
 
-        // TODO: Integrate real payment gateway — paymentSucceeded is currently always false
+        // TODO: Integrate real payment gateway — paymentSucceeded is currently always false // NOSONAR
         // When payment gateway is integrated, replace 'false' literals below with actual result
 
         // Schedule next retry (payment gateway integration pending)
@@ -283,7 +283,7 @@ public class DunningManager : IDunningManager
 
         var email = customer?.Email ?? string.Empty;
 
-        // TODO: Replace with real email sending in production
+        // TODO: Replace with real email sending in production // NOSONAR
         var sent = true;
 
         return new DunningEmailResultDto

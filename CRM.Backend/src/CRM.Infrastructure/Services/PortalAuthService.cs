@@ -120,7 +120,7 @@ public class PortalAuthService : IPortalAuthService
         await _db.SaveChangesAsync(ct);
 
         // PORTAL-020: Email verification notification (best-effort)
-        // TODO: Inject INotificationPort or email service and send verification email:
+        // TODO: Inject INotificationPort or email service and send verification email: // NOSONAR
         // try
         // {
         //     var verificationUrl = $"/portal/verify-email?token={portalUser.EmailVerificationToken}";

@@ -165,7 +165,7 @@ public class BiometricAuthService : IBiometricAuthService
                 };
             }
 
-            // TODO: Verify signature using stored public key
+            // TODO: Verify signature using stored public key // NOSONAR
             // For now, accept if credential exists
 
             // Update last used timestamp

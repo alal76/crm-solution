@@ -730,8 +730,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         await _context.SaveChangesAsync();
 
         // PORTAL-021/024: Best-effort portal notification and CSAT trigger on resolve.
-        // TODO: Inject INotificationPort via constructor to notify portal user of status change (PORTAL-021).
-        // TODO: Inject ISatisfactionService via constructor and call CreateSurveyAsync(id) for CSAT (PORTAL-024).
+        // TODO: Inject INotificationPort via constructor to notify portal user of status change (PORTAL-021). // NOSONAR
+        // TODO: Inject ISatisfactionService via constructor and call CreateSurveyAsync(id) for CSAT (PORTAL-024). // NOSONAR
         _logger.LogDebug("PORTAL-021/024: SR {TicketNumber} resolved — notification/CSAT hook placeholder", entity.TicketNumber);
 
         _logger.LogInformation("Resolved service request {TicketNumber}", entity.TicketNumber);

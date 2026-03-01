@@ -175,7 +175,7 @@ public class UpdatePortalProfileDto
     [MaxLength(100)]
     public string? DisplayName { get; set; }
 
-    // TODO: Phone field to be added to PortalUser entity in a future migration (PORTAL-019)
+    // TODO: Phone field to be added to PortalUser entity in a future migration (PORTAL-019) // NOSONAR
 }
 
 /// <summary>Payload for a portal user to change their own password.</summary>

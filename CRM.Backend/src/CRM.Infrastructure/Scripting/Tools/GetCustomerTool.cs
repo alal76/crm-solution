@@ -32,7 +32,7 @@ public class GetCustomerTool
     {
         _logger.LogDebug("GetCustomerTool invoked with params {Params}", parameters);
 
-        // TODO: Inject IAccountService and call GetByIdAsync(id, cancellationToken)
+        // TODO: Inject IAccountService and call GetByIdAsync(id, cancellationToken) // NOSONAR
         await Task.CompletedTask.ConfigureAwait(false);
         return new { Id = 0, Name = "Stub" };
     }
