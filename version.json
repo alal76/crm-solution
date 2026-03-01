@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 611,
-  "patch": 12,
+  "patch": 13,
   "lastUpdate": "2026-03-01",
-  "description": "fix(reliability): v0.611.12 - SonarQube reliability fixes across full solution (S112/S6354/S2245/contrast/bare-except)",
+  "description": "feat(infra/cdt): v0.611.13 - CDT wizard comprehensive UX improvements (preset tiles, pv2 provider cards, arch suggestion, rich review, draft save)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
