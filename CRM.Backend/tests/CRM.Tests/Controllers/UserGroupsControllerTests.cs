@@ -23,14 +23,12 @@ namespace CRM.Tests.Controllers;
 public class UserGroupsControllerTests
 {
     private readonly Mock<IUserGroupService> _mockGroupService;
-    private readonly Mock<ILogger<UserGroupsController>> _mockLogger;
     private readonly UserGroupsController _controller;
 
     public UserGroupsControllerTests()
     {
         _mockGroupService = new Mock<IUserGroupService>();
-        _mockLogger = new Mock<ILogger<UserGroupsController>>();
-        _controller = new UserGroupsController(_mockGroupService.Object, _mockLogger.Object);
+        _controller = new UserGroupsController(_mockGroupService.Object);
     }
 
     #region GetAll Tests

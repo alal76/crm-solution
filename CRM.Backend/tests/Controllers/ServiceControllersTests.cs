@@ -227,14 +227,12 @@ public class CommissionsControllerTests
 public class CampaignsControllerTests
 {
     private readonly Mock<IMarketingCampaignService> _mockCampaignService;
-    private readonly Mock<ILogger<CampaignsController>> _mockLogger;
     private readonly CampaignsController _controller;
 
     public CampaignsControllerTests()
     {
         _mockCampaignService = new Mock<IMarketingCampaignService>();
-        _mockLogger = new Mock<ILogger<CampaignsController>>();
-        _controller = new CampaignsController(_mockCampaignService.Object, _mockLogger.Object);
+        _controller = new CampaignsController(_mockCampaignService.Object);
     }
 
     [Fact]
@@ -339,14 +337,12 @@ public class WebhooksControllerTests
 public class EmailSequencesControllerTests
 {
     private readonly Mock<IEmailSequenceService> _mockSequenceService;
-    private readonly Mock<ILogger<EmailSequencesController>> _mockLogger;
     private readonly EmailSequencesController _controller;
 
     public EmailSequencesControllerTests()
     {
         _mockSequenceService = new Mock<IEmailSequenceService>();
-        _mockLogger = new Mock<ILogger<EmailSequencesController>>();
-        _controller = new EmailSequencesController(_mockSequenceService.Object, _mockLogger.Object);
+        _controller = new EmailSequencesController(_mockSequenceService.Object);
     }
 
     [Fact]

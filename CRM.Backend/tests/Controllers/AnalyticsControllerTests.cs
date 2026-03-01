@@ -33,7 +33,7 @@ public class AnalyticsControllerTests
         _provider.Setup(p => p.SupportsEmbedding).Returns(true);
         _provider.Setup(p => p.IsAvailableAsync(default)).ReturnsAsync(true);
 
-        _controller = new AnalyticsController(_factory.Object, new Mock<ILogger<AnalyticsController>>().Object);
+        _controller = new AnalyticsController(_factory.Object);
 
         var httpContext = new DefaultHttpContext();
         httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(new[]

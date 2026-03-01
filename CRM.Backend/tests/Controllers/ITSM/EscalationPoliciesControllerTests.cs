@@ -23,14 +23,12 @@ namespace CRM.Tests.Controllers.ITSM;
 public class EscalationPoliciesControllerTests
 {
     private readonly Mock<IEscalationPolicyService> _mockService;
-    private readonly Mock<ILogger<EscalationPoliciesController>> _mockLogger;
     private readonly EscalationPoliciesController _controller;
 
     public EscalationPoliciesControllerTests()
     {
         _mockService = new Mock<IEscalationPolicyService>();
-        _mockLogger = new Mock<ILogger<EscalationPoliciesController>>();
-        _controller = new EscalationPoliciesController(_mockService.Object, _mockLogger.Object);
+        _controller = new EscalationPoliciesController(_mockService.Object);
 
         // Set up a mock user context
         var user = new ClaimsPrincipal(new ClaimsIdentity(new[]

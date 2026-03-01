@@ -37,7 +37,6 @@ public class AgentAnalyticsController : CrmControllerBase
     /// Initializes a new instance of the <see cref="AgentAnalyticsController"/> class.
     /// </summary>
     /// <param name="dbContext">The CRM database context.</param>
-    /// <param name="logger">The logger instance.</param>
     public AgentAnalyticsController(ICrmDbContext dbContext)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));

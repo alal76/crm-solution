@@ -34,7 +34,6 @@ public class AnalyticsEventsController : CrmControllerBase
     /// Initializes a new instance of the <see cref="AnalyticsEventsController"/> class.
     /// </summary>
     /// <param name="service">The analytics event service.</param>
-    /// <param name="logger">The logger.</param>
     public AnalyticsEventsController(IAnalyticsEventService service)
     {
         _service = service;

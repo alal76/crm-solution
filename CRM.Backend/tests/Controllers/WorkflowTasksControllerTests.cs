@@ -21,11 +21,10 @@ namespace CRM.Tests.Controllers;
 public class WorkflowTasksControllerTests
 {
     private readonly Mock<IWorkflowInstanceService> _instanceService = new();
-    private readonly Mock<ILogger<WorkflowTasksController>> _logger = new();
 
     private WorkflowTasksController CreateControllerWithUser(int userId = 1)
     {
-        var controller = new WorkflowTasksController(_instanceService.Object, _logger.Object);
+        var controller = new WorkflowTasksController(_instanceService.Object);
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext

@@ -52,7 +52,6 @@ public class AuditLogsController : CrmControllerBase
     /// Initializes a new instance of the <see cref="AuditLogsController"/> class.
     /// </summary>
     /// <param name="auditLogService">Service for audit log business logic.</param>
-    /// <param name="logger">Logger for error and audit logging.</param>
     /// <param name="exportService">Dedicated export service (optional).</param>
     public AuditLogsController(
         IAuditLogService auditLogService,

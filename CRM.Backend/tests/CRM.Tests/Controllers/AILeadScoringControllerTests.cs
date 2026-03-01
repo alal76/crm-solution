@@ -33,7 +33,6 @@ public class AILeadScoringControllerTests : IDisposable
     private readonly Mock<ILLMService> _mockLLMService;
     private readonly Mock<ILLMSettingsService> _mockLLMSettingsService;
     private readonly Mock<ILeadScoreHistoryService> _mockScoreHistoryService;
-    private readonly Mock<ILogger<AILeadScoringController>> _mockLogger;
     private readonly CrmDbContext _dbContext;
     private readonly AILeadScoringController _controller;
 
@@ -43,7 +42,6 @@ public class AILeadScoringControllerTests : IDisposable
         _mockLLMService = new Mock<ILLMService>();
         _mockLLMSettingsService = new Mock<ILLMSettingsService>();
         _mockScoreHistoryService = new Mock<ILeadScoreHistoryService>();
-        _mockLogger = new Mock<ILogger<AILeadScoringController>>();
 
         var options = new DbContextOptionsBuilder<CrmDbContext>()
             .UseInMemoryDatabase($"AILeadScoringTest_{Guid.NewGuid()}")
@@ -56,8 +54,7 @@ public class AILeadScoringControllerTests : IDisposable
             _mockAIService.Object,
             _mockLLMService.Object,
             _mockLLMSettingsService.Object,
-            _mockScoreHistoryService.Object,
-            _mockLogger.Object);
+            _mockScoreHistoryService.Object);
     }
 
     public void Dispose()

@@ -21,14 +21,12 @@ namespace CRM.Tests.Controllers
     public class DepartmentsControllerTests
     {
         private readonly Mock<IRepository<Department>> _mockDepartmentRepository;
-        private readonly Mock<ILogger<DepartmentsController>> _mockLogger;
         private readonly DepartmentsController _controller;
 
         public DepartmentsControllerTests()
         {
             _mockDepartmentRepository = new Mock<IRepository<Department>>();
-            _mockLogger = new Mock<ILogger<DepartmentsController>>();
-            _controller = new DepartmentsController(_mockDepartmentRepository.Object, _mockLogger.Object);
+            _controller = new DepartmentsController(_mockDepartmentRepository.Object);
         }
 
         [Fact]

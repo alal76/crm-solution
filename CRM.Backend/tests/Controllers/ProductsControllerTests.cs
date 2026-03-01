@@ -24,14 +24,12 @@ namespace CRM.Tests.Controllers;
 public class ProductsControllerTests
 {
     private readonly Mock<IProductService> _mockProductService;
-    private readonly Mock<ILogger<ProductsController>> _mockLogger;
     private readonly Mock<ICrmNotificationService> _mockNotificationService;
     private readonly ProductsController _controller;
 
     public ProductsControllerTests()
     {
         _mockProductService = new Mock<IProductService>();
-        _mockLogger = new Mock<ILogger<ProductsController>>();
         _mockNotificationService = new Mock<ICrmNotificationService>();
 
         // Setup default returns for notification service
@@ -42,7 +40,7 @@ public class ProductsControllerTests
         _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
 
-        _controller = new ProductsController(_mockProductService.Object, _mockLogger.Object, _mockNotificationService.Object);
+        _controller = new ProductsController(_mockProductService.Object, _mockNotificationService.Object);
 
         // Setup HttpContext with Response.Headers for ETag support
         var httpContext = new DefaultHttpContext();
