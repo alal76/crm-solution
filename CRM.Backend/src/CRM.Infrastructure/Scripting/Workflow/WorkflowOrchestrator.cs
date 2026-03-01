@@ -76,6 +76,32 @@ public class WorkflowOrchestrator
             if (result.Success && result.Output != null)
                 context.Variables[$"steps.{step.Name}.output"] = result.Output;
 
+            // SARCH-055: Register saga compensation after every successful, non-skipped step.
+            // These are unwound in LIFO order if a later step fails.
+            if (result.Success && !result.Skipped)
+            {
+                var capturedStep = step; // capture loop variable for the closure
+                compensations.Push(async (innerCt) =>
+                {
+                    _logger.LogInformation(
+                        "Saga rollback: compensating step '{Step}' in workflow '{WorkflowId}'",
+                        capturedStep.Name, context.WorkflowId);
+
+                    if (!string.IsNullOrEmpty(capturedStep.Compensation))
+                    {
+                        var compStep = new WorkflowStep
+                        {
+                            Name = $"{capturedStep.Name}.compensation",
+                            Type = WorkflowStepType.Script,
+                            Script = capturedStep.Compensation,
+                            Input = capturedStep.Input,
+                            TimeoutSeconds = capturedStep.TimeoutSeconds,
+                        };
+                        await _stepExecutor.ExecuteAsync(compStep, context, innerCt);
+                    }
+                });
+            }
+
             if (!result.Success && !result.Skipped)
             {
                 if (!string.IsNullOrEmpty(step.OnError))

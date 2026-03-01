@@ -80,6 +80,13 @@ public class WorkflowStep
 
     /// <summary>Gets or sets the per-step timeout in seconds.</summary>
     public int TimeoutSeconds { get; set; } = 60;
+
+    /// <summary>
+    /// Gets or sets an optional compensation script ID or inline script executed during
+    /// saga rollback (SARCH-055) if a later step fails. Leave null to skip compensation
+    /// for this step (compensation will still be logged).
+    /// </summary>
+    public string? Compensation { get; set; }
 }
 
 /// <summary>Supported step types in the YAML WDL.</summary>

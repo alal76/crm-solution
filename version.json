@@ -1,7 +1,7 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 1,
+  "patch": 2,
   "lastUpdate": "2026-03-01",
   "description": "refactor(deployment-tool): v0.614.1 - add _fetch_json helper; replace 20 repeated json.loads patterns in cloud discovery methods",
   "license": "SEE LICENSE IN LICENSE",
