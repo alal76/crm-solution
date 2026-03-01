@@ -52,10 +52,18 @@ def start_deploy():
     dry_run = data.get("dry_run", False)
 
     gen = ConfigGenerator()
-    result = gen.generate(profile)
+    try:
+        result = gen.generate(profile)
+    except Exception as exc:  # noqa: BLE001
+        return jsonify({"error": f"Configuration error: {exc}"}), 400
 
     log_q: queue.Queue = queue.Queue()
-    runtime = profile.get("architecture", {}).get("container_runtime", "docker_compose")
+    arch = profile.get("architecture", {})
+    runtime = (
+        arch.get("container_runtime", "docker_compose")
+        if isinstance(arch, dict)
+        else (arch or "docker_compose")
+    )
     if runtime == "kubernetes":
         deployer = KubernetesDeployer(
             result.output_dir or Path("/tmp"), profile, log_q, dry_run=dry_run

@@ -126,20 +126,29 @@ class ConfigGenerator:
         """Flatten a wizard profile dict into a Jinja2 template context."""
         ctx: dict = {}
 
-        # Flatten top-level sections
+        # Flatten top-level sections — guard against scalar values (e.g. when the
+        # wizard sends architecture/platform as a plain string instead of a dict).
         for section in ("target", "database", "network", "security", "architecture"):
-            ctx.update(profile.get(section, {}))
+            val = profile.get(section, {})
+            if isinstance(val, dict):
+                ctx.update(val)
+            elif val is not None and val != "":
+                # Store scalar under its section key so templates can reference it
+                ctx[section] = val
 
         # Providers kept under their own key AND flattened for convenience
         providers = profile.get("providers", {})
         ctx["providers"] = providers
-        ctx.update(providers)
+        if isinstance(providers, dict):
+            ctx.update(providers)
 
         # Seed fields exposed with admin_ prefix
-        for k, v in profile.get("seed", {}).items():
-            ctx[f"admin_{k}"] = v
-        # Also expose raw seed keys (for backward compat)
-        ctx.update(profile.get("seed", {}))
+        seed = profile.get("seed", {})
+        if isinstance(seed, dict):
+            for k, v in seed.items():
+                ctx[f"admin_{k}"] = v
+            # Also expose raw seed keys (for backward compat)
+            ctx.update(seed)
 
         # Meta
         meta = profile.get("meta", {})
@@ -188,9 +197,12 @@ class ConfigGenerator:
         result = GenerationResult(success=True, output_dir=output_dir)
         context = self._build_context(profile)
 
-        container_runtime = (
-            profile.get("architecture", {}).get("container_runtime", "docker_compose")
-        )
+        # architecture may be a flat string (e.g. "docker_compose") or a nested dict
+        arch = profile.get("architecture", {})
+        if isinstance(arch, dict):
+            container_runtime = arch.get("container_runtime", "docker_compose")
+        else:
+            container_runtime = arch if arch else "docker_compose"
         template_pairs = self._TEMPLATE_MAP.get(
             container_runtime, self._TEMPLATE_MAP["docker_compose"]
         )
