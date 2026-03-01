@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 8,
+  "patch": 9,
   "lastUpdate": "2026-03-01",
-  "description": "fix(api): v0.614.8 — restore malformed if-condition in SubscriptionsController (fix_braces regression); confirm all 9 SonarCloud S4487 controllers already clean; build 0 errors 0 warnings",
+  "description": "fix(api): v0.614.9 — SonarCloud S126 curly-brace sweep: add braces to all bare if/else/else-if blocks in every controller; build 0 errors 0 warnings",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
