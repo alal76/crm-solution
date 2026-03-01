@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class NormalizationController : ControllerBase
+public class NormalizationController : CrmControllerBase
 {
     private readonly INormalizationService _service;
     private readonly ILogger<NormalizationController> _logger;

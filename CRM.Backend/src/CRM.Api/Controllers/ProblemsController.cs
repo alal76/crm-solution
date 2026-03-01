@@ -10,6 +10,7 @@ using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -28,7 +29,7 @@ namespace CRM.Api.Controllers;
 [Route("api/problems")]
 [Authorize]
 [Produces("application/json")]
-public class LegacyProblemsController : ControllerBase
+public class LegacyProblemsController : CrmControllerBase
 {
     private const string ProblemNotFoundMessage = "Problem {0} not found";
     private readonly IProblemService _problemService;
@@ -78,11 +79,6 @@ public class LegacyProblemsController : ControllerBase
             _logger.LogWarning(ex, "Invalid argument when creating problem");
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating problem");
-            return StatusCode(500, new { error = "An error occurred while creating the problem" });
-        }
     }
 
     /// <summary>
@@ -98,21 +94,13 @@ public class LegacyProblemsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProblemDto>> GetByIdAsync(int id, CancellationToken cancellationToken)
     {
-        try
+                var problem = await _problemService.GetProblemByIdAsync(id);
+        if (problem == null)
         {
-            var problem = await _problemService.GetProblemByIdAsync(id);
-            if (problem == null)
-            {
-                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
-            }
+            return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
+        }
 
-            return Ok(problem);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving problem {ProblemId}", id);
-            return StatusCode(500, new { error = "An error occurred while retrieving the problem" });
-        }
+        return Ok(problem);
     }
 
     /// <summary>
@@ -157,11 +145,6 @@ public class LegacyProblemsController : ControllerBase
             _logger.LogWarning(ex, "Invalid argument when updating problem {ProblemId}", id);
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating problem {ProblemId}", id);
-            return StatusCode(500, new { error = "An error occurred while updating the problem" });
-        }
     }
 
     /// <summary>
@@ -176,22 +159,14 @@ public class LegacyProblemsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteAsync(int id, CancellationToken cancellationToken)
     {
-        try
+                var existing = await _problemService.GetProblemByIdAsync(id);
+        if (existing == null)
         {
-            var existing = await _problemService.GetProblemByIdAsync(id);
-            if (existing == null)
-            {
-                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
-            }
+            return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
+        }
 
-            _logger.LogInformation("Problem deleted: {ProblemId}", id);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting problem {ProblemId}", id);
-            return StatusCode(500, new { error = "An error occurred while deleting the problem" });
-        }
+        _logger.LogInformation("Problem deleted: {ProblemId}", id);
+        return NoContent();
     }
 
     #endregion
@@ -211,24 +186,16 @@ public class LegacyProblemsController : ControllerBase
         [FromQuery] ProblemFilterDto? filter,
         CancellationToken cancellationToken)
     {
-        try
+                filter ??= new ProblemFilterDto();
+        var (items, totalCount) = await _problemService.GetProblemsAsync(filter);
+        return Ok(new PaginatedResult<ProblemDto>
         {
-            filter ??= new ProblemFilterDto();
-            var (items, totalCount) = await _problemService.GetProblemsAsync(filter);
-            return Ok(new PaginatedResult<ProblemDto>
-            {
-                Items = items.ToList(),
-                TotalCount = totalCount,
-                Page = filter.PageNumber,
-                PageSize = filter.PageSize,
-                TotalPages = (int)Math.Ceiling((double)totalCount / filter.PageSize)
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving problems");
-            return StatusCode(500, new { error = "An error occurred while retrieving problems" });
-        }
+            Items = items.ToList(),
+            TotalCount = totalCount,
+            Page = filter.PageNumber,
+            PageSize = filter.PageSize,
+            TotalPages = (int)Math.Ceiling((double)totalCount / filter.PageSize)
+        });
     }
 
     /// <summary>
@@ -251,32 +218,24 @@ public class LegacyProblemsController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        try
+                var filter = new ProblemFilterDto
         {
-            var filter = new ProblemFilterDto
-            {
-                SearchTerm = searchTerm,
-                State = state,
-                Priority = priority,
-                PageNumber = pageNumber,
-                PageSize = pageSize
-            };
+            SearchTerm = searchTerm,
+            State = state,
+            Priority = priority,
+            PageNumber = pageNumber,
+            PageSize = pageSize
+        };
 
-            var (items, totalCount) = await _problemService.GetProblemsAsync(filter);
-            return Ok(new PaginatedResult<ProblemDto>
-            {
-                Items = items.ToList(),
-                TotalCount = totalCount,
-                Page = pageNumber,
-                PageSize = pageSize,
-                TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-            });
-        }
-        catch (Exception ex)
+        var (items, totalCount) = await _problemService.GetProblemsAsync(filter);
+        return Ok(new PaginatedResult<ProblemDto>
         {
-            _logger.LogError(ex, "Error searching problems");
-            return StatusCode(500, new { error = "An error occurred while searching problems" });
-        }
+            Items = items.ToList(),
+            TotalCount = totalCount,
+            Page = pageNumber,
+            PageSize = pageSize,
+            TotalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        });
     }
 
     #endregion
@@ -298,22 +257,14 @@ public class LegacyProblemsController : ControllerBase
         int id,
         CancellationToken cancellationToken)
     {
-        try
+                var problem = await _problemService.GetProblemByIdAsync(id);
+        if (problem == null)
         {
-            var problem = await _problemService.GetProblemByIdAsync(id);
-            if (problem == null)
-            {
-                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
-            }
+            return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
+        }
 
-            var incidents = await _problemService.GetRelatedIncidentsAsync(id);
-            return Ok(incidents);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving incidents for problem {ProblemId}", id);
-            return StatusCode(500, new { error = "An error occurred while retrieving incidents" });
-        }
+        var incidents = await _problemService.GetRelatedIncidentsAsync(id);
+        return Ok(incidents);
     }
 
     /// <summary>
@@ -335,34 +286,26 @@ public class LegacyProblemsController : ControllerBase
         [FromBody] LinkIncidentRequest request,
         CancellationToken cancellationToken)
     {
-        try
+                if (request.IncidentId <= 0)
         {
-            if (request.IncidentId <= 0)
-            {
-                return BadRequest(new { error = "Invalid incident ID" });
-            }
-
-            var problem = await _problemService.GetProblemByIdAsync(id);
-            if (problem == null)
-            {
-                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
-            }
-
-            var userId = GetCurrentUserId();
-            var result = await _problemService.LinkIncidentAsync(id, request.IncidentId, userId);
-            if (!result)
-            {
-                return BadRequest(new { error = "Failed to link incident" });
-            }
-
-            _logger.LogInformation("Incident {IncidentId} linked to problem {ProblemId}", request.IncidentId, id);
-            return Ok(new { message = "Incident linked successfully" });
+            return BadRequest(new { error = "Invalid incident ID" });
         }
-        catch (Exception ex)
+
+        var problem = await _problemService.GetProblemByIdAsync(id);
+        if (problem == null)
         {
-            _logger.LogError(ex, "Error linking incident {IncidentId} to problem {ProblemId}", request.IncidentId, id);
-            return StatusCode(500, new { error = "An error occurred while linking the incident" });
+            return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
         }
+
+        var userId = GetCurrentUserId();
+        var result = await _problemService.LinkIncidentAsync(id, request.IncidentId, userId);
+        if (!result)
+        {
+            return BadRequest(new { error = "Failed to link incident" });
+        }
+
+        _logger.LogInformation("Incident {IncidentId} linked to problem {ProblemId}", request.IncidentId, id);
+        return Ok(new { message = "Incident linked successfully" });
     }
 
     /// <summary>
@@ -382,22 +325,14 @@ public class LegacyProblemsController : ControllerBase
         int incidentId,
         CancellationToken cancellationToken)
     {
-        try
+                var problem = await _problemService.GetProblemByIdAsync(id);
+        if (problem == null)
         {
-            var problem = await _problemService.GetProblemByIdAsync(id);
-            if (problem == null)
-            {
-                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
-            }
+            return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
+        }
 
-            _logger.LogInformation("Incident {IncidentId} unlinked from problem {ProblemId}", incidentId, id);
-            return Ok(new { message = "Incident unlinked successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking incident {IncidentId} from problem {ProblemId}", incidentId, id);
-            return StatusCode(500, new { error = "An error occurred while unlinking the incident" });
-        }
+        _logger.LogInformation("Incident {IncidentId} unlinked from problem {ProblemId}", incidentId, id);
+        return Ok(new { message = "Incident unlinked successfully" });
     }
 
     #endregion
@@ -423,36 +358,28 @@ public class LegacyProblemsController : ControllerBase
         [FromBody] UpdateRootCauseRequest request,
         CancellationToken cancellationToken)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.RootCause))
         {
-            if (string.IsNullOrWhiteSpace(request.RootCause))
-            {
-                return BadRequest(new { error = "Root cause analysis is required" });
-            }
-
-            var problem = await _problemService.GetProblemByIdAsync(id);
-            if (problem == null)
-            {
-                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
-            }
-
-            var userId = GetCurrentUserId();
-            var result = await _problemService.UpdateRootCauseAnalysisAsync(
-                id, request.RootCause, request.Workaround, userId);
-
-            if (!result)
-            {
-                return BadRequest(new { error = "Failed to update root cause analysis" });
-            }
-
-            _logger.LogInformation("Root cause analysis updated for problem {ProblemId}", id);
-            return Ok(new { message = "Root cause analysis updated successfully" });
+            return BadRequest(new { error = "Root cause analysis is required" });
         }
-        catch (Exception ex)
+
+        var problem = await _problemService.GetProblemByIdAsync(id);
+        if (problem == null)
         {
-            _logger.LogError(ex, "Error updating root cause for problem {ProblemId}", id);
-            return StatusCode(500, new { error = "An error occurred while updating root cause analysis" });
+            return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
         }
+
+        var userId = GetCurrentUserId();
+        var result = await _problemService.UpdateRootCauseAnalysisAsync(
+            id, request.RootCause, request.Workaround, userId);
+
+        if (!result)
+        {
+            return BadRequest(new { error = "Failed to update root cause analysis" });
+        }
+
+        _logger.LogInformation("Root cause analysis updated for problem {ProblemId}", id);
+        return Ok(new { message = "Root cause analysis updated successfully" });
     }
 
     /// <summary>
@@ -474,34 +401,26 @@ public class LegacyProblemsController : ControllerBase
         [FromBody] AddResolutionRequest request,
         CancellationToken cancellationToken)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Resolution))
         {
-            if (string.IsNullOrWhiteSpace(request.Resolution))
-            {
-                return BadRequest(new { error = "Resolution is required" });
-            }
-
-            var problem = await _problemService.GetProblemByIdAsync(id);
-            if (problem == null)
-            {
-                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
-            }
-
-            var updateDto = new UpdateProblemDto
-            {
-                Resolution = request.Resolution
-            };
-
-            var userId = GetCurrentUserId();
-            var updated = await _problemService.UpdateProblemAsync(id, updateDto, userId);
-            _logger.LogInformation("Resolution added to problem {ProblemId}", id);
-            return Ok(updated);
+            return BadRequest(new { error = "Resolution is required" });
         }
-        catch (Exception ex)
+
+        var problem = await _problemService.GetProblemByIdAsync(id);
+        if (problem == null)
         {
-            _logger.LogError(ex, "Error adding resolution to problem {ProblemId}", id);
-            return StatusCode(500, new { error = "An error occurred while adding resolution" });
+            return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
         }
+
+        var updateDto = new UpdateProblemDto
+        {
+            Resolution = request.Resolution
+        };
+
+        var userId = GetCurrentUserId();
+        var updated = await _problemService.UpdateProblemAsync(id, updateDto, userId);
+        _logger.LogInformation("Resolution added to problem {ProblemId}", id);
+        return Ok(updated);
     }
 
     #endregion
@@ -527,30 +446,22 @@ public class LegacyProblemsController : ControllerBase
         [FromBody] CloseProblemRequest? request = null,
         CancellationToken cancellationToken = default)
     {
-        try
+                var problem = await _problemService.GetProblemByIdAsync(id);
+        if (problem == null)
         {
-            var problem = await _problemService.GetProblemByIdAsync(id);
-            if (problem == null)
-            {
-                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
-            }
-
-            var updateDto = new UpdateProblemDto
-            {
-                State = ProblemState.Closed,
-                ClosureComments = request?.Comments
-            };
-
-            var userId = GetCurrentUserId();
-            var updated = await _problemService.UpdateProblemAsync(id, updateDto, userId);
-            _logger.LogInformation("Problem {ProblemId} closed", id);
-            return Ok(updated);
+            return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
         }
-        catch (Exception ex)
+
+        var updateDto = new UpdateProblemDto
         {
-            _logger.LogError(ex, "Error closing problem {ProblemId}", id);
-            return StatusCode(500, new { error = "An error occurred while closing the problem" });
-        }
+            State = ProblemState.Closed,
+            ClosureComments = request?.Comments
+        };
+
+        var userId = GetCurrentUserId();
+        var updated = await _problemService.UpdateProblemAsync(id, updateDto, userId);
+        _logger.LogInformation("Problem {ProblemId} closed", id);
+        return Ok(updated);
     }
 
     #endregion

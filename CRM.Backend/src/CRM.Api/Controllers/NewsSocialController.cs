@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -37,7 +38,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/news-social")]
 [Authorize]
-public class NewsSocialController : ControllerBase
+public class NewsSocialController : CrmControllerBase
 {
     private readonly INewsSocialService _newsSocialService;
     private readonly ILogger<NewsSocialController> _logger;
@@ -78,27 +79,16 @@ public class NewsSocialController : ControllerBase
         [FromQuery] int maxSocialItems = 10,
         CancellationToken cancellationToken = default)
     {
-        try
+                var request = new NewsSocialFeedRequest
         {
-            var request = new NewsSocialFeedRequest
-            {
-                AccountId = accountId,
-                MaxNewsItems = maxNewsItems,
-                MaxSocialItems = maxSocialItems,
-                RefreshCache = false
-            };
+            AccountId = accountId,
+            MaxNewsItems = maxNewsItems,
+            MaxSocialItems = maxSocialItems,
+            RefreshCache = false
+        };
 
-            var response = await _newsSocialService.GetFeedsAsync(request, cancellationToken);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching feeds for account {AccountId}", accountId);
-            return StatusCode(500, new NewsSocialFeedResponse
-            {
-                Error = "Failed to fetch news and social feeds"
-            });
-        }
+        var response = await _newsSocialService.GetFeedsAsync(request, cancellationToken);
+        return Ok(response);
     }
 
     /// <summary>
@@ -112,27 +102,16 @@ public class NewsSocialController : ControllerBase
         [FromQuery] int maxSocialItems = 10,
         CancellationToken cancellationToken = default)
     {
-        try
+                var request = new NewsSocialFeedRequest
         {
-            var request = new NewsSocialFeedRequest
-            {
-                AccountId = accountId,
-                MaxNewsItems = maxNewsItems,
-                MaxSocialItems = maxSocialItems,
-                RefreshCache = true
-            };
+            AccountId = accountId,
+            MaxNewsItems = maxNewsItems,
+            MaxSocialItems = maxSocialItems,
+            RefreshCache = true
+        };
 
-            var response = await _newsSocialService.GetFeedsAsync(request, cancellationToken);
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error refreshing feeds for account {AccountId}", accountId);
-            return StatusCode(500, new NewsSocialFeedResponse
-            {
-                Error = "Failed to refresh news and social feeds"
-            });
-        }
+        var response = await _newsSocialService.GetFeedsAsync(request, cancellationToken);
+        return Ok(response);
     }
 
     /// <summary>
@@ -151,16 +130,8 @@ public class NewsSocialController : ControllerBase
             return BadRequest("Company name is required");
         }
 
-        try
-        {
-            var news = await _newsSocialService.GetNewsAsync(companyName, maxItems, cancellationToken);
-            return Ok(news);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching news for company {CompanyName}", companyName);
-            return StatusCode(500, new List<NewsItemDto>());
-        }
+                var news = await _newsSocialService.GetNewsAsync(companyName, maxItems, cancellationToken);
+        return Ok(news);
     }
 
     /// <summary>
@@ -175,17 +146,9 @@ public class NewsSocialController : ControllerBase
         [FromQuery] int maxItems = 10,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var feeds = await _newsSocialService.GetSocialFeedsAsync(
-                linkedInUrl, twitterHandle, facebookUrl, maxItems, cancellationToken);
-            return Ok(feeds);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching social feeds");
-            return StatusCode(500, new List<SocialFeedDto>());
-        }
+                var feeds = await _newsSocialService.GetSocialFeedsAsync(
+            linkedInUrl, twitterHandle, facebookUrl, maxItems, cancellationToken);
+        return Ok(feeds);
     }
 
     /// <summary>

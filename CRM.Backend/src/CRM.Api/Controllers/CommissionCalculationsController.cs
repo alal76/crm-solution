@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class CommissionCalculationsController : ControllerBase
+public class CommissionCalculationsController : CrmControllerBase
 {
     private readonly ICommissionCalculationService _service;
     private readonly ILogger<CommissionCalculationsController> _logger;
@@ -46,17 +47,9 @@ public class CommissionCalculationsController : ControllerBase
         [FromBody] CommissionDealCalculationDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Calculating commission for deal: opportunityId={OpportunityId}", dto.OpportunityId);
-            var result = await _service.CalculateForDealAsync(dto, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating commission for deal");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Calculating commission for deal: opportunityId={OpportunityId}", dto.OpportunityId);
+        var result = await _service.CalculateForDealAsync(dto, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -70,17 +63,9 @@ public class CommissionCalculationsController : ControllerBase
         [FromBody] CommissionOrderCalculationDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Calculating commission for order: orderId={OrderId}", dto.OrderId);
-            var result = await _service.CalculateForOrderAsync(dto, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating commission for order");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Calculating commission for order: orderId={OrderId}", dto.OrderId);
+        var result = await _service.CalculateForOrderAsync(dto, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -94,18 +79,10 @@ public class CommissionCalculationsController : ControllerBase
         [FromBody] CommissionPeriodCalculationDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Calculating commissions for period: startDate={StartDate}, endDate={EndDate}",
-                dto.StartDate, dto.EndDate);
-            var result = await _service.CalculateForPeriodAsync(dto, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating commissions for period");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Calculating commissions for period: startDate={StartDate}, endDate={EndDate}",
+            dto.StartDate, dto.EndDate);
+        var result = await _service.CalculateForPeriodAsync(dto, cancellationToken);
+        return Ok(result);
     }
 
     /// <summary>
@@ -119,16 +96,8 @@ public class CommissionCalculationsController : ControllerBase
         [FromBody] CommissionCalculationValidationDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Validating commission calculation parameters");
-            var result = await _service.ValidateAsync(dto, cancellationToken);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error validating commission calculation");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
-        }
+                _logger.LogInformation("Validating commission calculation parameters");
+        var result = await _service.ValidateAsync(dto, cancellationToken);
+        return Ok(result);
     }
 }

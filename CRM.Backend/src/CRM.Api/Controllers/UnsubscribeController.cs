@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/unsubscribe")]
-public class UnsubscribeController : ControllerBase
+public class UnsubscribeController : CrmControllerBase
 {
     private readonly IUnsubscribeService _unsubscribeService;
     private readonly ILogger<UnsubscribeController> _logger;
@@ -42,16 +43,8 @@ public class UnsubscribeController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return BadRequest(new { message = "Email address is required" });
 
-        try
-        {
-            var status = await _unsubscribeService.GetStatusAsync(email, cancellationToken);
-            return Ok(status);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error fetching unsubscribe status for {Email}", email);
-            return StatusCode(500, new { message = "Error retrieving unsubscribe status" });
-        }
+                var status = await _unsubscribeService.GetStatusAsync(email, cancellationToken);
+        return Ok(status);
     }
 
     /// <summary>
@@ -66,16 +59,8 @@ public class UnsubscribeController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        try
-        {
-            var status = await _unsubscribeService.UnsubscribeAsync(dto, cancellationToken);
-            return Ok(status);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing unsubscribe for {Email}", dto?.Email);
-            return StatusCode(500, new { message = "Error processing unsubscribe request" });
-        }
+                var status = await _unsubscribeService.UnsubscribeAsync(dto, cancellationToken);
+        return Ok(status);
     }
 
     /// <summary>
@@ -97,19 +82,11 @@ public class UnsubscribeController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        try
-        {
-            var status = await _unsubscribeService.UpdatePreferencesAsync(email, dto, cancellationToken);
-            if (status is null)
-                return NotFound(new { message = "No subscription record found for this email" });
+                var status = await _unsubscribeService.UpdatePreferencesAsync(email, dto, cancellationToken);
+        if (status is null)
+            return NotFound(new { message = "No subscription record found for this email" });
 
-            return Ok(status);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating preferences for {Email}", email);
-            return StatusCode(500, new { message = "Error updating communication preferences" });
-        }
+        return Ok(status);
     }
 
     /// <summary>
@@ -127,15 +104,7 @@ public class UnsubscribeController : ControllerBase
         if (string.IsNullOrWhiteSpace(email))
             return BadRequest(new { message = "Email address is required" });
 
-        try
-        {
-            var token = await _unsubscribeService.GenerateUnsubscribeTokenAsync(email, campaignId, cancellationToken);
-            return Ok(new { token, email, campaignId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating unsubscribe token for {Email}", email);
-            return StatusCode(500, new { message = "Error generating unsubscribe token" });
-        }
+                var token = await _unsubscribeService.GenerateUnsubscribeTokenAsync(email, campaignId, cancellationToken);
+        return Ok(new { token, email, campaignId });
     }
 }

@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class AnalyticsController : ControllerBase
+public class AnalyticsController : CrmControllerBase
 {
     private readonly IProviderFactory<IAnalyticsPort> _analyticsFactory;
     private readonly ILogger<AnalyticsController> _logger;
@@ -73,35 +74,27 @@ public class AnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetDashboards(CancellationToken cancellationToken = default)
     {
-        try
+                var provider = _analyticsFactory.GetProvider();
+        if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            var provider = _analyticsFactory.GetProvider();
-            if (!await provider.IsAvailableAsync(cancellationToken))
-            {
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
-            }
-
-            var userId = GetCurrentUserId();
-            var roles = GetCurrentUserRoles();
-            var dashboards = await provider.GetDashboardsForUserAsync(userId, roles, cancellationToken);
-
-            var response = dashboards.Select(d => new
-            {
-                id = d.Id,
-                name = d.Name,
-                description = d.Description,
-                embedUrl = d.Url,
-                thumbnailUrl = d.ThumbnailUrl,
-                tags = d.Tags
-            });
-
-            return Ok(response);
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
         }
-        catch (Exception ex)
+
+        var userId = GetCurrentUserId();
+        var roles = GetCurrentUserRoles();
+        var dashboards = await provider.GetDashboardsForUserAsync(userId, roles, cancellationToken);
+
+        var response = dashboards.Select(d => new
         {
-            _logger.LogError(ex, "Error retrieving analytics dashboards");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Failed to retrieve analytics dashboards." });
-        }
+            id = d.Id,
+            name = d.Name,
+            description = d.Description,
+            embedUrl = d.Url,
+            thumbnailUrl = d.ThumbnailUrl,
+            tags = d.Tags
+        });
+
+        return Ok(response);
     }
 
     /// <summary>
@@ -113,27 +106,19 @@ public class AnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetDashboard(string id, CancellationToken cancellationToken = default)
     {
-        try
+                var provider = _analyticsFactory.GetProvider();
+        if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            var provider = _analyticsFactory.GetProvider();
-            if (!await provider.IsAvailableAsync(cancellationToken))
-            {
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
-            }
-
-            var dashboard = await provider.GetDashboardAsync(id, cancellationToken);
-            if (dashboard == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(dashboard);
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
         }
-        catch (Exception ex)
+
+        var dashboard = await provider.GetDashboardAsync(id, cancellationToken);
+        if (dashboard == null)
         {
-            _logger.LogError(ex, "Error retrieving analytics dashboard {DashboardId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Failed to retrieve analytics dashboard." });
+            return NotFound();
         }
+
+        return Ok(dashboard);
     }
 
     /// <summary>
@@ -145,46 +130,38 @@ public class AnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetDashboardEmbed(string id, CancellationToken cancellationToken = default)
     {
-        try
+                var provider = _analyticsFactory.GetProvider();
+        if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            var provider = _analyticsFactory.GetProvider();
-            if (!await provider.IsAvailableAsync(cancellationToken))
-            {
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
-            }
-
-            if (!provider.SupportsEmbedding)
-            {
-                return BadRequest(new { message = "Analytics provider does not support embedding." });
-            }
-
-            var request = new EmbedRequest
-            {
-                EmbedType = "dashboard",
-                ResourceId = id,
-                UserId = GetCurrentUserId(),
-                UserEmail = GetCurrentUserEmail(),
-                Roles = GetCurrentUserRoles(),
-                Filters = ParseFilters(Request.Query),
-                HideHeader = true
-            };
-
-            var embed = await provider.GetEmbedAsync(request, cancellationToken);
-
-            return Ok(new
-            {
-                embedUrl = embed.EmbedUrl,
-                token = embed.Token,
-                expiresAt = embed.ExpiresAt,
-                dashboardId = id,
-                provider = provider.ProviderName
-            });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
         }
-        catch (Exception ex)
+
+        if (!provider.SupportsEmbedding)
         {
-            _logger.LogError(ex, "Error generating analytics embed for dashboard {DashboardId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Failed to generate analytics embed." });
+            return BadRequest(new { message = "Analytics provider does not support embedding." });
         }
+
+        var request = new EmbedRequest
+        {
+            EmbedType = "dashboard",
+            ResourceId = id,
+            UserId = GetCurrentUserId(),
+            UserEmail = GetCurrentUserEmail(),
+            Roles = GetCurrentUserRoles(),
+            Filters = ParseFilters(Request.Query),
+            HideHeader = true
+        };
+
+        var embed = await provider.GetEmbedAsync(request, cancellationToken);
+
+        return Ok(new
+        {
+            embedUrl = embed.EmbedUrl,
+            token = embed.Token,
+            expiresAt = embed.ExpiresAt,
+            dashboardId = id,
+            provider = provider.ProviderName
+        });
     }
 
     /// <summary>
@@ -195,22 +172,14 @@ public class AnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetCharts([FromQuery] string? dashboardId = null, CancellationToken cancellationToken = default)
     {
-        try
+                var provider = _analyticsFactory.GetProvider();
+        if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            var provider = _analyticsFactory.GetProvider();
-            if (!await provider.IsAvailableAsync(cancellationToken))
-            {
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
-            }
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
+        }
 
-            var charts = await provider.GetChartsAsync(dashboardId, cancellationToken);
-            return Ok(charts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving analytics charts");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Failed to retrieve analytics charts." });
-        }
+        var charts = await provider.GetChartsAsync(dashboardId, cancellationToken);
+        return Ok(charts);
     }
 
     /// <summary>
@@ -222,33 +191,25 @@ public class AnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetChartEmbed(string id, CancellationToken cancellationToken = default)
     {
-        try
+                var provider = _analyticsFactory.GetProvider();
+        if (!await provider.IsAvailableAsync(cancellationToken))
         {
-            var provider = _analyticsFactory.GetProvider();
-            if (!await provider.IsAvailableAsync(cancellationToken))
-            {
-                return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
-            }
-
-            if (!provider.SupportsEmbedding)
-            {
-                return BadRequest(new { message = "Analytics provider does not support embedding." });
-            }
-
-            var embed = await provider.GetChartEmbedAsync(id, ParseFilters(Request.Query), cancellationToken);
-            return Ok(new
-            {
-                embedUrl = embed.EmbedUrl,
-                token = embed.Token,
-                expiresAt = embed.ExpiresAt,
-                chartId = id,
-                provider = provider.ProviderName
-            });
+            return StatusCode(StatusCodes.Status503ServiceUnavailable, new { message = "Analytics provider is unavailable." });
         }
-        catch (Exception ex)
+
+        if (!provider.SupportsEmbedding)
         {
-            _logger.LogError(ex, "Error generating analytics embed for chart {ChartId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Failed to generate analytics chart embed." });
+            return BadRequest(new { message = "Analytics provider does not support embedding." });
         }
+
+        var embed = await provider.GetChartEmbedAsync(id, ParseFilters(Request.Query), cancellationToken);
+        return Ok(new
+        {
+            embedUrl = embed.EmbedUrl,
+            token = embed.Token,
+            expiresAt = embed.ExpiresAt,
+            chartId = id,
+            provider = provider.ProviderName
+        });
     }
 }

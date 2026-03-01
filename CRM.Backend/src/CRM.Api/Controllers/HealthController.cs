@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("[controller]")]
 [EnableCors("AllowAll")]
 [AllowAnonymous] // Allow Kubernetes health probes without authentication
-public class HealthController : ControllerBase
+public class HealthController : CrmControllerBase
 {
     private readonly ILogger<HealthController> _logger;
     private readonly IWebHostEnvironment _environment;

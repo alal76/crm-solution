@@ -8,6 +8,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/itsm/monitoring")]
 [Tags("ITSM - Monitoring Integration")]
-public class MonitoringIntegrationController : ControllerBase
+public class MonitoringIntegrationController : CrmControllerBase
 {
     private readonly IMonitoringIntegrationService _monitoringService;
     private readonly ILogger<MonitoringIntegrationController> _logger;

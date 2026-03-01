@@ -10,6 +10,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers;
 [Route("api/subscriptions/{subscriptionId:int}/usage")]
 [Authorize]
 [Produces("application/json")]
-public class SubscriptionUsageController : ControllerBase
+public class SubscriptionUsageController : CrmControllerBase
 {
     private const string SubscriptionNotFoundMessage = "Subscription {0} not found";
     private readonly ISubscriptionService _subscriptionService;

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -25,7 +26,7 @@ namespace CRM.Api.Controllers;
 [Route("api/workflows")]
 [Route("api/workflows/definitions")]
 [Authorize]
-public class WorkflowController : ControllerBase
+public class WorkflowController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly IWorkflowService _workflowService;
@@ -68,45 +69,37 @@ public class WorkflowController : ControllerBase
         [FromQuery] int skip = 0,
         [FromQuery] int take = 50)
     {
-        try
+                WorkflowStatus? statusFilter = null;
+        if (!string.IsNullOrEmpty(status) && Enum.TryParse<WorkflowStatus>(status, out var s))
+            statusFilter = s;
+
+        var workflows = await _workflowService.GetWorkflowDefinitionsAsync(
+            entityType, statusFilter, category, search, skip, take);
+
+        var result = workflows.Select(w => new WorkflowDefinitionDto
         {
-            WorkflowStatus? statusFilter = null;
-            if (!string.IsNullOrEmpty(status) && Enum.TryParse<WorkflowStatus>(status, out var s))
-                statusFilter = s;
+            Id = w.Id,
+            WorkflowKey = w.WorkflowKey,
+            Name = w.Name,
+            Description = w.Description,
+            Category = w.Category,
+            EntityType = w.EntityType,
+            Status = w.Status.ToString(),
+            CurrentVersion = w.CurrentVersion,
+            IconName = w.IconName,
+            Color = w.Color,
+            IsSystem = w.IsSystem,
+            Priority = w.Priority,
+            MaxConcurrentInstances = w.MaxConcurrentInstances,
+            DefaultTimeoutHours = w.DefaultTimeoutHours,
+            OwnerId = w.OwnerId,
+            OwnerName = w.Owner != null ? $"{w.Owner.FirstName} {w.Owner.LastName}" : null,
+            Tags = w.Tags?.Split(',').ToList(),
+            CreatedAt = w.CreatedAt,
+            UpdatedAt = w.UpdatedAt
+        }).ToList();
 
-            var workflows = await _workflowService.GetWorkflowDefinitionsAsync(
-                entityType, statusFilter, category, search, skip, take);
-
-            var result = workflows.Select(w => new WorkflowDefinitionDto
-            {
-                Id = w.Id,
-                WorkflowKey = w.WorkflowKey,
-                Name = w.Name,
-                Description = w.Description,
-                Category = w.Category,
-                EntityType = w.EntityType,
-                Status = w.Status.ToString(),
-                CurrentVersion = w.CurrentVersion,
-                IconName = w.IconName,
-                Color = w.Color,
-                IsSystem = w.IsSystem,
-                Priority = w.Priority,
-                MaxConcurrentInstances = w.MaxConcurrentInstances,
-                DefaultTimeoutHours = w.DefaultTimeoutHours,
-                OwnerId = w.OwnerId,
-                OwnerName = w.Owner != null ? $"{w.Owner.FirstName} {w.Owner.LastName}" : null,
-                Tags = w.Tags?.Split(',').ToList(),
-                CreatedAt = w.CreatedAt,
-                UpdatedAt = w.UpdatedAt
-            }).ToList();
-
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving workflows");
-            return StatusCode(500, new { message = "An error occurred while retrieving workflows" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -117,52 +110,44 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetWorkflow(int id)
     {
-        try
-        {
-            var workflow = await _workflowService.GetWorkflowDefinitionAsync(id);
-            if (workflow == null)
-                return NotFound(new { message = "Workflow not found" });
+                var workflow = await _workflowService.GetWorkflowDefinitionAsync(id);
+        if (workflow == null)
+            return NotFound(new { message = "Workflow not found" });
 
-            var result = new WorkflowDefinitionDetailDto
+        var result = new WorkflowDefinitionDetailDto
+        {
+            Id = workflow.Id,
+            WorkflowKey = workflow.WorkflowKey,
+            Name = workflow.Name,
+            Description = workflow.Description,
+            Category = workflow.Category,
+            EntityType = workflow.EntityType,
+            Status = workflow.Status.ToString(),
+            CurrentVersion = workflow.CurrentVersion,
+            IconName = workflow.IconName,
+            Color = workflow.Color,
+            IsSystem = workflow.IsSystem,
+            Priority = workflow.Priority,
+            MaxConcurrentInstances = workflow.MaxConcurrentInstances,
+            DefaultTimeoutHours = workflow.DefaultTimeoutHours,
+            OwnerId = workflow.OwnerId,
+            OwnerName = workflow.Owner != null ? $"{workflow.Owner.FirstName} {workflow.Owner.LastName}" : null,
+            Tags = workflow.Tags?.Split(',').ToList(),
+            Metadata = workflow.Metadata,
+            CreatedAt = workflow.CreatedAt,
+            UpdatedAt = workflow.UpdatedAt,
+            Versions = workflow.Versions.Select(v => new WorkflowVersionSummaryDto
             {
-                Id = workflow.Id,
-                WorkflowKey = workflow.WorkflowKey,
-                Name = workflow.Name,
-                Description = workflow.Description,
-                Category = workflow.Category,
-                EntityType = workflow.EntityType,
-                Status = workflow.Status.ToString(),
-                CurrentVersion = workflow.CurrentVersion,
-                IconName = workflow.IconName,
-                Color = workflow.Color,
-                IsSystem = workflow.IsSystem,
-                Priority = workflow.Priority,
-                MaxConcurrentInstances = workflow.MaxConcurrentInstances,
-                DefaultTimeoutHours = workflow.DefaultTimeoutHours,
-                OwnerId = workflow.OwnerId,
-                OwnerName = workflow.Owner != null ? $"{workflow.Owner.FirstName} {workflow.Owner.LastName}" : null,
-                Tags = workflow.Tags?.Split(',').ToList(),
-                Metadata = workflow.Metadata,
-                CreatedAt = workflow.CreatedAt,
-                UpdatedAt = workflow.UpdatedAt,
-                Versions = workflow.Versions.Select(v => new WorkflowVersionSummaryDto
-                {
-                    Id = v.Id,
-                    VersionNumber = v.VersionNumber,
-                    Label = v.Label,
-                    Status = v.Status.ToString(),
-                    PublishedAt = v.PublishedAt,
-                    CreatedAt = v.CreatedAt
-                }).OrderByDescending(v => v.VersionNumber).ToList()
-            };
+                Id = v.Id,
+                VersionNumber = v.VersionNumber,
+                Label = v.Label,
+                Status = v.Status.ToString(),
+                PublishedAt = v.PublishedAt,
+                CreatedAt = v.CreatedAt
+            }).OrderByDescending(v => v.VersionNumber).ToList()
+        };
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving workflow {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while retrieving the workflow" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -217,11 +202,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating workflow");
-            return StatusCode(500, new { message = "An error occurred while creating the workflow" });
-        }
     }
 
     /// <summary>
@@ -234,34 +214,26 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateWorkflow(int id, [FromBody] UpdateWorkflowDto dto)
     {
-        try
-        {
-            var workflow = await _context.WorkflowDefinitions.FindAsync(id);
-            if (workflow == null)
-                return NotFound(new { message = "Workflow not found" });
-            if (workflow.IsSystem)
-                return BadRequest(new { message = "Cannot modify system workflows" });
+                var workflow = await _context.WorkflowDefinitions.FindAsync(id);
+        if (workflow == null)
+            return NotFound(new { message = "Workflow not found" });
+        if (workflow.IsSystem)
+            return BadRequest(new { message = "Cannot modify system workflows" });
 
-            workflow.Name = dto.Name ?? workflow.Name;
-            workflow.Description = dto.Description;
-            workflow.Category = dto.Category;
-            workflow.EntityType = dto.EntityType ?? workflow.EntityType;
-            workflow.IconName = dto.IconName ?? workflow.IconName;
-            workflow.Color = dto.Color ?? workflow.Color;
-            workflow.Priority = dto.Priority ?? workflow.Priority;
-            workflow.MaxConcurrentInstances = dto.MaxConcurrentInstances ?? workflow.MaxConcurrentInstances;
-            workflow.DefaultTimeoutHours = dto.DefaultTimeoutHours ?? workflow.DefaultTimeoutHours;
-            workflow.Tags = dto.Tags != null ? string.Join(",", dto.Tags) : workflow.Tags;
-            workflow.Metadata = dto.Metadata ?? workflow.Metadata;
+        workflow.Name = dto.Name ?? workflow.Name;
+        workflow.Description = dto.Description;
+        workflow.Category = dto.Category;
+        workflow.EntityType = dto.EntityType ?? workflow.EntityType;
+        workflow.IconName = dto.IconName ?? workflow.IconName;
+        workflow.Color = dto.Color ?? workflow.Color;
+        workflow.Priority = dto.Priority ?? workflow.Priority;
+        workflow.MaxConcurrentInstances = dto.MaxConcurrentInstances ?? workflow.MaxConcurrentInstances;
+        workflow.DefaultTimeoutHours = dto.DefaultTimeoutHours ?? workflow.DefaultTimeoutHours;
+        workflow.Tags = dto.Tags != null ? string.Join(",", dto.Tags) : workflow.Tags;
+        workflow.Metadata = dto.Metadata ?? workflow.Metadata;
 
-            await _workflowService.UpdateWorkflowDefinitionAsync(id, workflow);
-            return Ok(new { message = "Workflow updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating workflow {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while updating the workflow" });
-        }
+        await _workflowService.UpdateWorkflowDefinitionAsync(id, workflow);
+        return Ok(new { message = "Workflow updated successfully" });
     }
 
     /// <summary>
@@ -273,18 +245,10 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteWorkflow(int id)
     {
-        try
-        {
-            var success = await _workflowService.DeleteWorkflowDefinitionAsync(id);
-            if (!success)
-                return BadRequest(new { message = "Cannot delete this workflow" });
-            return Ok(new { message = "Workflow deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting workflow {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while deleting the workflow" });
-        }
+                var success = await _workflowService.DeleteWorkflowDefinitionAsync(id);
+        if (!success)
+            return BadRequest(new { message = "Cannot delete this workflow" });
+        return Ok(new { message = "Workflow deleted successfully" });
     }
 
     /// <summary>
@@ -296,18 +260,10 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ActivateWorkflow(int id, int versionId)
     {
-        try
-        {
-            var success = await _workflowService.ActivateWorkflowAsync(id, versionId);
-            if (!success)
-                return BadRequest(new { message = "Cannot activate this workflow version" });
-            return Ok(new { message = "Workflow activated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error activating workflow {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while activating the workflow" });
-        }
+                var success = await _workflowService.ActivateWorkflowAsync(id, versionId);
+        if (!success)
+            return BadRequest(new { message = "Cannot activate this workflow version" });
+        return Ok(new { message = "Workflow activated successfully" });
     }
 
     /// <summary>
@@ -319,18 +275,10 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PauseWorkflow(int id)
     {
-        try
-        {
-            var success = await _workflowService.PauseWorkflowAsync(id);
-            if (!success)
-                return BadRequest(new { message = "Cannot pause this workflow" });
-            return Ok(new { message = "Workflow paused successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error pausing workflow {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while pausing the workflow" });
-        }
+                var success = await _workflowService.PauseWorkflowAsync(id);
+        if (!success)
+            return BadRequest(new { message = "Cannot pause this workflow" });
+        return Ok(new { message = "Workflow paused successfully" });
     }
 
     /// <summary>
@@ -364,11 +312,6 @@ public class WorkflowController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error cloning workflow {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while cloning the workflow" });
-        }
     }
 
     #endregion
@@ -383,75 +326,67 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVersion(int versionId)
     {
-        try
-        {
-            var version = await _workflowService.GetWorkflowVersionAsync(versionId);
-            if (version == null)
-                return NotFound(new { message = "Version not found" });
+                var version = await _workflowService.GetWorkflowVersionAsync(versionId);
+        if (version == null)
+            return NotFound(new { message = "Version not found" });
 
-            var result = new WorkflowVersionDetailDto
+        var result = new WorkflowVersionDetailDto
+        {
+            Id = version.Id,
+            WorkflowDefinitionId = version.WorkflowDefinitionId,
+            WorkflowName = version.WorkflowDefinition.Name,
+            VersionNumber = version.VersionNumber,
+            Label = version.Label,
+            ChangeLog = version.ChangeLog,
+            Status = version.Status.ToString(),
+            PublishedAt = version.PublishedAt,
+            PublishedByName = version.PublishedBy != null
+                ? $"{version.PublishedBy.FirstName} {version.PublishedBy.LastName}"
+                : null,
+            CanvasLayout = version.CanvasLayout,
+            CreatedAt = version.CreatedAt,
+            UpdatedAt = version.UpdatedAt,
+            Nodes = version.Nodes.Select(n => new WorkflowNodeDto
             {
-                Id = version.Id,
-                WorkflowDefinitionId = version.WorkflowDefinitionId,
-                WorkflowName = version.WorkflowDefinition.Name,
-                VersionNumber = version.VersionNumber,
-                Label = version.Label,
-                ChangeLog = version.ChangeLog,
-                Status = version.Status.ToString(),
-                PublishedAt = version.PublishedAt,
-                PublishedByName = version.PublishedBy != null
-                    ? $"{version.PublishedBy.FirstName} {version.PublishedBy.LastName}"
-                    : null,
-                CanvasLayout = version.CanvasLayout,
-                CreatedAt = version.CreatedAt,
-                UpdatedAt = version.UpdatedAt,
-                Nodes = version.Nodes.Select(n => new WorkflowNodeDto
-                {
-                    Id = n.Id,
-                    NodeKey = n.NodeKey,
-                    Name = n.Name,
-                    Description = n.Description,
-                    NodeType = n.NodeType.ToString(),
-                    NodeSubType = n.NodeSubType,
-                    PositionX = n.PositionX,
-                    PositionY = n.PositionY,
-                    Width = n.Width,
-                    Height = n.Height,
-                    IconName = n.IconName,
-                    Color = n.Color,
-                    IsStartNode = n.IsStartNode,
-                    IsEndNode = n.IsEndNode,
-                    Configuration = n.Configuration,
-                    TimeoutMinutes = n.TimeoutMinutes,
-                    RetryCount = n.RetryCount,
-                    ExecutionOrder = n.ExecutionOrder
-                }).ToList(),
-                Transitions = version.Transitions.Select(t => new WorkflowTransitionDto
-                {
-                    Id = t.Id,
-                    SourceNodeId = t.SourceNodeId,
-                    TargetNodeId = t.TargetNodeId,
-                    TransitionKey = t.TransitionKey,
-                    Label = t.Label,
-                    ConditionType = t.ConditionType.ToString(),
-                    ConditionExpression = t.ConditionExpression,
-                    IsDefault = t.IsDefault,
-                    Priority = t.Priority,
-                    SourceHandle = t.SourceHandle,
-                    TargetHandle = t.TargetHandle,
-                    LineStyle = t.LineStyle,
-                    Color = t.Color,
-                    AnimationStyle = t.AnimationStyle
-                }).ToList()
-            };
+                Id = n.Id,
+                NodeKey = n.NodeKey,
+                Name = n.Name,
+                Description = n.Description,
+                NodeType = n.NodeType.ToString(),
+                NodeSubType = n.NodeSubType,
+                PositionX = n.PositionX,
+                PositionY = n.PositionY,
+                Width = n.Width,
+                Height = n.Height,
+                IconName = n.IconName,
+                Color = n.Color,
+                IsStartNode = n.IsStartNode,
+                IsEndNode = n.IsEndNode,
+                Configuration = n.Configuration,
+                TimeoutMinutes = n.TimeoutMinutes,
+                RetryCount = n.RetryCount,
+                ExecutionOrder = n.ExecutionOrder
+            }).ToList(),
+            Transitions = version.Transitions.Select(t => new WorkflowTransitionDto
+            {
+                Id = t.Id,
+                SourceNodeId = t.SourceNodeId,
+                TargetNodeId = t.TargetNodeId,
+                TransitionKey = t.TransitionKey,
+                Label = t.Label,
+                ConditionType = t.ConditionType.ToString(),
+                ConditionExpression = t.ConditionExpression,
+                IsDefault = t.IsDefault,
+                Priority = t.Priority,
+                SourceHandle = t.SourceHandle,
+                TargetHandle = t.TargetHandle,
+                LineStyle = t.LineStyle,
+                Color = t.Color,
+                AnimationStyle = t.AnimationStyle
+            }).ToList()
+        };
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving version {Id}", versionId);
-            return StatusCode(500, new { message = "An error occurred while retrieving the version" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -472,11 +407,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating version for workflow {Id}", workflowId);
-            return StatusCode(500, new { message = "An error occurred while creating the version" });
-        }
     }
 
     /// <summary>
@@ -489,18 +419,10 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SaveCanvasLayout(int versionId, [FromBody] SaveLayoutDto dto)
     {
-        try
-        {
-            var success = await _workflowService.SaveCanvasLayoutAsync(versionId, dto.CanvasLayout);
-            if (!success)
-                return BadRequest(new { message = "Cannot update layout for this version" });
-            return Ok(new { message = "Layout saved successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving layout for version {Id}", versionId);
-            return StatusCode(500, new { message = "An error occurred while saving the layout" });
-        }
+                var success = await _workflowService.SaveCanvasLayoutAsync(versionId, dto.CanvasLayout);
+        if (!success)
+            return BadRequest(new { message = "Cannot update layout for this version" });
+        return Ok(new { message = "Layout saved successfully" });
     }
 
     /// <summary>
@@ -510,25 +432,17 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetVersions(int workflowId)
     {
-        try
+                var versions = await _workflowService.GetVersionsAsync(workflowId);
+        var result = versions.Select(v => new WorkflowVersionSummaryDto
         {
-            var versions = await _workflowService.GetVersionsAsync(workflowId);
-            var result = versions.Select(v => new WorkflowVersionSummaryDto
-            {
-                Id = v.Id,
-                VersionNumber = v.VersionNumber,
-                Label = v.Label,
-                Status = v.Status.ToString(),
-                PublishedAt = v.PublishedAt,
-                CreatedAt = v.CreatedAt
-            }).ToList();
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error listing versions for workflow {Id}", workflowId);
-            return StatusCode(500, new { message = "An error occurred while listing versions" });
-        }
+            Id = v.Id,
+            VersionNumber = v.VersionNumber,
+            Label = v.Label,
+            Status = v.Status.ToString(),
+            PublishedAt = v.PublishedAt,
+            CreatedAt = v.CreatedAt
+        }).ToList();
+        return Ok(result);
     }
 
     /// <summary>
@@ -541,18 +455,10 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateVersionMetadata(int versionId, [FromBody] UpdateVersionMetadataDto dto)
     {
-        try
-        {
-            var version = await _workflowService.UpdateVersionMetadataAsync(versionId, dto.Label, dto.ChangeLog);
-            if (version == null)
-                return BadRequest(new { message = "Cannot update this version. Only draft versions can be modified." });
-            return Ok(new { id = version.Id, label = version.Label, changeLog = version.ChangeLog });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating version metadata {Id}", versionId);
-            return StatusCode(500, new { message = "An error occurred while updating the version" });
-        }
+                var version = await _workflowService.UpdateVersionMetadataAsync(versionId, dto.Label, dto.ChangeLog);
+        if (version == null)
+            return BadRequest(new { message = "Cannot update this version. Only draft versions can be modified." });
+        return Ok(new { id = version.Id, label = version.Label, changeLog = version.ChangeLog });
     }
 
     /// <summary>
@@ -564,19 +470,11 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PublishVersion(int versionId)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var success = await _workflowService.PublishVersionAsync(versionId, userId);
-            if (!success)
-                return BadRequest(new { message = "Cannot publish this version. Only draft versions can be published." });
-            return Ok(new { message = "Version published successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error publishing version {Id}", versionId);
-            return StatusCode(500, new { message = "An error occurred while publishing the version" });
-        }
+                var userId = GetCurrentUserId();
+        var success = await _workflowService.PublishVersionAsync(versionId, userId);
+        if (!success)
+            return BadRequest(new { message = "Cannot publish this version. Only draft versions can be published." });
+        return Ok(new { message = "Version published successfully" });
     }
 
     /// <summary>
@@ -588,18 +486,10 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteVersion(int versionId)
     {
-        try
-        {
-            var success = await _workflowService.DeleteVersionAsync(versionId);
-            if (!success)
-                return BadRequest(new { message = "Cannot delete this version. Only draft versions can be deleted." });
-            return Ok(new { message = "Version deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting version {Id}", versionId);
-            return StatusCode(500, new { message = "An error occurred while deleting the version" });
-        }
+                var success = await _workflowService.DeleteVersionAsync(versionId);
+        if (!success)
+            return BadRequest(new { message = "Cannot delete this version. Only draft versions can be deleted." });
+        return Ok(new { message = "Version deleted successfully" });
     }
 
     /// <summary>
@@ -626,11 +516,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rolling back workflow {WorkflowId} to version {VersionId}", workflowId, versionId);
-            return StatusCode(500, new { message = "An error occurred while rolling back" });
-        }
     }
 
     /// <summary>
@@ -650,11 +535,6 @@ public class WorkflowController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error comparing versions {V1} and {V2}", versionId1, versionId2);
-            return StatusCode(500, new { message = "An error occurred while comparing versions" });
         }
     }
 
@@ -707,11 +587,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding node to version {Id}", versionId);
-            return StatusCode(500, new { message = "An error occurred while adding the node" });
-        }
     }
 
     /// <summary>
@@ -758,11 +633,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating node {Id}", nodeId);
-            return StatusCode(500, new { message = "An error occurred while updating the node" });
-        }
     }
 
     /// <summary>
@@ -785,11 +655,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting node {Id}", nodeId);
-            return StatusCode(500, new { message = "An error occurred while deleting the node" });
-        }
     }
 
     /// <summary>
@@ -802,17 +667,9 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateNodePositions(int versionId, [FromBody] List<NodePositionDto> positions)
     {
-        try
-        {
-            var positionDict = positions.ToDictionary(p => p.NodeId, p => (p.X, p.Y));
-            await _workflowService.UpdateNodePositionsAsync(positionDict);
-            return Ok(new { message = "Positions updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating node positions for version {Id}", versionId);
-            return StatusCode(500, new { message = "An error occurred while updating positions" });
-        }
+                var positionDict = positions.ToDictionary(p => p.NodeId, p => (p.X, p.Y));
+        await _workflowService.UpdateNodePositionsAsync(positionDict);
+        return Ok(new { message = "Positions updated successfully" });
     }
 
     #endregion
@@ -860,11 +717,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding transition to version {Id}", versionId);
-            return StatusCode(500, new { message = "An error occurred while adding the transition" });
-        }
     }
 
     /// <summary>
@@ -905,11 +757,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating transition {Id}", transitionId);
-            return StatusCode(500, new { message = "An error occurred while updating the transition" });
-        }
     }
 
     /// <summary>
@@ -932,11 +779,6 @@ public class WorkflowController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting transition {Id}", transitionId);
-            return StatusCode(500, new { message = "An error occurred while deleting the transition" });
-        }
     }
 
     #endregion
@@ -950,16 +792,8 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStatistics()
     {
-        try
-        {
-            var stats = await _workflowService.GetStatisticsAsync();
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving workflow statistics");
-            return StatusCode(500, new { message = "An error occurred while retrieving statistics" });
-        }
+                var stats = await _workflowService.GetStatisticsAsync();
+        return Ok(stats);
     }
 
     /// <summary>
@@ -1013,16 +847,8 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLLMSettings()
     {
-        try
-        {
-            var settings = await _llmSettingsService.GetSettingsAsync();
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving LLM settings");
-            return StatusCode(500, new { message = "An error occurred while retrieving LLM settings" });
-        }
+                var settings = await _llmSettingsService.GetSettingsAsync();
+        return Ok(settings);
     }
 
     /// <summary>
@@ -1035,16 +861,8 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateLLMSettings([FromBody] UpdateLLMSettingsRequest request)
     {
-        try
-        {
-            var settings = await _llmSettingsService.UpdateSettingsAsync(request);
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating LLM settings");
-            return StatusCode(500, new { message = "An error occurred while updating LLM settings" });
-        }
+                var settings = await _llmSettingsService.UpdateSettingsAsync(request);
+        return Ok(settings);
     }
 
     /// <summary>
@@ -1056,17 +874,9 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetLLMSettings()
     {
-        try
-        {
-            await _llmSettingsService.ResetToDefaultsAsync();
-            var settings = await _llmSettingsService.GetSettingsAsync();
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error resetting LLM settings");
-            return StatusCode(500, new { message = "An error occurred while resetting LLM settings" });
-        }
+                await _llmSettingsService.ResetToDefaultsAsync();
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        return Ok(settings);
     }
 
     /// <summary>
@@ -1078,17 +888,9 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> InitializeLLMSettings()
     {
-        try
-        {
-            await _llmSettingsService.InitializeDefaultSettingsAsync();
-            var settings = await _llmSettingsService.GetSettingsAsync();
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error initializing LLM settings");
-            return StatusCode(500, new { message = "An error occurred while initializing LLM settings" });
-        }
+                await _llmSettingsService.InitializeDefaultSettingsAsync();
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        return Ok(settings);
     }
 
     /// <summary>
@@ -1100,16 +902,8 @@ public class WorkflowController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> TestLLMProviderConnection(string provider)
     {
-        try
-        {
-            var (success, message) = await _llmSettingsService.TestProviderConnectionAsync(provider);
-            return Ok(new { success, message, provider });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing LLM provider connection for {Provider}", provider);
-            return StatusCode(500, new { success = false, message = $"Test failed: {ex.Message}", provider });
-        }
+                var (success, message) = await _llmSettingsService.TestProviderConnectionAsync(provider);
+        return Ok(new { success, message, provider });
     }
 
     #endregion

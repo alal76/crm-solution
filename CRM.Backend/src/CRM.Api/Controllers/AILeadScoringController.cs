@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CRM.Core.Dtos;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -33,7 +34,7 @@ namespace CRM.Api.Controllers;
 [Route("api/ai/leads")]
 [Authorize]
 [Produces("application/json")]
-public class AILeadScoringController : ControllerBase
+public class AILeadScoringController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly IAllenAIService _aiService;
@@ -75,28 +76,20 @@ public class AILeadScoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ScoreLead(int leadId, CancellationToken cancellationToken)
     {
-        try
+                var lead = await _context.Leads.FindAsync(new object[] { leadId }, cancellationToken);
+        if (lead == null)
         {
-            var lead = await _context.Leads.FindAsync(new object[] { leadId }, cancellationToken);
-            if (lead == null)
-            {
-                return NotFound(new { error = $"Lead with ID {leadId} not found" });
-            }
-
-            var score = await _aiService.ScoreLeadAsync(leadId, cancellationToken);
-
-            return Ok(new LeadScoreResponse
-            {
-                Success = true,
-                LeadId = leadId,
-                Score = MapToDto(score)
-            });
+            return NotFound(new { error = $"Lead with ID {leadId} not found" });
         }
-        catch (Exception ex)
+
+        var score = await _aiService.ScoreLeadAsync(leadId, cancellationToken);
+
+        return Ok(new LeadScoreResponse
         {
-            _logger.LogError(ex, "Failed to score lead {LeadId}", leadId);
-            return StatusCode(500, new { error = "Failed to score lead", details = ex.Message });
-        }
+            Success = true,
+            LeadId = leadId,
+            Score = MapToDto(score)
+        });
     }
 
     /// <summary>
@@ -116,32 +109,24 @@ public class AILeadScoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> BatchScoreLeads([FromBody] BatchScoreRequest request, CancellationToken cancellationToken)
     {
-        try
+                if (request.LeadIds == null || !request.LeadIds.Any())
         {
-            if (request.LeadIds == null || !request.LeadIds.Any())
-            {
-                return BadRequest(new { error = "LeadIds array is required" });
-            }
-
-            if (request.LeadIds.Count > 100)
-            {
-                return BadRequest(new { error = "Maximum 100 leads can be scored at once" });
-            }
-
-            var scores = await _aiService.BatchScoreLeadsAsync(request.LeadIds, cancellationToken);
-
-            return Ok(new BatchScoreResponse
-            {
-                Success = true,
-                ScoredCount = scores.Count,
-                Scores = scores.Select(MapToDto).ToList()
-            });
+            return BadRequest(new { error = "LeadIds array is required" });
         }
-        catch (Exception ex)
+
+        if (request.LeadIds.Count > 100)
         {
-            _logger.LogError(ex, "Failed to batch score leads");
-            return StatusCode(500, new { error = "Failed to batch score leads", details = ex.Message });
+            return BadRequest(new { error = "Maximum 100 leads can be scored at once" });
         }
+
+        var scores = await _aiService.BatchScoreLeadsAsync(request.LeadIds, cancellationToken);
+
+        return Ok(new BatchScoreResponse
+        {
+            Success = true,
+            ScoredCount = scores.Count,
+            Scores = scores.Select(MapToDto).ToList()
+        });
     }
 
     /// <summary>
@@ -159,30 +144,22 @@ public class AILeadScoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTopLeads([FromQuery] int count = 10, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            count = Math.Min(50, Math.Max(1, count));
-            var topLeads = await _aiService.GetTopLeadsAsync(count, cancellationToken);
+                count = Math.Min(50, Math.Max(1, count));
+        var topLeads = await _aiService.GetTopLeadsAsync(count, cancellationToken);
 
-            return Ok(new TopLeadsResponse
-            {
-                Success = true,
-                Count = topLeads.Count,
-                Leads = topLeads.Select(s => new TopLeadDto
-                {
-                    LeadId = s.LeadId,
-                    LeadName = s.Lead?.FirstName + " " + s.Lead?.LastName,
-                    Company = s.Lead?.CompanyName,
-                    Email = s.Lead?.Email,
-                    Score = MapToDto(s)
-                }).ToList()
-            });
-        }
-        catch (Exception ex)
+        return Ok(new TopLeadsResponse
         {
-            _logger.LogError(ex, "Failed to get top leads");
-            return StatusCode(500, new { error = "Failed to get top leads", details = ex.Message });
-        }
+            Success = true,
+            Count = topLeads.Count,
+            Leads = topLeads.Select(s => new TopLeadDto
+            {
+                LeadId = s.LeadId,
+                LeadName = s.Lead?.FirstName + " " + s.Lead?.LastName,
+                Company = s.Lead?.CompanyName,
+                Email = s.Lead?.Email,
+                Score = MapToDto(s)
+            }).ToList()
+        });
     }
 
     /// <summary>
@@ -201,26 +178,18 @@ public class AILeadScoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetLeadScoreHistory(int leadId, [FromQuery] int limit = 10, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var history = await _context.LeadScores
-                .Where(s => s.LeadId == leadId && !s.IsDeleted)
-                .OrderByDescending(s => s.ScoredAt)
-                .Take(limit)
-                .ToListAsync(cancellationToken);
+                var history = await _context.LeadScores
+            .Where(s => s.LeadId == leadId && !s.IsDeleted)
+            .OrderByDescending(s => s.ScoredAt)
+            .Take(limit)
+            .ToListAsync(cancellationToken);
 
-            return Ok(new LeadScoreHistoryResponse
-            {
-                Success = true,
-                LeadId = leadId,
-                History = history.Select(MapToDto).ToList()
-            });
-        }
-        catch (Exception ex)
+        return Ok(new LeadScoreHistoryResponse
         {
-            _logger.LogError(ex, "Failed to get lead score history for {LeadId}", leadId);
-            return StatusCode(500, new { error = "Failed to get lead score history", details = ex.Message });
-        }
+            Success = true,
+            LeadId = leadId,
+            History = history.Select(MapToDto).ToList()
+        });
     }
 
     /// <summary>
@@ -241,21 +210,13 @@ public class AILeadScoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetLeadScoreExplanation(int leadId, CancellationToken cancellationToken = default)
     {
-        try
+                var explanation = await _scoreHistoryService.GetExplanationAsync(leadId, cancellationToken);
+        if (explanation == null)
         {
-            var explanation = await _scoreHistoryService.GetExplanationAsync(leadId, cancellationToken);
-            if (explanation == null)
-            {
-                return NotFound(new { error = $"Lead {leadId} not found" });
-            }
+            return NotFound(new { error = $"Lead {leadId} not found" });
+        }
 
-            return Ok(explanation);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get score explanation for lead {LeadId}", leadId);
-            return StatusCode(500, new { error = "Failed to get score explanation", details = ex.Message });
-        }
+        return Ok(explanation);
     }
 
     /// <summary>
@@ -275,28 +236,26 @@ public class AILeadScoringController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AnalyzeLead(int leadId, CancellationToken cancellationToken)
     {
-        try
+                var lead = await _context.Leads
+            .Include(l => l.ProductInterests)
+            .FirstOrDefaultAsync(l => l.Id == leadId, cancellationToken);
+
+        if (lead == null)
         {
-            var lead = await _context.Leads
-                .Include(l => l.ProductInterests)
-                .FirstOrDefaultAsync(l => l.Id == leadId, cancellationToken);
+            return NotFound(new { error = $"Lead with ID {leadId} not found" });
+        }
 
-            if (lead == null)
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
+        {
+            return Ok(new LeadAnalysisResponse
             {
-                return NotFound(new { error = $"Lead with ID {leadId} not found" });
-            }
+                Success = false,
+                Error = "AI service not configured. Please configure LLM settings."
+            });
+        }
 
-            var settings = await _llmSettingsService.GetSettingsAsync();
-            if (settings == null || string.IsNullOrEmpty(settings.DefaultProvider))
-            {
-                return Ok(new LeadAnalysisResponse
-                {
-                    Success = false,
-                    Error = "AI service not configured. Please configure LLM settings."
-                });
-            }
-
-            var systemPrompt = @"You are a sales intelligence AI analyzing leads for a CRM system.
+        var systemPrompt = @"You are a sales intelligence AI analyzing leads for a CRM system.
 Analyze the provided lead data and provide:
 1. Conversion probability (0-100%)
 2. Key strengths and weaknesses
@@ -326,80 +285,74 @@ Respond with valid JSON:
   ""summary"": ""One paragraph executive summary""
 }";
 
-            var leadData = new
-            {
-                name = $"{lead.FirstName} {lead.LastName}",
-                company = lead.CompanyName,
-                title = lead.Title,
-                email = lead.Email,
-                phone = lead.Phone,
-                source = lead.Source.ToString(),
-                status = lead.Status.ToString(),
-                score = lead.Score,
-                fitScore = lead.FitScore,
-                engagementScore = lead.EngagementScore,
-                productInterests = lead.ProductInterests?.Select(p => p.Product?.Name ?? "Unknown").ToList(),
-                daysInPipeline = (DateTime.UtcNow - lead.CreatedAt).Days,
-                region = lead.Region,
-                notes = lead.QualificationNotes
-            };
-
-            var llmRequest = new LLMRequest
-            {
-                Provider = settings.DefaultProvider,
-                Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
-                Messages = new List<LLMMessage>
-                {
-                    new() { Role = "system", Content = systemPrompt },
-                    new() { Role = "user", Content = $"Analyze this lead:\n\n{JsonSerializer.Serialize(leadData, new JsonSerializerOptions { WriteIndented = true })}" }
-                },
-                Temperature = 0.4,
-                MaxTokens = 1500,
-                JsonMode = true
-            };
-
-            var response = await _llmService.ChatAsync(llmRequest, cancellationToken);
-
-            if (response.Success)
-            {
-                try
-                {
-                    var analysis = JsonSerializer.Deserialize<LeadAnalysisResult>(
-                        response.Content,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    return Ok(new LeadAnalysisResponse
-                    {
-                        Success = true,
-                        LeadId = leadId,
-                        Analysis = analysis,
-                        Provider = response.Provider,
-                        TokensUsed = response.TotalTokens
-                    });
-                }
-                catch (JsonException)
-                {
-                    return Ok(new LeadAnalysisResponse
-                    {
-                        Success = true,
-                        LeadId = leadId,
-                        RawAnalysis = response.Content,
-                        Provider = response.Provider
-                    });
-                }
-            }
-
-            return Ok(new LeadAnalysisResponse
-            {
-                Success = false,
-                Error = response.Error ?? "Lead analysis failed"
-            });
-        }
-        catch (Exception ex)
+        var leadData = new
         {
-            _logger.LogError(ex, "Failed to analyze lead {LeadId}", leadId);
-            return StatusCode(500, new { error = "Failed to analyze lead", details = ex.Message });
+            name = $"{lead.FirstName} {lead.LastName}",
+            company = lead.CompanyName,
+            title = lead.Title,
+            email = lead.Email,
+            phone = lead.Phone,
+            source = lead.Source.ToString(),
+            status = lead.Status.ToString(),
+            score = lead.Score,
+            fitScore = lead.FitScore,
+            engagementScore = lead.EngagementScore,
+            productInterests = lead.ProductInterests?.Select(p => p.Product?.Name ?? "Unknown").ToList(),
+            daysInPipeline = (DateTime.UtcNow - lead.CreatedAt).Days,
+            region = lead.Region,
+            notes = lead.QualificationNotes
+        };
+
+        var llmRequest = new LLMRequest
+        {
+            Provider = settings.DefaultProvider,
+            Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
+            Messages = new List<LLMMessage>
+            {
+                new() { Role = "system", Content = systemPrompt },
+                new() { Role = "user", Content = $"Analyze this lead:\n\n{JsonSerializer.Serialize(leadData, new JsonSerializerOptions { WriteIndented = true })}" }
+            },
+            Temperature = 0.4,
+            MaxTokens = 1500,
+            JsonMode = true
+        };
+
+        var response = await _llmService.ChatAsync(llmRequest, cancellationToken);
+
+        if (response.Success)
+        {
+            try
+            {
+                var analysis = JsonSerializer.Deserialize<LeadAnalysisResult>(
+                    response.Content,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                return Ok(new LeadAnalysisResponse
+                {
+                    Success = true,
+                    LeadId = leadId,
+                    Analysis = analysis,
+                    Provider = response.Provider,
+                    TokensUsed = response.TotalTokens
+                });
+            }
+            catch (JsonException)
+            {
+                return Ok(new LeadAnalysisResponse
+                {
+                    Success = true,
+                    LeadId = leadId,
+                    RawAnalysis = response.Content,
+                    Provider = response.Provider
+                });
+            }
         }
+
+        return Ok(new LeadAnalysisResponse
+        {
+            Success = false,
+            Error = response.Error ?? "Lead analysis failed"
+        });
     }
 
     /// <summary>

@@ -11,6 +11,7 @@ using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -22,7 +23,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class DashboardController : ControllerBase
+public class DashboardController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<DashboardController> _logger;
@@ -45,49 +46,41 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetStats(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var accountCount = await _context.Accounts.CountAsync(c => !c.IsDeleted, cancellationToken);
-            var contactCount = await _context.Contacts.CountAsync(cancellationToken);
-            var opportunityCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted, cancellationToken);
-            var openOpportunityValue = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
-                .SumAsync(o => o.Amount, cancellationToken);
-            var wonOpportunityValue = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon)
-                .SumAsync(o => o.Amount, cancellationToken);
-            var productCount = await _context.Products.CountAsync(p => !p.IsDeleted, cancellationToken);
-            var taskCount = await _context.CrmTasks.CountAsync(t => !t.IsDeleted, cancellationToken);
-            var notStartedTaskCount = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.NotStarted, cancellationToken);
-            var activeUserCount = await _context.Users.CountAsync(u => !u.IsDeleted && u.IsActive, cancellationToken);
-            var leadCount = await _context.Leads.CountAsync(l => !l.IsDeleted, cancellationToken);
+                var accountCount = await _context.Accounts.CountAsync(c => !c.IsDeleted, cancellationToken);
+        var contactCount = await _context.Contacts.CountAsync(cancellationToken);
+        var opportunityCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted, cancellationToken);
+        var openOpportunityValue = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
+            .SumAsync(o => o.Amount, cancellationToken);
+        var wonOpportunityValue = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon)
+            .SumAsync(o => o.Amount, cancellationToken);
+        var productCount = await _context.Products.CountAsync(p => !p.IsDeleted, cancellationToken);
+        var taskCount = await _context.CrmTasks.CountAsync(t => !t.IsDeleted, cancellationToken);
+        var notStartedTaskCount = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.NotStarted, cancellationToken);
+        var activeUserCount = await _context.Users.CountAsync(u => !u.IsDeleted && u.IsActive, cancellationToken);
+        var leadCount = await _context.Leads.CountAsync(l => !l.IsDeleted, cancellationToken);
 
-            return Ok(new DashboardStatsResponse
-            {
-                Accounts = new CountStat { Total = accountCount },
-                Contacts = new CountStat { Total = contactCount },
-                Opportunities = new OpportunityStat
-                {
-                    Total = opportunityCount,
-                    OpenValue = openOpportunityValue,
-                    WonValue = wonOpportunityValue
-                },
-                Products = new CountStat { Total = productCount },
-                Tasks = new TaskStat
-                {
-                    Total = taskCount,
-                    Pending = notStartedTaskCount
-                },
-                Users = new UserStat { Active = activeUserCount },
-                Leads = new CountStat { Total = leadCount },
-                Timestamp = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
+        return Ok(new DashboardStatsResponse
         {
-            _logger.LogError(ex, "Error retrieving dashboard stats");
-            return StatusCode(500, new { message = "An error occurred while retrieving dashboard statistics" });
-        }
+            Accounts = new CountStat { Total = accountCount },
+            Contacts = new CountStat { Total = contactCount },
+            Opportunities = new OpportunityStat
+            {
+                Total = opportunityCount,
+                OpenValue = openOpportunityValue,
+                WonValue = wonOpportunityValue
+            },
+            Products = new CountStat { Total = productCount },
+            Tasks = new TaskStat
+            {
+                Total = taskCount,
+                Pending = notStartedTaskCount
+            },
+            Users = new UserStat { Active = activeUserCount },
+            Leads = new CountStat { Total = leadCount },
+            Timestamp = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -120,60 +113,52 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetSummary(CancellationToken cancellationToken = default)
     {
-        try
+                var now = DateTime.UtcNow;
+        var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var startOfQuarter = new DateTime(now.Year, (((now.Month - 1) / 3) * 3) + 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        // MTD Revenue (ClosedWon this month)
+        var mtdRevenue = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfMonth)
+            .SumAsync(o => o.Amount, cancellationToken);
+
+        // QTD Revenue
+        var qtdRevenue = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfQuarter)
+            .SumAsync(o => o.Amount, cancellationToken);
+
+        // Pipeline Value
+        var pipelineValue = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
+            .SumAsync(o => o.Amount, cancellationToken);
+
+        // New leads this month
+        var newLeadsThisMonth = await _context.Leads
+            .CountAsync(l => !l.IsDeleted && l.CreatedAt >= startOfMonth, cancellationToken);
+
+        // Deals closed this month
+        var dealsClosedThisMonth = await _context.Opportunities
+            .CountAsync(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfMonth, cancellationToken);
+
+        // Win rate calculation
+        var closedDealsThisMonth = await _context.Opportunities
+            .Where(o => !o.IsDeleted && (o.Stage == OpportunityStage.ClosedWon || o.Stage == OpportunityStage.ClosedLost) && o.ExpectedCloseDate >= startOfMonth)
+            .ToListAsync(cancellationToken);
+
+        var winRate = closedDealsThisMonth.Count > 0
+            ? (double)closedDealsThisMonth.Count(o => o.Stage == OpportunityStage.ClosedWon) / closedDealsThisMonth.Count * 100
+            : 0;
+
+        return Ok(new DashboardSummaryResponse
         {
-            var now = DateTime.UtcNow;
-            var startOfMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-            var startOfQuarter = new DateTime(now.Year, (((now.Month - 1) / 3) * 3) + 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-            // MTD Revenue (ClosedWon this month)
-            var mtdRevenue = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfMonth)
-                .SumAsync(o => o.Amount, cancellationToken);
-
-            // QTD Revenue
-            var qtdRevenue = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfQuarter)
-                .SumAsync(o => o.Amount, cancellationToken);
-
-            // Pipeline Value
-            var pipelineValue = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
-                .SumAsync(o => o.Amount, cancellationToken);
-
-            // New leads this month
-            var newLeadsThisMonth = await _context.Leads
-                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= startOfMonth, cancellationToken);
-
-            // Deals closed this month
-            var dealsClosedThisMonth = await _context.Opportunities
-                .CountAsync(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= startOfMonth, cancellationToken);
-
-            // Win rate calculation
-            var closedDealsThisMonth = await _context.Opportunities
-                .Where(o => !o.IsDeleted && (o.Stage == OpportunityStage.ClosedWon || o.Stage == OpportunityStage.ClosedLost) && o.ExpectedCloseDate >= startOfMonth)
-                .ToListAsync(cancellationToken);
-
-            var winRate = closedDealsThisMonth.Count > 0
-                ? (double)closedDealsThisMonth.Count(o => o.Stage == OpportunityStage.ClosedWon) / closedDealsThisMonth.Count * 100
-                : 0;
-
-            return Ok(new DashboardSummaryResponse
-            {
-                MtdRevenue = mtdRevenue,
-                QtdRevenue = qtdRevenue,
-                PipelineValue = pipelineValue,
-                NewLeadsThisMonth = newLeadsThisMonth,
-                DealsClosedThisMonth = dealsClosedThisMonth,
-                WinRate = Math.Round(winRate, 1),
-                Timestamp = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving dashboard summary");
-            return StatusCode(500, new { message = "An error occurred while retrieving dashboard summary" });
-        }
+            MtdRevenue = mtdRevenue,
+            QtdRevenue = qtdRevenue,
+            PipelineValue = pipelineValue,
+            NewLeadsThisMonth = newLeadsThisMonth,
+            DealsClosedThisMonth = dealsClosedThisMonth,
+            WinRate = Math.Round(winRate, 1),
+            Timestamp = DateTime.UtcNow
+        });
     }
 
     #endregion
@@ -188,41 +173,33 @@ public class DashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPipelineSummary(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var pipelineData = await _context.Opportunities
-                .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
-                .GroupBy(o => o.Stage)
-                .Select(g => new PipelineStageData
-                {
-                    Stage = g.Key.ToString(),
-                    StageValue = (int)g.Key,
-                    Count = g.Count(),
-                    TotalValue = g.Sum(o => o.Amount),
-                    WeightedValue = g.Sum(o => o.Amount * ((decimal)o.Probability / 100m))
-                })
-                .OrderBy(p => p.StageValue)
-                .ToListAsync(cancellationToken);
-
-            var totalPipeline = pipelineData.Sum(p => p.TotalValue);
-            var weightedPipeline = pipelineData.Sum(p => p.WeightedValue);
-
-            return Ok(new PipelineSummaryResponse
+                var pipelineData = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
+            .GroupBy(o => o.Stage)
+            .Select(g => new PipelineStageData
             {
-                Stages = pipelineData,
-                Summary = new PipelineTotals
-                {
-                    TotalValue = totalPipeline,
-                    WeightedValue = weightedPipeline,
-                    OpportunityCount = pipelineData.Sum(p => p.Count)
-                }
-            });
-        }
-        catch (Exception ex)
+                Stage = g.Key.ToString(),
+                StageValue = (int)g.Key,
+                Count = g.Count(),
+                TotalValue = g.Sum(o => o.Amount),
+                WeightedValue = g.Sum(o => o.Amount * ((decimal)o.Probability / 100m))
+            })
+            .OrderBy(p => p.StageValue)
+            .ToListAsync(cancellationToken);
+
+        var totalPipeline = pipelineData.Sum(p => p.TotalValue);
+        var weightedPipeline = pipelineData.Sum(p => p.WeightedValue);
+
+        return Ok(new PipelineSummaryResponse
         {
-            _logger.LogError(ex, "Error retrieving pipeline summary");
-            return StatusCode(500, new { message = "An error occurred while retrieving pipeline data" });
-        }
+            Stages = pipelineData,
+            Summary = new PipelineTotals
+            {
+                TotalValue = totalPipeline,
+                WeightedValue = weightedPipeline,
+                OpportunityCount = pipelineData.Sum(p => p.Count)
+            }
+        });
     }
 
     /// <summary>
@@ -235,52 +212,44 @@ public class DashboardController : ControllerBase
         [FromQuery] int months = 3,
         CancellationToken cancellationToken = default)
     {
-        try
+                var now = DateTime.UtcNow;
+        var forecastPeriods = new List<ForecastPeriod>();
+
+        for (int i = 0; i < months; i++)
         {
-            var now = DateTime.UtcNow;
-            var forecastPeriods = new List<ForecastPeriod>();
+            var periodStart = new DateTime(now.Year, now.Month, 1).AddMonths(i);
+            var periodEnd = periodStart.AddMonths(1);
 
-            for (int i = 0; i < months; i++)
+            var periodOpportunities = await _context.Opportunities
+                .Where(o => !o.IsDeleted
+                    && o.Stage != OpportunityStage.ClosedWon
+                    && o.Stage != OpportunityStage.ClosedLost
+                    && o.ExpectedCloseDate >= periodStart
+                    && o.ExpectedCloseDate < periodEnd)
+                .ToListAsync(cancellationToken);
+
+            var totalValue = periodOpportunities.Sum(o => o.Amount);
+            var weightedValue = periodOpportunities.Sum(o => o.Amount * (decimal)o.Probability / 100m);
+
+            forecastPeriods.Add(new ForecastPeriod
             {
-                var periodStart = new DateTime(now.Year, now.Month, 1).AddMonths(i);
-                var periodEnd = periodStart.AddMonths(1);
-
-                var periodOpportunities = await _context.Opportunities
-                    .Where(o => !o.IsDeleted
-                        && o.Stage != OpportunityStage.ClosedWon
-                        && o.Stage != OpportunityStage.ClosedLost
-                        && o.ExpectedCloseDate >= periodStart
-                        && o.ExpectedCloseDate < periodEnd)
-                    .ToListAsync(cancellationToken);
-
-                var totalValue = periodOpportunities.Sum(o => o.Amount);
-                var weightedValue = periodOpportunities.Sum(o => o.Amount * (decimal)o.Probability / 100m);
-
-                forecastPeriods.Add(new ForecastPeriod
-                {
-                    Period = periodStart.ToString("yyyy-MM"),
-                    Month = periodStart.ToString("MMMM yyyy"),
-                    OpportunityCount = periodOpportunities.Count,
-                    TotalValue = totalValue,
-                    WeightedValue = weightedValue,
-                    BestCase = totalValue,
-                    MostLikely = weightedValue,
-                    WorstCase = weightedValue * 0.7m
-                });
-            }
-
-            return Ok(new SalesForecastResponse
-            {
-                Periods = forecastPeriods,
-                TotalForecast = forecastPeriods.Sum(p => p.WeightedValue),
-                GeneratedAt = DateTime.UtcNow
+                Period = periodStart.ToString("yyyy-MM"),
+                Month = periodStart.ToString("MMMM yyyy"),
+                OpportunityCount = periodOpportunities.Count,
+                TotalValue = totalValue,
+                WeightedValue = weightedValue,
+                BestCase = totalValue,
+                MostLikely = weightedValue,
+                WorstCase = weightedValue * 0.7m
             });
         }
-        catch (Exception ex)
+
+        return Ok(new SalesForecastResponse
         {
-            _logger.LogError(ex, "Error retrieving sales forecast");
-            return StatusCode(500, new { message = "An error occurred while retrieving sales forecast" });
-        }
+            Periods = forecastPeriods,
+            TotalForecast = forecastPeriods.Sum(p => p.WeightedValue),
+            GeneratedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -294,37 +263,29 @@ public class DashboardController : ControllerBase
         [FromQuery] int limit = 10,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var targetDate = DateTime.UtcNow.AddDays(days);
-            var deals = await _context.Opportunities
-                .Where(o => !o.IsDeleted
-                    && o.Stage != OpportunityStage.ClosedWon
-                    && o.Stage != OpportunityStage.ClosedLost
-                    && o.ExpectedCloseDate <= targetDate)
-                .OrderBy(o => o.ExpectedCloseDate)
-                .Take(limit)
-                .Select(o => new DealSummary
-                {
-                    Id = o.Id,
-                    Name = o.Name,
-                    AccountId = o.AccountId,
-                    AccountName = o.Account != null ? o.Account.Company : null,
-                    Amount = o.Amount,
-                    Stage = o.Stage.ToString(),
-                    Probability = o.Probability,
-                    ExpectedCloseDate = o.ExpectedCloseDate ?? DateTime.UtcNow,
-                    DaysUntilClose = o.ExpectedCloseDate.HasValue ? (int)(o.ExpectedCloseDate.Value - DateTime.UtcNow).TotalDays : 0
-                })
-                .ToListAsync(cancellationToken);
+                var targetDate = DateTime.UtcNow.AddDays(days);
+        var deals = await _context.Opportunities
+            .Where(o => !o.IsDeleted
+                && o.Stage != OpportunityStage.ClosedWon
+                && o.Stage != OpportunityStage.ClosedLost
+                && o.ExpectedCloseDate <= targetDate)
+            .OrderBy(o => o.ExpectedCloseDate)
+            .Take(limit)
+            .Select(o => new DealSummary
+            {
+                Id = o.Id,
+                Name = o.Name,
+                AccountId = o.AccountId,
+                AccountName = o.Account != null ? o.Account.Company : null,
+                Amount = o.Amount,
+                Stage = o.Stage.ToString(),
+                Probability = o.Probability,
+                ExpectedCloseDate = o.ExpectedCloseDate ?? DateTime.UtcNow,
+                DaysUntilClose = o.ExpectedCloseDate.HasValue ? (int)(o.ExpectedCloseDate.Value - DateTime.UtcNow).TotalDays : 0
+            })
+            .ToListAsync(cancellationToken);
 
-            return Ok(deals);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving deals closing soon");
-            return StatusCode(500, new { message = "An error occurred while retrieving deals closing soon" });
-        }
+        return Ok(deals);
     }
 
     #endregion
@@ -341,31 +302,23 @@ public class DashboardController : ControllerBase
         [FromQuery] int count = 10,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var activities = await _context.Activities
-                .Where(a => !a.IsDeleted)
-                .OrderByDescending(a => a.ActivityDate)
-                .Take(count)
-                .Select(a => new ActivitySummary
-                {
-                    Id = a.Id,
-                    Type = a.ActivityType.ToString(),
-                    Title = a.Title,
-                    ActivityDate = a.ActivityDate,
-                    Description = a.Description,
-                    EntityType = a.EntityType,
-                    EntityId = a.EntityId
-                })
-                .ToListAsync(cancellationToken);
+                var activities = await _context.Activities
+            .Where(a => !a.IsDeleted)
+            .OrderByDescending(a => a.ActivityDate)
+            .Take(count)
+            .Select(a => new ActivitySummary
+            {
+                Id = a.Id,
+                Type = a.ActivityType.ToString(),
+                Title = a.Title,
+                ActivityDate = a.ActivityDate,
+                Description = a.Description,
+                EntityType = a.EntityType,
+                EntityId = a.EntityId
+            })
+            .ToListAsync(cancellationToken);
 
-            return Ok(activities);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving recent activities");
-            return StatusCode(500, new { message = "An error occurred while retrieving activities" });
-        }
+        return Ok(activities);
     }
 
     /// <summary>
@@ -378,65 +331,57 @@ public class DashboardController : ControllerBase
         [FromQuery] int limit = 10,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var now = DateTime.UtcNow;
+                var now = DateTime.UtcNow;
 
-            var overdueTasks = await _context.CrmTasks
-                .Where(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate < now)
-                .OrderBy(t => t.DueDate)
-                .Take(limit)
-                .Select(t => new TaskSummary
-                {
-                    Id = t.Id,
-                    Title = t.Subject,
-                    DueDate = t.DueDate,
-                    Priority = t.Priority.ToString(),
-                    Status = t.Status.ToString(),
-                    AssignedToId = t.AssignedToUserId,
-                    EntityType = t.AccountId != null ? "Account" : t.ContactId != null ? "Contact" : t.OpportunityId != null ? "Opportunity" : null,
-                    EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
-                })
-                .ToListAsync(cancellationToken);
-
-            var upcomingTasks = await _context.CrmTasks
-                .Where(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate >= now && t.DueDate <= now.AddDays(7))
-                .OrderBy(t => t.DueDate)
-                .Take(limit)
-                .Select(t => new TaskSummary
-                {
-                    Id = t.Id,
-                    Title = t.Subject,
-                    DueDate = t.DueDate,
-                    Priority = t.Priority.ToString(),
-                    Status = t.Status.ToString(),
-                    AssignedToId = t.AssignedToUserId,
-                    EntityType = t.AccountId != null ? "Account" : t.ContactId != null ? "Contact" : t.OpportunityId != null ? "Opportunity" : null,
-                    EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
-                })
-                .ToListAsync(cancellationToken);
-
-            var taskStats = new TaskStatsDetail
+        var overdueTasks = await _context.CrmTasks
+            .Where(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate < now)
+            .OrderBy(t => t.DueDate)
+            .Take(limit)
+            .Select(t => new TaskSummary
             {
-                Total = await _context.CrmTasks.CountAsync(t => !t.IsDeleted, cancellationToken),
-                Completed = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.Completed, cancellationToken),
-                InProgress = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.InProgress, cancellationToken),
-                NotStarted = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.NotStarted, cancellationToken),
-                Overdue = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate < now, cancellationToken)
-            };
+                Id = t.Id,
+                Title = t.Subject,
+                DueDate = t.DueDate,
+                Priority = t.Priority.ToString(),
+                Status = t.Status.ToString(),
+                AssignedToId = t.AssignedToUserId,
+                EntityType = t.AccountId != null ? "Account" : t.ContactId != null ? "Contact" : t.OpportunityId != null ? "Opportunity" : null,
+                EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
+            })
+            .ToListAsync(cancellationToken);
 
-            return Ok(new TaskDashboardResponse
+        var upcomingTasks = await _context.CrmTasks
+            .Where(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate >= now && t.DueDate <= now.AddDays(7))
+            .OrderBy(t => t.DueDate)
+            .Take(limit)
+            .Select(t => new TaskSummary
             {
-                OverdueTasks = overdueTasks,
-                UpcomingTasks = upcomingTasks,
-                Stats = taskStats
-            });
-        }
-        catch (Exception ex)
+                Id = t.Id,
+                Title = t.Subject,
+                DueDate = t.DueDate,
+                Priority = t.Priority.ToString(),
+                Status = t.Status.ToString(),
+                AssignedToId = t.AssignedToUserId,
+                EntityType = t.AccountId != null ? "Account" : t.ContactId != null ? "Contact" : t.OpportunityId != null ? "Opportunity" : null,
+                EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
+            })
+            .ToListAsync(cancellationToken);
+
+        var taskStats = new TaskStatsDetail
         {
-            _logger.LogError(ex, "Error retrieving tasks dashboard");
-            return StatusCode(500, new { message = "An error occurred while retrieving tasks dashboard" });
-        }
+            Total = await _context.CrmTasks.CountAsync(t => !t.IsDeleted, cancellationToken),
+            Completed = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.Completed, cancellationToken),
+            InProgress = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.InProgress, cancellationToken),
+            NotStarted = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.NotStarted, cancellationToken),
+            Overdue = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate < now, cancellationToken)
+        };
+
+        return Ok(new TaskDashboardResponse
+        {
+            OverdueTasks = overdueTasks,
+            UpcomingTasks = upcomingTasks,
+            Stats = taskStats
+        });
     }
 
     #endregion
@@ -455,54 +400,46 @@ public class DashboardController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var from = fromDate ?? new DateTime(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var to = toDate ?? DateTime.UtcNow;
+                var from = fromDate ?? new DateTime(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var to = toDate ?? DateTime.UtcNow;
 
-            var leaderboard = await _context.Opportunities
-                .Where(o => !o.IsDeleted
-                    && o.Stage == OpportunityStage.ClosedWon
-                    && o.ExpectedCloseDate >= from
-                    && o.ExpectedCloseDate <= to
-                    && o.SalesOwnerId != null)
-                .GroupBy(o => o.SalesOwnerId)
-                .Select(g => new
-                {
-                    UserId = g.Key,
-                    TotalRevenue = g.Sum(o => o.Amount),
-                    DealsWon = g.Count(),
-                    AverageDealSize = g.Average(o => o.Amount)
-                })
-                .OrderByDescending(x => x.TotalRevenue)
-                .Take(topN)
-                .ToListAsync(cancellationToken);
-
-            // Get user details
-            var userIds = leaderboard.Select(l => l.UserId).ToList();
-            var users = await _context.Users
-                .Where(u => userIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => new { u.FirstName, u.LastName }, cancellationToken);
-
-            var result = leaderboard.Select((l, index) => new SalesLeaderboardEntry
+        var leaderboard = await _context.Opportunities
+            .Where(o => !o.IsDeleted
+                && o.Stage == OpportunityStage.ClosedWon
+                && o.ExpectedCloseDate >= from
+                && o.ExpectedCloseDate <= to
+                && o.SalesOwnerId != null)
+            .GroupBy(o => o.SalesOwnerId)
+            .Select(g => new
             {
-                Rank = index + 1,
-                UserId = l.UserId ?? 0,
-                UserName = users.ContainsKey(l.UserId ?? 0)
-                    ? $"{users[l.UserId ?? 0].FirstName} {users[l.UserId ?? 0].LastName}"
-                    : "Unknown",
-                TotalRevenue = l.TotalRevenue,
-                DealsWon = l.DealsWon,
-                AverageDealSize = l.AverageDealSize
-            }).ToList();
+                UserId = g.Key,
+                TotalRevenue = g.Sum(o => o.Amount),
+                DealsWon = g.Count(),
+                AverageDealSize = g.Average(o => o.Amount)
+            })
+            .OrderByDescending(x => x.TotalRevenue)
+            .Take(topN)
+            .ToListAsync(cancellationToken);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
+        // Get user details
+        var userIds = leaderboard.Select(l => l.UserId).ToList();
+        var users = await _context.Users
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => new { u.FirstName, u.LastName }, cancellationToken);
+
+        var result = leaderboard.Select((l, index) => new SalesLeaderboardEntry
         {
-            _logger.LogError(ex, "Error retrieving sales leaderboard");
-            return StatusCode(500, new { message = "An error occurred while retrieving sales leaderboard" });
-        }
+            Rank = index + 1,
+            UserId = l.UserId ?? 0,
+            UserName = users.ContainsKey(l.UserId ?? 0)
+                ? $"{users[l.UserId ?? 0].FirstName} {users[l.UserId ?? 0].LastName}"
+                : "Unknown",
+            TotalRevenue = l.TotalRevenue,
+            DealsWon = l.DealsWon,
+            AverageDealSize = l.AverageDealSize
+        }).ToList();
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -517,51 +454,43 @@ public class DashboardController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var from = fromDate ?? DateTime.UtcNow.AddDays(-30);
-            var to = toDate ?? DateTime.UtcNow;
+                var from = fromDate ?? DateTime.UtcNow.AddDays(-30);
+        var to = toDate ?? DateTime.UtcNow;
 
-            var leaderboard = await _context.Activities
-                .Where(a => !a.IsDeleted && a.ActivityDate >= from && a.ActivityDate <= to && a.UserId != null)
-                .GroupBy(a => a.UserId)
-                .Select(g => new
-                {
-                    UserId = g.Key,
-                    TotalActivities = g.Count(),
-                    Calls = g.Count(a => a.ActivityType == ActivityType.CallMade || a.ActivityType == ActivityType.CallReceived),
-                    Emails = g.Count(a => a.ActivityType == ActivityType.EmailSent || a.ActivityType == ActivityType.EmailReceived),
-                    Meetings = g.Count(a => a.ActivityType == ActivityType.MeetingScheduled || a.ActivityType == ActivityType.MeetingCompleted)
-                })
-                .OrderByDescending(x => x.TotalActivities)
-                .Take(topN)
-                .ToListAsync(cancellationToken);
-
-            var userIds = leaderboard.Select(l => l.UserId).Where(id => id.HasValue).Select(id => id!.Value).ToList();
-            var users = await _context.Users
-                .Where(u => userIds.Contains(u.Id))
-                .ToDictionaryAsync(u => u.Id, u => new { u.FirstName, u.LastName }, cancellationToken);
-
-            var result = leaderboard.Select((l, index) => new ActivityLeaderboardEntry
+        var leaderboard = await _context.Activities
+            .Where(a => !a.IsDeleted && a.ActivityDate >= from && a.ActivityDate <= to && a.UserId != null)
+            .GroupBy(a => a.UserId)
+            .Select(g => new
             {
-                Rank = index + 1,
-                UserId = l.UserId ?? 0,
-                UserName = l.UserId.HasValue && users.ContainsKey(l.UserId.Value)
-                    ? $"{users[l.UserId.Value].FirstName} {users[l.UserId.Value].LastName}"
-                    : "Unknown",
-                TotalActivities = l.TotalActivities,
-                Calls = l.Calls,
-                Emails = l.Emails,
-                Meetings = l.Meetings
-            }).ToList();
+                UserId = g.Key,
+                TotalActivities = g.Count(),
+                Calls = g.Count(a => a.ActivityType == ActivityType.CallMade || a.ActivityType == ActivityType.CallReceived),
+                Emails = g.Count(a => a.ActivityType == ActivityType.EmailSent || a.ActivityType == ActivityType.EmailReceived),
+                Meetings = g.Count(a => a.ActivityType == ActivityType.MeetingScheduled || a.ActivityType == ActivityType.MeetingCompleted)
+            })
+            .OrderByDescending(x => x.TotalActivities)
+            .Take(topN)
+            .ToListAsync(cancellationToken);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
+        var userIds = leaderboard.Select(l => l.UserId).Where(id => id.HasValue).Select(id => id!.Value).ToList();
+        var users = await _context.Users
+            .Where(u => userIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => new { u.FirstName, u.LastName }, cancellationToken);
+
+        var result = leaderboard.Select((l, index) => new ActivityLeaderboardEntry
         {
-            _logger.LogError(ex, "Error retrieving activity leaderboard");
-            return StatusCode(500, new { message = "An error occurred while retrieving activity leaderboard" });
-        }
+            Rank = index + 1,
+            UserId = l.UserId ?? 0,
+            UserName = l.UserId.HasValue && users.ContainsKey(l.UserId.Value)
+                ? $"{users[l.UserId.Value].FirstName} {users[l.UserId.Value].LastName}"
+                : "Unknown",
+            TotalActivities = l.TotalActivities,
+            Calls = l.Calls,
+            Emails = l.Emails,
+            Meetings = l.Meetings
+        }).ToList();
+
+        return Ok(result);
     }
 
     #endregion
@@ -578,51 +507,43 @@ public class DashboardController : ControllerBase
         [FromQuery] int months = 12,
         CancellationToken cancellationToken = default)
     {
-        try
+                var trends = new List<RevenueTrendPoint>();
+        var now = DateTime.UtcNow;
+
+        for (int i = months - 1; i >= 0; i--)
         {
-            var trends = new List<RevenueTrendPoint>();
-            var now = DateTime.UtcNow;
+            var periodStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
+            var periodEnd = periodStart.AddMonths(1);
 
-            for (int i = months - 1; i >= 0; i--)
+            var revenue = await _context.Opportunities
+                .Where(o => !o.IsDeleted
+                    && o.Stage == OpportunityStage.ClosedWon
+                    && o.ExpectedCloseDate >= periodStart
+                    && o.ExpectedCloseDate < periodEnd)
+                .SumAsync(o => o.Amount, cancellationToken);
+
+            var dealCount = await _context.Opportunities
+                .CountAsync(o => !o.IsDeleted
+                    && o.Stage == OpportunityStage.ClosedWon
+                    && o.ExpectedCloseDate >= periodStart
+                    && o.ExpectedCloseDate < periodEnd, cancellationToken);
+
+            trends.Add(new RevenueTrendPoint
             {
-                var periodStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
-                var periodEnd = periodStart.AddMonths(1);
-
-                var revenue = await _context.Opportunities
-                    .Where(o => !o.IsDeleted
-                        && o.Stage == OpportunityStage.ClosedWon
-                        && o.ExpectedCloseDate >= periodStart
-                        && o.ExpectedCloseDate < periodEnd)
-                    .SumAsync(o => o.Amount, cancellationToken);
-
-                var dealCount = await _context.Opportunities
-                    .CountAsync(o => !o.IsDeleted
-                        && o.Stage == OpportunityStage.ClosedWon
-                        && o.ExpectedCloseDate >= periodStart
-                        && o.ExpectedCloseDate < periodEnd, cancellationToken);
-
-                trends.Add(new RevenueTrendPoint
-                {
-                    Period = periodStart.ToString("yyyy-MM"),
-                    Month = periodStart.ToString("MMM yyyy"),
-                    Revenue = revenue,
-                    DealCount = dealCount
-                });
-            }
-
-            return Ok(new RevenueTrendResponse
-            {
-                Trends = trends,
-                TotalRevenue = trends.Sum(t => t.Revenue),
-                TotalDeals = trends.Sum(t => t.DealCount),
-                AverageMonthlyRevenue = trends.Count > 0 ? trends.Average(t => t.Revenue) : 0
+                Period = periodStart.ToString("yyyy-MM"),
+                Month = periodStart.ToString("MMM yyyy"),
+                Revenue = revenue,
+                DealCount = dealCount
             });
         }
-        catch (Exception ex)
+
+        return Ok(new RevenueTrendResponse
         {
-            _logger.LogError(ex, "Error retrieving revenue trends");
-            return StatusCode(500, new { message = "An error occurred while retrieving revenue trends" });
-        }
+            Trends = trends,
+            TotalRevenue = trends.Sum(t => t.Revenue),
+            TotalDeals = trends.Sum(t => t.DealCount),
+            AverageMonthlyRevenue = trends.Count > 0 ? trends.Average(t => t.Revenue) : 0
+        });
     }
 
     /// <summary>
@@ -636,45 +557,37 @@ public class DashboardController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
+                var from = fromDate ?? DateTime.UtcNow.AddMonths(-3);
+        var to = toDate ?? DateTime.UtcNow;
+
+        var totalLeads = await _context.Leads
+            .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to, cancellationToken);
+
+        var qualifiedLeads = await _context.Leads
+            .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to && l.Status == LeadLifecycleStatus.Qualified, cancellationToken);
+
+        var convertedLeads = await _context.Leads
+            .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to && l.Status == LeadLifecycleStatus.Converted, cancellationToken);
+
+        var opportunitiesFromLeads = await _context.Opportunities
+            .CountAsync(o => !o.IsDeleted && o.LeadId != null && o.CreatedAt >= from && o.CreatedAt <= to, cancellationToken);
+
+        var closedWonFromLeads = await _context.Opportunities
+            .CountAsync(o => !o.IsDeleted && o.LeadId != null && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= from && o.ExpectedCloseDate <= to, cancellationToken);
+
+        return Ok(new LeadFunnelResponse
         {
-            var from = fromDate ?? DateTime.UtcNow.AddMonths(-3);
-            var to = toDate ?? DateTime.UtcNow;
-
-            var totalLeads = await _context.Leads
-                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to, cancellationToken);
-
-            var qualifiedLeads = await _context.Leads
-                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to && l.Status == LeadLifecycleStatus.Qualified, cancellationToken);
-
-            var convertedLeads = await _context.Leads
-                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to && l.Status == LeadLifecycleStatus.Converted, cancellationToken);
-
-            var opportunitiesFromLeads = await _context.Opportunities
-                .CountAsync(o => !o.IsDeleted && o.LeadId != null && o.CreatedAt >= from && o.CreatedAt <= to, cancellationToken);
-
-            var closedWonFromLeads = await _context.Opportunities
-                .CountAsync(o => !o.IsDeleted && o.LeadId != null && o.Stage == OpportunityStage.ClosedWon && o.ExpectedCloseDate >= from && o.ExpectedCloseDate <= to, cancellationToken);
-
-            return Ok(new LeadFunnelResponse
-            {
-                TotalLeads = totalLeads,
-                QualifiedLeads = qualifiedLeads,
-                ConvertedLeads = convertedLeads,
-                Opportunities = opportunitiesFromLeads,
-                ClosedWon = closedWonFromLeads,
-                QualificationRate = totalLeads > 0 ? Math.Round((double)qualifiedLeads / totalLeads * 100, 1) : 0,
-                ConversionRate = totalLeads > 0 ? Math.Round((double)convertedLeads / totalLeads * 100, 1) : 0,
-                WinRate = opportunitiesFromLeads > 0 ? Math.Round((double)closedWonFromLeads / opportunitiesFromLeads * 100, 1) : 0,
-                FromDate = from,
-                ToDate = to
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving lead funnel");
-            return StatusCode(500, new { message = "An error occurred while retrieving lead funnel" });
-        }
+            TotalLeads = totalLeads,
+            QualifiedLeads = qualifiedLeads,
+            ConvertedLeads = convertedLeads,
+            Opportunities = opportunitiesFromLeads,
+            ClosedWon = closedWonFromLeads,
+            QualificationRate = totalLeads > 0 ? Math.Round((double)qualifiedLeads / totalLeads * 100, 1) : 0,
+            ConversionRate = totalLeads > 0 ? Math.Round((double)convertedLeads / totalLeads * 100, 1) : 0,
+            WinRate = opportunitiesFromLeads > 0 ? Math.Round((double)closedWonFromLeads / opportunitiesFromLeads * 100, 1) : 0,
+            FromDate = from,
+            ToDate = to
+        });
     }
 
     /// <summary>
@@ -688,42 +601,34 @@ public class DashboardController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
+                var from = fromDate ?? DateTime.UtcNow.AddMonths(-6);
+        var to = toDate ?? DateTime.UtcNow;
+
+        var closedOpportunities = await _context.Opportunities
+            .Where(o => !o.IsDeleted
+                && (o.Stage == OpportunityStage.ClosedWon || o.Stage == OpportunityStage.ClosedLost)
+                && o.ExpectedCloseDate >= from
+                && o.ExpectedCloseDate <= to)
+            .ToListAsync(cancellationToken);
+
+        var won = closedOpportunities.Where(o => o.Stage == OpportunityStage.ClosedWon).ToList();
+        var lost = closedOpportunities.Where(o => o.Stage == OpportunityStage.ClosedLost).ToList();
+
+        return Ok(new WinLossAnalysisResponse
         {
-            var from = fromDate ?? DateTime.UtcNow.AddMonths(-6);
-            var to = toDate ?? DateTime.UtcNow;
-
-            var closedOpportunities = await _context.Opportunities
-                .Where(o => !o.IsDeleted
-                    && (o.Stage == OpportunityStage.ClosedWon || o.Stage == OpportunityStage.ClosedLost)
-                    && o.ExpectedCloseDate >= from
-                    && o.ExpectedCloseDate <= to)
-                .ToListAsync(cancellationToken);
-
-            var won = closedOpportunities.Where(o => o.Stage == OpportunityStage.ClosedWon).ToList();
-            var lost = closedOpportunities.Where(o => o.Stage == OpportunityStage.ClosedLost).ToList();
-
-            return Ok(new WinLossAnalysisResponse
-            {
-                TotalClosed = closedOpportunities.Count,
-                WonCount = won.Count,
-                LostCount = lost.Count,
-                WonValue = won.Sum(o => o.Amount),
-                LostValue = lost.Sum(o => o.Amount),
-                WinRate = closedOpportunities.Count > 0 ? Math.Round((double)won.Count / closedOpportunities.Count * 100, 1) : 0,
-                AverageWonDealSize = won.Count > 0 ? won.Average(o => o.Amount) : 0,
-                AverageLostDealSize = lost.Count > 0 ? lost.Average(o => o.Amount) : 0,
-                AverageWonCycleTime = won.Count > 0 ? Math.Round(won.Where(o => o.ExpectedCloseDate.HasValue).Average(o => (o.ExpectedCloseDate!.Value - o.CreatedAt).TotalDays), 1) : 0,
-                AverageLostCycleTime = lost.Count > 0 ? Math.Round(lost.Where(o => o.ExpectedCloseDate.HasValue).Average(o => (o.ExpectedCloseDate!.Value - o.CreatedAt).TotalDays), 1) : 0,
-                FromDate = from,
-                ToDate = to
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving win/loss analysis");
-            return StatusCode(500, new { message = "An error occurred while retrieving win/loss analysis" });
-        }
+            TotalClosed = closedOpportunities.Count,
+            WonCount = won.Count,
+            LostCount = lost.Count,
+            WonValue = won.Sum(o => o.Amount),
+            LostValue = lost.Sum(o => o.Amount),
+            WinRate = closedOpportunities.Count > 0 ? Math.Round((double)won.Count / closedOpportunities.Count * 100, 1) : 0,
+            AverageWonDealSize = won.Count > 0 ? won.Average(o => o.Amount) : 0,
+            AverageLostDealSize = lost.Count > 0 ? lost.Average(o => o.Amount) : 0,
+            AverageWonCycleTime = won.Count > 0 ? Math.Round(won.Where(o => o.ExpectedCloseDate.HasValue).Average(o => (o.ExpectedCloseDate!.Value - o.CreatedAt).TotalDays), 1) : 0,
+            AverageLostCycleTime = lost.Count > 0 ? Math.Round(lost.Where(o => o.ExpectedCloseDate.HasValue).Average(o => (o.ExpectedCloseDate!.Value - o.CreatedAt).TotalDays), 1) : 0,
+            FromDate = from,
+            ToDate = to
+        });
     }
 
     #endregion
@@ -742,54 +647,46 @@ public class DashboardController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var from = fromDate ?? new DateTime(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-            var to = toDate ?? DateTime.UtcNow;
+                var from = fromDate ?? new DateTime(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var to = toDate ?? DateTime.UtcNow;
 
-            var topAccounts = await _context.Opportunities
-                .Where(o => !o.IsDeleted
-                    && o.Stage == OpportunityStage.ClosedWon
-                    && o.ExpectedCloseDate >= from
-                    && o.ExpectedCloseDate <= to
-                    && o.AccountId > 0)
-                .GroupBy(o => o.AccountId)
-                .Select(g => new
-                {
-                    AccountId = g.Key,
-                    TotalRevenue = g.Sum(o => o.Amount),
-                    DealCount = g.Count()
-                })
-                .OrderByDescending(x => x.TotalRevenue)
-                .Take(topN)
-                .ToListAsync(cancellationToken);
-
-            var accountIds = topAccounts.Select(c => c.AccountId).ToList();
-            var accounts = await _context.Accounts
-                .Where(c => accountIds.Contains(c.Id))
-                .ToDictionaryAsync(c => c.Id, c => new { c.Company, c.Industry }, cancellationToken);
-
-            var result = topAccounts.Select((c, index) => new TopAccountEntry
+        var topAccounts = await _context.Opportunities
+            .Where(o => !o.IsDeleted
+                && o.Stage == OpportunityStage.ClosedWon
+                && o.ExpectedCloseDate >= from
+                && o.ExpectedCloseDate <= to
+                && o.AccountId > 0)
+            .GroupBy(o => o.AccountId)
+            .Select(g => new
             {
-                Rank = index + 1,
-                AccountId = c.AccountId,
-                AccountName = accounts.ContainsKey(c.AccountId)
-                    ? accounts[c.AccountId].Company ?? "Unknown"
-                    : "Unknown",
-                Industry = accounts.ContainsKey(c.AccountId)
-                    ? accounts[c.AccountId].Industry
-                    : null,
-                TotalRevenue = c.TotalRevenue,
-                DealCount = c.DealCount
-            }).ToList();
+                AccountId = g.Key,
+                TotalRevenue = g.Sum(o => o.Amount),
+                DealCount = g.Count()
+            })
+            .OrderByDescending(x => x.TotalRevenue)
+            .Take(topN)
+            .ToListAsync(cancellationToken);
 
-            return Ok(result);
-        }
-        catch (Exception ex)
+        var accountIds = topAccounts.Select(c => c.AccountId).ToList();
+        var accounts = await _context.Accounts
+            .Where(c => accountIds.Contains(c.Id))
+            .ToDictionaryAsync(c => c.Id, c => new { c.Company, c.Industry }, cancellationToken);
+
+        var result = topAccounts.Select((c, index) => new TopAccountEntry
         {
-            _logger.LogError(ex, "Error retrieving top accounts");
-            return StatusCode(500, new { message = "An error occurred while retrieving top accounts" });
-        }
+            Rank = index + 1,
+            AccountId = c.AccountId,
+            AccountName = accounts.ContainsKey(c.AccountId)
+                ? accounts[c.AccountId].Company ?? "Unknown"
+                : "Unknown",
+            Industry = accounts.ContainsKey(c.AccountId)
+                ? accounts[c.AccountId].Industry
+                : null,
+            TotalRevenue = c.TotalRevenue,
+            DealCount = c.DealCount
+        }).ToList();
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -802,44 +699,36 @@ public class DashboardController : ControllerBase
         [FromQuery] int months = 6,
         CancellationToken cancellationToken = default)
     {
-        try
+                var trends = new List<AcquisitionTrendPoint>();
+        var now = DateTime.UtcNow;
+
+        for (int i = months - 1; i >= 0; i--)
         {
-            var trends = new List<AcquisitionTrendPoint>();
-            var now = DateTime.UtcNow;
+            var periodStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
+            var periodEnd = periodStart.AddMonths(1);
 
-            for (int i = months - 1; i >= 0; i--)
+            var newAccounts = await _context.Accounts
+                .CountAsync(c => !c.IsDeleted && c.CreatedAt >= periodStart && c.CreatedAt < periodEnd, cancellationToken);
+
+            var newLeads = await _context.Leads
+                .CountAsync(l => !l.IsDeleted && l.CreatedAt >= periodStart && l.CreatedAt < periodEnd, cancellationToken);
+
+            trends.Add(new AcquisitionTrendPoint
             {
-                var periodStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
-                var periodEnd = periodStart.AddMonths(1);
-
-                var newAccounts = await _context.Accounts
-                    .CountAsync(c => !c.IsDeleted && c.CreatedAt >= periodStart && c.CreatedAt < periodEnd, cancellationToken);
-
-                var newLeads = await _context.Leads
-                    .CountAsync(l => !l.IsDeleted && l.CreatedAt >= periodStart && l.CreatedAt < periodEnd, cancellationToken);
-
-                trends.Add(new AcquisitionTrendPoint
-                {
-                    Period = periodStart.ToString("yyyy-MM"),
-                    Month = periodStart.ToString("MMM yyyy"),
-                    NewAccounts = newAccounts,
-                    NewLeads = newLeads
-                });
-            }
-
-            return Ok(new AccountAcquisitionResponse
-            {
-                Trends = trends,
-                TotalNewAccounts = trends.Sum(t => t.NewAccounts),
-                TotalNewLeads = trends.Sum(t => t.NewLeads),
-                AverageMonthlyAccounts = trends.Count > 0 ? Math.Round(trends.Average(t => (double)t.NewAccounts), 1) : 0
+                Period = periodStart.ToString("yyyy-MM"),
+                Month = periodStart.ToString("MMM yyyy"),
+                NewAccounts = newAccounts,
+                NewLeads = newLeads
             });
         }
-        catch (Exception ex)
+
+        return Ok(new AccountAcquisitionResponse
         {
-            _logger.LogError(ex, "Error retrieving account acquisition data");
-            return StatusCode(500, new { message = "An error occurred while retrieving account acquisition data" });
-        }
+            Trends = trends,
+            TotalNewAccounts = trends.Sum(t => t.NewAccounts),
+            TotalNewLeads = trends.Sum(t => t.NewLeads),
+            AverageMonthlyAccounts = trends.Count > 0 ? Math.Round(trends.Average(t => (double)t.NewAccounts), 1) : 0
+        });
     }
 
     #endregion

@@ -8,6 +8,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [Route("api/itsm/dashboard")]
 [Authorize]
 [Tags("ITSM - Dashboard & Analytics")]
-public class ITSMDashboardController : ControllerBase
+public class ITSMDashboardController : CrmControllerBase
 {
     private readonly IITSMDashboardService _dashboardService;
     private readonly ILogger<ITSMDashboardController> _logger;

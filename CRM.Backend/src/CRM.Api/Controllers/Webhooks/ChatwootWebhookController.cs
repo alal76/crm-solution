@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.Webhooks;
 
@@ -26,7 +27,7 @@ namespace CRM.Api.Controllers.Webhooks;
 /// </summary>
 [ApiController]
 [Route("api/webhooks/chatwoot")]
-public class ChatwootWebhookController : ControllerBase
+public class ChatwootWebhookController : CrmControllerBase
 {
     private readonly IChatPort _chatProvider;
     private readonly IActivityService _activityService;

@@ -11,6 +11,7 @@ using CRM.Infrastructure.Factories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -22,7 +23,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/features")]
 [RequireRole(UserRole.Admin)]
-public class FeaturesController : ControllerBase
+public class FeaturesController : CrmControllerBase
 {
     private readonly IFeatureManager _featureManager;
     private readonly IConfiguration _configuration;
@@ -56,46 +57,38 @@ public class FeaturesController : ControllerBase
     [ProducesResponseType(typeof(FeatureFlagsResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<FeatureFlagsResponse>> GetFeatureFlags()
     {
-        try
+                var response = new FeatureFlagsResponse
         {
-            var response = new FeatureFlagsResponse
+            ProviderSelection = new ProviderSelectionFlags
             {
-                ProviderSelection = new ProviderSelectionFlags
-                {
-                    UseExternalChat = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalChat),
-                    UseExternalSearch = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSearch),
-                    UseExternalNotifications = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications),
-                    UseExternalAnalytics = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAnalytics),
-                    UseExternalSignatures = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSignatures),
-                    UseExternalAI = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI),
-                    UseExternalIntegrations = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalIntegrations)
-                },
-                Modules = new ModuleFlags
-                {
-                    ITSMEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnableITSM),
-                    MarketingEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnableMarketing),
-                    CustomerPortalEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnableCustomerPortal),
-                    PartnerPortalEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnablePartnerPortal),
-                    KnowledgeBaseEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnableKnowledgeBase)
-                },
-                Features = new FeatureRolloutFlags
-                {
-                    NewSearchExperience = await _featureManager.IsEnabledAsync(FeatureFlags.NewSearchExperience),
-                    AIAssistant = await _featureManager.IsEnabledAsync(FeatureFlags.AIAssistant),
-                    RealTimeNotifications = await _featureManager.IsEnabledAsync(FeatureFlags.RealTimeNotifications),
-                    AdvancedWorkflows = await _featureManager.IsEnabledAsync(FeatureFlags.AdvancedWorkflows)
-                },
-                Providers = GetProviderConfiguration()
-            };
+                UseExternalChat = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalChat),
+                UseExternalSearch = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSearch),
+                UseExternalNotifications = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications),
+                UseExternalAnalytics = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAnalytics),
+                UseExternalSignatures = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSignatures),
+                UseExternalAI = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI),
+                UseExternalIntegrations = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalIntegrations)
+            },
+            Modules = new ModuleFlags
+            {
+                ITSMEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnableITSM),
+                MarketingEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnableMarketing),
+                CustomerPortalEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnableCustomerPortal),
+                PartnerPortalEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnablePartnerPortal),
+                KnowledgeBaseEnabled = await _featureManager.IsEnabledAsync(FeatureFlags.EnableKnowledgeBase)
+            },
+            Features = new FeatureRolloutFlags
+            {
+                NewSearchExperience = await _featureManager.IsEnabledAsync(FeatureFlags.NewSearchExperience),
+                AIAssistant = await _featureManager.IsEnabledAsync(FeatureFlags.AIAssistant),
+                RealTimeNotifications = await _featureManager.IsEnabledAsync(FeatureFlags.RealTimeNotifications),
+                AdvancedWorkflows = await _featureManager.IsEnabledAsync(FeatureFlags.AdvancedWorkflows)
+            },
+            Providers = GetProviderConfiguration()
+        };
 
-            _logger.LogInformation("Feature flags retrieved successfully");
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving feature flags");
-            return StatusCode(500, new { error = "Failed to retrieve feature flags" });
-        }
+        _logger.LogInformation("Feature flags retrieved successfully");
+        return Ok(response);
     }
 
     /// <summary>
@@ -107,22 +100,14 @@ public class FeaturesController : ControllerBase
     [ProducesResponseType(typeof(FeatureFlagStatus), StatusCodes.Status200OK)]
     public async Task<ActionResult<FeatureFlagStatus>> GetFeatureFlag(string featureName)
     {
-        try
-        {
-            var isEnabled = await _featureManager.IsEnabledAsync(featureName);
+                var isEnabled = await _featureManager.IsEnabledAsync(featureName);
 
-            return Ok(new FeatureFlagStatus
-            {
-                Name = featureName,
-                IsEnabled = isEnabled,
-                RetrievedAt = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
+        return Ok(new FeatureFlagStatus
         {
-            _logger.LogError(ex, "Error retrieving feature flag {FeatureName}", featureName);
-            return StatusCode(500, new { error = $"Failed to retrieve feature flag: {featureName}" });
-        }
+            Name = featureName,
+            IsEnabled = isEnabled,
+            RetrievedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -133,28 +118,20 @@ public class FeaturesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<Dictionary<string, IEnumerable<string>>> GetAvailableProviders()
     {
-        try
+                var providers = new Dictionary<string, IEnumerable<string>>
         {
-            var providers = new Dictionary<string, IEnumerable<string>>
-            {
-                { "Chat", new[] { ProviderTypes.Chat.BuiltIn, ProviderTypes.Chat.Chatwoot, ProviderTypes.Chat.Intercom, ProviderTypes.Chat.Zendesk, ProviderTypes.Chat.Freshchat, ProviderTypes.Chat.RocketChat } },
-                { "Search", new[] { ProviderTypes.Search.BuiltIn, ProviderTypes.Search.Meilisearch, ProviderTypes.Search.Algolia, ProviderTypes.Search.Typesense, ProviderTypes.Search.Elasticsearch, ProviderTypes.Search.AzureCognitiveSearch } },
-                { "Notifications", new[] { ProviderTypes.Notifications.BuiltIn, ProviderTypes.Notifications.Novu, ProviderTypes.Notifications.Twilio, ProviderTypes.Notifications.SendGrid, ProviderTypes.Notifications.AWSSES, ProviderTypes.Notifications.Courier } },
-                { "Analytics", new[] { ProviderTypes.Analytics.BuiltIn, ProviderTypes.Analytics.Superset, ProviderTypes.Analytics.Metabase, ProviderTypes.Analytics.PowerBI, ProviderTypes.Analytics.Tableau, ProviderTypes.Analytics.Looker } },
-                { "Signatures", new[] { ProviderTypes.Signatures.BuiltIn, ProviderTypes.Signatures.DocuSeal, ProviderTypes.Signatures.DocuSign, ProviderTypes.Signatures.HelloSign, ProviderTypes.Signatures.AdobeSign, ProviderTypes.Signatures.PandaDoc } },
-                { "AI", new[] { ProviderTypes.AI.Ollama, ProviderTypes.AI.OpenAI, ProviderTypes.AI.Anthropic, ProviderTypes.AI.AzureOpenAI, ProviderTypes.AI.Gemini, ProviderTypes.AI.DeepSeek } },
-                { "Integrations", new[] { ProviderTypes.Integrations.BuiltIn, ProviderTypes.Integrations.N8n, ProviderTypes.Integrations.Zapier, ProviderTypes.Integrations.Make, ProviderTypes.Integrations.Automatisch, ProviderTypes.Integrations.Workato } },
-                { "DataSync", new[] { ProviderTypes.DataSync.BuiltIn, ProviderTypes.DataSync.Airbyte, ProviderTypes.DataSync.Fivetran, ProviderTypes.DataSync.Segment } },
-                { "Compliance", new[] { ProviderTypes.Compliance.BuiltIn, ProviderTypes.Compliance.Fides, ProviderTypes.Compliance.OneTrust, ProviderTypes.Compliance.TrustArc } }
-            };
+            { "Chat", new[] { ProviderTypes.Chat.BuiltIn, ProviderTypes.Chat.Chatwoot, ProviderTypes.Chat.Intercom, ProviderTypes.Chat.Zendesk, ProviderTypes.Chat.Freshchat, ProviderTypes.Chat.RocketChat } },
+            { "Search", new[] { ProviderTypes.Search.BuiltIn, ProviderTypes.Search.Meilisearch, ProviderTypes.Search.Algolia, ProviderTypes.Search.Typesense, ProviderTypes.Search.Elasticsearch, ProviderTypes.Search.AzureCognitiveSearch } },
+            { "Notifications", new[] { ProviderTypes.Notifications.BuiltIn, ProviderTypes.Notifications.Novu, ProviderTypes.Notifications.Twilio, ProviderTypes.Notifications.SendGrid, ProviderTypes.Notifications.AWSSES, ProviderTypes.Notifications.Courier } },
+            { "Analytics", new[] { ProviderTypes.Analytics.BuiltIn, ProviderTypes.Analytics.Superset, ProviderTypes.Analytics.Metabase, ProviderTypes.Analytics.PowerBI, ProviderTypes.Analytics.Tableau, ProviderTypes.Analytics.Looker } },
+            { "Signatures", new[] { ProviderTypes.Signatures.BuiltIn, ProviderTypes.Signatures.DocuSeal, ProviderTypes.Signatures.DocuSign, ProviderTypes.Signatures.HelloSign, ProviderTypes.Signatures.AdobeSign, ProviderTypes.Signatures.PandaDoc } },
+            { "AI", new[] { ProviderTypes.AI.Ollama, ProviderTypes.AI.OpenAI, ProviderTypes.AI.Anthropic, ProviderTypes.AI.AzureOpenAI, ProviderTypes.AI.Gemini, ProviderTypes.AI.DeepSeek } },
+            { "Integrations", new[] { ProviderTypes.Integrations.BuiltIn, ProviderTypes.Integrations.N8n, ProviderTypes.Integrations.Zapier, ProviderTypes.Integrations.Make, ProviderTypes.Integrations.Automatisch, ProviderTypes.Integrations.Workato } },
+            { "DataSync", new[] { ProviderTypes.DataSync.BuiltIn, ProviderTypes.DataSync.Airbyte, ProviderTypes.DataSync.Fivetran, ProviderTypes.DataSync.Segment } },
+            { "Compliance", new[] { ProviderTypes.Compliance.BuiltIn, ProviderTypes.Compliance.Fides, ProviderTypes.Compliance.OneTrust, ProviderTypes.Compliance.TrustArc } }
+        };
 
-            return Ok(providers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving available providers");
-            return StatusCode(500, new { error = "Failed to retrieve available providers" });
-        }
+        return Ok(providers);
     }
 
     /// <summary>
@@ -167,43 +144,35 @@ public class FeaturesController : ControllerBase
     {
         await Task.CompletedTask; // Stub for future async implementation
 
-        try
-        {
-            var checkedAt = DateTime.UtcNow;
-            var categories = new[] { "Chat", "Search", "Notifications", "Analytics", "Signatures", "Integrations" };
-            var health = new ProviderHealthResponse { CheckedAt = checkedAt };
+                var checkedAt = DateTime.UtcNow;
+        var categories = new[] { "Chat", "Search", "Notifications", "Analytics", "Signatures", "Integrations" };
+        var health = new ProviderHealthResponse { CheckedAt = checkedAt };
 
-            foreach (var category in categories)
+        foreach (var category in categories)
+        {
+            var active = _adapterRegistry.GetActiveAdapter(category);
+            if (active != null)
             {
-                var active = _adapterRegistry.GetActiveAdapter(category);
-                if (active != null)
+                health.Providers[category] = new ProviderHealthStatus
                 {
-                    health.Providers[category] = new ProviderHealthStatus
-                    {
-                        Type = active.ProviderName,
-                        Status = active.Status.ToString(),
-                        LastCheck = active.LastHealthCheck ?? checkedAt,
-                        ErrorMessage = active.LastFailureMessage
-                    };
-                }
-                else
-                {
-                    health.Providers[category] = new ProviderHealthStatus
-                    {
-                        Type = GetProviderType(category),
-                        Status = "Unknown",
-                        LastCheck = checkedAt
-                    };
-                }
+                    Type = active.ProviderName,
+                    Status = active.Status.ToString(),
+                    LastCheck = active.LastHealthCheck ?? checkedAt,
+                    ErrorMessage = active.LastFailureMessage
+                };
             }
+            else
+            {
+                health.Providers[category] = new ProviderHealthStatus
+                {
+                    Type = GetProviderType(category),
+                    Status = "Unknown",
+                    LastCheck = checkedAt
+                };
+            }
+        }
 
-            return Ok(health);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking provider health");
-            return StatusCode(500, new { error = "Failed to check provider health" });
-        }
+        return Ok(health);
     }
 
     private ProviderConfiguration GetProviderConfiguration()

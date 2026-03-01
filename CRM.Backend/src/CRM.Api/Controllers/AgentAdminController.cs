@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -23,7 +24,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/agents/admin")]
 [Authorize]
-public class AgentAdminController : ControllerBase
+public class AgentAdminController : CrmControllerBase
 {
     #region Fields
 
@@ -80,46 +81,38 @@ public class AgentAdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAgentConfigs()
     {
-        try
+                if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
         {
-            if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
+            return Ok(new { disabled = true, message = "AI Agent subsystem is currently disabled.", agents = Array.Empty<object>() });
+        }
+
+        var agents = await _dbContext.AIAgents
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted)
+            .OrderBy(a => a.Name)
+            .Select(a => new
             {
-                return Ok(new { disabled = true, message = "AI Agent subsystem is currently disabled.", agents = Array.Empty<object>() });
-            }
+                a.Id,
+                a.Name,
+                a.DisplayName,
+                a.Description,
+                a.AgentType,
+                a.SystemPrompt,
+                a.AllowedPlugins,
+                a.IsActive,
+                a.RequiresApproval,
+                a.Temperature,
+                a.MaxTokens,
+                a.ModelOverride,
+                a.TotalConversations,
+                a.TotalActions,
+                a.AverageRating,
+                a.CreatedAt,
+                a.UpdatedAt,
+            })
+            .ToListAsync(HttpContext.RequestAborted);
 
-            var agents = await _dbContext.AIAgents
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted)
-                .OrderBy(a => a.Name)
-                .Select(a => new
-                {
-                    a.Id,
-                    a.Name,
-                    a.DisplayName,
-                    a.Description,
-                    a.AgentType,
-                    a.SystemPrompt,
-                    a.AllowedPlugins,
-                    a.IsActive,
-                    a.RequiresApproval,
-                    a.Temperature,
-                    a.MaxTokens,
-                    a.ModelOverride,
-                    a.TotalConversations,
-                    a.TotalActions,
-                    a.AverageRating,
-                    a.CreatedAt,
-                    a.UpdatedAt,
-                })
-                .ToListAsync(HttpContext.RequestAborted);
-
-            return Ok(agents);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting agent configurations");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving agent configurations.");
-        }
+        return Ok(agents);
     }
 
     /// <summary>
@@ -134,86 +127,78 @@ public class AgentAdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateAgentConfig(int agentId, [FromBody] UpdateAgentRequest request)
     {
-        try
+                var agent = await _dbContext.AIAgents
+            .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
+
+        if (agent is null)
         {
-            var agent = await _dbContext.AIAgents
-                .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
-
-            if (agent is null)
-            {
-                return NotFound($"Agent with ID {agentId} not found.");
-            }
-
-            if (request.Temperature.HasValue)
-            {
-                if (request.Temperature.Value < 0.0 || request.Temperature.Value > 2.0)
-                {
-                    return BadRequest("Temperature must be between 0.0 and 2.0.");
-                }
-
-                agent.Temperature = request.Temperature.Value;
-            }
-
-            if (request.MaxTokens.HasValue)
-            {
-                if (request.MaxTokens.Value < 1)
-                {
-                    return BadRequest("MaxTokens must be a positive integer.");
-                }
-
-                agent.MaxTokens = request.MaxTokens.Value;
-            }
-
-            if (request.SystemPrompt is not null)
-            {
-                agent.SystemPrompt = request.SystemPrompt;
-            }
-
-            if (request.AllowedPlugins is not null)
-            {
-                agent.AllowedPlugins = request.AllowedPlugins;
-            }
-
-            if (request.RequiresApproval.HasValue)
-            {
-                agent.RequiresApproval = request.RequiresApproval.Value;
-            }
-
-            if (request.ApprovalTier is not null)
-            {
-                agent.ApprovalTier = request.ApprovalTier;
-            }
-
-            agent.UpdatedAt = DateTime.UtcNow;
-
-            await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
-
-            _logger.LogInformation("Agent {AgentId} ({AgentName}) configuration updated", agentId, agent.Name);
-            return Ok(new
-            {
-                agent.Id,
-                agent.Name,
-                agent.DisplayName,
-                agent.Description,
-                agent.AgentType,
-                agent.SystemPrompt,
-                agent.AllowedPlugins,
-                agent.IsActive,
-                agent.RequiresApproval,
-                agent.Temperature,
-                agent.MaxTokens,
-                agent.ModelOverride,
-                agent.TotalConversations,
-                agent.TotalActions,
-                agent.AverageRating,
-                agent.UpdatedAt,
-            });
+            return NotFound($"Agent with ID {agentId} not found.");
         }
-        catch (Exception ex)
+
+        if (request.Temperature.HasValue)
         {
-            _logger.LogError(ex, "Error updating agent {AgentId} configuration", agentId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while updating the agent configuration.");
+            if (request.Temperature.Value < 0.0 || request.Temperature.Value > 2.0)
+            {
+                return BadRequest("Temperature must be between 0.0 and 2.0.");
+            }
+
+            agent.Temperature = request.Temperature.Value;
         }
+
+        if (request.MaxTokens.HasValue)
+        {
+            if (request.MaxTokens.Value < 1)
+            {
+                return BadRequest("MaxTokens must be a positive integer.");
+            }
+
+            agent.MaxTokens = request.MaxTokens.Value;
+        }
+
+        if (request.SystemPrompt is not null)
+        {
+            agent.SystemPrompt = request.SystemPrompt;
+        }
+
+        if (request.AllowedPlugins is not null)
+        {
+            agent.AllowedPlugins = request.AllowedPlugins;
+        }
+
+        if (request.RequiresApproval.HasValue)
+        {
+            agent.RequiresApproval = request.RequiresApproval.Value;
+        }
+
+        if (request.ApprovalTier is not null)
+        {
+            agent.ApprovalTier = request.ApprovalTier;
+        }
+
+        agent.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
+
+        _logger.LogInformation("Agent {AgentId} ({AgentName}) configuration updated", agentId, agent.Name);
+        return Ok(new
+        {
+            agent.Id,
+            agent.Name,
+            agent.DisplayName,
+            agent.Description,
+            agent.AgentType,
+            agent.SystemPrompt,
+            agent.AllowedPlugins,
+            agent.IsActive,
+            agent.RequiresApproval,
+            agent.Temperature,
+            agent.MaxTokens,
+            agent.ModelOverride,
+            agent.TotalConversations,
+            agent.TotalActions,
+            agent.AverageRating,
+            agent.UpdatedAt,
+        });
     }
 
     /// <summary>
@@ -226,29 +211,21 @@ public class AgentAdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ToggleAgent(int agentId)
     {
-        try
+                var agent = await _dbContext.AIAgents
+            .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
+
+        if (agent is null)
         {
-            var agent = await _dbContext.AIAgents
-                .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
-
-            if (agent is null)
-            {
-                return NotFound($"Agent with ID {agentId} not found.");
-            }
-
-            agent.IsActive = !agent.IsActive;
-            agent.UpdatedAt = DateTime.UtcNow;
-
-            await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
-
-            _logger.LogInformation("Agent {AgentId} ({AgentName}) toggled to {IsActive}", agentId, agent.Name, agent.IsActive);
-            return Ok(new { agent.Id, agent.Name, agent.IsActive });
+            return NotFound($"Agent with ID {agentId} not found.");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error toggling agent {AgentId}", agentId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while toggling the agent.");
-        }
+
+        agent.IsActive = !agent.IsActive;
+        agent.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
+
+        _logger.LogInformation("Agent {AgentId} ({AgentName}) toggled to {IsActive}", agentId, agent.Name, agent.IsActive);
+        return Ok(new { agent.Id, agent.Name, agent.IsActive });
     }
 
     #endregion

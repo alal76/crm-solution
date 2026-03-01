@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/revenue")]
 [Authorize]
-public class RevenueAnalyticsController : ControllerBase
+public class RevenueAnalyticsController : CrmControllerBase
 {
     private readonly IRevenueAnalyticsService _revenueService;
 

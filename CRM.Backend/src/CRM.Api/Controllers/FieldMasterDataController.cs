@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.API.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class FieldMasterDataController : ControllerBase
+public class FieldMasterDataController : CrmControllerBase
 {
     private readonly IFieldMasterDataService _service;
     private readonly ILogger<FieldMasterDataController> _logger;

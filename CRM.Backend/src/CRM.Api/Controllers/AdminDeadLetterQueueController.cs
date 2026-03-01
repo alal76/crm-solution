@@ -8,6 +8,7 @@ using CRM.Infrastructure.Services.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/dead-letter-queue")]
 [Authorize(Roles = "Admin")]
-public class AdminDeadLetterQueueController : ControllerBase
+public class AdminDeadLetterQueueController : CrmControllerBase
 {
     private readonly IDeadLetterQueueService _dlq;
     private readonly ILogger<AdminDeadLetterQueueController> _logger;

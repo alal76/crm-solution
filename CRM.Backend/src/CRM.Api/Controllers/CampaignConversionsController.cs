@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -37,7 +38,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/campaign-conversions")]
 [Authorize]
-public class CampaignConversionsController : ControllerBase
+public class CampaignConversionsController : CrmControllerBase
 {
     private const string ConversionNotFoundMessage = "Campaign conversion with ID {0} not found";
     private readonly ICampaignConversionService _campaignConversionService;
@@ -78,25 +79,17 @@ public class CampaignConversionsController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var (items, totalCount) = await _campaignConversionService.GetAllAsync(
-                filter, page, pageSize, cancellationToken);
+                var (items, totalCount) = await _campaignConversionService.GetAllAsync(
+            filter, page, pageSize, cancellationToken);
 
-            return Ok(new
-            {
-                items,
-                totalCount,
-                page,
-                pageSize,
-                totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving campaign conversions");
-            return StatusCode(500, new { message = "Error retrieving campaign conversions", error = ex.Message });
-        }
+            items,
+            totalCount,
+            page,
+            pageSize,
+            totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        });
     }
 
     /// <summary>
@@ -117,22 +110,14 @@ public class CampaignConversionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var conversion = await _campaignConversionService.GetByIdAsync(id, cancellationToken);
+                var conversion = await _campaignConversionService.GetByIdAsync(id, cancellationToken);
 
-            if (conversion == null)
-            {
-                return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
-            }
-
-            return Ok(conversion);
-        }
-        catch (Exception ex)
+        if (conversion == null)
         {
-            _logger.LogError(ex, "Error retrieving campaign conversion {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving campaign conversion", error = ex.Message });
+            return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
         }
+
+        return Ok(conversion);
     }
 
     /// <summary>
@@ -153,22 +138,14 @@ public class CampaignConversionsController : ControllerBase
         int campaignId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var conversions = await _campaignConversionService.GetByCampaignIdAsync(campaignId, cancellationToken);
+                var conversions = await _campaignConversionService.GetByCampaignIdAsync(campaignId, cancellationToken);
 
-            return Ok(new
-            {
-                items = conversions,
-                totalCount = conversions.Count,
-                campaignId
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving conversions for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error retrieving campaign conversions", error = ex.Message });
-        }
+            items = conversions,
+            totalCount = conversions.Count,
+            campaignId
+        });
     }
 
     /// <summary>
@@ -210,11 +187,6 @@ public class CampaignConversionsController : ControllerBase
             _logger.LogWarning(ex, "Invalid operation creating campaign conversion");
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating campaign conversion");
-            return StatusCode(500, new { message = "Error creating campaign conversion", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -241,29 +213,21 @@ public class CampaignConversionsController : ControllerBase
         [FromBody] UpdateCampaignConversionDto dto,
         CancellationToken cancellationToken = default)
     {
-        try
+                if (!ModelState.IsValid)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            var conversion = await _campaignConversionService.UpdateAsync(id, dto, cancellationToken);
-
-            if (conversion == null)
-            {
-                return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
-            }
-
-            _logger.LogInformation("Updated campaign conversion {Id}", id);
-
-            return Ok(conversion);
+            return BadRequest(ModelState);
         }
-        catch (Exception ex)
+
+        var conversion = await _campaignConversionService.UpdateAsync(id, dto, cancellationToken);
+
+        if (conversion == null)
         {
-            _logger.LogError(ex, "Error updating campaign conversion {Id}", id);
-            return StatusCode(500, new { message = "Error updating campaign conversion", error = ex.Message });
+            return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
         }
+
+        _logger.LogInformation("Updated campaign conversion {Id}", id);
+
+        return Ok(conversion);
     }
 
     /// <summary>
@@ -284,23 +248,15 @@ public class CampaignConversionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken = default)
     {
-        try
+                var deleted = await _campaignConversionService.DeleteAsync(id, cancellationToken);
+
+        if (!deleted)
         {
-            var deleted = await _campaignConversionService.DeleteAsync(id, cancellationToken);
-
-            if (!deleted)
-            {
-                return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
-            }
-
-            _logger.LogInformation("Deleted campaign conversion {Id}", id);
-
-            return NoContent();
+            return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting campaign conversion {Id}", id);
-            return StatusCode(500, new { message = "Error deleting campaign conversion", error = ex.Message });
-        }
+
+        _logger.LogInformation("Deleted campaign conversion {Id}", id);
+
+        return NoContent();
     }
 }

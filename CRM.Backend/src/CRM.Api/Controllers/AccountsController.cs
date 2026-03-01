@@ -13,6 +13,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -50,7 +51,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class AccountsController : ControllerBase
+public class AccountsController : CrmControllerBase
 {
     private const string AccountNotFoundMessage = "Account not found";
     private const string AccountContactRelationshipNotFoundMessage = "Account contact relationship not found";
@@ -91,16 +92,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        try
-        {
-            var accounts = await _accountService.GetAllAccountsAsync();
-            return Ok(accounts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving accounts");
-            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
-        }
+                var accounts = await _accountService.GetAllAccountsAsync();
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -124,30 +117,22 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id, [FromHeader(Name = "If-None-Match")] string? ifNoneMatch = null)
     {
-        try
+                var account = await _accountService.GetAccountByIdAsync(id);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
+
+        // Generate ETag from RowVersion
+        var etag = ETagHelper.GenerateETag(account.RowVersion);
+
+        // Check If-None-Match for cache validation
+        if (!string.IsNullOrEmpty(ifNoneMatch) && !ETagHelper.IsNoneMatch(ifNoneMatch, account.RowVersion))
         {
-            var account = await _accountService.GetAccountByIdAsync(id);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
-
-            // Generate ETag from RowVersion
-            var etag = ETagHelper.GenerateETag(account.RowVersion);
-
-            // Check If-None-Match for cache validation
-            if (!string.IsNullOrEmpty(ifNoneMatch) && !ETagHelper.IsNoneMatch(ifNoneMatch, account.RowVersion))
-            {
-                Response.Headers.ETag = etag;
-                return StatusCode(StatusCodes.Status304NotModified);
-            }
-
             Response.Headers.ETag = etag;
-            return Ok(account);
+            return StatusCode(StatusCodes.Status304NotModified);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving account {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving account", error = ex.Message });
-        }
+
+        Response.Headers.ETag = etag;
+        return Ok(account);
     }
 
     /// <summary>
@@ -157,16 +142,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<LinkedAddressDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAddresses(int id)
     {
-        try
-        {
-            var addresses = await _accountService.GetAccountAddressesAsync(id);
-            return Ok(addresses);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving addresses for account {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving addresses", error = ex.Message });
-        }
+                var addresses = await _accountService.GetAccountAddressesAsync(id);
+        return Ok(addresses);
     }
 
     /// <summary>
@@ -176,19 +153,11 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(LinkedAddressDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPrimaryBillingAddress(int id)
     {
-        try
-        {
-            var address = await _accountService.GetPrimaryBillingAddressAsync(id);
-            if (address == null)
-                return NotFound(new { message = "Primary billing address not found" });
+                var address = await _accountService.GetPrimaryBillingAddressAsync(id);
+        if (address == null)
+            return NotFound(new { message = "Primary billing address not found" });
 
-            return Ok(address);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving primary billing address for account {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving primary billing address", error = ex.Message });
-        }
+        return Ok(address);
     }
 
     /// <summary>
@@ -198,19 +167,11 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(LinkedAddressDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPrimaryShippingAddress(int id)
     {
-        try
-        {
-            var address = await _accountService.GetPrimaryShippingAddressAsync(id);
-            if (address == null)
-                return NotFound(new { message = "Primary shipping address not found" });
+                var address = await _accountService.GetPrimaryShippingAddressAsync(id);
+        if (address == null)
+            return NotFound(new { message = "Primary shipping address not found" });
 
-            return Ok(address);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving primary shipping address for account {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving primary shipping address", error = ex.Message });
-        }
+        return Ok(address);
     }
 
     /// <summary>
@@ -220,22 +181,14 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(LinkedAddressDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> AddAddress(int id, [FromBody] LinkAddressDto dto)
     {
-        try
-        {
-            dto.EntityType = EntityType.Account.ToString();
-            dto.EntityId = id;
+                dto.EntityType = EntityType.Account.ToString();
+        dto.EntityId = id;
 
-            if (!dto.AddressId.HasValue && dto.NewAddress == null)
-                return BadRequest(new { message = "AddressId or NewAddress is required." });
+        if (!dto.AddressId.HasValue && dto.NewAddress == null)
+            return BadRequest(new { message = "AddressId or NewAddress is required." });
 
-            var address = await _contactInfoService.LinkAddressAsync(dto);
-            return CreatedAtAction(nameof(GetAddresses), new { id }, address);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding address for account {Id}", id);
-            return StatusCode(500, new { message = "Error adding address", error = ex.Message });
-        }
+        var address = await _contactInfoService.LinkAddressAsync(dto);
+        return CreatedAtAction(nameof(GetAddresses), new { id }, address);
     }
 
     /// <summary>
@@ -245,16 +198,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(AddressDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateAddress(int id, int addressId, [FromBody] CreateAddressDto dto)
     {
-        try
-        {
-            var address = await _contactInfoService.UpdateAddressAsync(addressId, dto);
-            return Ok(address);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating address {AddressId} for account {Id}", addressId, id);
-            return StatusCode(500, new { message = "Error updating address", error = ex.Message });
-        }
+                var address = await _contactInfoService.UpdateAddressAsync(addressId, dto);
+        return Ok(address);
     }
 
     /// <summary>
@@ -264,21 +209,13 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RemoveAddress(int id, int addressId)
     {
-        try
-        {
-            var links = await _accountService.GetAccountAddressesAsync(id);
-            var link = links.FirstOrDefault(a => a.Id == addressId);
-            if (link == null)
-                return NotFound(new { message = "Address link not found" });
+                var links = await _accountService.GetAccountAddressesAsync(id);
+        var link = links.FirstOrDefault(a => a.Id == addressId);
+        if (link == null)
+            return NotFound(new { message = "Address link not found" });
 
-            await _contactInfoService.UnlinkAddressAsync(link.LinkId);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing address {AddressId} from account {Id}", addressId, id);
-            return StatusCode(500, new { message = "Error removing address", error = ex.Message });
-        }
+        await _contactInfoService.UnlinkAddressAsync(link.LinkId);
+        return NoContent();
     }
 
     /// <summary>
@@ -288,16 +225,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SetPrimaryBilling(int id, int addressId)
     {
-        try
-        {
-            await _accountService.SetPrimaryBillingAddressAsync(id, addressId);
-            return Ok(new { message = "Primary billing address updated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary billing address for account {Id}", id);
-            return StatusCode(500, new { message = "Error setting primary billing address", error = ex.Message });
-        }
+                await _accountService.SetPrimaryBillingAddressAsync(id, addressId);
+        return Ok(new { message = "Primary billing address updated" });
     }
 
     /// <summary>
@@ -307,16 +236,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SetPrimaryShipping(int id, int addressId)
     {
-        try
-        {
-            await _accountService.SetPrimaryShippingAddressAsync(id, addressId);
-            return Ok(new { message = "Primary shipping address updated" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary shipping address for account {Id}", id);
-            return StatusCode(500, new { message = "Error setting primary shipping address", error = ex.Message });
-        }
+                await _accountService.SetPrimaryShippingAddressAsync(id, addressId);
+        return Ok(new { message = "Primary shipping address updated" });
     }
 
     /// <summary>
@@ -331,16 +252,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetIndividuals()
     {
-        try
-        {
-            var accounts = await _accountService.GetIndividualAccountsAsync();
-            return Ok(accounts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving individual accounts");
-            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
-        }
+                var accounts = await _accountService.GetIndividualAccountsAsync();
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -355,16 +268,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetOrganizations()
     {
-        try
-        {
-            var accounts = await _accountService.GetOrganizationAccountsAsync();
-            return Ok(accounts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving organization accounts");
-            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
-        }
+                var accounts = await _accountService.GetOrganizationAccountsAsync();
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -374,16 +279,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Search(string searchTerm)
     {
-        try
-        {
-            var accounts = await _accountService.SearchAccountsAsync(searchTerm);
-            return Ok(accounts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching accounts for {SearchTerm}", searchTerm);
-            return StatusCode(500, new { message = "Error searching accounts", error = ex.Message });
-        }
+                var accounts = await _accountService.SearchAccountsAsync(searchTerm);
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -393,16 +290,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByLifecycleStage(AccountLifecycleStage stage)
     {
-        try
-        {
-            var accounts = await _accountService.GetAccountsByLifecycleStageAsync(stage);
-            return Ok(accounts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving accounts by stage {Stage}", stage);
-            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
-        }
+                var accounts = await _accountService.GetAccountsByLifecycleStageAsync(stage);
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -412,16 +301,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByPriority(AccountPriority priority)
     {
-        try
-        {
-            var accounts = await _accountService.GetAccountsByPriorityAsync(priority);
-            return Ok(accounts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving accounts by priority {Priority}", priority);
-            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
-        }
+                var accounts = await _accountService.GetAccountsByPriorityAsync(priority);
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -431,16 +312,8 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AccountDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByAssignedUser(int userId)
     {
-        try
-        {
-            var accounts = await _accountService.GetAccountsByAssignedUserAsync(userId);
-            return Ok(accounts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving accounts for user {UserId}", userId);
-            return StatusCode(500, new { message = "Error retrieving accounts", error = ex.Message });
-        }
+                var accounts = await _accountService.GetAccountsByAssignedUserAsync(userId);
+        return Ok(accounts);
     }
 
     /// <summary>
@@ -488,11 +361,6 @@ public class AccountsController : ControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating account");
-            return StatusCode(500, new { message = "Error creating account", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -520,43 +388,35 @@ public class AccountsController : ControllerBase
     public async Task<IActionResult> Update(int id, [FromBody] UpdateAccountDto dto,
         [FromHeader(Name = "If-Match")] string? ifMatch = null)
     {
-        try
+                // If If-Match header provided, validate it first
+        if (!string.IsNullOrEmpty(ifMatch))
         {
-            // If If-Match header provided, validate it first
-            if (!string.IsNullOrEmpty(ifMatch))
-            {
-                var currentAccount = await _accountService.GetAccountByIdAsync(id);
-                if (currentAccount == null)
-                    return NotFound(new { message = AccountNotFoundMessage });
-
-                if (!ETagHelper.IsMatch(ifMatch, currentAccount.RowVersion))
-                {
-                    return StatusCode(StatusCodes.Status412PreconditionFailed, new
-                    {
-                        message = "The record has been modified by another user. Please refresh and try again.",
-                        conflictType = "ETagMismatch",
-                        currentETag = ETagHelper.GenerateETag(currentAccount.RowVersion)
-                    });
-                }
-            }
-
-            var account = await _accountService.UpdateAccountAsync(id, dto);
-            if (account == null)
+            var currentAccount = await _accountService.GetAccountByIdAsync(id);
+            if (currentAccount == null)
                 return NotFound(new { message = AccountNotFoundMessage });
 
-            // Notify connected clients about the update
-            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-            await _notificationService.NotifyRecordUpdatedAsync("Account", id, account, userId);
+            if (!ETagHelper.IsMatch(ifMatch, currentAccount.RowVersion))
+            {
+                return StatusCode(StatusCodes.Status412PreconditionFailed, new
+                {
+                    message = "The record has been modified by another user. Please refresh and try again.",
+                    conflictType = "ETagMismatch",
+                    currentETag = ETagHelper.GenerateETag(currentAccount.RowVersion)
+                });
+            }
+        }
 
-            // Return new ETag in response
-            Response.Headers.ETag = ETagHelper.GenerateETag(account.RowVersion);
-            return Ok(account);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating account {Id}", id);
-            return StatusCode(500, new { message = "Error updating account", error = ex.Message });
-        }
+        var account = await _accountService.UpdateAccountAsync(id, dto);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
+
+        // Notify connected clients about the update
+        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+        await _notificationService.NotifyRecordUpdatedAsync("Account", id, account, userId);
+
+        // Return new ETag in response
+        Response.Headers.ETag = ETagHelper.GenerateETag(account.RowVersion);
+        return Ok(account);
     }
 
     /// <summary>
@@ -567,23 +427,15 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        try
-        {
-            var result = await _accountService.DeleteAccountAsync(id);
-            if (!result)
-                return NotFound(new { message = AccountNotFoundMessage });
+                var result = await _accountService.DeleteAccountAsync(id);
+        if (!result)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            // Notify connected clients about the deletion
-            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-            await _notificationService.NotifyRecordDeletedAsync("Account", id, userId);
+        // Notify connected clients about the deletion
+        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+        await _notificationService.NotifyRecordDeletedAsync("Account", id, userId);
 
-            return Ok(new { message = "Account deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting account {Id}", id);
-            return StatusCode(500, new { message = "Error deleting account", error = ex.Message });
-        }
+        return Ok(new { message = "Account deleted successfully" });
     }
 
     // === Direct Contact Management (One-to-Many) ===
@@ -596,20 +448,12 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDirectContacts(int id)
     {
-        try
-        {
-            var account = await _accountService.GetAccountByIdAsync(id);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+                var account = await _accountService.GetAccountByIdAsync(id);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            var contacts = await _accountService.GetDirectContactsAsync(id);
-            return Ok(contacts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving direct contacts for account {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving direct contacts", error = ex.Message });
-        }
+        var contacts = await _accountService.GetDirectContactsAsync(id);
+        return Ok(contacts);
     }
 
     /// <summary>
@@ -620,19 +464,11 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> AssignContactToAccount(int id, int contactId)
     {
-        try
-        {
-            var result = await _accountService.AssignContactToAccountAsync(id, contactId);
-            if (!result)
-                return NotFound(new { message = "Account or Contact not found" });
+                var result = await _accountService.AssignContactToAccountAsync(id, contactId);
+        if (!result)
+            return NotFound(new { message = "Account or Contact not found" });
 
-            return Ok(new { message = "Contact assigned to account successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning contact {ContactId} to account {Id}", contactId, id);
-            return StatusCode(500, new { message = "Error assigning contact", error = ex.Message });
-        }
+        return Ok(new { message = "Contact assigned to account successfully" });
     }
 
     /// <summary>
@@ -643,19 +479,11 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UnassignContactFromAccount(int id, int contactId)
     {
-        try
-        {
-            var result = await _accountService.UnassignContactFromAccountAsync(id, contactId);
-            if (!result)
-                return NotFound(new { message = "Account or Contact not found" });
+                var result = await _accountService.UnassignContactFromAccountAsync(id, contactId);
+        if (!result)
+            return NotFound(new { message = "Account or Contact not found" });
 
-            return Ok(new { message = "Contact removed from account successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unassigning contact {ContactId} from account {Id}", contactId, id);
-            return StatusCode(500, new { message = "Error unassigning contact", error = ex.Message });
-        }
+        return Ok(new { message = "Contact removed from account successfully" });
     }
 
     // === Contact Management for Organization Accounts (Many-to-Many via AccountContact) ===
@@ -668,20 +496,12 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAccountContacts(int id)
     {
-        try
-        {
-            var account = await _accountService.GetAccountByIdAsync(id);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+                var account = await _accountService.GetAccountByIdAsync(id);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            var contacts = await _accountService.GetAccountContactsAsync(id);
-            return Ok(contacts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving contacts for account {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving contacts", error = ex.Message });
-        }
+        var contacts = await _accountService.GetAccountContactsAsync(id);
+        return Ok(contacts);
     }
 
     /// <summary>
@@ -693,25 +513,17 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> LinkContact(int id, [FromBody] LinkContactToAccountDto dto)
     {
-        try
-        {
-            var account = await _accountService.GetAccountByIdAsync(id);
-            if (account == null)
-                return NotFound(new { message = AccountNotFoundMessage });
+                var account = await _accountService.GetAccountByIdAsync(id);
+        if (account == null)
+            return NotFound(new { message = AccountNotFoundMessage });
 
-            // Allow linking contacts to any account type (Individual or Organization)
-            var result = await _accountService.LinkContactToAccountAsync(id, dto);
-            if (result == null)
-                return BadRequest(new { message = "Failed to link contact. Contact may not exist or is already linked." });
+        // Allow linking contacts to any account type (Individual or Organization)
+        var result = await _accountService.LinkContactToAccountAsync(id, dto);
+        if (result == null)
+            return BadRequest(new { message = "Failed to link contact. Contact may not exist or is already linked." });
 
-            _logger.LogInformation("Contact {ContactId} linked to account {AccountId}", dto.ContactId, id);
-            return CreatedAtAction(nameof(GetAccountContacts), new { id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking contact to account {Id}", id);
-            return StatusCode(500, new { message = "Error linking contact", error = ex.Message });
-        }
+        _logger.LogInformation("Contact {ContactId} linked to account {AccountId}", dto.ContactId, id);
+        return CreatedAtAction(nameof(GetAccountContacts), new { id }, result);
     }
 
     /// <summary>
@@ -722,19 +534,11 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateAccountContact(int id, int contactId, [FromBody] UpdateAccountContactDto dto)
     {
-        try
-        {
-            var result = await _accountService.UpdateAccountContactAsync(id, contactId, dto);
-            if (result == null)
-                return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
+                var result = await _accountService.UpdateAccountContactAsync(id, contactId, dto);
+        if (result == null)
+            return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating contact {ContactId} for account {Id}", contactId, id);
-            return StatusCode(500, new { message = "Error updating contact", error = ex.Message });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -745,20 +549,12 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UnlinkContact(int id, int contactId)
     {
-        try
-        {
-            var result = await _accountService.UnlinkContactFromAccountAsync(id, contactId);
-            if (!result)
-                return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
+                var result = await _accountService.UnlinkContactFromAccountAsync(id, contactId);
+        if (!result)
+            return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
 
-            _logger.LogInformation("Contact {ContactId} unlinked from account {AccountId}", contactId, id);
-            return Ok(new { message = "Contact unlinked successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking contact {ContactId} from account {Id}", contactId, id);
-            return StatusCode(500, new { message = "Error unlinking contact", error = ex.Message });
-        }
+        _logger.LogInformation("Contact {ContactId} unlinked from account {AccountId}", contactId, id);
+        return Ok(new { message = "Contact unlinked successfully" });
     }
 
     /// <summary>
@@ -769,19 +565,11 @@ public class AccountsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> SetPrimaryContact(int id, int contactId)
     {
-        try
-        {
-            var result = await _accountService.SetPrimaryContactAsync(id, contactId);
-            if (!result)
-                return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
+                var result = await _accountService.SetPrimaryContactAsync(id, contactId);
+        if (!result)
+            return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
 
-            _logger.LogInformation("Contact {ContactId} set as primary for account {AccountId}", contactId, id);
-            return Ok(new { message = "Primary contact set successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting primary contact {ContactId} for account {Id}", contactId, id);
-            return StatusCode(500, new { message = "Error setting primary contact", error = ex.Message });
-        }
+        _logger.LogInformation("Contact {ContactId} set as primary for account {AccountId}", contactId, id);
+        return Ok(new { message = "Primary contact set successfully" });
     }
 }

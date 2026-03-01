@@ -8,6 +8,7 @@ using CRM.Core.Dtos.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -25,7 +26,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - CI Types")]
-public class CITypesController : ControllerBase
+public class CITypesController : CrmControllerBase
 {
     private readonly ICITypeService _ciTypeService;
 

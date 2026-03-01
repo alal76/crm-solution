@@ -16,6 +16,7 @@ using CRM.Infrastructure.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.API.Controllers;
 
@@ -25,7 +26,7 @@ namespace CRM.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class SystemSettingsController : ControllerBase
+public class SystemSettingsController : CrmControllerBase
 {
     private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<SystemSettingsController> _logger;
@@ -61,16 +62,8 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> GetSettings()
     {
-        try
-        {
-            var settings = await _settingsService.GetSettingsAsync();
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving system settings");
-            return StatusCode(500, "Error retrieving system settings");
-        }
+                var settings = await _settingsService.GetSettingsAsync();
+        return Ok(settings);
     }
 
     /// <summary>
@@ -80,16 +73,8 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(ModuleStatusDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ModuleStatusDto>> GetModuleStatus()
     {
-        try
-        {
-            var moduleStatus = await _settingsService.GetModuleStatusAsync();
-            return Ok(moduleStatus);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving module status");
-            return StatusCode(500, "Error retrieving module status");
-        }
+                var moduleStatus = await _settingsService.GetModuleStatusAsync();
+        return Ok(moduleStatus);
     }
 
     /// <summary>
@@ -101,31 +86,23 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SystemSettingsDto>> UpdateSettings([FromBody] UpdateSystemSettingsRequest request)
     {
-        try
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+        var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+
+        // TODO-SYS009-004: Audit trail for settings changes
+        if (_auditLogService != null)
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-
-            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-
-            // TODO-SYS009-004: Audit trail for settings changes
-            if (_auditLogService != null)
-            {
-                await _auditLogService.LogActionAsync(
-                    action: "Update",
-                    entityType: "SystemSettings",
-                    entityId: null,
-                    userId: userId,
-                    details: "System settings updated by admin");
-            }
-
-            return Ok(settings);
+            await _auditLogService.LogActionAsync(
+                action: "Update",
+                entityType: "SystemSettings",
+                entityId: null,
+                userId: userId,
+                details: "System settings updated by admin");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating system settings");
-            return StatusCode(500, "Error updating system settings");
-        }
+
+        return Ok(settings);
     }
 
     /// <summary>
@@ -137,69 +114,61 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SystemSettingsDto>> ToggleModule(string moduleName, [FromQuery] bool enabled)
     {
-        try
+                var request = new UpdateSystemSettingsRequest();
+
+        switch (moduleName.ToLower())
         {
-            var request = new UpdateSystemSettingsRequest();
-
-            switch (moduleName.ToLower())
-            {
-                case "accounts":
-                    request.AccountsEnabled = enabled;
-                    break;
-                case "contacts":
-                    request.ContactsEnabled = enabled;
-                    break;
-                case "leads":
-                    request.LeadsEnabled = enabled;
-                    break;
-                case "opportunities":
-                    request.OpportunitiesEnabled = enabled;
-                    break;
-                case "products":
-                    request.ProductsEnabled = enabled;
-                    break;
-                case "services":
-                    request.ServicesEnabled = enabled;
-                    break;
-                case "campaigns":
-                    request.CampaignsEnabled = enabled;
-                    break;
-                case "quotes":
-                    request.QuotesEnabled = enabled;
-                    break;
-                case "tasks":
-                    request.TasksEnabled = enabled;
-                    break;
-                case "activities":
-                    request.ActivitiesEnabled = enabled;
-                    break;
-                case "notes":
-                    request.NotesEnabled = enabled;
-                    break;
-                case "workflows":
-                    request.WorkflowsEnabled = enabled;
-                    break;
-                case "reports":
-                    request.ReportsEnabled = enabled;
-                    break;
-                case "dashboard":
-                    request.DashboardEnabled = enabled;
-                    break;
-                default:
-                    return BadRequest($"Unknown module: {moduleName}");
-            }
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-
-            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-            return Ok(settings);
+            case "accounts":
+                request.AccountsEnabled = enabled;
+                break;
+            case "contacts":
+                request.ContactsEnabled = enabled;
+                break;
+            case "leads":
+                request.LeadsEnabled = enabled;
+                break;
+            case "opportunities":
+                request.OpportunitiesEnabled = enabled;
+                break;
+            case "products":
+                request.ProductsEnabled = enabled;
+                break;
+            case "services":
+                request.ServicesEnabled = enabled;
+                break;
+            case "campaigns":
+                request.CampaignsEnabled = enabled;
+                break;
+            case "quotes":
+                request.QuotesEnabled = enabled;
+                break;
+            case "tasks":
+                request.TasksEnabled = enabled;
+                break;
+            case "activities":
+                request.ActivitiesEnabled = enabled;
+                break;
+            case "notes":
+                request.NotesEnabled = enabled;
+                break;
+            case "workflows":
+                request.WorkflowsEnabled = enabled;
+                break;
+            case "reports":
+                request.ReportsEnabled = enabled;
+                break;
+            case "dashboard":
+                request.DashboardEnabled = enabled;
+                break;
+            default:
+                return BadRequest($"Unknown module: {moduleName}");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error toggling module {ModuleName}", moduleName);
-            return StatusCode(500, $"Error toggling module {moduleName}");
-        }
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+        var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+        return Ok(settings);
     }
 
     /// <summary>
@@ -210,20 +179,12 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> RemoveLogo()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
 
-            var request = new UpdateSystemSettingsRequest { CompanyLogoUrl = "" };
-            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing logo");
-            return StatusCode(500, "Error removing logo");
-        }
+        var request = new UpdateSystemSettingsRequest { CompanyLogoUrl = "" };
+        var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+        return Ok(settings);
     }
 
     /// <summary>
@@ -234,20 +195,12 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> RemoveLoginLogo()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
 
-            var request = new UpdateSystemSettingsRequest { CompanyLoginLogoUrl = "" };
-            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing login logo");
-            return StatusCode(500, "Error removing login logo");
-        }
+        var request = new UpdateSystemSettingsRequest { CompanyLoginLogoUrl = "" };
+        var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+        return Ok(settings);
     }
 
     /// <summary>
@@ -258,28 +211,20 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> ResetBranding()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
 
-            var request = new UpdateSystemSettingsRequest
-            {
-                CompanyLogoUrl = "",
-                CompanyLoginLogoUrl = "",
-                PrimaryColor = "#6750A4",
-                SecondaryColor = "#625B71",
-                SelectedPaletteId = null,
-                SelectedPaletteName = null
-            };
-            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-            return Ok(settings);
-        }
-        catch (Exception ex)
+        var request = new UpdateSystemSettingsRequest
         {
-            _logger.LogError(ex, "Error resetting branding");
-            return StatusCode(500, "Error resetting branding");
-        }
+            CompanyLogoUrl = "",
+            CompanyLoginLogoUrl = "",
+            PrimaryColor = "#6750A4",
+            SecondaryColor = "#625B71",
+            SelectedPaletteId = null,
+            SelectedPaletteName = null
+        };
+        var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+        return Ok(settings);
     }
 
     /// <summary>
@@ -290,99 +235,91 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GenerateSelfSignedCertificate([FromBody] GenerateCertificateRequest? request)
     {
-        try
+                var certDir = Path.Combine(Directory.GetCurrentDirectory(), "ssl");
+        Directory.CreateDirectory(certDir);
+
+        var commonName = request?.CommonName ?? "localhost";
+        var validityDays = request?.ValidityDays ?? 365;
+        var password = request?.Password ?? _defaultCertPassword;
+        var pfxPath = Path.Combine(certDir, "server.pfx");
+        var crtPath = Path.Combine(certDir, "server.crt");
+        var keyPath = Path.Combine(certDir, "server.key");
+
+        // Generate certificate using System.Security.Cryptography
+        using var rsa = System.Security.Cryptography.RSA.Create(2048);
+        var distinguishedName = new X500DistinguishedName($"CN={commonName}, O=CRM, C=US");
+
+        var sanBuilder = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
+        sanBuilder.AddDnsName("localhost");
+        sanBuilder.AddDnsName(commonName);
+        sanBuilder.AddDnsName("crm-api");
+        sanBuilder.AddDnsName("crm-api.crm-app.svc.cluster.local");
+        sanBuilder.AddIpAddress(System.Net.IPAddress.Parse("127.0.0.1"));
+
+        var certRequest = new System.Security.Cryptography.X509Certificates.CertificateRequest(
+            distinguishedName,
+            rsa,
+            System.Security.Cryptography.HashAlgorithmName.SHA256,
+            System.Security.Cryptography.RSASignaturePadding.Pkcs1);
+
+        certRequest.CertificateExtensions.Add(
+            new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
+                System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
+                System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyEncipherment,
+                critical: true));
+
+        certRequest.CertificateExtensions.Add(
+            new System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension(
+                new System.Security.Cryptography.OidCollection
+                {
+                    new System.Security.Cryptography.Oid("1.3.6.1.5.5.7.3.1") // Server Authentication
+                }, critical: true));
+
+        certRequest.CertificateExtensions.Add(sanBuilder.Build());
+
+        var certificate = certRequest.CreateSelfSigned(
+            DateTimeOffset.UtcNow.AddDays(-1),
+            DateTimeOffset.UtcNow.AddDays(validityDays));
+
+        // Export PFX
+        var pfxBytes = certificate.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Pfx, password);
+        await System.IO.File.WriteAllBytesAsync(pfxPath, pfxBytes);
+
+        // Export CRT (public certificate)
+        var crtBytes = certificate.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Cert);
+        await System.IO.File.WriteAllBytesAsync(crtPath, crtBytes);
+
+        // Export private key (PEM format)
+        var privateKeyPem = rsa.ExportRSAPrivateKeyPem();
+        await System.IO.File.WriteAllTextAsync(keyPath, privateKeyPem);
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+        // Update settings
+        var updateRequest = new UpdateSystemSettingsRequest
         {
-            var certDir = Path.Combine(Directory.GetCurrentDirectory(), "ssl");
-            Directory.CreateDirectory(certDir);
+            HttpsEnabled = true,
+            SslCertificatePath = pfxPath,
+            SslPrivateKeyPath = keyPath,
+            SslCertificateExpiry = certificate.NotAfter,
+            SslCertificateSubject = certificate.Subject
+        };
 
-            var commonName = request?.CommonName ?? "localhost";
-            var validityDays = request?.ValidityDays ?? 365;
-            var password = request?.Password ?? _defaultCertPassword;
-            var pfxPath = Path.Combine(certDir, "server.pfx");
-            var crtPath = Path.Combine(certDir, "server.crt");
-            var keyPath = Path.Combine(certDir, "server.key");
+        await _settingsService.UpdateSettingsAsync(updateRequest, userId);
 
-            // Generate certificate using System.Security.Cryptography
-            using var rsa = System.Security.Cryptography.RSA.Create(2048);
-            var distinguishedName = new X500DistinguishedName($"CN={commonName}, O=CRM, C=US");
+        _logger.LogInformation("Self-signed certificate generated by user {UserId} for CN={CommonName}", userId, commonName);
 
-            var sanBuilder = new System.Security.Cryptography.X509Certificates.SubjectAlternativeNameBuilder();
-            sanBuilder.AddDnsName("localhost");
-            sanBuilder.AddDnsName(commonName);
-            sanBuilder.AddDnsName("crm-api");
-            sanBuilder.AddDnsName("crm-api.crm-app.svc.cluster.local");
-            sanBuilder.AddIpAddress(System.Net.IPAddress.Parse("127.0.0.1"));
-
-            var certRequest = new System.Security.Cryptography.X509Certificates.CertificateRequest(
-                distinguishedName,
-                rsa,
-                System.Security.Cryptography.HashAlgorithmName.SHA256,
-                System.Security.Cryptography.RSASignaturePadding.Pkcs1);
-
-            certRequest.CertificateExtensions.Add(
-                new System.Security.Cryptography.X509Certificates.X509KeyUsageExtension(
-                    System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.DigitalSignature |
-                    System.Security.Cryptography.X509Certificates.X509KeyUsageFlags.KeyEncipherment,
-                    critical: true));
-
-            certRequest.CertificateExtensions.Add(
-                new System.Security.Cryptography.X509Certificates.X509EnhancedKeyUsageExtension(
-                    new System.Security.Cryptography.OidCollection
-                    {
-                        new System.Security.Cryptography.Oid("1.3.6.1.5.5.7.3.1") // Server Authentication
-                    }, critical: true));
-
-            certRequest.CertificateExtensions.Add(sanBuilder.Build());
-
-            var certificate = certRequest.CreateSelfSigned(
-                DateTimeOffset.UtcNow.AddDays(-1),
-                DateTimeOffset.UtcNow.AddDays(validityDays));
-
-            // Export PFX
-            var pfxBytes = certificate.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Pfx, password);
-            await System.IO.File.WriteAllBytesAsync(pfxPath, pfxBytes);
-
-            // Export CRT (public certificate)
-            var crtBytes = certificate.Export(System.Security.Cryptography.X509Certificates.X509ContentType.Cert);
-            await System.IO.File.WriteAllBytesAsync(crtPath, crtBytes);
-
-            // Export private key (PEM format)
-            var privateKeyPem = rsa.ExportRSAPrivateKeyPem();
-            await System.IO.File.WriteAllTextAsync(keyPath, privateKeyPem);
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-
-            // Update settings
-            var updateRequest = new UpdateSystemSettingsRequest
-            {
-                HttpsEnabled = true,
-                SslCertificatePath = pfxPath,
-                SslPrivateKeyPath = keyPath,
-                SslCertificateExpiry = certificate.NotAfter,
-                SslCertificateSubject = certificate.Subject
-            };
-
-            await _settingsService.UpdateSettingsAsync(updateRequest, userId);
-
-            _logger.LogInformation("Self-signed certificate generated by user {UserId} for CN={CommonName}", userId, commonName);
-
-            return Ok(new
-            {
-                message = "Self-signed certificate generated successfully. Restart the server to apply.",
-                commonName = commonName,
-                validityDays = validityDays,
-                expiresOn = certificate.NotAfter,
-                subject = certificate.Subject,
-                pfxPath = pfxPath,
-                requiresRestart = true
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error generating self-signed certificate");
-            return StatusCode(500, new { message = $"Error generating certificate: {ex.Message}" });
-        }
+            message = "Self-signed certificate generated successfully. Restart the server to apply.",
+            commonName = commonName,
+            validityDays = validityDays,
+            expiresOn = certificate.NotAfter,
+            subject = certificate.Subject,
+            pfxPath = pfxPath,
+            requiresRestart = true
+        });
     }
 
     /// <summary>
@@ -397,125 +334,117 @@ public class SystemSettingsController : ControllerBase
         [FromForm] IFormFile? privateKey,
         [FromForm] string? password)
     {
-        try
+                if (certificate == null || certificate.Length == 0)
+            return BadRequest(new { message = "Certificate file is required" });
+
+        var certDir = Path.Combine(Directory.GetCurrentDirectory(), "ssl");
+        Directory.CreateDirectory(certDir);
+
+        var fileName = certificate.FileName.ToLower();
+        var isPfx = fileName.EndsWith(".pfx") || fileName.EndsWith(".p12");
+
+        string pfxPath;
+        string? keyPath = null;
+        DateTime? expiry = null;
+        string? subject = null;
+
+        if (isPfx)
         {
-            if (certificate == null || certificate.Length == 0)
-                return BadRequest(new { message = "Certificate file is required" });
-
-            var certDir = Path.Combine(Directory.GetCurrentDirectory(), "ssl");
-            Directory.CreateDirectory(certDir);
-
-            var fileName = certificate.FileName.ToLower();
-            var isPfx = fileName.EndsWith(".pfx") || fileName.EndsWith(".p12");
-
-            string pfxPath;
-            string? keyPath = null;
-            DateTime? expiry = null;
-            string? subject = null;
-
-            if (isPfx)
+            // Handle PFX file directly
+            pfxPath = Path.Combine(certDir, "server.pfx");
+            using (var stream = new FileStream(pfxPath, FileMode.Create))
             {
-                // Handle PFX file directly
-                pfxPath = Path.Combine(certDir, "server.pfx");
-                using (var stream = new FileStream(pfxPath, FileMode.Create))
-                {
-                    await certificate.CopyToAsync(stream);
-                }
-
-                try
-                {
-                    var certPassword = password ?? "";
-#pragma warning disable SYSLIB0057
-                    using var x509 = new X509Certificate2(pfxPath, certPassword, X509KeyStorageFlags.Exportable);
-#pragma warning restore SYSLIB0057
-                    expiry = x509.NotAfter;
-                    subject = x509.Subject;
-
-                    // Re-export with configured password if different
-                    if (password != _defaultCertPassword)
-                    {
-                        var pfxBytes = x509.Export(X509ContentType.Pfx, _defaultCertPassword);
-                        await System.IO.File.WriteAllBytesAsync(pfxPath, pfxBytes);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Could not parse PFX certificate - may need password");
-                    return BadRequest(new { message = "Could not load PFX certificate. Please check the password." });
-                }
+                await certificate.CopyToAsync(stream);
             }
-            else
+
+            try
             {
-                // Handle CRT + KEY files
-                var crtPath = Path.Combine(certDir, "server.crt");
-                using (var stream = new FileStream(crtPath, FileMode.Create))
+                var certPassword = password ?? "";
+#pragma warning disable SYSLIB0057
+                using var x509 = new X509Certificate2(pfxPath, certPassword, X509KeyStorageFlags.Exportable);
+#pragma warning restore SYSLIB0057
+                expiry = x509.NotAfter;
+                subject = x509.Subject;
+
+                // Re-export with configured password if different
+                if (password != _defaultCertPassword)
                 {
-                    await certificate.CopyToAsync(stream);
-                }
-
-                if (privateKey == null || privateKey.Length == 0)
-                {
-                    return BadRequest(new { message = "Private key file is required for CRT/PEM certificates" });
-                }
-
-                keyPath = Path.Combine(certDir, "server.key");
-                using (var keyStream = new FileStream(keyPath, FileMode.Create))
-                {
-                    await privateKey.CopyToAsync(keyStream);
-                }
-
-                // Create PFX from CRT + KEY
-                try
-                {
-                    var certPem = await System.IO.File.ReadAllTextAsync(crtPath);
-                    var keyPem = await System.IO.File.ReadAllTextAsync(keyPath);
-
-                    using var x509 = X509Certificate2.CreateFromPem(certPem, keyPem);
-                    expiry = x509.NotAfter;
-                    subject = x509.Subject;
-
-                    // Export as PFX
-                    pfxPath = Path.Combine(certDir, "server.pfx");
                     var pfxBytes = x509.Export(X509ContentType.Pfx, _defaultCertPassword);
                     await System.IO.File.WriteAllBytesAsync(pfxPath, pfxBytes);
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Could not convert CRT+KEY to PFX");
-                    return BadRequest(new { message = $"Could not process certificate: {ex.Message}" });
-                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not parse PFX certificate - may need password");
+                return BadRequest(new { message = "Could not load PFX certificate. Please check the password." });
+            }
+        }
+        else
+        {
+            // Handle CRT + KEY files
+            var crtPath = Path.Combine(certDir, "server.crt");
+            using (var stream = new FileStream(crtPath, FileMode.Create))
+            {
+                await certificate.CopyToAsync(stream);
             }
 
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-
-            var request = new UpdateSystemSettingsRequest
+            if (privateKey == null || privateKey.Length == 0)
             {
-                HttpsEnabled = true,
-                SslCertificatePath = pfxPath,
-                SslPrivateKeyPath = keyPath,
-                SslCertificateExpiry = expiry,
-                SslCertificateSubject = subject
-            };
+                return BadRequest(new { message = "Private key file is required for CRT/PEM certificates" });
+            }
 
-            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-
-            _logger.LogInformation("SSL certificate uploaded by user {UserId}", userId);
-
-            return Ok(new
+            keyPath = Path.Combine(certDir, "server.key");
+            using (var keyStream = new FileStream(keyPath, FileMode.Create))
             {
-                message = "SSL certificate uploaded successfully. Restart the server to apply.",
-                expiry = expiry,
-                subject = subject,
-                requiresRestart = true,
-                settings
-            });
+                await privateKey.CopyToAsync(keyStream);
+            }
+
+            // Create PFX from CRT + KEY
+            try
+            {
+                var certPem = await System.IO.File.ReadAllTextAsync(crtPath);
+                var keyPem = await System.IO.File.ReadAllTextAsync(keyPath);
+
+                using var x509 = X509Certificate2.CreateFromPem(certPem, keyPem);
+                expiry = x509.NotAfter;
+                subject = x509.Subject;
+
+                // Export as PFX
+                pfxPath = Path.Combine(certDir, "server.pfx");
+                var pfxBytes = x509.Export(X509ContentType.Pfx, _defaultCertPassword);
+                await System.IO.File.WriteAllBytesAsync(pfxPath, pfxBytes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not convert CRT+KEY to PFX");
+                return BadRequest(new { message = $"Could not process certificate: {ex.Message}" });
+            }
         }
-        catch (Exception ex)
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+        var request = new UpdateSystemSettingsRequest
         {
-            _logger.LogError(ex, "Error uploading SSL certificate");
-            return StatusCode(500, new { message = "Error uploading SSL certificate" });
-        }
+            HttpsEnabled = true,
+            SslCertificatePath = pfxPath,
+            SslPrivateKeyPath = keyPath,
+            SslCertificateExpiry = expiry,
+            SslCertificateSubject = subject
+        };
+
+        var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+
+        _logger.LogInformation("SSL certificate uploaded by user {UserId}", userId);
+
+        return Ok(new
+        {
+            message = "SSL certificate uploaded successfully. Restart the server to apply.",
+            expiry = expiry,
+            subject = subject,
+            requiresRestart = true,
+            settings
+        });
     }
 
     /// <summary>
@@ -526,28 +455,20 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> ToggleHttps([FromBody] ToggleHttpsRequest request)
     {
-        try
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+        var updateRequest = new UpdateSystemSettingsRequest
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+            HttpsEnabled = request.Enabled,
+            ForceHttpsRedirect = request.ForceRedirect
+        };
 
-            var updateRequest = new UpdateSystemSettingsRequest
-            {
-                HttpsEnabled = request.Enabled,
-                ForceHttpsRedirect = request.ForceRedirect
-            };
+        var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
 
-            var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
+        _logger.LogInformation("HTTPS mode toggled to {Enabled} by user {UserId}", request.Enabled, userId);
 
-            _logger.LogInformation("HTTPS mode toggled to {Enabled} by user {UserId}", request.Enabled, userId);
-
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error toggling HTTPS mode");
-            return StatusCode(500, "Error toggling HTTPS mode");
-        }
+        return Ok(settings);
     }
 
     /// <summary>
@@ -558,29 +479,21 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetSslStatus()
     {
-        try
-        {
-            var settings = await _settingsService.GetSettingsAsync();
+                var settings = await _settingsService.GetSettingsAsync();
 
-            return Ok(new
-            {
-                httpsEnabled = settings.HttpsEnabled,
-                forceRedirect = settings.ForceHttpsRedirect,
-                hasCertificate = !string.IsNullOrEmpty(settings.SslCertificatePath),
-                hasPrivateKey = !string.IsNullOrEmpty(settings.SslPrivateKeyPath),
-                certificateExpiry = settings.SslCertificateExpiry,
-                certificateSubject = settings.SslCertificateSubject,
-                isExpired = settings.SslCertificateExpiry.HasValue && settings.SslCertificateExpiry < DateTime.UtcNow,
-                expiresInDays = settings.SslCertificateExpiry.HasValue
-                    ? (int)(settings.SslCertificateExpiry.Value - DateTime.UtcNow).TotalDays
-                    : (int?)null
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting SSL status");
-            return StatusCode(500, "Error getting SSL status");
-        }
+            httpsEnabled = settings.HttpsEnabled,
+            forceRedirect = settings.ForceHttpsRedirect,
+            hasCertificate = !string.IsNullOrEmpty(settings.SslCertificatePath),
+            hasPrivateKey = !string.IsNullOrEmpty(settings.SslPrivateKeyPath),
+            certificateExpiry = settings.SslCertificateExpiry,
+            certificateSubject = settings.SslCertificateSubject,
+            isExpired = settings.SslCertificateExpiry.HasValue && settings.SslCertificateExpiry < DateTime.UtcNow,
+            expiresInDays = settings.SslCertificateExpiry.HasValue
+                ? (int)(settings.SslCertificateExpiry.Value - DateTime.UtcNow).TotalDays
+                : (int?)null
+        });
     }
 
     /// <summary>
@@ -591,44 +504,36 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> RemoveSslCertificate()
     {
-        try
+                var currentSettings = await _settingsService.GetSettingsAsync();
+
+        // Delete certificate files if they exist
+        if (!string.IsNullOrEmpty(currentSettings.SslCertificatePath) && System.IO.File.Exists(currentSettings.SslCertificatePath))
         {
-            var currentSettings = await _settingsService.GetSettingsAsync();
-
-            // Delete certificate files if they exist
-            if (!string.IsNullOrEmpty(currentSettings.SslCertificatePath) && System.IO.File.Exists(currentSettings.SslCertificatePath))
-            {
-                System.IO.File.Delete(currentSettings.SslCertificatePath);
-            }
-            if (!string.IsNullOrEmpty(currentSettings.SslPrivateKeyPath) && System.IO.File.Exists(currentSettings.SslPrivateKeyPath))
-            {
-                System.IO.File.Delete(currentSettings.SslPrivateKeyPath);
-            }
-
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
-
-            var request = new UpdateSystemSettingsRequest
-            {
-                HttpsEnabled = false,
-                ForceHttpsRedirect = false,
-                SslCertificatePath = "",
-                SslPrivateKeyPath = "",
-                SslCertificateExpiry = null,
-                SslCertificateSubject = ""
-            };
-
-            var settings = await _settingsService.UpdateSettingsAsync(request, userId);
-
-            _logger.LogInformation("SSL certificate removed by user {UserId}", userId);
-
-            return Ok(settings);
+            System.IO.File.Delete(currentSettings.SslCertificatePath);
         }
-        catch (Exception ex)
+        if (!string.IsNullOrEmpty(currentSettings.SslPrivateKeyPath) && System.IO.File.Exists(currentSettings.SslPrivateKeyPath))
         {
-            _logger.LogError(ex, "Error removing SSL certificate");
-            return StatusCode(500, "Error removing SSL certificate");
+            System.IO.File.Delete(currentSettings.SslPrivateKeyPath);
         }
+
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+        var request = new UpdateSystemSettingsRequest
+        {
+            HttpsEnabled = false,
+            ForceHttpsRedirect = false,
+            SslCertificatePath = "",
+            SslPrivateKeyPath = "",
+            SslCertificateExpiry = null,
+            SslCertificateSubject = ""
+        };
+
+        var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+
+        _logger.LogInformation("SSL certificate removed by user {UserId}", userId);
+
+        return Ok(settings);
     }
 
     /// <summary>
@@ -662,11 +567,6 @@ public class SystemSettingsController : ControllerBase
             _logger.LogWarning(ex, "Navigation order validation failed");
             return BadRequest(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating navigation order");
-            return StatusCode(500, "Error updating navigation order");
-        }
     }
 
     /// <summary>
@@ -677,21 +577,13 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(SampleDataStatusResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<SampleDataStatusResponse>> GetSampleDataStatus()
     {
-        try
-        {
-            var settings = await _settingsService.GetSettingsAsync();
+                var settings = await _settingsService.GetSettingsAsync();
 
-            return Ok(new SampleDataStatusResponse
-            {
-                SampleDataSeeded = settings.SampleDataSeeded,
-                SampleDataLastSeeded = settings.SampleDataLastSeeded
-            });
-        }
-        catch (Exception ex)
+        return Ok(new SampleDataStatusResponse
         {
-            _logger.LogError(ex, "Error getting sample data status");
-            return StatusCode(500, "Error getting sample data status");
-        }
+            SampleDataSeeded = settings.SampleDataSeeded,
+            SampleDataLastSeeded = settings.SampleDataLastSeeded
+        });
     }
 
     /// <summary>
@@ -703,33 +595,25 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(LoginSettingsResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<LoginSettingsResponse>> GetLoginSettings()
     {
-        try
-        {
-            var settings = await _settingsService.GetSettingsAsync();
+                var settings = await _settingsService.GetSettingsAsync();
 
-            // Quick Admin Login is disabled
-            const bool quickAdminLoginEnabled = false;
+        // Quick Admin Login is disabled
+        const bool quickAdminLoginEnabled = false;
 
-            return Ok(new LoginSettingsResponse
-            {
-                QuickAdminLoginEnabled = quickAdminLoginEnabled,
-                GoogleAuthEnabled = settings.GoogleAuthEnabled,
-                MicrosoftAuthEnabled = settings.MicrosoftAuthEnabled,
-                LinkedInAuthEnabled = settings.LinkedInAuthEnabled,
-                FacebookAuthEnabled = settings.FacebookAuthEnabled,
-                AllowUserRegistration = settings.AllowUserRegistration,
-                // Include branding for login page
-                CompanyName = settings.CompanyName,
-                CompanyLogoUrl = settings.CompanyLogoUrl,
-                CompanyLoginLogoUrl = settings.CompanyLoginLogoUrl,
-                PrimaryColor = settings.PrimaryColor
-            });
-        }
-        catch (Exception ex)
+        return Ok(new LoginSettingsResponse
         {
-            _logger.LogError(ex, "Error getting login settings");
-            return StatusCode(500, "Error getting login settings");
-        }
+            QuickAdminLoginEnabled = quickAdminLoginEnabled,
+            GoogleAuthEnabled = settings.GoogleAuthEnabled,
+            MicrosoftAuthEnabled = settings.MicrosoftAuthEnabled,
+            LinkedInAuthEnabled = settings.LinkedInAuthEnabled,
+            FacebookAuthEnabled = settings.FacebookAuthEnabled,
+            AllowUserRegistration = settings.AllowUserRegistration,
+            // Include branding for login page
+            CompanyName = settings.CompanyName,
+            CompanyLogoUrl = settings.CompanyLogoUrl,
+            CompanyLoginLogoUrl = settings.CompanyLoginLogoUrl,
+            PrimaryColor = settings.PrimaryColor
+        });
     }
 
     /// <summary>
@@ -740,24 +624,16 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(DatabaseSyncResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DatabaseSyncResult>> RunDatabaseSync()
     {
-        try
+                if (_databaseSyncService == null)
         {
-            if (_databaseSyncService == null)
-            {
-                return StatusCode(503, "Database sync service not available");
-            }
-
-            var result = await _databaseSyncService.RunSyncCheckAsync();
-            _logger.LogInformation("Database sync completed. Success: {Success}, Fields synced: {FieldsSynced}",
-                result.Success, result.FieldsSynced);
-
-            return Ok(result);
+            return StatusCode(503, "Database sync service not available");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error running database sync");
-            return StatusCode(500, "Error running database sync");
-        }
+
+        var result = await _databaseSyncService.RunSyncCheckAsync();
+        _logger.LogInformation("Database sync completed. Success: {Success}, Fields synced: {FieldsSynced}",
+            result.Success, result.FieldsSynced);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -768,32 +644,24 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetDatabaseStatus()
     {
-        try
+                if (_databaseSyncService == null)
         {
-            if (_databaseSyncService == null)
-            {
-                return StatusCode(503, "Database sync service not available");
-            }
-
-            var result = await _databaseSyncService.RunSyncCheckAsync();
-
-            return Ok(new
-            {
-                productionDatabase = new
-                {
-                    name = "crm_db",
-                    isActive = true,
-                    modules = result.ProductionFieldCounts
-                },
-                inSync = true,
-                lastChecked = result.CheckedAt
-            });
+            return StatusCode(503, "Database sync service not available");
         }
-        catch (Exception ex)
+
+        var result = await _databaseSyncService.RunSyncCheckAsync();
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting database status");
-            return StatusCode(500, "Error getting database status");
-        }
+            productionDatabase = new
+            {
+                name = "crm_db",
+                isActive = true,
+                modules = result.ProductionFieldCounts
+            },
+            inSync = true,
+            lastChecked = result.CheckedAt
+        });
     }
 
     /// <summary>
@@ -804,68 +672,60 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetFeatureConfiguration()
     {
-        try
-        {
-            var settings = await _settingsService.GetSettingsAsync();
+                var settings = await _settingsService.GetSettingsAsync();
 
-            return Ok(new
-            {
-                coreModules = new
-                {
-                    accounts = new { enabled = settings.AccountsEnabled, name = "Accounts", description = "Manage account records and relationships" },
-                    contacts = new { enabled = settings.ContactsEnabled, name = "Contacts", description = "Manage contact information" },
-                    leads = new { enabled = settings.LeadsEnabled, name = "Leads", description = "Track and manage sales leads" },
-                    opportunities = new { enabled = settings.OpportunitiesEnabled, name = "Opportunities", description = "Track sales opportunities and pipeline" },
-                    products = new { enabled = settings.ProductsEnabled, name = "Products", description = "Manage product catalog" },
-                    services = new { enabled = settings.ServicesEnabled, name = "Services", description = "Manage service catalog" }
-                },
-                salesModules = new
-                {
-                    campaigns = new { enabled = settings.CampaignsEnabled, name = "Campaigns", description = "Marketing campaign management" },
-                    quotes = new { enabled = settings.QuotesEnabled, name = "Quotes", description = "Create and manage quotes" }
-                },
-                productivityModules = new
-                {
-                    tasks = new { enabled = settings.TasksEnabled, name = "Tasks", description = "Task management" },
-                    activities = new { enabled = settings.ActivitiesEnabled, name = "Activities", description = "Track activities and interactions" },
-                    notes = new { enabled = settings.NotesEnabled, name = "Notes", description = "Add notes to records" }
-                },
-                automationModules = new
-                {
-                    workflows = new { enabled = settings.WorkflowsEnabled, name = "Workflows", description = "Automate business processes" }
-                },
-                analyticsModules = new
-                {
-                    reports = new { enabled = settings.ReportsEnabled, name = "Reports", description = "Generate reports" },
-                    dashboard = new { enabled = settings.DashboardEnabled, name = "Dashboard", description = "Dashboard and analytics" }
-                },
-                communicationModules = new
-                {
-                    email = new { enabled = settings.EmailEnabled, name = "Email", description = "Email integration" },
-                    whatsapp = new { enabled = settings.WhatsAppEnabled, name = "WhatsApp", description = "WhatsApp integration" },
-                    socialMedia = new { enabled = settings.SocialMediaEnabled, name = "Social Media", description = "Social media integration" }
-                },
-                databaseProviders = new
-                {
-                    mariadb = new { enabled = settings.MariaDbEnabled, name = "MariaDB", description = "MySQL-compatible open-source database" },
-                    postgresql = new { enabled = settings.PostgreSqlEnabled, name = "PostgreSQL", description = "Advanced open-source relational database" },
-                    sqlserver = new { enabled = settings.SqlServerEnabled, name = "SQL Server", description = "Microsoft SQL Server database" },
-                    sqlite = new { enabled = settings.SqliteEnabled, name = "SQLite", description = "Lightweight file-based database" },
-                    mysql = new { enabled = settings.MySqlEnabled, name = "MySQL", description = "Popular open-source database" }
-                },
-                activeDatabaseProvider = settings.ActiveDatabaseProvider,
-                systemSettings = new
-                {
-                    sampleDataSeeded = settings.SampleDataSeeded,
-                    sampleDataLastSeeded = settings.SampleDataLastSeeded
-                }
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting feature configuration");
-            return StatusCode(500, "Error getting feature configuration");
-        }
+            coreModules = new
+            {
+                accounts = new { enabled = settings.AccountsEnabled, name = "Accounts", description = "Manage account records and relationships" },
+                contacts = new { enabled = settings.ContactsEnabled, name = "Contacts", description = "Manage contact information" },
+                leads = new { enabled = settings.LeadsEnabled, name = "Leads", description = "Track and manage sales leads" },
+                opportunities = new { enabled = settings.OpportunitiesEnabled, name = "Opportunities", description = "Track sales opportunities and pipeline" },
+                products = new { enabled = settings.ProductsEnabled, name = "Products", description = "Manage product catalog" },
+                services = new { enabled = settings.ServicesEnabled, name = "Services", description = "Manage service catalog" }
+            },
+            salesModules = new
+            {
+                campaigns = new { enabled = settings.CampaignsEnabled, name = "Campaigns", description = "Marketing campaign management" },
+                quotes = new { enabled = settings.QuotesEnabled, name = "Quotes", description = "Create and manage quotes" }
+            },
+            productivityModules = new
+            {
+                tasks = new { enabled = settings.TasksEnabled, name = "Tasks", description = "Task management" },
+                activities = new { enabled = settings.ActivitiesEnabled, name = "Activities", description = "Track activities and interactions" },
+                notes = new { enabled = settings.NotesEnabled, name = "Notes", description = "Add notes to records" }
+            },
+            automationModules = new
+            {
+                workflows = new { enabled = settings.WorkflowsEnabled, name = "Workflows", description = "Automate business processes" }
+            },
+            analyticsModules = new
+            {
+                reports = new { enabled = settings.ReportsEnabled, name = "Reports", description = "Generate reports" },
+                dashboard = new { enabled = settings.DashboardEnabled, name = "Dashboard", description = "Dashboard and analytics" }
+            },
+            communicationModules = new
+            {
+                email = new { enabled = settings.EmailEnabled, name = "Email", description = "Email integration" },
+                whatsapp = new { enabled = settings.WhatsAppEnabled, name = "WhatsApp", description = "WhatsApp integration" },
+                socialMedia = new { enabled = settings.SocialMediaEnabled, name = "Social Media", description = "Social media integration" }
+            },
+            databaseProviders = new
+            {
+                mariadb = new { enabled = settings.MariaDbEnabled, name = "MariaDB", description = "MySQL-compatible open-source database" },
+                postgresql = new { enabled = settings.PostgreSqlEnabled, name = "PostgreSQL", description = "Advanced open-source relational database" },
+                sqlserver = new { enabled = settings.SqlServerEnabled, name = "SQL Server", description = "Microsoft SQL Server database" },
+                sqlite = new { enabled = settings.SqliteEnabled, name = "SQLite", description = "Lightweight file-based database" },
+                mysql = new { enabled = settings.MySqlEnabled, name = "MySQL", description = "Popular open-source database" }
+            },
+            activeDatabaseProvider = settings.ActiveDatabaseProvider,
+            systemSettings = new
+            {
+                sampleDataSeeded = settings.SampleDataSeeded,
+                sampleDataLastSeeded = settings.SampleDataLastSeeded
+            }
+        });
     }
 
     /// <summary>
@@ -876,44 +736,36 @@ public class SystemSettingsController : ControllerBase
     [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> UpdateFeatures([FromBody] UpdateFeaturesRequest request)
     {
-        try
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+
+        var updateRequest = new UpdateSystemSettingsRequest
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
+            AccountsEnabled = request.AccountsEnabled,
+            ContactsEnabled = request.ContactsEnabled,
+            LeadsEnabled = request.LeadsEnabled,
+            OpportunitiesEnabled = request.OpportunitiesEnabled,
+            ProductsEnabled = request.ProductsEnabled,
+            ServicesEnabled = request.ServicesEnabled,
+            CampaignsEnabled = request.CampaignsEnabled,
+            QuotesEnabled = request.QuotesEnabled,
+            TasksEnabled = request.TasksEnabled,
+            ActivitiesEnabled = request.ActivitiesEnabled,
+            NotesEnabled = request.NotesEnabled,
+            WorkflowsEnabled = request.WorkflowsEnabled,
+            ReportsEnabled = request.ReportsEnabled,
+            DashboardEnabled = request.DashboardEnabled,
+            EmailEnabled = request.EmailEnabled,
+            WhatsAppEnabled = request.WhatsAppEnabled,
+            SocialMediaEnabled = request.SocialMediaEnabled,
+            ActiveDatabaseProvider = request.ActiveDatabaseProvider
+        };
 
-            var updateRequest = new UpdateSystemSettingsRequest
-            {
-                AccountsEnabled = request.AccountsEnabled,
-                ContactsEnabled = request.ContactsEnabled,
-                LeadsEnabled = request.LeadsEnabled,
-                OpportunitiesEnabled = request.OpportunitiesEnabled,
-                ProductsEnabled = request.ProductsEnabled,
-                ServicesEnabled = request.ServicesEnabled,
-                CampaignsEnabled = request.CampaignsEnabled,
-                QuotesEnabled = request.QuotesEnabled,
-                TasksEnabled = request.TasksEnabled,
-                ActivitiesEnabled = request.ActivitiesEnabled,
-                NotesEnabled = request.NotesEnabled,
-                WorkflowsEnabled = request.WorkflowsEnabled,
-                ReportsEnabled = request.ReportsEnabled,
-                DashboardEnabled = request.DashboardEnabled,
-                EmailEnabled = request.EmailEnabled,
-                WhatsAppEnabled = request.WhatsAppEnabled,
-                SocialMediaEnabled = request.SocialMediaEnabled,
-                ActiveDatabaseProvider = request.ActiveDatabaseProvider
-            };
+        var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
 
-            var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
+        _logger.LogInformation("Features updated by user {UserId}", userId);
 
-            _logger.LogInformation("Features updated by user {UserId}", userId);
-
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating features");
-            return StatusCode(500, "Error updating features");
-        }
+        return Ok(settings);
     }
 
     // ─── Localization reference endpoints (TODO-SYS005-003) ──────────────────

@@ -11,6 +11,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class UserProfilesController : ControllerBase
+public class UserProfilesController : CrmControllerBase
 {
     private const string ProfileNotFoundMessage = "Profile not found";
 
@@ -48,21 +49,13 @@ public class UserProfilesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserProfileDto>>> GetProfiles()
     {
-        try
-        {
-            var profiles = await _profileRepository.GetAllAsync();
-            var profileDtos = profiles
-                .Where(p => !p.IsDeleted)
-                .Select(p => MapToDto(p))
-                .ToList();
+                var profiles = await _profileRepository.GetAllAsync();
+        var profileDtos = profiles
+            .Where(p => !p.IsDeleted)
+            .Select(p => MapToDto(p))
+            .ToList();
 
-            return Ok(profileDtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving profiles");
-            return StatusCode(500, new { message = "Error retrieving profiles", error = ex.Message });
-        }
+        return Ok(profileDtos);
     }
 
     /// <summary>
@@ -73,32 +66,24 @@ public class UserProfilesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserProfileDto>> GetCurrentUserProfile()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                ?? User.FindFirst("sub")?.Value;
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? User.FindFirst("sub")?.Value;
 
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-                return Unauthorized(new { message = "User not authenticated" });
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { message = "User not authenticated" });
 
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = "User not found" });
 
-            if (!user.UserProfileId.HasValue)
-                return NotFound(new { message = "User has no profile assigned" });
+        if (!user.UserProfileId.HasValue)
+            return NotFound(new { message = "User has no profile assigned" });
 
-            var profile = await _profileRepository.GetByIdAsync(user.UserProfileId.Value);
-            if (profile == null || profile.IsDeleted)
-                return NotFound(new { message = ProfileNotFoundMessage });
+        var profile = await _profileRepository.GetByIdAsync(user.UserProfileId.Value);
+        if (profile == null || profile.IsDeleted)
+            return NotFound(new { message = ProfileNotFoundMessage });
 
-            return Ok(MapToDto(profile));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving current user profile");
-            return StatusCode(500, new { message = "Error retrieving current user profile", error = ex.Message });
-        }
+        return Ok(MapToDto(profile));
     }
 
     /// <summary>
@@ -108,21 +93,13 @@ public class UserProfilesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserProfileDto>>> GetProfilesByDepartment(int departmentId)
     {
-        try
-        {
-            var profiles = await _profileRepository.GetAllAsync();
-            var departmentProfiles = profiles
-                .Where(p => !p.IsDeleted && p.DepartmentId == departmentId)
-                .Select(p => MapToDto(p))
-                .ToList();
+                var profiles = await _profileRepository.GetAllAsync();
+        var departmentProfiles = profiles
+            .Where(p => !p.IsDeleted && p.DepartmentId == departmentId)
+            .Select(p => MapToDto(p))
+            .ToList();
 
-            return Ok(departmentProfiles);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving profiles for department {DepartmentId}", departmentId);
-            return StatusCode(500, new { message = "Error retrieving profiles", error = ex.Message });
-        }
+        return Ok(departmentProfiles);
     }
 
     /// <summary>
@@ -133,19 +110,11 @@ public class UserProfilesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserProfileDto>> GetProfileById(int id)
     {
-        try
-        {
-            var profile = await _profileRepository.GetByIdAsync(id);
-            if (profile == null || profile.IsDeleted)
-                return NotFound(new { message = ProfileNotFoundMessage });
+                var profile = await _profileRepository.GetByIdAsync(id);
+        if (profile == null || profile.IsDeleted)
+            return NotFound(new { message = ProfileNotFoundMessage });
 
-            return Ok(MapToDto(profile));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving profile {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving profile", error = ex.Message });
-        }
+        return Ok(MapToDto(profile));
     }
 
     /// <summary>
@@ -156,51 +125,43 @@ public class UserProfilesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<UserProfileDto>> CreateProfile([FromBody] CreateUserProfileDto createDto)
     {
-        try
+                if (string.IsNullOrWhiteSpace(createDto.Name))
+            return BadRequest(new { message = "Profile name is required" });
+
+        if (createDto.DepartmentId <= 0)
+            return BadRequest(new { message = "Valid department ID is required" });
+
+        // Verify department exists
+        var department = await _departmentRepository.GetByIdAsync(createDto.DepartmentId);
+        if (department == null || department.IsDeleted)
+            return BadRequest(new { message = "Department not found" });
+
+        var profile = new UserProfile
         {
-            if (string.IsNullOrWhiteSpace(createDto.Name))
-                return BadRequest(new { message = "Profile name is required" });
+            Name = createDto.Name,
+            Description = createDto.Description,
+            DepartmentId = createDto.DepartmentId,
+            AccessiblePages = JsonSerializer.Serialize(createDto.AccessiblePages),
+            CanCreateAccounts = createDto.CanCreateAccounts,
+            CanEditAccounts = createDto.CanEditAccounts,
+            CanDeleteAccounts = createDto.CanDeleteAccounts,
+            CanCreateOpportunities = createDto.CanCreateOpportunities,
+            CanEditOpportunities = createDto.CanEditOpportunities,
+            CanDeleteOpportunities = createDto.CanDeleteOpportunities,
+            CanCreateProducts = createDto.CanCreateProducts,
+            CanEditProducts = createDto.CanEditProducts,
+            CanDeleteProducts = createDto.CanDeleteProducts,
+            CanManageCampaigns = createDto.CanManageCampaigns,
+            CanViewReports = createDto.CanViewReports,
+            CanManageUsers = createDto.CanManageUsers,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
 
-            if (createDto.DepartmentId <= 0)
-                return BadRequest(new { message = "Valid department ID is required" });
+        await _profileRepository.AddAsync(profile);
+        await _profileRepository.SaveAsync();
 
-            // Verify department exists
-            var department = await _departmentRepository.GetByIdAsync(createDto.DepartmentId);
-            if (department == null || department.IsDeleted)
-                return BadRequest(new { message = "Department not found" });
-
-            var profile = new UserProfile
-            {
-                Name = createDto.Name,
-                Description = createDto.Description,
-                DepartmentId = createDto.DepartmentId,
-                AccessiblePages = JsonSerializer.Serialize(createDto.AccessiblePages),
-                CanCreateAccounts = createDto.CanCreateAccounts,
-                CanEditAccounts = createDto.CanEditAccounts,
-                CanDeleteAccounts = createDto.CanDeleteAccounts,
-                CanCreateOpportunities = createDto.CanCreateOpportunities,
-                CanEditOpportunities = createDto.CanEditOpportunities,
-                CanDeleteOpportunities = createDto.CanDeleteOpportunities,
-                CanCreateProducts = createDto.CanCreateProducts,
-                CanEditProducts = createDto.CanEditProducts,
-                CanDeleteProducts = createDto.CanDeleteProducts,
-                CanManageCampaigns = createDto.CanManageCampaigns,
-                CanViewReports = createDto.CanViewReports,
-                CanManageUsers = createDto.CanManageUsers,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _profileRepository.AddAsync(profile);
-            await _profileRepository.SaveAsync();
-
-            return CreatedAtAction(nameof(GetProfileById), new { id = profile.Id }, MapToDto(profile));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating profile");
-            return StatusCode(500, new { message = "Error creating profile", error = ex.Message });
-        }
+        return CreatedAtAction(nameof(GetProfileById), new { id = profile.Id }, MapToDto(profile));
     }
 
     /// <summary>
@@ -211,39 +172,31 @@ public class UserProfilesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserProfileDto>> UpdateProfile(int id, [FromBody] CreateUserProfileDto updateDto)
     {
-        try
-        {
-            var profile = await _profileRepository.GetByIdAsync(id);
-            if (profile == null || profile.IsDeleted)
-                return NotFound(new { message = ProfileNotFoundMessage });
+                var profile = await _profileRepository.GetByIdAsync(id);
+        if (profile == null || profile.IsDeleted)
+            return NotFound(new { message = ProfileNotFoundMessage });
 
-            profile.Name = updateDto.Name;
-            profile.Description = updateDto.Description;
-            profile.AccessiblePages = JsonSerializer.Serialize(updateDto.AccessiblePages);
-            profile.CanCreateAccounts = updateDto.CanCreateAccounts;
-            profile.CanEditAccounts = updateDto.CanEditAccounts;
-            profile.CanDeleteAccounts = updateDto.CanDeleteAccounts;
-            profile.CanCreateOpportunities = updateDto.CanCreateOpportunities;
-            profile.CanEditOpportunities = updateDto.CanEditOpportunities;
-            profile.CanDeleteOpportunities = updateDto.CanDeleteOpportunities;
-            profile.CanCreateProducts = updateDto.CanCreateProducts;
-            profile.CanEditProducts = updateDto.CanEditProducts;
-            profile.CanDeleteProducts = updateDto.CanDeleteProducts;
-            profile.CanManageCampaigns = updateDto.CanManageCampaigns;
-            profile.CanViewReports = updateDto.CanViewReports;
-            profile.CanManageUsers = updateDto.CanManageUsers;
-            profile.UpdatedAt = DateTime.UtcNow;
+        profile.Name = updateDto.Name;
+        profile.Description = updateDto.Description;
+        profile.AccessiblePages = JsonSerializer.Serialize(updateDto.AccessiblePages);
+        profile.CanCreateAccounts = updateDto.CanCreateAccounts;
+        profile.CanEditAccounts = updateDto.CanEditAccounts;
+        profile.CanDeleteAccounts = updateDto.CanDeleteAccounts;
+        profile.CanCreateOpportunities = updateDto.CanCreateOpportunities;
+        profile.CanEditOpportunities = updateDto.CanEditOpportunities;
+        profile.CanDeleteOpportunities = updateDto.CanDeleteOpportunities;
+        profile.CanCreateProducts = updateDto.CanCreateProducts;
+        profile.CanEditProducts = updateDto.CanEditProducts;
+        profile.CanDeleteProducts = updateDto.CanDeleteProducts;
+        profile.CanManageCampaigns = updateDto.CanManageCampaigns;
+        profile.CanViewReports = updateDto.CanViewReports;
+        profile.CanManageUsers = updateDto.CanManageUsers;
+        profile.UpdatedAt = DateTime.UtcNow;
 
-            await _profileRepository.UpdateAsync(profile);
-            await _profileRepository.SaveAsync();
+        await _profileRepository.UpdateAsync(profile);
+        await _profileRepository.SaveAsync();
 
-            return Ok(MapToDto(profile));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating profile {Id}", id);
-            return StatusCode(500, new { message = "Error updating profile", error = ex.Message });
-        }
+        return Ok(MapToDto(profile));
     }
 
     /// <summary>
@@ -254,25 +207,17 @@ public class UserProfilesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteProfile(int id)
     {
-        try
-        {
-            var profile = await _profileRepository.GetByIdAsync(id);
-            if (profile == null || profile.IsDeleted)
-                return NotFound(new { message = ProfileNotFoundMessage });
+                var profile = await _profileRepository.GetByIdAsync(id);
+        if (profile == null || profile.IsDeleted)
+            return NotFound(new { message = ProfileNotFoundMessage });
 
-            profile.IsDeleted = true;
-            profile.UpdatedAt = DateTime.UtcNow;
+        profile.IsDeleted = true;
+        profile.UpdatedAt = DateTime.UtcNow;
 
-            await _profileRepository.UpdateAsync(profile);
-            await _profileRepository.SaveAsync();
+        await _profileRepository.UpdateAsync(profile);
+        await _profileRepository.SaveAsync();
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting profile {Id}", id);
-            return StatusCode(500, new { message = "Error deleting profile", error = ex.Message });
-        }
+        return NoContent();
     }
 
     private UserProfileDto MapToDto(UserProfile profile)

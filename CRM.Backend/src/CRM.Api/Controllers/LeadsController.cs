@@ -11,6 +11,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,10 +21,9 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class LeadsController : ControllerBase
+public class LeadsController : CrmControllerBase
 {
     private const string LeadNotFoundMessage = "Lead with ID {0} not found";
-    private const string InternalServerErrorMessage = "Internal server error";
     private readonly ILeadService _leadService;
     private readonly ILeadAgingAlertService _leadAgingAlertService;
     private readonly ILeadQualificationService _qualificationService;
@@ -49,23 +49,15 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 25)
     {
-        try
+                var (items, totalCount, p, ps, totalPages) = await _leadService.GetAllAsync(page, pageSize);
+        return Ok(new
         {
-            var (items, totalCount, p, ps, totalPages) = await _leadService.GetAllAsync(page, pageSize);
-            return Ok(new
-            {
-                data = items,
-                totalCount,
-                page = p,
-                pageSize = ps,
-                totalPages
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving leads");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+            data = items,
+            totalCount,
+            page = p,
+            pageSize = ps,
+            totalPages
+        });
     }
 
     /// <summary>
@@ -77,18 +69,10 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetById(int id)
     {
-        try
-        {
-            var lead = await _leadService.GetByIdAsync(id);
-            if (lead == null)
-                return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
-            return Ok(lead);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving lead {LeadId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var lead = await _leadService.GetByIdAsync(id);
+        if (lead == null)
+            return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
+        return Ok(lead);
     }
 
     /// <summary>
@@ -125,11 +109,6 @@ public class LeadsController : ControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating lead");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
     }
 
     /// <summary>
@@ -142,50 +121,42 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateLeadDto request)
     {
-        try
+                var updated = await _leadService.UpdateAsync(id, lead =>
         {
-            var updated = await _leadService.UpdateAsync(id, lead =>
-            {
-                if (!string.IsNullOrEmpty(request.FirstName))
-                    lead.FirstName = request.FirstName;
-                if (!string.IsNullOrEmpty(request.LastName))
-                    lead.LastName = request.LastName;
-                if (!string.IsNullOrEmpty(request.Email))
-                    lead.Email = request.Email;
-                if (!string.IsNullOrEmpty(request.Phone))
-                    lead.Phone = request.Phone;
-                if (!string.IsNullOrEmpty(request.CompanyName))
-                    lead.CompanyName = request.CompanyName;
-                if (!string.IsNullOrEmpty(request.Title))
-                    lead.Title = request.Title;
-                if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<LeadLifecycleStatus>(request.Status, out var status))
-                    lead.Status = status;
-                if (!string.IsNullOrEmpty(request.Source) && Enum.TryParse<LeadSource>(request.Source, out var src))
-                    lead.Source = src;
-                if (!string.IsNullOrEmpty(request.Region))
-                    lead.Region = request.Region;
-                if (!string.IsNullOrEmpty(request.Website))
-                    lead.Website = request.Website;
-                if (!string.IsNullOrEmpty(request.Notes))
-                    lead.QualificationNotes = request.Notes;
-                if (request.Score.HasValue)
-                    lead.Score = request.Score.Value;
-                if (request.OwnerId.HasValue)
-                    lead.OwnerId = request.OwnerId.Value;
-                if (request.CampaignId.HasValue)
-                    lead.CampaignId = request.CampaignId.Value;
-            });
+            if (!string.IsNullOrEmpty(request.FirstName))
+                lead.FirstName = request.FirstName;
+            if (!string.IsNullOrEmpty(request.LastName))
+                lead.LastName = request.LastName;
+            if (!string.IsNullOrEmpty(request.Email))
+                lead.Email = request.Email;
+            if (!string.IsNullOrEmpty(request.Phone))
+                lead.Phone = request.Phone;
+            if (!string.IsNullOrEmpty(request.CompanyName))
+                lead.CompanyName = request.CompanyName;
+            if (!string.IsNullOrEmpty(request.Title))
+                lead.Title = request.Title;
+            if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<LeadLifecycleStatus>(request.Status, out var status))
+                lead.Status = status;
+            if (!string.IsNullOrEmpty(request.Source) && Enum.TryParse<LeadSource>(request.Source, out var src))
+                lead.Source = src;
+            if (!string.IsNullOrEmpty(request.Region))
+                lead.Region = request.Region;
+            if (!string.IsNullOrEmpty(request.Website))
+                lead.Website = request.Website;
+            if (!string.IsNullOrEmpty(request.Notes))
+                lead.QualificationNotes = request.Notes;
+            if (request.Score.HasValue)
+                lead.Score = request.Score.Value;
+            if (request.OwnerId.HasValue)
+                lead.OwnerId = request.OwnerId.Value;
+            if (request.CampaignId.HasValue)
+                lead.CampaignId = request.CampaignId.Value;
+        });
 
-            if (!updated)
-                return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
+        if (!updated)
+            return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
 
-            return Ok(new { message = "Lead updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating lead {LeadId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(new { message = "Lead updated successfully" });
     }
 
     /// <summary>
@@ -197,18 +168,10 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> Delete(int id)
     {
-        try
-        {
-            var deleted = await _leadService.DeleteAsync(id);
-            if (!deleted)
-                return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
-            return Ok(new { message = "Lead deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting lead {LeadId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var deleted = await _leadService.DeleteAsync(id);
+        if (!deleted)
+            return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
+        return Ok(new { message = "Lead deleted successfully" });
     }
 
     /// <summary>
@@ -220,21 +183,13 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> Convert(int id, [FromBody] ConvertLeadDto request)
     {
-        try
+                var (opportunityId, leadId) = await _leadService.ConvertAsync(id, request.OpportunityName, request.AccountId, request.EstimatedValue, request.ExpectedCloseDate);
+        return Ok(new
         {
-            var (opportunityId, leadId) = await _leadService.ConvertAsync(id, request.OpportunityName, request.AccountId, request.EstimatedValue, request.ExpectedCloseDate);
-            return Ok(new
-            {
-                message = "Lead converted successfully",
-                opportunityId,
-                leadId
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error converting lead {LeadId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+            message = "Lead converted successfully",
+            opportunityId,
+            leadId
+        });
     }
 
     /// <summary>
@@ -256,24 +211,16 @@ public class LeadsController : ControllerBase
         [FromQuery] string? lastName = null,
         [FromQuery] string? company = null)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(email) && (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName)))
-                return BadRequest(new { message = "Provide at least 'email' or both 'firstName' and 'lastName'." });
+                if (string.IsNullOrWhiteSpace(email) && (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName)))
+            return BadRequest(new { message = "Provide at least 'email' or both 'firstName' and 'lastName'." });
 
-            var (isDuplicate, existingLeadId, matchedOn) = await _leadService.CheckDuplicateAsync(email, firstName, lastName, company);
-            return Ok(new CheckDuplicateLeadResponse
-            {
-                IsDuplicate = isDuplicate,
-                ExistingLeadId = existingLeadId,
-                MatchedOn = matchedOn
-            });
-        }
-        catch (Exception ex)
+        var (isDuplicate, existingLeadId, matchedOn) = await _leadService.CheckDuplicateAsync(email, firstName, lastName, company);
+        return Ok(new CheckDuplicateLeadResponse
         {
-            _logger.LogError(ex, "Error checking for duplicate leads");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+            IsDuplicate = isDuplicate,
+            ExistingLeadId = existingLeadId,
+            MatchedOn = matchedOn
+        });
     }
 
     /// <summary>
@@ -285,19 +232,11 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetByStatus(string status)
     {
-        try
-        {
-            if (!Enum.TryParse<LeadLifecycleStatus>(status, true, out var leadStatus))
-                return BadRequest(new { message = $"Invalid status: {status}" });
+                if (!Enum.TryParse<LeadLifecycleStatus>(status, true, out var leadStatus))
+            return BadRequest(new { message = $"Invalid status: {status}" });
 
-            var leads = await _leadService.GetByStatusAsync(leadStatus);
-            return Ok(leads);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving leads by status {Status}", status);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        var leads = await _leadService.GetByStatusAsync(leadStatus);
+        return Ok(leads);
     }
 
     /// <summary>
@@ -308,16 +247,8 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetStats()
     {
-        try
-        {
-            var stats = await _leadService.GetStatsAsync();
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving lead stats");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var stats = await _leadService.GetStatsAsync();
+        return Ok(stats);
     }
 
     /// <summary>
@@ -328,16 +259,8 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetSourceAnalytics(CancellationToken ct = default)
     {
-        try
-        {
-            var analytics = await _leadService.GetSourceAnalyticsAsync(ct);
-            return Ok(analytics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving lead source analytics");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var analytics = await _leadService.GetSourceAnalyticsAsync(ct);
+        return Ok(analytics);
     }
 
     /// <summary>
@@ -348,16 +271,8 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetAttributionAnalytics(CancellationToken ct = default)
     {
-        try
-        {
-            var analytics = await _leadService.GetAttributionAnalyticsAsync(ct);
-            return Ok(analytics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving lead attribution analytics");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var analytics = await _leadService.GetAttributionAnalyticsAsync(ct);
+        return Ok(analytics);
     }
 
     // =========================================================================
@@ -377,16 +292,8 @@ public class LeadsController : ControllerBase
         [FromQuery] int staleDays = 14,
         CancellationToken ct = default)
     {
-        try
-        {
-            var alerts = await _leadAgingAlertService.GetStaledLeadsAsync(staleDays, ct);
-            return Ok(alerts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving lead aging alerts");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var alerts = await _leadAgingAlertService.GetStaledLeadsAsync(staleDays, ct);
+        return Ok(alerts);
     }
 
     // =========================================================================
@@ -406,19 +313,11 @@ public class LeadsController : ControllerBase
         [FromBody] AssignNurtureCampaignDto request,
         CancellationToken ct = default)
     {
-        try
-        {
-            var result = await _leadService.AssignToNurtureCampaignAsync(id, request.CampaignId, ct);
-            if (!result)
-                return NotFound(new { message = $"Lead {id} or campaign {request.CampaignId} not found." });
+                var result = await _leadService.AssignToNurtureCampaignAsync(id, request.CampaignId, ct);
+        if (!result)
+            return NotFound(new { message = $"Lead {id} or campaign {request.CampaignId} not found." });
 
-            return Ok(new { message = "Lead enrolled in nurture campaign.", leadId = id, campaignId = request.CampaignId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning lead {LeadId} to nurture campaign", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(new { message = "Lead enrolled in nurture campaign.", leadId = id, campaignId = request.CampaignId });
     }
 
     /// <summary>
@@ -430,24 +329,16 @@ public class LeadsController : ControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetNurtureCampaigns(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var lead = await _leadService.GetByIdAsync(id);
-            if (lead == null)
-                return NotFound(new { message = $"Lead {id} not found." });
+                var lead = await _leadService.GetByIdAsync(id);
+        if (lead == null)
+            return NotFound(new { message = $"Lead {id} not found." });
 
-            var campaign = await _leadService.GetNurtureCampaignAsync(id, ct);
-            var result = campaign != null
-                ? new[] { new { campaign.Id, campaign.Name } }
-                : Array.Empty<object>();
+        var campaign = await _leadService.GetNurtureCampaignAsync(id, ct);
+        var result = campaign != null
+            ? new[] { new { campaign.Id, campaign.Name } }
+            : Array.Empty<object>();
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving nurture campaigns for lead {LeadId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -462,19 +353,11 @@ public class LeadsController : ControllerBase
         int campaignId,
         CancellationToken ct = default)
     {
-        try
-        {
-            var result = await _leadService.RemoveFromNurtureCampaignAsync(id, campaignId, ct);
-            if (!result)
-                return NotFound(new { message = $"Lead {id} is not enrolled in campaign {campaignId}." });
+                var result = await _leadService.RemoveFromNurtureCampaignAsync(id, campaignId, ct);
+        if (!result)
+            return NotFound(new { message = $"Lead {id} is not enrolled in campaign {campaignId}." });
 
-            return Ok(new { message = "Lead removed from nurture campaign.", leadId = id, campaignId });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing lead {LeadId} from nurture campaign {CampaignId}", id, campaignId);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(new { message = "Lead removed from nurture campaign.", leadId = id, campaignId });
     }
 
     /// <summary>
@@ -534,11 +417,6 @@ public class LeadsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(new { message = $"Lead {id} not found." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error qualifying lead {LeadId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 }

@@ -8,6 +8,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/itsm/cicd")]
 [Tags("ITSM - CI/CD Integration")]
-public class CICDIntegrationController : ControllerBase
+public class CICDIntegrationController : CrmControllerBase
 {
     private readonly ICICDIntegrationService _cicdService;
     private readonly ILogger<CICDIntegrationController> _logger;

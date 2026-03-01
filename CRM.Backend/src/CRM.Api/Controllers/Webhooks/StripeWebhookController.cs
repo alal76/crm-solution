@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.Webhooks;
 
@@ -24,7 +25,7 @@ namespace CRM.Api.Controllers.Webhooks;
 [ApiController]
 [Route("api/webhooks/stripe")]
 [AllowAnonymous]
-public class StripeWebhookController : ControllerBase
+public class StripeWebhookController : CrmControllerBase
 {
     private readonly StripeConfiguration _config;
     private readonly IPaymentService _paymentService;

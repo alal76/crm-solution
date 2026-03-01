@@ -9,6 +9,7 @@ using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Factories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/health")]
-public class ProviderHealthController : ControllerBase
+public class ProviderHealthController : CrmControllerBase
 {
     private readonly AdapterRegistry _registry;
     private readonly IProviderFactory<ISearchPort> _searchFactory;

@@ -8,8 +8,8 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 using EmailInbound = CRM.Core.Interfaces.ITSM.InboundEmailDto;
-
 namespace CRM.Api.Controllers;
 
 /// <summary>
@@ -19,7 +19,7 @@ namespace CRM.Api.Controllers;
 [Route("api/itsm/email")]
 [Authorize]
 [Tags("ITSM - Email Integration")]
-public class EmailToTicketController : ControllerBase
+public class EmailToTicketController : CrmControllerBase
 {
     private readonly IEmailToTicketService _emailService;
     private readonly ILogger<EmailToTicketController> _logger;

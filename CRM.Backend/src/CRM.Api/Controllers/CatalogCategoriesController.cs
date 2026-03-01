@@ -9,6 +9,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/catalog-categories")]
 [Authorize]
 [Produces("application/json")]
-public class CatalogCategoriesController : ControllerBase
+public class CatalogCategoriesController : CrmControllerBase
 {
     private readonly ICatalogCategoryService _service;
     private readonly ILogger<CatalogCategoriesController> _logger;
@@ -35,16 +36,8 @@ public class CatalogCategoriesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CatalogCategoryDto>> Create([FromBody] CreateCatalogCategoryDto dto, CancellationToken ct)
     {
-        try
-        {
-            var result = await _service.CreateAsync(dto, ct);
-            return CreatedAtAction(nameof(GetById), new { id = result.CategoryId }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating catalog category");
-            return StatusCode(500, new { error = "Failed to create catalog category" });
-        }
+                var result = await _service.CreateAsync(dto, ct);
+        return CreatedAtAction(nameof(GetById), new { id = result.CategoryId }, result);
     }
 
     [HttpGet("{id}")]

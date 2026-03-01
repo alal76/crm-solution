@@ -10,6 +10,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/landing-pages")]
-public class LandingPageController : ControllerBase
+public class LandingPageController : CrmControllerBase
 {
     private readonly ILandingPageService _landingPageService;
     private readonly ILogger<LandingPageController> _logger;

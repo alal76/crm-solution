@@ -11,6 +11,7 @@ using CRM.Core.Entities;
 using CRM.Core.Ports;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -22,7 +23,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/config")]
 [RequireRole(UserRole.Admin)]
-public class SystemConfigurationController : ControllerBase
+public class SystemConfigurationController : CrmControllerBase
 {
     private readonly ISystemConfigurationService _systemConfig;
     private readonly IProviderConfigurationService _providerConfig;
@@ -47,16 +48,8 @@ public class SystemConfigurationController : ControllerBase
     [ProducesResponseType(typeof(SystemConfigResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemConfigResponseDto>> GetSystemConfig(CancellationToken ct)
     {
-        try
-        {
-            var config = await _systemConfig.GetSystemConfigAsync(ct);
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving system configuration");
-            return StatusCode(500, new { error = "Failed to retrieve system configuration" });
-        }
+                var config = await _systemConfig.GetSystemConfigAsync(ct);
+        return Ok(config);
     }
 
     /// <summary>
@@ -77,11 +70,6 @@ public class SystemConfigurationController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating email server configuration");
-            return StatusCode(500, new { error = "Failed to update email server configuration" });
-        }
     }
 
     /// <summary>
@@ -91,16 +79,8 @@ public class SystemConfigurationController : ControllerBase
     [ProducesResponseType(typeof(ConfigurationTestResultDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ConfigurationTestResultDto>> TestEmailServer([FromBody] EmailServerConfigDto config, CancellationToken ct)
     {
-        try
-        {
-            var result = await _systemConfig.TestEmailServerAsync(config, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing email server configuration");
-            return StatusCode(500, new { error = "Failed to test email server configuration" });
-        }
+                var result = await _systemConfig.TestEmailServerAsync(config, ct);
+        return Ok(result);
     }
 
     /// <summary>
@@ -120,11 +100,6 @@ public class SystemConfigurationController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating two-factor authentication configuration");
-            return StatusCode(500, new { error = "Failed to update two-factor authentication configuration" });
         }
     }
 
@@ -146,11 +121,6 @@ public class SystemConfigurationController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating social login configuration");
-            return StatusCode(500, new { error = "Failed to update social login configuration" });
-        }
     }
 
     /// <summary>
@@ -163,16 +133,8 @@ public class SystemConfigurationController : ControllerBase
         [FromBody] Dictionary<string, string> credentials,
         CancellationToken ct)
     {
-        try
-        {
-            var result = await _systemConfig.TestSocialProviderAsync(provider, credentials, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing social provider {Provider}", provider);
-            return StatusCode(500, new { error = $"Failed to test social provider '{provider}'" });
-        }
+                var result = await _systemConfig.TestSocialProviderAsync(provider, credentials, ct);
+        return Ok(result);
     }
 
     #endregion
@@ -189,16 +151,8 @@ public class SystemConfigurationController : ControllerBase
         [FromQuery] int pageSize = 50,
         CancellationToken ct = default)
     {
-        try
-        {
-            var history = await _providerConfig.GetChangeHistoryAsync(configKey, pageSize, ct);
-            return Ok(history);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving configuration change history");
-            return StatusCode(500, new { error = "Failed to retrieve change history" });
-        }
+                var history = await _providerConfig.GetChangeHistoryAsync(configKey, pageSize, ct);
+        return Ok(history);
     }
 
     /// <summary>
@@ -219,11 +173,6 @@ public class SystemConfigurationController : ControllerBase
         {
             return NotFound(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rolling back configuration change {ChangeId}", changeId);
-            return StatusCode(500, new { error = "Failed to rollback configuration" });
-        }
     }
 
     #endregion
@@ -237,16 +186,8 @@ public class SystemConfigurationController : ControllerBase
     [ProducesResponseType(typeof(List<ProviderInfoDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ProviderInfoDto>>> GetAvailableProviders(string type, CancellationToken ct)
     {
-        try
-        {
-            var providers = await _providerConfig.GetAvailableProvidersAsync(type, ct);
-            return Ok(providers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving available providers for type {Type}", type);
-            return StatusCode(500, new { error = $"Failed to retrieve providers for type '{type}'" });
-        }
+                var providers = await _providerConfig.GetAvailableProvidersAsync(type, ct);
+        return Ok(providers);
     }
 
     #endregion

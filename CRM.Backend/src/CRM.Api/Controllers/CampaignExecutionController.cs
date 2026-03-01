@@ -10,6 +10,7 @@ using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/campaigns")]
 [Authorize]
-public class CampaignExecutionController : ControllerBase
+public class CampaignExecutionController : CrmControllerBase
 {
     private const string WorkflowNotFoundMessage = "Campaign workflow not found";
 
@@ -64,11 +65,6 @@ public class CampaignExecutionController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error starting campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error starting campaign" });
-        }
     }
 
     /// <summary>
@@ -88,11 +84,6 @@ public class CampaignExecutionController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting analytics for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error retrieving campaign analytics" });
-        }
     }
 
     #endregion
@@ -106,30 +97,22 @@ public class CampaignExecutionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCampaignWorkflows(int campaignId)
     {
-        try
+                var workflows = await _campaignExecutionService.GetCampaignWorkflowsAsync(campaignId);
+        return Ok(workflows.Select(cw => new
         {
-            var workflows = await _campaignExecutionService.GetCampaignWorkflowsAsync(campaignId);
-            return Ok(workflows.Select(cw => new
-            {
-                cw.Id,
-                cw.CampaignId,
-                cw.WorkflowDefinitionId,
-                WorkflowName = cw.WorkflowDefinition?.Name,
-                cw.WorkflowType,
-                cw.TriggerEvent,
-                cw.TriggerConditions,
-                cw.IsActive,
-                cw.MaxExecutionsPerContact,
-                cw.CooldownHours,
-                cw.Priority,
-                cw.CreatedAt
-            }));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting workflows for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error retrieving campaign workflows" });
-        }
+            cw.Id,
+            cw.CampaignId,
+            cw.WorkflowDefinitionId,
+            WorkflowName = cw.WorkflowDefinition?.Name,
+            cw.WorkflowType,
+            cw.TriggerEvent,
+            cw.TriggerConditions,
+            cw.IsActive,
+            cw.MaxExecutionsPerContact,
+            cw.CooldownHours,
+            cw.Priority,
+            cw.CreatedAt
+        }));
     }
 
     /// <summary>
@@ -166,11 +149,6 @@ public class CampaignExecutionController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking workflow to campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error linking workflow to campaign" });
-        }
     }
 
     /// <summary>
@@ -185,25 +163,17 @@ public class CampaignExecutionController : ControllerBase
         int workflowId,
         [FromBody] UpdateCampaignWorkflowRequest request)
     {
-        try
-        {
-            var result = await _campaignExecutionService.UpdateCampaignWorkflowAsync(
-                workflowId,
-                request.IsActive,
-                request.TriggerConditions,
-                request.MaxExecutionsPerContact,
-                request.CooldownHours);
+                var result = await _campaignExecutionService.UpdateCampaignWorkflowAsync(
+            workflowId,
+            request.IsActive,
+            request.TriggerConditions,
+            request.MaxExecutionsPerContact,
+            request.CooldownHours);
 
-            if (result == null)
-                return NotFound(new { message = WorkflowNotFoundMessage });
+        if (result == null)
+            return NotFound(new { message = WorkflowNotFoundMessage });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating campaign workflow {WorkflowId}", workflowId);
-            return StatusCode(500, new { message = "Error updating campaign workflow" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -214,19 +184,11 @@ public class CampaignExecutionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UnlinkWorkflow(int campaignId, int workflowId)
     {
-        try
-        {
-            var result = await _campaignExecutionService.UnlinkWorkflowFromCampaignAsync(workflowId);
-            if (!result)
-                return NotFound(new { message = WorkflowNotFoundMessage });
+                var result = await _campaignExecutionService.UnlinkWorkflowFromCampaignAsync(workflowId);
+        if (!result)
+            return NotFound(new { message = WorkflowNotFoundMessage });
 
-            return Ok(new { message = "Workflow unlinked from campaign" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking workflow {WorkflowId} from campaign {CampaignId}", workflowId, campaignId);
-            return StatusCode(500, new { message = "Error unlinking workflow from campaign" });
-        }
+        return Ok(new { message = "Workflow unlinked from campaign" });
     }
 
     /// <summary>
@@ -237,26 +199,18 @@ public class CampaignExecutionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ExecuteCampaignWorkflow(int campaignId, int workflowId)
     {
-        try
+                var campaignWorkflow = await _campaignExecutionService.GetCampaignWorkflowByIdAsync(workflowId);
+        if (campaignWorkflow == null || campaignWorkflow.CampaignId != campaignId)
         {
-            var campaignWorkflow = await _campaignExecutionService.GetCampaignWorkflowByIdAsync(workflowId);
-            if (campaignWorkflow == null || campaignWorkflow.CampaignId != campaignId)
-            {
-                return NotFound(new { message = WorkflowNotFoundMessage });
-            }
-
-            var triggeredCount = await _campaignExecutionService.TriggerWorkflowForCampaignAsync(
-                campaignId,
-                campaignWorkflow.WorkflowDefinitionId,
-                campaignWorkflow.TriggerEvent ?? "manual_execute");
-
-            return Ok(new { workflowInstanceId = workflowId, triggeredRecipients = triggeredCount });
+            return NotFound(new { message = WorkflowNotFoundMessage });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error executing workflow {WorkflowId} for campaign {CampaignId}", workflowId, campaignId);
-            return StatusCode(500, new { message = "Error executing workflow" });
-        }
+
+        var triggeredCount = await _campaignExecutionService.TriggerWorkflowForCampaignAsync(
+            campaignId,
+            campaignWorkflow.WorkflowDefinitionId,
+            campaignWorkflow.TriggerEvent ?? "manual_execute");
+
+        return Ok(new { workflowInstanceId = workflowId, triggeredRecipients = triggeredCount });
     }
 
     #endregion
@@ -277,49 +231,41 @@ public class CampaignExecutionController : ControllerBase
         [FromQuery] int skip = 0,
         [FromQuery] int take = 50)
     {
-        try
-        {
-            var (items, totalCount) = await _campaignExecutionService.GetCampaignRecipientsAsync(
-                campaignId, status, hasOpened, hasClicked, hasConverted, skip, take);
+                var (items, totalCount) = await _campaignExecutionService.GetCampaignRecipientsAsync(
+            campaignId, status, hasOpened, hasClicked, hasConverted, skip, take);
 
-            return Ok(new
-            {
-                items = items.Select(r => new
-                {
-                    r.Id,
-                    r.CampaignId,
-                    r.ContactId,
-                    r.AccountId,
-                    r.Email,
-                    r.FirstName,
-                    r.LastName,
-                    AccountName = r.Account?.Company,
-                    r.Status,
-                    r.SendScheduledTime,
-                    r.SendActualTime,
-                    r.DeliveredAt,
-                    r.FirstOpenedAt,
-                    r.LastOpenedAt,
-                    r.OpenCount,
-                    r.FirstClickedAt,
-                    r.LastClickedAt,
-                    r.ClickCount,
-                    r.ConvertedAt,
-                    r.ConversionValue,
-                    r.UnsubscribedAt,
-                    r.ABTestVariant
-                }),
-                totalCount,
-                skip,
-                take,
-                hasMore = skip + take < totalCount
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting recipients for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error retrieving campaign recipients" });
-        }
+            items = items.Select(r => new
+            {
+                r.Id,
+                r.CampaignId,
+                r.ContactId,
+                r.AccountId,
+                r.Email,
+                r.FirstName,
+                r.LastName,
+                AccountName = r.Account?.Company,
+                r.Status,
+                r.SendScheduledTime,
+                r.SendActualTime,
+                r.DeliveredAt,
+                r.FirstOpenedAt,
+                r.LastOpenedAt,
+                r.OpenCount,
+                r.FirstClickedAt,
+                r.LastClickedAt,
+                r.ClickCount,
+                r.ConvertedAt,
+                r.ConversionValue,
+                r.UnsubscribedAt,
+                r.ABTestVariant
+            }),
+            totalCount,
+            skip,
+            take,
+            hasMore = skip + take < totalCount
+        });
     }
 
     /// <summary>
@@ -412,11 +358,6 @@ public class CampaignExecutionController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error recording conversion for recipient {RecipientId}", recipientId);
-            return StatusCode(500, new { message = "Error recording conversion" });
-        }
     }
 
     #endregion
@@ -431,16 +372,8 @@ public class CampaignExecutionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetCampaignABTests(int campaignId)
     {
-        try
-        {
-            var abTests = await _campaignExecutionService.GetCampaignABTestsAsync(campaignId);
-            return Ok(abTests);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting A/B tests for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error retrieving A/B tests" });
-        }
+                var abTests = await _campaignExecutionService.GetCampaignABTestsAsync(campaignId);
+        return Ok(abTests);
     }
 
     /// <summary>
@@ -450,29 +383,21 @@ public class CampaignExecutionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateABTest(int campaignId, [FromBody] CreateABTestRequest request)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var abTest = await _campaignExecutionService.CreateABTestAsync(
-                campaignId,
-                request.TestName,
-                request.TestType,
-                request.TestMetric,
-                request.VariantAConfig,
-                request.VariantBConfig,
-                request.TrafficSplit,
-                request.MinimumSampleSize,
-                request.TestDurationHours,
-                request.AutoSelectWinner,
-                userId);
+                var userId = GetCurrentUserId();
+        var abTest = await _campaignExecutionService.CreateABTestAsync(
+            campaignId,
+            request.TestName,
+            request.TestType,
+            request.TestMetric,
+            request.VariantAConfig,
+            request.VariantBConfig,
+            request.TrafficSplit,
+            request.MinimumSampleSize,
+            request.TestDurationHours,
+            request.AutoSelectWinner,
+            userId);
 
-            return Ok(abTest);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating A/B test for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error creating A/B test" });
-        }
+        return Ok(abTest);
     }
 
     /// <summary>
@@ -483,19 +408,11 @@ public class CampaignExecutionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> StartABTest(int campaignId, int testId)
     {
-        try
-        {
-            var result = await _campaignExecutionService.StartABTestAsync(testId);
-            if (!result)
-                return BadRequest(new { message = "A/B test cannot be started. Check the test status." });
+                var result = await _campaignExecutionService.StartABTestAsync(testId);
+        if (!result)
+            return BadRequest(new { message = "A/B test cannot be started. Check the test status." });
 
-            return Ok(new { message = "A/B test started successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error starting A/B test {TestId}", testId);
-            return StatusCode(500, new { message = "Error starting A/B test" });
-        }
+        return Ok(new { message = "A/B test started successfully" });
     }
 
     /// <summary>
@@ -521,11 +438,6 @@ public class CampaignExecutionController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error completing A/B test {TestId}", testId);
-            return StatusCode(500, new { message = "Error completing A/B test" });
         }
     }
 
@@ -586,11 +498,6 @@ public class CampaignExecutionController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting execution status for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error retrieving campaign execution status" });
-        }
     }
 
     /// <summary>
@@ -614,11 +521,6 @@ public class CampaignExecutionController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error scheduling campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error scheduling campaign" });
         }
     }
 
@@ -644,11 +546,6 @@ public class CampaignExecutionController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error cancelling campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error cancelling campaign" });
-        }
     }
 
     /// <summary>
@@ -660,16 +557,8 @@ public class CampaignExecutionController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ProcessEmailTrackingWebhook([FromBody] EmailTrackingWebhookDto dto, CancellationToken cancellationToken)
     {
-        try
-        {
-            await _campaignExecutionService.ProcessTrackingWebhookAsync(dto, cancellationToken);
-            return Ok(new { message = "Webhook processed" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error processing email tracking webhook for {Email}", dto?.RecipientEmail);
-            return StatusCode(500, new { message = "Error processing webhook" });
-        }
+                await _campaignExecutionService.ProcessTrackingWebhookAsync(dto, cancellationToken);
+        return Ok(new { message = "Webhook processed" });
     }
 
     #endregion

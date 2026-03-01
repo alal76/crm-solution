@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/pricingrules")]
 [Produces("application/json")]
-public class PricingRulesController : ControllerBase
+public class PricingRulesController : CrmControllerBase
 {
     private readonly IPricingRulesService _service;
     private readonly ILogger<PricingRulesController> _logger;
@@ -40,16 +41,8 @@ public class PricingRulesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<PricingRule>), 200)]
     public async Task<IActionResult> GetActiveRules(CancellationToken cancellationToken)
     {
-        try
-        {
-            var rules = await _service.GetActiveRulesAsync(cancellationToken);
-            return Ok(rules);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving active pricing rules");
-            return StatusCode(500, new { error = "An error occurred retrieving pricing rules" });
-        }
+                var rules = await _service.GetActiveRulesAsync(cancellationToken);
+        return Ok(rules);
     }
 
     // ─── POST /api/pricingrules ──────────────────────────────────────────────
@@ -65,16 +58,8 @@ public class PricingRulesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        try
-        {
-            var created = await _service.CreateRuleAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetActiveRules), new { id = created.Id }, created);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating pricing rule");
-            return StatusCode(500, new { error = "An error occurred creating the pricing rule" });
-        }
+                var created = await _service.CreateRuleAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetActiveRules), new { id = created.Id }, created);
     }
 
     // ─── PUT /api/pricingrules/{id} ──────────────────────────────────────────
@@ -95,19 +80,11 @@ public class PricingRulesController : ControllerBase
         if (id != dto.Id)
             return BadRequest(new { error = "Route id and body id must match" });
 
-        try
-        {
-            var updated = await _service.UpdateRuleAsync(id, dto, cancellationToken);
-            if (updated == null)
-                return NotFound(new { error = $"Pricing rule {id} not found" });
+                var updated = await _service.UpdateRuleAsync(id, dto, cancellationToken);
+        if (updated == null)
+            return NotFound(new { error = $"Pricing rule {id} not found" });
 
-            return Ok(updated);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating pricing rule {Id}", id);
-            return StatusCode(500, new { error = "An error occurred updating the pricing rule" });
-        }
+        return Ok(updated);
     }
 
     // ─── DELETE /api/pricingrules/{id} ───────────────────────────────────────
@@ -118,19 +95,11 @@ public class PricingRulesController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<IActionResult> DeleteRule(int id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var deleted = await _service.DeleteRuleAsync(id, cancellationToken);
-            if (!deleted)
-                return NotFound(new { error = $"Pricing rule {id} not found" });
+                var deleted = await _service.DeleteRuleAsync(id, cancellationToken);
+        if (!deleted)
+            return NotFound(new { error = $"Pricing rule {id} not found" });
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting pricing rule {Id}", id);
-            return StatusCode(500, new { error = "An error occurred deleting the pricing rule" });
-        }
+        return NoContent();
     }
 
     // ─── POST /api/pricingrules/calculate ────────────────────────────────────
@@ -155,15 +124,7 @@ public class PricingRulesController : ControllerBase
         if (request.Quantity <= 0)
             return BadRequest(new { error = "Quantity must be at least 1" });
 
-        try
-        {
-            var breakdown = await _service.GetPriceBreakdownAsync(request, cancellationToken);
-            return Ok(breakdown);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating price for product {ProductId}", request.ProductId);
-            return StatusCode(500, new { error = "An error occurred calculating the price" });
-        }
+                var breakdown = await _service.GetPriceBreakdownAsync(request, cancellationToken);
+        return Ok(breakdown);
     }
 }

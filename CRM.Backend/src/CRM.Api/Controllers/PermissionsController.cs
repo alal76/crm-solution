@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/permissions")]
 [Authorize]
-public class PermissionsController : ControllerBase
+public class PermissionsController : CrmControllerBase
 {
     private readonly IRBACService _rbacService;
     private readonly ILogger<PermissionsController> _logger;
@@ -36,16 +37,8 @@ public class PermissionsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<PermissionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllPermissions(CancellationToken cancellationToken)
     {
-        try
-        {
-            var permissions = await _rbacService.GetAllPermissionsAsync(cancellationToken);
-            return Ok(permissions);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting all permissions");
-            return StatusCode(500, new { message = "Error retrieving permissions" });
-        }
+                var permissions = await _rbacService.GetAllPermissionsAsync(cancellationToken);
+        return Ok(permissions);
     }
 
     /// <summary>
@@ -56,19 +49,11 @@ public class PermissionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetPermissionById(int permissionId, CancellationToken cancellationToken)
     {
-        try
-        {
-            var permission = await _rbacService.GetPermissionByIdAsync(permissionId, cancellationToken);
-            if (permission == null)
-                return NotFound();
+                var permission = await _rbacService.GetPermissionByIdAsync(permissionId, cancellationToken);
+        if (permission == null)
+            return NotFound();
 
-            return Ok(permission);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error getting permission {permissionId}");
-            return StatusCode(500, new { message = "Error retrieving permission" });
-        }
+        return Ok(permission);
     }
 
     /// <summary>
@@ -78,16 +63,8 @@ public class PermissionsController : ControllerBase
     [ProducesResponseType(typeof(IDictionary<string, IEnumerable<PermissionDto>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPermissionsByModule(CancellationToken cancellationToken)
     {
-        try
-        {
-            var permissions = await _rbacService.GetPermissionsByModuleAsync(cancellationToken);
-            return Ok(permissions);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting permissions by module");
-            return StatusCode(500, new { message = "Error retrieving permissions" });
-        }
+                var permissions = await _rbacService.GetPermissionsByModuleAsync(cancellationToken);
+        return Ok(permissions);
     }
 
     /// <summary>
@@ -109,11 +86,6 @@ public class PermissionsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating permission");
-            return StatusCode(500, new { message = "Error creating permission" });
         }
     }
 
@@ -137,11 +109,6 @@ public class PermissionsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error deleting permission {permissionId}");
-            return StatusCode(500, new { message = "Error deleting permission" });
         }
     }
 }

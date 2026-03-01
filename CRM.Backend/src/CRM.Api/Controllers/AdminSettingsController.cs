@@ -10,6 +10,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [RequireRole(UserRole.Admin)]
-public class AdminSettingsController : ControllerBase
+public class AdminSettingsController : CrmControllerBase
 {
     private const string ScheduleNotFoundMessage = "Schedule not found";
 
@@ -49,16 +50,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<UserApprovalRequestDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserApprovalRequestDto>>> GetApprovalRequests([FromQuery] int? status = null)
     {
-        try
-        {
-            var requests = await _approvalService.GetApprovalRequestsAsync(status);
-            return Ok(requests);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving approval requests");
-            return StatusCode(500, new { error = "Failed to retrieve approval requests" });
-        }
+                var requests = await _approvalService.GetApprovalRequestsAsync(status);
+        return Ok(requests);
     }
 
     /// <summary>
@@ -69,19 +62,11 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserApprovalRequestDto>> GetApprovalRequest(int id)
     {
-        try
-        {
-            var request = await _approvalService.GetApprovalRequestByIdAsync(id);
-            if (request == null)
-                return NotFound(new { error = "Approval request not found" });
+                var request = await _approvalService.GetApprovalRequestByIdAsync(id);
+        if (request == null)
+            return NotFound(new { error = "Approval request not found" });
 
-            return Ok(request);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving approval request {id}");
-            return StatusCode(500, new { error = "Failed to retrieve approval request" });
-        }
+        return Ok(request);
     }
 
     /// <summary>
@@ -92,20 +77,12 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<UserDto>> ApproveUser(int id, [FromBody] ApproveUserRequest request)
     {
-        try
-        {
-            var userId = User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { error = "User ID not found in token" });
+                var userId = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token" });
 
-            var createdUser = await _approvalService.ApproveUserAsync(id, int.Parse(userId), request);
-            return Ok(createdUser);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error approving user request {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        var createdUser = await _approvalService.ApproveUserAsync(id, int.Parse(userId), request);
+        return Ok(createdUser);
     }
 
     /// <summary>
@@ -116,20 +93,12 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> RejectUser(int id, [FromBody] RejectUserRequest request)
     {
-        try
-        {
-            var userId = User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { error = "User ID not found in token" });
+                var userId = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token" });
 
-            await _approvalService.RejectUserAsync(id, int.Parse(userId), request.RejectionReason);
-            return Ok(new { message = "User request rejected successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error rejecting user request {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        await _approvalService.RejectUserAsync(id, int.Parse(userId), request.RejectionReason);
+        return Ok(new { message = "User request rejected successfully" });
     }
 
     #endregion
@@ -143,16 +112,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<UserGroupDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserGroupDto>>> GetGroups()
     {
-        try
-        {
-            var groups = await _userGroupService.GetAllGroupsAsync();
-            return Ok(groups);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving user groups");
-            return StatusCode(500, new { error = "Failed to retrieve user groups" });
-        }
+                var groups = await _userGroupService.GetAllGroupsAsync();
+        return Ok(groups);
     }
 
     /// <summary>
@@ -163,16 +124,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<UserGroupDto>> CreateGroup([FromBody] CreateUserGroupRequest request)
     {
-        try
-        {
-            var group = await _userGroupService.CreateGroupAsync(request);
-            return CreatedAtAction(nameof(GetGroupById), new { id = group.Id }, group);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating user group");
-            return StatusCode(500, new { error = ex.Message });
-        }
+                var group = await _userGroupService.CreateGroupAsync(request);
+        return CreatedAtAction(nameof(GetGroupById), new { id = group.Id }, group);
     }
 
     /// <summary>
@@ -183,19 +136,11 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<UserGroupDto>> GetGroupById(int id)
     {
-        try
-        {
-            var group = await _userGroupService.GetGroupByIdAsync(id);
-            if (group == null)
-                return NotFound(new { error = "Group not found" });
+                var group = await _userGroupService.GetGroupByIdAsync(id);
+        if (group == null)
+            return NotFound(new { error = "Group not found" });
 
-            return Ok(group);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving group {id}");
-            return StatusCode(500, new { error = "Failed to retrieve group" });
-        }
+        return Ok(group);
     }
 
     /// <summary>
@@ -207,19 +152,11 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<UserGroupDto>> UpdateGroup(int id, [FromBody] CreateUserGroupRequest request)
     {
-        try
-        {
-            var group = await _userGroupService.UpdateGroupAsync(id, request);
-            if (group == null)
-                return NotFound(new { error = "Group not found" });
+                var group = await _userGroupService.UpdateGroupAsync(id, request);
+        if (group == null)
+            return NotFound(new { error = "Group not found" });
 
-            return Ok(group);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error updating group {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        return Ok(group);
     }
 
     /// <summary>
@@ -229,16 +166,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> DeleteGroup(int id)
     {
-        try
-        {
-            await _userGroupService.DeleteGroupAsync(id);
-            return Ok(new { message = "Group deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error deleting group {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
+                await _userGroupService.DeleteGroupAsync(id);
+        return Ok(new { message = "Group deleted successfully" });
     }
 
     /// <summary>
@@ -248,16 +177,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<UserGroupMemberDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UserGroupMemberDto>>> GetGroupMembers(int id)
     {
-        try
-        {
-            var members = await _userGroupService.GetGroupMembersAsync(id);
-            return Ok(members);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving group members for group {id}");
-            return StatusCode(500, new { error = "Failed to retrieve group members" });
-        }
+                var members = await _userGroupService.GetGroupMembersAsync(id);
+        return Ok(members);
     }
 
     /// <summary>
@@ -267,16 +188,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> AddUserToGroup(int groupId, int userId)
     {
-        try
-        {
-            await _userGroupService.AddUserToGroupAsync(groupId, userId);
-            return Ok(new { message = "User added to group successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error adding user {userId} to group {groupId}");
-            return StatusCode(500, new { error = ex.Message });
-        }
+                await _userGroupService.AddUserToGroupAsync(groupId, userId);
+        return Ok(new { message = "User added to group successfully" });
     }
 
     /// <summary>
@@ -286,16 +199,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> RemoveUserFromGroup(int groupId, int userId)
     {
-        try
-        {
-            await _userGroupService.RemoveUserFromGroupAsync(groupId, userId);
-            return Ok(new { message = "User removed from group successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error removing user {userId} from group {groupId}");
-            return StatusCode(500, new { error = ex.Message });
-        }
+                await _userGroupService.RemoveUserFromGroupAsync(groupId, userId);
+        return Ok(new { message = "User removed from group successfully" });
     }
 
     #endregion
@@ -311,20 +216,12 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<DatabaseBackupDto>> CreateBackup([FromBody] CreateDatabaseBackupRequest request)
     {
-        try
-        {
-            var userId = User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { error = "User ID not found in token" });
+                var userId = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token" });
 
-            var backup = await _backupService.CreateBackupAsync(int.Parse(userId), request);
-            return CreatedAtAction(nameof(GetBackup), new { id = backup.Id }, backup);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating database backup");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        var backup = await _backupService.CreateBackupAsync(int.Parse(userId), request);
+        return CreatedAtAction(nameof(GetBackup), new { id = backup.Id }, backup);
     }
 
     /// <summary>
@@ -334,16 +231,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DatabaseBackupDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DatabaseBackupDto>>> GetBackups()
     {
-        try
-        {
-            var backups = await _backupService.GetAllBackupsAsync();
-            return Ok(backups);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving backups");
-            return StatusCode(500, new { error = "Failed to retrieve backups" });
-        }
+                var backups = await _backupService.GetAllBackupsAsync();
+        return Ok(backups);
     }
 
     /// <summary>
@@ -354,19 +243,11 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DatabaseBackupDto>> GetBackup(int id)
     {
-        try
-        {
-            var backup = await _backupService.GetBackupByIdAsync(id);
-            if (backup == null)
-                return NotFound(new { error = "Backup not found" });
+                var backup = await _backupService.GetBackupByIdAsync(id);
+        if (backup == null)
+            return NotFound(new { error = "Backup not found" });
 
-            return Ok(backup);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving backup {id}");
-            return StatusCode(500, new { error = "Failed to retrieve backup" });
-        }
+        return Ok(backup);
     }
 
     /// <summary>
@@ -377,20 +258,12 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> RestoreBackup([FromBody] RestoreDatabaseBackupRequest request)
     {
-        try
-        {
-            var userId = User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { error = "User ID not found in token" });
+                var userId = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token" });
 
-            await _backupService.RestoreBackupAsync(request.BackupId, request.TargetDatabase, int.Parse(userId));
-            return Ok(new { message = "Database restore initiated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error restoring backup");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        await _backupService.RestoreBackupAsync(request.BackupId, request.TargetDatabase, int.Parse(userId));
+        return Ok(new { message = "Database restore initiated successfully" });
     }
 
     /// <summary>
@@ -400,16 +273,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> DeleteBackup(int id)
     {
-        try
-        {
-            await _backupService.DeleteBackupAsync(id);
-            return Ok(new { message = "Backup deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error deleting backup {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
+                await _backupService.DeleteBackupAsync(id);
+        return Ok(new { message = "Backup deleted successfully" });
     }
 
     /// <summary>
@@ -420,20 +285,12 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> MigrateDatabase([FromBody] DatabaseMigrationConfig config)
     {
-        try
-        {
-            var userId = User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { error = "User ID not found in token" });
+                var userId = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token" });
 
-            await _backupService.MigrateDatabaseAsync(config, int.Parse(userId));
-            return Ok(new { message = "Database migration initiated. This may take several minutes." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error migrating database");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        await _backupService.MigrateDatabaseAsync(config, int.Parse(userId));
+        return Ok(new { message = "Database migration initiated. This may take several minutes." });
     }
 
     /// <summary>
@@ -443,21 +300,13 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetSeedScript([FromQuery] string targetDatabase = "")
     {
-        try
+                var script = await _backupService.GenerateSeedScriptAsync(targetDatabase);
+        return Ok(new
         {
-            var script = await _backupService.GenerateSeedScriptAsync(targetDatabase);
-            return Ok(new
-            {
-                script = script,
-                targetDatabase = targetDatabase,
-                description = "Execute this script to set up the seed database"
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating seed script");
-            return StatusCode(500, new { error = ex.Message });
-        }
+            script = script,
+            targetDatabase = targetDatabase,
+            description = "Execute this script to set up the seed database"
+        });
     }
 
     /// <summary>
@@ -483,11 +332,6 @@ public class AdminSettingsController : ControllerBase
         {
             return NotFound(new { error = "Backup file not found on disk" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error downloading backup {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -500,31 +344,23 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<DatabaseBackupDto>> UploadBackup([FromForm] IFormFile file, [FromForm] string? description = null, [FromForm] string? sourceDatabase = null)
     {
-        try
+                if (file == null || file.Length == 0)
+            return BadRequest(new { error = "No file provided" });
+
+        var userId = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token" });
+
+        var request = new UploadBackupRequest
         {
-            if (file == null || file.Length == 0)
-                return BadRequest(new { error = "No file provided" });
+            Description = description,
+            SourceDatabase = sourceDatabase
+        };
 
-            var userId = User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { error = "User ID not found in token" });
+        using var stream = file.OpenReadStream();
+        var backup = await _backupService.UploadBackupAsync(stream, file.FileName, int.Parse(userId), request);
 
-            var request = new UploadBackupRequest
-            {
-                Description = description,
-                SourceDatabase = sourceDatabase
-            };
-
-            using var stream = file.OpenReadStream();
-            var backup = await _backupService.UploadBackupAsync(stream, file.FileName, int.Parse(userId), request);
-
-            return CreatedAtAction(nameof(GetBackup), new { id = backup.Id }, backup);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error uploading backup");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        return CreatedAtAction(nameof(GetBackup), new { id = backup.Id }, backup);
     }
 
     /// <summary>
@@ -537,25 +373,17 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult> RestoreFromUpload([FromForm] IFormFile file)
     {
-        try
-        {
-            if (file == null || file.Length == 0)
-                return BadRequest(new { error = "No file provided" });
+                if (file == null || file.Length == 0)
+            return BadRequest(new { error = "No file provided" });
 
-            var userId = User.FindFirst("sub")?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized(new { error = "User ID not found in token" });
+        var userId = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token" });
 
-            using var stream = file.OpenReadStream();
-            await _backupService.RestoreFromFileAsync(stream, file.FileName, int.Parse(userId));
+        using var stream = file.OpenReadStream();
+        await _backupService.RestoreFromFileAsync(stream, file.FileName, int.Parse(userId));
 
-            return Ok(new { message = "Database restore from uploaded file initiated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error restoring from uploaded file");
-            return StatusCode(500, new { error = ex.Message });
-        }
+        return Ok(new { message = "Database restore from uploaded file initiated successfully" });
     }
 
     #endregion
@@ -569,16 +397,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<BackupScheduleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<BackupScheduleDto>>> GetSchedules()
     {
-        try
-        {
-            var schedules = await _backupService.GetAllSchedulesAsync();
-            return Ok(schedules);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving backup schedules");
-            return StatusCode(500, new { error = "Failed to retrieve backup schedules" });
-        }
+                var schedules = await _backupService.GetAllSchedulesAsync();
+        return Ok(schedules);
     }
 
     /// <summary>
@@ -589,19 +409,11 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BackupScheduleDto>> GetSchedule(int id)
     {
-        try
-        {
-            var schedule = await _backupService.GetScheduleByIdAsync(id);
-            if (schedule == null)
-                return NotFound(new { error = ScheduleNotFoundMessage });
+                var schedule = await _backupService.GetScheduleByIdAsync(id);
+        if (schedule == null)
+            return NotFound(new { error = ScheduleNotFoundMessage });
 
-            return Ok(schedule);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving schedule {id}");
-            return StatusCode(500, new { error = "Failed to retrieve schedule" });
-        }
+        return Ok(schedule);
     }
 
     /// <summary>
@@ -612,16 +424,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BackupScheduleDto>> CreateSchedule([FromBody] CreateBackupScheduleRequest request)
     {
-        try
-        {
-            var schedule = await _backupService.CreateScheduleAsync(request);
-            return CreatedAtAction(nameof(GetSchedule), new { id = schedule.Id }, schedule);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating backup schedule");
-            return StatusCode(500, new { error = ex.Message });
-        }
+                var schedule = await _backupService.CreateScheduleAsync(request);
+        return CreatedAtAction(nameof(GetSchedule), new { id = schedule.Id }, schedule);
     }
 
     /// <summary>
@@ -642,11 +446,6 @@ public class AdminSettingsController : ControllerBase
         {
             return NotFound(new { error = ScheduleNotFoundMessage });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error updating schedule {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -665,11 +464,6 @@ public class AdminSettingsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(new { error = ScheduleNotFoundMessage });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error deleting schedule {id}");
-            return StatusCode(500, new { error = ex.Message });
         }
     }
 
@@ -690,11 +484,6 @@ public class AdminSettingsController : ControllerBase
         {
             return NotFound(new { error = ScheduleNotFoundMessage });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error toggling schedule {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -714,11 +503,6 @@ public class AdminSettingsController : ControllerBase
         {
             return NotFound(new { error = ScheduleNotFoundMessage });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error running schedule {id}");
-            return StatusCode(500, new { error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -728,16 +512,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(typeof(BackupSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<BackupSettingsDto>> GetBackupSettings()
     {
-        try
-        {
-            var settings = await _backupService.GetBackupSettingsAsync();
-            return Ok(settings);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving backup settings");
-            return StatusCode(500, new { error = "Failed to retrieve backup settings" });
-        }
+                var settings = await _backupService.GetBackupSettingsAsync();
+        return Ok(settings);
     }
 
     /// <summary>
@@ -748,16 +524,8 @@ public class AdminSettingsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> UpdateBackupPath([FromBody] UpdateBackupPathRequest request)
     {
-        try
-        {
-            await _backupService.UpdateBackupPathAsync(request.Path);
-            return Ok(new { message = "Backup path updated successfully", path = request.Path });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating backup path");
-            return StatusCode(500, new { error = ex.Message });
-        }
+                await _backupService.UpdateBackupPathAsync(request.Path);
+        return Ok(new { message = "Backup path updated successfully", path = request.Path });
     }
 
     #endregion

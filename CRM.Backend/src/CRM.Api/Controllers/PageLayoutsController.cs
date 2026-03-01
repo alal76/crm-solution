@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/page-layouts")]
 [Authorize]
-public class PageLayoutsController : ControllerBase
+public class PageLayoutsController : CrmControllerBase
 {
     private const string LayoutNotFoundMessage = "Page layout not found";
 

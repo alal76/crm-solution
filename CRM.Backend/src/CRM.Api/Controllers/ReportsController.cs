@@ -11,6 +11,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -22,9 +23,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 [Produces("application/json")]
 [Tags("Reports")]
-public class ReportsController : ControllerBase
+public class ReportsController : CrmControllerBase
 {
-    private const string InternalServerErrorMessage = "Internal server error";
     private readonly IReportService _reportService;
     private readonly IWinLossAnalysisService _winLossService;
     private readonly IOpportunityService _opportunityService;
@@ -614,33 +614,25 @@ public class ReportsController : ControllerBase
         [FromQuery] string period = "month",
         CancellationToken ct = default)
     {
-        try
+                var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
+        var to = toDate ?? DateTime.UtcNow;
+
+        var summary = await _winLossService.GetSummaryAsync(from, to, ct);
+        var byReason = await _winLossService.GetByReasonAsync(from, to, ct);
+        var byCompetitor = await _winLossService.GetByCompetitorAsync(from, to, ct);
+        var trends = await _winLossService.GetWinRateTrendsAsync(from, to, period, ct);
+
+        var report = new WinLossReportDto
         {
-            var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
-            var to = toDate ?? DateTime.UtcNow;
+            Summary = summary,
+            ByReason = byReason,
+            ByCompetitor = byCompetitor,
+            Trends = trends,
+            FromDate = from,
+            ToDate = to
+        };
 
-            var summary = await _winLossService.GetSummaryAsync(from, to, ct);
-            var byReason = await _winLossService.GetByReasonAsync(from, to, ct);
-            var byCompetitor = await _winLossService.GetByCompetitorAsync(from, to, ct);
-            var trends = await _winLossService.GetWinRateTrendsAsync(from, to, period, ct);
-
-            var report = new WinLossReportDto
-            {
-                Summary = summary,
-                ByReason = byReason,
-                ByCompetitor = byCompetitor,
-                Trends = trends,
-                FromDate = from,
-                ToDate = to
-            };
-
-            return Ok(report);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving win/loss report");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(report);
     }
 
     /// <summary>
@@ -653,16 +645,8 @@ public class ReportsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetForecastSummary(CancellationToken ct = default)
     {
-        try
-        {
-            var summary = await _opportunityService.GetForecastSummaryAsync(ct);
-            return Ok(summary);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving forecast summary");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var summary = await _opportunityService.GetForecastSummaryAsync(ct);
+        return Ok(summary);
     }
 
     #endregion
@@ -684,31 +668,23 @@ public class ReportsController : ControllerBase
         [FromBody] ShareReportDto dto,
         CancellationToken ct = default)
     {
-        try
+                var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(userIdClaim, out var currentUserId))
         {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdClaim, out var currentUserId))
-            {
-                return Unauthorized();
-            }
-
-            if (dto.UserIds == null || dto.UserIds.Count == 0)
-            {
-                return BadRequest("At least one user ID must be provided.");
-            }
-
-            var permission = Enum.TryParse<ReportSharePermission>(dto.Permission, ignoreCase: true, out var p)
-                ? p
-                : ReportSharePermission.View;
-
-            var result = await _sharingService.ShareReportAsync(id, dto.UserIds, permission, currentUserId, ct);
-            return Ok(result);
+            return Unauthorized();
         }
-        catch (Exception ex)
+
+        if (dto.UserIds == null || dto.UserIds.Count == 0)
         {
-            _logger.LogError(ex, "Error sharing report {ReportId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
+            return BadRequest("At least one user ID must be provided.");
         }
+
+        var permission = Enum.TryParse<ReportSharePermission>(dto.Permission, ignoreCase: true, out var p)
+            ? p
+            : ReportSharePermission.View;
+
+        var result = await _sharingService.ShareReportAsync(id, dto.UserIds, permission, currentUserId, ct);
+        return Ok(result);
     }
 
     /// <summary>
@@ -720,16 +696,8 @@ public class ReportsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ReportShareInfo>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetReportShares(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var shares = await _sharingService.GetReportShareInfoAsync(id, ct);
-            return Ok(shares);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving shares for report {ReportId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var shares = await _sharingService.GetReportShareInfoAsync(id, ct);
+        return Ok(shares);
     }
 
     /// <summary>
@@ -743,21 +711,13 @@ public class ReportsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RevokeReportShare(int id, int userId, CancellationToken ct = default)
     {
-        try
+                var revoked = await _sharingService.RevokeShareAsync(id, userId, ct);
+        if (!revoked)
         {
-            var revoked = await _sharingService.RevokeShareAsync(id, userId, ct);
-            if (!revoked)
-            {
-                return NotFound();
-            }
+            return NotFound();
+        }
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error revoking share for report {ReportId}, user {UserId}", id, userId);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return NoContent();
     }
 
     #endregion
@@ -776,21 +736,13 @@ public class ReportsController : ControllerBase
         [FromBody] CohortAnalysisRequestDto dto,
         CancellationToken ct = default)
     {
-        try
+                if (dto.StartDate >= dto.EndDate)
         {
-            if (dto.StartDate >= dto.EndDate)
-            {
-                return BadRequest("StartDate must be before EndDate.");
-            }
+            return BadRequest("StartDate must be before EndDate.");
+        }
 
-            var result = await _reportService.GetCohortAnalysisAsync(dto, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error executing cohort analysis");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        var result = await _reportService.GetCohortAnalysisAsync(dto, ct);
+        return Ok(result);
     }
 
     /// <summary>
@@ -805,16 +757,8 @@ public class ReportsController : ControllerBase
         [FromBody] SegmentationCriteria dto,
         CancellationToken ct = default)
     {
-        try
-        {
-            var result = await _reportService.GetCustomerSegmentsAsync(dto, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving customer segments");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var result = await _reportService.GetCustomerSegmentsAsync(dto, ct);
+        return Ok(result);
     }
 
     #endregion

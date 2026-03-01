@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [ApiExplorerSettings(IgnoreApi = true)]
 [Route("api/auth-diagnostics")]
-public class AuthDiagnosticsController : ControllerBase
+public class AuthDiagnosticsController : CrmControllerBase
 {
     private readonly ILogger<AuthDiagnosticsController> _logger;
     private readonly IHostEnvironment _environment;

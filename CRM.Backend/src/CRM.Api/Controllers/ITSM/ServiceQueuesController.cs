@@ -9,6 +9,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.ITSM;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers.ITSM;
 [Produces("application/json")]
 [Consumes("application/json")]
 [Tags("ITSM - Service Queues")]
-public class ServiceQueuesController : ControllerBase
+public class ServiceQueuesController : CrmControllerBase
 {
     private readonly IServiceQueueService _serviceQueueService;
     private readonly ILogger<ServiceQueuesController> _logger;
@@ -47,16 +48,8 @@ public class ServiceQueuesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var queues = await _serviceQueueService.GetAllAsync(cancellationToken);
-            return Ok(queues);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving service queues");
-            return StatusCode(500, new { message = "Error retrieving service queues", error = ex.Message });
-        }
+                var queues = await _serviceQueueService.GetAllAsync(cancellationToken);
+        return Ok(queues);
     }
 
     /// <summary>
@@ -74,18 +67,10 @@ public class ServiceQueuesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var queue = await _serviceQueueService.GetByIdAsync(id, cancellationToken);
-            if (queue == null)
-                return NotFound(new { message = $"Service queue with ID {id} not found" });
-            return Ok(queue);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving service queue {QueueId}", id);
-            return StatusCode(500, new { message = "Error retrieving service queue", error = ex.Message });
-        }
+                var queue = await _serviceQueueService.GetByIdAsync(id, cancellationToken);
+        if (queue == null)
+            return NotFound(new { message = $"Service queue with ID {id} not found" });
+        return Ok(queue);
     }
 
     /// <summary>
@@ -103,19 +88,11 @@ public class ServiceQueuesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateServiceQueueDto dto, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var queue = await _serviceQueueService.CreateAsync(dto, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = queue.Id }, queue);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating service queue");
-            return StatusCode(500, new { message = "Error creating service queue", error = ex.Message });
-        }
+        var queue = await _serviceQueueService.CreateAsync(dto, cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = queue.Id }, queue);
     }
 
     /// <summary>
@@ -148,11 +125,6 @@ public class ServiceQueuesController : ControllerBase
         {
             return NotFound(new { message = $"Service queue with ID {id} not found" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating service queue {QueueId}", id);
-            return StatusCode(500, new { message = "Error updating service queue", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -178,11 +150,6 @@ public class ServiceQueuesController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(new { message = $"Service queue with ID {id} not found" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting service queue {QueueId}", id);
-            return StatusCode(500, new { message = "Error deleting service queue", error = ex.Message });
         }
     }
 
@@ -211,11 +178,6 @@ public class ServiceQueuesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning service request {RequestId} to queue {QueueId}", serviceRequestId, queueId);
-            return StatusCode(500, new { message = "Error assigning to queue", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -242,11 +204,6 @@ public class ServiceQueuesController : ControllerBase
         {
             return NotFound(new { message = $"Service queue with ID {queueId} not found" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving items for queue {QueueId}", queueId);
-            return StatusCode(500, new { message = "Error retrieving queue items", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -272,11 +229,6 @@ public class ServiceQueuesController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound(new { message = $"Service queue with ID {queueId} not found" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving stats for queue {QueueId}", queueId);
-            return StatusCode(500, new { message = "Error retrieving queue stats", error = ex.Message });
         }
     }
 }

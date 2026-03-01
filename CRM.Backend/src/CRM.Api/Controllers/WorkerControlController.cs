@@ -11,6 +11,7 @@ using CRM.Infrastructure.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/workers/control")]
 [Authorize(Roles = "Admin")]
-public class WorkerControlController : ControllerBase
+public class WorkerControlController : CrmControllerBase
 {
     private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<WorkerControlController> _logger;

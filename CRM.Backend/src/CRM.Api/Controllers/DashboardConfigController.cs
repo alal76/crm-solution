@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/dashboard-config")]
 [Authorize]
-public class DashboardConfigController : ControllerBase
+public class DashboardConfigController : CrmControllerBase
 {
     private const string DashboardNotFoundMessage = "Dashboard not found";
 
@@ -53,45 +54,37 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDashboards()
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var userRole = GetCurrentUserRole();
+                var userId = GetCurrentUserId();
+        var userRole = GetCurrentUserRole();
 
-            var dashboards = await _context.Dashboards
-                .Where(d => !d.IsDeleted && d.IsActive)
-                .Where(d =>
-                    d.Visibility == DashboardVisibility.Public ||
-                    (d.Visibility == DashboardVisibility.Private && d.OwnerId == userId) ||
-                    (d.Visibility == DashboardVisibility.RoleBased &&
-                     (d.AllowedRoles == null || d.AllowedRoles.Contains(userRole))))
-                .OrderBy(d => d.DisplayOrder)
-                .ThenBy(d => d.Name)
-                .Select(d => new DashboardDto
-                {
-                    Id = d.Id,
-                    Name = d.Name,
-                    Description = d.Description,
-                    IsDefault = d.IsDefault,
-                    IsSystem = d.IsSystem,
-                    IconName = d.IconName,
-                    DisplayOrder = d.DisplayOrder,
-                    ColumnCount = d.ColumnCount,
-                    RefreshIntervalSeconds = d.RefreshIntervalSeconds,
-                    Visibility = d.Visibility.ToString(),
-                    OwnerId = d.OwnerId,
-                    OwnerName = d.Owner != null ? $"{d.Owner.FirstName} {d.Owner.LastName}" : null,
-                    WidgetCount = d.Widgets.Count(w => !w.IsDeleted)
-                })
-                .ToListAsync();
+        var dashboards = await _context.Dashboards
+            .Where(d => !d.IsDeleted && d.IsActive)
+            .Where(d =>
+                d.Visibility == DashboardVisibility.Public ||
+                (d.Visibility == DashboardVisibility.Private && d.OwnerId == userId) ||
+                (d.Visibility == DashboardVisibility.RoleBased &&
+                 (d.AllowedRoles == null || d.AllowedRoles.Contains(userRole))))
+            .OrderBy(d => d.DisplayOrder)
+            .ThenBy(d => d.Name)
+            .Select(d => new DashboardDto
+            {
+                Id = d.Id,
+                Name = d.Name,
+                Description = d.Description,
+                IsDefault = d.IsDefault,
+                IsSystem = d.IsSystem,
+                IconName = d.IconName,
+                DisplayOrder = d.DisplayOrder,
+                ColumnCount = d.ColumnCount,
+                RefreshIntervalSeconds = d.RefreshIntervalSeconds,
+                Visibility = d.Visibility.ToString(),
+                OwnerId = d.OwnerId,
+                OwnerName = d.Owner != null ? $"{d.Owner.FirstName} {d.Owner.LastName}" : null,
+                WidgetCount = d.Widgets.Count(w => !w.IsDeleted)
+            })
+            .ToListAsync();
 
-            return Ok(dashboards);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving dashboards");
-            return StatusCode(500, new { message = "An error occurred while retrieving dashboards" });
-        }
+        return Ok(dashboards);
     }
 
     /// <summary>
@@ -102,42 +95,34 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllDashboards()
     {
-        try
-        {
-            var dashboards = await _context.Dashboards
-                .Where(d => !d.IsDeleted)
-                .Include(d => d.Owner)
-                .OrderBy(d => d.DisplayOrder)
-                .ThenBy(d => d.Name)
-                .Select(d => new DashboardDto
-                {
-                    Id = d.Id,
-                    Name = d.Name,
-                    Description = d.Description,
-                    IsDefault = d.IsDefault,
-                    IsSystem = d.IsSystem,
-                    IsActive = d.IsActive,
-                    IconName = d.IconName,
-                    DisplayOrder = d.DisplayOrder,
-                    ColumnCount = d.ColumnCount,
-                    RefreshIntervalSeconds = d.RefreshIntervalSeconds,
-                    Visibility = d.Visibility.ToString(),
-                    AllowedRoles = d.AllowedRoles,
-                    OwnerId = d.OwnerId,
-                    OwnerName = d.Owner != null ? $"{d.Owner.FirstName} {d.Owner.LastName}" : null,
-                    WidgetCount = d.Widgets.Count(w => !w.IsDeleted),
-                    CreatedAt = d.CreatedAt,
-                    UpdatedAt = d.UpdatedAt
-                })
-                .ToListAsync();
+                var dashboards = await _context.Dashboards
+            .Where(d => !d.IsDeleted)
+            .Include(d => d.Owner)
+            .OrderBy(d => d.DisplayOrder)
+            .ThenBy(d => d.Name)
+            .Select(d => new DashboardDto
+            {
+                Id = d.Id,
+                Name = d.Name,
+                Description = d.Description,
+                IsDefault = d.IsDefault,
+                IsSystem = d.IsSystem,
+                IsActive = d.IsActive,
+                IconName = d.IconName,
+                DisplayOrder = d.DisplayOrder,
+                ColumnCount = d.ColumnCount,
+                RefreshIntervalSeconds = d.RefreshIntervalSeconds,
+                Visibility = d.Visibility.ToString(),
+                AllowedRoles = d.AllowedRoles,
+                OwnerId = d.OwnerId,
+                OwnerName = d.Owner != null ? $"{d.Owner.FirstName} {d.Owner.LastName}" : null,
+                WidgetCount = d.Widgets.Count(w => !w.IsDeleted),
+                CreatedAt = d.CreatedAt,
+                UpdatedAt = d.UpdatedAt
+            })
+            .ToListAsync();
 
-            return Ok(dashboards);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving all dashboards");
-            return StatusCode(500, new { message = "An error occurred while retrieving dashboards" });
-        }
+        return Ok(dashboards);
     }
 
     /// <summary>
@@ -148,77 +133,69 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetDashboard(int id)
     {
-        try
+                var userId = GetCurrentUserId();
+        var userRole = GetCurrentUserRole();
+
+        var dashboard = await _context.Dashboards
+            .Where(d => d.Id == id && !d.IsDeleted)
+            .Include(d => d.Widgets.Where(w => !w.IsDeleted))
+            .Include(d => d.Owner)
+            .FirstOrDefaultAsync();
+
+        if (dashboard == null)
+            return NotFound(new { message = DashboardNotFoundMessage });
+
+        // Check access
+        if (dashboard.Visibility == DashboardVisibility.Private && dashboard.OwnerId != userId)
+            return Forbid();
+
+        if (dashboard.Visibility == DashboardVisibility.RoleBased &&
+            dashboard.AllowedRoles != null && !dashboard.AllowedRoles.Contains(userRole))
+            return Forbid();
+
+        var dto = new DashboardDetailDto
         {
-            var userId = GetCurrentUserId();
-            var userRole = GetCurrentUserRole();
-
-            var dashboard = await _context.Dashboards
-                .Where(d => d.Id == id && !d.IsDeleted)
-                .Include(d => d.Widgets.Where(w => !w.IsDeleted))
-                .Include(d => d.Owner)
-                .FirstOrDefaultAsync();
-
-            if (dashboard == null)
-                return NotFound(new { message = DashboardNotFoundMessage });
-
-            // Check access
-            if (dashboard.Visibility == DashboardVisibility.Private && dashboard.OwnerId != userId)
-                return Forbid();
-
-            if (dashboard.Visibility == DashboardVisibility.RoleBased &&
-                dashboard.AllowedRoles != null && !dashboard.AllowedRoles.Contains(userRole))
-                return Forbid();
-
-            var dto = new DashboardDetailDto
+            Id = dashboard.Id,
+            Name = dashboard.Name,
+            Description = dashboard.Description,
+            IsDefault = dashboard.IsDefault,
+            IsSystem = dashboard.IsSystem,
+            IsActive = dashboard.IsActive,
+            IconName = dashboard.IconName,
+            DisplayOrder = dashboard.DisplayOrder,
+            ColumnCount = dashboard.ColumnCount,
+            RefreshIntervalSeconds = dashboard.RefreshIntervalSeconds,
+            LayoutConfig = dashboard.LayoutConfig,
+            Visibility = dashboard.Visibility.ToString(),
+            AllowedRoles = dashboard.AllowedRoles,
+            OwnerId = dashboard.OwnerId,
+            OwnerName = dashboard.Owner != null ? $"{dashboard.Owner.FirstName} {dashboard.Owner.LastName}" : null,
+            Widgets = dashboard.Widgets.OrderBy(w => w.DisplayOrder).Select(w => new DashboardWidgetDto
             {
-                Id = dashboard.Id,
-                Name = dashboard.Name,
-                Description = dashboard.Description,
-                IsDefault = dashboard.IsDefault,
-                IsSystem = dashboard.IsSystem,
-                IsActive = dashboard.IsActive,
-                IconName = dashboard.IconName,
-                DisplayOrder = dashboard.DisplayOrder,
-                ColumnCount = dashboard.ColumnCount,
-                RefreshIntervalSeconds = dashboard.RefreshIntervalSeconds,
-                LayoutConfig = dashboard.LayoutConfig,
-                Visibility = dashboard.Visibility.ToString(),
-                AllowedRoles = dashboard.AllowedRoles,
-                OwnerId = dashboard.OwnerId,
-                OwnerName = dashboard.Owner != null ? $"{dashboard.Owner.FirstName} {dashboard.Owner.LastName}" : null,
-                Widgets = dashboard.Widgets.OrderBy(w => w.DisplayOrder).Select(w => new DashboardWidgetDto
-                {
-                    Id = w.Id,
-                    Title = w.Title,
-                    Subtitle = w.Subtitle,
-                    WidgetType = w.WidgetType.ToString(),
-                    WidgetTypeValue = (int)w.WidgetType,
-                    DataSource = w.DataSource,
-                    RowIndex = w.RowIndex,
-                    ColumnIndex = w.ColumnIndex,
-                    ColumnSpan = w.ColumnSpan,
-                    RowSpan = w.RowSpan,
-                    DisplayOrder = w.DisplayOrder,
-                    IsVisible = w.IsVisible,
-                    IconName = w.IconName,
-                    Color = w.Color,
-                    BackgroundColor = w.BackgroundColor,
-                    NavigationLink = w.NavigationLink,
-                    ConfigJson = w.ConfigJson,
-                    ShowTrend = w.ShowTrend,
-                    TrendPeriodDays = w.TrendPeriodDays,
-                    RefreshIntervalSeconds = w.RefreshIntervalSeconds
-                }).ToList()
-            };
+                Id = w.Id,
+                Title = w.Title,
+                Subtitle = w.Subtitle,
+                WidgetType = w.WidgetType.ToString(),
+                WidgetTypeValue = (int)w.WidgetType,
+                DataSource = w.DataSource,
+                RowIndex = w.RowIndex,
+                ColumnIndex = w.ColumnIndex,
+                ColumnSpan = w.ColumnSpan,
+                RowSpan = w.RowSpan,
+                DisplayOrder = w.DisplayOrder,
+                IsVisible = w.IsVisible,
+                IconName = w.IconName,
+                Color = w.Color,
+                BackgroundColor = w.BackgroundColor,
+                NavigationLink = w.NavigationLink,
+                ConfigJson = w.ConfigJson,
+                ShowTrend = w.ShowTrend,
+                TrendPeriodDays = w.TrendPeriodDays,
+                RefreshIntervalSeconds = w.RefreshIntervalSeconds
+            }).ToList()
+        };
 
-            return Ok(dto);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving dashboard {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while retrieving the dashboard" });
-        }
+        return Ok(dto);
     }
 
     /// <summary>
@@ -228,86 +205,78 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDefaultDashboard()
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var userRole = GetCurrentUserRole();
+                var userId = GetCurrentUserId();
+        var userRole = GetCurrentUserRole();
 
-            var dashboard = await _context.Dashboards
-                .Where(d => d.IsDefault && !d.IsDeleted && d.IsActive)
+        var dashboard = await _context.Dashboards
+            .Where(d => d.IsDefault && !d.IsDeleted && d.IsActive)
+            .Where(d =>
+                d.Visibility == DashboardVisibility.Public ||
+                (d.Visibility == DashboardVisibility.Private && d.OwnerId == userId) ||
+                (d.Visibility == DashboardVisibility.RoleBased &&
+                 (d.AllowedRoles == null || d.AllowedRoles.Contains(userRole))))
+            .Include(d => d.Widgets.Where(w => !w.IsDeleted && w.IsVisible))
+            .Include(d => d.Owner)
+            .FirstOrDefaultAsync();
+
+        if (dashboard == null)
+        {
+            // Return the first available dashboard
+            dashboard = await _context.Dashboards
+                .Where(d => !d.IsDeleted && d.IsActive)
                 .Where(d =>
                     d.Visibility == DashboardVisibility.Public ||
                     (d.Visibility == DashboardVisibility.Private && d.OwnerId == userId) ||
                     (d.Visibility == DashboardVisibility.RoleBased &&
                      (d.AllowedRoles == null || d.AllowedRoles.Contains(userRole))))
                 .Include(d => d.Widgets.Where(w => !w.IsDeleted && w.IsVisible))
-                .Include(d => d.Owner)
+                .OrderBy(d => d.DisplayOrder)
                 .FirstOrDefaultAsync();
-
-            if (dashboard == null)
-            {
-                // Return the first available dashboard
-                dashboard = await _context.Dashboards
-                    .Where(d => !d.IsDeleted && d.IsActive)
-                    .Where(d =>
-                        d.Visibility == DashboardVisibility.Public ||
-                        (d.Visibility == DashboardVisibility.Private && d.OwnerId == userId) ||
-                        (d.Visibility == DashboardVisibility.RoleBased &&
-                         (d.AllowedRoles == null || d.AllowedRoles.Contains(userRole))))
-                    .Include(d => d.Widgets.Where(w => !w.IsDeleted && w.IsVisible))
-                    .OrderBy(d => d.DisplayOrder)
-                    .FirstOrDefaultAsync();
-            }
-
-            if (dashboard == null)
-                return Ok(null); // No dashboards available
-
-            var dto = new DashboardDetailDto
-            {
-                Id = dashboard.Id,
-                Name = dashboard.Name,
-                Description = dashboard.Description,
-                IsDefault = dashboard.IsDefault,
-                IsSystem = dashboard.IsSystem,
-                IsActive = dashboard.IsActive,
-                IconName = dashboard.IconName,
-                DisplayOrder = dashboard.DisplayOrder,
-                ColumnCount = dashboard.ColumnCount,
-                RefreshIntervalSeconds = dashboard.RefreshIntervalSeconds,
-                LayoutConfig = dashboard.LayoutConfig,
-                Visibility = dashboard.Visibility.ToString(),
-                OwnerId = dashboard.OwnerId,
-                Widgets = dashboard.Widgets.OrderBy(w => w.DisplayOrder).Select(w => new DashboardWidgetDto
-                {
-                    Id = w.Id,
-                    Title = w.Title,
-                    Subtitle = w.Subtitle,
-                    WidgetType = w.WidgetType.ToString(),
-                    WidgetTypeValue = (int)w.WidgetType,
-                    DataSource = w.DataSource,
-                    RowIndex = w.RowIndex,
-                    ColumnIndex = w.ColumnIndex,
-                    ColumnSpan = w.ColumnSpan,
-                    RowSpan = w.RowSpan,
-                    DisplayOrder = w.DisplayOrder,
-                    IsVisible = w.IsVisible,
-                    IconName = w.IconName,
-                    Color = w.Color,
-                    BackgroundColor = w.BackgroundColor,
-                    NavigationLink = w.NavigationLink,
-                    ConfigJson = w.ConfigJson,
-                    ShowTrend = w.ShowTrend,
-                    TrendPeriodDays = w.TrendPeriodDays
-                }).ToList()
-            };
-
-            return Ok(dto);
         }
-        catch (Exception ex)
+
+        if (dashboard == null)
+            return Ok(null); // No dashboards available
+
+        var dto = new DashboardDetailDto
         {
-            _logger.LogError(ex, "Error retrieving default dashboard");
-            return StatusCode(500, new { message = "An error occurred while retrieving the default dashboard" });
-        }
+            Id = dashboard.Id,
+            Name = dashboard.Name,
+            Description = dashboard.Description,
+            IsDefault = dashboard.IsDefault,
+            IsSystem = dashboard.IsSystem,
+            IsActive = dashboard.IsActive,
+            IconName = dashboard.IconName,
+            DisplayOrder = dashboard.DisplayOrder,
+            ColumnCount = dashboard.ColumnCount,
+            RefreshIntervalSeconds = dashboard.RefreshIntervalSeconds,
+            LayoutConfig = dashboard.LayoutConfig,
+            Visibility = dashboard.Visibility.ToString(),
+            OwnerId = dashboard.OwnerId,
+            Widgets = dashboard.Widgets.OrderBy(w => w.DisplayOrder).Select(w => new DashboardWidgetDto
+            {
+                Id = w.Id,
+                Title = w.Title,
+                Subtitle = w.Subtitle,
+                WidgetType = w.WidgetType.ToString(),
+                WidgetTypeValue = (int)w.WidgetType,
+                DataSource = w.DataSource,
+                RowIndex = w.RowIndex,
+                ColumnIndex = w.ColumnIndex,
+                ColumnSpan = w.ColumnSpan,
+                RowSpan = w.RowSpan,
+                DisplayOrder = w.DisplayOrder,
+                IsVisible = w.IsVisible,
+                IconName = w.IconName,
+                Color = w.Color,
+                BackgroundColor = w.BackgroundColor,
+                NavigationLink = w.NavigationLink,
+                ConfigJson = w.ConfigJson,
+                ShowTrend = w.ShowTrend,
+                TrendPeriodDays = w.TrendPeriodDays
+            }).ToList()
+        };
+
+        return Ok(dto);
     }
 
     /// <summary>
@@ -319,56 +288,48 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateDashboard([FromBody] CreateDashboardDto dto)
     {
-        try
+                if (string.IsNullOrWhiteSpace(dto.Name))
+            return BadRequest(new { message = "Dashboard name is required" });
+
+        var userId = GetCurrentUserId();
+
+        // If this is set as default, unset other defaults
+        if (dto.IsDefault)
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
-                return BadRequest(new { message = "Dashboard name is required" });
-
-            var userId = GetCurrentUserId();
-
-            // If this is set as default, unset other defaults
-            if (dto.IsDefault)
+            var existingDefaults = await _context.Dashboards
+                .Where(d => d.IsDefault && !d.IsDeleted)
+                .ToListAsync();
+            foreach (var d in existingDefaults)
             {
-                var existingDefaults = await _context.Dashboards
-                    .Where(d => d.IsDefault && !d.IsDeleted)
-                    .ToListAsync();
-                foreach (var d in existingDefaults)
-                {
-                    d.IsDefault = false;
-                }
+                d.IsDefault = false;
             }
-
-            var dashboard = new Dashboard
-            {
-                Name = dto.Name,
-                Description = dto.Description,
-                IsDefault = dto.IsDefault,
-                IsSystem = false,
-                IsActive = dto.IsActive ?? true,
-                IconName = dto.IconName ?? "Dashboard",
-                DisplayOrder = dto.DisplayOrder ?? 0,
-                ColumnCount = dto.ColumnCount ?? 3,
-                RefreshIntervalSeconds = dto.RefreshIntervalSeconds ?? 300,
-                LayoutConfig = dto.LayoutConfig,
-                OwnerId = dto.OwnerId ?? userId,
-                Visibility = Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis)
-                    ? vis : DashboardVisibility.Public,
-                AllowedRoles = dto.AllowedRoles,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Dashboards.Add(dashboard);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Dashboard {Name} created with ID {Id}", dashboard.Name, dashboard.Id);
-
-            return CreatedAtAction(nameof(GetDashboard), new { id = dashboard.Id }, new { id = dashboard.Id, name = dashboard.Name });
         }
-        catch (Exception ex)
+
+        var dashboard = new Dashboard
         {
-            _logger.LogError(ex, "Error creating dashboard");
-            return StatusCode(500, new { message = "An error occurred while creating the dashboard" });
-        }
+            Name = dto.Name,
+            Description = dto.Description,
+            IsDefault = dto.IsDefault,
+            IsSystem = false,
+            IsActive = dto.IsActive ?? true,
+            IconName = dto.IconName ?? "Dashboard",
+            DisplayOrder = dto.DisplayOrder ?? 0,
+            ColumnCount = dto.ColumnCount ?? 3,
+            RefreshIntervalSeconds = dto.RefreshIntervalSeconds ?? 300,
+            LayoutConfig = dto.LayoutConfig,
+            OwnerId = dto.OwnerId ?? userId,
+            Visibility = Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis)
+                ? vis : DashboardVisibility.Public,
+            AllowedRoles = dto.AllowedRoles,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Dashboards.Add(dashboard);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Dashboard {Name} created with ID {Id}", dashboard.Name, dashboard.Id);
+
+        return CreatedAtAction(nameof(GetDashboard), new { id = dashboard.Id }, new { id = dashboard.Id, name = dashboard.Name });
     }
 
     /// <summary>
@@ -381,62 +342,54 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateDashboard(int id, [FromBody] UpdateDashboardDto dto)
     {
-        try
+                var dashboard = await _context.Dashboards.FindAsync(id);
+        if (dashboard == null || dashboard.IsDeleted)
+            return NotFound(new { message = DashboardNotFoundMessage });
+
+        if (dashboard.IsSystem && !User.IsInRole("Admin"))
+            return Forbid();
+
+        // If this is set as default, unset other defaults
+        if (dto.IsDefault == true && !dashboard.IsDefault)
         {
-            var dashboard = await _context.Dashboards.FindAsync(id);
-            if (dashboard == null || dashboard.IsDeleted)
-                return NotFound(new { message = DashboardNotFoundMessage });
-
-            if (dashboard.IsSystem && !User.IsInRole("Admin"))
-                return Forbid();
-
-            // If this is set as default, unset other defaults
-            if (dto.IsDefault == true && !dashboard.IsDefault)
+            var existingDefaults = await _context.Dashboards
+                .Where(d => d.IsDefault && !d.IsDeleted && d.Id != id)
+                .ToListAsync();
+            foreach (var d in existingDefaults)
             {
-                var existingDefaults = await _context.Dashboards
-                    .Where(d => d.IsDefault && !d.IsDeleted && d.Id != id)
-                    .ToListAsync();
-                foreach (var d in existingDefaults)
-                {
-                    d.IsDefault = false;
-                }
+                d.IsDefault = false;
             }
-
-            if (!string.IsNullOrWhiteSpace(dto.Name))
-                dashboard.Name = dto.Name;
-            if (dto.Description != null)
-                dashboard.Description = dto.Description;
-            if (dto.IsDefault.HasValue)
-                dashboard.IsDefault = dto.IsDefault.Value;
-            if (dto.IsActive.HasValue)
-                dashboard.IsActive = dto.IsActive.Value;
-            if (!string.IsNullOrWhiteSpace(dto.IconName))
-                dashboard.IconName = dto.IconName;
-            if (dto.DisplayOrder.HasValue)
-                dashboard.DisplayOrder = dto.DisplayOrder.Value;
-            if (dto.ColumnCount.HasValue)
-                dashboard.ColumnCount = dto.ColumnCount.Value;
-            if (dto.RefreshIntervalSeconds.HasValue)
-                dashboard.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
-            if (dto.LayoutConfig != null)
-                dashboard.LayoutConfig = dto.LayoutConfig;
-            if (dto.Visibility != null && Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis))
-                dashboard.Visibility = vis;
-            if (dto.AllowedRoles != null)
-                dashboard.AllowedRoles = dto.AllowedRoles;
-
-            dashboard.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Dashboard {Id} updated", id);
-
-            return Ok(new { message = "Dashboard updated successfully" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating dashboard {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while updating the dashboard" });
-        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Name))
+            dashboard.Name = dto.Name;
+        if (dto.Description != null)
+            dashboard.Description = dto.Description;
+        if (dto.IsDefault.HasValue)
+            dashboard.IsDefault = dto.IsDefault.Value;
+        if (dto.IsActive.HasValue)
+            dashboard.IsActive = dto.IsActive.Value;
+        if (!string.IsNullOrWhiteSpace(dto.IconName))
+            dashboard.IconName = dto.IconName;
+        if (dto.DisplayOrder.HasValue)
+            dashboard.DisplayOrder = dto.DisplayOrder.Value;
+        if (dto.ColumnCount.HasValue)
+            dashboard.ColumnCount = dto.ColumnCount.Value;
+        if (dto.RefreshIntervalSeconds.HasValue)
+            dashboard.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
+        if (dto.LayoutConfig != null)
+            dashboard.LayoutConfig = dto.LayoutConfig;
+        if (dto.Visibility != null && Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis))
+            dashboard.Visibility = vis;
+        if (dto.AllowedRoles != null)
+            dashboard.AllowedRoles = dto.AllowedRoles;
+
+        dashboard.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Dashboard {Id} updated", id);
+
+        return Ok(new { message = "Dashboard updated successfully" });
     }
 
     /// <summary>
@@ -448,28 +401,20 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteDashboard(int id)
     {
-        try
-        {
-            var dashboard = await _context.Dashboards.FindAsync(id);
-            if (dashboard == null || dashboard.IsDeleted)
-                return NotFound(new { message = DashboardNotFoundMessage });
+                var dashboard = await _context.Dashboards.FindAsync(id);
+        if (dashboard == null || dashboard.IsDeleted)
+            return NotFound(new { message = DashboardNotFoundMessage });
 
-            if (dashboard.IsSystem)
-                return BadRequest(new { message = "Cannot delete system dashboards" });
+        if (dashboard.IsSystem)
+            return BadRequest(new { message = "Cannot delete system dashboards" });
 
-            dashboard.IsDeleted = true;
-            dashboard.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+        dashboard.IsDeleted = true;
+        dashboard.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Dashboard {Id} deleted", id);
+        _logger.LogInformation("Dashboard {Id} deleted", id);
 
-            return Ok(new { message = "Dashboard deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting dashboard {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while deleting the dashboard" });
-        }
+        return Ok(new { message = "Dashboard deleted successfully" });
     }
 
     #endregion
@@ -483,43 +428,35 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetWidgets(int dashboardId)
     {
-        try
-        {
-            var widgets = await _context.DashboardWidgets
-                .Where(w => w.DashboardId == dashboardId && !w.IsDeleted)
-                .OrderBy(w => w.DisplayOrder)
-                .Select(w => new DashboardWidgetDto
-                {
-                    Id = w.Id,
-                    Title = w.Title,
-                    Subtitle = w.Subtitle,
-                    WidgetType = w.WidgetType.ToString(),
-                    WidgetTypeValue = (int)w.WidgetType,
-                    DataSource = w.DataSource,
-                    RowIndex = w.RowIndex,
-                    ColumnIndex = w.ColumnIndex,
-                    ColumnSpan = w.ColumnSpan,
-                    RowSpan = w.RowSpan,
-                    DisplayOrder = w.DisplayOrder,
-                    IsVisible = w.IsVisible,
-                    IconName = w.IconName,
-                    Color = w.Color,
-                    BackgroundColor = w.BackgroundColor,
-                    NavigationLink = w.NavigationLink,
-                    ConfigJson = w.ConfigJson,
-                    ShowTrend = w.ShowTrend,
-                    TrendPeriodDays = w.TrendPeriodDays,
-                    RefreshIntervalSeconds = w.RefreshIntervalSeconds
-                })
-                .ToListAsync();
+                var widgets = await _context.DashboardWidgets
+            .Where(w => w.DashboardId == dashboardId && !w.IsDeleted)
+            .OrderBy(w => w.DisplayOrder)
+            .Select(w => new DashboardWidgetDto
+            {
+                Id = w.Id,
+                Title = w.Title,
+                Subtitle = w.Subtitle,
+                WidgetType = w.WidgetType.ToString(),
+                WidgetTypeValue = (int)w.WidgetType,
+                DataSource = w.DataSource,
+                RowIndex = w.RowIndex,
+                ColumnIndex = w.ColumnIndex,
+                ColumnSpan = w.ColumnSpan,
+                RowSpan = w.RowSpan,
+                DisplayOrder = w.DisplayOrder,
+                IsVisible = w.IsVisible,
+                IconName = w.IconName,
+                Color = w.Color,
+                BackgroundColor = w.BackgroundColor,
+                NavigationLink = w.NavigationLink,
+                ConfigJson = w.ConfigJson,
+                ShowTrend = w.ShowTrend,
+                TrendPeriodDays = w.TrendPeriodDays,
+                RefreshIntervalSeconds = w.RefreshIntervalSeconds
+            })
+            .ToListAsync();
 
-            return Ok(widgets);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving widgets for dashboard {DashboardId}", dashboardId);
-            return StatusCode(500, new { message = "An error occurred while retrieving widgets" });
-        }
+        return Ok(widgets);
     }
 
     /// <summary>
@@ -532,52 +469,44 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreateWidget([FromBody] CreateWidgetDto dto)
     {
-        try
+                if (string.IsNullOrWhiteSpace(dto.Title))
+            return BadRequest(new { message = "Widget title is required" });
+
+        var dashboard = await _context.Dashboards.FindAsync(dto.DashboardId);
+        if (dashboard == null || dashboard.IsDeleted)
+            return NotFound(new { message = DashboardNotFoundMessage });
+
+        var widget = new DashboardWidget
         {
-            if (string.IsNullOrWhiteSpace(dto.Title))
-                return BadRequest(new { message = "Widget title is required" });
+            DashboardId = dto.DashboardId,
+            Title = dto.Title,
+            Subtitle = dto.Subtitle,
+            WidgetType = Enum.TryParse<WidgetType>(dto.WidgetType, out var wt) ? wt : WidgetType.StatCard,
+            DataSource = dto.DataSource ?? "",
+            RowIndex = dto.RowIndex ?? 0,
+            ColumnIndex = dto.ColumnIndex ?? 0,
+            ColumnSpan = dto.ColumnSpan ?? 1,
+            RowSpan = dto.RowSpan ?? 1,
+            DisplayOrder = dto.DisplayOrder ?? 0,
+            IsVisible = dto.IsVisible ?? true,
+            IconName = dto.IconName,
+            Color = dto.Color,
+            BackgroundColor = dto.BackgroundColor,
+            NavigationLink = dto.NavigationLink,
+            ConfigJson = dto.ConfigJson,
+            ShowTrend = dto.ShowTrend ?? false,
+            TrendPeriodDays = dto.TrendPeriodDays ?? 30,
+            RefreshIntervalSeconds = dto.RefreshIntervalSeconds ?? 0,
+            CreatedAt = DateTime.UtcNow
+        };
 
-            var dashboard = await _context.Dashboards.FindAsync(dto.DashboardId);
-            if (dashboard == null || dashboard.IsDeleted)
-                return NotFound(new { message = DashboardNotFoundMessage });
+        _context.DashboardWidgets.Add(widget);
+        await _context.SaveChangesAsync();
 
-            var widget = new DashboardWidget
-            {
-                DashboardId = dto.DashboardId,
-                Title = dto.Title,
-                Subtitle = dto.Subtitle,
-                WidgetType = Enum.TryParse<WidgetType>(dto.WidgetType, out var wt) ? wt : WidgetType.StatCard,
-                DataSource = dto.DataSource ?? "",
-                RowIndex = dto.RowIndex ?? 0,
-                ColumnIndex = dto.ColumnIndex ?? 0,
-                ColumnSpan = dto.ColumnSpan ?? 1,
-                RowSpan = dto.RowSpan ?? 1,
-                DisplayOrder = dto.DisplayOrder ?? 0,
-                IsVisible = dto.IsVisible ?? true,
-                IconName = dto.IconName,
-                Color = dto.Color,
-                BackgroundColor = dto.BackgroundColor,
-                NavigationLink = dto.NavigationLink,
-                ConfigJson = dto.ConfigJson,
-                ShowTrend = dto.ShowTrend ?? false,
-                TrendPeriodDays = dto.TrendPeriodDays ?? 30,
-                RefreshIntervalSeconds = dto.RefreshIntervalSeconds ?? 0,
-                CreatedAt = DateTime.UtcNow
-            };
+        _logger.LogInformation("Widget {Title} created with ID {Id}", widget.Title, widget.Id);
 
-            _context.DashboardWidgets.Add(widget);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Widget {Title} created with ID {Id}", widget.Title, widget.Id);
-
-            return CreatedAtAction(nameof(GetWidgets), new { dashboardId = dto.DashboardId },
-                new { id = widget.Id, title = widget.Title });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating widget");
-            return StatusCode(500, new { message = "An error occurred while creating the widget" });
-        }
+        return CreatedAtAction(nameof(GetWidgets), new { dashboardId = dto.DashboardId },
+            new { id = widget.Id, title = widget.Title });
     }
 
     /// <summary>
@@ -590,61 +519,53 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateWidget(int id, [FromBody] UpdateWidgetDto dto)
     {
-        try
-        {
-            var widget = await _context.DashboardWidgets.FindAsync(id);
-            if (widget == null || widget.IsDeleted)
-                return NotFound(new { message = "Widget not found" });
+                var widget = await _context.DashboardWidgets.FindAsync(id);
+        if (widget == null || widget.IsDeleted)
+            return NotFound(new { message = "Widget not found" });
 
-            if (!string.IsNullOrWhiteSpace(dto.Title))
-                widget.Title = dto.Title;
-            if (dto.Subtitle != null)
-                widget.Subtitle = dto.Subtitle;
-            if (dto.WidgetType != null && Enum.TryParse<WidgetType>(dto.WidgetType, out var wt))
-                widget.WidgetType = wt;
-            if (dto.DataSource != null)
-                widget.DataSource = dto.DataSource;
-            if (dto.RowIndex.HasValue)
-                widget.RowIndex = dto.RowIndex.Value;
-            if (dto.ColumnIndex.HasValue)
-                widget.ColumnIndex = dto.ColumnIndex.Value;
-            if (dto.ColumnSpan.HasValue)
-                widget.ColumnSpan = dto.ColumnSpan.Value;
-            if (dto.RowSpan.HasValue)
-                widget.RowSpan = dto.RowSpan.Value;
-            if (dto.DisplayOrder.HasValue)
-                widget.DisplayOrder = dto.DisplayOrder.Value;
-            if (dto.IsVisible.HasValue)
-                widget.IsVisible = dto.IsVisible.Value;
-            if (dto.IconName != null)
-                widget.IconName = dto.IconName;
-            if (dto.Color != null)
-                widget.Color = dto.Color;
-            if (dto.BackgroundColor != null)
-                widget.BackgroundColor = dto.BackgroundColor;
-            if (dto.NavigationLink != null)
-                widget.NavigationLink = dto.NavigationLink;
-            if (dto.ConfigJson != null)
-                widget.ConfigJson = dto.ConfigJson;
-            if (dto.ShowTrend.HasValue)
-                widget.ShowTrend = dto.ShowTrend.Value;
-            if (dto.TrendPeriodDays.HasValue)
-                widget.TrendPeriodDays = dto.TrendPeriodDays.Value;
-            if (dto.RefreshIntervalSeconds.HasValue)
-                widget.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
+        if (!string.IsNullOrWhiteSpace(dto.Title))
+            widget.Title = dto.Title;
+        if (dto.Subtitle != null)
+            widget.Subtitle = dto.Subtitle;
+        if (dto.WidgetType != null && Enum.TryParse<WidgetType>(dto.WidgetType, out var wt))
+            widget.WidgetType = wt;
+        if (dto.DataSource != null)
+            widget.DataSource = dto.DataSource;
+        if (dto.RowIndex.HasValue)
+            widget.RowIndex = dto.RowIndex.Value;
+        if (dto.ColumnIndex.HasValue)
+            widget.ColumnIndex = dto.ColumnIndex.Value;
+        if (dto.ColumnSpan.HasValue)
+            widget.ColumnSpan = dto.ColumnSpan.Value;
+        if (dto.RowSpan.HasValue)
+            widget.RowSpan = dto.RowSpan.Value;
+        if (dto.DisplayOrder.HasValue)
+            widget.DisplayOrder = dto.DisplayOrder.Value;
+        if (dto.IsVisible.HasValue)
+            widget.IsVisible = dto.IsVisible.Value;
+        if (dto.IconName != null)
+            widget.IconName = dto.IconName;
+        if (dto.Color != null)
+            widget.Color = dto.Color;
+        if (dto.BackgroundColor != null)
+            widget.BackgroundColor = dto.BackgroundColor;
+        if (dto.NavigationLink != null)
+            widget.NavigationLink = dto.NavigationLink;
+        if (dto.ConfigJson != null)
+            widget.ConfigJson = dto.ConfigJson;
+        if (dto.ShowTrend.HasValue)
+            widget.ShowTrend = dto.ShowTrend.Value;
+        if (dto.TrendPeriodDays.HasValue)
+            widget.TrendPeriodDays = dto.TrendPeriodDays.Value;
+        if (dto.RefreshIntervalSeconds.HasValue)
+            widget.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
 
-            widget.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+        widget.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Widget {Id} updated", id);
+        _logger.LogInformation("Widget {Id} updated", id);
 
-            return Ok(new { message = "Widget updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating widget {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while updating the widget" });
-        }
+        return Ok(new { message = "Widget updated successfully" });
     }
 
     /// <summary>
@@ -656,25 +577,17 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteWidget(int id)
     {
-        try
-        {
-            var widget = await _context.DashboardWidgets.FindAsync(id);
-            if (widget == null || widget.IsDeleted)
-                return NotFound(new { message = "Widget not found" });
+                var widget = await _context.DashboardWidgets.FindAsync(id);
+        if (widget == null || widget.IsDeleted)
+            return NotFound(new { message = "Widget not found" });
 
-            widget.IsDeleted = true;
-            widget.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+        widget.IsDeleted = true;
+        widget.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
 
-            _logger.LogInformation("Widget {Id} deleted", id);
+        _logger.LogInformation("Widget {Id} deleted", id);
 
-            return Ok(new { message = "Widget deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting widget {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while deleting the widget" });
-        }
+        return Ok(new { message = "Widget deleted successfully" });
     }
 
     /// <summary>
@@ -685,33 +598,25 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderWidgets(int dashboardId, [FromBody] List<WidgetOrderDto> orders)
     {
-        try
-        {
-            var widgets = await _context.DashboardWidgets
-                .Where(w => w.DashboardId == dashboardId && !w.IsDeleted)
-                .ToListAsync();
+                var widgets = await _context.DashboardWidgets
+            .Where(w => w.DashboardId == dashboardId && !w.IsDeleted)
+            .ToListAsync();
 
-            foreach (var order in orders)
+        foreach (var order in orders)
+        {
+            var widget = widgets.FirstOrDefault(w => w.Id == order.WidgetId);
+            if (widget != null)
             {
-                var widget = widgets.FirstOrDefault(w => w.Id == order.WidgetId);
-                if (widget != null)
-                {
-                    widget.DisplayOrder = order.DisplayOrder;
-                    widget.RowIndex = order.RowIndex ?? widget.RowIndex;
-                    widget.ColumnIndex = order.ColumnIndex ?? widget.ColumnIndex;
-                    widget.UpdatedAt = DateTime.UtcNow;
-                }
+                widget.DisplayOrder = order.DisplayOrder;
+                widget.RowIndex = order.RowIndex ?? widget.RowIndex;
+                widget.ColumnIndex = order.ColumnIndex ?? widget.ColumnIndex;
+                widget.UpdatedAt = DateTime.UtcNow;
             }
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Widgets reordered successfully" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error reordering widgets in dashboard {DashboardId}", dashboardId);
-            return StatusCode(500, new { message = "An error occurred while reordering widgets" });
-        }
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Widgets reordered successfully" });
     }
 
     #endregion
@@ -791,81 +696,73 @@ public class DashboardConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> InitializeDefaultDashboards()
     {
-        try
+                var existingCount = await _context.Dashboards.CountAsync(d => !d.IsDeleted);
+        if (existingCount > 0)
+            return Ok(new { message = "Dashboards already exist", count = existingCount });
+
+        // Create default Sales Dashboard
+        var salesDashboard = new Dashboard
         {
-            var existingCount = await _context.Dashboards.CountAsync(d => !d.IsDeleted);
-            if (existingCount > 0)
-                return Ok(new { message = "Dashboards already exist", count = existingCount });
+            Name = "Sales Dashboard",
+            Description = "Overview of sales pipeline and opportunities",
+            IsDefault = true,
+            IsSystem = true,
+            IsActive = true,
+            IconName = "TrendingUp",
+            DisplayOrder = 1,
+            ColumnCount = 3,
+            RefreshIntervalSeconds = 300,
+            Visibility = DashboardVisibility.Public,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.Dashboards.Add(salesDashboard);
+        await _context.SaveChangesAsync();
 
-            // Create default Sales Dashboard
-            var salesDashboard = new Dashboard
-            {
-                Name = "Sales Dashboard",
-                Description = "Overview of sales pipeline and opportunities",
-                IsDefault = true,
-                IsSystem = true,
-                IsActive = true,
-                IconName = "TrendingUp",
-                DisplayOrder = 1,
-                ColumnCount = 3,
-                RefreshIntervalSeconds = 300,
-                Visibility = DashboardVisibility.Public,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.Dashboards.Add(salesDashboard);
-            await _context.SaveChangesAsync();
-
-            // Add widgets to Sales Dashboard
-            var salesWidgets = new List<DashboardWidget>
-            {
-                new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Total Pipeline", DataSource = "opportunities.pipeline_value", WidgetType = WidgetType.StatCard, IconName = "TrendingUp", Color = "#6750A4", ColumnSpan = 1, DisplayOrder = 1, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Won Revenue", DataSource = "opportunities.won_value", WidgetType = WidgetType.StatCard, IconName = "AttachMoney", Color = "#06A77D", ColumnSpan = 1, DisplayOrder = 2, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Accounts", DataSource = "accounts.count", WidgetType = WidgetType.StatCard, IconName = "People", Color = "#0092BC", ColumnSpan = 1, DisplayOrder = 3, NavigationLink = "/accounts", CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Pipeline Trend", DataSource = "opportunities.pipeline_trend", WidgetType = WidgetType.LineChart, ColumnSpan = 2, RowSpan = 2, DisplayOrder = 4, CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Opportunities by Stage", DataSource = "opportunities.by_stage", WidgetType = WidgetType.PieChart, ColumnSpan = 1, RowSpan = 2, DisplayOrder = 5, CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Recent Opportunities", DataSource = "opportunities.recent", WidgetType = WidgetType.DataTable, ColumnSpan = 3, DisplayOrder = 6, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow }
-            };
-            _context.DashboardWidgets.AddRange(salesWidgets);
-
-            // Create Operations Dashboard
-            var opsDashboard = new Dashboard
-            {
-                Name = "Operations Dashboard",
-                Description = "Service requests and task overview",
-                IsDefault = false,
-                IsSystem = true,
-                IsActive = true,
-                IconName = "Build",
-                DisplayOrder = 2,
-                ColumnCount = 3,
-                RefreshIntervalSeconds = 300,
-                Visibility = DashboardVisibility.Public,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.Dashboards.Add(opsDashboard);
-            await _context.SaveChangesAsync();
-
-            var opsWidgets = new List<DashboardWidget>
-            {
-                new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Open Requests", DataSource = "service_requests.open", WidgetType = WidgetType.StatCard, IconName = "Help", Color = "#F57C00", ColumnSpan = 1, DisplayOrder = 1, NavigationLink = "/service-requests", CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Pending Tasks", DataSource = "tasks.pending", WidgetType = WidgetType.StatCard, IconName = "Assignment", Color = "#9C27B0", ColumnSpan = 1, DisplayOrder = 2, NavigationLink = "/tasks", CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Active Users", DataSource = "users.active", WidgetType = WidgetType.StatCard, IconName = "Group", Color = "#2196F3", ColumnSpan = 1, DisplayOrder = 3, CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Requests by Status", DataSource = "service_requests.by_status", WidgetType = WidgetType.BarChart, ColumnSpan = 2, RowSpan = 2, DisplayOrder = 4, CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Requests by Priority", DataSource = "service_requests.by_priority", WidgetType = WidgetType.PieChart, ColumnSpan = 1, RowSpan = 2, DisplayOrder = 5, CreatedAt = DateTime.UtcNow }
-            };
-            _context.DashboardWidgets.AddRange(opsWidgets);
-
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Initialized default dashboards");
-
-            return Ok(new { message = "Default dashboards created successfully", count = 2 });
-        }
-        catch (Exception ex)
+        // Add widgets to Sales Dashboard
+        var salesWidgets = new List<DashboardWidget>
         {
-            _logger.LogError(ex, "Error initializing default dashboards");
-            return StatusCode(500, new { message = "An error occurred while initializing dashboards" });
-        }
+            new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Total Pipeline", DataSource = "opportunities.pipeline_value", WidgetType = WidgetType.StatCard, IconName = "TrendingUp", Color = "#6750A4", ColumnSpan = 1, DisplayOrder = 1, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Won Revenue", DataSource = "opportunities.won_value", WidgetType = WidgetType.StatCard, IconName = "AttachMoney", Color = "#06A77D", ColumnSpan = 1, DisplayOrder = 2, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Accounts", DataSource = "accounts.count", WidgetType = WidgetType.StatCard, IconName = "People", Color = "#0092BC", ColumnSpan = 1, DisplayOrder = 3, NavigationLink = "/accounts", CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Pipeline Trend", DataSource = "opportunities.pipeline_trend", WidgetType = WidgetType.LineChart, ColumnSpan = 2, RowSpan = 2, DisplayOrder = 4, CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Opportunities by Stage", DataSource = "opportunities.by_stage", WidgetType = WidgetType.PieChart, ColumnSpan = 1, RowSpan = 2, DisplayOrder = 5, CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Recent Opportunities", DataSource = "opportunities.recent", WidgetType = WidgetType.DataTable, ColumnSpan = 3, DisplayOrder = 6, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow }
+        };
+        _context.DashboardWidgets.AddRange(salesWidgets);
+
+        // Create Operations Dashboard
+        var opsDashboard = new Dashboard
+        {
+            Name = "Operations Dashboard",
+            Description = "Service requests and task overview",
+            IsDefault = false,
+            IsSystem = true,
+            IsActive = true,
+            IconName = "Build",
+            DisplayOrder = 2,
+            ColumnCount = 3,
+            RefreshIntervalSeconds = 300,
+            Visibility = DashboardVisibility.Public,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.Dashboards.Add(opsDashboard);
+        await _context.SaveChangesAsync();
+
+        var opsWidgets = new List<DashboardWidget>
+        {
+            new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Open Requests", DataSource = "service_requests.open", WidgetType = WidgetType.StatCard, IconName = "Help", Color = "#F57C00", ColumnSpan = 1, DisplayOrder = 1, NavigationLink = "/service-requests", CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Pending Tasks", DataSource = "tasks.pending", WidgetType = WidgetType.StatCard, IconName = "Assignment", Color = "#9C27B0", ColumnSpan = 1, DisplayOrder = 2, NavigationLink = "/tasks", CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Active Users", DataSource = "users.active", WidgetType = WidgetType.StatCard, IconName = "Group", Color = "#2196F3", ColumnSpan = 1, DisplayOrder = 3, CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Requests by Status", DataSource = "service_requests.by_status", WidgetType = WidgetType.BarChart, ColumnSpan = 2, RowSpan = 2, DisplayOrder = 4, CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = opsDashboard.Id, Title = "Requests by Priority", DataSource = "service_requests.by_priority", WidgetType = WidgetType.PieChart, ColumnSpan = 1, RowSpan = 2, DisplayOrder = 5, CreatedAt = DateTime.UtcNow }
+        };
+        _context.DashboardWidgets.AddRange(opsWidgets);
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Initialized default dashboards");
+
+        return Ok(new { message = "Default dashboards created successfully", count = 2 });
     }
 
     #endregion

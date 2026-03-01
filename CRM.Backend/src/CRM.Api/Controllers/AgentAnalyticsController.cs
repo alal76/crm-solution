@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -22,7 +23,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/agents/analytics")]
 [Authorize]
-public class AgentAnalyticsController : ControllerBase
+public class AgentAnalyticsController : CrmControllerBase
 {
     #region Fields
 
@@ -133,68 +134,60 @@ public class AgentAnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUsageAnalytics([FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        try
+                var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
+        var toDate = to ?? DateTime.UtcNow;
+
+        var agents = await _dbContext.AIAgents
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var conversations = await _dbContext.AgentConversations
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted && c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var actions = await _dbContext.AgentActions
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var metrics = agents.Select(agent =>
         {
-            var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
-            var toDate = to ?? DateTime.UtcNow;
+            var agentConversations = conversations.Where(c => c.AgentId == agent.Id).ToList();
+            var agentActions = actions.Where(a => a.AgentId == agent.Id).ToList();
 
-            var agents = await _dbContext.AIAgents
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            var conversations = await _dbContext.AgentConversations
-                .AsNoTracking()
-                .Where(c => !c.IsDeleted && c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            var actions = await _dbContext.AgentActions
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            var metrics = agents.Select(agent =>
-            {
-                var agentConversations = conversations.Where(c => c.AgentId == agent.Id).ToList();
-                var agentActions = actions.Where(a => a.AgentId == agent.Id).ToList();
-
-                // Estimate message count from JSON Messages field length as a proxy
-                var avgMessages = agentConversations.Count > 0
-                    ? agentConversations.Average(c =>
+            // Estimate message count from JSON Messages field length as a proxy
+            var avgMessages = agentConversations.Count > 0
+                ? agentConversations.Average(c =>
+                {
+                    if (string.IsNullOrEmpty(c.Messages))
                     {
-                        if (string.IsNullOrEmpty(c.Messages))
-                        {
-                            return 0.0;
-                        }
+                        return 0.0;
+                    }
 
-                        // Count occurrences of "Role" as a rough message count proxy
-                        var count = c.Messages.Split("\"Role\"", StringSplitOptions.None).Length - 1;
-                        return Math.Max(count, 0);
-                    })
-                    : 0.0;
+                    // Count occurrences of "Role" as a rough message count proxy
+                    var count = c.Messages.Split("\"Role\"", StringSplitOptions.None).Length - 1;
+                    return Math.Max(count, 0);
+                })
+                : 0.0;
 
-                return new AgentUsageMetric(
-                    agent.Id,
-                    agent.Name,
-                    agentConversations.Count,
-                    agentActions.Count,
-                    Math.Round(avgMessages, 2));
-            }).ToList();
+            return new AgentUsageMetric(
+                agent.Id,
+                agent.Name,
+                agentConversations.Count,
+                agentActions.Count,
+                Math.Round(avgMessages, 2));
+        }).ToList();
 
-            return Ok(new
-            {
-                FromDate = fromDate,
-                ToDate = toDate,
-                TotalConversations = conversations.Count,
-                TotalActions = actions.Count,
-                AgentMetrics = metrics,
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting usage analytics");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving usage analytics.");
-        }
+            FromDate = fromDate,
+            ToDate = toDate,
+            TotalConversations = conversations.Count,
+            TotalActions = actions.Count,
+            AgentMetrics = metrics,
+        });
     }
 
     /// <summary>
@@ -207,56 +200,48 @@ public class AgentAnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAccuracyMetrics([FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        try
+                var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
+        var toDate = to ?? DateTime.UtcNow;
+
+        var agents = await _dbContext.AIAgents
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var conversations = await _dbContext.AgentConversations
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted && c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var metrics = agents.Select(agent =>
         {
-            var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
-            var toDate = to ?? DateTime.UtcNow;
-
-            var agents = await _dbContext.AIAgents
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            var conversations = await _dbContext.AgentConversations
-                .AsNoTracking()
-                .Where(c => !c.IsDeleted && c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            var metrics = agents.Select(agent =>
-            {
-                var agentConversations = conversations.Where(c => c.AgentId == agent.Id).ToList();
-                var ratedConversations = agentConversations.Where(c => c.UserRating.HasValue).ToList();
-                var avgRating = ratedConversations.Count > 0
-                    ? ratedConversations.Average(c => c.UserRating!.Value)
-                    : 0.0;
-
-                return new AgentAccuracyMetric(
-                    agent.Id,
-                    agent.Name,
-                    Math.Round(avgRating, 2),
-                    ratedConversations.Count,
-                    agentConversations.Count);
-            }).ToList();
-
-            var overallRated = conversations.Where(c => c.UserRating.HasValue).ToList();
-            var overallAvg = overallRated.Count > 0
-                ? Math.Round(overallRated.Average(c => c.UserRating!.Value), 2)
+            var agentConversations = conversations.Where(c => c.AgentId == agent.Id).ToList();
+            var ratedConversations = agentConversations.Where(c => c.UserRating.HasValue).ToList();
+            var avgRating = ratedConversations.Count > 0
+                ? ratedConversations.Average(c => c.UserRating!.Value)
                 : 0.0;
 
-            return Ok(new
-            {
-                FromDate = fromDate,
-                ToDate = toDate,
-                OverallAverageRating = overallAvg,
-                TotalRatedConversations = overallRated.Count,
-                AgentMetrics = metrics,
-            });
-        }
-        catch (Exception ex)
+            return new AgentAccuracyMetric(
+                agent.Id,
+                agent.Name,
+                Math.Round(avgRating, 2),
+                ratedConversations.Count,
+                agentConversations.Count);
+        }).ToList();
+
+        var overallRated = conversations.Where(c => c.UserRating.HasValue).ToList();
+        var overallAvg = overallRated.Count > 0
+            ? Math.Round(overallRated.Average(c => c.UserRating!.Value), 2)
+            : 0.0;
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting accuracy metrics");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving accuracy metrics.");
-        }
+            FromDate = fromDate,
+            ToDate = toDate,
+            OverallAverageRating = overallAvg,
+            TotalRatedConversations = overallRated.Count,
+            AgentMetrics = metrics,
+        });
     }
 
     /// <summary>
@@ -270,50 +255,42 @@ public class AgentAnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCostAnalytics([FromQuery] DateTime? from, [FromQuery] DateTime? to)
     {
-        try
+                var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
+        var toDate = to ?? DateTime.UtcNow;
+
+        var agents = await _dbContext.AIAgents
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var actions = await _dbContext.AgentActions
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var metrics = agents.Select(agent =>
         {
-            var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
-            var toDate = to ?? DateTime.UtcNow;
+            var agentActions = actions.Where(a => a.AgentId == agent.Id).ToList();
+            var dailyCosts = agentActions
+                .GroupBy(a => a.CreatedAt.Date)
+                .Select(g => new DailyCost(g.Key, g.Count()))
+                .OrderBy(d => d.Date)
+                .ToList();
 
-            var agents = await _dbContext.AIAgents
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted)
-                .ToListAsync(HttpContext.RequestAborted);
+            return new AgentCostMetric(
+                agent.Id,
+                agent.Name,
+                agentActions.Count,
+                dailyCosts);
+        }).ToList();
 
-            var actions = await _dbContext.AgentActions
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            var metrics = agents.Select(agent =>
-            {
-                var agentActions = actions.Where(a => a.AgentId == agent.Id).ToList();
-                var dailyCosts = agentActions
-                    .GroupBy(a => a.CreatedAt.Date)
-                    .Select(g => new DailyCost(g.Key, g.Count()))
-                    .OrderBy(d => d.Date)
-                    .ToList();
-
-                return new AgentCostMetric(
-                    agent.Id,
-                    agent.Name,
-                    agentActions.Count,
-                    dailyCosts);
-            }).ToList();
-
-            return Ok(new
-            {
-                FromDate = fromDate,
-                ToDate = toDate,
-                TotalActions = actions.Count,
-                AgentMetrics = metrics,
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting cost analytics");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving cost analytics.");
-        }
+            FromDate = fromDate,
+            ToDate = toDate,
+            TotalActions = actions.Count,
+            AgentMetrics = metrics,
+        });
     }
 
     /// <summary>
@@ -326,145 +303,137 @@ public class AgentAnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAnalyticsSummary([FromQuery] int days = 30)
     {
-        try
+                var lookback = Math.Max(1, Math.Abs(days));
+        var fromDate = DateTime.UtcNow.AddDays(-lookback);
+        var toDate = DateTime.UtcNow;
+        var period = lookback switch
         {
-            var lookback = Math.Max(1, Math.Abs(days));
-            var fromDate = DateTime.UtcNow.AddDays(-lookback);
-            var toDate = DateTime.UtcNow;
-            var period = lookback switch
+            <= 1 => "today",
+            <= 7 => "week",
+            <= 31 => "month",
+            <= 93 => "quarter",
+            _ => "year"
+        };
+
+        // ── Load reference data ──────────────────────────────────────────────
+        var agents = await _dbContext.AIAgents
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var agentLookup = agents.ToDictionary(a => a.Id);
+
+        // ── Conversations in the period ──────────────────────────────────────
+        var conversations = await _dbContext.AgentConversations
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted && c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
+            .OrderByDescending(c => c.CreatedAt)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        // ── Actions for latency and recent-execution detail ──────────────────
+        var recentConvIds = conversations.Take(50).Select(c => c.Id).ToHashSet();
+
+        var recentActions = await _dbContext.AgentActions
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted && recentConvIds.Contains(a.ConversationId))
+            .ToListAsync(HttpContext.RequestAborted);
+
+        // Actions across the full period (for overall avg latency)
+        var allPeriodActions = await _dbContext.AgentActions
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate && a.ExecutionTimeMs > 0)
+            .Select(a => (long)a.ExecutionTimeMs)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        // ── Summary totals ───────────────────────────────────────────────────
+        var totalCost = conversations.Sum(c => c.EstimatedCost);
+        var totalTokens = conversations.Sum(c => (long)c.TotalTokensUsed);
+        var totalExecutions = conversations.Count;
+        var completedCount = conversations.Count(c =>
+            c.Status == ConversationStatus.Completed || c.Status == ConversationStatus.Active);
+        var successRate = totalExecutions > 0
+            ? Math.Round((double)completedCount / totalExecutions * 100, 1)
+            : 0.0;
+        var averageLatencyMs = allPeriodActions.Count > 0
+            ? Math.Round(allPeriodActions.Average(ms => (double)ms), 1)
+            : 0.0;
+
+        // ── Group by model ───────────────────────────────────────────────────
+        var byModel = conversations
+            .GroupBy(c =>
             {
-                <= 1 => "today",
-                <= 7 => "week",
-                <= 31 => "month",
-                <= 93 => "quarter",
-                _ => "year"
-            };
+                var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
+                return agent?.ModelOverride ?? "System Default";
+            })
+            .Select(g => new ModelBreakdown(
+                g.Key,
+                g.Sum(c => c.EstimatedCost),
+                g.Sum(c => (long)c.TotalTokensUsed),
+                g.Count()))
+            .OrderByDescending(m => m.Cost)
+            .ToList();
 
-            // ── Load reference data ──────────────────────────────────────────────
-            var agents = await _dbContext.AIAgents
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            var agentLookup = agents.ToDictionary(a => a.Id);
-
-            // ── Conversations in the period ──────────────────────────────────────
-            var conversations = await _dbContext.AgentConversations
-                .AsNoTracking()
-                .Where(c => !c.IsDeleted && c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            // ── Actions for latency and recent-execution detail ──────────────────
-            var recentConvIds = conversations.Take(50).Select(c => c.Id).ToHashSet();
-
-            var recentActions = await _dbContext.AgentActions
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted && recentConvIds.Contains(a.ConversationId))
-                .ToListAsync(HttpContext.RequestAborted);
-
-            // Actions across the full period (for overall avg latency)
-            var allPeriodActions = await _dbContext.AgentActions
-                .AsNoTracking()
-                .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate && a.ExecutionTimeMs > 0)
-                .Select(a => (long)a.ExecutionTimeMs)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            // ── Summary totals ───────────────────────────────────────────────────
-            var totalCost = conversations.Sum(c => c.EstimatedCost);
-            var totalTokens = conversations.Sum(c => (long)c.TotalTokensUsed);
-            var totalExecutions = conversations.Count;
-            var completedCount = conversations.Count(c =>
-                c.Status == ConversationStatus.Completed || c.Status == ConversationStatus.Active);
-            var successRate = totalExecutions > 0
-                ? Math.Round((double)completedCount / totalExecutions * 100, 1)
-                : 0.0;
-            var averageLatencyMs = allPeriodActions.Count > 0
-                ? Math.Round(allPeriodActions.Average(ms => (double)ms), 1)
-                : 0.0;
-
-            // ── Group by model ───────────────────────────────────────────────────
-            var byModel = conversations
-                .GroupBy(c =>
-                {
-                    var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
-                    return agent?.ModelOverride ?? "System Default";
-                })
-                .Select(g => new ModelBreakdown(
-                    g.Key,
-                    g.Sum(c => c.EstimatedCost),
-                    g.Sum(c => (long)c.TotalTokensUsed),
-                    g.Count()))
-                .OrderByDescending(m => m.Cost)
-                .ToList();
-
-            // ── Group by agent type (node type) ──────────────────────────────────
-            var byNodeType = conversations
-                .GroupBy(c =>
-                {
-                    var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
-                    return agent != null ? agent.AgentType.ToString() : "Unknown";
-                })
-                .Select(g => new NodeTypeBreakdown(
-                    g.Key,
-                    g.Sum(c => c.EstimatedCost),
-                    g.Sum(c => (long)c.TotalTokensUsed),
-                    g.Count()))
-                .OrderByDescending(n => n.Cost)
-                .ToList();
-
-            // ── Recent executions (last 20 conversations) ─────────────────────────
-            var actionsByConversation = recentActions
-                .GroupBy(a => a.ConversationId)
-                .ToDictionary(g => g.Key, g => g.ToList());
-
-            var recentExecutions = conversations
-                .Take(20)
-                .Select(c =>
-                {
-                    var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
-                    var convActions = actionsByConversation.TryGetValue(c.Id, out var ca) ? ca : new List<AgentAction>();
-                    var latencyMs = convActions.Count > 0
-                        ? (long)convActions.Average(a => (double)a.ExecutionTimeMs)
-                        : 0L;
-                    var inputTokens = (int)(c.TotalTokensUsed * 0.75);
-                    var outputTokens = c.TotalTokensUsed - inputTokens;
-                    var success = c.Status is ConversationStatus.Completed or ConversationStatus.Active;
-                    var errorMsg = c.Status == ConversationStatus.Failed ? "Conversation failed" : (string?)null;
-
-                    return new RecentExecution(
-                        c.Id,
-                        agent?.AgentType.ToString() ?? "Unknown",
-                        agent?.ModelOverride ?? "System Default",
-                        inputTokens,
-                        outputTokens,
-                        c.TotalTokensUsed,
-                        c.EstimatedCost,
-                        latencyMs,
-                        success,
-                        errorMsg,
-                        c.CreatedAt);
-                })
-                .ToList();
-
-            return Ok(new
+        // ── Group by agent type (node type) ──────────────────────────────────
+        var byNodeType = conversations
+            .GroupBy(c =>
             {
-                Period = period,
-                TotalCost = totalCost,
-                TotalTokens = totalTokens,
-                TotalExecutions = totalExecutions,
-                SuccessRate = successRate,
-                AverageLatencyMs = averageLatencyMs,
-                ByModel = byModel,
-                ByNodeType = byNodeType,
-                RecentExecutions = recentExecutions,
-            });
-        }
-        catch (Exception ex)
+                var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
+                return agent != null ? agent.AgentType.ToString() : "Unknown";
+            })
+            .Select(g => new NodeTypeBreakdown(
+                g.Key,
+                g.Sum(c => c.EstimatedCost),
+                g.Sum(c => (long)c.TotalTokensUsed),
+                g.Count()))
+            .OrderByDescending(n => n.Cost)
+            .ToList();
+
+        // ── Recent executions (last 20 conversations) ─────────────────────────
+        var actionsByConversation = recentActions
+            .GroupBy(a => a.ConversationId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var recentExecutions = conversations
+            .Take(20)
+            .Select(c =>
+            {
+                var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
+                var convActions = actionsByConversation.TryGetValue(c.Id, out var ca) ? ca : new List<AgentAction>();
+                var latencyMs = convActions.Count > 0
+                    ? (long)convActions.Average(a => (double)a.ExecutionTimeMs)
+                    : 0L;
+                var inputTokens = (int)(c.TotalTokensUsed * 0.75);
+                var outputTokens = c.TotalTokensUsed - inputTokens;
+                var success = c.Status is ConversationStatus.Completed or ConversationStatus.Active;
+                var errorMsg = c.Status == ConversationStatus.Failed ? "Conversation failed" : (string?)null;
+
+                return new RecentExecution(
+                    c.Id,
+                    agent?.AgentType.ToString() ?? "Unknown",
+                    agent?.ModelOverride ?? "System Default",
+                    inputTokens,
+                    outputTokens,
+                    c.TotalTokensUsed,
+                    c.EstimatedCost,
+                    latencyMs,
+                    success,
+                    errorMsg,
+                    c.CreatedAt);
+            })
+            .ToList();
+
+        return Ok(new
         {
-            _logger.LogError(ex, "Error getting AI analytics summary");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving AI analytics summary.");
-        }
+            Period = period,
+            TotalCost = totalCost,
+            TotalTokens = totalTokens,
+            TotalExecutions = totalExecutions,
+            SuccessRate = successRate,
+            AverageLatencyMs = averageLatencyMs,
+            ByModel = byModel,
+            ByNodeType = byNodeType,
+            RecentExecutions = recentExecutions,
+        });
     }
 
     #endregion

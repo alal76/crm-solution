@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Interfaces;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/script-registry")]
 [Authorize]
-public class ScriptRegistryController : ControllerBase
+public class ScriptRegistryController : CrmControllerBase
 {
     private readonly IScriptRegistryService _registryService;
 

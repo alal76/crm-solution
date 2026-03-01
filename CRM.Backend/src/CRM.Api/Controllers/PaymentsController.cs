@@ -10,6 +10,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class PaymentsController : ControllerBase
+public class PaymentsController : CrmControllerBase
 {
     private const string PaymentNotFoundMessage = "Payment {0} not found";
     private readonly IPaymentService _paymentService;

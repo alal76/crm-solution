@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/custom-fields")]
 [Authorize]
-public class CustomFieldsController : ControllerBase
+public class CustomFieldsController : CrmControllerBase
 {
     private const string FieldDefinitionNotFoundMessage = "Custom field definition not found";
 

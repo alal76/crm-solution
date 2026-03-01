@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/workers")]
-public class WorkerHealthController : ControllerBase
+public class WorkerHealthController : CrmControllerBase
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<WorkerHealthController> _logger;

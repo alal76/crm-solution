@@ -11,6 +11,7 @@ using CRM.Core.Interfaces.Scripting;
 using CRM.Infrastructure.Factories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ScriptingController : ControllerBase
+public class ScriptingController : CrmControllerBase
 {
     private readonly ScriptEngineFactory _scriptEngineFactory;
     private readonly IEnumerable<IScriptEngine> _scriptEngines;
@@ -66,22 +67,14 @@ public class ScriptingController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> GetAvailableEngines(CancellationToken cancellationToken = default)
     {
-        try
+                var engines = _scriptEngines.Select(e => new
         {
-            var engines = _scriptEngines.Select(e => new
-            {
-                name = e.Language.ToString(),
-                language = (int)e.Language,
-                isAvailable = e.IsAvailable
-            });
+            name = e.Language.ToString(),
+            language = (int)e.Language,
+            isAvailable = e.IsAvailable
+        });
 
-            return Ok(engines);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving available script engines");
-            return StatusCode(500, new { message = "Failed to retrieve script engines", error = ex.Message });
-        }
+        return Ok(engines);
     }
 
     // ================================================================= //
@@ -108,42 +101,34 @@ public class ScriptingController : ControllerBase
         [FromBody] ScriptValidationRequest request,
         CancellationToken cancellationToken = default)
     {
+                if (request == null || string.IsNullOrWhiteSpace(request.Code))
+            return BadRequest(new { message = "Code is required" });
+
+        var language = (ScriptLanguage)request.Language;
+        IScriptEngine engine;
+
         try
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.Code))
-                return BadRequest(new { message = "Code is required" });
-
-            var language = (ScriptLanguage)request.Language;
-            IScriptEngine engine;
-
-            try
-            {
-                engine = _scriptEngineFactory.GetEngine(language);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-
-            var diagnostics = await engine.ValidateSyntaxAsync(request.Code, cancellationToken);
-
-            return Ok(new
-            {
-                isValid = !diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error),
-                diagnostics = diagnostics.Select(d => new
-                {
-                    line = d.Line,
-                    column = d.Column,
-                    message = d.Message,
-                    severity = d.Severity.ToString()
-                })
-            });
+            engine = _scriptEngineFactory.GetEngine(language);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Error validating script in language {Language}", request?.Language);
-            return StatusCode(500, new { message = "Failed to validate script", error = ex.Message });
+            return BadRequest(new { message = ex.Message });
         }
+
+        var diagnostics = await engine.ValidateSyntaxAsync(request.Code, cancellationToken);
+
+        return Ok(new
+        {
+            isValid = !diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error),
+            diagnostics = diagnostics.Select(d => new
+            {
+                line = d.Line,
+                column = d.Column,
+                message = d.Message,
+                severity = d.Severity.ToString()
+            })
+        });
     }
 
     // ================================================================= //
@@ -171,53 +156,45 @@ public class ScriptingController : ControllerBase
         [FromBody] ScriptExecutionRequest request,
         CancellationToken cancellationToken = default)
     {
+                if (request == null || string.IsNullOrWhiteSpace(request.Code))
+            return BadRequest(new { message = "Code is required" });
+
+        if (request.Timeout.HasValue && request.Timeout.Value <= 0)
+            return BadRequest(new { message = "Timeout must be a positive value in milliseconds" });
+
+        var language = (ScriptLanguage)request.Language;
+        IScriptEngine engine;
+
         try
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.Code))
-                return BadRequest(new { message = "Code is required" });
-
-            if (request.Timeout.HasValue && request.Timeout.Value <= 0)
-                return BadRequest(new { message = "Timeout must be a positive value in milliseconds" });
-
-            var language = (ScriptLanguage)request.Language;
-            IScriptEngine engine;
-
-            try
-            {
-                engine = _scriptEngineFactory.GetEngine(language);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-
-            var variables = request.Variables ?? new Dictionary<string, object?>();
-            var context = request.Context ?? new Dictionary<string, object?>();
-            var timeout = request.Timeout.HasValue
-                ? TimeSpan.FromMilliseconds(request.Timeout.Value)
-                : (TimeSpan?)null;
-
-            var result = await engine.ExecuteAsync(
-                request.Code,
-                variables,
-                context,
-                timeout,
-                cancellationToken);
-
-            return Ok(new
-            {
-                success = result.Success,
-                returnValue = result.ReturnValue,
-                logs = result.Logs,
-                errorMessage = result.ErrorMessage,
-                executionTimeMs = result.ExecutionTime.TotalMilliseconds
-            });
+            engine = _scriptEngineFactory.GetEngine(language);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
-            _logger.LogError(ex, "Error executing script in language {Language}", request?.Language);
-            return StatusCode(500, new { message = "Failed to execute script", error = ex.Message });
+            return BadRequest(new { message = ex.Message });
         }
+
+        var variables = request.Variables ?? new Dictionary<string, object?>();
+        var context = request.Context ?? new Dictionary<string, object?>();
+        var timeout = request.Timeout.HasValue
+            ? TimeSpan.FromMilliseconds(request.Timeout.Value)
+            : (TimeSpan?)null;
+
+        var result = await engine.ExecuteAsync(
+            request.Code,
+            variables,
+            context,
+            timeout,
+            cancellationToken);
+
+        return Ok(new
+        {
+            success = result.Success,
+            returnValue = result.ReturnValue,
+            logs = result.Logs,
+            errorMessage = result.ErrorMessage,
+            executionTimeMs = result.ExecutionTime.TotalMilliseconds
+        });
     }
 
     // ================================================================= //
@@ -244,16 +221,8 @@ public class ScriptingController : ControllerBase
         [FromQuery] bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var plugins = await _scriptPluginService.GetAllAsync(includeInactive, cancellationToken);
-            return Ok(plugins);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error listing script plugins");
-            return StatusCode(500, new { message = "Failed to list plugins", error = ex.Message });
-        }
+                var plugins = await _scriptPluginService.GetAllAsync(includeInactive, cancellationToken);
+        return Ok(plugins);
     }
 
     /// <summary>
@@ -275,20 +244,12 @@ public class ScriptingController : ControllerBase
         int id,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var plugin = await _scriptPluginService.GetByIdAsync(id, cancellationToken);
+                var plugin = await _scriptPluginService.GetByIdAsync(id, cancellationToken);
 
-            if (plugin == null)
-                return NotFound(new { message = $"Script plugin {id} not found" });
+        if (plugin == null)
+            return NotFound(new { message = $"Script plugin {id} not found" });
 
-            return Ok(plugin);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving script plugin {PluginId}", id);
-            return StatusCode(500, new { message = "Failed to retrieve plugin", error = ex.Message });
-        }
+        return Ok(plugin);
     }
 
     /// <summary>
@@ -321,11 +282,6 @@ public class ScriptingController : ControllerBase
         {
             _logger.LogWarning(ex, "Validation error creating script plugin");
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating script plugin {PluginName}", dto?.Name);
-            return StatusCode(500, new { message = "Failed to create plugin", error = ex.Message });
         }
     }
 
@@ -368,11 +324,6 @@ public class ScriptingController : ControllerBase
             _logger.LogWarning(ex, "Validation error updating script plugin {PluginId}", id);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating script plugin {PluginId}", id);
-            return StatusCode(500, new { message = "Failed to update plugin", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -404,11 +355,6 @@ public class ScriptingController : ControllerBase
         {
             _logger.LogWarning(ex, "Script plugin {PluginId} not found for deletion", id);
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting script plugin {PluginId}", id);
-            return StatusCode(500, new { message = "Failed to delete plugin", error = ex.Message });
         }
     }
 
@@ -457,11 +403,6 @@ public class ScriptingController : ControllerBase
         {
             _logger.LogWarning(ex, "Invalid operation during plugin test execution for plugin {PluginId}", id);
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error executing plugin test {PluginId}", id);
-            return StatusCode(500, new { message = "Failed to execute plugin test", error = ex.Message });
         }
     }
 

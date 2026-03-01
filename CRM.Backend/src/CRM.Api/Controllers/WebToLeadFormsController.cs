@@ -8,6 +8,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class WebToLeadFormsController : ControllerBase
+public class WebToLeadFormsController : CrmControllerBase
 {
     private readonly IWebToLeadFormService _service;
 

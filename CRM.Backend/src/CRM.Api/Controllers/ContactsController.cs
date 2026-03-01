@@ -10,13 +10,14 @@ using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
 [Authorize]
-public class ContactsController : ControllerBase
+public class ContactsController : CrmControllerBase
 {
     private readonly IContactsService _contactsService;
     private readonly ILogger<ContactsController> _logger;
@@ -40,16 +41,8 @@ public class ContactsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ContactDto>>> GetAllContacts()
     {
-        try
-        {
-            var contacts = await _contactsService.GetAllAsync();
-            return Ok(contacts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving all contacts");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving contacts");
-        }
+                var contacts = await _contactsService.GetAllAsync();
+        return Ok(contacts);
     }
 
     /// <summary>
@@ -71,11 +64,6 @@ public class ContactsController : ControllerBase
             _logger.LogWarning(ex, $"Contact with ID {id} not found");
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving contact with ID {id}");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving contact");
-        }
     }
 
     /// <summary>
@@ -86,16 +74,8 @@ public class ContactsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<List<ContactDto>>> GetContactsByType(string contactType)
     {
-        try
-        {
-            var contacts = await _contactsService.GetByTypeAsync(contactType);
-            return Ok(contacts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error retrieving contacts by type {contactType}");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error retrieving contacts");
-        }
+                var contacts = await _contactsService.GetByTypeAsync(contactType);
+        return Ok(contacts);
     }
 
     /// <summary>
@@ -129,11 +109,6 @@ public class ContactsController : ControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating contact");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error creating contact");
-        }
     }
 
     /// <summary>
@@ -164,11 +139,6 @@ public class ContactsController : ControllerBase
             _logger.LogWarning(ex, $"Contact with ID {id} not found");
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error updating contact with ID {id}");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error updating contact");
-        }
     }
 
     /// <summary>
@@ -195,11 +165,6 @@ public class ContactsController : ControllerBase
             _logger.LogWarning(ex, $"Contact with ID {id} not found");
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error deleting contact with ID {id}");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error deleting contact");
-        }
     }
 
     /// <summary>
@@ -225,11 +190,6 @@ public class ContactsController : ControllerBase
             _logger.LogWarning(ex, $"Contact with ID {id} not found");
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error adding social media link to contact {id}");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error adding social media link");
-        }
     }
 
     /// <summary>
@@ -250,11 +210,6 @@ public class ContactsController : ControllerBase
         {
             _logger.LogWarning(ex, $"Social media link with ID {linkId} not found");
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error removing social media link {linkId}");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Error removing social media link");
         }
     }
 }

@@ -9,6 +9,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class BrandingController : ControllerBase
+public class BrandingController : CrmControllerBase
 {
     private readonly IBrandingConfigService _brandingConfigService;
     private readonly ILogger<BrandingController> _logger;
@@ -40,16 +41,8 @@ public class BrandingController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BrandingConfigDto>> GetBrandingConfig(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var config = await _brandingConfigService.GetCurrentBrandingAsync(cancellationToken);
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving branding configuration");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving branding configuration" });
-        }
+                var config = await _brandingConfigService.GetCurrentBrandingAsync(cancellationToken);
+        return Ok(config);
     }
 
     /// <summary>
@@ -64,19 +57,11 @@ public class BrandingController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<BrandingConfigDto>> GetBrandingById(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var config = await _brandingConfigService.GetByIdAsync(id, cancellationToken);
-            if (config == null)
-                return NotFound();
+                var config = await _brandingConfigService.GetByIdAsync(id, cancellationToken);
+        if (config == null)
+            return NotFound();
 
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving branding configuration {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error retrieving branding configuration" });
-        }
+        return Ok(config);
     }
 
     /// <summary>
@@ -113,11 +98,6 @@ public class BrandingController : ControllerBase
             _logger.LogWarning(ex, "Invalid solution name provided");
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating solution name");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error updating solution name" });
-        }
     }
 
     /// <summary>
@@ -135,41 +115,29 @@ public class BrandingController : ControllerBase
         [FromBody] UploadLogoRequest request,
         CancellationToken cancellationToken = default)
     {
-        try
+                if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
-            {
-                return BadRequest(new BrandingOperationResponse
-                {
-                    Success = false,
-                    Message = "File content is required"
-                });
-            }
-
-            var userId = GetCurrentUserId();
-            if (userId == 0)
-            {
-                return Unauthorized();
-            }
-
-            var response = await _brandingConfigService.UploadCustomLogoAsync(request, userId, cancellationToken);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error uploading custom logo");
-            return StatusCode(StatusCodes.Status500InternalServerError, new BrandingOperationResponse
+            return BadRequest(new BrandingOperationResponse
             {
                 Success = false,
-                Message = "Error uploading logo"
+                Message = "File content is required"
             });
         }
+
+        var userId = GetCurrentUserId();
+        if (userId == 0)
+        {
+            return Unauthorized();
+        }
+
+        var response = await _brandingConfigService.UploadCustomLogoAsync(request, userId, cancellationToken);
+
+        if (!response.Success)
+        {
+            return BadRequest(response);
+        }
+
+        return Ok(response);
     }
 
     /// <summary>
@@ -187,41 +155,29 @@ public class BrandingController : ControllerBase
         [FromBody] UploadFaviconRequest request,
         CancellationToken cancellationToken = default)
     {
-        try
+                if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
         {
-            if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
-            {
-                return BadRequest(new BrandingOperationResponse
-                {
-                    Success = false,
-                    Message = "File content is required"
-                });
-            }
-
-            var userId = GetCurrentUserId();
-            if (userId == 0)
-            {
-                return Unauthorized();
-            }
-
-            var response = await _brandingConfigService.UploadFaviconAsync(request, userId, cancellationToken);
-
-            if (!response.Success)
-            {
-                return BadRequest(response);
-            }
-
-            return Ok(response);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error uploading favicon");
-            return StatusCode(StatusCodes.Status500InternalServerError, new BrandingOperationResponse
+            return BadRequest(new BrandingOperationResponse
             {
                 Success = false,
-                Message = "Error uploading favicon"
+                Message = "File content is required"
             });
         }
+
+        var userId = GetCurrentUserId();
+        if (userId == 0)
+        {
+            return Unauthorized();
+        }
+
+        var response = await _brandingConfigService.UploadFaviconAsync(request, userId, cancellationToken);
+
+        if (!response.Success)
+        {
+            return BadRequest(response);
+        }
+
+        return Ok(response);
     }
 
     /// <summary>
@@ -235,20 +191,12 @@ public class BrandingController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BrandingConfigDto>> DeleteCustomLogo(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == 0)
-                return Unauthorized();
+                var userId = GetCurrentUserId();
+        if (userId == 0)
+            return Unauthorized();
 
-            var config = await _brandingConfigService.DeleteCustomLogoAsync(userId, cancellationToken);
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting custom logo");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error deleting logo" });
-        }
+        var config = await _brandingConfigService.DeleteCustomLogoAsync(userId, cancellationToken);
+        return Ok(config);
     }
 
     /// <summary>
@@ -262,20 +210,12 @@ public class BrandingController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BrandingConfigDto>> DeleteFavicon(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == 0)
-                return Unauthorized();
+                var userId = GetCurrentUserId();
+        if (userId == 0)
+            return Unauthorized();
 
-            var config = await _brandingConfigService.DeleteFaviconAsync(userId, cancellationToken);
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting favicon");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error deleting favicon" });
-        }
+        var config = await _brandingConfigService.DeleteFaviconAsync(userId, cancellationToken);
+        return Ok(config);
     }
 
     /// <summary>
@@ -292,20 +232,12 @@ public class BrandingController : ControllerBase
         [FromQuery] bool isEnabled,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            if (userId == 0)
-                return Unauthorized();
+                var userId = GetCurrentUserId();
+        if (userId == 0)
+            return Unauthorized();
 
-            var config = await _brandingConfigService.SetCustomBrandingEnabledAsync(isEnabled, userId, cancellationToken);
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error toggling custom branding");
-            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Error toggling custom branding" });
-        }
+        var config = await _brandingConfigService.SetCustomBrandingEnabledAsync(isEnabled, userId, cancellationToken);
+        return Ok(config);
     }
 
     /// <summary>

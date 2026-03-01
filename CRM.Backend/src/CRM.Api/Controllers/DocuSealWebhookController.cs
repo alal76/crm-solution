@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -31,7 +32,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/webhooks/docuseal")]
-public class DocuSealWebhookController : ControllerBase
+public class DocuSealWebhookController : CrmControllerBase
 {
     private readonly ISignaturePort _signatureProvider;
     private readonly IActivityService _activityService;
@@ -66,88 +67,80 @@ public class DocuSealWebhookController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> HandleWebhook(CancellationToken cancellationToken)
     {
-        try
+                // Read the raw payload
+        using var reader = new StreamReader(Request.Body);
+        var payload = await reader.ReadToEndAsync(cancellationToken);
+
+        if (string.IsNullOrEmpty(payload))
         {
-            // Read the raw payload
-            using var reader = new StreamReader(Request.Body);
-            var payload = await reader.ReadToEndAsync(cancellationToken);
-
-            if (string.IsNullOrEmpty(payload))
-            {
-                _logger.LogWarning("Received empty webhook payload from DocuSeal");
-                return BadRequest("Empty payload");
-            }
-
-            // Get the signature from headers
-            var signature = Request.Headers["X-DocuSeal-Signature"].FirstOrDefault();
-
-            // Validate signature if configured
-            if (!string.IsNullOrEmpty(_config.WebhookSecret))
-            {
-                if (string.IsNullOrEmpty(signature))
-                {
-                    _logger.LogWarning("Missing webhook signature header");
-                    return Unauthorized("Missing signature");
-                }
-
-                if (!ValidateSignature(payload, signature))
-                {
-                    _logger.LogWarning("Invalid webhook signature");
-                    return Unauthorized("Invalid signature");
-                }
-            }
-
-            // Get event type from headers or parse from payload
-            var eventType = Request.Headers["X-DocuSeal-Event"].FirstOrDefault();
-            if (string.IsNullOrEmpty(eventType))
-            {
-                // Try to extract from payload
-                var jsonDoc = System.Text.Json.JsonDocument.Parse(payload);
-                if (jsonDoc.RootElement.TryGetProperty("event_type", out var eventTypeProp))
-                {
-                    eventType = eventTypeProp.GetString();
-                }
-            }
-
-            if (string.IsNullOrEmpty(eventType))
-            {
-                _logger.LogWarning("Missing event type in DocuSeal webhook");
-                return BadRequest("Missing event type");
-            }
-
-            _logger.LogInformation("Received DocuSeal webhook: {EventType}", eventType);
-
-            // Process the webhook
-            var result = await _signatureProvider.ProcessWebhookAsync(eventType, payload, signature, cancellationToken);
-
-            if (!result.Success)
-            {
-                _logger.LogWarning("Failed to process DocuSeal webhook: {Error}", result.Error);
-                return BadRequest(result.Error);
-            }
-
-            // Create activity in CRM timeline
-            if (result.ActivityMapping != null)
-            {
-                await CreateActivityAsync(result, cancellationToken);
-            }
-
-            // Update CRM entity status if applicable
-            if (result.NewStatus.HasValue && !string.IsNullOrEmpty(result.EntityType) && result.EntityId.HasValue)
-            {
-                await UpdateEntityStatusAsync(result.EntityType, result.EntityId.Value, result.NewStatus.Value, cancellationToken);
-            }
-
-            _logger.LogInformation("Successfully processed DocuSeal webhook: {EventType} for request {RequestId}",
-                eventType, result.RequestId);
-
-            return Ok(new { success = true, requestId = result.RequestId, status = result.NewStatus?.ToString() });
+            _logger.LogWarning("Received empty webhook payload from DocuSeal");
+            return BadRequest("Empty payload");
         }
-        catch (Exception ex)
+
+        // Get the signature from headers
+        var signature = Request.Headers["X-DocuSeal-Signature"].FirstOrDefault();
+
+        // Validate signature if configured
+        if (!string.IsNullOrEmpty(_config.WebhookSecret))
         {
-            _logger.LogError(ex, "Error processing DocuSeal webhook");
-            return StatusCode(500, "Internal server error");
+            if (string.IsNullOrEmpty(signature))
+            {
+                _logger.LogWarning("Missing webhook signature header");
+                return Unauthorized("Missing signature");
+            }
+
+            if (!ValidateSignature(payload, signature))
+            {
+                _logger.LogWarning("Invalid webhook signature");
+                return Unauthorized("Invalid signature");
+            }
         }
+
+        // Get event type from headers or parse from payload
+        var eventType = Request.Headers["X-DocuSeal-Event"].FirstOrDefault();
+        if (string.IsNullOrEmpty(eventType))
+        {
+            // Try to extract from payload
+            var jsonDoc = System.Text.Json.JsonDocument.Parse(payload);
+            if (jsonDoc.RootElement.TryGetProperty("event_type", out var eventTypeProp))
+            {
+                eventType = eventTypeProp.GetString();
+            }
+        }
+
+        if (string.IsNullOrEmpty(eventType))
+        {
+            _logger.LogWarning("Missing event type in DocuSeal webhook");
+            return BadRequest("Missing event type");
+        }
+
+        _logger.LogInformation("Received DocuSeal webhook: {EventType}", eventType);
+
+        // Process the webhook
+        var result = await _signatureProvider.ProcessWebhookAsync(eventType, payload, signature, cancellationToken);
+
+        if (!result.Success)
+        {
+            _logger.LogWarning("Failed to process DocuSeal webhook: {Error}", result.Error);
+            return BadRequest(result.Error);
+        }
+
+        // Create activity in CRM timeline
+        if (result.ActivityMapping != null)
+        {
+            await CreateActivityAsync(result, cancellationToken);
+        }
+
+        // Update CRM entity status if applicable
+        if (result.NewStatus.HasValue && !string.IsNullOrEmpty(result.EntityType) && result.EntityId.HasValue)
+        {
+            await UpdateEntityStatusAsync(result.EntityType, result.EntityId.Value, result.NewStatus.Value, cancellationToken);
+        }
+
+        _logger.LogInformation("Successfully processed DocuSeal webhook: {EventType} for request {RequestId}",
+            eventType, result.RequestId);
+
+        return Ok(new { success = true, requestId = result.RequestId, status = result.NewStatus?.ToString() });
     }
 
     /// <summary>

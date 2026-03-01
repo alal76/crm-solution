@@ -7,6 +7,7 @@
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/seed")]
 [Authorize(Roles = "Admin")]
-public class AdminSeedController : ControllerBase
+public class AdminSeedController : CrmControllerBase
 {
     private readonly ICoreDataSeederService _seeder;
     private readonly ILogger<AdminSeedController> _logger;
@@ -42,29 +43,21 @@ public class AdminSeedController : ControllerBase
     [HttpPost("core")]
     public async Task<IActionResult> SeedAll(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting full core data seed...");
+                _logger.LogInformation("Starting full core data seed...");
 
-            await _seeder.SeedDepartmentsAsync(cancellationToken);
-            await _seeder.SeedSampleAccountsAsync(cancellationToken);
-            await _seeder.SeedSampleProductsAsync(cancellationToken);
-            await _seeder.SeedLookupsAsync(cancellationToken);
-            await _seeder.SeedSampleContactsAsync(cancellationToken);
-            await _seeder.SeedSystemSettingsAsync(cancellationToken);
-            await _seeder.SeedModuleFieldConfigurationsAsync(cancellationToken);
-            await _seeder.SeedAdditionalMasterDataAsync(cancellationToken);
-            await _seeder.SeedEnsureLookupsAsync(cancellationToken);
-            await _seeder.SeedWorkflowTriggersAsync(cancellationToken);
+        await _seeder.SeedDepartmentsAsync(cancellationToken);
+        await _seeder.SeedSampleAccountsAsync(cancellationToken);
+        await _seeder.SeedSampleProductsAsync(cancellationToken);
+        await _seeder.SeedLookupsAsync(cancellationToken);
+        await _seeder.SeedSampleContactsAsync(cancellationToken);
+        await _seeder.SeedSystemSettingsAsync(cancellationToken);
+        await _seeder.SeedModuleFieldConfigurationsAsync(cancellationToken);
+        await _seeder.SeedAdditionalMasterDataAsync(cancellationToken);
+        await _seeder.SeedEnsureLookupsAsync(cancellationToken);
+        await _seeder.SeedWorkflowTriggersAsync(cancellationToken);
 
-            _logger.LogInformation("Full core data seed completed successfully.");
-            return Ok(new { message = "All core data seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during full core data seed.");
-            return StatusCode(500, new { message = "Failed to seed core data.", error = ex.Message });
-        }
+        _logger.LogInformation("Full core data seed completed successfully.");
+        return Ok(new { message = "All core data seeded successfully." });
     }
 
     /// <summary>
@@ -75,18 +68,10 @@ public class AdminSeedController : ControllerBase
     [HttpPost("departments")]
     public async Task<IActionResult> SeedDepartments(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting departments seed...");
-            await _seeder.SeedDepartmentsAsync(cancellationToken);
-            _logger.LogInformation("Departments seed completed successfully.");
-            return Ok(new { message = "Departments seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during departments seed.");
-            return StatusCode(500, new { message = "Failed to seed departments.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting departments seed...");
+        await _seeder.SeedDepartmentsAsync(cancellationToken);
+        _logger.LogInformation("Departments seed completed successfully.");
+        return Ok(new { message = "Departments seeded successfully." });
     }
 
     /// <summary>
@@ -97,18 +82,10 @@ public class AdminSeedController : ControllerBase
     [HttpPost("accounts")]
     public async Task<IActionResult> SeedAccounts(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting sample accounts seed...");
-            await _seeder.SeedSampleAccountsAsync(cancellationToken);
-            _logger.LogInformation("Sample accounts seed completed successfully.");
-            return Ok(new { message = "Sample accounts seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during sample accounts seed.");
-            return StatusCode(500, new { message = "Failed to seed sample accounts.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting sample accounts seed...");
+        await _seeder.SeedSampleAccountsAsync(cancellationToken);
+        _logger.LogInformation("Sample accounts seed completed successfully.");
+        return Ok(new { message = "Sample accounts seeded successfully." });
     }
 
     /// <summary>
@@ -119,18 +96,10 @@ public class AdminSeedController : ControllerBase
     [HttpPost("products")]
     public async Task<IActionResult> SeedProducts(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting sample products seed...");
-            await _seeder.SeedSampleProductsAsync(cancellationToken);
-            _logger.LogInformation("Sample products seed completed successfully.");
-            return Ok(new { message = "Sample products seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during sample products seed.");
-            return StatusCode(500, new { message = "Failed to seed sample products.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting sample products seed...");
+        await _seeder.SeedSampleProductsAsync(cancellationToken);
+        _logger.LogInformation("Sample products seed completed successfully.");
+        return Ok(new { message = "Sample products seeded successfully." });
     }
 
     /// <summary>
@@ -141,18 +110,10 @@ public class AdminSeedController : ControllerBase
     [HttpPost("contacts")]
     public async Task<IActionResult> SeedContacts(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting sample contacts seed...");
-            await _seeder.SeedSampleContactsAsync(cancellationToken);
-            _logger.LogInformation("Sample contacts seed completed successfully.");
-            return Ok(new { message = "Sample contacts seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during sample contacts seed.");
-            return StatusCode(500, new { message = "Failed to seed sample contacts.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting sample contacts seed...");
+        await _seeder.SeedSampleContactsAsync(cancellationToken);
+        _logger.LogInformation("Sample contacts seed completed successfully.");
+        return Ok(new { message = "Sample contacts seeded successfully." });
     }
 
     /// <summary>
@@ -163,18 +124,10 @@ public class AdminSeedController : ControllerBase
     [HttpPost("lookups")]
     public async Task<IActionResult> SeedLookups(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting lookups seed...");
-            await _seeder.SeedLookupsAsync(cancellationToken);
-            _logger.LogInformation("Lookups seed completed successfully.");
-            return Ok(new { message = "Lookups seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during lookups seed.");
-            return StatusCode(500, new { message = "Failed to seed lookups.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting lookups seed...");
+        await _seeder.SeedLookupsAsync(cancellationToken);
+        _logger.LogInformation("Lookups seed completed successfully.");
+        return Ok(new { message = "Lookups seeded successfully." });
     }
 
     /// <summary>
@@ -185,18 +138,10 @@ public class AdminSeedController : ControllerBase
     [HttpPost("settings")]
     public async Task<IActionResult> SeedSettings(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting system settings seed...");
-            await _seeder.SeedSystemSettingsAsync(cancellationToken);
-            _logger.LogInformation("System settings seed completed successfully.");
-            return Ok(new { message = "System settings seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during system settings seed.");
-            return StatusCode(500, new { message = "Failed to seed system settings.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting system settings seed...");
+        await _seeder.SeedSystemSettingsAsync(cancellationToken);
+        _logger.LogInformation("System settings seed completed successfully.");
+        return Ok(new { message = "System settings seeded successfully." });
     }
 
     /// <summary>
@@ -207,18 +152,10 @@ public class AdminSeedController : ControllerBase
     [HttpPost("module-fields")]
     public async Task<IActionResult> SeedModuleFields(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting module field configurations seed...");
-            await _seeder.SeedModuleFieldConfigurationsAsync(cancellationToken);
-            _logger.LogInformation("Module field configurations seed completed successfully.");
-            return Ok(new { message = "Module field configurations seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during module field configurations seed.");
-            return StatusCode(500, new { message = "Failed to seed module field configurations.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting module field configurations seed...");
+        await _seeder.SeedModuleFieldConfigurationsAsync(cancellationToken);
+        _logger.LogInformation("Module field configurations seed completed successfully.");
+        return Ok(new { message = "Module field configurations seeded successfully." });
     }
 
     /// <summary>
@@ -229,18 +166,10 @@ public class AdminSeedController : ControllerBase
     [HttpPost("workflow-triggers")]
     public async Task<IActionResult> SeedWorkflowTriggers(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting workflow triggers seed...");
-            await _seeder.SeedWorkflowTriggersAsync(cancellationToken);
-            _logger.LogInformation("Workflow triggers seed completed successfully.");
-            return Ok(new { message = "Workflow triggers seeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during workflow triggers seed.");
-            return StatusCode(500, new { message = "Failed to seed workflow triggers.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting workflow triggers seed...");
+        await _seeder.SeedWorkflowTriggersAsync(cancellationToken);
+        _logger.LogInformation("Workflow triggers seed completed successfully.");
+        return Ok(new { message = "Workflow triggers seeded successfully." });
     }
 
     /// <summary>
@@ -251,17 +180,9 @@ public class AdminSeedController : ControllerBase
     [HttpPost("module-fields/force")]
     public async Task<IActionResult> ForceReseedModuleFields(CancellationToken cancellationToken)
     {
-        try
-        {
-            _logger.LogInformation("Starting force reseed of module field configurations...");
-            await _seeder.ForceReseedModuleFieldConfigurationsAsync(cancellationToken);
-            _logger.LogInformation("Force reseed of module field configurations completed successfully.");
-            return Ok(new { message = "Module field configurations force-reseeded successfully." });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during force reseed of module field configurations.");
-            return StatusCode(500, new { message = "Failed to force-reseed module field configurations.", error = ex.Message });
-        }
+                _logger.LogInformation("Starting force reseed of module field configurations...");
+        await _seeder.ForceReseedModuleFieldConfigurationsAsync(cancellationToken);
+        _logger.LogInformation("Force reseed of module field configurations completed successfully.");
+        return Ok(new { message = "Module field configurations force-reseeded successfully." });
     }
 }

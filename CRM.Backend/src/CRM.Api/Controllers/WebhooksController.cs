@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -23,7 +24,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/webhooks")]
 [FeatureGate(FeatureFlags.EnableWebhooks)]
-public class WebhooksController : ControllerBase
+public class WebhooksController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<WebhooksController> _logger;
@@ -43,78 +44,70 @@ public class WebhooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestWebFormSubmission([FromBody] WebFormSubmissionDto dto)
     {
-        try
+                _logger.LogInformation("Receiving web form submission from {Email}", dto.Email);
+
+        // Try to find or create customer/contact
+        var (accountId, contactId) = await FindOrSuggestContactAsync(dto.Email, dto.Phone, dto.Name);
+
+        // Create the interaction
+        var interaction = new Interaction
         {
-            _logger.LogInformation("Receiving web form submission from {Email}", dto.Email);
+            InteractionType = InteractionType.WebForm,
+            Type = "WebForm",
+            Direction = InteractionDirection.Inbound,
+            Subject = dto.Subject ?? "Web Form Submission",
+            Description = BuildWebFormDescription(dto),
+            InteractionDate = DateTime.UtcNow,
+            CompletedDate = DateTime.UtcNow,
+            IsCompleted = true,
+            EmailAddress = dto.Email,
+            PhoneNumber = dto.Phone,
+            Sentiment = InteractionSentiment.Neutral,
+            AccountId = accountId,
+            ContactId = contactId,
+            Tags = dto.FormType,
+            CustomFields = dto.CustomFieldsJson,
+            CreatedAt = DateTime.UtcNow
+        };
 
-            // Try to find or create customer/contact
-            var (accountId, contactId) = await FindOrSuggestContactAsync(dto.Email, dto.Phone, dto.Name);
+        _context.Interactions.Add(interaction);
+        await _context.SaveChangesAsync();
 
-            // Create the interaction
-            var interaction = new Interaction
-            {
-                InteractionType = InteractionType.WebForm,
-                Type = "WebForm",
-                Direction = InteractionDirection.Inbound,
-                Subject = dto.Subject ?? "Web Form Submission",
-                Description = BuildWebFormDescription(dto),
-                InteractionDate = DateTime.UtcNow,
-                CompletedDate = DateTime.UtcNow,
-                IsCompleted = true,
-                EmailAddress = dto.Email,
-                PhoneNumber = dto.Phone,
-                Sentiment = InteractionSentiment.Neutral,
-                AccountId = accountId,
-                ContactId = contactId,
-                Tags = dto.FormType,
-                CustomFields = dto.CustomFieldsJson,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.Interactions.Add(interaction);
-            await _context.SaveChangesAsync();
-
-            // Also create a communication message for unified inbox
-            var channel = await GetOrCreateWebChannel();
-            var message = new CommunicationMessage
-            {
-                ChannelId = channel.Id,
-                ChannelType = ChannelType.Email,
-                Subject = dto.Subject ?? "Web Form Submission",
-                Body = BuildWebFormDescription(dto),
-                Direction = MessageDirection.Inbound,
-                Status = MessageStatus.Delivered,
-                FromAddress = dto.Email,
-                FromName = dto.Name,
-                ReceivedAt = DateTime.UtcNow,
-                AccountId = accountId,
-                ContactId = contactId,
-                LinkedEntityType = "Interaction",
-                LinkedEntityId = interaction.Id,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.CommunicationMessages.Add(message);
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Created interaction {InteractionId} and message {MessageId} from web form",
-                interaction.Id, message.Id);
-
-            return Ok(new IngestResultDto
-            {
-                Success = true,
-                InteractionId = interaction.Id,
-                MessageId = message.Id,
-                AccountId = accountId,
-                ContactId = contactId,
-                Message = "Web form submission received successfully"
-            });
-        }
-        catch (Exception ex)
+        // Also create a communication message for unified inbox
+        var channel = await GetOrCreateWebChannel();
+        var message = new CommunicationMessage
         {
-            _logger.LogError(ex, "Error processing web form submission");
-            return StatusCode(500, new IngestResultDto { Success = false, Message = "Error processing submission" });
-        }
+            ChannelId = channel.Id,
+            ChannelType = ChannelType.Email,
+            Subject = dto.Subject ?? "Web Form Submission",
+            Body = BuildWebFormDescription(dto),
+            Direction = MessageDirection.Inbound,
+            Status = MessageStatus.Delivered,
+            FromAddress = dto.Email,
+            FromName = dto.Name,
+            ReceivedAt = DateTime.UtcNow,
+            AccountId = accountId,
+            ContactId = contactId,
+            LinkedEntityType = "Interaction",
+            LinkedEntityId = interaction.Id,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.CommunicationMessages.Add(message);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Created interaction {InteractionId} and message {MessageId} from web form",
+            interaction.Id, message.Id);
+
+        return Ok(new IngestResultDto
+        {
+            Success = true,
+            InteractionId = interaction.Id,
+            MessageId = message.Id,
+            AccountId = accountId,
+            ContactId = contactId,
+            Message = "Web form submission received successfully"
+        });
     }
 
     #endregion
@@ -129,131 +122,123 @@ public class WebhooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestInboundEmail([FromBody] InboundEmailDto dto)
     {
-        try
+                _logger.LogInformation("Receiving inbound email from {FromEmail} to {ToEmail}", dto.From, dto.To);
+
+        // Find email channel
+        var channel = await _context.CommunicationChannels
+            .Where(c => c.ChannelType == ChannelType.Email && c.IsEnabled && !c.IsDeleted)
+            .FirstOrDefaultAsync();
+
+        if (channel == null)
         {
-            _logger.LogInformation("Receiving inbound email from {FromEmail} to {ToEmail}", dto.From, dto.To);
+            channel = await GetOrCreateEmailChannel();
+        }
 
-            // Find email channel
-            var channel = await _context.CommunicationChannels
-                .Where(c => c.ChannelType == ChannelType.Email && c.IsEnabled && !c.IsDeleted)
-                .FirstOrDefaultAsync();
+        // Try to find linked customer/contact
+        var (accountId, contactId) = await FindOrSuggestContactAsync(dto.From, null, dto.FromName);
 
-            if (channel == null)
+        // Check for existing conversation (thread)
+        string conversationId = dto.ConversationId ?? dto.InReplyTo ?? Guid.NewGuid().ToString();
+        var existingConversation = await _context.Conversations
+            .Where(c => c.ConversationId == conversationId && !c.IsDeleted)
+            .FirstOrDefaultAsync();
+
+        // Create message
+        var message = new CommunicationMessage
+        {
+            ChannelId = channel.Id,
+            ChannelType = ChannelType.Email,
+            Subject = dto.Subject,
+            Body = dto.TextBody,
+            HtmlBody = dto.HtmlBody,
+            Direction = MessageDirection.Inbound,
+            Status = MessageStatus.Delivered,
+            FromAddress = dto.From,
+            FromName = dto.FromName,
+            ToAddress = dto.To,
+            CcAddresses = dto.Cc != null ? JsonSerializer.Serialize(dto.Cc) : null,
+            ExternalMessageId = dto.MessageId,
+            InReplyToExternalId = dto.InReplyTo,
+            ConversationId = conversationId,
+            ReceivedAt = dto.ReceivedAt ?? DateTime.UtcNow,
+            AccountId = accountId,
+            ContactId = contactId,
+            AttachmentCount = dto.Attachments?.Count ?? 0,
+            AttachmentsJson = dto.Attachments != null ? JsonSerializer.Serialize(dto.Attachments) : null,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.CommunicationMessages.Add(message);
+
+        // Create or update conversation
+        if (existingConversation != null)
+        {
+            existingConversation.MessageCount++;
+            existingConversation.UnreadCount++;
+            existingConversation.LastMessageAt = DateTime.UtcNow;
+            existingConversation.LastMessagePreview = TruncateText(dto.TextBody ?? dto.Subject, 100);
+            existingConversation.UpdatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            var conversation = new Conversation
             {
-                channel = await GetOrCreateEmailChannel();
-            }
-
-            // Try to find linked customer/contact
-            var (accountId, contactId) = await FindOrSuggestContactAsync(dto.From, null, dto.FromName);
-
-            // Check for existing conversation (thread)
-            string conversationId = dto.ConversationId ?? dto.InReplyTo ?? Guid.NewGuid().ToString();
-            var existingConversation = await _context.Conversations
-                .Where(c => c.ConversationId == conversationId && !c.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            // Create message
-            var message = new CommunicationMessage
-            {
-                ChannelId = channel.Id,
-                ChannelType = ChannelType.Email,
+                ConversationId = conversationId,
+                PrimaryChannelType = ChannelType.Email,
                 Subject = dto.Subject,
-                Body = dto.TextBody,
-                HtmlBody = dto.HtmlBody,
-                Direction = MessageDirection.Inbound,
-                Status = MessageStatus.Delivered,
-                FromAddress = dto.From,
-                FromName = dto.FromName,
-                ToAddress = dto.To,
-                CcAddresses = dto.Cc != null ? JsonSerializer.Serialize(dto.Cc) : null,
-                ExternalMessageId = dto.MessageId,
-                InReplyToExternalId = dto.InReplyTo,
-                ConversationId = conversationId,
-                ReceivedAt = dto.ReceivedAt ?? DateTime.UtcNow,
+                LastMessagePreview = TruncateText(dto.TextBody ?? dto.Subject, 100),
+                Status = ConversationStatus.Open,
+                ParticipantAddress = dto.From,
+                ParticipantName = dto.FromName,
                 AccountId = accountId,
                 ContactId = contactId,
-                AttachmentCount = dto.Attachments?.Count ?? 0,
-                AttachmentsJson = dto.Attachments != null ? JsonSerializer.Serialize(dto.Attachments) : null,
+                MessageCount = 1,
+                UnreadCount = 1,
+                FirstMessageAt = DateTime.UtcNow,
+                LastMessageAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
-
-            _context.CommunicationMessages.Add(message);
-
-            // Create or update conversation
-            if (existingConversation != null)
-            {
-                existingConversation.MessageCount++;
-                existingConversation.UnreadCount++;
-                existingConversation.LastMessageAt = DateTime.UtcNow;
-                existingConversation.LastMessagePreview = TruncateText(dto.TextBody ?? dto.Subject, 100);
-                existingConversation.UpdatedAt = DateTime.UtcNow;
-            }
-            else
-            {
-                var conversation = new Conversation
-                {
-                    ConversationId = conversationId,
-                    PrimaryChannelType = ChannelType.Email,
-                    Subject = dto.Subject,
-                    LastMessagePreview = TruncateText(dto.TextBody ?? dto.Subject, 100),
-                    Status = ConversationStatus.Open,
-                    ParticipantAddress = dto.From,
-                    ParticipantName = dto.FromName,
-                    AccountId = accountId,
-                    ContactId = contactId,
-                    MessageCount = 1,
-                    UnreadCount = 1,
-                    FirstMessageAt = DateTime.UtcNow,
-                    LastMessageAt = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow
-                };
-                _context.Conversations.Add(conversation);
-            }
-
-            // Create interaction record
-            var interaction = new Interaction
-            {
-                InteractionType = InteractionType.Email,
-                Type = "Email",
-                Direction = InteractionDirection.Inbound,
-                Subject = dto.Subject ?? "(No Subject)",
-                Description = dto.TextBody ?? "",
-                InteractionDate = dto.ReceivedAt ?? DateTime.UtcNow,
-                EmailAddress = dto.From,
-                IsCompleted = true,
-                CompletedDate = DateTime.UtcNow,
-                AccountId = accountId,
-                ContactId = contactId,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.Interactions.Add(interaction);
-
-            await _context.SaveChangesAsync();
-
-            // Update linked entity
-            message.LinkedEntityType = "Interaction";
-            message.LinkedEntityId = interaction.Id;
-            await _context.SaveChangesAsync();
-
-            _logger.LogInformation("Created email message {MessageId} and interaction {InteractionId}",
-                message.Id, interaction.Id);
-
-            return Ok(new IngestResultDto
-            {
-                Success = true,
-                InteractionId = interaction.Id,
-                MessageId = message.Id,
-                ConversationId = conversationId,
-                AccountId = accountId,
-                ContactId = contactId,
-                Message = "Email received successfully"
-            });
+            _context.Conversations.Add(conversation);
         }
-        catch (Exception ex)
+
+        // Create interaction record
+        var interaction = new Interaction
         {
-            _logger.LogError(ex, "Error processing inbound email");
-            return StatusCode(500, new IngestResultDto { Success = false, Message = "Error processing email" });
-        }
+            InteractionType = InteractionType.Email,
+            Type = "Email",
+            Direction = InteractionDirection.Inbound,
+            Subject = dto.Subject ?? "(No Subject)",
+            Description = dto.TextBody ?? "",
+            InteractionDate = dto.ReceivedAt ?? DateTime.UtcNow,
+            EmailAddress = dto.From,
+            IsCompleted = true,
+            CompletedDate = DateTime.UtcNow,
+            AccountId = accountId,
+            ContactId = contactId,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.Interactions.Add(interaction);
+
+        await _context.SaveChangesAsync();
+
+        // Update linked entity
+        message.LinkedEntityType = "Interaction";
+        message.LinkedEntityId = interaction.Id;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Created email message {MessageId} and interaction {InteractionId}",
+            message.Id, interaction.Id);
+
+        return Ok(new IngestResultDto
+        {
+            Success = true,
+            InteractionId = interaction.Id,
+            MessageId = message.Id,
+            ConversationId = conversationId,
+            AccountId = accountId,
+            ContactId = contactId,
+            Message = "Email received successfully"
+        });
     }
 
     #endregion
@@ -308,75 +293,67 @@ public class WebhooksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<IngestResultDto>> IngestWhatsAppMessage([FromBody] WhatsAppMessageDto dto)
     {
-        try
+                _logger.LogInformation("Receiving WhatsApp message from {Phone}", dto.FromPhone);
+
+        var channel = await _context.CommunicationChannels
+            .Where(c => c.ChannelType == ChannelType.WhatsApp && c.IsEnabled && !c.IsDeleted)
+            .FirstOrDefaultAsync();
+
+        if (channel == null)
         {
-            _logger.LogInformation("Receiving WhatsApp message from {Phone}", dto.FromPhone);
-
-            var channel = await _context.CommunicationChannels
-                .Where(c => c.ChannelType == ChannelType.WhatsApp && c.IsEnabled && !c.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            if (channel == null)
-            {
-                return BadRequest(new IngestResultDto { Success = false, Message = "WhatsApp channel not configured" });
-            }
-
-            // Try to find linked customer/contact by phone
-            var (accountId, contactId) = await FindOrSuggestContactAsync(null, dto.FromPhone, dto.FromName);
-
-            var message = new CommunicationMessage
-            {
-                ChannelId = channel.Id,
-                ChannelType = ChannelType.WhatsApp,
-                Body = dto.Body,
-                Direction = MessageDirection.Inbound,
-                Status = MessageStatus.Delivered,
-                FromAddress = dto.FromPhone,
-                FromName = dto.FromName,
-                ExternalMessageId = dto.MessageId,
-                ConversationId = dto.ConversationId ?? dto.FromPhone,
-                WhatsAppMessageType = dto.MessageType,
-                ReceivedAt = dto.Timestamp ?? DateTime.UtcNow,
-                AccountId = accountId,
-                ContactId = contactId,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.CommunicationMessages.Add(message);
-
-            var interaction = new Interaction
-            {
-                InteractionType = InteractionType.Chat,
-                Type = "WhatsApp",
-                Direction = InteractionDirection.Inbound,
-                Subject = "WhatsApp Message",
-                Description = dto.Body ?? "",
-                InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
-                PhoneNumber = dto.FromPhone,
-                IsCompleted = true,
-                AccountId = accountId,
-                ContactId = contactId,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.Interactions.Add(interaction);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new IngestResultDto
-            {
-                Success = true,
-                InteractionId = interaction.Id,
-                MessageId = message.Id,
-                AccountId = accountId,
-                ContactId = contactId,
-                Message = "WhatsApp message received successfully"
-            });
+            return BadRequest(new IngestResultDto { Success = false, Message = "WhatsApp channel not configured" });
         }
-        catch (Exception ex)
+
+        // Try to find linked customer/contact by phone
+        var (accountId, contactId) = await FindOrSuggestContactAsync(null, dto.FromPhone, dto.FromName);
+
+        var message = new CommunicationMessage
         {
-            _logger.LogError(ex, "Error processing WhatsApp message");
-            return StatusCode(500, new IngestResultDto { Success = false, Message = "Error processing message" });
-        }
+            ChannelId = channel.Id,
+            ChannelType = ChannelType.WhatsApp,
+            Body = dto.Body,
+            Direction = MessageDirection.Inbound,
+            Status = MessageStatus.Delivered,
+            FromAddress = dto.FromPhone,
+            FromName = dto.FromName,
+            ExternalMessageId = dto.MessageId,
+            ConversationId = dto.ConversationId ?? dto.FromPhone,
+            WhatsAppMessageType = dto.MessageType,
+            ReceivedAt = dto.Timestamp ?? DateTime.UtcNow,
+            AccountId = accountId,
+            ContactId = contactId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.CommunicationMessages.Add(message);
+
+        var interaction = new Interaction
+        {
+            InteractionType = InteractionType.Chat,
+            Type = "WhatsApp",
+            Direction = InteractionDirection.Inbound,
+            Subject = "WhatsApp Message",
+            Description = dto.Body ?? "",
+            InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
+            PhoneNumber = dto.FromPhone,
+            IsCompleted = true,
+            AccountId = accountId,
+            ContactId = contactId,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.Interactions.Add(interaction);
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new IngestResultDto
+        {
+            Success = true,
+            InteractionId = interaction.Id,
+            MessageId = message.Id,
+            AccountId = accountId,
+            ContactId = contactId,
+            Message = "WhatsApp message received successfully"
+        });
     }
 
     /// <summary>
@@ -435,86 +412,78 @@ public class WebhooksController : ControllerBase
         ChannelType channelType,
         InteractionType interactionType)
     {
-        try
+                _logger.LogInformation("Receiving {ChannelType} message from {Handle}", channelType, dto.SenderHandle);
+
+        var channel = await _context.CommunicationChannels
+            .Where(c => c.ChannelType == channelType && c.IsEnabled && !c.IsDeleted)
+            .FirstOrDefaultAsync();
+
+        if (channel == null)
         {
-            _logger.LogInformation("Receiving {ChannelType} message from {Handle}", channelType, dto.SenderHandle);
-
-            var channel = await _context.CommunicationChannels
-                .Where(c => c.ChannelType == channelType && c.IsEnabled && !c.IsDeleted)
-                .FirstOrDefaultAsync();
-
-            if (channel == null)
+            return BadRequest(new IngestResultDto
             {
-                return BadRequest(new IngestResultDto
-                {
-                    Success = false,
-                    Message = $"{channelType} channel not configured"
-                });
-            }
-
-            // Try to find linked customer by social handle
-            var (accountId, contactId) = await FindContactBySocialHandle(dto.SenderHandle, channelType);
-
-            var message = new CommunicationMessage
-            {
-                ChannelId = channel.Id,
-                ChannelType = channelType,
-                Body = dto.Text,
-                Direction = MessageDirection.Inbound,
-                Status = MessageStatus.Delivered,
-                FromAddress = dto.SenderHandle,
-                FromName = dto.SenderName,
-                ExternalMessageId = dto.PostId ?? dto.MessageId,
-                SocialPostId = dto.PostId,
-                IsPublicPost = dto.IsPublicPost,
-                ReceivedAt = dto.Timestamp ?? DateTime.UtcNow,
-                AccountId = accountId,
-                ContactId = contactId,
-                MetadataJson = JsonSerializer.Serialize(new
-                {
-                    dto.ParentPostId,
-                    dto.MediaUrls,
-                    dto.Hashtags,
-                    dto.Mentions
-                }),
-                CreatedAt = DateTime.UtcNow
-            };
-
-            _context.CommunicationMessages.Add(message);
-
-            var interaction = new Interaction
-            {
-                InteractionType = interactionType,
-                Type = channelType.ToString(),
-                Direction = InteractionDirection.Inbound,
-                Subject = $"{channelType} {(dto.IsPublicPost ? "Post" : "Message")}",
-                Description = dto.Text ?? "",
-                InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
-                IsCompleted = true,
-                AccountId = accountId,
-                ContactId = contactId,
-                Tags = dto.Hashtags != null ? string.Join(",", dto.Hashtags) : null,
-                CreatedAt = DateTime.UtcNow
-            };
-            _context.Interactions.Add(interaction);
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new IngestResultDto
-            {
-                Success = true,
-                InteractionId = interaction.Id,
-                MessageId = message.Id,
-                AccountId = accountId,
-                ContactId = contactId,
-                Message = $"{channelType} message received successfully"
+                Success = false,
+                Message = $"{channelType} channel not configured"
             });
         }
-        catch (Exception ex)
+
+        // Try to find linked customer by social handle
+        var (accountId, contactId) = await FindContactBySocialHandle(dto.SenderHandle, channelType);
+
+        var message = new CommunicationMessage
         {
-            _logger.LogError(ex, "Error processing {ChannelType} message", channelType);
-            return StatusCode(500, new IngestResultDto { Success = false, Message = "Error processing message" });
-        }
+            ChannelId = channel.Id,
+            ChannelType = channelType,
+            Body = dto.Text,
+            Direction = MessageDirection.Inbound,
+            Status = MessageStatus.Delivered,
+            FromAddress = dto.SenderHandle,
+            FromName = dto.SenderName,
+            ExternalMessageId = dto.PostId ?? dto.MessageId,
+            SocialPostId = dto.PostId,
+            IsPublicPost = dto.IsPublicPost,
+            ReceivedAt = dto.Timestamp ?? DateTime.UtcNow,
+            AccountId = accountId,
+            ContactId = contactId,
+            MetadataJson = JsonSerializer.Serialize(new
+            {
+                dto.ParentPostId,
+                dto.MediaUrls,
+                dto.Hashtags,
+                dto.Mentions
+            }),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.CommunicationMessages.Add(message);
+
+        var interaction = new Interaction
+        {
+            InteractionType = interactionType,
+            Type = channelType.ToString(),
+            Direction = InteractionDirection.Inbound,
+            Subject = $"{channelType} {(dto.IsPublicPost ? "Post" : "Message")}",
+            Description = dto.Text ?? "",
+            InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
+            IsCompleted = true,
+            AccountId = accountId,
+            ContactId = contactId,
+            Tags = dto.Hashtags != null ? string.Join(",", dto.Hashtags) : null,
+            CreatedAt = DateTime.UtcNow
+        };
+        _context.Interactions.Add(interaction);
+
+        await _context.SaveChangesAsync();
+
+        return Ok(new IngestResultDto
+        {
+            Success = true,
+            InteractionId = interaction.Id,
+            MessageId = message.Id,
+            AccountId = accountId,
+            ContactId = contactId,
+            Message = $"{channelType} message received successfully"
+        });
     }
 
     private async Task<(int? AccountId, int? ContactId)> FindOrSuggestContactAsync(

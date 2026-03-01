@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Dtos;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class ColorPalettesController : ControllerBase
+public class ColorPalettesController : CrmControllerBase
 {
     private readonly IColorPaletteService _paletteService;
     private readonly ILogger<ColorPalettesController> _logger;
@@ -39,16 +40,8 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        try
-        {
-            var palettes = await _paletteService.GetAllAsync();
-            return Ok(palettes);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting palettes");
-            return StatusCode(500, new { message = "Error retrieving palettes" });
-        }
+                var palettes = await _paletteService.GetAllAsync();
+        return Ok(palettes);
     }
 
     /// <summary>
@@ -58,16 +51,8 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByCategory(string category)
     {
-        try
-        {
-            var palettes = await _paletteService.GetByCategoryAsync(category);
-            return Ok(palettes);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting palettes by category");
-            return StatusCode(500, new { message = "Error retrieving palettes" });
-        }
+                var palettes = await _paletteService.GetByCategoryAsync(category);
+        return Ok(palettes);
     }
 
     /// <summary>
@@ -77,16 +62,8 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategories()
     {
-        try
-        {
-            var categories = await _paletteService.GetCategoriesAsync();
-            return Ok(categories);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting categories");
-            return StatusCode(500, new { message = "Error retrieving categories" });
-        }
+                var categories = await _paletteService.GetCategoriesAsync();
+        return Ok(categories);
     }
 
     /// <summary>
@@ -97,21 +74,13 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Search([FromQuery] string q, [FromQuery] int limit = 50)
     {
-        try
+                if (string.IsNullOrWhiteSpace(q))
         {
-            if (string.IsNullOrWhiteSpace(q))
-            {
-                return BadRequest(new { message = "Search term is required" });
-            }
+            return BadRequest(new { message = "Search term is required" });
+        }
 
-            var palettes = await _paletteService.SearchAsync(q, limit);
-            return Ok(palettes);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching palettes");
-            return StatusCode(500, new { message = "Error searching palettes" });
-        }
+        var palettes = await _paletteService.SearchAsync(q, limit);
+        return Ok(palettes);
     }
 
     /// <summary>
@@ -121,16 +90,8 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCount()
     {
-        try
-        {
-            var count = await _paletteService.GetCountAsync();
-            return Ok(new { count });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting palette count");
-            return StatusCode(500, new { message = "Error retrieving count" });
-        }
+                var count = await _paletteService.GetCountAsync();
+        return Ok(new { count });
     }
 
     /// <summary>
@@ -140,22 +101,14 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Refresh()
     {
-        try
+                _logger.LogInformation("Refreshing palettes from GitHub...");
+        var count = await _paletteService.RefreshFromGitHubAsync();
+        return Ok(new
         {
-            _logger.LogInformation("Refreshing palettes from GitHub...");
-            var count = await _paletteService.RefreshFromGitHubAsync();
-            return Ok(new
-            {
-                message = $"Successfully refreshed {count:N0} palettes from GitHub",
-                count,
-                refreshedAt = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error refreshing palettes from GitHub");
-            return StatusCode(500, new { message = "Error refreshing palettes from GitHub: " + ex.Message });
-        }
+            message = $"Successfully refreshed {count:N0} palettes from GitHub",
+            count,
+            refreshedAt = DateTime.UtcNow
+        });
     }
 
     /// <summary>
@@ -165,16 +118,8 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserDefined()
     {
-        try
-        {
-            var palettes = await _paletteService.GetUserDefinedPalettesAsync();
-            return Ok(palettes);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting user-defined palettes");
-            return StatusCode(500, new { message = "Error retrieving user-defined palettes" });
-        }
+                var palettes = await _paletteService.GetUserDefinedPalettesAsync();
+        return Ok(palettes);
     }
 
     /// <summary>
@@ -185,22 +130,14 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> CreateCustomPalette([FromBody] CreateCustomPaletteRequest request)
     {
-        try
+                var userIdClaim = User.FindFirst("nameid")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
         {
-            var userIdClaim = User.FindFirst("nameid")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-            {
-                return Unauthorized(new { message = "Invalid user" });
-            }
+            return Unauthorized(new { message = "Invalid user" });
+        }
 
-            var palette = await _paletteService.CreateCustomPaletteAsync(request, userId);
-            return Ok(palette);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating custom palette");
-            return StatusCode(500, new { message = "Error creating custom palette" });
-        }
+        var palette = await _paletteService.CreateCustomPaletteAsync(request, userId);
+        return Ok(palette);
     }
 
     /// <summary>
@@ -212,25 +149,17 @@ public class ColorPalettesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> DeleteCustomPalette(int id)
     {
-        try
+                var userIdClaim = User.FindFirst("nameid")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!int.TryParse(userIdClaim, out var userId))
         {
-            var userIdClaim = User.FindFirst("nameid")?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-            {
-                return Unauthorized(new { message = "Invalid user" });
-            }
+            return Unauthorized(new { message = "Invalid user" });
+        }
 
-            var success = await _paletteService.DeleteCustomPaletteAsync(id, userId);
-            if (!success)
-            {
-                return NotFound(new { message = "Palette not found or you don't have permission to delete it" });
-            }
-            return Ok(new { message = "Palette deleted successfully" });
-        }
-        catch (Exception ex)
+        var success = await _paletteService.DeleteCustomPaletteAsync(id, userId);
+        if (!success)
         {
-            _logger.LogError(ex, "Error deleting custom palette");
-            return StatusCode(500, new { message = "Error deleting custom palette" });
+            return NotFound(new { message = "Palette not found or you don't have permission to delete it" });
         }
+        return Ok(new { message = "Palette deleted successfully" });
     }
 }

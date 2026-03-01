@@ -7,6 +7,7 @@
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/system")]
-public class SystemController : ControllerBase
+public class SystemController : CrmControllerBase
 {
     private readonly IBillingTimezoneService _timezoneService;
     private readonly ILogger<SystemController> _logger;

@@ -12,6 +12,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -23,10 +24,9 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class OpportunitiesController : ControllerBase
+public class OpportunitiesController : CrmControllerBase
 {
     private const string OpportunityNotFoundMessage = "Opportunity {0} not found";
-    private const string InternalServerErrorMessage = "Internal server error";
     private readonly IOpportunityService _opportunityService;
     private readonly IWinLossAnalysisService _winLossService;
     private readonly ILogger<OpportunitiesController> _logger;
@@ -58,17 +58,9 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetOpen()
     {
-        try
-        {
-            var opportunities = await _opportunityService.GetOpenOpportunitiesAsync();
-            var dtos = opportunities.Select(MapToDto).ToList();
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving opportunities");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var opportunities = await _opportunityService.GetOpenOpportunitiesAsync();
+        var dtos = opportunities.Select(MapToDto).ToList();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -85,18 +77,10 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
     {
-        try
-        {
-            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-            if (opportunity == null)
-                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
-            return Ok(MapToDto(opportunity));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving opportunity {OpportunityId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+        if (opportunity == null)
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        return Ok(MapToDto(opportunity));
     }
 
     /// <summary>
@@ -111,17 +95,9 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByAccountId(int accountId)
     {
-        try
-        {
-            var opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(accountId);
-            var dtos = opportunities.Select(MapToDto).ToList();
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving opportunities for account {AccountId}", accountId);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(accountId);
+        var dtos = opportunities.Select(MapToDto).ToList();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -136,17 +112,9 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByCustomerId(int customerId)
     {
-        try
-        {
-            var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
-            var dtos = opportunities.Select(MapToDto).ToList();
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving opportunities for customer {CustomerId}", customerId);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
+        var dtos = opportunities.Select(MapToDto).ToList();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -160,16 +128,8 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTotalPipeline()
     {
-        try
-        {
-            var totalPipeline = await _opportunityService.GetTotalPipelineAsync();
-            return Ok(new { totalPipeline });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error calculating total pipeline");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var totalPipeline = await _opportunityService.GetTotalPipelineAsync();
+        return Ok(new { totalPipeline });
     }
 
     /// <summary>
@@ -211,11 +171,6 @@ public class OpportunitiesController : ControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating opportunity");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
     }
 
     /// <summary>
@@ -235,39 +190,31 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateOpportunityDto dto)
     {
-        try
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+        if (opportunity == null)
+            return NotFound();
+
+        MapFromUpdateDto(dto, opportunity);
+
+        // TODO-CRM003-02: When stage changes and caller did NOT explicitly supply a new probability,
+        // auto-update probability based on the stage defaults.
+        if (dto.Stage.HasValue && !dto.Probability.HasValue)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-            if (opportunity == null)
-                return NotFound();
-
-            MapFromUpdateDto(dto, opportunity);
-
-            // TODO-CRM003-02: When stage changes and caller did NOT explicitly supply a new probability,
-            // auto-update probability based on the stage defaults.
-            if (dto.Stage.HasValue && !dto.Probability.HasValue)
-            {
-                var newStage = (OpportunityStage)dto.Stage.Value;
-                if (OpportunityService.StageProbabilityDefaults.TryGetValue(newStage, out var autoProb))
-                    opportunity.Probability = autoProb;
-            }
-
-            await _opportunityService.UpdateOpportunityAsync(opportunity);
-
-            // Notify connected clients about the update
-            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-            await _notificationService.NotifyRecordUpdatedAsync("Opportunity", id, MapToDto(opportunity), userId);
-
-            return NoContent();
+            var newStage = (OpportunityStage)dto.Stage.Value;
+            if (OpportunityService.StageProbabilityDefaults.TryGetValue(newStage, out var autoProb))
+                opportunity.Probability = autoProb;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating opportunity {OpportunityId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+
+        await _opportunityService.UpdateOpportunityAsync(opportunity);
+
+        // Notify connected clients about the update
+        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+        await _notificationService.NotifyRecordUpdatedAsync("Opportunity", id, MapToDto(opportunity), userId);
+
+        return NoContent();
     }
     // --- Opportunity Product Endpoints (TODO-CRM003-04) ---
 
@@ -281,20 +228,12 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetProducts(int id)
     {
-        try
-        {
-            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-            if (opportunity == null)
-                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+                var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+        if (opportunity == null)
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
-            var products = await _opportunityService.GetOpportunityProductsAsync(id);
-            return Ok(products.Select(MapProductToDto).ToList());
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving products for opportunity {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        var products = await _opportunityService.GetOpportunityProductsAsync(id);
+        return Ok(products.Select(MapProductToDto).ToList());
     }
 
     /// <summary>
@@ -309,24 +248,16 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddProduct(int id, [FromBody] CreateOpportunityProductDto dto)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-            if (opportunity == null)
-                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+        if (opportunity == null)
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
-            var product = MapProductFromCreateDto(dto);
-            var created = await _opportunityService.AddOpportunityProductAsync(id, product);
-            return CreatedAtAction(nameof(GetProducts), new { id }, MapProductToDto(created));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding product to opportunity {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        var product = MapProductFromCreateDto(dto);
+        var created = await _opportunityService.AddOpportunityProductAsync(id, product);
+        return CreatedAtAction(nameof(GetProducts), new { id }, MapProductToDto(created));
     }
 
     /// <summary>
@@ -342,30 +273,22 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateProduct(int id, int productId, [FromBody] UpdateOpportunityProductDto dto)
     {
-        try
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var updated = new OpportunityProduct
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            Quantity = dto.Quantity ?? 1,
+            UnitPrice = dto.UnitPrice,
+            DiscountPercent = dto.DiscountPercent,
+            Notes = dto.Notes
+        };
 
-            var updated = new OpportunityProduct
-            {
-                Quantity = dto.Quantity ?? 1,
-                UnitPrice = dto.UnitPrice,
-                DiscountPercent = dto.DiscountPercent,
-                Notes = dto.Notes
-            };
+        var result = await _opportunityService.UpdateOpportunityProductAsync(id, productId, updated);
+        if (result == null)
+            return NotFound(new { message = $"Product {productId} not found on opportunity {id}" });
 
-            var result = await _opportunityService.UpdateOpportunityProductAsync(id, productId, updated);
-            if (result == null)
-                return NotFound(new { message = $"Product {productId} not found on opportunity {id}" });
-
-            return Ok(MapProductToDto(result));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating product {ProductId} on opportunity {Id}", productId, id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(MapProductToDto(result));
     }
 
     /// <summary>
@@ -379,19 +302,11 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveProduct(int id, int productId)
     {
-        try
-        {
-            var removed = await _opportunityService.RemoveOpportunityProductAsync(id, productId);
-            if (!removed)
-                return NotFound(new { message = $"Product {productId} not found on opportunity {id}" });
+                var removed = await _opportunityService.RemoveOpportunityProductAsync(id, productId);
+        if (!removed)
+            return NotFound(new { message = $"Product {productId} not found on opportunity {id}" });
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing product {ProductId} from opportunity {Id}", productId, id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return NoContent();
     }
 
     // --- Mapping helpers ---
@@ -577,16 +492,8 @@ public class OpportunitiesController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken ct = default)
     {
-        try
-        {
-            var summary = await _winLossService.GetSummaryAsync(fromDate, toDate, ct);
-            return Ok(summary);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving win/loss analytics");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var summary = await _winLossService.GetSummaryAsync(fromDate, toDate, ct);
+        return Ok(summary);
     }
 
     /// <summary>
@@ -600,16 +507,8 @@ public class OpportunitiesController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken ct = default)
     {
-        try
-        {
-            var result = await _winLossService.GetByReasonAsync(fromDate, toDate, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving win/loss by reason");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var result = await _winLossService.GetByReasonAsync(fromDate, toDate, ct);
+        return Ok(result);
     }
 
     /// <summary>
@@ -623,16 +522,8 @@ public class OpportunitiesController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken ct = default)
     {
-        try
-        {
-            var result = await _winLossService.GetByCompetitorAsync(fromDate, toDate, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving win/loss by competitor");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var result = await _winLossService.GetByCompetitorAsync(fromDate, toDate, ct);
+        return Ok(result);
     }
 
     /// <summary>
@@ -647,18 +538,10 @@ public class OpportunitiesController : ControllerBase
         [FromQuery] string period = "month",
         CancellationToken ct = default)
     {
-        try
-        {
-            var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
-            var to = toDate ?? DateTime.UtcNow;
-            var result = await _winLossService.GetWinRateTrendsAsync(from, to, period, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving win rate trends");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
+        var to = toDate ?? DateTime.UtcNow;
+        var result = await _winLossService.GetWinRateTrendsAsync(from, to, period, ct);
+        return Ok(result);
     }
 
     /// <summary>
@@ -672,16 +555,8 @@ public class OpportunitiesController : ControllerBase
         [FromQuery] DateTime? toDate = null,
         CancellationToken ct = default)
     {
-        try
-        {
-            var result = await _winLossService.GetLossAnalysisAsync(fromDate, toDate, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving loss analysis");
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var result = await _winLossService.GetLossAnalysisAsync(fromDate, toDate, ct);
+        return Ok(result);
     }
 
     // --- Opportunity Cloning (TODO-CRM003-06) ---
@@ -714,11 +589,6 @@ public class OpportunitiesController : ControllerBase
         {
             return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error cloning opportunity {OpportunityId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
     }
 
     // --- Team Member Management (TODO-CRM003-08) ---
@@ -732,21 +602,13 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetTeamMembers(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-            if (opportunity == null)
-                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+                var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+        if (opportunity == null)
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
-            var members = await _opportunityService.GetTeamMembersAsync(id, ct);
-            var dtos = members.Select(MapTeamMemberToDto).ToList();
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving team members for opportunity {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        var members = await _opportunityService.GetTeamMembersAsync(id, ct);
+        var dtos = members.Select(MapTeamMemberToDto).ToList();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -759,34 +621,26 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddTeamMember(int id, [FromBody] CreateTeamMemberDto dto, CancellationToken ct = default)
     {
-        try
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+        if (opportunity == null)
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+
+        var member = new OpportunityTeamMember
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            OpportunityId = id,
+            UserId = dto.UserId,
+            Role = (OpportunityTeamRole)dto.Role,
+            SplitPercentage = dto.SplitPercentage,
+            IsPrimary = dto.IsPrimary,
+            CommissionPlanId = dto.CommissionPlanId,
+            Notes = dto.Notes
+        };
 
-            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-            if (opportunity == null)
-                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
-
-            var member = new OpportunityTeamMember
-            {
-                OpportunityId = id,
-                UserId = dto.UserId,
-                Role = (OpportunityTeamRole)dto.Role,
-                SplitPercentage = dto.SplitPercentage,
-                IsPrimary = dto.IsPrimary,
-                CommissionPlanId = dto.CommissionPlanId,
-                Notes = dto.Notes
-            };
-
-            var created = await _opportunityService.AddTeamMemberAsync(id, member, ct);
-            return CreatedAtAction(nameof(GetTeamMembers), new { id }, MapTeamMemberToDto(created));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding team member to opportunity {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        var created = await _opportunityService.AddTeamMemberAsync(id, member, ct);
+        return CreatedAtAction(nameof(GetTeamMembers), new { id }, MapTeamMemberToDto(created));
     }
 
     /// <summary>
@@ -798,28 +652,20 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateTeamMember(int id, int memberId, [FromBody] UpdateTeamMemberDto dto, CancellationToken ct = default)
     {
-        try
+                var updated = new OpportunityTeamMember
         {
-            var updated = new OpportunityTeamMember
-            {
-                Role = dto.Role.HasValue ? (OpportunityTeamRole)dto.Role.Value : OpportunityTeamRole.AccountExecutive,
-                SplitPercentage = dto.SplitPercentage ?? 0,
-                IsPrimary = dto.IsPrimary ?? false,
-                CommissionPlanId = dto.CommissionPlanId,
-                Notes = dto.Notes
-            };
+            Role = dto.Role.HasValue ? (OpportunityTeamRole)dto.Role.Value : OpportunityTeamRole.AccountExecutive,
+            SplitPercentage = dto.SplitPercentage ?? 0,
+            IsPrimary = dto.IsPrimary ?? false,
+            CommissionPlanId = dto.CommissionPlanId,
+            Notes = dto.Notes
+        };
 
-            var result = await _opportunityService.UpdateTeamMemberAsync(id, memberId, updated, ct);
-            if (result == null)
-                return NotFound(new { message = $"Team member {memberId} not found on opportunity {id}" });
+        var result = await _opportunityService.UpdateTeamMemberAsync(id, memberId, updated, ct);
+        if (result == null)
+            return NotFound(new { message = $"Team member {memberId} not found on opportunity {id}" });
 
-            return Ok(MapTeamMemberToDto(result));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating team member {MemberId} on opportunity {Id}", memberId, id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(MapTeamMemberToDto(result));
     }
 
     /// <summary>
@@ -831,18 +677,10 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveTeamMember(int id, int memberId, CancellationToken ct = default)
     {
-        try
-        {
-            var removed = await _opportunityService.RemoveTeamMemberAsync(id, memberId, ct);
-            if (!removed)
-                return NotFound(new { message = $"Team member {memberId} not found on opportunity {id}" });
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing team member {MemberId} from opportunity {Id}", memberId, id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var removed = await _opportunityService.RemoveTeamMemberAsync(id, memberId, ct);
+        if (!removed)
+            return NotFound(new { message = $"Team member {memberId} not found on opportunity {id}" });
+        return NoContent();
     }
 
     // --- Competitor Management on Opportunities (TODO-CRM003-03) ---
@@ -856,21 +694,13 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetOpportunityCompetitors(int id, CancellationToken ct = default)
     {
-        try
-        {
-            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-            if (opportunity == null)
-                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+                var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+        if (opportunity == null)
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
-            var competitors = await _opportunityService.GetCompetitorsAsync(id, ct);
-            var dtos = competitors.Select(MapOpportunityCompetitorToDto).ToList();
-            return Ok(dtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving competitors for opportunity {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        var competitors = await _opportunityService.GetCompetitorsAsync(id, ct);
+        var dtos = competitors.Select(MapOpportunityCompetitorToDto).ToList();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -883,33 +713,25 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AddCompetitor(int id, [FromBody] CreateOpportunityCompetitorDto dto, CancellationToken ct = default)
     {
-        try
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+        if (opportunity == null)
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+
+        var competitor = new OpportunityCompetitor
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            OpportunityId = id,
+            CompetitorId = dto.CompetitorId,
+            ThreatLevel = !string.IsNullOrEmpty(dto.ThreatLevel) ? Enum.Parse<CompetitorThreatLevel>(dto.ThreatLevel) : CompetitorThreatLevel.Medium,
+            Status = !string.IsNullOrEmpty(dto.Status) ? Enum.Parse<OpportunityCompetitorStatus>(dto.Status) : OpportunityCompetitorStatus.Identified,
+            CompetitorPrice = dto.CompetitorPrice,
+            Notes = dto.Notes
+        };
 
-            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
-            if (opportunity == null)
-                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
-
-            var competitor = new OpportunityCompetitor
-            {
-                OpportunityId = id,
-                CompetitorId = dto.CompetitorId,
-                ThreatLevel = !string.IsNullOrEmpty(dto.ThreatLevel) ? Enum.Parse<CompetitorThreatLevel>(dto.ThreatLevel) : CompetitorThreatLevel.Medium,
-                Status = !string.IsNullOrEmpty(dto.Status) ? Enum.Parse<OpportunityCompetitorStatus>(dto.Status) : OpportunityCompetitorStatus.Identified,
-                CompetitorPrice = dto.CompetitorPrice,
-                Notes = dto.Notes
-            };
-
-            var created = await _opportunityService.AddCompetitorAsync(id, competitor, ct);
-            return CreatedAtAction(nameof(GetOpportunityCompetitors), new { id }, MapOpportunityCompetitorToDto(created));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding competitor to opportunity {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        var created = await _opportunityService.AddCompetitorAsync(id, competitor, ct);
+        return CreatedAtAction(nameof(GetOpportunityCompetitors), new { id }, MapOpportunityCompetitorToDto(created));
     }
 
     /// <summary>
@@ -921,18 +743,10 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RemoveCompetitor(int id, int competitorId, CancellationToken ct = default)
     {
-        try
-        {
-            var removed = await _opportunityService.RemoveCompetitorAsync(id, competitorId, ct);
-            if (!removed)
-                return NotFound(new { message = $"Competitor {competitorId} not found on opportunity {id}" });
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing competitor {CompetitorId} from opportunity {Id}", competitorId, id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+                var removed = await _opportunityService.RemoveCompetitorAsync(id, competitorId, ct);
+        if (!removed)
+            return NotFound(new { message = $"Competitor {competitorId} not found on opportunity {id}" });
+        return NoContent();
     }
 
     /// <summary>
@@ -945,31 +759,23 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateCompetitor(int id, int competitorId, [FromBody] UpdateOpportunityCompetitorDto dto, CancellationToken ct = default)
     {
-        try
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var updated = new OpportunityCompetitor
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            ThreatLevel = !string.IsNullOrEmpty(dto.ThreatLevel) ? Enum.Parse<CompetitorThreatLevel>(dto.ThreatLevel) : CompetitorThreatLevel.Medium,
+            Status = !string.IsNullOrEmpty(dto.Status) ? Enum.Parse<OpportunityCompetitorStatus>(dto.Status) : OpportunityCompetitorStatus.Active,
+            CompetitorPrice = dto.CompetitorPrice,
+            Notes = dto.Notes,
+            WonAgainst = dto.WonAgainst
+        };
 
-            var updated = new OpportunityCompetitor
-            {
-                ThreatLevel = !string.IsNullOrEmpty(dto.ThreatLevel) ? Enum.Parse<CompetitorThreatLevel>(dto.ThreatLevel) : CompetitorThreatLevel.Medium,
-                Status = !string.IsNullOrEmpty(dto.Status) ? Enum.Parse<OpportunityCompetitorStatus>(dto.Status) : OpportunityCompetitorStatus.Active,
-                CompetitorPrice = dto.CompetitorPrice,
-                Notes = dto.Notes,
-                WonAgainst = dto.WonAgainst
-            };
+        var result = await _opportunityService.UpdateCompetitorAsync(id, competitorId, updated, ct);
+        if (result == null)
+            return NotFound(new { message = $"Competitor {competitorId} not found on opportunity {id}" });
 
-            var result = await _opportunityService.UpdateCompetitorAsync(id, competitorId, updated, ct);
-            if (result == null)
-                return NotFound(new { message = $"Competitor {competitorId} not found on opportunity {id}" });
-
-            return Ok(MapOpportunityCompetitorToDto(result));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating competitor {CompetitorId} on opportunity {Id}", competitorId, id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return Ok(MapOpportunityCompetitorToDto(result));
     }
 
     // --- Forecast Category (TODO-CRM003-07) ---
@@ -984,25 +790,17 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> PatchForecastCategory(int id, [FromBody] ForecastCategoryPatchDto dto, CancellationToken ct = default)
     {
-        try
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-            if (!Enum.IsDefined(typeof(ForecastCategory), dto.ForecastCategory))
-                return BadRequest(new { message = $"Invalid ForecastCategory value: {dto.ForecastCategory}" });
+        if (!Enum.IsDefined(typeof(ForecastCategory), dto.ForecastCategory))
+            return BadRequest(new { message = $"Invalid ForecastCategory value: {dto.ForecastCategory}" });
 
-            var updated = await _opportunityService.PatchForecastCategoryAsync(id, (ForecastCategory)dto.ForecastCategory, ct);
-            if (!updated)
-                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
+        var updated = await _opportunityService.PatchForecastCategoryAsync(id, (ForecastCategory)dto.ForecastCategory, ct);
+        if (!updated)
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error patching forecast category for opportunity {Id}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return NoContent();
     }
 
     /// <summary>
@@ -1019,20 +817,12 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(int id)
     {
-        try
-        {
-            await _opportunityService.DeleteOpportunityAsync(id);
+                await _opportunityService.DeleteOpportunityAsync(id);
 
-            // Notify connected clients about the deletion
-            var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-            await _notificationService.NotifyRecordDeletedAsync("Opportunity", id, userId);
+        // Notify connected clients about the deletion
+        var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
+        await _notificationService.NotifyRecordDeletedAsync("Opportunity", id, userId);
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting opportunity {OpportunityId}", id);
-            return StatusCode(500, InternalServerErrorMessage);
-        }
+        return NoContent();
     }
 }

@@ -11,6 +11,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -21,7 +22,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class OrdersController : ControllerBase
+public class OrdersController : CrmControllerBase
 {
     private readonly IOrderService _orderService;
     private readonly ILogger<OrdersController> _logger;

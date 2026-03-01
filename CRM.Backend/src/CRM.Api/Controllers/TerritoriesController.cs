@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class TerritoriesController : ControllerBase
+public class TerritoriesController : CrmControllerBase
 {
     private readonly ITerritoryService _territoryService;
     private readonly ILogger<TerritoriesController> _logger;
@@ -753,11 +754,6 @@ public class TerritoriesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning lead {LeadId} to territory {TerritoryId}", request.LeadId, id);
-            return StatusCode(500, "Internal server error");
-        }
     }
 
     /// <summary>
@@ -771,32 +767,24 @@ public class TerritoriesController : ControllerBase
         [FromServices] CRM.Core.Interfaces.ICrmDbContext dbContext,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var leads = await dbContext.Leads
-                .Where(l => !l.IsDeleted && l.TerritoryId == id)
-                .Select(l => new
-                {
-                    l.Id,
-                    l.FirstName,
-                    l.LastName,
-                    l.Email,
-                    l.CompanyName,
-                    Status = l.Status.ToString(),
-                    l.OwnerId,
-                    l.TerritoryId,
-                    l.CreatedAt
-                })
-                .OrderByDescending(l => l.CreatedAt)
-                .ToListAsync(cancellationToken);
+                var leads = await dbContext.Leads
+            .Where(l => !l.IsDeleted && l.TerritoryId == id)
+            .Select(l => new
+            {
+                l.Id,
+                l.FirstName,
+                l.LastName,
+                l.Email,
+                l.CompanyName,
+                Status = l.Status.ToString(),
+                l.OwnerId,
+                l.TerritoryId,
+                l.CreatedAt
+            })
+            .OrderByDescending(l => l.CreatedAt)
+            .ToListAsync(cancellationToken);
 
-            return Ok(leads);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving leads for territory {TerritoryId}", id);
-            return StatusCode(500, "Internal server error");
-        }
+        return Ok(leads);
     }
 }
 

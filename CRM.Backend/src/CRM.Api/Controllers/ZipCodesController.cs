@@ -9,6 +9,7 @@ using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.API.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Route("api/postalcodes")] // Alias route for Postal/Zip Code naming
-public class ZipCodesController : ControllerBase
+public class ZipCodesController : CrmControllerBase
 {
     private readonly IZipCodeService _zipCodeService;
     private readonly IZipCodeImportService? _zipCodeImportService;

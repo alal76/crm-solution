@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin")]
 [Authorize]
-public class AdminDashboardController : ControllerBase
+public class AdminDashboardController : CrmControllerBase
 {
     private const string MetricsErrorMessage = "Error retrieving metrics";
     private readonly IAdminDashboardService _adminDashboardService;
@@ -41,16 +42,8 @@ public class AdminDashboardController : ControllerBase
         [FromQuery] int timeRangeHours = 24,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var dashboard = await _adminDashboardService.GetCompleteAdminDashboardAsync(timeRangeHours, cancellationToken);
-            return Ok(dashboard);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting admin dashboard");
-            return StatusCode(500, new { message = "Error retrieving dashboard data" });
-        }
+                var dashboard = await _adminDashboardService.GetCompleteAdminDashboardAsync(timeRangeHours, cancellationToken);
+        return Ok(dashboard);
     }
 
     /// <summary>
@@ -60,16 +53,8 @@ public class AdminDashboardController : ControllerBase
     [ProducesResponseType(typeof(SystemStatisticsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetSystemStatistics(CancellationToken cancellationToken)
     {
-        try
-        {
-            var stats = await _adminDashboardService.GetSystemStatisticsAsync(cancellationToken);
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting system statistics");
-            return StatusCode(500, new { message = "Error retrieving statistics" });
-        }
+                var stats = await _adminDashboardService.GetSystemStatisticsAsync(cancellationToken);
+        return Ok(stats);
     }
 
     /// <summary>
@@ -81,16 +66,8 @@ public class AdminDashboardController : ControllerBase
         [FromQuery] int daysBack = 30,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var stats = await _adminDashboardService.GetDetailedSystemStatisticsAsync(daysBack, cancellationToken);
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting detailed statistics");
-            return StatusCode(500, new { message = "Error retrieving statistics" });
-        }
+                var stats = await _adminDashboardService.GetDetailedSystemStatisticsAsync(daysBack, cancellationToken);
+        return Ok(stats);
     }
 
     /// <summary>
@@ -100,16 +77,8 @@ public class AdminDashboardController : ControllerBase
     [ProducesResponseType(typeof(IDictionary<string, ModuleStatusDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetModuleStatus(CancellationToken cancellationToken)
     {
-        try
-        {
-            var status = await _adminDashboardService.GetAllModuleStatusAsync(cancellationToken);
-            return Ok(status);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting module status");
-            return StatusCode(500, new { message = "Error retrieving module status" });
-        }
+                var status = await _adminDashboardService.GetAllModuleStatusAsync(cancellationToken);
+        return Ok(status);
     }
 
     /// <summary>
@@ -119,16 +88,8 @@ public class AdminDashboardController : ControllerBase
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> IsSystemHealthy(CancellationToken cancellationToken)
     {
-        try
-        {
-            var isHealthy = await _adminDashboardService.IsSystemHealthyAsync(cancellationToken);
-            return Ok(new { isHealthy });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking system health");
-            return StatusCode(500, new { message = "Error checking health" });
-        }
+                var isHealthy = await _adminDashboardService.IsSystemHealthyAsync(cancellationToken);
+        return Ok(new { isHealthy });
     }
 
     /// <summary>
@@ -138,16 +99,8 @@ public class AdminDashboardController : ControllerBase
     [ProducesResponseType(typeof(ProviderHealthDashboardDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProviderHealth(CancellationToken cancellationToken)
     {
-        try
-        {
-            var health = await _adminDashboardService.GetProviderHealthSummaryAsync(cancellationToken);
-            return Ok(health);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting provider health");
-            return StatusCode(500, new { message = "Error retrieving provider health" });
-        }
+                var health = await _adminDashboardService.GetProviderHealthSummaryAsync(cancellationToken);
+        return Ok(health);
     }
 
     /// <summary>
@@ -159,16 +112,8 @@ public class AdminDashboardController : ControllerBase
         [FromQuery] int hoursBack = 24,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var metrics = await _adminDashboardService.GetSystemPerformanceMetricsAsync(hoursBack, cancellationToken);
-            return Ok(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting performance metrics");
-            return StatusCode(500, new { message = MetricsErrorMessage });
-        }
+                var metrics = await _adminDashboardService.GetSystemPerformanceMetricsAsync(hoursBack, cancellationToken);
+        return Ok(metrics);
     }
 
     /// <summary>
@@ -181,16 +126,8 @@ public class AdminDashboardController : ControllerBase
         [FromQuery] int topCount = 10,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var metrics = await _adminDashboardService.GetEndpointPerformanceMetricsAsync(hoursBack, topCount, cancellationToken);
-            return Ok(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting endpoint metrics");
-            return StatusCode(500, new { message = MetricsErrorMessage });
-        }
+                var metrics = await _adminDashboardService.GetEndpointPerformanceMetricsAsync(hoursBack, topCount, cancellationToken);
+        return Ok(metrics);
     }
 
     /// <summary>
@@ -202,16 +139,8 @@ public class AdminDashboardController : ControllerBase
         [FromQuery] int hoursBack = 24,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var metrics = await _adminDashboardService.GetDatabasePerformanceMetricsAsync(hoursBack, cancellationToken);
-            return Ok(metrics);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting database metrics");
-            return StatusCode(500, new { message = MetricsErrorMessage });
-        }
+                var metrics = await _adminDashboardService.GetDatabasePerformanceMetricsAsync(hoursBack, cancellationToken);
+        return Ok(metrics);
     }
 
     /// <summary>
@@ -223,16 +152,8 @@ public class AdminDashboardController : ControllerBase
         [FromQuery] int hoursBack = 24,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var alerts = await _adminDashboardService.GetRecentAlertsAsync(hoursBack, cancellationToken);
-            return Ok(alerts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting alerts");
-            return StatusCode(500, new { message = "Error retrieving alerts" });
-        }
+                var alerts = await _adminDashboardService.GetRecentAlertsAsync(hoursBack, cancellationToken);
+        return Ok(alerts);
     }
 
     /// <summary>
@@ -242,16 +163,8 @@ public class AdminDashboardController : ControllerBase
     [ProducesResponseType(typeof(QuickActionsSummaryDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetQuickActions(CancellationToken cancellationToken)
     {
-        try
-        {
-            var summary = await _adminDashboardService.GetQuickActionsSummaryAsync(cancellationToken);
-            return Ok(summary);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting quick actions");
-            return StatusCode(500, new { message = "Error retrieving actions" });
-        }
+                var summary = await _adminDashboardService.GetQuickActionsSummaryAsync(cancellationToken);
+        return Ok(summary);
     }
 
     /// <summary>
@@ -261,15 +174,7 @@ public class AdminDashboardController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> RefreshCache(CancellationToken cancellationToken)
     {
-        try
-        {
-            await _adminDashboardService.RefreshDashboardCacheAsync(cancellationToken);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error refreshing cache");
-            return StatusCode(500, new { message = "Error refreshing cache" });
-        }
+                await _adminDashboardService.RefreshDashboardCacheAsync(cancellationToken);
+        return NoContent();
     }
 }

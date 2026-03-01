@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -24,7 +25,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class UsersController : ControllerBase
+public class UsersController : CrmControllerBase
 {
     private const string UserNotFoundMessage = "User not found";
 
@@ -131,11 +132,6 @@ public class UsersController : ControllerBase
             _logger.LogWarning("User creation failed: {Message}", ex.Message);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating user");
-            return StatusCode(500, new { message = "Error creating user", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -149,31 +145,23 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
     {
-        try
-        {
-            // Use DbContext directly with Include for navigation properties
-            var users = await _dbContext.Set<User>()
-                .AsNoTracking()
-                .Include(u => u.Department)
-                .Include(u => u.UserProfile)
-                .Include(u => u.PrimaryGroup)
-                .Where(u => !u.IsDeleted)
-                .ToListAsync();
+                // Use DbContext directly with Include for navigation properties
+        var users = await _dbContext.Set<User>()
+            .AsNoTracking()
+            .Include(u => u.Department)
+            .Include(u => u.UserProfile)
+            .Include(u => u.PrimaryGroup)
+            .Where(u => !u.IsDeleted)
+            .ToListAsync();
 
-            var contacts = await _contactsService.GetAllAsync();
-            var contactDict = contacts.ToDictionary(c => c.Id);
+        var contacts = await _contactsService.GetAllAsync();
+        var contactDict = contacts.ToDictionary(c => c.Id);
 
-            var userDtos = users
-                .Select(u => MapToDto(u, u.ContactId.HasValue && contactDict.ContainsKey(u.ContactId.Value) ? contactDict[u.ContactId.Value] : null))
-                .ToList();
+        var userDtos = users
+            .Select(u => MapToDto(u, u.ContactId.HasValue && contactDict.ContainsKey(u.ContactId.Value) ? contactDict[u.ContactId.Value] : null))
+            .ToList();
 
-            return Ok(userDtos);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving users");
-            return StatusCode(500, new { message = "Error retrieving users", error = ex.Message });
-        }
+        return Ok(userDtos);
     }
 
     /// <summary>
@@ -188,24 +176,16 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsersByDepartment(int departmentId)
     {
-        try
-        {
-            var users = await _userRepository.GetAllAsync();
-            var contacts = await _contactsService.GetAllAsync();
-            var contactDict = contacts.ToDictionary(c => c.Id);
+                var users = await _userRepository.GetAllAsync();
+        var contacts = await _contactsService.GetAllAsync();
+        var contactDict = contacts.ToDictionary(c => c.Id);
 
-            var departmentUsers = users
-                .Where(u => !u.IsDeleted && u.DepartmentId == departmentId)
-                .Select(u => MapToDto(u, u.ContactId.HasValue && contactDict.ContainsKey(u.ContactId.Value) ? contactDict[u.ContactId.Value] : null))
-                .ToList();
+        var departmentUsers = users
+            .Where(u => !u.IsDeleted && u.DepartmentId == departmentId)
+            .Select(u => MapToDto(u, u.ContactId.HasValue && contactDict.ContainsKey(u.ContactId.Value) ? contactDict[u.ContactId.Value] : null))
+            .ToList();
 
-            return Ok(departmentUsers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving users for department {DepartmentId}", departmentId);
-            return StatusCode(500, new { message = "Error retrieving users", error = ex.Message });
-        }
+        return Ok(departmentUsers);
     }
 
     /// <summary>
@@ -222,25 +202,17 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> GetUserById(int id)
     {
-        try
-        {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
+                var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
 
-            ContactDto? contact = null;
-            if (user.ContactId.HasValue)
-            {
-                contact = await _contactsService.GetByIdAsync(user.ContactId.Value);
-            }
-
-            return Ok(MapToDto(user, contact));
-        }
-        catch (Exception ex)
+        ContactDto? contact = null;
+        if (user.ContactId.HasValue)
         {
-            _logger.LogError(ex, "Error retrieving user {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving user", error = ex.Message });
+            contact = await _contactsService.GetByIdAsync(user.ContactId.Value);
         }
+
+        return Ok(MapToDto(user, contact));
     }
 
     /// <summary>
@@ -260,40 +232,32 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> AssignUserProfile(int id, [FromBody] AssignProfileDto assignDto)
     {
-        try
+                var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
+
+        // Verify profile exists
+        var profile = await _profileRepository.GetByIdAsync(assignDto.UserProfileId);
+        if (profile == null || profile.IsDeleted)
+            return BadRequest(new { message = "Profile not found" });
+
+        // Verify department exists if provided
+        if (assignDto.DepartmentId.HasValue)
         {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
+            var department = await _departmentRepository.GetByIdAsync(assignDto.DepartmentId.Value);
+            if (department == null || department.IsDeleted)
+                return BadRequest(new { message = "Department not found" });
 
-            // Verify profile exists
-            var profile = await _profileRepository.GetByIdAsync(assignDto.UserProfileId);
-            if (profile == null || profile.IsDeleted)
-                return BadRequest(new { message = "Profile not found" });
-
-            // Verify department exists if provided
-            if (assignDto.DepartmentId.HasValue)
-            {
-                var department = await _departmentRepository.GetByIdAsync(assignDto.DepartmentId.Value);
-                if (department == null || department.IsDeleted)
-                    return BadRequest(new { message = "Department not found" });
-
-                user.DepartmentId = assignDto.DepartmentId;
-            }
-
-            user.UserProfileId = assignDto.UserProfileId;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
-
-            return Ok(MapToDto(user, null));
+            user.DepartmentId = assignDto.DepartmentId;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning profile to user {Id}", id);
-            return StatusCode(500, new { message = "Error assigning profile", error = ex.Message });
-        }
+
+        user.UserProfileId = assignDto.UserProfileId;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
+
+        return Ok(MapToDto(user, null));
     }
 
     /// <summary>
@@ -313,48 +277,40 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> UpdateUser(int id, [FromBody] UpdateUserDto updateDto)
     {
-        try
+                var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
+
+        user.Email = updateDto.Email ?? user.Email;
+        user.FirstName = updateDto.FirstName ?? user.FirstName;
+        user.LastName = updateDto.LastName ?? user.LastName;
+        user.Role = updateDto.Role ?? user.Role;
+        user.IsActive = updateDto.IsActive ?? user.IsActive;
+        user.DepartmentId = updateDto.DepartmentId ?? user.DepartmentId;
+        user.UserProfileId = updateDto.UserProfileId ?? user.UserProfileId;
+        user.PrimaryGroupId = updateDto.PrimaryGroupId ?? user.PrimaryGroupId;
+
+        // Handle contact link - allow explicit null to unlink
+        if (updateDto.ContactId.HasValue)
         {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
-
-            user.Email = updateDto.Email ?? user.Email;
-            user.FirstName = updateDto.FirstName ?? user.FirstName;
-            user.LastName = updateDto.LastName ?? user.LastName;
-            user.Role = updateDto.Role ?? user.Role;
-            user.IsActive = updateDto.IsActive ?? user.IsActive;
-            user.DepartmentId = updateDto.DepartmentId ?? user.DepartmentId;
-            user.UserProfileId = updateDto.UserProfileId ?? user.UserProfileId;
-            user.PrimaryGroupId = updateDto.PrimaryGroupId ?? user.PrimaryGroupId;
-
-            // Handle contact link - allow explicit null to unlink
-            if (updateDto.ContactId.HasValue)
-            {
-                var contact = await _contactsService.GetByIdAsync(updateDto.ContactId.Value);
-                if (contact == null)
-                    return BadRequest(new { message = "Contact not found" });
-                user.ContactId = updateDto.ContactId;
-            }
-
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
-
-            ContactDto? linkedContact = null;
-            if (user.ContactId.HasValue)
-            {
-                linkedContact = await _contactsService.GetByIdAsync(user.ContactId.Value);
-            }
-
-            return Ok(MapToDto(user, linkedContact));
+            var contact = await _contactsService.GetByIdAsync(updateDto.ContactId.Value);
+            if (contact == null)
+                return BadRequest(new { message = "Contact not found" });
+            user.ContactId = updateDto.ContactId;
         }
-        catch (Exception ex)
+
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
+
+        ContactDto? linkedContact = null;
+        if (user.ContactId.HasValue)
         {
-            _logger.LogError(ex, "Error updating user {Id}", id);
-            return StatusCode(500, new { message = "Error updating user", error = ex.Message });
+            linkedContact = await _contactsService.GetByIdAsync(user.ContactId.Value);
         }
+
+        return Ok(MapToDto(user, linkedContact));
     }
 
     /// <summary>
@@ -374,41 +330,33 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> LinkUserToContact(int id, [FromBody] LinkUserContactDto linkDto)
     {
-        try
+                var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
+
+        ContactDto? contact = null;
+        if (linkDto.ContactId.HasValue)
         {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
+            contact = await _contactsService.GetByIdAsync(linkDto.ContactId.Value);
+            if (contact == null)
+                return BadRequest(new { message = "Contact not found" });
 
-            ContactDto? contact = null;
-            if (linkDto.ContactId.HasValue)
-            {
-                contact = await _contactsService.GetByIdAsync(linkDto.ContactId.Value);
-                if (contact == null)
-                    return BadRequest(new { message = "Contact not found" });
-
-                // Check if contact is already linked to another user
-                var allUsers = await _userRepository.GetAllAsync();
-                var existingLink = allUsers.FirstOrDefault(u => u.ContactId == linkDto.ContactId && u.Id != id && !u.IsDeleted);
-                if (existingLink != null)
-                    return BadRequest(new { message = $"Contact is already linked to user: {existingLink.Username}" });
-            }
-
-            user.ContactId = linkDto.ContactId;
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
-
-            _logger.LogInformation("User {UserId} linked to contact {ContactId}", id, linkDto.ContactId);
-
-            return Ok(MapToDto(user, contact));
+            // Check if contact is already linked to another user
+            var allUsers = await _userRepository.GetAllAsync();
+            var existingLink = allUsers.FirstOrDefault(u => u.ContactId == linkDto.ContactId && u.Id != id && !u.IsDeleted);
+            if (existingLink != null)
+                return BadRequest(new { message = $"Contact is already linked to user: {existingLink.Username}" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error linking user {Id} to contact", id);
-            return StatusCode(500, new { message = "Error linking user to contact", error = ex.Message });
-        }
+
+        user.ContactId = linkDto.ContactId;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
+
+        _logger.LogInformation("User {UserId} linked to contact {ContactId}", id, linkDto.ContactId);
+
+        return Ok(MapToDto(user, contact));
     }
 
     /// <summary>
@@ -425,27 +373,19 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> UnlinkUserFromContact(int id)
     {
-        try
-        {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
+                var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
 
-            user.ContactId = null;
-            user.UpdatedAt = DateTime.UtcNow;
+        user.ContactId = null;
+        user.UpdatedAt = DateTime.UtcNow;
 
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
 
-            _logger.LogInformation("User {UserId} unlinked from contact", id);
+        _logger.LogInformation("User {UserId} unlinked from contact", id);
 
-            return Ok(MapToDto(user, null));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error unlinking user {Id} from contact", id);
-            return StatusCode(500, new { message = "Error unlinking user from contact", error = ex.Message });
-        }
+        return Ok(MapToDto(user, null));
     }
 
     /// <summary>
@@ -460,22 +400,14 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto?>> GetUserByContact(int contactId)
     {
-        try
-        {
-            var users = await _userRepository.GetAllAsync();
-            var user = users.FirstOrDefault(u => u.ContactId == contactId && !u.IsDeleted);
+                var users = await _userRepository.GetAllAsync();
+        var user = users.FirstOrDefault(u => u.ContactId == contactId && !u.IsDeleted);
 
-            if (user == null)
-                return Ok(null);
+        if (user == null)
+            return Ok(null);
 
-            var contact = await _contactsService.GetByIdAsync(contactId);
-            return Ok(MapToDto(user, contact));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving user by contact {ContactId}", contactId);
-            return StatusCode(500, new { message = "Error retrieving user", error = ex.Message });
-        }
+        var contact = await _contactsService.GetByIdAsync(contactId);
+        return Ok(MapToDto(user, contact));
     }
 
     /// <summary>
@@ -492,25 +424,17 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> DeleteUser(int id)
     {
-        try
-        {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
+                var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
 
-            user.IsDeleted = true;
-            user.UpdatedAt = DateTime.UtcNow;
+        user.IsDeleted = true;
+        user.UpdatedAt = DateTime.UtcNow;
 
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
 
-            return Ok(new { message = "User deleted successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting user {Id}", id);
-            return StatusCode(500, new { message = "Error deleting user", error = ex.Message });
-        }
+        return Ok(new { message = "User deleted successfully" });
     }
 
     /// <summary>
@@ -527,25 +451,17 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserDto>> RemoveUserProfile(int id)
     {
-        try
-        {
-            var user = await _userRepository.GetByIdAsync(id);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
+                var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
 
-            user.UserProfileId = null;
-            user.UpdatedAt = DateTime.UtcNow;
+        user.UserProfileId = null;
+        user.UpdatedAt = DateTime.UtcNow;
 
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
 
-            return Ok(MapToDto(user, null));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing profile from user {Id}", id);
-            return StatusCode(500, new { message = "Error removing profile", error = ex.Message });
-        }
+        return Ok(MapToDto(user, null));
     }
 
     /// <summary>
@@ -561,35 +477,27 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserPreferencesDto>> GetMyPreferences()
     {
-        try
-        {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-                return Unauthorized(new { message = "User not authenticated" });
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { message = "User not authenticated" });
 
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
 
-            return Ok(new UserPreferencesDto
-            {
-                ThemePreference = user.ThemePreference ?? "system",
-                HeaderColor = user.HeaderColor,
-                Language = user.Language,
-                Timezone = user.Timezone,
-                DateFormat = user.DateFormat,
-                TimeFormat = user.TimeFormat,
-                RowsPerPage = user.RowsPerPage,
-                EmailNotifications = user.EmailNotifications,
-                DesktopNotifications = user.DesktopNotifications,
-                CompactMode = user.CompactMode
-            });
-        }
-        catch (Exception ex)
+        return Ok(new UserPreferencesDto
         {
-            _logger.LogError(ex, "Error getting user preferences");
-            return StatusCode(500, new { message = "Error getting preferences", error = ex.Message });
-        }
+            ThemePreference = user.ThemePreference ?? "system",
+            HeaderColor = user.HeaderColor,
+            Language = user.Language,
+            Timezone = user.Timezone,
+            DateFormat = user.DateFormat,
+            TimeFormat = user.TimeFormat,
+            RowsPerPage = user.RowsPerPage,
+            EmailNotifications = user.EmailNotifications,
+            DesktopNotifications = user.DesktopNotifications,
+            CompactMode = user.CompactMode
+        });
     }
 
     /// <summary>
@@ -608,77 +516,69 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserPreferencesDto>> UpdateMyPreferences([FromBody] UpdatePreferencesDto dto)
     {
-        try
+                var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { message = "User not authenticated" });
+
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || user.IsDeleted)
+            return NotFound(new { message = UserNotFoundMessage });
+
+        // Validate theme preference
+        var validThemes = new[] { "system", "light", "dark", "high-contrast" };
+        if (!string.IsNullOrEmpty(dto.ThemePreference) && !validThemes.Contains(dto.ThemePreference.ToLower()))
+            return BadRequest(new { message = "Invalid theme preference. Valid values: system, light, dark, high-contrast" });
+
+        // Update theme preference
+        if (!string.IsNullOrEmpty(dto.ThemePreference))
+            user.ThemePreference = dto.ThemePreference.ToLower();
+
+        // Update header color
+        if (dto.HeaderColor != null) // Allow empty string to clear
+            user.HeaderColor = string.IsNullOrEmpty(dto.HeaderColor) ? null : dto.HeaderColor;
+
+        // Update regional settings
+        if (dto.Language != null)
+            user.Language = string.IsNullOrEmpty(dto.Language) ? null : dto.Language;
+        if (dto.Timezone != null)
+            user.Timezone = string.IsNullOrEmpty(dto.Timezone) ? null : dto.Timezone;
+        if (dto.DateFormat != null)
+            user.DateFormat = string.IsNullOrEmpty(dto.DateFormat) ? null : dto.DateFormat;
+        if (dto.TimeFormat != null)
+            user.TimeFormat = string.IsNullOrEmpty(dto.TimeFormat) ? null : dto.TimeFormat;
+
+        // Update display settings
+        if (dto.RowsPerPage.HasValue)
+            user.RowsPerPage = dto.RowsPerPage;
+        if (dto.CompactMode.HasValue)
+            user.CompactMode = dto.CompactMode;
+
+        // Update notification settings
+        if (dto.EmailNotifications.HasValue)
+            user.EmailNotifications = dto.EmailNotifications;
+        if (dto.DesktopNotifications.HasValue)
+            user.DesktopNotifications = dto.DesktopNotifications;
+
+        user.UpdatedAt = DateTime.UtcNow;
+
+        await _userRepository.UpdateAsync(user);
+        await _userRepository.SaveAsync();
+
+        _logger.LogInformation("User {UserId} updated preferences: theme={Theme}", userId, user.ThemePreference);
+
+        return Ok(new UserPreferencesDto
         {
-            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-                return Unauthorized(new { message = "User not authenticated" });
-
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null || user.IsDeleted)
-                return NotFound(new { message = UserNotFoundMessage });
-
-            // Validate theme preference
-            var validThemes = new[] { "system", "light", "dark", "high-contrast" };
-            if (!string.IsNullOrEmpty(dto.ThemePreference) && !validThemes.Contains(dto.ThemePreference.ToLower()))
-                return BadRequest(new { message = "Invalid theme preference. Valid values: system, light, dark, high-contrast" });
-
-            // Update theme preference
-            if (!string.IsNullOrEmpty(dto.ThemePreference))
-                user.ThemePreference = dto.ThemePreference.ToLower();
-
-            // Update header color
-            if (dto.HeaderColor != null) // Allow empty string to clear
-                user.HeaderColor = string.IsNullOrEmpty(dto.HeaderColor) ? null : dto.HeaderColor;
-
-            // Update regional settings
-            if (dto.Language != null)
-                user.Language = string.IsNullOrEmpty(dto.Language) ? null : dto.Language;
-            if (dto.Timezone != null)
-                user.Timezone = string.IsNullOrEmpty(dto.Timezone) ? null : dto.Timezone;
-            if (dto.DateFormat != null)
-                user.DateFormat = string.IsNullOrEmpty(dto.DateFormat) ? null : dto.DateFormat;
-            if (dto.TimeFormat != null)
-                user.TimeFormat = string.IsNullOrEmpty(dto.TimeFormat) ? null : dto.TimeFormat;
-
-            // Update display settings
-            if (dto.RowsPerPage.HasValue)
-                user.RowsPerPage = dto.RowsPerPage;
-            if (dto.CompactMode.HasValue)
-                user.CompactMode = dto.CompactMode;
-
-            // Update notification settings
-            if (dto.EmailNotifications.HasValue)
-                user.EmailNotifications = dto.EmailNotifications;
-            if (dto.DesktopNotifications.HasValue)
-                user.DesktopNotifications = dto.DesktopNotifications;
-
-            user.UpdatedAt = DateTime.UtcNow;
-
-            await _userRepository.UpdateAsync(user);
-            await _userRepository.SaveAsync();
-
-            _logger.LogInformation("User {UserId} updated preferences: theme={Theme}", userId, user.ThemePreference);
-
-            return Ok(new UserPreferencesDto
-            {
-                ThemePreference = user.ThemePreference ?? "system",
-                HeaderColor = user.HeaderColor,
-                Language = user.Language,
-                Timezone = user.Timezone,
-                DateFormat = user.DateFormat,
-                TimeFormat = user.TimeFormat,
-                RowsPerPage = user.RowsPerPage,
-                EmailNotifications = user.EmailNotifications,
-                DesktopNotifications = user.DesktopNotifications,
-                CompactMode = user.CompactMode
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating user preferences");
-            return StatusCode(500, new { message = "Error updating preferences", error = ex.Message });
-        }
+            ThemePreference = user.ThemePreference ?? "system",
+            HeaderColor = user.HeaderColor,
+            Language = user.Language,
+            Timezone = user.Timezone,
+            DateFormat = user.DateFormat,
+            TimeFormat = user.TimeFormat,
+            RowsPerPage = user.RowsPerPage,
+            EmailNotifications = user.EmailNotifications,
+            DesktopNotifications = user.DesktopNotifications,
+            CompactMode = user.CompactMode
+        });
     }
 
     private static UserDto MapToDto(User user, ContactDto? contact)

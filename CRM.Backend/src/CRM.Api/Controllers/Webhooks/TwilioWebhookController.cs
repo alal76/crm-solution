@@ -10,6 +10,7 @@ using CRM.Core.Ports.Output.Providers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.Webhooks;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers.Webhooks;
 /// </summary>
 [ApiController]
 [Route("api/webhooks/twilio")]
-public class TwilioWebhookController : ControllerBase
+public class TwilioWebhookController : CrmControllerBase
 {
     private readonly INotificationPort _notificationProvider;
     private readonly IActivityService _activityService;

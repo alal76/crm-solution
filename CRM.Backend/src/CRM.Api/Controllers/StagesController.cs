@@ -7,6 +7,7 @@
 using CRM.Core.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class StagesController : ControllerBase
+public class StagesController : CrmControllerBase
 {
     private readonly ILogger<StagesController> _logger;
 
@@ -34,31 +35,23 @@ public class StagesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetStages()
     {
-        try
-        {
-            var stages = Enum.GetValues<OpportunityStage>()
-                .Select(stage => new
-                {
-                    Id = (int)stage,
-                    Key = stage.ToString(),
-                    Name = GetStageName(stage),
-                    Description = GetStageDescription(stage),
-                    Probability = GetStageProbability(stage),
-                    Color = GetStageColor(stage),
-                    Order = (int)stage,
-                    IsClosedStage = stage == OpportunityStage.ClosedWon ||
-                                    stage == OpportunityStage.ClosedLost
-                })
-                .OrderBy(s => s.Order)
-                .ToList();
+                var stages = Enum.GetValues<OpportunityStage>()
+            .Select(stage => new
+            {
+                Id = (int)stage,
+                Key = stage.ToString(),
+                Name = GetStageName(stage),
+                Description = GetStageDescription(stage),
+                Probability = GetStageProbability(stage),
+                Color = GetStageColor(stage),
+                Order = (int)stage,
+                IsClosedStage = stage == OpportunityStage.ClosedWon ||
+                                stage == OpportunityStage.ClosedLost
+            })
+            .OrderBy(s => s.Order)
+            .ToList();
 
-            return Ok(stages);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving stages");
-            return StatusCode(500, new { message = "An error occurred while retrieving stages" });
-        }
+        return Ok(stages);
     }
 
     /// <summary>
@@ -70,32 +63,24 @@ public class StagesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetStage(int id)
     {
-        try
+                if (!Enum.IsDefined(typeof(OpportunityStage), id))
         {
-            if (!Enum.IsDefined(typeof(OpportunityStage), id))
-            {
-                return NotFound(new { message = $"Stage with ID {id} not found" });
-            }
+            return NotFound(new { message = $"Stage with ID {id} not found" });
+        }
 
-            var stage = (OpportunityStage)id;
-            return Ok(new
-            {
-                Id = id,
-                Key = stage.ToString(),
-                Name = GetStageName(stage),
-                Description = GetStageDescription(stage),
-                Probability = GetStageProbability(stage),
-                Color = GetStageColor(stage),
-                Order = id,
-                IsClosedStage = stage == OpportunityStage.ClosedWon ||
-                                stage == OpportunityStage.ClosedLost
-            });
-        }
-        catch (Exception ex)
+        var stage = (OpportunityStage)id;
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving stage {StageId}", id);
-            return StatusCode(500, new { message = "An error occurred while retrieving the stage" });
-        }
+            Id = id,
+            Key = stage.ToString(),
+            Name = GetStageName(stage),
+            Description = GetStageDescription(stage),
+            Probability = GetStageProbability(stage),
+            Color = GetStageColor(stage),
+            Order = id,
+            IsClosedStage = stage == OpportunityStage.ClosedWon ||
+                            stage == OpportunityStage.ClosedLost
+        });
     }
 
     /// <summary>
@@ -106,35 +91,27 @@ public class StagesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetActiveStages()
     {
-        try
+                var closedStages = new[]
         {
-            var closedStages = new[]
+            OpportunityStage.ClosedWon,
+            OpportunityStage.ClosedLost
+        };
+
+        var stages = Enum.GetValues<OpportunityStage>()
+            .Where(s => !closedStages.Contains(s))
+            .Select(stage => new
             {
-                OpportunityStage.ClosedWon,
-                OpportunityStage.ClosedLost
-            };
+                Id = (int)stage,
+                Key = stage.ToString(),
+                Name = GetStageName(stage),
+                Probability = GetStageProbability(stage),
+                Color = GetStageColor(stage),
+                Order = (int)stage
+            })
+            .OrderBy(s => s.Order)
+            .ToList();
 
-            var stages = Enum.GetValues<OpportunityStage>()
-                .Where(s => !closedStages.Contains(s))
-                .Select(stage => new
-                {
-                    Id = (int)stage,
-                    Key = stage.ToString(),
-                    Name = GetStageName(stage),
-                    Probability = GetStageProbability(stage),
-                    Color = GetStageColor(stage),
-                    Order = (int)stage
-                })
-                .OrderBy(s => s.Order)
-                .ToList();
-
-            return Ok(stages);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving active stages");
-            return StatusCode(500, new { message = "An error occurred while retrieving active stages" });
-        }
+        return Ok(stages);
     }
 
     private static string GetStageName(OpportunityStage stage) => stage switch

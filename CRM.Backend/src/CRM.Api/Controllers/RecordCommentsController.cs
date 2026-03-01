@@ -10,6 +10,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [Route("api/comments")]
 [Authorize]
 [Produces("application/json")]
-public class RecordCommentsController : ControllerBase
+public class RecordCommentsController : CrmControllerBase
 {
     private readonly IRecordCommentService _service;
 

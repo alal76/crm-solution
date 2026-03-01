@@ -8,13 +8,14 @@ using CRM.Core.Dtos;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class ModuleFieldConfigurationsController : ControllerBase
+public class ModuleFieldConfigurationsController : CrmControllerBase
 {
     private const string FieldConfigNotFoundMessage = "Field configuration not found";
 
@@ -36,16 +37,8 @@ public class ModuleFieldConfigurationsController : ControllerBase
     [ProducesResponseType(typeof(List<ModuleFieldConfigurationDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFieldConfigurations(string moduleName)
     {
-        try
-        {
-            var configs = await _service.GetFieldConfigurationsAsync(moduleName);
-            return Ok(configs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting field configurations for module {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while retrieving field configurations" });
-        }
+                var configs = await _service.GetFieldConfigurationsAsync(moduleName);
+        return Ok(configs);
     }
 
     /// <summary>
@@ -56,19 +49,11 @@ public class ModuleFieldConfigurationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetFieldConfiguration(int id)
     {
-        try
-        {
-            var config = await _service.GetFieldConfigurationAsync(id);
-            if (config == null)
-                return NotFound(new { message = FieldConfigNotFoundMessage });
+                var config = await _service.GetFieldConfigurationAsync(id);
+        if (config == null)
+            return NotFound(new { message = FieldConfigNotFoundMessage });
 
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting field configuration {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while retrieving the field configuration" });
-        }
+        return Ok(config);
     }
 
     /// <summary>
@@ -79,16 +64,8 @@ public class ModuleFieldConfigurationsController : ControllerBase
     [ProducesResponseType(typeof(ModuleFieldConfigurationDto), StatusCodes.Status201Created)]
     public async Task<IActionResult> CreateFieldConfiguration([FromBody] CreateModuleFieldConfigurationDto dto)
     {
-        try
-        {
-            var result = await _service.CreateFieldConfigurationAsync(dto);
-            return CreatedAtAction(nameof(GetFieldConfiguration), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating field configuration");
-            return StatusCode(500, new { message = "An error occurred while creating the field configuration" });
-        }
+                var result = await _service.CreateFieldConfigurationAsync(dto);
+        return CreatedAtAction(nameof(GetFieldConfiguration), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -100,19 +77,11 @@ public class ModuleFieldConfigurationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateFieldConfiguration(int id, [FromBody] UpdateModuleFieldConfigurationDto dto)
     {
-        try
-        {
-            var result = await _service.UpdateFieldConfigurationAsync(id, dto);
-            if (result == null)
-                return NotFound(new { message = FieldConfigNotFoundMessage });
+                var result = await _service.UpdateFieldConfigurationAsync(id, dto);
+        if (result == null)
+            return NotFound(new { message = FieldConfigNotFoundMessage });
 
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating field configuration {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while updating the field configuration" });
-        }
+        return Ok(result);
     }
 
     /// <summary>
@@ -124,19 +93,11 @@ public class ModuleFieldConfigurationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteFieldConfiguration(int id)
     {
-        try
-        {
-            var result = await _service.DeleteFieldConfigurationAsync(id);
-            if (!result)
-                return NotFound(new { message = FieldConfigNotFoundMessage });
+                var result = await _service.DeleteFieldConfigurationAsync(id);
+        if (!result)
+            return NotFound(new { message = FieldConfigNotFoundMessage });
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting field configuration {Id}", id);
-            return StatusCode(500, new { message = "An error occurred while deleting the field configuration" });
-        }
+        return NoContent();
     }
 
     /// <summary>
@@ -147,16 +108,8 @@ public class ModuleFieldConfigurationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> BulkUpdateFieldOrder([FromBody] BulkUpdateFieldOrderDto dto)
     {
-        try
-        {
-            await _service.BulkUpdateFieldOrderAsync(dto);
-            return Ok(new { message = "Field order updated successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error bulk updating field order");
-            return StatusCode(500, new { message = "An error occurred while updating field order" });
-        }
+                await _service.BulkUpdateFieldOrderAsync(dto);
+        return Ok(new { message = "Field order updated successfully" });
     }
 
     /// <summary>
@@ -167,16 +120,8 @@ public class ModuleFieldConfigurationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> InitializeDefaultConfigurations(string moduleName)
     {
-        try
-        {
-            await _service.InitializeDefaultConfigurationsAsync(moduleName);
-            return Ok(new { message = $"Default configurations initialized for module {moduleName}" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error initializing default configurations for module {ModuleName}", moduleName);
-            return StatusCode(500, new { message = "An error occurred while initializing default configurations" });
-        }
+                await _service.InitializeDefaultConfigurationsAsync(moduleName);
+        return Ok(new { message = $"Default configurations initialized for module {moduleName}" });
     }
 
     /// <summary>
@@ -188,21 +133,13 @@ public class ModuleFieldConfigurationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> InitializeAllModules()
     {
-        try
+                var results = await _service.InitializeAllModulesAsync();
+        var totalInitialized = results.Sum(r => r.Value);
+        _logger.LogInformation("Initialized field configurations for all modules. Total fields: {Count}", totalInitialized);
+        return Ok(new
         {
-            var results = await _service.InitializeAllModulesAsync();
-            var totalInitialized = results.Sum(r => r.Value);
-            _logger.LogInformation("Initialized field configurations for all modules. Total fields: {Count}", totalInitialized);
-            return Ok(new
-            {
-                message = "Field configurations initialized for all modules",
-                modules = results
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error initializing field configurations for all modules");
-            return StatusCode(500, new { message = "An error occurred while initializing field configurations" });
-        }
+            message = "Field configurations initialized for all modules",
+            modules = results
+        });
     }
 }

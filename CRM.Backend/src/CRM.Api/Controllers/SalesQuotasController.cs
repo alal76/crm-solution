@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/sales-quotas")]
 [Authorize]
 [Produces("application/json")]
-public class SalesQuotasController : ControllerBase
+public class SalesQuotasController : CrmControllerBase
 {
     private const string QuotaNotFoundMessage = "Sales quota {0} not found";
     private readonly ISalesQuotaService _service;

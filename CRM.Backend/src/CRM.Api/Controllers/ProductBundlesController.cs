@@ -12,12 +12,13 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductBundlesController : ControllerBase
+    public class ProductBundlesController : CrmControllerBase
     {
         private readonly IProductBundleService _bundleService;
         private readonly ILogger<ProductBundlesController> _logger;

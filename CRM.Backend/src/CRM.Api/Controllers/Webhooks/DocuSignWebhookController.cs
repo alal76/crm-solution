@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.Webhooks;
 
@@ -25,7 +26,7 @@ namespace CRM.Api.Controllers.Webhooks;
 [ApiController]
 [Route("api/webhooks/docusign")]
 [AllowAnonymous]
-public class DocuSignWebhookController : ControllerBase
+public class DocuSignWebhookController : CrmControllerBase
 {
     private readonly DocuSignConfiguration _config;
     private readonly ISignaturePort _signatureProvider;
@@ -53,64 +54,56 @@ public class DocuSignWebhookController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleWebhook(CancellationToken cancellationToken)
     {
-        try
+                // Read the raw body
+        using var reader = new StreamReader(Request.Body, Encoding.UTF8);
+        var body = await reader.ReadToEndAsync(cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(body))
         {
-            // Read the raw body
-            using var reader = new StreamReader(Request.Body, Encoding.UTF8);
-            var body = await reader.ReadToEndAsync(cancellationToken);
-
-            if (string.IsNullOrWhiteSpace(body))
-            {
-                _logger.LogWarning("Received empty webhook payload from DocuSign");
-                return BadRequest("Empty payload");
-            }
-
-            // Get signature header for validation
-            var signature = Request.Headers["X-DocuSign-Signature-1"].FirstOrDefault();
-
-            // Validate signature if configured
-            if (!string.IsNullOrWhiteSpace(_config.WebhookSecret))
-            {
-                if (!ValidateSignature(body, signature))
-                {
-                    _logger.LogWarning("DocuSign webhook signature validation failed");
-                    return Unauthorized("Invalid signature");
-                }
-            }
-
-            // Parse the payload (detect JSON vs XML)
-            DocuSignWebhookEvent? webhookEvent;
-
-            if (body.TrimStart().StartsWith("{"))
-            {
-                webhookEvent = ParseJsonPayload(body);
-            }
-            else
-            {
-                webhookEvent = ParseXmlPayload(body);
-            }
-
-            if (webhookEvent == null)
-            {
-                _logger.LogWarning("Failed to parse DocuSign webhook payload");
-                return BadRequest("Invalid payload format");
-            }
-
-            _logger.LogInformation(
-                "Received DocuSign webhook: EnvelopeId={EnvelopeId}, Status={Status}",
-                webhookEvent.EnvelopeId,
-                webhookEvent.Status);
-
-            // Process the event
-            await ProcessEnvelopeStatusChange(webhookEvent, cancellationToken);
-
-            return Ok(new { received = true, envelopeId = webhookEvent.EnvelopeId });
+            _logger.LogWarning("Received empty webhook payload from DocuSign");
+            return BadRequest("Empty payload");
         }
-        catch (Exception ex)
+
+        // Get signature header for validation
+        var signature = Request.Headers["X-DocuSign-Signature-1"].FirstOrDefault();
+
+        // Validate signature if configured
+        if (!string.IsNullOrWhiteSpace(_config.WebhookSecret))
         {
-            _logger.LogError(ex, "Error processing DocuSign webhook");
-            return StatusCode(500, new { error = "Webhook processing failed" });
+            if (!ValidateSignature(body, signature))
+            {
+                _logger.LogWarning("DocuSign webhook signature validation failed");
+                return Unauthorized("Invalid signature");
+            }
         }
+
+        // Parse the payload (detect JSON vs XML)
+        DocuSignWebhookEvent? webhookEvent;
+
+        if (body.TrimStart().StartsWith("{"))
+        {
+            webhookEvent = ParseJsonPayload(body);
+        }
+        else
+        {
+            webhookEvent = ParseXmlPayload(body);
+        }
+
+        if (webhookEvent == null)
+        {
+            _logger.LogWarning("Failed to parse DocuSign webhook payload");
+            return BadRequest("Invalid payload format");
+        }
+
+        _logger.LogInformation(
+            "Received DocuSign webhook: EnvelopeId={EnvelopeId}, Status={Status}",
+            webhookEvent.EnvelopeId,
+            webhookEvent.Status);
+
+        // Process the event
+        await ProcessEnvelopeStatusChange(webhookEvent, cancellationToken);
+
+        return Ok(new { received = true, envelopeId = webhookEvent.EnvelopeId });
     }
 
     /// <summary>

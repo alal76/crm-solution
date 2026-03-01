@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api")]
 [Authorize]
-public class PreferencesController : ControllerBase
+public class PreferencesController : CrmControllerBase
 {
     private readonly IPreferencesService _preferencesService;
     private readonly ILogger<PreferencesController> _logger;
@@ -55,11 +56,6 @@ public class PreferencesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting account preferences for account {AccountId}", accountId);
-            return StatusCode(500, new { message = "Error getting account preferences", error = ex.Message });
-        }
     }
 
     [HttpPut("accounts/{accountId:int}/preferences")]
@@ -79,11 +75,6 @@ public class PreferencesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating account preferences for account {AccountId}", accountId);
-            return StatusCode(500, new { message = "Error updating account preferences", error = ex.Message });
-        }
     }
 
     [HttpGet("contacts/{contactId:int}/preferences")]
@@ -99,11 +90,6 @@ public class PreferencesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting contact preferences for contact {ContactId}", contactId);
-            return StatusCode(500, new { message = "Error getting contact preferences", error = ex.Message });
-        }
     }
 
     [HttpGet("contacts/{contactId:int}/preferences/effective")]
@@ -118,11 +104,6 @@ public class PreferencesController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting effective preferences for contact {ContactId}", contactId);
-            return StatusCode(500, new { message = "Error getting effective preferences", error = ex.Message });
         }
     }
 
@@ -143,11 +124,6 @@ public class PreferencesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating contact preferences for contact {ContactId}", contactId);
-            return StatusCode(500, new { message = "Error updating contact preferences", error = ex.Message });
-        }
     }
 
     [HttpPost("contacts/{contactId:int}/preferences/use-custom")]
@@ -163,11 +139,6 @@ public class PreferencesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error enabling custom preferences for contact {ContactId}", contactId);
-            return StatusCode(500, new { message = "Error enabling custom preferences", error = ex.Message });
-        }
     }
 
     [HttpPost("contacts/{contactId:int}/preferences/reset-to-account")]
@@ -182,11 +153,6 @@ public class PreferencesController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error resetting preferences for contact {ContactId}", contactId);
-            return StatusCode(500, new { message = "Error resetting preferences", error = ex.Message });
         }
     }
 }

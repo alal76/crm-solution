@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/[controller]")]
 [Authorize(Roles = "Admin,Manager")]
-public class LeadScoreRulesController : ControllerBase
+public class LeadScoreRulesController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<LeadScoreRulesController> _logger;

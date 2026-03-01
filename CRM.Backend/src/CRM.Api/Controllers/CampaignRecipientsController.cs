@@ -10,6 +10,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -41,7 +42,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/campaign-recipients")]
 [Authorize]
-public class CampaignRecipientsController : ControllerBase
+public class CampaignRecipientsController : CrmControllerBase
 {
     private const string RecipientNotFoundMessage = "Campaign recipient with ID {0} not found";
     private readonly ICampaignRecipientService _campaignRecipientService;
@@ -84,34 +85,26 @@ public class CampaignRecipientsController : ControllerBase
         [FromQuery] int pageSize = 20,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var recipients = await _context.CampaignRecipients
-                .Where(r => !r.IsDeleted)
-                .Include(r => r.Contact)
-                .OrderByDescending(r => r.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Select(r => MapToDto(r))
-                .ToListAsync(cancellationToken);
+                var recipients = await _context.CampaignRecipients
+            .Where(r => !r.IsDeleted)
+            .Include(r => r.Contact)
+            .OrderByDescending(r => r.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(r => MapToDto(r))
+            .ToListAsync(cancellationToken);
 
-            var totalCount = await _context.CampaignRecipients
-                .CountAsync(r => !r.IsDeleted, cancellationToken);
+        var totalCount = await _context.CampaignRecipients
+            .CountAsync(r => !r.IsDeleted, cancellationToken);
 
-            return Ok(new
-            {
-                items = recipients,
-                totalCount,
-                page,
-                pageSize,
-                totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
-            });
-        }
-        catch (Exception ex)
+        return Ok(new
         {
-            _logger.LogError(ex, "Error retrieving campaign recipients");
-            return StatusCode(500, new { message = "Error retrieving campaign recipients", error = ex.Message });
-        }
+            items = recipients,
+            totalCount,
+            page,
+            pageSize,
+            totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        });
     }
 
     /// <summary>
@@ -132,24 +125,16 @@ public class CampaignRecipientsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var recipient = await _context.CampaignRecipients
-                .Include(r => r.Contact)
-                .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, cancellationToken);
+                var recipient = await _context.CampaignRecipients
+            .Include(r => r.Contact)
+            .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, cancellationToken);
 
-            if (recipient == null)
-            {
-                return NotFound(new { message = string.Format(RecipientNotFoundMessage, id) });
-            }
-
-            return Ok(MapToDto(recipient));
-        }
-        catch (Exception ex)
+        if (recipient == null)
         {
-            _logger.LogError(ex, "Error retrieving campaign recipient {Id}", id);
-            return StatusCode(500, new { message = "Error retrieving campaign recipient", error = ex.Message });
+            return NotFound(new { message = string.Format(RecipientNotFoundMessage, id) });
         }
+
+        return Ok(MapToDto(recipient));
     }
 
     /// <summary>
@@ -196,11 +181,6 @@ public class CampaignRecipientsController : ControllerBase
         {
             _logger.LogWarning(ex, "Campaign {CampaignId} not found", campaignId);
             return NotFound(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving recipients for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error retrieving campaign recipients", error = ex.Message });
         }
     }
 
@@ -281,11 +261,6 @@ public class CampaignRecipientsController : ControllerBase
             _logger.LogWarning(ex, "Invalid operation creating campaign recipient");
             return Conflict(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating campaign recipient");
-            return StatusCode(500, new { message = "Error creating campaign recipient", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -353,11 +328,6 @@ public class CampaignRecipientsController : ControllerBase
             _logger.LogWarning(ex, "Campaign recipient {Id} not found", id);
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating campaign recipient {Id}", id);
-            return StatusCode(500, new { message = "Error updating campaign recipient", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -404,11 +374,6 @@ public class CampaignRecipientsController : ControllerBase
             _logger.LogWarning(ex, "Campaign recipient {Id} not found", id);
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting campaign recipient {Id}", id);
-            return StatusCode(500, new { message = "Error deleting campaign recipient", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -452,11 +417,6 @@ public class CampaignRecipientsController : ControllerBase
             _logger.LogWarning(ex, "Campaign {CampaignId} not found", campaignId);
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding recipients to campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error adding recipients to campaign", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -479,18 +439,10 @@ public class CampaignRecipientsController : ControllerBase
         [FromQuery] string criteria,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var recipients = await _campaignRecipientService.FilterAsync(
-                campaignId, criteria ?? string.Empty, cancellationToken);
+                var recipients = await _campaignRecipientService.FilterAsync(
+            campaignId, criteria ?? string.Empty, cancellationToken);
 
-            return Ok(recipients);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error filtering recipients for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error filtering recipients", error = ex.Message });
-        }
+        return Ok(recipients);
     }
 
     /// <summary>
@@ -508,16 +460,8 @@ public class CampaignRecipientsController : ControllerBase
         int campaignId,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var count = await _campaignRecipientService.GetCountAsync(campaignId, cancellationToken);
-            return Ok(new { campaignId, recipientCount = count });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting recipient count for campaign {CampaignId}", campaignId);
-            return StatusCode(500, new { message = "Error getting recipient count", error = ex.Message });
-        }
+                var count = await _campaignRecipientService.GetCountAsync(campaignId, cancellationToken);
+        return Ok(new { campaignId, recipientCount = count });
     }
 
     /// <summary>

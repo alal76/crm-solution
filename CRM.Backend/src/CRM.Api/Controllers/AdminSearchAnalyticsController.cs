@@ -8,6 +8,7 @@ using CRM.Infrastructure.Services.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/search-analytics")]
 [Authorize(Roles = "Admin,Manager")]
-public class AdminSearchAnalyticsController : ControllerBase
+public class AdminSearchAnalyticsController : CrmControllerBase
 {
     private readonly ISearchAnalyticsService _analytics;
 

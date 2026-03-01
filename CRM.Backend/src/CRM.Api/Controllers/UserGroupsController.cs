@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
 [Produces("application/json")]
-public class UserGroupsController : ControllerBase
+public class UserGroupsController : CrmControllerBase
 {
     private readonly IUserGroupService _userGroupService;
     private readonly ILogger<UserGroupsController> _logger;
@@ -48,16 +49,8 @@ public class UserGroupsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<UserGroupDto>>> GetAll()
     {
-        try
-        {
-            var groups = await _userGroupService.GetAllGroupsAsync();
-            return Ok(groups);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving user groups");
-            return StatusCode(500, new { error = "Failed to retrieve user groups" });
-        }
+                var groups = await _userGroupService.GetAllGroupsAsync();
+        return Ok(groups);
     }
 
     /// <summary>
@@ -78,19 +71,11 @@ public class UserGroupsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserGroupDto>> GetById(int id)
     {
-        try
-        {
-            var group = await _userGroupService.GetGroupByIdAsync(id);
-            if (group == null)
-                return NotFound(new { error = "Group not found" });
+                var group = await _userGroupService.GetGroupByIdAsync(id);
+        if (group == null)
+            return NotFound(new { error = "Group not found" });
 
-            return Ok(group);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving user group {Id}", id);
-            return StatusCode(500, new { error = "Failed to retrieve user group" });
-        }
+        return Ok(group);
     }
 
     /// <summary>
@@ -127,11 +112,6 @@ public class UserGroupsController : ControllerBase
         {
             return Conflict(new { error = $"A user group with name '{request.Name}' already exists" });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating user group");
-            return StatusCode(500, new { error = "Failed to create user group" });
-        }
     }
 
     /// <summary>
@@ -155,19 +135,11 @@ public class UserGroupsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<UserGroupDto>> Update(int id, [FromBody] CreateUserGroupRequest request)
     {
-        try
-        {
-            var group = await _userGroupService.UpdateGroupAsync(id, request);
-            if (group == null)
-                return NotFound(new { error = "Group not found" });
+                var group = await _userGroupService.UpdateGroupAsync(id, request);
+        if (group == null)
+            return NotFound(new { error = "Group not found" });
 
-            return Ok(group);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating user group {Id}", id);
-            return StatusCode(500, new { error = "Failed to update user group" });
-        }
+        return Ok(group);
     }
 
     /// <summary>
@@ -188,16 +160,8 @@ public class UserGroupsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> Delete(int id)
     {
-        try
-        {
-            await _userGroupService.DeleteGroupAsync(id);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting user group {Id}", id);
-            return StatusCode(500, new { error = "Failed to delete user group" });
-        }
+                await _userGroupService.DeleteGroupAsync(id);
+        return NoContent();
     }
 
     /// <summary>
@@ -218,16 +182,8 @@ public class UserGroupsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<UserGroupMemberDto>>> GetMembers(int id)
     {
-        try
-        {
-            var members = await _userGroupService.GetGroupMembersAsync(id);
-            return Ok(members);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving group members for {Id}", id);
-            return StatusCode(500, new { error = "Failed to retrieve group members" });
-        }
+                var members = await _userGroupService.GetGroupMembersAsync(id);
+        return Ok(members);
     }
 
     /// <summary>
@@ -249,16 +205,8 @@ public class UserGroupsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> AddMember(int id, int userId)
     {
-        try
-        {
-            await _userGroupService.AddUserToGroupAsync(id, userId);
-            return Ok(new { message = "User added to group successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error adding user {UserId} to group {GroupId}", userId, id);
-            return StatusCode(500, new { error = "Failed to add user to group" });
-        }
+                await _userGroupService.AddUserToGroupAsync(id, userId);
+        return Ok(new { message = "User added to group successfully" });
     }
 
     /// <summary>
@@ -280,15 +228,7 @@ public class UserGroupsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> RemoveMember(int id, int userId)
     {
-        try
-        {
-            await _userGroupService.RemoveUserFromGroupAsync(id, userId);
-            return Ok(new { message = "User removed from group successfully" });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error removing user {UserId} from group {GroupId}", userId, id);
-            return StatusCode(500, new { error = "Failed to remove user from group" });
-        }
+                await _userGroupService.RemoveUserFromGroupAsync(id, userId);
+        return Ok(new { message = "User removed from group successfully" });
     }
 }

@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -28,7 +29,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/agents")]
 [Authorize]
-public class AgentController : ControllerBase
+public class AgentController : CrmControllerBase
 {
     #region Fields
 
@@ -161,23 +162,15 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ListAgents()
     {
-        try
+                // Check if agent subsystem is enabled
+        if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
         {
-            // Check if agent subsystem is enabled
-            if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
-            {
-                _logger.LogInformation("Agent subsystem is disabled via feature flag");
-                return Ok(Array.Empty<object>());
-            }
+            _logger.LogInformation("Agent subsystem is disabled via feature flag");
+            return Ok(Array.Empty<object>());
+        }
 
-            var agents = await _orchestrator.GetAvailableAgentsAsync(HttpContext.RequestAborted);
-            return Ok(agents);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error listing agents");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while listing agents.");
-        }
+        var agents = await _orchestrator.GetAvailableAgentsAsync(HttpContext.RequestAborted);
+        return Ok(agents);
     }
 
     /// <summary>
@@ -190,29 +183,21 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAgent(int agentId)
     {
-        try
+                if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
         {
-            if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
-            {
-                return NotFound("AI Agent subsystem is currently disabled.");
-            }
-
-            var agent = await _dbContext.AIAgents
-                .AsNoTracking()
-                .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
-
-            if (agent is null)
-            {
-                return NotFound($"Agent with ID {agentId} not found.");
-            }
-
-            return Ok(agent);
+            return NotFound("AI Agent subsystem is currently disabled.");
         }
-        catch (Exception ex)
+
+        var agent = await _dbContext.AIAgents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
+
+        if (agent is null)
         {
-            _logger.LogError(ex, "Error getting agent {AgentId}", agentId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the agent.");
+            return NotFound($"Agent with ID {agentId} not found.");
         }
+
+        return Ok(agent);
     }
 
     /// <summary>
@@ -226,58 +211,50 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Name))
         {
-            if (string.IsNullOrWhiteSpace(request.Name))
-            {
-                return BadRequest("Agent name is required.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.DisplayName))
-            {
-                return BadRequest("Agent display name is required.");
-            }
-
-            // Check for duplicate name
-            var existing = await _dbContext.AIAgents
-                .AnyAsync(a => a.Name == request.Name && !a.IsDeleted, HttpContext.RequestAborted);
-
-            if (existing)
-            {
-                return Conflict($"An agent with name '{request.Name}' already exists.");
-            }
-
-            var agent = new CRM.Core.Entities.AI.AIAgent
-            {
-                Name = request.Name,
-                DisplayName = request.DisplayName,
-                Description = request.Description,
-                AgentType = (CRM.Core.Entities.AI.AgentType)request.AgentType,
-                SystemPrompt = request.SystemPrompt ?? string.Empty,
-                AllowedPlugins = request.AllowedPlugins ?? string.Empty,
-                RequiresApproval = request.RequiresApproval,
-                ApprovalTier = request.ApprovalTier,
-                Temperature = request.Temperature,
-                MaxTokens = request.MaxTokens,
-                ModelOverride = request.ModelOverride,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
-
-            _dbContext.AIAgents.Add(agent);
-            await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
-
-            _logger.LogInformation("Created new agent '{AgentName}' (ID: {AgentId}) by user {UserId}",
-                agent.Name, agent.Id, GetCurrentUserId());
-
-            return CreatedAtAction(nameof(GetAgent), new { agentId = agent.Id }, agent);
+            return BadRequest("Agent name is required.");
         }
-        catch (Exception ex)
+
+        if (string.IsNullOrWhiteSpace(request.DisplayName))
         {
-            _logger.LogError(ex, "Error creating agent");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the agent.");
+            return BadRequest("Agent display name is required.");
         }
+
+        // Check for duplicate name
+        var existing = await _dbContext.AIAgents
+            .AnyAsync(a => a.Name == request.Name && !a.IsDeleted, HttpContext.RequestAborted);
+
+        if (existing)
+        {
+            return Conflict($"An agent with name '{request.Name}' already exists.");
+        }
+
+        var agent = new CRM.Core.Entities.AI.AIAgent
+        {
+            Name = request.Name,
+            DisplayName = request.DisplayName,
+            Description = request.Description,
+            AgentType = (CRM.Core.Entities.AI.AgentType)request.AgentType,
+            SystemPrompt = request.SystemPrompt ?? string.Empty,
+            AllowedPlugins = request.AllowedPlugins ?? string.Empty,
+            RequiresApproval = request.RequiresApproval,
+            ApprovalTier = request.ApprovalTier,
+            Temperature = request.Temperature,
+            MaxTokens = request.MaxTokens,
+            ModelOverride = request.ModelOverride,
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.AIAgents.Add(agent);
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
+
+        _logger.LogInformation("Created new agent '{AgentName}' (ID: {AgentId}) by user {UserId}",
+            agent.Name, agent.Id, GetCurrentUserId());
+
+        return CreatedAtAction(nameof(GetAgent), new { agentId = agent.Id }, agent);
     }
 
     #endregion
@@ -333,11 +310,6 @@ public class AgentController : ControllerBase
             _logger.LogWarning(ex, "Agent {AgentId} not found for chat", agentId);
             return NotFound(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error chatting with agent {AgentId}", agentId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred during the chat.");
-        }
     }
 
     #endregion
@@ -354,28 +326,20 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetConversations(int agentId, [FromQuery] int limit = 20)
     {
-        try
+                var userId = GetCurrentUserId();
+        if (userId == 0)
         {
-            var userId = GetCurrentUserId();
-            if (userId == 0)
-            {
-                return BadRequest("Unable to identify the current user.");
-            }
-
-            var conversations = await _dbContext.AgentConversations
-                .AsNoTracking()
-                .Where(c => c.AgentId == agentId && c.UserId == userId && !c.IsDeleted)
-                .OrderByDescending(c => c.UpdatedAt)
-                .Take(limit)
-                .ToListAsync(HttpContext.RequestAborted);
-
-            return Ok(conversations);
+            return BadRequest("Unable to identify the current user.");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting conversations for agent {AgentId}", agentId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving conversations.");
-        }
+
+        var conversations = await _dbContext.AgentConversations
+            .AsNoTracking()
+            .Where(c => c.AgentId == agentId && c.UserId == userId && !c.IsDeleted)
+            .OrderByDescending(c => c.UpdatedAt)
+            .Take(limit)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        return Ok(conversations);
     }
 
     /// <summary>
@@ -388,24 +352,16 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetConversation(int conversationId)
     {
-        try
-        {
-            var conversation = await _dbContext.AgentConversations
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == conversationId && !c.IsDeleted, HttpContext.RequestAborted);
+                var conversation = await _dbContext.AgentConversations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == conversationId && !c.IsDeleted, HttpContext.RequestAborted);
 
-            if (conversation is null)
-            {
-                return NotFound($"Conversation with ID {conversationId} not found.");
-            }
-
-            return Ok(conversation);
-        }
-        catch (Exception ex)
+        if (conversation is null)
         {
-            _logger.LogError(ex, "Error getting conversation {ConversationId}", conversationId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the conversation.");
+            return NotFound($"Conversation with ID {conversationId} not found.");
         }
+
+        return Ok(conversation);
     }
 
     /// <summary>
@@ -437,11 +393,6 @@ public class AgentController : ControllerBase
             _logger.LogWarning(ex, "Conversation {ConversationId} not found for rating", conversationId);
             return NotFound(ex.Message);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error rating conversation {ConversationId}", conversationId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while rating the conversation.");
-        }
     }
 
     #endregion
@@ -459,35 +410,27 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetNextBestActions(string entityType, int entityId)
     {
-        try
+                if (string.IsNullOrWhiteSpace(entityType))
         {
-            if (string.IsNullOrWhiteSpace(entityType))
-            {
-                return BadRequest("Entity type is required.");
-            }
-
-            var message = $"What are the next best actions for {entityType} {entityId}?";
-            var agentBase = await _orchestrator.RouteToAgentAsync(message, entityType, entityId, HttpContext.RequestAborted);
-            var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
-
-            var userId = GetCurrentUserId();
-            var conversation = await _executionService.ChatAsync(
-                dbAgentId,
-                userId,
-                message,
-                conversationId: null,
-                entityType,
-                entityId,
-                HttpContext.RequestAborted);
-
-            var response = ExtractLastAssistantResponse(conversation);
-            return Ok(new { EntityType = entityType, EntityId = entityId, Recommendations = response, ConversationId = conversation.Id });
+            return BadRequest("Entity type is required.");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting next best actions for {EntityType} {EntityId}", entityType, entityId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while generating recommendations.");
-        }
+
+        var message = $"What are the next best actions for {entityType} {entityId}?";
+        var agentBase = await _orchestrator.RouteToAgentAsync(message, entityType, entityId, HttpContext.RequestAborted);
+        var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
+
+        var userId = GetCurrentUserId();
+        var conversation = await _executionService.ChatAsync(
+            dbAgentId,
+            userId,
+            message,
+            conversationId: null,
+            entityType,
+            entityId,
+            HttpContext.RequestAborted);
+
+        var response = ExtractLastAssistantResponse(conversation);
+        return Ok(new { EntityType = entityType, EntityId = entityId, Recommendations = response, ConversationId = conversation.Id });
     }
 
     /// <summary>
@@ -499,30 +442,22 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDealIntelligence(int opportunityId)
     {
-        try
-        {
-            var message = $"Provide comprehensive deal intelligence analysis for opportunity {opportunityId} including risk factors, win probability assessment, and strategic recommendations.";
-            var agentBase = await _orchestrator.RouteToAgentAsync(message, "Opportunity", opportunityId, HttpContext.RequestAborted);
-            var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
+                var message = $"Provide comprehensive deal intelligence analysis for opportunity {opportunityId} including risk factors, win probability assessment, and strategic recommendations.";
+        var agentBase = await _orchestrator.RouteToAgentAsync(message, "Opportunity", opportunityId, HttpContext.RequestAborted);
+        var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
 
-            var userId = GetCurrentUserId();
-            var conversation = await _executionService.ChatAsync(
-                dbAgentId,
-                userId,
-                message,
-                conversationId: null,
-                "Opportunity",
-                opportunityId,
-                HttpContext.RequestAborted);
+        var userId = GetCurrentUserId();
+        var conversation = await _executionService.ChatAsync(
+            dbAgentId,
+            userId,
+            message,
+            conversationId: null,
+            "Opportunity",
+            opportunityId,
+            HttpContext.RequestAborted);
 
-            var response = ExtractLastAssistantResponse(conversation);
-            return Ok(new { OpportunityId = opportunityId, Analysis = response, ConversationId = conversation.Id });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting deal intelligence for opportunity {OpportunityId}", opportunityId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while analyzing the deal.");
-        }
+        var response = ExtractLastAssistantResponse(conversation);
+        return Ok(new { OpportunityId = opportunityId, Analysis = response, ConversationId = conversation.Id });
     }
 
     #endregion
@@ -539,50 +474,42 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DraftEmail([FromBody] DraftEmailRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Context))
         {
-            if (string.IsNullOrWhiteSpace(request.Context))
-            {
-                return BadRequest("Email context is required.");
-            }
-
-            var prompt = $"Draft an email with the following context: {request.Context}";
-            if (!string.IsNullOrWhiteSpace(request.RecipientEmail))
-            {
-                prompt += $" Recipient: {request.RecipientEmail}.";
-            }
-
-            if (!string.IsNullOrWhiteSpace(request.Tone))
-            {
-                prompt += $" Tone: {request.Tone}.";
-            }
-
-            if (request.TemplateId.HasValue)
-            {
-                prompt += $" Base on template ID: {request.TemplateId.Value}.";
-            }
-
-            var agentBase = await _orchestrator.RouteToAgentAsync(prompt, "Email", null, HttpContext.RequestAborted);
-            var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
-
-            var userId = GetCurrentUserId();
-            var conversation = await _executionService.ChatAsync(
-                dbAgentId,
-                userId,
-                prompt,
-                conversationId: null,
-                "Email",
-                null,
-                HttpContext.RequestAborted);
-
-            var response = ExtractLastAssistantResponse(conversation);
-            return Ok(new { Draft = response, ConversationId = conversation.Id });
+            return BadRequest("Email context is required.");
         }
-        catch (Exception ex)
+
+        var prompt = $"Draft an email with the following context: {request.Context}";
+        if (!string.IsNullOrWhiteSpace(request.RecipientEmail))
         {
-            _logger.LogError(ex, "Error drafting email");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while drafting the email.");
+            prompt += $" Recipient: {request.RecipientEmail}.";
         }
+
+        if (!string.IsNullOrWhiteSpace(request.Tone))
+        {
+            prompt += $" Tone: {request.Tone}.";
+        }
+
+        if (request.TemplateId.HasValue)
+        {
+            prompt += $" Base on template ID: {request.TemplateId.Value}.";
+        }
+
+        var agentBase = await _orchestrator.RouteToAgentAsync(prompt, "Email", null, HttpContext.RequestAborted);
+        var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
+
+        var userId = GetCurrentUserId();
+        var conversation = await _executionService.ChatAsync(
+            dbAgentId,
+            userId,
+            prompt,
+            conversationId: null,
+            "Email",
+            null,
+            HttpContext.RequestAborted);
+
+        var response = ExtractLastAssistantResponse(conversation);
+        return Ok(new { Draft = response, ConversationId = conversation.Id });
     }
 
     /// <summary>
@@ -594,30 +521,22 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ResolveTicket(int serviceRequestId)
     {
-        try
-        {
-            var message = $"Analyze service request {serviceRequestId} and suggest resolution steps, relevant knowledge articles, and recommended assignment.";
-            var agentBase = await _orchestrator.RouteToAgentAsync(message, "ServiceRequest", serviceRequestId, HttpContext.RequestAborted);
-            var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
+                var message = $"Analyze service request {serviceRequestId} and suggest resolution steps, relevant knowledge articles, and recommended assignment.";
+        var agentBase = await _orchestrator.RouteToAgentAsync(message, "ServiceRequest", serviceRequestId, HttpContext.RequestAborted);
+        var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
 
-            var userId = GetCurrentUserId();
-            var conversation = await _executionService.ChatAsync(
-                dbAgentId,
-                userId,
-                message,
-                conversationId: null,
-                "ServiceRequest",
-                serviceRequestId,
-                HttpContext.RequestAborted);
+        var userId = GetCurrentUserId();
+        var conversation = await _executionService.ChatAsync(
+            dbAgentId,
+            userId,
+            message,
+            conversationId: null,
+            "ServiceRequest",
+            serviceRequestId,
+            HttpContext.RequestAborted);
 
-            var response = ExtractLastAssistantResponse(conversation);
-            return Ok(new { ServiceRequestId = serviceRequestId, Resolution = response, ConversationId = conversation.Id });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error resolving ticket {ServiceRequestId}", serviceRequestId);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while resolving the ticket.");
-        }
+        var response = ExtractLastAssistantResponse(conversation);
+        return Ok(new { ServiceRequestId = serviceRequestId, Resolution = response, ConversationId = conversation.Id });
     }
 
     #endregion
@@ -634,28 +553,20 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Orchestrate([FromBody] OrchestrateRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Message))
         {
-            if (string.IsNullOrWhiteSpace(request.Message))
-            {
-                return BadRequest("Message is required.");
-            }
-
-            if (request.AgentTypes is null || request.AgentTypes.Count == 0)
-            {
-                return BadRequest("At least one agent type must be specified.");
-            }
-
-            var results = await _orchestrator.ExecuteMultiAgentAsync(
-                request.Message, request.AgentTypes, HttpContext.RequestAborted);
-
-            return Ok(new { Message = request.Message, AgentResponses = results });
+            return BadRequest("Message is required.");
         }
-        catch (Exception ex)
+
+        if (request.AgentTypes is null || request.AgentTypes.Count == 0)
         {
-            _logger.LogError(ex, "Error orchestrating multi-agent request");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred during orchestration.");
+            return BadRequest("At least one agent type must be specified.");
         }
+
+        var results = await _orchestrator.ExecuteMultiAgentAsync(
+            request.Message, request.AgentTypes, HttpContext.RequestAborted);
+
+        return Ok(new { Message = request.Message, AgentResponses = results });
     }
 
     #endregion
@@ -670,21 +581,13 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPendingApprovals()
     {
-        try
-        {
-            var pending = await _dbContext.AgentApprovalRequests
-                .AsNoTracking()
-                .Where(r => r.Status == CRM.Core.Entities.AI.ApprovalStatus.Pending && !r.IsDeleted)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync(HttpContext.RequestAborted);
+                var pending = await _dbContext.AgentApprovalRequests
+            .AsNoTracking()
+            .Where(r => r.Status == CRM.Core.Entities.AI.ApprovalStatus.Pending && !r.IsDeleted)
+            .OrderByDescending(r => r.CreatedAt)
+            .ToListAsync(HttpContext.RequestAborted);
 
-            return Ok(pending);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting pending approvals");
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving pending approvals.");
-        }
+        return Ok(pending);
     }
 
     /// <summary>
@@ -697,36 +600,28 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ApproveAction(int id)
     {
-        try
+                var approval = await _dbContext.AgentApprovalRequests
+            .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, HttpContext.RequestAborted);
+
+        if (approval is null)
         {
-            var approval = await _dbContext.AgentApprovalRequests
-                .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, HttpContext.RequestAborted);
-
-            if (approval is null)
-            {
-                return NotFound($"Approval request with ID {id} not found.");
-            }
-
-            if (approval.Status != CRM.Core.Entities.AI.ApprovalStatus.Pending)
-            {
-                return BadRequest($"Approval request is not in pending status. Current status: {approval.Status}.");
-            }
-
-            var userId = GetCurrentUserId();
-            approval.Status = CRM.Core.Entities.AI.ApprovalStatus.Approved;
-            approval.ApprovedByUserId = userId;
-            approval.UpdatedAt = DateTime.UtcNow;
-
-            await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
-
-            _logger.LogInformation("Approval request {ApprovalId} approved by user {UserId}", id, userId);
-            return Ok(new { Message = "Action approved successfully.", ApprovalId = id });
+            return NotFound($"Approval request with ID {id} not found.");
         }
-        catch (Exception ex)
+
+        if (approval.Status != CRM.Core.Entities.AI.ApprovalStatus.Pending)
         {
-            _logger.LogError(ex, "Error approving action {ApprovalId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while approving the action.");
+            return BadRequest($"Approval request is not in pending status. Current status: {approval.Status}.");
         }
+
+        var userId = GetCurrentUserId();
+        approval.Status = CRM.Core.Entities.AI.ApprovalStatus.Approved;
+        approval.ApprovedByUserId = userId;
+        approval.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
+
+        _logger.LogInformation("Approval request {ApprovalId} approved by user {UserId}", id, userId);
+        return Ok(new { Message = "Action approved successfully.", ApprovalId = id });
     }
 
     /// <summary>
@@ -741,41 +636,33 @@ public class AgentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RejectAction(int id, [FromBody] RejectRequest request)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.Reason))
         {
-            if (string.IsNullOrWhiteSpace(request.Reason))
-            {
-                return BadRequest("Rejection reason is required.");
-            }
-
-            var approval = await _dbContext.AgentApprovalRequests
-                .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, HttpContext.RequestAborted);
-
-            if (approval is null)
-            {
-                return NotFound($"Approval request with ID {id} not found.");
-            }
-
-            if (approval.Status != CRM.Core.Entities.AI.ApprovalStatus.Pending)
-            {
-                return BadRequest($"Approval request is not in pending status. Current status: {approval.Status}.");
-            }
-
-            var userId = GetCurrentUserId();
-            approval.Status = CRM.Core.Entities.AI.ApprovalStatus.Rejected;
-            approval.ApprovedByUserId = userId;
-            approval.UpdatedAt = DateTime.UtcNow;
-
-            await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
-
-            _logger.LogInformation("Approval request {ApprovalId} rejected by user {UserId}. Reason: {Reason}", id, userId, request.Reason);
-            return Ok(new { Message = "Action rejected.", ApprovalId = id, request.Reason });
+            return BadRequest("Rejection reason is required.");
         }
-        catch (Exception ex)
+
+        var approval = await _dbContext.AgentApprovalRequests
+            .FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted, HttpContext.RequestAborted);
+
+        if (approval is null)
         {
-            _logger.LogError(ex, "Error rejecting action {ApprovalId}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while rejecting the action.");
+            return NotFound($"Approval request with ID {id} not found.");
         }
+
+        if (approval.Status != CRM.Core.Entities.AI.ApprovalStatus.Pending)
+        {
+            return BadRequest($"Approval request is not in pending status. Current status: {approval.Status}.");
+        }
+
+        var userId = GetCurrentUserId();
+        approval.Status = CRM.Core.Entities.AI.ApprovalStatus.Rejected;
+        approval.ApprovedByUserId = userId;
+        approval.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
+
+        _logger.LogInformation("Approval request {ApprovalId} rejected by user {UserId}. Reason: {Reason}", id, userId, request.Reason);
+        return Ok(new { Message = "Action rejected.", ApprovalId = id, request.Reason });
     }
 
     #endregion

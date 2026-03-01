@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -20,7 +21,7 @@ namespace CRM.Api.Controllers;
 [Route("api/webhook-registrations")]
 [Authorize]
 [Produces("application/json")]
-public class WebhookRegistrationsController : ControllerBase
+public class WebhookRegistrationsController : CrmControllerBase
 {
     private readonly IWebhookManagementService _service;
     private readonly ILogger<WebhookRegistrationsController> _logger;
@@ -39,16 +40,8 @@ public class WebhookRegistrationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<WebhookDto>> Create([FromBody] CreateWebhookDto dto, CancellationToken ct)
     {
-        try
-        {
-            var result = await _service.CreateAsync(dto, ct);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating webhook registration");
-            return StatusCode(500, new { error = "Failed to create webhook registration" });
-        }
+                var result = await _service.CreateAsync(dto, ct);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
     /// <summary>

@@ -10,6 +10,7 @@ using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/workflow-triggers")]
 [Authorize]
-public class WorkflowTriggersController : ControllerBase
+public class WorkflowTriggersController : CrmControllerBase
 {
     private readonly IWorkflowTriggerService _triggerService;
     private readonly ILogger<WorkflowTriggersController> _logger;
@@ -56,16 +57,8 @@ public class WorkflowTriggersController : ControllerBase
         [FromQuery] WorkflowTriggerType? triggerType = null,
         [FromQuery] bool? isActive = null)
     {
-        try
-        {
-            var triggers = await _triggerService.GetAllAsync(workflowDefinitionId, triggerType, entityType, isActive);
-            return Ok(triggers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving workflow triggers");
-            return StatusCode(500, new { error = "Failed to retrieve triggers", details = ex.Message });
-        }
+                var triggers = await _triggerService.GetAllAsync(workflowDefinitionId, triggerType, entityType, isActive);
+        return Ok(triggers);
     }
 
     /// <summary>
@@ -76,19 +69,11 @@ public class WorkflowTriggersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetTrigger(int id)
     {
-        try
-        {
-            var trigger = await _triggerService.GetByIdAsync(id);
-            if (trigger == null)
-                return NotFound(new { error = $"Trigger with ID {id} not found" });
+                var trigger = await _triggerService.GetByIdAsync(id);
+        if (trigger == null)
+            return NotFound(new { error = $"Trigger with ID {id} not found" });
 
-            return Ok(trigger);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving workflow trigger {TriggerId}", id);
-            return StatusCode(500, new { error = "Failed to retrieve trigger", details = ex.Message });
-        }
+        return Ok(trigger);
     }
 
     /// <summary>
@@ -98,16 +83,8 @@ public class WorkflowTriggersController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<WorkflowTriggerDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetTriggersForWorkflow(int workflowDefinitionId)
     {
-        try
-        {
-            var triggers = await _triggerService.GetByWorkflowAsync(workflowDefinitionId);
-            return Ok(triggers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving triggers for workflow {WorkflowId}", workflowDefinitionId);
-            return StatusCode(500, new { error = "Failed to retrieve triggers", details = ex.Message });
-        }
+                var triggers = await _triggerService.GetByWorkflowAsync(workflowDefinitionId);
+        return Ok(triggers);
     }
 
     /// <summary>
@@ -143,11 +120,6 @@ public class WorkflowTriggersController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating workflow trigger");
-            return StatusCode(500, new { error = "Failed to create trigger", details = ex.Message });
         }
     }
 
@@ -192,11 +164,6 @@ public class WorkflowTriggersController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating workflow trigger {TriggerId}", id);
-            return StatusCode(500, new { error = "Failed to update trigger", details = ex.Message });
-        }
     }
 
     /// <summary>
@@ -207,19 +174,11 @@ public class WorkflowTriggersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTrigger(int id)
     {
-        try
-        {
-            var success = await _triggerService.DeleteAsync(id);
-            if (!success)
-                return NotFound(new { error = $"Trigger with ID {id} not found" });
+                var success = await _triggerService.DeleteAsync(id);
+        if (!success)
+            return NotFound(new { error = $"Trigger with ID {id} not found" });
 
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting workflow trigger {TriggerId}", id);
-            return StatusCode(500, new { error = "Failed to delete trigger", details = ex.Message });
-        }
+        return NoContent();
     }
 
     #endregion
@@ -249,11 +208,6 @@ public class WorkflowTriggersController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error activating workflow trigger {TriggerId}", id);
-            return StatusCode(500, new { error = "Failed to activate trigger", details = ex.Message });
-        }
     }
 
     /// <summary>
@@ -274,11 +228,6 @@ public class WorkflowTriggersController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { error = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deactivating workflow trigger {TriggerId}", id);
-            return StatusCode(500, new { error = "Failed to deactivate trigger", details = ex.Message });
         }
     }
 
@@ -318,11 +267,6 @@ public class WorkflowTriggersController : ControllerBase
         {
             return BadRequest(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error firing workflow trigger {TriggerId}", id);
-            return StatusCode(500, new { error = "Failed to fire trigger", details = ex.Message });
-        }
     }
 
     /// <summary>
@@ -333,17 +277,9 @@ public class WorkflowTriggersController : ControllerBase
     [ProducesResponseType(typeof(TriggerExecutionResult), StatusCodes.Status200OK)]
     public async Task<IActionResult> EvaluateTriggers([FromBody] TriggerExecutionRequest request)
     {
-        try
-        {
-            var results = await _triggerService.EvaluateTriggersAsync(request);
+                var results = await _triggerService.EvaluateTriggersAsync(request);
 
-            return Ok(results);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error evaluating triggers for {EntityType}", request.EntityType);
-            return StatusCode(500, new { error = "Failed to evaluate triggers", details = ex.Message });
-        }
+        return Ok(results);
     }
 
     /// <summary>
@@ -363,11 +299,6 @@ public class WorkflowTriggersController : ControllerBase
         {
             return NotFound(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error recording execution for trigger {TriggerId}", id);
-            return StatusCode(500, new { error = "Failed to record trigger execution", details = ex.Message });
-        }
     }
     #endregion
 
@@ -384,19 +315,11 @@ public class WorkflowTriggersController : ControllerBase
         [FromQuery] WorkflowTriggerType triggerType,
         [FromQuery] string? eventName = null)
     {
-        try
-        {
-            if (string.IsNullOrWhiteSpace(entityType))
-                return BadRequest(new { error = "entityType is required" });
+                if (string.IsNullOrWhiteSpace(entityType))
+            return BadRequest(new { error = "entityType is required" });
 
-            var triggers = await _triggerService.GetMatchingTriggersAsync(entityType, triggerType, eventName);
-            return Ok(triggers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving matching triggers for {EntityType}/{TriggerType}", entityType, triggerType);
-            return StatusCode(500, new { error = "Failed to retrieve matching triggers", details = ex.Message });
-        }
+        var triggers = await _triggerService.GetMatchingTriggersAsync(entityType, triggerType, eventName);
+        return Ok(triggers);
     }
 
     #endregion
@@ -410,16 +333,8 @@ public class WorkflowTriggersController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<WorkflowTriggerDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDueScheduledTriggers([FromQuery] DateTime? asOf = null)
     {
-        try
-        {
-            var triggers = await _triggerService.GetScheduledTriggersDueAsync(asOf ?? DateTime.UtcNow);
-            return Ok(triggers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving due scheduled triggers");
-            return StatusCode(500, new { error = "Failed to retrieve due triggers", details = ex.Message });
-        }
+                var triggers = await _triggerService.GetScheduledTriggersDueAsync(asOf ?? DateTime.UtcNow);
+        return Ok(triggers);
     }
 
     /// <summary>
@@ -440,11 +355,6 @@ public class WorkflowTriggersController : ControllerBase
         {
             return NotFound(new { error = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating schedule for trigger {TriggerId}", id);
-            return StatusCode(500, new { error = "Failed to update schedule", details = ex.Message });
-        }
     }
 
     #endregion
@@ -458,17 +368,9 @@ public class WorkflowTriggersController : ControllerBase
     [ProducesResponseType(typeof(TriggerStatisticsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStatistics()
     {
-        try
-        {
-            var stats = await _triggerService.GetStatisticsAsync();
+                var stats = await _triggerService.GetStatisticsAsync();
 
-            return Ok(stats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving trigger statistics");
-            return StatusCode(500, new { error = "Failed to retrieve statistics", details = ex.Message });
-        }
+        return Ok(stats);
     }
 
     #endregion

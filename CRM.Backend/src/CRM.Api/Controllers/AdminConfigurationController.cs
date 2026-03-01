@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers
 {
@@ -29,14 +30,13 @@ namespace CRM.Api.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize(Roles = "Admin")]
-    public class AdminConfigurationController : ControllerBase
+    public class AdminConfigurationController : CrmControllerBase
     {
     private const string ServiceQueueNotFoundMessage = "Service queue with ID {0} not found";
     private const string EscalationRuleNotFoundMessage = "Escalation rule with ID {0} not found";
     private const string SlaPolicyNotFoundMessage = "SLA policy with ID {0} not found";
     private const string DiscountRuleNotFoundMessage = "Discount rule with ID {0} not found";
     private const string CommissionRuleNotFoundMessage = "Commission rule with ID {0} not found";
-    private const string RequestBodyRequiredMessage = "Request body is required";
         private readonly IAdminConfigurationService _adminConfigService;
         private readonly ILogger<AdminConfigurationController> _logger;
 
@@ -61,18 +61,10 @@ namespace CRM.Api.Controllers
             [FromQuery] int? pageSize = 20,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Fetching commission rules - Page: {page}, PageSize: {pageSize}");
+                        _logger.LogInformation($"Fetching commission rules - Page: {page}, PageSize: {pageSize}");
 
-                var rules = await _adminConfigService.GetCommissionRulesAsync(cancellationToken);
-                return Ok(rules);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching commission rules: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching commission rules", error = ex.Message });
-            }
+            var rules = await _adminConfigService.GetCommissionRulesAsync(cancellationToken);
+            return Ok(rules);
         }
 
         /// <summary>
@@ -86,21 +78,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Fetching commission rule: {id}");
+                        _logger.LogInformation($"Fetching commission rule: {id}");
 
-                var rule = await _adminConfigService.GetCommissionRuleByIdAsync(id, cancellationToken: cancellationToken);
-                if (rule == null)
-                    return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
+            var rule = await _adminConfigService.GetCommissionRuleByIdAsync(id, cancellationToken: cancellationToken);
+            if (rule == null)
+                return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
 
-                return Ok(rule);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching commission rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching commission rule", error = ex.Message });
-            }
+            return Ok(rule);
         }
 
         /// <summary>
@@ -117,22 +101,17 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = RequestBodyRequiredMessage });
+                    return BadRequest(new { message = ControllerConstants.RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating commission rule: {request.Name}");
 
                 var rule = await _adminConfigService.CreateCommissionRuleAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetCommissionRuleById), new { id = rule.Id }, rule);
             }
-            catch (ArgumentException ex)
+        catch (ArgumentException ex)
             {
                 _logger.LogWarning($"Validation error creating commission rule: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error creating commission rule: {ex.Message}");
-                return StatusCode(500, new { message = "Error creating commission rule", error = ex.Message });
             }
         }
 
@@ -148,21 +127,13 @@ namespace CRM.Api.Controllers
             [FromBody] UpdateCommissionRuleDto request,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Updating commission rule: {id}");
+                        _logger.LogInformation($"Updating commission rule: {id}");
 
-                var rule = await _adminConfigService.UpdateCommissionRuleAsync(id, request, cancellationToken: cancellationToken);
-                if (rule == null)
-                    return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
+            var rule = await _adminConfigService.UpdateCommissionRuleAsync(id, request, cancellationToken: cancellationToken);
+            if (rule == null)
+                return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
 
-                return Ok(rule);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating commission rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error updating commission rule", error = ex.Message });
-            }
+            return Ok(rule);
         }
 
         /// <summary>
@@ -176,21 +147,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Deleting commission rule: {id}");
+                        _logger.LogInformation($"Deleting commission rule: {id}");
 
-                var success = await _adminConfigService.DeleteCommissionRuleAsync(id, cancellationToken: cancellationToken);
-                if (!success)
-                    return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
+            var success = await _adminConfigService.DeleteCommissionRuleAsync(id, cancellationToken: cancellationToken);
+            if (!success)
+                return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting commission rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error deleting commission rule", error = ex.Message });
-            }
+            return NoContent();
         }
 
         #endregion
@@ -205,18 +168,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetDiscountRules(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation("Fetching discount rules");
+                        _logger.LogInformation("Fetching discount rules");
 
-                var rules = await _adminConfigService.GetDiscountRulesAsync(cancellationToken);
-                return Ok(rules);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching discount rules: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching discount rules", error = ex.Message });
-            }
+            var rules = await _adminConfigService.GetDiscountRulesAsync(cancellationToken);
+            return Ok(rules);
         }
 
         /// <summary>
@@ -230,21 +185,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Fetching discount rule: {id}");
+                        _logger.LogInformation($"Fetching discount rule: {id}");
 
-                var rule = await _adminConfigService.GetDiscountRuleByIdAsync(id, cancellationToken: cancellationToken);
-                if (rule == null)
-                    return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
+            var rule = await _adminConfigService.GetDiscountRuleByIdAsync(id, cancellationToken: cancellationToken);
+            if (rule == null)
+                return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
 
-                return Ok(rule);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching discount rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching discount rule", error = ex.Message });
-            }
+            return Ok(rule);
         }
 
         /// <summary>
@@ -261,22 +208,17 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = RequestBodyRequiredMessage });
+                    return BadRequest(new { message = ControllerConstants.RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating discount rule: {request.Name}");
 
                 var rule = await _adminConfigService.CreateDiscountRuleAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetDiscountRuleById), new { id = rule.Id }, rule);
             }
-            catch (ArgumentException ex)
+        catch (ArgumentException ex)
             {
                 _logger.LogWarning($"Validation error creating discount rule: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error creating discount rule: {ex.Message}");
-                return StatusCode(500, new { message = "Error creating discount rule", error = ex.Message });
             }
         }
 
@@ -292,21 +234,13 @@ namespace CRM.Api.Controllers
             [FromBody] UpdateDiscountRuleDto request,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Updating discount rule: {id}");
+                        _logger.LogInformation($"Updating discount rule: {id}");
 
-                var rule = await _adminConfigService.UpdateDiscountRuleAsync(id, request, cancellationToken: cancellationToken);
-                if (rule == null)
-                    return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
+            var rule = await _adminConfigService.UpdateDiscountRuleAsync(id, request, cancellationToken: cancellationToken);
+            if (rule == null)
+                return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
 
-                return Ok(rule);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating discount rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error updating discount rule", error = ex.Message });
-            }
+            return Ok(rule);
         }
 
         /// <summary>
@@ -320,21 +254,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Deleting discount rule: {id}");
+                        _logger.LogInformation($"Deleting discount rule: {id}");
 
-                var success = await _adminConfigService.DeleteDiscountRuleAsync(id, cancellationToken: cancellationToken);
-                if (!success)
-                    return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
+            var success = await _adminConfigService.DeleteDiscountRuleAsync(id, cancellationToken: cancellationToken);
+            if (!success)
+                return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting discount rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error deleting discount rule", error = ex.Message });
-            }
+            return NoContent();
         }
 
         #endregion
@@ -349,18 +275,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetSLAPolicies(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation("Fetching SLA policies");
+                        _logger.LogInformation("Fetching SLA policies");
 
-                var policies = await _adminConfigService.GetSLAPoliciesAsync(cancellationToken);
-                return Ok(policies);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching SLA policies: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching SLA policies", error = ex.Message });
-            }
+            var policies = await _adminConfigService.GetSLAPoliciesAsync(cancellationToken);
+            return Ok(policies);
         }
 
         /// <summary>
@@ -374,21 +292,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Fetching SLA policy: {id}");
+                        _logger.LogInformation($"Fetching SLA policy: {id}");
 
-                var policy = await _adminConfigService.GetSLAPolicyByIdAsync(id, cancellationToken: cancellationToken);
-                if (policy == null)
-                    return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
+            var policy = await _adminConfigService.GetSLAPolicyByIdAsync(id, cancellationToken: cancellationToken);
+            if (policy == null)
+                return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
 
-                return Ok(policy);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching SLA policy {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching SLA policy", error = ex.Message });
-            }
+            return Ok(policy);
         }
 
         /// <summary>
@@ -405,22 +315,17 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = RequestBodyRequiredMessage });
+                    return BadRequest(new { message = ControllerConstants.RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating SLA policy: {request.Name}");
 
                 var policy = await _adminConfigService.CreateSLAPolicyAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetSLAPolicyById), new { id = policy.Id }, policy);
             }
-            catch (ArgumentException ex)
+        catch (ArgumentException ex)
             {
                 _logger.LogWarning($"Validation error creating SLA policy: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error creating SLA policy: {ex.Message}");
-                return StatusCode(500, new { message = "Error creating SLA policy", error = ex.Message });
             }
         }
 
@@ -436,21 +341,13 @@ namespace CRM.Api.Controllers
             [FromBody] UpdateSLAPolicyDto request,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Updating SLA policy: {id}");
+                        _logger.LogInformation($"Updating SLA policy: {id}");
 
-                var policy = await _adminConfigService.UpdateSLAPolicyAsync(id, request, cancellationToken: cancellationToken);
-                if (policy == null)
-                    return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
+            var policy = await _adminConfigService.UpdateSLAPolicyAsync(id, request, cancellationToken: cancellationToken);
+            if (policy == null)
+                return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
 
-                return Ok(policy);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating SLA policy {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error updating SLA policy", error = ex.Message });
-            }
+            return Ok(policy);
         }
 
         /// <summary>
@@ -464,21 +361,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Deleting SLA policy: {id}");
+                        _logger.LogInformation($"Deleting SLA policy: {id}");
 
-                var success = await _adminConfigService.DeleteSLAPolicyAsync(id, cancellationToken: cancellationToken);
-                if (!success)
-                    return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
+            var success = await _adminConfigService.DeleteSLAPolicyAsync(id, cancellationToken: cancellationToken);
+            if (!success)
+                return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting SLA policy {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error deleting SLA policy", error = ex.Message });
-            }
+            return NoContent();
         }
 
         #endregion
@@ -493,18 +382,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetEscalationRules(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation("Fetching escalation rules");
+                        _logger.LogInformation("Fetching escalation rules");
 
-                var rules = await _adminConfigService.GetEscalationRulesAsync(cancellationToken);
-                return Ok(rules);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching escalation rules: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching escalation rules", error = ex.Message });
-            }
+            var rules = await _adminConfigService.GetEscalationRulesAsync(cancellationToken);
+            return Ok(rules);
         }
 
         /// <summary>
@@ -518,21 +399,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Fetching escalation rule: {id}");
+                        _logger.LogInformation($"Fetching escalation rule: {id}");
 
-                var rule = await _adminConfigService.GetEscalationRuleByIdAsync(id, cancellationToken: cancellationToken);
-                if (rule == null)
-                    return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
+            var rule = await _adminConfigService.GetEscalationRuleByIdAsync(id, cancellationToken: cancellationToken);
+            if (rule == null)
+                return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
 
-                return Ok(rule);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching escalation rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching escalation rule", error = ex.Message });
-            }
+            return Ok(rule);
         }
 
         /// <summary>
@@ -549,22 +422,17 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = RequestBodyRequiredMessage });
+                    return BadRequest(new { message = ControllerConstants.RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating escalation rule: {request.Name}");
 
                 var rule = await _adminConfigService.CreateEscalationRuleAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetEscalationRuleById), new { id = rule.Id }, rule);
             }
-            catch (ArgumentException ex)
+        catch (ArgumentException ex)
             {
                 _logger.LogWarning($"Validation error creating escalation rule: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error creating escalation rule: {ex.Message}");
-                return StatusCode(500, new { message = "Error creating escalation rule", error = ex.Message });
             }
         }
 
@@ -580,21 +448,13 @@ namespace CRM.Api.Controllers
             [FromBody] UpdateEscalationRuleDto request,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Updating escalation rule: {id}");
+                        _logger.LogInformation($"Updating escalation rule: {id}");
 
-                var rule = await _adminConfigService.UpdateEscalationRuleAsync(id, request, cancellationToken: cancellationToken);
-                if (rule == null)
-                    return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
+            var rule = await _adminConfigService.UpdateEscalationRuleAsync(id, request, cancellationToken: cancellationToken);
+            if (rule == null)
+                return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
 
-                return Ok(rule);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating escalation rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error updating escalation rule", error = ex.Message });
-            }
+            return Ok(rule);
         }
 
         /// <summary>
@@ -608,21 +468,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Deleting escalation rule: {id}");
+                        _logger.LogInformation($"Deleting escalation rule: {id}");
 
-                var success = await _adminConfigService.DeleteEscalationRuleAsync(id, cancellationToken: cancellationToken);
-                if (!success)
-                    return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
+            var success = await _adminConfigService.DeleteEscalationRuleAsync(id, cancellationToken: cancellationToken);
+            if (!success)
+                return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting escalation rule {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error deleting escalation rule", error = ex.Message });
-            }
+            return NoContent();
         }
 
         #endregion
@@ -637,18 +489,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetServiceQueues(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation("Fetching service queues");
+                        _logger.LogInformation("Fetching service queues");
 
-                var queues = await _adminConfigService.GetServiceQueuesAsync(cancellationToken);
-                return Ok(queues);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching service queues: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching service queues", error = ex.Message });
-            }
+            var queues = await _adminConfigService.GetServiceQueuesAsync(cancellationToken);
+            return Ok(queues);
         }
 
         /// <summary>
@@ -662,21 +506,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Fetching service queue: {id}");
+                        _logger.LogInformation($"Fetching service queue: {id}");
 
-                var queue = await _adminConfigService.GetServiceQueueByIdAsync(id, cancellationToken: cancellationToken);
-                if (queue == null)
-                    return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
+            var queue = await _adminConfigService.GetServiceQueueByIdAsync(id, cancellationToken: cancellationToken);
+            if (queue == null)
+                return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
 
-                return Ok(queue);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching service queue {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching service queue", error = ex.Message });
-            }
+            return Ok(queue);
         }
 
         /// <summary>
@@ -693,22 +529,17 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = RequestBodyRequiredMessage });
+                    return BadRequest(new { message = ControllerConstants.RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating service queue: {request.Name}");
 
                 var queue = await _adminConfigService.CreateServiceQueueAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetServiceQueueById), new { id = queue.Id }, queue);
             }
-            catch (ArgumentException ex)
+        catch (ArgumentException ex)
             {
                 _logger.LogWarning($"Validation error creating service queue: {ex.Message}");
                 return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error creating service queue: {ex.Message}");
-                return StatusCode(500, new { message = "Error creating service queue", error = ex.Message });
             }
         }
 
@@ -724,21 +555,13 @@ namespace CRM.Api.Controllers
             [FromBody] UpdateServiceQueueDto request,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Updating service queue: {id}");
+                        _logger.LogInformation($"Updating service queue: {id}");
 
-                var queue = await _adminConfigService.UpdateServiceQueueAsync(id, request, cancellationToken: cancellationToken);
-                if (queue == null)
-                    return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
+            var queue = await _adminConfigService.UpdateServiceQueueAsync(id, request, cancellationToken: cancellationToken);
+            if (queue == null)
+                return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
 
-                return Ok(queue);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error updating service queue {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error updating service queue", error = ex.Message });
-            }
+            return Ok(queue);
         }
 
         /// <summary>
@@ -752,21 +575,13 @@ namespace CRM.Api.Controllers
             int id,
             CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation($"Deleting service queue: {id}");
+                        _logger.LogInformation($"Deleting service queue: {id}");
 
-                var success = await _adminConfigService.DeleteServiceQueueAsync(id, cancellationToken: cancellationToken);
-                if (!success)
-                    return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
+            var success = await _adminConfigService.DeleteServiceQueueAsync(id, cancellationToken: cancellationToken);
+            if (!success)
+                return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error deleting service queue {id}: {ex.Message}");
-                return StatusCode(500, new { message = "Error deleting service queue", error = ex.Message });
-            }
+            return NoContent();
         }
 
         #endregion
@@ -781,18 +596,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetConfigurationOverview(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation("Fetching admin configuration overview");
+                        _logger.LogInformation("Fetching admin configuration overview");
 
-                var config = await _adminConfigService.GetConfigurationAsync(cancellationToken);
-                return Ok(config);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching configuration overview: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching configuration overview", error = ex.Message });
-            }
+            var config = await _adminConfigService.GetConfigurationAsync(cancellationToken);
+            return Ok(config);
         }
 
         /// <summary>
@@ -803,18 +610,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetSalesConfig(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation("Fetching sales admin configuration");
+                        _logger.LogInformation("Fetching sales admin configuration");
 
-                var config = await _adminConfigService.GetSalesConfigAsync(cancellationToken);
-                return Ok(config);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching sales configuration: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching sales configuration", error = ex.Message });
-            }
+            var config = await _adminConfigService.GetSalesConfigAsync(cancellationToken);
+            return Ok(config);
         }
 
         /// <summary>
@@ -825,18 +624,10 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetServiceDeskConfig(CancellationToken cancellationToken = default)
         {
-            try
-            {
-                _logger.LogInformation("Fetching service desk admin configuration");
+                        _logger.LogInformation("Fetching service desk admin configuration");
 
-                var config = await _adminConfigService.GetServiceDeskConfigAsync(cancellationToken);
-                return Ok(config);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error fetching service desk configuration: {ex.Message}");
-                return StatusCode(500, new { message = "Error fetching service desk configuration", error = ex.Message });
-            }
+            var config = await _adminConfigService.GetServiceDeskConfigAsync(cancellationToken);
+            return Ok(config);
         }
 
         #endregion

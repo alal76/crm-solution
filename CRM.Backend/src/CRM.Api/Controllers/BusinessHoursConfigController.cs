@@ -7,6 +7,7 @@
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.API.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.API.Controllers;
 [ApiController]
 [Route("api/system/business-hours")]
 [Authorize]
-public class BusinessHoursConfigController : ControllerBase
+public class BusinessHoursConfigController : CrmControllerBase
 {
     private const string ConfigNotFoundMessage = "Business hours configuration {0} not found";
     private readonly IBusinessHoursConfigService _service;
@@ -36,16 +37,8 @@ public class BusinessHoursConfigController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<BusinessHoursConfigDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<BusinessHoursConfigDto>>> GetAll(CancellationToken ct)
     {
-        try
-        {
-            var configs = await _service.GetAllAsync(ct);
-            return Ok(configs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving business hours configurations");
-            return StatusCode(500, "Error retrieving business hours configurations");
-        }
+                var configs = await _service.GetAllAsync(ct);
+        return Ok(configs);
     }
 
     /// <summary>Get a specific business hours configuration.</summary>
@@ -54,17 +47,9 @@ public class BusinessHoursConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BusinessHoursConfigDto>> GetById(int id, CancellationToken ct)
     {
-        try
-        {
-            var config = await _service.GetByIdAsync(id, ct);
-            if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving business hours configuration {Id}", id);
-            return StatusCode(500, "Error retrieving business hours configuration");
-        }
+                var config = await _service.GetByIdAsync(id, ct);
+        if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
+        return Ok(config);
     }
 
     /// <summary>Create a new business hours configuration.</summary>
@@ -75,16 +60,8 @@ public class BusinessHoursConfigController : ControllerBase
     public async Task<ActionResult<BusinessHoursConfigDto>> Create(
         [FromBody] BusinessHoursConfigRequest request, CancellationToken ct)
     {
-        try
-        {
-            var config = await _service.CreateAsync(request, ct);
-            return CreatedAtAction(nameof(GetById), new { id = config.Id }, config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating business hours configuration");
-            return StatusCode(500, "Error creating business hours configuration");
-        }
+                var config = await _service.CreateAsync(request, ct);
+        return CreatedAtAction(nameof(GetById), new { id = config.Id }, config);
     }
 
     /// <summary>Update an existing business hours configuration.</summary>
@@ -106,11 +83,6 @@ public class BusinessHoursConfigController : ControllerBase
             _logger.LogWarning(ex, "Business rule violation updating business hours {Id}", id);
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating business hours configuration {Id}", id);
-            return StatusCode(500, "Error updating business hours configuration");
-        }
     }
 
     /// <summary>Soft-delete a business hours configuration.</summary>
@@ -120,17 +92,9 @@ public class BusinessHoursConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken ct)
     {
-        try
-        {
-            var deleted = await _service.DeleteAsync(id, ct);
-            if (!deleted) return NotFound(string.Format(ConfigNotFoundMessage, id));
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting business hours configuration {Id}", id);
-            return StatusCode(500, "Error deleting business hours configuration");
-        }
+                var deleted = await _service.DeleteAsync(id, ct);
+        if (!deleted) return NotFound(string.Format(ConfigNotFoundMessage, id));
+        return NoContent();
     }
 
     /// <summary>Set a configuration as the default.</summary>
@@ -140,16 +104,8 @@ public class BusinessHoursConfigController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<BusinessHoursConfigDto>> SetDefault(int id, CancellationToken ct)
     {
-        try
-        {
-            var config = await _service.SetDefaultAsync(id, ct);
-            if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
-            return Ok(config);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error setting default business hours configuration {Id}", id);
-            return StatusCode(500, "Error setting default business hours configuration");
-        }
+                var config = await _service.SetDefaultAsync(id, ct);
+        if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
+        return Ok(config);
     }
 }

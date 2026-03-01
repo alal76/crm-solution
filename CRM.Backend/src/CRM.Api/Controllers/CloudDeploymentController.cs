@@ -10,6 +10,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.API.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
-public class CloudDeploymentController : ControllerBase
+public class CloudDeploymentController : CrmControllerBase
 {
     private readonly ICloudDeploymentService _deploymentService;
     private readonly ILogger<CloudDeploymentController> _logger;
@@ -41,16 +42,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<CloudProviderDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CloudProviderDto>>> GetProviders()
     {
-        try
-        {
-            var providers = await _deploymentService.GetProvidersAsync();
-            return Ok(providers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving cloud providers");
-            return StatusCode(500, "Error retrieving cloud providers");
-        }
+                var providers = await _deploymentService.GetProvidersAsync();
+        return Ok(providers);
     }
 
     /// <summary>
@@ -61,20 +54,12 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CloudProviderDto>> GetProvider(int id)
     {
-        try
+                var provider = await _deploymentService.GetProviderByIdAsync(id);
+        if (provider == null)
         {
-            var provider = await _deploymentService.GetProviderByIdAsync(id);
-            if (provider == null)
-            {
-                return NotFound($"Provider {id} not found");
-            }
-            return Ok(provider);
+            return NotFound($"Provider {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving provider {Id}", id);
-            return StatusCode(500, "Error retrieving provider");
-        }
+        return Ok(provider);
     }
 
     /// <summary>
@@ -85,16 +70,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CloudProviderDto>> CreateProvider([FromBody] CreateCloudProviderRequest request)
     {
-        try
-        {
-            var provider = await _deploymentService.CreateProviderAsync(request);
-            return CreatedAtAction(nameof(GetProvider), new { id = provider.Id }, provider);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating cloud provider");
-            return StatusCode(500, "Error creating cloud provider");
-        }
+                var provider = await _deploymentService.CreateProviderAsync(request);
+        return CreatedAtAction(nameof(GetProvider), new { id = provider.Id }, provider);
     }
 
     /// <summary>
@@ -115,11 +92,6 @@ public class CloudDeploymentController : ControllerBase
         {
             return NotFound($"Provider {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating provider {Id}", id);
-            return StatusCode(500, "Error updating provider");
-        }
     }
 
     /// <summary>
@@ -130,20 +102,12 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteProvider(int id)
     {
-        try
+                var deleted = await _deploymentService.DeleteProviderAsync(id);
+        if (!deleted)
         {
-            var deleted = await _deploymentService.DeleteProviderAsync(id);
-            if (!deleted)
-            {
-                return NotFound($"Provider {id} not found");
-            }
-            return NoContent();
+            return NotFound($"Provider {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting provider {Id}", id);
-            return StatusCode(500, "Error deleting provider");
-        }
+        return NoContent();
     }
 
     /// <summary>
@@ -153,16 +117,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(ProviderConnectionResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<ProviderConnectionResult>> TestProviderConnection([FromBody] TestProviderConnectionRequest request)
     {
-        try
-        {
-            var result = await _deploymentService.TestProviderConnectionAsync(request);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error testing provider connection");
-            return StatusCode(500, "Error testing provider connection");
-        }
+                var result = await _deploymentService.TestProviderConnectionAsync(request);
+        return Ok(result);
     }
 
     /// <summary>
@@ -172,16 +128,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ResourceOption>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ResourceOption>>> GetProviderResources(int id, string resourceType)
     {
-        try
-        {
-            var resources = await _deploymentService.GetProviderResourcesAsync(id, resourceType);
-            return Ok(resources);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving provider resources");
-            return StatusCode(500, "Error retrieving provider resources");
-        }
+                var resources = await _deploymentService.GetProviderResourcesAsync(id, resourceType);
+        return Ok(resources);
     }
 
     #endregion
@@ -197,16 +145,8 @@ public class CloudDeploymentController : ControllerBase
         [FromQuery] int? providerId = null,
         [FromQuery] string? status = null)
     {
-        try
-        {
-            var deployments = await _deploymentService.GetDeploymentsAsync(providerId, status);
-            return Ok(deployments);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving deployments");
-            return StatusCode(500, "Error retrieving deployments");
-        }
+                var deployments = await _deploymentService.GetDeploymentsAsync(providerId, status);
+        return Ok(deployments);
     }
 
     /// <summary>
@@ -217,20 +157,12 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CloudDeploymentDto>> GetDeployment(int id)
     {
-        try
+                var deployment = await _deploymentService.GetDeploymentByIdAsync(id);
+        if (deployment == null)
         {
-            var deployment = await _deploymentService.GetDeploymentByIdAsync(id);
-            if (deployment == null)
-            {
-                return NotFound($"Deployment {id} not found");
-            }
-            return Ok(deployment);
+            return NotFound($"Deployment {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving deployment {Id}", id);
-            return StatusCode(500, "Error retrieving deployment");
-        }
+        return Ok(deployment);
     }
 
     /// <summary>
@@ -249,11 +181,6 @@ public class CloudDeploymentController : ControllerBase
         catch (KeyNotFoundException ex)
         {
             return BadRequest(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating deployment");
-            return StatusCode(500, "Error creating deployment");
         }
     }
 
@@ -275,11 +202,6 @@ public class CloudDeploymentController : ControllerBase
         {
             return NotFound($"Deployment {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating deployment {Id}", id);
-            return StatusCode(500, "Error updating deployment");
-        }
     }
 
     /// <summary>
@@ -290,20 +212,12 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteDeployment(int id)
     {
-        try
+                var deleted = await _deploymentService.DeleteDeploymentAsync(id);
+        if (!deleted)
         {
-            var deleted = await _deploymentService.DeleteDeploymentAsync(id);
-            if (!deleted)
-            {
-                return NotFound($"Deployment {id} not found");
-            }
-            return NoContent();
+            return NotFound($"Deployment {id} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error deleting deployment {Id}", id);
-            return StatusCode(500, "Error deleting deployment");
-        }
+        return NoContent();
     }
 
     /// <summary>
@@ -313,23 +227,15 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(DeploymentResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentResult>> TriggerDeployment(int id, [FromBody] TriggerDeploymentRequest request)
     {
-        try
+                // Get user ID from token
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdClaim, out int userId))
         {
-            // Get user ID from token
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(userIdClaim, out int userId))
-            {
-                request.TriggeredByUserId = userId;
-            }
+            request.TriggeredByUserId = userId;
+        }
 
-            var result = await _deploymentService.TriggerDeploymentAsync(id, request);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error triggering deployment {Id}", id);
-            return StatusCode(500, "Error triggering deployment");
-        }
+        var result = await _deploymentService.TriggerDeploymentAsync(id, request);
+        return Ok(result);
     }
 
     /// <summary>
@@ -339,16 +245,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(DeploymentResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentResult>> StopDeployment(int id)
     {
-        try
-        {
-            var result = await _deploymentService.StopDeploymentAsync(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error stopping deployment {Id}", id);
-            return StatusCode(500, "Error stopping deployment");
-        }
+                var result = await _deploymentService.StopDeploymentAsync(id);
+        return Ok(result);
     }
 
     /// <summary>
@@ -358,16 +256,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(DeploymentResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentResult>> RestartDeployment(int id)
     {
-        try
-        {
-            var result = await _deploymentService.RestartDeploymentAsync(id);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error restarting deployment {Id}", id);
-            return StatusCode(500, "Error restarting deployment");
-        }
+                var result = await _deploymentService.RestartDeploymentAsync(id);
+        return Ok(result);
     }
 
     /// <summary>
@@ -377,16 +267,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(DeploymentResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentResult>> ScaleDeployment(int id, [FromQuery] int replicas)
     {
-        try
-        {
-            var result = await _deploymentService.ScaleDeploymentAsync(id, replicas);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error scaling deployment {Id}", id);
-            return StatusCode(500, "Error scaling deployment");
-        }
+                var result = await _deploymentService.ScaleDeploymentAsync(id, replicas);
+        return Ok(result);
     }
 
     #endregion
@@ -400,16 +282,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<DeploymentAttemptDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<DeploymentAttemptDto>>> GetDeploymentAttempts(int deploymentId)
     {
-        try
-        {
-            var attempts = await _deploymentService.GetDeploymentAttemptsAsync(deploymentId);
-            return Ok(attempts);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving deployment attempts");
-            return StatusCode(500, "Error retrieving deployment attempts");
-        }
+                var attempts = await _deploymentService.GetDeploymentAttemptsAsync(deploymentId);
+        return Ok(attempts);
     }
 
     /// <summary>
@@ -420,20 +294,12 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<DeploymentAttemptDto>> GetDeploymentAttempt(int attemptId)
     {
-        try
+                var attempt = await _deploymentService.GetDeploymentAttemptByIdAsync(attemptId);
+        if (attempt == null)
         {
-            var attempt = await _deploymentService.GetDeploymentAttemptByIdAsync(attemptId);
-            if (attempt == null)
-            {
-                return NotFound($"Attempt {attemptId} not found");
-            }
-            return Ok(attempt);
+            return NotFound($"Attempt {attemptId} not found");
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving attempt {AttemptId}", attemptId);
-            return StatusCode(500, "Error retrieving attempt");
-        }
+        return Ok(attempt);
     }
 
     /// <summary>
@@ -443,16 +309,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<string>> GetDeploymentAttemptLogs(int attemptId)
     {
-        try
-        {
-            var logs = await _deploymentService.GetDeploymentAttemptLogsAsync(attemptId);
-            return Ok(new { logs });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving attempt logs");
-            return StatusCode(500, "Error retrieving attempt logs");
-        }
+                var logs = await _deploymentService.GetDeploymentAttemptLogsAsync(attemptId);
+        return Ok(new { logs });
     }
 
     #endregion
@@ -466,16 +324,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(HealthCheckResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<HealthCheckResult>> RunHealthCheck(int deploymentId)
     {
-        try
-        {
-            var result = await _deploymentService.RunHealthCheckAsync(deploymentId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error running health check");
-            return StatusCode(500, "Error running health check");
-        }
+                var result = await _deploymentService.RunHealthCheckAsync(deploymentId);
+        return Ok(result);
     }
 
     /// <summary>
@@ -487,16 +337,8 @@ public class CloudDeploymentController : ControllerBase
         int deploymentId,
         [FromQuery] int? limit = 20)
     {
-        try
-        {
-            var history = await _deploymentService.GetHealthCheckHistoryAsync(deploymentId, limit);
-            return Ok(history);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving health check history");
-            return StatusCode(500, "Error retrieving health check history");
-        }
+                var history = await _deploymentService.GetHealthCheckHistoryAsync(deploymentId, limit);
+        return Ok(history);
     }
 
     /// <summary>
@@ -506,16 +348,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<HealthCheckDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<HealthCheckDto>>> GetAllDeploymentHealth()
     {
-        try
-        {
-            var health = await _deploymentService.GetAllDeploymentHealthAsync();
-            return Ok(health);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving deployment health");
-            return StatusCode(500, "Error retrieving deployment health");
-        }
+                var health = await _deploymentService.GetAllDeploymentHealthAsync();
+        return Ok(health);
     }
 
     #endregion
@@ -529,16 +363,8 @@ public class CloudDeploymentController : ControllerBase
     [ProducesResponseType(typeof(DeploymentDashboardDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<DeploymentDashboardDto>> GetDashboard()
     {
-        try
-        {
-            var dashboard = await _deploymentService.GetDashboardAsync();
-            return Ok(dashboard);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving deployment dashboard");
-            return StatusCode(500, "Error retrieving deployment dashboard");
-        }
+                var dashboard = await _deploymentService.GetDashboardAsync();
+        return Ok(dashboard);
     }
 
     #endregion

@@ -8,6 +8,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [Route("api/sales-forecasts")]
 [Authorize]
 [Produces("application/json")]
-public class SalesForecastsController : ControllerBase
+public class SalesForecastsController : CrmControllerBase
 {
     private const string ForecastNotFoundMessage = "Sales forecast {0} not found";
     private readonly ISalesForecastService _service;

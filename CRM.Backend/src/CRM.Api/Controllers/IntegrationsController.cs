@@ -7,6 +7,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Ports.Input;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -17,7 +18,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/integrations")]
 [Authorize]
-public class IntegrationsController : ControllerBase
+public class IntegrationsController : CrmControllerBase
 {
     private readonly IAccountingSyncService _accountingSync;
     private readonly IMarketingSyncService _marketingSync;
@@ -57,16 +58,8 @@ public class IntegrationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SyncAccount(int accountId, CancellationToken ct)
     {
-        try
-        {
-            var result = await _accountingSync.SyncAccountAsync(accountId, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Accounting sync failed for account {Id}", accountId);
-            return StatusCode(500, new { message = "Sync failed", error = ex.Message });
-        }
+                var result = await _accountingSync.SyncAccountAsync(accountId, ct);
+        return Ok(result);
     }
 
     /// <summary>Syncs an invoice to the accounting platform.</summary>
@@ -74,16 +67,8 @@ public class IntegrationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SyncInvoice(int invoiceId, CancellationToken ct)
     {
-        try
-        {
-            var result = await _accountingSync.SyncInvoiceAsync(invoiceId, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Accounting invoice sync failed for {Id}", invoiceId);
-            return StatusCode(500, new { message = "Invoice sync failed", error = ex.Message });
-        }
+                var result = await _accountingSync.SyncInvoiceAsync(invoiceId, ct);
+        return Ok(result);
     }
 
     /// <summary>Runs a full batch sync of all accounts and invoices.</summary>
@@ -91,16 +76,8 @@ public class IntegrationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> BatchSync(CancellationToken ct)
     {
-        try
-        {
-            var result = await _accountingSync.RunBatchSyncAsync(ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Accounting batch sync failed");
-            return StatusCode(500, new { message = "Batch sync failed", error = ex.Message });
-        }
+                var result = await _accountingSync.RunBatchSyncAsync(ct);
+        return Ok(result);
     }
 
     // ------------------------------------------------------------------ //
@@ -121,16 +98,8 @@ public class IntegrationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SyncContact(int contactId, [FromQuery] string listId, CancellationToken ct)
     {
-        try
-        {
-            var result = await _marketingSync.SyncContactAsync(contactId, listId, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Marketing contact sync failed for contact {Id}", contactId);
-            return StatusCode(500, new { message = "Contact sync failed", error = ex.Message });
-        }
+                var result = await _marketingSync.SyncContactAsync(contactId, listId, ct);
+        return Ok(result);
     }
 
     /// <summary>Imports marketing list subscribers as CRM leads.</summary>
@@ -138,16 +107,8 @@ public class IntegrationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ImportSubscribers(string listId, CancellationToken ct)
     {
-        try
-        {
-            var result = await _marketingSync.ImportSubscribersAsLeadsAsync(listId, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Marketing import failed for list {ListId}", listId);
-            return StatusCode(500, new { message = "Import failed", error = ex.Message });
-        }
+                var result = await _marketingSync.ImportSubscribersAsLeadsAsync(listId, ct);
+        return Ok(result);
     }
 
     // ------------------------------------------------------------------ //
@@ -160,16 +121,8 @@ public class IntegrationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetLinkedInProfile([FromQuery] string url, CancellationToken ct)
     {
-        try
-        {
-            var profile = await _linkedIn.GetProfileAsync(url, ct);
-            return profile is null ? NotFound(new { message = "Profile not found" }) : Ok(profile);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "LinkedIn profile fetch failed for URL {Url}", url);
-            return StatusCode(500, new { message = "Profile fetch failed", error = ex.Message });
-        }
+                var profile = await _linkedIn.GetProfileAsync(url, ct);
+        return profile is null ? NotFound(new { message = "Profile not found" }) : Ok(profile);
     }
 
     /// <summary>Enriches a CRM contact with LinkedIn data.</summary>
@@ -177,16 +130,8 @@ public class IntegrationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> EnrichContact(int contactId, [FromQuery] string profileUrl, CancellationToken ct)
     {
-        try
-        {
-            var result = await _linkedIn.EnrichContactAsync(contactId, profileUrl, ct);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "LinkedIn enrichment failed for contact {Id}", contactId);
-            return StatusCode(500, new { message = "Enrichment failed", error = ex.Message });
-        }
+                var result = await _linkedIn.EnrichContactAsync(contactId, profileUrl, ct);
+        return Ok(result);
     }
 
     // ------------------------------------------------------------------ //
@@ -208,16 +153,8 @@ public class IntegrationsController : ControllerBase
     public async Task<IActionResult> CreateSchedulingLink(
         [FromBody] CreateSchedulingLinkRequest request, CancellationToken ct)
     {
-        try
-        {
-            var link = await _scheduling.CreateSchedulingLinkAsync(request, ct);
-            return Ok(link);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Create scheduling link failed");
-            return StatusCode(500, new { message = "Create scheduling link failed", error = ex.Message });
-        }
+                var link = await _scheduling.CreateSchedulingLinkAsync(request, ct);
+        return Ok(link);
     }
 
     /// <summary>Returns upcoming meetings for a user within the specified date range.</summary>

@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/roles")]
 [Authorize]
-public class RolesController : ControllerBase
+public class RolesController : CrmControllerBase
 {
     private readonly IRBACService _rbacService;
     private readonly ILogger<RolesController> _logger;
@@ -37,16 +38,8 @@ public class RolesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<RoleDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllRoles(CancellationToken cancellationToken)
     {
-        try
-        {
-            var roles = await _rbacService.GetAllRolesAsync(cancellationToken);
-            return Ok(roles);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting all roles");
-            return StatusCode(500, new { message = "Error retrieving roles" });
-        }
+                var roles = await _rbacService.GetAllRolesAsync(cancellationToken);
+        return Ok(roles);
     }
 
     /// <summary>
@@ -57,19 +50,11 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRoleById(int roleId, CancellationToken cancellationToken)
     {
-        try
-        {
-            var role = await _rbacService.GetRoleByIdAsync(roleId, cancellationToken);
-            if (role == null)
-                return NotFound();
+                var role = await _rbacService.GetRoleByIdAsync(roleId, cancellationToken);
+        if (role == null)
+            return NotFound();
 
-            return Ok(role);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error getting role {roleId}");
-            return StatusCode(500, new { message = "Error retrieving role" });
-        }
+        return Ok(role);
     }
 
     /// <summary>
@@ -80,19 +65,11 @@ public class RolesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRoleByName(string roleName, CancellationToken cancellationToken)
     {
-        try
-        {
-            var role = await _rbacService.GetRoleByNameAsync(roleName, cancellationToken);
-            if (role == null)
-                return NotFound();
+                var role = await _rbacService.GetRoleByNameAsync(roleName, cancellationToken);
+        if (role == null)
+            return NotFound();
 
-            return Ok(role);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error getting role '{roleName}'");
-            return StatusCode(500, new { message = "Error retrieving role" });
-        }
+        return Ok(role);
     }
 
     /// <summary>
@@ -114,11 +91,6 @@ public class RolesController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating role");
-            return StatusCode(500, new { message = "Error creating role" });
         }
     }
 
@@ -143,11 +115,6 @@ public class RolesController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error updating role {roleId}");
-            return StatusCode(500, new { message = "Error updating role" });
-        }
     }
 
     /// <summary>
@@ -171,11 +138,6 @@ public class RolesController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error deleting role {roleId}");
-            return StatusCode(500, new { message = "Error deleting role" });
-        }
     }
 
     /// <summary>
@@ -185,16 +147,8 @@ public class RolesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<PermissionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRolePermissions(int roleId, CancellationToken cancellationToken)
     {
-        try
-        {
-            var permissions = await _rbacService.GetRolePermissionsAsync(roleId, cancellationToken);
-            return Ok(permissions);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error getting permissions for role {roleId}");
-            return StatusCode(500, new { message = "Error retrieving permissions" });
-        }
+                var permissions = await _rbacService.GetRolePermissionsAsync(roleId, cancellationToken);
+        return Ok(permissions);
     }
 
     /// <summary>
@@ -226,11 +180,6 @@ public class RolesController : ControllerBase
         {
             return Conflict(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error assigning permission {PermissionId} to role {RoleId}", permissionId, roleId);
-            return StatusCode(500, new { message = "Error assigning permission", error = ex.Message });
-        }
     }
 
     /// <summary>
@@ -248,11 +197,6 @@ public class RolesController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error removing permission {permissionId} from role {roleId}");
-            return StatusCode(500, new { message = "Error removing permission" });
         }
     }
 
@@ -272,11 +216,6 @@ public class RolesController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, $"Error bulk assigning permissions to role {roleId}");
-            return StatusCode(500, new { message = "Error bulk assigning permissions" });
-        }
     }
 
     /// <summary>
@@ -286,16 +225,8 @@ public class RolesController : ControllerBase
     [ProducesResponseType(typeof(RoleHierarchyDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRoleHierarchy(CancellationToken cancellationToken)
     {
-        try
-        {
-            var hierarchy = await _rbacService.GetRoleHierarchyAsync(cancellationToken);
-            return Ok(hierarchy);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting role hierarchy");
-            return StatusCode(500, new { message = "Error retrieving hierarchy" });
-        }
+                var hierarchy = await _rbacService.GetRoleHierarchyAsync(cancellationToken);
+        return Ok(hierarchy);
     }
 
     /// <summary>
@@ -305,15 +236,7 @@ public class RolesController : ControllerBase
     [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
     public async Task<IActionResult> IsRoleHigherInHierarchy(int roleIdA, int roleIdB, CancellationToken cancellationToken)
     {
-        try
-        {
-            var result = await _rbacService.IsRoleHigherInHierarchyAsync(roleIdA, roleIdB, cancellationToken);
-            return Ok(new { isHigher = result });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error comparing role hierarchy");
-            return StatusCode(500, new { message = "Error comparing roles" });
-        }
+                var result = await _rbacService.IsRoleHigherInHierarchyAsync(roleIdA, roleIdB, cancellationToken);
+        return Ok(new { isHigher = result });
     }
 }

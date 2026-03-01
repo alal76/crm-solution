@@ -7,6 +7,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [Route("api/partner-portal")]
 [Authorize]
 [FeatureGate(FeatureFlags.EnablePartnerPortal)]
-public sealed class PartnerPortalController : ControllerBase
+public sealed class PartnerPortalController : CrmControllerBase
 {
     private readonly IPartnerPortalService _partnerPortal;
     private readonly ILogger<PartnerPortalController> _logger;

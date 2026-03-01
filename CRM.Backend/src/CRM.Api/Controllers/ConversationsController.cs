@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class ConversationsController : ControllerBase
+public class ConversationsController : CrmControllerBase
 {
     private const string ConversationNotFoundMessage = "Conversation {0} not found";
     private readonly IConversationService _service;

@@ -8,6 +8,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class TeamsController : ControllerBase
+public class TeamsController : CrmControllerBase
 {
     private readonly ITeamService _teamService;
     private readonly ILogger<TeamsController> _logger;

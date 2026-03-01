@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -104,7 +105,7 @@ public class QuickNoteDto
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class NotesController : ControllerBase
+public class NotesController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<NotesController> _logger;

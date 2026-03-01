@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
@@ -19,7 +20,7 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 [Authorize]
 [Produces("application/json")]
-public class SubscriptionsController : ControllerBase
+public class SubscriptionsController : CrmControllerBase
 {
     private const string SubscriptionNotFoundMessage = "Subscription {0} not found.";
     private static readonly HashSet<string> AllowedBillingCycles = new(StringComparer.OrdinalIgnoreCase)

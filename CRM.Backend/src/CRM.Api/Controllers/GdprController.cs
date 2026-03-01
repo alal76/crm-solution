@@ -8,6 +8,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Ports.Input;
+using CRM.Api.Infrastructure;
 
 namespace CRM.API.Controllers;
 
@@ -18,7 +19,7 @@ namespace CRM.API.Controllers;
 [ApiController]
 [Route("api/gdpr")]
 [Authorize(Roles = "Admin")]
-public class GdprController : ControllerBase
+public class GdprController : CrmControllerBase
 {
     private readonly IGdprService _gdprService;
     private readonly ILogger<GdprController> _logger;
@@ -38,17 +39,8 @@ public class GdprController : ControllerBase
     public async Task<ActionResult<IEnumerable<GdprAccessLogDto>>> GetAccessLogs(
         string subjectType, int subjectId, CancellationToken ct)
     {
-        try
-        {
-            var logs = await _gdprService.GetAccessLogsAsync(subjectType, subjectId, ct);
-            return Ok(logs);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving GDPR access logs for {SubjectType}/{SubjectId}",
-                subjectType, subjectId);
-            return StatusCode(500, "Error retrieving GDPR access logs");
-        }
+                var logs = await _gdprService.GetAccessLogsAsync(subjectType, subjectId, ct);
+        return Ok(logs);
     }
 
     /// <summary>
@@ -60,24 +52,15 @@ public class GdprController : ControllerBase
     public async Task<ActionResult<PersonalDataExport>> ExportPersonalData(
         string subjectType, int subjectId, CancellationToken ct)
     {
-        try
-        {
-            var userId = GetCurrentUserId();
-            var ip = GetClientIpAddress();
+                var userId = GetCurrentUserId();
+        var ip = GetClientIpAddress();
 
-            // Log the export access event
-            await _gdprService.LogAccessAsync(userId, subjectType, subjectId, "export", ip,
-                "GDPR Article 15 data export requested", ct);
+        // Log the export access event
+        await _gdprService.LogAccessAsync(userId, subjectType, subjectId, "export", ip,
+            "GDPR Article 15 data export requested", ct);
 
-            var export = await _gdprService.ExportPersonalDataAsync(subjectType, subjectId, ct);
-            return Ok(export);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error exporting personal data for {SubjectType}/{SubjectId}",
-                subjectType, subjectId);
-            return StatusCode(500, "Error exporting personal data");
-        }
+        var export = await _gdprService.ExportPersonalDataAsync(subjectType, subjectId, ct);
+        return Ok(export);
     }
 
     /// <summary>
@@ -90,31 +73,22 @@ public class GdprController : ControllerBase
     public async Task<IActionResult> ErasePersonalData(
         string subjectType, int subjectId, CancellationToken ct)
     {
-        try
+                var userId = GetCurrentUserId();
+        var ip = GetClientIpAddress();
+
+        var erased = await _gdprService.ErasePersonalDataAsync(
+            subjectType, subjectId, userId, ip, ct);
+
+        if (!erased)
+            return NotFound($"No {subjectType} record with ID {subjectId} found.");
+
+        return Ok(new
         {
-            var userId = GetCurrentUserId();
-            var ip = GetClientIpAddress();
-
-            var erased = await _gdprService.ErasePersonalDataAsync(
-                subjectType, subjectId, userId, ip, ct);
-
-            if (!erased)
-                return NotFound($"No {subjectType} record with ID {subjectId} found.");
-
-            return Ok(new
-            {
-                message = $"Personal data for {subjectType}/{subjectId} has been anonymised.",
-                subjectType,
-                subjectId,
-                erasedAt = DateTime.UtcNow
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error erasing personal data for {SubjectType}/{SubjectId}",
-                subjectType, subjectId);
-            return StatusCode(500, "Error erasing personal data");
-        }
+            message = $"Personal data for {subjectType}/{subjectId} has been anonymised.",
+            subjectType,
+            subjectId,
+            erasedAt = DateTime.UtcNow
+        });
     }
 
     // ─── Private helpers ─────────────────────────────────────────────────────
@@ -142,50 +116,41 @@ public class GdprController : ControllerBase
     public async Task<IActionResult> SubmitExportRequest(
         [FromBody] GdprExportRequestDto request, CancellationToken ct)
     {
-        try
+                if (string.IsNullOrWhiteSpace(request.SubjectType) || request.SubjectId <= 0)
+            return BadRequest(new { error = "SubjectType and SubjectId are required" });
+
+        var userId = GetCurrentUserId();
+        var ip = GetClientIpAddress();
+
+        // Log the export request
+        await _gdprService.LogAccessAsync(userId, request.SubjectType, request.SubjectId,
+            "export-request", ip, $"GDPR export request submitted for {request.SubjectType}/{request.SubjectId}", ct);
+
+        // Perform the export immediately (can be made async with background job later)
+        var export = await _gdprService.ExportPersonalDataAsync(request.SubjectType, request.SubjectId, ct);
+
+        var requestId = Guid.NewGuid().ToString("N")[..12];
+
+        // Store in cache for later retrieval (using static dictionary as simple store)
+        ExportRequestStore[requestId] = new GdprExportResult
         {
-            if (string.IsNullOrWhiteSpace(request.SubjectType) || request.SubjectId <= 0)
-                return BadRequest(new { error = "SubjectType and SubjectId are required" });
+            RequestId = requestId,
+            Status = "completed",
+            SubjectType = request.SubjectType,
+            SubjectId = request.SubjectId,
+            RequestedAt = DateTime.UtcNow,
+            CompletedAt = DateTime.UtcNow,
+            RequestedByUserId = userId,
+            ExportData = export
+        };
 
-            var userId = GetCurrentUserId();
-            var ip = GetClientIpAddress();
-
-            // Log the export request
-            await _gdprService.LogAccessAsync(userId, request.SubjectType, request.SubjectId,
-                "export-request", ip, $"GDPR export request submitted for {request.SubjectType}/{request.SubjectId}", ct);
-
-            // Perform the export immediately (can be made async with background job later)
-            var export = await _gdprService.ExportPersonalDataAsync(request.SubjectType, request.SubjectId, ct);
-
-            var requestId = Guid.NewGuid().ToString("N")[..12];
-
-            // Store in cache for later retrieval (using static dictionary as simple store)
-            ExportRequestStore[requestId] = new GdprExportResult
-            {
-                RequestId = requestId,
-                Status = "completed",
-                SubjectType = request.SubjectType,
-                SubjectId = request.SubjectId,
-                RequestedAt = DateTime.UtcNow,
-                CompletedAt = DateTime.UtcNow,
-                RequestedByUserId = userId,
-                ExportData = export
-            };
-
-            return Accepted(new GdprExportRequestResponse
-            {
-                RequestId = requestId,
-                Status = "completed",
-                Message = $"Export for {request.SubjectType}/{request.SubjectId} is ready for download",
-                ExpiresAt = DateTime.UtcNow.AddHours(24)
-            });
-        }
-        catch (Exception ex)
+        return Accepted(new GdprExportRequestResponse
         {
-            _logger.LogError(ex, "Error submitting GDPR export request for {SubjectType}/{SubjectId}",
-                request.SubjectType, request.SubjectId);
-            return StatusCode(500, "Error submitting GDPR export request");
-        }
+            RequestId = requestId,
+            Status = "completed",
+            Message = $"Export for {request.SubjectType}/{request.SubjectId} is ready for download",
+            ExpiresAt = DateTime.UtcNow.AddHours(24)
+        });
     }
 
     /// <summary>

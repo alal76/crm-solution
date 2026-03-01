@@ -9,13 +9,14 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-public class LookupsController : ControllerBase
+public class LookupsController : CrmControllerBase
 {
     private readonly ICrmDbContext _context;
 
