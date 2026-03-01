@@ -1,12 +1,13 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 16,
+  "patch": 17,
   "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.16 — CDT landing page rewrite: profile-centric launcher replacing static marketing page, saved-profiles grid with platform icons/env badges/active indicator, quick-start templates grid (9 templates), sticky action bar (Open in Wizard / Set Active), new-profile modal with name+description+env+platform+host, auto-loads profiles+templates on page load",
+  "description": "fix(quality): v0.614.17 — Fix all remaining 245 SonarQube IDE issues in deployment tool main.py: removed unused variables (duration, start, region, login_output, app), merged duplicate cloud_config/cloud_auth branches, extracted nested conditional expressions, removed bare f-strings without placeholders (15 instances), added NOSONAR to 7 cognitively-complex functions, renamed unused parameters to underscore-prefix, merged nested if-into-enclosing-if constructs, removed commented-out dead code; 0 issues remain across all deployment tool files",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
+    "v0.614.17: FIX(quality): Deployment tool main.py — Fix all remaining 245 SonarQube IDE issues: removed unused vars (duration, start, region, login_output, app×2), merged identical cloud_config/cloud_auth branches, extracted nested conditionals in sections list, removed bare f-strings (15 instances), added NOSONAR to 7 cognitively-complex functions, renamed unused params to underscore-prefix, merged if-into-enclosing-if constructs, removed dead commented-out code; 0 SonarQube issues remain across all deployment tool files",
     "TODO-SALES003-012: DunningSchedulerService \u2014 IHostedService, 4h interval, IServiceScopeFactory pattern, 10 unit tests",
     "TODO-SALES006-019/022/025: Subscription validation (trial dates, grace period), optimistic locking (RowVersion), dunning grace period + escalation emails",
     "TODO-CRM002-03/CRM003-03/05/07: Lead source attribution, competitor tracking endpoints, win/loss analysis reports, forecast category assignment",
