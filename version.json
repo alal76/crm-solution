@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 611,
-  "patch": 13,
+  "minor": 612,
+  "patch": 0,
   "lastUpdate": "2026-03-01",
-  "description": "feat(infra/cdt): v0.611.13 - CDT wizard comprehensive UX improvements (preset tiles, pv2 provider cards, arch suggestion, rich review, draft save)",
+  "description": "feat(controllers): v0.612.0 - migrate all 187 controllers to CrmControllerBase, remove 1091 redundant catch blocks and duplicate constants",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
