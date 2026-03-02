@@ -430,6 +430,39 @@ def day2_rotate_secret():
     return jsonify(result.to_dict())
 
 
+@day2_bp.route("/api/day2/secrets/set-db-password", methods=["POST"])
+def day2_set_db_password():
+    """Save a DB password into the active profile (for profiles created without one)."""
+    body = request.json or {}
+    db_password = body.get("db_password", "").strip()
+    if not db_password:
+        return jsonify({"error": "db_password is required"}), 400
+    if len(db_password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters"}), 400
+
+    profile_name = body.get("profile_name")
+    profile, resolved_name = _resolve_profile(profile_name)
+
+    profile.setdefault("secrets", {})["db_password"] = db_password
+    profile.setdefault("database", {})["admin_password"] = db_password
+
+    # Persist: write last_profile.json
+    last = Path.home() / CDT_DIR / "last_profile.json"
+    last.parent.mkdir(parents=True, exist_ok=True)
+    last.write_text(json.dumps(profile, indent=2), encoding="utf-8")
+
+    # Persist: also save named profile
+    if resolved_name and resolved_name not in ("—", ""):
+        try:
+            from core.profile import ProfileManager  # noqa: PLC0415
+            pm = ProfileManager()
+            pm.save(resolved_name, profile)
+        except Exception:  # noqa: BLE001
+            pass
+
+    return jsonify({"message": "DB password saved to profile successfully."})
+
+
 # ---------------------------------------------------------------------------
 # Container-level controls (profile-aware)
 # ---------------------------------------------------------------------------

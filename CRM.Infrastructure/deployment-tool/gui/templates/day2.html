@@ -258,6 +258,36 @@
         <!-- Secrets Tab -->
         <div class="tab-pane fade" id="tab-secrets">
             <div class="row g-3">
+
+                <!-- Configure DB Password in Profile -->
+                <div class="col-12">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark py-2 d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="bi bi-database-lock"></i> Configure DB Password in Profile</h6>
+                            <span class="badge bg-dark text-warning small">Required for rotate &amp; migrate operations</span>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-2">If you see <em>"No database password configured"</em> errors, enter the current DB password here. This saves it into the active profile so Day-2 operations can connect to MariaDB.</p>
+                            <div id="d2DbPwMsg" style="display:none" class="mb-2 alert py-1 small"></div>
+                            <div class="row g-2 align-items-end">
+                                <div class="col-md-5">
+                                    <label class="form-label fw-semibold small" for="d2DbPassword">Current DB Password</label>
+                                    <input type="password" class="form-control form-control-sm" id="d2DbPassword" autocomplete="current-password" placeholder="Enter the MariaDB user/root password">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="form-label fw-semibold small" for="d2DbPasswordConfirm">Confirm Password</label>
+                                    <input type="password" class="form-control form-control-sm" id="d2DbPasswordConfirm" autocomplete="current-password" placeholder="Repeat to confirm">
+                                </div>
+                                <div class="col-md-2">
+                                    <button class="btn btn-warning btn-sm w-100" onclick="day2SaveDbPassword()">
+                                        <i class="bi bi-floppy"></i> Save to Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
@@ -1233,6 +1263,34 @@ document.querySelectorAll('#day2Tabs button[data-bs-toggle="tab"]').forEach(btn 
         else if (t === '#tab-testrunner') loadTestHistory();
     });
 });
+
+// ── Configure DB Password ────────────────────────────────────────────────
+async function day2SaveDbPassword() {
+    const msgEl = document.getElementById('d2DbPwMsg');
+    const show = (html, type) => {
+        msgEl.style.display = 'block';
+        msgEl.className = `mb-2 alert alert-${type} py-1 small`;
+        msgEl.innerHTML = html;
+    };
+    const pw = (document.getElementById('d2DbPassword')?.value || '').trim();
+    const confirm = (document.getElementById('d2DbPasswordConfirm')?.value || '').trim();
+    if (!pw) { show('DB Password is required.', 'warning'); return; }
+    if (pw.length < 8) { show('Password must be at least 8 characters.', 'warning'); return; }
+    if (pw !== confirm) { show('Passwords do not match.', 'danger'); return; }
+    show('Saving…', 'info');
+    try {
+        const r = await fetch('/api/day2/secrets/set-db-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ db_password: pw, profile_name: document.getElementById('d2ProfileSelect')?.value || '' }),
+        });
+        const d = await r.json();
+        if (!r.ok || d.error) { show(d.error || 'Failed to save.', 'danger'); return; }
+        show('<i class="bi bi-check-circle"></i> ' + (d.message || 'DB password saved to profile.'), 'success');
+        document.getElementById('d2DbPassword').value = '';
+        document.getElementById('d2DbPasswordConfirm').value = '';
+    } catch (e) { show('Error: ' + e.message, 'danger'); }
+}
 
 // ── Bootstrap — load profile selector first, then data ────────────────────
 (async function init() {

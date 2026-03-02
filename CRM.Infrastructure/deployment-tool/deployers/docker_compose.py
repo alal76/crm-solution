@@ -1468,7 +1468,7 @@ class DockerComposeDeployer:
             self._emit(
                 f"[{self._target_host}] ⚠️ No database password configured in profile — "
                 "skipping pre-migration DB connectivity check. "
-                "EF Core will attempt migration on API startup.",
+                "To fix: open Day-2 Operations → Secrets tab → 'Configure DB Password'.",
                 "warning",
             )
             return
