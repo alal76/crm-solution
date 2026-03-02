@@ -850,6 +850,7 @@
                 <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('scale',this)">Scale</button></li>
                 <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('secrets',this)">Secrets</button></li>
                 <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('containers',this)">Containers</button></li>
+                <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('admin',this)">Admin</button></li>
             </ul>
 
             <!-- Upgrade -->
@@ -920,6 +921,42 @@
                     </button>
                     <div class="text-muted small">Click Refresh to load running containers.</div>
                 </div>
+            </div>
+
+            <!-- Admin -->
+            <div id="day2-admin" class="day2-tab-pane" style="display:none;">
+                <h6><i class="bi bi-person-lock me-1"></i>Set Admin Password</h6>
+                <p class="text-muted small mb-3">
+                    Update the CRM admin user credentials on the running deployment.
+                    The change will be applied directly to the CRM database.
+                </p>
+                <div class="mb-2">
+                    <label class="form-label" for="d2AdminUsername">Admin Username</label>
+                    <input type="text" class="form-control" id="d2AdminUsername" value="admin" placeholder="admin">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="d2AdminEmail">Admin Email</label>
+                    <input type="email" class="form-control" id="d2AdminEmail" value="admin@crm.local" placeholder="admin@crm.local">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="d2AdminPassword">New Password</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="d2AdminPassword" placeholder="Enter new password" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('d2AdminPassword')"><i class="bi bi-eye"></i></button>
+                    </div>
+                    <div class="form-text">Minimum 8 characters, must include upper, lower, digit, and special character.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="d2AdminPasswordConfirm">Confirm Password</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="d2AdminPasswordConfirm" placeholder="Confirm new password" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('d2AdminPasswordConfirm')"><i class="bi bi-eye"></i></button>
+                    </div>
+                </div>
+                <div id="d2AdminMsg" class="mb-2" style="display:none;"></div>
+                <button class="btn btn-primary" onclick="day2SetAdminPassword()">
+                    <i class="bi bi-check-circle me-1"></i>Set Admin Password
+                </button>
             </div>
 
             <!-- Day-2 log -->
@@ -2620,16 +2657,14 @@
                             <div class="col-md-6">
                                 <label class="form-label" for="secretDbPassword">Database Password</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="secretDbPassword" placeholder="Auto-generated if blank">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretDbPassword')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <input type="password" class="form-control" id="secretDbPassword" placeholder="Required — enter password" required>
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretDbPassword')"><i class="bi bi-eye"></i></button>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" for="secretDbRootPassword">Root Password</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="secretDbRootPassword" placeholder="Auto-generated if blank">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretDbRootPassword')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <input type="password" class="form-control" id="secretDbRootPassword" placeholder="Required — enter password" required>
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretDbRootPassword')"><i class="bi bi-eye"></i></button>
                                 </div>
                             </div>
@@ -2669,8 +2704,7 @@
                             <div class="col-md-4">
                                 <label class="form-label" for="secretAdminPassword">Admin Password</label>
                                 <div class="input-group">
-                                    <input type="password" class="form-control" id="secretAdminPassword" placeholder="Auto-generated if blank">
-                                    <button class="btn btn-outline-secondary" type="button" onclick="autoGenField('secretAdminPassword')"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <input type="password" class="form-control" id="secretAdminPassword" placeholder="Required — enter password" required>
                                     <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('secretAdminPassword')"><i class="bi bi-eye"></i></button>
                                 </div>
                             </div>
@@ -4260,9 +4294,11 @@
 
         // Auto-generate all empty secret fields
         async function autoGenAllSecrets() {
+            // Only auto-generate tokens and API keys — passwords must be
+            // entered manually for security.
             const autoFields = [
-                'secretDbPassword', 'secretDbRootPassword', 'secretRedisPassword',
-                'secretJwtSecret', 'secretAdminPassword', 'secretMeilisearchKey',
+                'secretRedisPassword',
+                'secretJwtSecret', 'secretMeilisearchKey',
                 'secretSupersetKey', 'secretN8nPassword'
             ];
             for (const fid of autoFields) {
@@ -6271,7 +6307,27 @@
             } catch (_) {
                 _deploy.containerAction = 'recreate';
                 _deploy.containersToRemove = [];
-                _deploy.passwordStrategy = 'auto_generate';
+                _deploy.passwordStrategy = 'entered';
+            }
+
+            // ── Password validation — DB & admin passwords are required ───
+            const missingPw = [];
+            if (_deploy.passwordStrategy !== 'fetch_existing') {
+                const dbPw = document.getElementById('secretDbPassword')?.value;
+                const dbRootPw = document.getElementById('secretDbRootPassword')?.value;
+                const adminPw = document.getElementById('secretAdminPassword')?.value;
+                if (!dbPw) missingPw.push('Database Password');
+                if (!dbRootPw) missingPw.push('Database Root Password');
+                if (!adminPw) missingPw.push('Admin Password');
+            }
+            if (missingPw.length > 0) {
+                const list = missingPw.map(p => `<li>${p}</li>`).join('');
+                _deployLog(`<strong>Missing required passwords:</strong><ul>${list}</ul>` +
+                    'Go to the <em>Secrets &amp; Authentication</em> step and enter them.', 'dl-error');
+                _setDeployStatus('failed');
+                document.getElementById('btnDeployNow').style.display = '';
+                document.getElementById('btnReDeployNow').style.display = 'none';
+                return;
             }
 
             // Reset UI
@@ -6335,7 +6391,7 @@
          * Returns a Promise resolving to:
          *   { action: 'recreate'|'reuse'|'cancel',
          *     containersToRemove: string[],
-         *     passwordStrategy: 'fetch_existing'|'auto_generate' }
+         *     passwordStrategy: 'fetch_existing'|'entered' }
          */
         function _showInfraActionModal(pfData) {
             return new Promise((resolve) => {
@@ -6454,28 +6510,26 @@
                 }
 
                 // ── Password strategy section ───────────────────────
-                const defaultPwStrategy = hasExisting ? 'fetch_existing' : 'auto_generate';
-                const pwSection = `
+                // Always fetch existing passwords when infrastructure is
+                // already present.  Auto-generate has been removed — passwords
+                // must be entered manually in the Secrets step.
+                const pwSection = hasExisting ? `
                     <div class="d-flex align-items-center justify-content-between">
                       <div>
                         <i class="bi bi-key-fill text-warning me-2"></i>
-                        <strong class="small">Password Strategy</strong>
-                        <span class="text-muted small ms-1">— how to handle DB &amp; service passwords</span>
+                        <strong class="small">Password Recovery</strong>
+                        <span class="text-muted small ms-1">— existing DB &amp; service passwords will be recovered from the deployment</span>
                       </div>
-                      <div class="btn-group btn-group-sm" role="group">
-                        <input type="radio" class="btn-check" name="passwordStrategy" id="pwStratFetch"
-                               value="fetch_existing" autocomplete="off" ${defaultPwStrategy === 'fetch_existing' ? 'checked' : ''}>
-                        <label class="btn btn-outline-success btn-sm" for="pwStratFetch"
-                               title="Read existing passwords from the deployed .env — keeps database access working">
-                          <i class="bi bi-download me-1"></i>Fetch from Deployment
-                        </label>
-                        <input type="radio" class="btn-check" name="passwordStrategy" id="pwStratGenerate"
-                               value="auto_generate" autocomplete="off" ${defaultPwStrategy === 'auto_generate' ? 'checked' : ''}>
-                        <label class="btn btn-outline-danger btn-sm" for="pwStratGenerate"
-                               title="Generate fresh random passwords — use only for first deploy or full reset">
-                          <i class="bi bi-shuffle me-1"></i>Auto-Generate New
-                        </label>
+                      <span class="badge bg-success"><i class="bi bi-download me-1"></i>Fetch from Deployment</span>
+                      <input type="hidden" name="passwordStrategy" value="fetch_existing">
+                    </div>` : `
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <i class="bi bi-key-fill text-info me-2"></i>
+                        <strong class="small">Passwords</strong>
+                        <span class="text-muted small ms-1">— ensure you have entered all required passwords in the Secrets &amp; Authentication step</span>
                       </div>
+                      <input type="hidden" name="passwordStrategy" value="entered">
                     </div>`;
 
                 // ── Build modal ─────────────────────────────────────
@@ -6548,8 +6602,11 @@
                 }
 
                 function getPasswordStrategy() {
+                    // Check for radio buttons first (legacy), then hidden inputs
                     const radio = modal.querySelector('input[name="passwordStrategy"]:checked');
-                    return radio ? radio.value : defaultPwStrategy;
+                    if (radio) return radio.value;
+                    const hidden = modal.querySelector('input[name="passwordStrategy"]');
+                    return hidden ? hidden.value : 'fetch_existing';
                 }
 
                 function cleanup(result) {
@@ -7630,6 +7687,59 @@ async function loadDay2Containers() {
         el.innerHTML = '<button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Containers()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>' + html;
     } catch(e) { el.innerHTML = `<div class="alert alert-warning">Could not load containers: ${e.message}</div>`; showToast('Container load failed: ' + e.message, 'error'); }
 }
+
+async function day2SetAdminPassword() {
+    const msgEl = document.getElementById('d2AdminMsg');
+    const username = (document.getElementById('d2AdminUsername')?.value || '').trim();
+    const email    = (document.getElementById('d2AdminEmail')?.value || '').trim();
+    const pw       = document.getElementById('d2AdminPassword')?.value || '';
+    const pwConf   = document.getElementById('d2AdminPasswordConfirm')?.value || '';
+
+    // Validation
+    if (!username) { showD2AdminMsg('Username is required.', 'warning'); return; }
+    if (!email)    { showD2AdminMsg('Email is required.', 'warning'); return; }
+    if (!pw)       { showD2AdminMsg('Password is required.', 'warning'); return; }
+    if (pw !== pwConf) { showD2AdminMsg('Passwords do not match.', 'warning'); return; }
+    if (pw.length < 8) { showD2AdminMsg('Password must be at least 8 characters.', 'warning'); return; }
+    const pwRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!pwRegex.test(pw)) {
+        showD2AdminMsg('Password must include uppercase, lowercase, digit, and special character.', 'warning');
+        return;
+    }
+
+    showD2AdminMsg('Setting admin password…', 'info');
+
+    try {
+        const resp = await fetch('/api/day2/postinstall/set-admin-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password: pw }),
+        });
+        if (!resp.ok) {
+            let errMsg = 'HTTP ' + resp.status;
+            try { const d = await resp.json(); errMsg = d.error || d.message || errMsg; } catch(_){}
+            showD2AdminMsg(errMsg, 'danger');
+            return;
+        }
+        const data = await resp.json();
+        showD2AdminMsg(data.message || 'Admin password updated successfully.', 'success');
+        showToast('Admin password updated', 'success');
+        // Clear password fields
+        document.getElementById('d2AdminPassword').value = '';
+        document.getElementById('d2AdminPasswordConfirm').value = '';
+    } catch (e) {
+        showD2AdminMsg('Error: ' + e.message, 'danger');
+    }
+}
+
+function showD2AdminMsg(msg, type) {
+    const el = document.getElementById('d2AdminMsg');
+    if (!el) return;
+    el.style.display = 'block';
+    el.className = `mb-2 alert alert-${type} py-1 small`;
+    el.innerHTML = msg;
+}
+
 function openCrmUrl() {
     const url = document.getElementById('btn-open-crm')?.dataset?.href || '/';
     window.open(url, '_blank', 'noopener');

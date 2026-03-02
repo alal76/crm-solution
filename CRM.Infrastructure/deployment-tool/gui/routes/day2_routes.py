@@ -900,6 +900,137 @@ def day2_postinstall_database_status():
     })
 
 
+@day2_bp.route("/api/day2/postinstall/set-admin-password", methods=["POST"])
+def day2_postinstall_set_admin_password():
+    """Set or reset the CRM admin user password directly in the database.
+
+    Expects JSON body::
+
+        {
+            "username": "admin",
+            "email": "admin@crm.local",
+            "password": "NewP@ss123"
+        }
+
+    The password is hashed locally with BCrypt and the Users table is updated
+    via ``docker exec`` on the MariaDB container.  This bypasses the CRM API
+    authentication layer — intentionally, so the admin password can be
+    recovered when the current one is unknown.
+    """
+    import re  # noqa: PLC0415
+    profile, pname = _profile_from_request()
+    data = request.get_json(silent=True) or {}
+
+    username = (data.get("username") or "").strip()
+    email = (data.get("email") or "").strip()
+    password = data.get("password") or ""
+
+    # ── Validation ──────────────────────────────────────────────────
+    if not username:
+        return jsonify({"error": "Username is required."}), 400
+    if not email:
+        return jsonify({"error": "Email is required."}), 400
+    if not password:
+        return jsonify({"error": "Password is required."}), 400
+    if len(password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters."}), 400
+    pw_pattern = re.compile(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$")
+    if not pw_pattern.match(password):
+        return jsonify({
+            "error": "Password must include uppercase, lowercase, digit, and special character."
+        }), 400
+
+    # ── Hash the password with BCrypt ───────────────────────────────
+    try:
+        import bcrypt  # noqa: PLC0415
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    except Exception as exc:
+        return jsonify({"error": f"Failed to hash password: {exc}"}), 500
+
+    # ── Build SQL (uses parameterised escaping via MariaDB CLI) ────
+    # Escape single-quotes in values for the SQL string.
+    safe_hash = hashed.replace("'", "''")
+    safe_user = username.replace("'", "''")
+    safe_email = email.replace("'", "''")
+
+    # The CRM uses BCrypt via BCrypt.Net; the hash is stored in
+    # PasswordHash column. We UPDATE by Username (case-insensitive).
+    sql = (
+        f"UPDATE Users "
+        f"SET PasswordHash = '{safe_hash}', "
+        f"    Email = '{safe_email}', "
+        f"    UpdatedAt = NOW() "
+        f"WHERE LOWER(Username) = LOWER('{safe_user}');"
+    )
+
+    # Check if user exists; if not, offer to insert
+    check_sql = f"SELECT Id FROM Users WHERE LOWER(Username) = LOWER('{safe_user}');"
+
+    # Read DB credentials from the profile's secrets
+    secrets = profile.get("secrets", {})
+    db_password = secrets.get("db_root_password") or secrets.get("db_password") or "RootPass@Dev2024"
+
+    # ── Execute via docker exec on the MariaDB container ───────────
+    db_container = "crm-mariadb"
+    db_name = profile.get("database", {}).get("name", "crm_db")
+
+    # First check if the user exists
+    ok, out, err = _docker_cmd_profile(
+        profile,
+        "exec", "-i", db_container,
+        "mariadb", "-u", "root", f"-p{db_password}", db_name,
+        "-e", check_sql,
+        timeout=15,
+    )
+    if not ok:
+        return jsonify({
+            "error": f"Database connection failed: {err}",
+            "message": "Ensure MariaDB container is running and credentials are correct.",
+        }), 502
+
+    user_exists = bool(out.strip() and "Id" in out)
+
+    if not user_exists:
+        # Insert the admin user
+        insert_sql = (
+            f"INSERT INTO Users (Username, Email, PasswordHash, FirstName, LastName, "
+            f"Role, IsActive, CreatedAt, UpdatedAt, IsDeleted) "
+            f"VALUES ('{safe_user}', '{safe_email}', '{safe_hash}', 'System', 'Admin', "
+            f"'Admin', 1, NOW(), NOW(), 0);"
+        )
+        ok, out, err = _docker_cmd_profile(
+            profile,
+            "exec", "-i", db_container,
+            "mariadb", "-u", "root", f"-p{db_password}", db_name,
+            "-e", insert_sql,
+            timeout=15,
+        )
+        if not ok:
+            return jsonify({"error": f"Failed to create admin user: {err}"}), 502
+        return jsonify({
+            "success": True,
+            "message": f"Admin user '{username}' created with the specified password.",
+            "action": "created",
+        })
+
+    # Update existing user
+    ok, out, err = _docker_cmd_profile(
+        profile,
+        "exec", "-i", db_container,
+        "mariadb", "-u", "root", f"-p{db_password}", db_name,
+        "-e", sql,
+        timeout=15,
+    )
+    if not ok:
+        return jsonify({"error": f"Failed to update admin password: {err}"}), 502
+
+    return jsonify({
+        "success": True,
+        "message": f"Password updated for admin user '{username}'.",
+        "action": "updated",
+    })
+
+
 # ---------------------------------------------------------------------------
 # Test Runner
 # ---------------------------------------------------------------------------

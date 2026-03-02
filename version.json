@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 65,
+  "patch": 66,
   "lastUpdate": "2026-03-02",
-  "description": "fix(tests): v0.614.65 - Fix OrderServiceTests to verify DispatchEntityEventAsync instead of sync DispatchEntityEvent",
+  "description": "feat(cdt): v0.614.66 - Password handling overhaul: require manual entry for DB/admin passwords, remove auto-generate, add Day-2 admin password reset",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

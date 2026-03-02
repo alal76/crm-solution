@@ -1268,7 +1268,7 @@ class TestProviderKeyNormalization:
         gen = ConfigGenerator()
         profile = {
             "providers": {"search": "meilisearch", "ai": "ollama"},
-            "database": {"db_password": "test", "db_host": "localhost"},
+            "database": {"db_password": "test", "db_root_password": "roottest", "db_host": "localhost"},
             "security": {"jwt_secret": "x" * 64},
         }
         ctx = gen._build_context(profile)
@@ -1282,7 +1282,7 @@ class TestProviderKeyNormalization:
         gen = ConfigGenerator()
         profile = {
             "providers": {"search": "meilisearch"},
-            "database": {"db_password": "test123", "db_host": "crm-mariadb"},
+            "database": {"db_password": "test123", "db_root_password": "roottest", "db_host": "crm-mariadb"},
             "security": {"jwt_secret": "x" * 64},
         }
         ctx = gen._build_context(profile)
@@ -1308,7 +1308,7 @@ class TestProviderKeyNormalization:
                 "signature": "docuseal",
                 "integration": "n8n",
             },
-            "database": {"db_password": "test123", "db_host": "crm-mariadb"},
+            "database": {"db_password": "test123", "db_root_password": "roottest", "db_host": "crm-mariadb"},
             "security": {"jwt_secret": "x" * 64},
         }
         ctx = gen._build_context(profile)
@@ -1992,7 +1992,7 @@ class TestDeployAbortOnVolumeConflict:
             })
         assert resp.status_code == 400
         data = resp.get_json()
-        assert "credential mismatch" in data["error"].lower() or "access denied" in data["error"].lower()
+        assert "cannot recover" in data["error"].lower() or "mariadb" in data["error"].lower()
 
     def test_deploy_proceeds_when_no_secrets_and_no_volume(self, client):
         """Deploy should NOT return credential-mismatch 400 when no DB volume exists."""
@@ -2026,8 +2026,8 @@ class TestDeployAbortOnVolumeConflict:
         data = resp.get_json() or {}
         error_msg = data.get("error", "").lower()
         assert not (resp.status_code == 400 and (
-            "credential mismatch" in error_msg or "access denied" in error_msg
-        )), f"Got unexpected credential-mismatch abort: {data}"
+            "cannot recover" in error_msg or "mariadb" in error_msg
+        )), f"Got unexpected volume-conflict abort: {data}"
 
 
 class TestReadRemoteEnvSecrets:
@@ -2106,7 +2106,7 @@ class TestDeployPasswordStrategy:
             "/api/deploy",
             json={
                 "profile": {"architecture": "monolith"},
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
                 "dry_run": True,
             },
             content_type="application/json",
@@ -2152,9 +2152,12 @@ class TestCloudDeployerSelection:
         resp = client.post(
             "/api/deploy",
             json={
-                "profile": {"platform": "azure", "architecture": "monolith"},
+                "profile": {
+                    "platform": "azure", "architecture": "monolith",
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
+                },
                 "dry_run": False,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -2171,9 +2174,10 @@ class TestCloudDeployerSelection:
                     "platform": "azure",
                     "architecture": "monolith",
                     "cloud_services": {"azure": {"compute": "aks"}},
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
                 },
                 "dry_run": True,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -2188,9 +2192,10 @@ class TestCloudDeployerSelection:
                     "platform": "aws",
                     "architecture": "monolith",
                     "cloud_services": {"aws": {"compute": "eks"}},
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
                 },
                 "dry_run": True,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -2205,9 +2210,10 @@ class TestCloudDeployerSelection:
                     "platform": "gcp",
                     "architecture": "monolith",
                     "cloud_services": {"gcp": {"compute": "gke"}},
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
                 },
                 "dry_run": True,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -2222,9 +2228,10 @@ class TestCloudDeployerSelection:
                     "platform": "azure",
                     "architecture": "monolith",
                     "cloud_services": {"azure": {"compute": "container_apps"}},
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
                 },
                 "dry_run": True,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -2239,9 +2246,10 @@ class TestCloudDeployerSelection:
                     "platform": "azure",
                     "architecture": "monolith",
                     "cloud_services": {"azure": {"compute": "vm"}},
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
                 },
                 "dry_run": False,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -2256,9 +2264,10 @@ class TestCloudDeployerSelection:
                     "platform": "on_premises",
                     "architecture": "monolith",
                     "target": {"host": "192.168.0.9"},
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
                 },
                 "dry_run": True,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -2269,9 +2278,12 @@ class TestCloudDeployerSelection:
         resp = client.post(
             "/api/deploy",
             json={
-                "profile": {"platform": "azure", "architecture": "monolith"},
+                "profile": {
+                    "platform": "azure", "architecture": "monolith",
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
+                },
                 "dry_run": False,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -2288,9 +2300,10 @@ class TestCloudDeployerSelection:
                 "profile": {
                     "platform": "on_premises",
                     "architecture": {"container_runtime": "kubernetes"},
+                    "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
                 },
                 "dry_run": True,
-                "password_strategy": "auto_generate",
+                "password_strategy": "entered",
             },
             content_type="application/json",
         )
@@ -3423,7 +3436,7 @@ class TestBuildServerConfig:
     def test_deploy_accepts_build_server_config(self, client):
         profile = {
             "target": {"host": "192.168.0.9"},
-            "database": {},
+            "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
             "build_server": {
                 "type": "remote",
                 "host": "build.example.com",
@@ -3442,7 +3455,7 @@ class TestBuildServerConfig:
     def test_deploy_accepts_local_build_server(self, client):
         profile = {
             "target": {"host": "localhost"},
-            "database": {},
+            "database": {"db_password": "Test@1234", "db_root_password": "Root@1234"},
             "build_server": {"type": "local"},
         }
         resp = client.post("/api/deploy", json={
@@ -3450,3 +3463,136 @@ class TestBuildServerConfig:
             "dry_run": True,
         })
         assert resp.status_code in (200, 400)
+
+
+# ===========================================================================
+# Password handling overhaul — required passwords & no auto-generate
+# ===========================================================================
+
+
+class TestPasswordRequiredValidation:
+    """Verify that _build_context rejects missing passwords."""
+
+    def test_missing_db_password_raises_value_error(self):
+        """_build_context should raise ValueError when db_password is missing."""
+        from core.generator import ConfigGenerator
+        gen = ConfigGenerator()
+        profile = {
+            "database": {"db_root_password": "roottest", "db_host": "localhost"},
+            "security": {"jwt_secret": "x" * 64},
+        }
+        import pytest
+        with pytest.raises(ValueError, match="Database password is required"):
+            gen._build_context(profile)
+
+    def test_missing_db_root_password_raises_value_error(self):
+        """_build_context should raise ValueError when db_root_password is missing."""
+        from core.generator import ConfigGenerator
+        gen = ConfigGenerator()
+        profile = {
+            "database": {"db_password": "test", "db_host": "localhost"},
+            "security": {"jwt_secret": "x" * 64},
+        }
+        import pytest
+        with pytest.raises(ValueError, match="Database root password is required"):
+            gen._build_context(profile)
+
+    def test_jwt_secret_still_auto_generated(self):
+        """JWT secret should still auto-generate when missing — it's a token, not a password."""
+        from core.generator import ConfigGenerator
+        gen = ConfigGenerator()
+        profile = {
+            "database": {"db_password": "test", "db_root_password": "roottest"},
+        }
+        ctx = gen._build_context(profile)
+        assert ctx.get("jwt_secret"), "JWT secret should have been auto-generated"
+        assert len(ctx["jwt_secret"]) >= 32, "JWT secret should be at least 32 chars"
+
+    def test_provided_passwords_pass_validation(self):
+        """Providing both passwords should not raise."""
+        from core.generator import ConfigGenerator
+        gen = ConfigGenerator()
+        profile = {
+            "database": {"db_password": "MyP@ss1", "db_root_password": "Root@2"},
+            "security": {"jwt_secret": "x" * 64},
+        }
+        ctx = gen._build_context(profile)
+        assert ctx["db_password"] == "MyP@ss1"
+        assert ctx["db_root_password"] == "Root@2"
+
+    def test_deploy_returns_400_when_passwords_missing(self, client):
+        """Deploy endpoint should return 400 when required passwords are not provided."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {"architecture": "monolith"},
+                "password_strategy": "entered",
+                "dry_run": True,
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert "password" in data.get("error", "").lower()
+
+
+class TestAdminPasswordEndpoint:
+    """Tests for /api/day2/postinstall/set-admin-password."""
+
+    def test_missing_username_returns_400(self, client):
+        """Endpoint should return 400 when username is missing."""
+        resp = client.post(
+            "/api/day2/postinstall/set-admin-password",
+            json={"email": "a@b.com", "password": "Test@1234"},
+        )
+        assert resp.status_code == 400
+        assert "username" in resp.get_json()["error"].lower()
+
+    def test_missing_email_returns_400(self, client):
+        """Endpoint should return 400 when email is missing."""
+        resp = client.post(
+            "/api/day2/postinstall/set-admin-password",
+            json={"username": "admin", "password": "Test@1234"},
+        )
+        assert resp.status_code == 400
+        assert "email" in resp.get_json()["error"].lower()
+
+    def test_missing_password_returns_400(self, client):
+        """Endpoint should return 400 when password is missing."""
+        resp = client.post(
+            "/api/day2/postinstall/set-admin-password",
+            json={"username": "admin", "email": "a@b.com"},
+        )
+        assert resp.status_code == 400
+        assert "password" in resp.get_json()["error"].lower()
+
+    def test_short_password_returns_400(self, client):
+        """Endpoint should return 400 when password is too short."""
+        resp = client.post(
+            "/api/day2/postinstall/set-admin-password",
+            json={"username": "admin", "email": "a@b.com", "password": "Ab1@"},
+        )
+        assert resp.status_code == 400
+        assert "8 characters" in resp.get_json()["error"]
+
+    def test_weak_password_returns_400(self, client):
+        """Endpoint should return 400 when password lacks complexity."""
+        resp = client.post(
+            "/api/day2/postinstall/set-admin-password",
+            json={"username": "admin", "email": "a@b.com", "password": "alllowercase1!"},
+        )
+        assert resp.status_code == 400
+        assert "uppercase" in resp.get_json()["error"].lower()
+
+    def test_valid_request_hashes_password(self, client):
+        """Endpoint with valid body should attempt DB update (will fail on docker exec but not 400)."""
+        resp = client.post(
+            "/api/day2/postinstall/set-admin-password",
+            json={
+                "username": "admin",
+                "email": "admin@crm.local",
+                "password": "NewAdmin@123",
+            },
+        )
+        # Will be 502 in test env (no docker), not 400 (validation passed)
+        assert resp.status_code != 400, f"Expected 502 (no docker), got 400: {resp.get_json()}"

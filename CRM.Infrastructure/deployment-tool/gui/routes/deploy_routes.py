@@ -291,9 +291,8 @@ def start_deploy():
     container_action = data.get("container_action", "recreate")  # reuse | recreate
     containers_to_remove = data.get("containers_to_remove", [])  # explicit list
     # "fetch_existing" (default) reads secrets from the remote .env so
-    # redeployments keep the same passwords.  "auto_generate" always
-    # creates fresh random credentials (useful for first-time deploys or
-    # full environment resets).
+    # redeployments keep the same passwords.  "entered" means the user
+    # has manually entered all required passwords in the wizard.
     password_strategy = data.get("password_strategy", "fetch_existing")
 
     # ── Recover existing secrets from remote deployment ──────────────
@@ -348,11 +347,10 @@ def start_deploy():
                             "error": (
                                 f"Cannot recover existing DB passwords from "
                                 f"{deploy_host}:{remote_dir}/.env, but MariaDB "
-                                f"data volume already exists.  Generating new "
-                                f"random passwords would cause ACCESS DENIED.  "
-                                f"Please ensure the remote .env file exists or "
-                                f"use password_strategy='auto_generate' with a "
-                                f"fresh database volume."
+                                f"data volume already exists.  Please enter the "
+                                f"correct database passwords in the Secrets & "
+                                f"Authentication step, or remove the MariaDB "
+                                f"volume on the target for a fresh start."
                             ),
                         }), 400
                     logger.warning(
@@ -376,10 +374,10 @@ def start_deploy():
                     return jsonify({
                         "error": (
                             f"Secret recovery from {deploy_host} failed: {exc}. "
-                            f"MariaDB data volume exists — generating fresh "
-                            f"passwords would cause ACCESS DENIED.  Fix SSH "
-                            f"access or use password_strategy='auto_generate' "
-                            f"with a fresh database volume."
+                            f"MariaDB data volume exists — please enter the "
+                            f"correct database passwords in the Secrets & "
+                            f"Authentication step, or remove the MariaDB "
+                            f"volume on the target for a fresh start."
                         ),
                     }), 400
                 logger.warning(
