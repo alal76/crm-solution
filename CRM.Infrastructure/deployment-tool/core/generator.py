@@ -97,6 +97,38 @@ class ConfigGenerator:
             self._env = None
 
     # ------------------------------------------------------------------
+    # Provider key normalization
+    # ------------------------------------------------------------------
+
+    # Maps short provider keys (used in profiles) to long keys (used in templates)
+    _PROVIDER_KEY_MAP: dict[str, str] = {
+        "search": "search_provider",
+        "ai": "ai_provider",
+        "chat": "chat_provider",
+        "notification": "notification_provider",
+        "analytics": "analytics_provider",
+        "signature": "signature_provider",
+        "integration": "integration_provider",
+    }
+
+    @staticmethod
+    def _normalize_provider_keys(providers: dict) -> dict:
+        """Ensure providers dict has both short ('search') and long ('search_provider') keys.
+
+        Profiles store providers with short keys (e.g. ``{"search": "meilisearch"}``).
+        Jinja2 templates and the deployer historically used long keys
+        (e.g. ``providers.get('search_provider')``).  This normalizer adds
+        the missing format so both work.
+        """
+        result = dict(providers)
+        for short, long in ConfigGenerator._PROVIDER_KEY_MAP.items():
+            if short in result and long not in result:
+                result[long] = result[short]
+            elif long in result and short not in result:
+                result[short] = result[long]
+        return result
+
+    # ------------------------------------------------------------------
     # Helpers exposed as template globals
     # ------------------------------------------------------------------
 
@@ -179,6 +211,8 @@ class ConfigGenerator:
 
         # Providers kept under their own key AND flattened for convenience
         providers = profile.get("providers", {})
+        if isinstance(providers, dict):
+            providers = self._normalize_provider_keys(providers)
         ctx["providers"] = providers
         if isinstance(providers, dict):
             ctx.update(providers)

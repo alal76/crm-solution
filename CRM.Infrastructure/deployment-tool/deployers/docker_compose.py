@@ -957,22 +957,30 @@ class DockerComposeDeployer:
         )
         return True
 
+    @staticmethod
+    def _resolve_provider(providers: dict, short_key: str, long_key: str) -> str:
+        """Return the provider value from *providers* checking both key formats."""
+        return providers.get(short_key) or providers.get(long_key) or ""
+
     def _step_start_providers(self) -> bool:  # NOSONAR - provider failures are non-fatal; core CRM runs without them
         providers = self.profile.get("providers", {})
+        # Also check wizard_config for flat-key format (search_provider, ai_provider, etc.)
+        wiz = self.profile.get("wizard_config", {})
+        merged = {**wiz, **providers} if isinstance(wiz, dict) else dict(providers)
         extras = []
-        if providers.get("search_provider") == "meilisearch":
+        if self._resolve_provider(merged, "search", "search_provider") == "meilisearch":
             extras.append("crm-meilisearch")
-        if providers.get("ai_provider") == "ollama":
+        if self._resolve_provider(merged, "ai", "ai_provider") == "ollama":
             extras.append("crm-ollama")
-        if providers.get("chat_provider") == "chatwoot":
+        if self._resolve_provider(merged, "chat", "chat_provider") == "chatwoot":
             extras.append("crm-chatwoot")
-        if providers.get("notification_provider") == "novu":
+        if self._resolve_provider(merged, "notification", "notification_provider") == "novu":
             extras.append("crm-novu")
-        if providers.get("analytics_provider") == "superset":
+        if self._resolve_provider(merged, "analytics", "analytics_provider") == "superset":
             extras.append("crm-superset")
-        if providers.get("signature_provider") == "docuseal":
+        if self._resolve_provider(merged, "signature", "signature_provider") == "docuseal":
             extras.append("crm-docuseal")
-        if providers.get("integration_provider") == "n8n":
+        if self._resolve_provider(merged, "integration", "integration_provider") == "n8n":
             extras.append("crm-n8n")
         if not extras:
             self._emit(f"[{self._target_host}] No external providers selected — skipping", "info")
