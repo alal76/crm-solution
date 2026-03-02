@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """CRM CDT - Docker Compose Deployer."""
 from __future__ import annotations
+import re
 import subprocess
 import queue
 import threading
@@ -163,6 +164,33 @@ class DockerComposeDeployer:
             else:
                 self._emit(f"  {name}: started successfully", "info")
         return True
+
+    def _compose_up(self, services: list[str], timeout: int = 120) -> tuple[int, str, str]:
+        """Run ``docker compose up -d`` with auto-retry on container name conflicts.
+
+        If the first attempt fails because existing containers with the same
+        ``container_name`` already exist (common when a prior compose project
+        left orphans), the conflicting containers are forcibly removed and the
+        command is retried once.
+        """
+        cmd = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d"] + services
+        rc, out, err = self._run_on_target(cmd, timeout=timeout, log_command=True)
+        if rc != 0 and "already in use" in (err or ""):
+            conflicts = re.findall(
+                r'container name "/?([^"]+)" is already in use', err
+            )
+            if conflicts:
+                self._emit(
+                    f"[{self._target_host}] Removing {len(conflicts)} conflicting orphan container(s): {', '.join(conflicts)}",
+                    "warn",
+                )
+                self._run_on_target(
+                    ["docker", "rm", "-f"] + conflicts, timeout=30
+                )
+                rc, out, err = self._run_on_target(
+                    cmd, timeout=timeout, log_command=True
+                )
+        return rc, out, err
 
     def _emit(self, message: str, level: str = "info", step: int = 0) -> None:
         pct = int((step / self.total_steps) * 100) if self.total_steps else 0
@@ -776,14 +804,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] All database containers are reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting database services: {', '.join(services)}", "info")
-        rc, out, err = self._run_on_target(
-            [
-                "docker", "compose", "-f", DOCKER_COMPOSE_FILE,
-                "up", "-d",
-            ] + services,
-            timeout=120,
-            log_command=True,
-        )
+        rc, out, err = self._compose_up(services, timeout=120)
         if rc != 0 and not self.dry_run:
             self._emit(f"[{self._target_host}] Database start failed (rc={rc})", "error")
             if err:
@@ -967,11 +988,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] All provider containers are reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting provider services: {', '.join(extras)}", "info")
-        rc, out, err = self._run_on_target(
-            ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d"] + extras,
-            timeout=120,
-            log_command=True,
-        )
+        rc, out, err = self._compose_up(extras, timeout=120)
         if rc != 0 and not self.dry_run:
             self._emit(f"[{self._target_host}] Provider start warning (rc={rc})", "warn")
             if err:
@@ -987,11 +1004,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] crm-api container is reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting crm-api container…", "info")
-        rc, out, err = self._run_on_target(
-            ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "crm-api"],
-            timeout=120,
-            log_command=True,
-        )
+        rc, out, err = self._compose_up(["crm-api"], timeout=120)
         if rc != 0 and not self.dry_run:
             self._emit(f"[{self._target_host}] API start failed (rc={rc})", "error")
             if err:
@@ -1048,11 +1061,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] crm-frontend container is reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting crm-frontend container…", "info")
-        rc, out, err = self._run_on_target(
-            ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "crm-frontend"],
-            timeout=120,
-            log_command=True,
-        )
+        rc, out, err = self._compose_up(["crm-frontend"], timeout=120)
         if rc != 0 and not self.dry_run:
             self._emit(f"[{self._target_host}] Frontend start failed (rc={rc})", "error")
             if err:

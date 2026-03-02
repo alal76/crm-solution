@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Output.Providers;
 using CRM.Core.Scripting;
 
 namespace CRM.Infrastructure.Scripting.Tools;
@@ -20,11 +21,13 @@ namespace CRM.Infrastructure.Scripting.Tools;
 public class SendEmailTool
 {
     private readonly ILogger<SendEmailTool> _logger;
+    private readonly INotificationPort _notificationPort;
 
     /// <summary>Initialises a new <see cref="SendEmailTool"/>.</summary>
-    public SendEmailTool(ILogger<SendEmailTool> logger)
+    public SendEmailTool(ILogger<SendEmailTool> logger, INotificationPort notificationPort)
     {
         _logger = logger;
+        _notificationPort = notificationPort;
     }
 
     /// <summary>
@@ -35,8 +38,15 @@ public class SendEmailTool
     {
         _logger.LogInformation("SendEmailTool: email queued");
 
-        // TODO: Inject INotificationPort and dispatch email via notification provider // NOSONAR
-        await Task.CompletedTask.ConfigureAwait(false);
-        return new { Queued = true };
+        dynamic p = parameters;
+        var result = await _notificationPort.SendEmailAsync(
+            new EmailNotificationRequest
+            {
+                To = (string)p.To,
+                Subject = (string)p.Subject,
+                Body = (string)p.Body,
+            },
+            cancellationToken).ConfigureAwait(false);
+        return new { Queued = result.Success };
     }
 }

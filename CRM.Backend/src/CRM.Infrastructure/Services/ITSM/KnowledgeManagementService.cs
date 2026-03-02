@@ -332,17 +332,18 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     /// <summary>
     /// Get version history for a knowledge article.
-    /// TODO-SD002-010: Version history endpoint implementation.
     /// </summary>
     public async Task<IEnumerable<ArticleVersionDto>> GetArticleVersionsAsync(int articleId)
     {
         var context = _dbContextResolver.ResolveContext();
 
-        var versions = await context.Set<ArticleVersion>()
+        var versions = await context.ArticleVersions
             .Include(v => v.ChangedBy)
             .Where(v => v.ArticleId == articleId)
             .OrderByDescending(v => v.VersionNumber)
             .ToListAsync();
+
+        _logger.LogInformation("Retrieved {Count} version(s) for article {ArticleId}", versions.Count, articleId);
 
         return versions.Select(v => new ArticleVersionDto
         {

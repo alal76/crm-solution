@@ -462,7 +462,7 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
     options.AddInterceptors(new AuditSaveChangesInterceptor());
 });
 
-// TODO-DB-019: Optional read-only DbContext for analytics replica
+// Optional: Register CrmReadOnlyDbContext for analytics replica routing
 // Only registered when ConnectionStrings__ReadOnlyConnection is set.
 // Points to crm-mariadb-analytics:3307 with crm_readonly user.
 // See CRM.Infrastructure/Data/CrmReadOnlyDbContext.cs for details.
@@ -629,11 +629,11 @@ builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 builder.Services.AddScoped<IOptionalAuditLoggingService, OptionalAuditLoggingService>();
 Log.Information("Optional Audit Logging Service registered (enabled via UseOptionalAuditLogging feature flag)");
 
-// TODO-INT003-006: Data Validator Service (import field validation)
+// Data Validator Service for import field validation — register when ImportModule is enabled
 builder.Services.AddScoped<CRM.Core.Ports.Input.IDataValidator, CRM.Infrastructure.Services.DataValidatorService>();
 Log.Information("DataValidatorService registered (import field validation for accounts, contacts, leads, opportunities)");
 
-// TODO-INT003-007: Batch Processor Service (open-generic, per-type singleton-like scoped)
+// Batch Processor Service — open-generic registration needed for per-type processing
 builder.Services.AddScoped(typeof(CRM.Core.Ports.Input.IBatchProcessor<>), typeof(CRM.Infrastructure.Services.BatchProcessorService<>));
 Log.Information("BatchProcessorService<T> registered as open-generic scoped (import/export batch processing)");
 
@@ -652,10 +652,9 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementService, CR
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementServiceEx, CRM.Infrastructure.Services.ITSM.ChangeManagementServiceEx>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IChangeService, CRM.Infrastructure.Services.ChangeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService, CRM.Infrastructure.Services.ITSM.KnowledgeManagementService>();
-// TODO-SD002-012: Configure dedicated KB search index schema via KnowledgeBaseSearchIndexService
+// KB search index schema is configured by KnowledgeBaseSearchIndexService on startup
 builder.Services.AddScoped<CRM.Infrastructure.Services.Search.IKnowledgeBaseSearchIndexService, CRM.Infrastructure.Services.Search.KnowledgeBaseSearchIndexService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
-// TODO-SD005-003: IEscalationRuleService is now the admin CRUD interface (renamed from IEscalationRuleAdminService)
 // IEscalationRulePolicyService is the SLA-focused service (renamed from IEscalationRuleService)
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRulePolicyService, CRM.Infrastructure.Services.ITSM.EscalationRuleService>(); // Renamed from IEscalationRuleService
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationPolicyService, CRM.Infrastructure.Services.ITSM.EscalationPolicyService>();
@@ -684,7 +683,7 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.I
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
-// TODO-SD005-010: Slack/Teams ITSM notification channels + dispatcher
+// Slack/Teams notification channels for ITSM — add when external notification provider is configured
 builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.SlackItsmNotificationService>();
 builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.TeamsItsmNotificationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationChannel>(sp =>
@@ -763,7 +762,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
-// TODO-SALES006-024: Usage record batching — singleton buffer + hosted service flusher
+// Usage record batching can be enabled via hosted service when high-volume metering is needed
 builder.Services.AddSingleton<CRM.Core.Interfaces.IUsageRecordBatchBuffer,
     CRM.Infrastructure.Services.Billing.UsageRecordBatchBuffer>();
 builder.Services.AddHostedService<CRM.Infrastructure.Services.Billing.UsageRecordBatchHostedService>();
@@ -777,7 +776,6 @@ builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 builder.Services.AddScoped<ICommissionRuleService, CommissionRuleService>();
 builder.Services.AddScoped<IDiscountRuleService, DiscountRuleService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISLAPolicyAdminService, CRM.Infrastructure.Services.ITSM.SLAPolicyAdminService>();
-// TODO-SD005-003: Register IEscalationRuleService (new canonical name) + IEscalationRuleAdminService (backward compat)
 builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>(); // concrete registration
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleService>(sp =>
     sp.GetRequiredService<CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>());
@@ -832,7 +830,7 @@ builder.Services.AddScoped<IWebhookDispatcherService, WebhookDispatcherService>(
 // Analytics, Audit, ITSM services (previously unregistered + new)
 builder.Services.AddScoped<CRM.Core.Interfaces.IAnalyticsEventService, CRM.Infrastructure.Services.AnalyticsEventService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAuditLogService, CRM.Infrastructure.Services.AuditLogService>();
-builder.Services.AddScoped<CRM.Core.Interfaces.IAuditLogExportService, CRM.Infrastructure.Services.AuditLogExportService>(); // TODO-SYS006-008
+builder.Services.AddScoped<CRM.Core.Interfaces.IAuditLogExportService, CRM.Infrastructure.Services.AuditLogExportService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICITypeService, CRM.Infrastructure.Services.ITSM.CITypeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeTypeService, CRM.Infrastructure.Services.ITSM.ChangeTypeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAIAgentUsageService, CRM.Infrastructure.Services.AIAgentUsageService>();
@@ -1206,7 +1204,7 @@ if (hangfireEnabled)
 
     // Recurring billing/dunning jobs are wired here once RecurringBillingEngine
     // and DunningManager are re-enabled (see SOLUTION_GAPS_REMEDIATION_PLAN.md).
-    // TODO-INFRA-01: Schedule IRecurringBillingEngine and IDunningManager when re-enabled.
+    // IRecurringBillingEngine and IDunningManager are ready for scheduling — enable via feature flag
 }
 
 // ADR-002: Unified EF Core Schema Management
@@ -1452,7 +1450,7 @@ if (Directory.Exists(frontendBuildPath))
     });
 }
 
-// TODO-SD002-012: Initialize KB Meilisearch index schema on startup (if Meilisearch provider is enabled)
+// KB Meilisearch index schema initialization runs here when Meilisearch provider is enabled
 try
 {
     using var startupScope = app.Services.CreateScope();

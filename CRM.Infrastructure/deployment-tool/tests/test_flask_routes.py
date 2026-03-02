@@ -1200,3 +1200,106 @@ class TestComposeServiceNames:
         }
         env_content = generate_env_file(config)
         assert "DOCUSEAL_DB_PASSWORD=" in env_content
+
+
+# ===========================================================================
+# DockerComposeDeployer — _compose_up Retry Tests
+# ===========================================================================
+
+
+class TestComposeUpRetry:
+    """Tests for the _compose_up method that auto-retries on container name conflicts."""
+
+    def _make_deployer(self, log_queue=None):
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue as q_mod
+        lq = log_queue or q_mod.Queue()
+        # Use dry_run=True to bypass host validation, then override dry_run
+        # for the method under test (which doesn't check it).
+        d = DockerComposeDeployer(Path("/tmp"), {"target": {"host": "10.0.0.1"}}, log_queue=lq, dry_run=True)
+        return d
+
+    def test_compose_up_success_on_first_attempt(self):
+        """When docker compose up succeeds, no retry should happen."""
+        d = self._make_deployer()
+        calls = []
+
+        def fake_run(cmd, timeout=120, log_command=False):
+            calls.append(cmd)
+            return (0, "ok", "")
+
+        d._run_on_target = fake_run
+        rc, out, err = d._compose_up(["crm-mariadb", "crm-redis"])
+        assert rc == 0
+        assert len(calls) == 1  # Only 1 call, no retry
+
+    def test_compose_up_retries_on_name_conflict(self):
+        """When first attempt fails with 'already in use', should remove and retry."""
+        import queue
+        lq = queue.Queue()
+        d = self._make_deployer(log_queue=lq)
+        call_count = [0]
+
+        def fake_run(cmd, timeout=120, log_command=False):
+            call_count[0] += 1
+            cmd_str = " ".join(cmd)
+            if "docker rm -f" in cmd_str:
+                return (0, "", "")
+            if call_count[0] == 1:
+                # First compose up fails with name conflict
+                return (
+                    1,
+                    "",
+                    'Error response from daemon: Conflict. The container name "/crm-redis" '
+                    "is already in use by container abc123. You have to remove (or rename) "
+                    "that container to be able to reuse that name.",
+                )
+            # Retry succeeds
+            return (0, "ok", "")
+
+        d._run_on_target = fake_run
+        rc, out, err = d._compose_up(["crm-mariadb", "crm-redis"])
+        assert rc == 0
+        # Should have been called 3 times: first compose up, docker rm, retry compose up
+        assert call_count[0] == 3
+
+    def test_compose_up_extracts_multiple_conflicting_names(self):
+        """When multiple containers conflict, all should be removed."""
+        d = self._make_deployer()
+        rm_calls = []
+
+        def fake_run(cmd, timeout=120, log_command=False):
+            cmd_str = " ".join(cmd)
+            if "docker rm -f" in cmd_str:
+                rm_calls.append(cmd)
+                return (0, "", "")
+            if not rm_calls:
+                return (
+                    1,
+                    "",
+                    'The container name "/crm-redis" is already in use by container abc. '
+                    'The container name "/crm-mariadb" is already in use by container def.',
+                )
+            return (0, "ok", "")
+
+        d._run_on_target = fake_run
+        rc, _, _ = d._compose_up(["crm-mariadb", "crm-redis"])
+        assert rc == 0
+        assert len(rm_calls) == 1
+        # Both conflicting names should appear in the rm command
+        assert "crm-redis" in rm_calls[0]
+        assert "crm-mariadb" in rm_calls[0]
+
+    def test_compose_up_no_retry_on_other_errors(self):
+        """Non-name-conflict errors should NOT trigger a retry."""
+        d = self._make_deployer()
+        calls = []
+
+        def fake_run(cmd, timeout=120, log_command=False):
+            calls.append(cmd)
+            return (1, "", "network xyz not found")
+
+        d._run_on_target = fake_run
+        rc, _, err = d._compose_up(["crm-api"])
+        assert rc == 1
+        assert len(calls) == 1  # No retry

@@ -43,7 +43,7 @@ public class SystemSettingsController : CrmControllerBase
         IConfiguration configuration,
         IDbContextResolver? contextResolver = null,
         IDatabaseSyncService? databaseSyncService = null,
-        IAuditLogService? auditLogService = null) // TODO-SYS009-004
+        IAuditLogService? auditLogService = null)
     {
         _settingsService = settingsService;
         _logger = logger;
@@ -109,7 +109,6 @@ public class SystemSettingsController : CrmControllerBase
 
             var settings = await _settingsService.UpdateSettingsAsync(request, userId);
 
-            // TODO-SYS009-004: Audit trail for settings changes
             if (_auditLogService != null)
             {
                 await _auditLogService.LogActionAsync(

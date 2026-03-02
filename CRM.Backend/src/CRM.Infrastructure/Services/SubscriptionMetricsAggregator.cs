@@ -54,6 +54,16 @@ public interface ISubscriptionMetricsAggregator
     /// NRR > 100% = Growing, < 100% = Declining
     /// </summary>
     Task<decimal> CalculateNRRAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Count subscriptions whose StartDate falls within a given calendar month.
+    /// Used for cohort analysis — represents new subscriptions that entered in that month.
+    /// </summary>
+    /// <param name="year">Cohort year (e.g. 2025)</param>
+    /// <param name="month">Cohort month 1–12 (e.g. 3 for March)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Number of subscriptions that started in the specified month</returns>
+    Task<int> GetCohortSubscriptionCountAsync(int year, int month, CancellationToken cancellationToken);
 }
 
 /// <summary>
@@ -301,6 +311,27 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
 
         var nrr = (currentMrr / previousMrr) * 100;
         return Math.Round(nrr, 2);
+    }
+
+    /// <summary>
+    /// Count subscriptions whose StartDate falls within the specified calendar month.
+    /// </summary>
+    public async Task<int> GetCohortSubscriptionCountAsync(
+        int year,
+        int month,
+        CancellationToken cancellationToken)
+    {
+        var monthStart = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var monthEnd = monthStart.AddMonths(1);
+
+        return await _context.Subscriptions
+            .AsNoTracking()
+            .CountAsync(
+                s => !s.IsDeleted &&
+                     s.StartDate.HasValue &&
+                     s.StartDate.Value >= monthStart &&
+                     s.StartDate.Value < monthEnd,
+                cancellationToken);
     }
 
     /// <summary>

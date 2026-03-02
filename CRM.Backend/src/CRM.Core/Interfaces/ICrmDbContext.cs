@@ -243,7 +243,7 @@ public interface ICrmDbContext
     // SLA (Service Level Agreement) - Non-ITSM versions
     DbSet<CRM.Core.Entities.SLAPolicy> SLAPolicies { get; }
     DbSet<CRM.Core.Entities.KnowledgeBase.SLAInstance> SLAInstances { get; }
-    DbSet<BusinessHours> BusinessHoursConfigs { get; } // TODO-SYS005-001
+    DbSet<BusinessHours> BusinessHoursConfigs { get; }
     DbSet<CRM.Core.Entities.ITSM.ServiceQueue> ServiceQueues { get; }
     DbSet<CRM.Core.Entities.ITSM.EscalationRule> ITSMEscalationRules { get; }
 

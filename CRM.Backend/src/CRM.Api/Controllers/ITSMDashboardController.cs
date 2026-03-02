@@ -53,6 +53,7 @@ public class ITSMDashboardController : CrmControllerBase
             var problems = await _dashboardService.GetProblemAnalyticsAsync(start, end);
             var changes = await _dashboardService.GetChangeStatisticsAsync(start, end);
             var sla = await _dashboardService.GetSLAComplianceAsync(start, end);
+            var satisfaction = await _dashboardService.GetCustomerSatisfactionAsync(start, end);
 
             return Ok(new
             {
@@ -67,7 +68,7 @@ public class ITSMDashboardController : CrmControllerBase
                 averageResolutionTimeHours = incidents.AverageResolutionTimeHours,
                 slaCompliancePercent = sla.OverallComplianceRate,
                 mttr = incidents.AverageResolutionTimeHours,
-                customerSatisfaction = 0.0, // TODO: Integrate customer satisfaction survey data
+                customerSatisfaction = satisfaction,
                 timestamp = DateTime.UtcNow
             });
         }
@@ -218,6 +219,7 @@ public class ITSMDashboardController : CrmControllerBase
             var problems = await _dashboardService.GetProblemAnalyticsAsync(start, end);
             var changes = await _dashboardService.GetChangeStatisticsAsync(start, end);
             var sla = await _dashboardService.GetSLAComplianceAsync(start, end);
+            var satisfaction = await _dashboardService.GetCustomerSatisfactionAsync(start, end);
 
             return Ok(new
             {
@@ -243,7 +245,7 @@ public class ITSMDashboardController : CrmControllerBase
                     implemented = changes.CompletedChanges
                 },
                 slaCompliance = sla.OverallComplianceRate,
-                customerSatisfaction = 0.0, // TODO: Integrate customer satisfaction survey data
+                customerSatisfaction = satisfaction,
                 topCategories = sla.ByCategory?.Take(5) ?? Enumerable.Empty<SLAByCategory>(),
                 highlights = new List<string>()
             });

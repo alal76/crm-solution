@@ -24,7 +24,7 @@ namespace CRM.Api.Controllers.ITSM;
 [Tags("ITSM - Escalation Rules")]
 public class EscalationRulesController : CrmControllerBase
 {
-    private readonly IEscalationRuleService _escalationRuleService; // TODO-SD005-003: renamed from IEscalationRuleAdminService
+    private readonly IEscalationRuleService _escalationRuleService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EscalationRulesController"/> class.

@@ -45,6 +45,12 @@ public interface IITSMDashboardService
     /// Get knowledge base usage analytics.
     /// </summary>
     Task<KnowledgeAnalyticsDto> GetKnowledgeAnalyticsAsync(DateTime startDate, DateTime endDate);
+
+    /// <summary>
+    /// Get average customer satisfaction rating (1–5 scale) from resolved service requests.
+    /// Returns 0.0 when no rated requests exist in the period.
+    /// </summary>
+    Task<double> GetCustomerSatisfactionAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default);
 }
 
 // ====== DTOs ======

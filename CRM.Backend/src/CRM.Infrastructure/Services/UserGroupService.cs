@@ -246,7 +246,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         group.CanBulkEdit = request.CanBulkEdit;
         group.CanBulkDelete = request.CanBulkDelete;
 
-        // AccessibleMenuItems (TODO-SYS003-002) — only update if provided
+        // AccessibleMenuItems — only update if provided (validation is performed by the caller)
         if (!string.IsNullOrWhiteSpace(request.AccessibleMenuItems))
         {
             group.AccessibleMenuItems = request.AccessibleMenuItems;
@@ -265,13 +265,13 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
                 throw new InvalidOperationException("Group with this name already exists");
             }
 
-            // TODO-SYS003-001: Enforce single default group rule
+            // Enforce single default group rule (SYS003-001)
             if (request.IsDefault)
             {
                 await ClearExistingDefaultGroupAsync();
             }
 
-            // TODO-SYS003-002: Validate AccessibleMenuItems JSON
+            // Validate AccessibleMenuItems JSON (SYS003-002)
             if (!string.IsNullOrWhiteSpace(request.AccessibleMenuItems))
             {
                 var (isValid, validItems, invalidItems) = ValidateMenuItems(request.AccessibleMenuItems);
@@ -296,7 +296,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             _context.UserGroups.Add(group);
             await _context.SaveChangesAsync();
 
-            // TODO-SYS012-003: Audit log permission changes
+            // Audit log permission changes (SYS012-003)
             if (_auditLogService != null)
             {
                 await _auditLogService.LogCreateAsync(
@@ -338,7 +338,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
                 throw new KeyNotFoundException($"Group with ID {id} not found");
             }
 
-            // TODO-SYS003-001: Enforce single default group rule
+            // Enforce single default group rule (SYS003-001)
             if (request.IsDefault && !group.IsDefault)
             {
                 // Promoting this group to default — unset any existing default
@@ -356,7 +356,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
                 }
             }
 
-            // TODO-SYS003-002: Validate AccessibleMenuItems JSON
+            // Validate AccessibleMenuItems JSON (SYS003-002)
             if (!string.IsNullOrWhiteSpace(request.AccessibleMenuItems))
             {
                 var (isValid, validItems, invalidItems) = ValidateMenuItems(request.AccessibleMenuItems);
@@ -396,7 +396,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             _context.UserGroups.Update(group);
             await _context.SaveChangesAsync();
 
-            // TODO-SYS012-003: Audit log permission changes
+            // Audit log permission changes (SYS012-003)
             if (_auditLogService != null)
             {
                 var newValues = new Dictionary<string, object>
@@ -513,7 +513,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             _context.UserGroupMembers.Add(member);
             await _context.SaveChangesAsync();
 
-            // TODO-SYS003-003: Audit log for group membership changes
+            // Audit log for group membership changes (SYS003-003)
             if (_auditLogService != null)
             {
                 await _auditLogService.LogActionAsync(
@@ -546,7 +546,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             _context.UserGroupMembers.Remove(member);
             await _context.SaveChangesAsync();
 
-            // TODO-SYS003-003: Audit log for group membership changes
+            // Audit log for group membership changes (SYS003-003)
             if (_auditLogService != null)
             {
                 var group = await _context.UserGroups.FindAsync(groupId);
@@ -600,10 +600,8 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
     // ─── Private helpers ─────────────────────────────────────────────────────
 
     /// <summary>
-    /// TODO-SYS003-001: Ensures only one group is marked as IsDefault.
-    /// <summary>
-    /// TODO-SYS012-002: Validates and normalizes the accessible menu items for a group,
-    /// removing any unrecognized menu keys and persisting the cleaned result.
+    /// Ensures only one group is marked as IsDefault (SYS003-001) and validates and
+    /// normalizes the accessible menu items, removing unrecognized keys (SYS012-002).
     /// </summary>
     public async Task<UserGroupDto?> ValidateAndNormalizeGroupPermissionsAsync(int groupId, CancellationToken cancellationToken = default)
     {
@@ -652,7 +650,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
     }
 
     /// <summary>
-    /// TODO-SYS003-002: Validates that AccessibleMenuItems is well-formed JSON containing known menu keys.
+    /// Validates that AccessibleMenuItems is well-formed JSON containing known menu keys (SYS003-002).
     /// Returns:  isValid — whether the JSON could be parsed;
     ///           validItems — keys that match known navigation items;
     ///           invalidItems — keys that don't match any known navigation item.

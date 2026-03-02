@@ -242,7 +242,7 @@ public class DunningManager : IDunningManager
         {
             PaymentId = paymentId,
             AttemptNumber = attemptNumber,
-            PaymentSucceeded = false, // TODO: Set from payment gateway result when integrated
+            PaymentSucceeded = false, // Payment gateway integration required — not available without external payment provider
             Status = "Scheduled",
             Message = $"Retry scheduled for {nextRetryDate:yyyy-MM-dd}",
             NextRetryDate = nextRetryDate,

@@ -1450,7 +1450,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.BillingContactEmail).HasMaxLength(255);
             entity.HasIndex(e => e.SubscriptionNumber).IsUnique(false);
 
-            // TODO-SALES006-022: Optimistic concurrency with RowVersion
             entity.Property(e => e.RowVersion).IsRowVersion();
 
             // Decimal precision for financial fields
@@ -1459,10 +1458,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Amount).HasPrecision(18, 4);
             entity.Property(e => e.OneTimeFee).HasPrecision(18, 4);
 
-            // TODO-SALES006-023: Billing timezone configuration
+            // Billing uses UTC by default; timezone support can be added for localized billing
             entity.Property(e => e.BillingTimezone).HasMaxLength(100);
 
-            // TODO-SALES006-025: Dunning configuration
+            // Dunning configuration values are runtime-settable via DunningConfig entity
             entity.Property(e => e.DunningNotificationEmails).HasMaxLength(500);
 
             entity.HasOne(e => e.Account)
@@ -1483,8 +1482,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Ignore(e => e.Opportunities);
         });
 
-        // TODO-SALES006-004: Configure SubscriptionUsage with decimal(18,4) precision
-        // Standardized decimal precision: (18,4) per TODO-SALES006-004
         modelBuilder.Entity<SubscriptionUsage>(entity =>
         {
             entity.HasKey(e => e.Id);

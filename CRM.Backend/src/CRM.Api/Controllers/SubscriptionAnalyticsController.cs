@@ -158,7 +158,8 @@ public class SubscriptionAnalyticsController : CrmControllerBase
             {
                 CohortMonth = targetDate.ToString("yyyy-MM"),
                 MRR = mrr,
-                SubscriptionCount = 0 // TODO: count per cohort month
+                SubscriptionCount = await _metricsAggregator.GetCohortSubscriptionCountAsync(
+                    targetDate.Year, targetDate.Month, cancellationToken)
             });
         }
 

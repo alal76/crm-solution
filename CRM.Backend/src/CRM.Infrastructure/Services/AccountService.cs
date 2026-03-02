@@ -170,7 +170,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     ///
     /// FUNCTIONAL: Supports both Individual (name-based) and Organization (company-based) accounts.
     /// TECHNICAL: Maps DTO to entity, persists to database, returns created record.
-    /// VALIDATION: TODO-CRM001-08 - Duplicate email check and phone format validation
+    /// VALIDATION: Duplicate email check and phone format validation (✅ implemented)
     /// </summary>
     /// <param name="dto">Account creation data</param>
     /// <returns>Created AccountDto with assigned ID</returns>
@@ -187,7 +187,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         var candidatesQueued = await DuplicateCheckHelper.CheckAndHandleDuplicatesAsync(
             _duplicateDetection, _dbContext, "Account", fieldValues, _logger);
 
-        // TODO-CRM001-08: Validate duplicate email
+        // Validate duplicate email
         if (!string.IsNullOrEmpty(dto.Email))
         {
             var existingAccounts = await _accountRepository.FindAsync(
@@ -198,7 +198,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             }
         }
 
-        // TODO-CRM001-08: Validate phone format
+        // Validate phone format
         if (!string.IsNullOrEmpty(dto.Phone) && !IsValidPhoneFormat(dto.Phone))
         {
             throw new InvalidOperationException($"Invalid phone format: '{dto.Phone}'. Phone must contain only digits, spaces, hyphens, parentheses, and optional leading plus sign.");
@@ -385,7 +385,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             return null;
         }
 
-        // TODO-CRM001-08: Validate duplicate email (if email is being updated)
+        // Validate duplicate email (if email is being updated)
         if (dto.Email != null && dto.Email != account.Email)
         {
             var existingAccounts = await _accountRepository.FindAsync(
@@ -396,7 +396,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             }
         }
 
-        // TODO-CRM001-08: Validate phone format (if phone fields are being updated)
+        // Validate phone format (if phone fields are being updated)
         if (dto.Phone != null && !IsValidPhoneFormat(dto.Phone))
         {
             throw new InvalidOperationException($"Invalid phone format: '{dto.Phone}'. Phone must contain only digits, spaces, hyphens, parentheses, and optional leading plus sign.");
@@ -1703,7 +1703,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     }
 
     /// <summary>
-    /// TODO-CRM001-08: Validates phone number format.
+    /// Validates phone number format.
     /// Allows: digits, spaces, hyphens, parentheses, and optional leading plus sign.
     /// Pattern: ^\+?[0-9\s\-\(\)]+$
     /// </summary>

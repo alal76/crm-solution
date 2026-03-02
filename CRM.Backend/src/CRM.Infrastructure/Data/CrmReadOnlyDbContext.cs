@@ -5,7 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 //
-// TODO-DB-019: Read-Only DbContext for analytics replica
+// Read-Only DbContext for analytics replica — routes SELECT queries to read replica when configured
 // Connects to crm-mariadb-analytics (port 3307) instead of primary.
 // All queries automatically use AsNoTracking — no writes are possible.
 //

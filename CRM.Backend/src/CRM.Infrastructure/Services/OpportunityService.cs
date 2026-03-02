@@ -136,10 +136,12 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         return opportunities.Sum(o => o.Amount);
     }
 
-    // --- Stage-to-Probability mapping (TODO-CRM003-02) ---
+    // --- Stage-to-Probability mapping ---
 
     /// <summary>
     /// Default probabilities per stage (percent).
+    /// When a stage is set and no explicit probability is provided by the caller,
+    /// the controller uses this map to auto-assign a sensible default.
     /// </summary>
     public static readonly IReadOnlyDictionary<OpportunityStage, int> StageProbabilityDefaults = new Dictionary<OpportunityStage, int>
     {

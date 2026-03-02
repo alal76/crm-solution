@@ -197,7 +197,7 @@ public class OpportunitiesController : CrmControllerBase
 
             var opportunity = MapFromCreateDto(dto);
 
-            // TODO-CRM003-02: Auto-set probability from stage when caller does not supply it explicitly
+            // Auto-set probability from stage when caller does not supply it explicitly (Probability == 0 means "not set").
             var stageEnum = (OpportunityStage)dto.Stage;
             if (dto.Probability == 0 && OpportunityService.StageProbabilityDefaults.TryGetValue(stageEnum, out var defaultProb))
             {
@@ -255,8 +255,7 @@ public class OpportunitiesController : CrmControllerBase
 
             MapFromUpdateDto(dto, opportunity);
 
-            // TODO-CRM003-02: When stage changes and caller did NOT explicitly supply a new probability,
-            // auto-update probability based on the stage defaults.
+            // When stage changes and probability was NOT explicitly supplied, auto-set it from stage defaults.
             if (dto.Stage.HasValue && !dto.Probability.HasValue)
             {
                 var newStage = (OpportunityStage)dto.Stage.Value;

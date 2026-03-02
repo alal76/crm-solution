@@ -7,6 +7,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Interfaces;
 using CRM.Core.Scripting;
 
 namespace CRM.Infrastructure.Scripting.Tools;
@@ -20,11 +21,13 @@ namespace CRM.Infrastructure.Scripting.Tools;
 public class GetCustomerTool
 {
     private readonly ILogger<GetCustomerTool> _logger;
+    private readonly IAccountService _accountService;
 
     /// <summary>Initialises a new <see cref="GetCustomerTool"/>.</summary>
-    public GetCustomerTool(ILogger<GetCustomerTool> logger)
+    public GetCustomerTool(ILogger<GetCustomerTool> logger, IAccountService accountService)
     {
         _logger = logger;
+        _accountService = accountService;
     }
 
     /// <summary>Invokes the tool. <paramref name="parameters"/> should contain an <c>Id</c> property.</summary>
@@ -32,8 +35,9 @@ public class GetCustomerTool
     {
         _logger.LogDebug("GetCustomerTool invoked with params {Params}", parameters);
 
-        // TODO: Inject IAccountService and call GetByIdAsync(id, cancellationToken) // NOSONAR
-        await Task.CompletedTask.ConfigureAwait(false);
-        return new { Id = 0, Name = "Stub" };
+        dynamic p = parameters;
+        int id = (int)p.Id;
+        var account = await _accountService.GetAccountByIdAsync(id).ConfigureAwait(false);
+        return account;
     }
 }

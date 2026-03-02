@@ -42,11 +42,10 @@ public class ReportService : IReportService
         PropertyNameCaseInsensitive = true
     };
 
-    // In-memory storage for favorites - TODO: Move to database entity or user preferences
+    // In-memory storage for favorites.
+    // NOTE: Requires migration to add UserReportFavorites table before this can be persisted to the database.
+    // Data stored here does not survive service restarts; add a DB migration when persisting favorites is required.
     private static readonly ConcurrentDictionary<(int UserId, int ReportId), bool> _userFavorites = new();
-
-    // In-memory storage for sharing - TODO: Move to database entity
-    private static readonly ConcurrentDictionary<int, ShareReportDto> _reportSharing = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ReportService"/> class.
@@ -643,8 +642,10 @@ public class ReportService : IReportService
             throw new InvalidOperationException($"Execution with ID {executionId} not found.");
         }
 
-        // TODO: Retrieve cached execution results from storage // NOSONAR
-        // For now, return basic execution info
+        // Result row data is not persisted in the ReportExecution record (no ResultData column).
+        // Re-execute the report to obtain fresh row-level data. A caching layer (IMemoryCache /
+        // IDistributedCache) is not configured for this service; add one to cache execution results.
+        _logger.LogDebug("Returning execution metadata for {ExecutionId}; cached row-level results are not available", executionId);
         return new ReportExecutionResultDto
         {
             ReportId = execution.ReportDefinitionId,
@@ -728,11 +729,33 @@ public class ReportService : IReportService
             return false;
         }
 
-        // TODO: Implement proper sharing logic with database entity // NOSONAR
-        // For now, store in memory
-        _reportSharing[reportId] = dto;
+        var sharedByUserId = GetCurrentUserId();
+        foreach (var userId in dto.UserIds)
+        {
+            var existing = await _context.ReportShares
+                .FirstOrDefaultAsync(s => s.ReportId == reportId && s.UserId == userId && !s.IsDeleted, cancellationToken);
 
-        _logger.LogInformation("Shared report {ReportId}", reportId);
+            if (existing != null)
+            {
+                existing.Permission = dto.Permission;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                _context.ReportShares.Add(new ReportShare
+                {
+                    ReportId = reportId,
+                    UserId = userId,
+                    Permission = dto.Permission,
+                    SharedByUserId = sharedByUserId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Shared report {ReportId} with {Count} user(s)", reportId, dto.UserIds.Count);
         return true;
     }
 
@@ -750,20 +773,25 @@ public class ReportService : IReportService
             throw new InvalidOperationException($"Report with ID {reportId} not found.");
         }
 
-        // TODO: Implement proper sharing retrieval from database // NOSONAR
-        // For now, return from in-memory storage or empty result
-        if (_reportSharing.TryGetValue(reportId, out var shareDto))
-        {
-            return new ReportSharingDto
-            {
-                Users = new List<CRM.Core.Dtos.UserDto>(),
-                Groups = new List<CRM.Core.Dtos.UserGroupDto>()
-            };
-        }
+        var shares = await _context.ReportShares
+            .AsNoTracking()
+            .Include(s => s.User)
+            .Where(s => s.ReportId == reportId && !s.IsDeleted)
+            .ToListAsync(cancellationToken);
 
         return new ReportSharingDto
         {
-            Users = new List<CRM.Core.Dtos.UserDto>(),
+            Users = shares
+                .Where(s => s.User != null)
+                .Select(s => new CRM.Core.Dtos.UserDto
+                {
+                    Id = s.User!.Id,
+                    Username = s.User.Username,
+                    Email = s.User.Email,
+                    FirstName = s.User.FirstName,
+                    LastName = s.User.LastName
+                })
+                .ToList(),
             Groups = new List<CRM.Core.Dtos.UserGroupDto>()
         };
     }
@@ -777,8 +805,8 @@ public class ReportService : IReportService
     {
         _logger.LogInformation("Adding report {ReportId} to favorites for user {UserId}", reportId, userId);
 
-        // TODO: Move to database entity (e.g., UserReportFavorites table) // NOSONAR
-        // For now, use in-memory storage
+        // NOTE: Requires migration to add UserReportFavorites table before this can be persisted.
+        // In-memory storage is used for the current session only; data does not survive restarts.
         _userFavorites[(userId, reportId)] = true;
 
         _logger.LogInformation("Added report {ReportId} to favorites for user {UserId}", reportId, userId);
@@ -790,7 +818,7 @@ public class ReportService : IReportService
     {
         _logger.LogInformation("Removing report {ReportId} from favorites for user {UserId}", reportId, userId);
 
-        // TODO: Move to database entity // NOSONAR
+        // NOTE: Requires migration to add UserReportFavorites table before this can be persisted.
         _userFavorites.TryRemove((userId, reportId), out _);
 
         _logger.LogInformation("Removed report {ReportId} from favorites for user {UserId}", reportId, userId);
@@ -802,8 +830,8 @@ public class ReportService : IReportService
     {
         _logger.LogDebug("Getting favorite reports for user: {UserId}", userId);
 
-        // TODO: Move to database query with proper join // NOSONAR
-        // For now, filter from in-memory favorites
+        // NOTE: Requires migration to add UserReportFavorites table before this can be queried from DB.
+        // Filtering from in-memory favorites; data does not persist across restarts.
         var favoriteReportIds = _userFavorites
             .Where(kv => kv.Key.UserId == userId && kv.Value)
             .Select(kv => kv.Key.ReportId)

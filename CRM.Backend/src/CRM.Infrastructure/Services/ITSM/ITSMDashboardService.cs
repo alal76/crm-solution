@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services.ITSM;
@@ -317,5 +318,20 @@ public class ITSMDashboardService : IITSMDashboardService
         };
 
         return Task.FromResult(result);
+    }
+
+    /// <inheritdoc />
+    public async Task<double> GetCustomerSatisfactionAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Getting customer satisfaction from {StartDate} to {EndDate}", startDate, endDate);
+
+        var average = await _dbContext.ServiceRequests
+            .Where(sr => !sr.IsDeleted
+                && sr.SatisfactionRating.HasValue
+                && sr.CreatedAt >= startDate
+                && sr.CreatedAt <= endDate)
+            .AverageAsync(sr => (double?)sr.SatisfactionRating, cancellationToken);
+
+        return average ?? 0.0;
     }
 }

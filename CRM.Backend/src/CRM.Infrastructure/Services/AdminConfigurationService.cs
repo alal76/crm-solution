@@ -700,7 +700,7 @@ public class AdminConfigurationService : IAdminConfigurationService
         {
             var queues = await _context.ServiceQueues
                 .Where(q => !q.IsDeleted)
-                .OrderBy(q => q.Priority) // TODO: ITSM.ServiceQueue uses Priority instead of DisplayOrder
+                .OrderBy(q => q.Priority)
                 .ToListAsync(cancellationToken);
 
             return queues.Select(MapServiceQueueToDto);
@@ -1002,7 +1002,6 @@ public class AdminConfigurationService : IAdminConfigurationService
             ThresholdValue = entity.AgeInMinutes,
             EscalateToUserId = entity.TargetType == CRM.Core.Entities.ITSM.EscalationTargetType.User ? entity.TargetId : null,
             EscalateToGroupId = entity.TargetType == CRM.Core.Entities.ITSM.EscalationTargetType.Group ? entity.TargetId : null,
-            SendNotification = true, // TODO: not available on ITSM.EscalationRule
             IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,

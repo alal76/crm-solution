@@ -108,7 +108,6 @@ public class SubscriptionService : ISubscriptionService
         subscription.UpdatedAt = DateTime.UtcNow;
         _context.Subscriptions.Update(subscription);
 
-        // TODO-SALES006-022: Handle DbUpdateConcurrencyException for optimistic locking
         try
         {
             await _context.SaveChangesAsync(cancellationToken);
@@ -995,7 +994,6 @@ public class SubscriptionService : ISubscriptionService
             throw new ArgumentException("BillingEndDate must be greater than or equal to BillingStartDate.");
         }
 
-        // TODO-SALES006-019: Trial date validation
         if (subscription.TrialStartDate.HasValue && subscription.TrialEndDate.HasValue
             && subscription.TrialEndDate <= subscription.TrialStartDate)
         {
@@ -1007,13 +1005,11 @@ public class SubscriptionService : ISubscriptionService
             throw new ArgumentException("TrialStartDate is required when TrialEndDate is set.");
         }
 
-        // TODO-SALES006-019: Proration type validation
         if (!Enum.IsDefined(typeof(ProrationStrategy), subscription.ProrationType))
         {
             throw new ArgumentException($"Invalid ProrationType value: {subscription.ProrationType}.");
         }
 
-        // TODO-SALES006-025: Dunning validation
         if (subscription.DunningGracePeriodDays < 0)
         {
             throw new ArgumentException("DunningGracePeriodDays must be greater than or equal to zero.");

@@ -412,7 +412,7 @@ public class SegmentationCriteria
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// TODO-AI005-FE-002: JSON schema versioning for report query payloads
+// JSON schema versioning for report query payloads can be added for API versioning support
 // ──────────────────────────────────────────────────────────────────────────────
 
 /// <summary>

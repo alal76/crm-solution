@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 49,
+  "patch": 50,
   "lastUpdate": "2026-03-02",
-  "description": "feat(portal): v0.614.49 - implement PORTAL-020/021/024 notification and CSAT TODOs: PortalAuthService sends verification email via INotificationPort on registration; PortalService sends ticket confirmation email on CreateTicketAsync; ServiceRequestService sends resolution notification (PORTAL-021) and triggers CSAT survey via ISatisfactionService (PORTAL-024) on ResolveServiceRequestAsync; NavigationConfigService AdapterRegistry TODO replaced with NOSONAR",
+  "description": "feat(todos): v0.614.50 - Complete 50+ code TODOs across 27 files: AccountService duplicate email + phone validation; UserGroupService single-default-group enforcement + accessible-menu-items JSON validation + audit logging; OpportunityService/Controller stage-to-probability auto-set; GetCustomerTool/SendEmailTool scripting wiring; SystemSettingsController audit trail; ITSMDashboard satisfaction score from DB; AdminConfigurationService Priority/DisplayOrder + EscalationRule property fix; SubscriptionService concurrency + trial/proration/dunning validations; KnowledgeManagementService version history; ReportService sharing + favorites; SubscriptionAnalyticsController cohort count; DunningManager + EscalationRulesController + Program.cs + CrmDbContext + ReportDtos comment cleanup",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
