@@ -288,6 +288,43 @@
                     </div>
                 </div>
                 <div class="col-12"><div id="rotation-result"></div></div>
+
+                <!-- Admin Password -->
+                <div class="col-12">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white py-2">
+                            <h6 class="mb-0"><i class="bi bi-person-lock"></i> Set Admin Password</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-3">Update the CRM admin account credentials directly on the deployed instance.</p>
+                            <div id="d2AdminMsg" style="display:none" class="mb-2 alert py-1 small"></div>
+                            <div class="row g-2">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small" for="d2AdminUsername">Username</label>
+                                    <input type="text" class="form-control form-control-sm" id="d2AdminUsername" placeholder="admin" value="admin">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small" for="d2AdminEmail">Email</label>
+                                    <input type="email" class="form-control form-control-sm" id="d2AdminEmail" placeholder="admin@example.com">
+                                </div>
+                                <div class="col-md-4"></div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small" for="d2AdminPassword">New Password</label>
+                                    <input type="password" class="form-control form-control-sm" id="d2AdminPassword" autocomplete="new-password" placeholder="Min 8 chars, mixed case + symbol">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small" for="d2AdminPasswordConfirm">Confirm Password</label>
+                                    <input type="password" class="form-control form-control-sm" id="d2AdminPasswordConfirm" autocomplete="new-password" placeholder="Repeat password">
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <button class="btn btn-primary btn-sm w-100" onclick="day2SetAdminPassword()">
+                                        <i class="bi bi-check-lg"></i> Set Admin Password
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1143,6 +1180,45 @@ async function cleanupTestData() {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-eraser"></i> Clean Up Test Data Only';
     });
+}
+
+// ── Admin Password ──────────────────────────────────────────────────────────
+function showD2AdminMsg(msg, type) {
+    const el = document.getElementById('d2AdminMsg');
+    if (el) { el.style.display = 'block'; el.className = `mb-2 alert alert-${type} py-1 small`; el.innerHTML = msg; }
+}
+
+async function day2SetAdminPassword() {
+    const username = (document.getElementById('d2AdminUsername')?.value || '').trim();
+    const email    = (document.getElementById('d2AdminEmail')?.value || '').trim();
+    const pw       = document.getElementById('d2AdminPassword')?.value || '';
+    const pwConf   = document.getElementById('d2AdminPasswordConfirm')?.value || '';
+
+    if (!username) { showD2AdminMsg('Username is required.', 'warning'); return; }
+    if (!email)    { showD2AdminMsg('Email is required.', 'warning'); return; }
+    if (!pw)       { showD2AdminMsg('Password is required.', 'warning'); return; }
+    if (pw !== pwConf) { showD2AdminMsg('Passwords do not match.', 'warning'); return; }
+    if (pw.length < 8) { showD2AdminMsg('Password must be at least 8 characters.', 'warning'); return; }
+    const pwRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!pwRegex.test(pw)) { showD2AdminMsg('Password must include uppercase, lowercase, digit, and special character.', 'warning'); return; }
+
+    showD2AdminMsg('Setting admin password…', 'info');
+    try {
+        const resp = await fetch(`/api/day2/postinstall/set-admin-password${_profileQS()}`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password: pw }),
+        });
+        if (!resp.ok) {
+            let errMsg = 'HTTP ' + resp.status;
+            try { const d = await resp.json(); errMsg = d.error || d.message || errMsg; } catch(_){}
+            showD2AdminMsg(errMsg, 'danger'); return;
+        }
+        const data = await resp.json();
+        showD2AdminMsg(data.message || 'Admin password updated successfully.', 'success');
+        showToast('Admin password updated', 'success');
+        document.getElementById('d2AdminPassword').value = '';
+        document.getElementById('d2AdminPasswordConfirm').value = '';
+    } catch (e) { showD2AdminMsg('Error: ' + e.message, 'danger'); }
 }
 
 // ── Lazy-load tabs ─────────────────────────────────────────────────────────
