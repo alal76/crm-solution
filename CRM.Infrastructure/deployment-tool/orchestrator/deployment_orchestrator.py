@@ -778,10 +778,11 @@ class DeploymentOrchestrator:
         """Verify all services are healthy."""
         self.logger.info("    Checking service health...")
         
+        host = getattr(self.config, 'domain', None) or 'localhost'
         services = [
-            ("API Gateway", "http://localhost:5000/health"),
-            ("Identity Service", "http://localhost:5001/health"),
-            ("Database", "mysql:3306")
+            ("API Gateway", f"http://{host}:5000/health"),
+            ("Identity Service", f"http://{host}:5001/health"),
+            ("Database", f"{host}:3306")
         ]
         
         for name, endpoint in services:

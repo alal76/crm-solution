@@ -11,6 +11,15 @@ import os
 from unittest.mock import patch
 
 
+# ---------------------------------------------------------------------------
+# Test credentials — centralised so they are never scattered as magic literals.
+# In CI, these can be overridden via environment variables.
+# ---------------------------------------------------------------------------
+_TEST_DB_PASSWORD = os.environ.get("CDT_TEST_DB_PASSWORD", "TestDbPass@1234")  # noqa: S105
+_TEST_DB_ROOT_PASSWORD = os.environ.get("CDT_TEST_DB_ROOT_PASSWORD", "TestRootPass@1234")  # noqa: S105
+_TEST_ADMIN_PASSWORD = os.environ.get("CDT_TEST_ADMIN_PASSWORD", "Admin@1234567!")  # noqa: S105
+
+
 def _sample_profile():
     return {
         "meta": {"profile_name": "test-deploy", "crm_version": "0.608.1"},
@@ -25,8 +34,8 @@ def _sample_profile():
             "db_port": 3306,
             "db_name": "crm_db",
             "db_user": "crm_user",
-            "db_password": "TestDbPass@1234",  # noqa: S105 -- test credential
-            "db_root_password": "TestRootPass@1234",  # noqa: S105 -- test credential
+            "db_password": _TEST_DB_PASSWORD,
+            "db_root_password": _TEST_DB_ROOT_PASSWORD,
             "db_deployment": "new_container",
         },
         "security": {
@@ -39,7 +48,7 @@ def _sample_profile():
         "seed": {
             "admin_email": "admin@crm.local",
             "admin_username": "admin",
-            "admin_password": "Admin@" + "1234567!",  # noqa: S106 -- test credential
+            "admin_password": _TEST_ADMIN_PASSWORD,
             "admin_first_name": "Admin",
             "admin_last_name": "User",
             "seed_master_data": True,
@@ -125,7 +134,7 @@ def test_build_context_preserves_existing_password():
 
     g = ConfigGenerator()
     profile = _sample_profile()
-    test_db_pw = "MyExisting" + "Pass123"  # noqa: S105 -- test credential
+    test_db_pw = os.environ.get("CDT_TEST_DB_PASSWORD_ALT", "MyExistingPass123")  # noqa: S105
     profile["database"]["db_password"] = test_db_pw
     ctx = g._build_context(profile)
     assert ctx["db_password"] == test_db_pw

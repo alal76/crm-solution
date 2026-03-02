@@ -509,7 +509,7 @@ class ProfileManager:
                         "environment_type": "production",
                         "use_ssl": True,
                         "domain_name": "crm.internal",
-                        "host": "192.168.0.9",
+                        "host": "",
                         "ssh_port": 22,
                         "ssh_user": "root",
                     },

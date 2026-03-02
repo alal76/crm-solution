@@ -1462,8 +1462,16 @@ class DockerComposeDeployer:
         )
 
         # Quick connectivity check — exec into the mariadb container
-        # Use the configured password (not hardcoded) to verify access
-        db_password = self._get_configured_db_password() or "CrmPass@Dev2024"
+        # Use the configured password from the profile — never fall back to hardcoded values
+        db_password = self._get_configured_db_password()
+        if not db_password:
+            self._emit(
+                f"[{self._target_host}] ⚠️ No database password configured in profile — "
+                "skipping pre-migration DB connectivity check. "
+                "EF Core will attempt migration on API startup.",
+                "warning",
+            )
+            return
         db_user = (
             self.profile.get("database", {}).get("db_user")
             or self.profile.get("db_user")

@@ -724,8 +724,8 @@ class DeploymentConfig:
     database_port: int = 3306
     database_name: str = "crm_db"
     database_user: str = "crm_user"
-    database_password: str = "CrmPass@Dev2024!"
-    database_root_password: str = "RootPass@Dev2024"
+    database_password: str = ""
+    database_root_password: str = ""
     
     # Network
     api_port: int = 5000
@@ -3265,8 +3265,8 @@ your network and system speed.
         self.db_port_var = tk.IntVar(value=3306)
         self.db_name_var = tk.StringVar(value="crm_db")
         self.db_user_var = tk.StringVar(value="crm_user")
-        self.db_pass_var = tk.StringVar(value="CrmPass@Dev2024!")
-        self.db_root_pass_var = tk.StringVar(value="RootPass@Dev2024")
+        self.db_pass_var = tk.StringVar(value="")
+        self.db_root_pass_var = tk.StringVar(value="")
         self.use_managed_db_var = tk.BooleanVar(value=False)
         
         # Network vars

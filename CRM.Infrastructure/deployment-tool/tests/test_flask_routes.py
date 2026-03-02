@@ -3585,7 +3585,9 @@ class TestAdminPasswordEndpoint:
         assert "uppercase" in resp.get_json()["error"].lower()
 
     def test_valid_request_hashes_password(self, client):
-        """Endpoint with valid body should attempt DB update (will fail on docker exec but not 400)."""
+        """Endpoint with valid body should pass validation (password complexity)
+        and then either attempt DB update or fail on missing DB credentials —
+        but NOT fail on input validation (username/email/password rules)."""
         resp = client.post(
             "/api/day2/postinstall/set-admin-password",
             json={
@@ -3594,8 +3596,15 @@ class TestAdminPasswordEndpoint:
                 "password": "NewAdmin@123",
             },
         )
-        # Will be 502 in test env (no docker), not 400 (validation passed)
-        assert resp.status_code != 400, f"Expected 502 (no docker), got 400: {resp.get_json()}"
+        body = resp.get_json()
+        err = (body.get("error") or "").lower()
+        # Should NOT be a password-complexity or missing-field validation error.
+        # Acceptable failures: no DB credentials configured, docker not available.
+        assert "8 characters" not in err, "Should not fail on length validation"
+        assert "uppercase" not in err, "Should not fail on complexity validation"
+        assert "username is required" not in err
+        assert "email is required" not in err
+        assert "password is required" not in err
 
 
 # ===========================================================================

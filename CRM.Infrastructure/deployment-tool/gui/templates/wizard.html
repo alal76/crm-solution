@@ -1151,8 +1151,8 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <label class="form-label" for="discoveryHost">Host/IP Address</label>
-                                    <input type="text" class="form-control" id="discoveryHost" placeholder="192.168.0.9" value="192.168.0.9">
-                                    <small class="text-muted">Default dev server: 192.168.0.9</small>
+                                    <input type="text" class="form-control" id="discoveryHost" placeholder="e.g. 192.168.1.100" value="">
+                                    <small class="text-muted">IP address or hostname of the target server</small>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label" for="discoveryPort">SSH Port</label>
@@ -3859,7 +3859,7 @@
         /** Derive the deployment host from various config fields. */
         function _getDeploymentHost() {
             if (config.platform === 'on_premises') {
-                return document.getElementById('discoveryHost')?.value || '192.168.0.9';
+                return document.getElementById('discoveryHost')?.value || '';
             }
             // Cloud: use domain name if provided
             const sslDomain = document.getElementById('sslDomain')?.value;
@@ -5187,7 +5187,7 @@
 
                 if (discPlatform === 'on_premises') {
                     // Pre-fill On-Premises fields from template
-                    _setVal('discoveryHost',            target.host || target.domain_name || '192.168.0.9');
+                    _setVal('discoveryHost',            target.host || target.domain_name || '');
                     _setVal('discoveryPort',            target.ssh_port || 22);
                     _setVal('discoveryUsername',        target.ssh_user || 'root');
                     _setVal('discoveryContainerPrefix', 'crm-');
@@ -6873,6 +6873,7 @@
             const jwtSecret = s.jwt_secret ? '••••••••' + s.jwt_secret.slice(-4) : '(auto-generated — check .env)';
             const sshUser = config.target?.ssh_user || 'root';
             const sshPort = config.target?.ssh_port || 22;
+            const deployPath = config.target?.remote_deploy_dir || config.deploy_path || '/opt/crm-deployment';
 
             const feUrl = host ? `${proto}://${host}${fePort === '80' || fePort === '443' ? '' : ':' + fePort}` : '—';
             const apiUrl = host ? `${proto}://${host}:${apiPort}` : '—';
@@ -6936,7 +6937,7 @@
                         <div class="cred-grid">
                             <span class="cred-k">Host</span><span class="cred-v"><code>${_esc(host || '—')}</code></span>
                             <span class="cred-k">SSH Command</span><span class="cred-v"><code>ssh ${sshUser}@${_esc(host)} -p ${sshPort}</code></span>
-                            <span class="cred-k">Deploy Path</span><span class="cred-v"><code>/opt/crm</code></span>
+                            <span class="cred-k">Deploy Path</span><span class="cred-v"><code>${_esc(deployPath)}</code></span>
                         </div>
                     </div>
                     <div class="cred-section">
@@ -6976,17 +6977,17 @@
                     <div class="cred-section">
                         <div class="cred-section-title"><i class="bi bi-docker me-1"></i>Docker</div>
                         <div class="cred-grid">
-                            <span class="cred-k">Compose File</span><span class="cred-v"><code>/opt/crm/docker-compose.yml</code></span>
-                            <span class="cred-k">Logs</span><span class="cred-v"><code>docker compose -f /opt/crm/docker-compose.yml logs -f</code></span>
-                            <span class="cred-k">Restart</span><span class="cred-v"><code>docker compose -f /opt/crm/docker-compose.yml restart</code></span>
-                            <span class="cred-k">Stop</span><span class="cred-v"><code>docker compose -f /opt/crm/docker-compose.yml down</code></span>
+                            <span class="cred-k">Compose File</span><span class="cred-v"><code>${_esc(deployPath)}/docker-compose.yml</code></span>
+                            <span class="cred-k">Logs</span><span class="cred-v"><code>docker compose -f ${_esc(deployPath)}/docker-compose.yml logs -f</code></span>
+                            <span class="cred-k">Restart</span><span class="cred-v"><code>docker compose -f ${_esc(deployPath)}/docker-compose.yml restart</code></span>
+                            <span class="cred-k">Stop</span><span class="cred-v"><code>docker compose -f ${_esc(deployPath)}/docker-compose.yml down</code></span>
                         </div>
                     </div>
                 </div>
                 <div class="card-footer text-muted small">
                     <i class="bi bi-exclamation-triangle me-1"></i>
                     Store these credentials securely. Passwords shown are from the deployment configuration.
-                    If auto-generated, check the <code>.env</code> file on the target server at <code>/opt/crm/.env</code>.
+                    If auto-generated, check the <code>.env</code> file on the target server at <code>${_esc(deployPath)}/.env</code>.
                 </div>
             </div>`;
             panel.style.display = '';

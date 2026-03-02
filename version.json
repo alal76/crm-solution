@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 72,
+  "patch": 73,
   "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.72 - Add Set Admin Password to Monitoring tab and Post-Deployment step; shared setAdminPwFrom JS function; 496 CDT tests passing",
+  "description": "fix(cdt): v0.614.73 - Eliminate hardcoded IPs, passwords, paths, image registries, and localhost URLs across CDT; externalize test credentials; parameterize health_checker and orchestrator hosts; add image_prefix/redis/deploy_path to generator context; 496 CDT tests passing",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

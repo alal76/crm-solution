@@ -10,7 +10,7 @@
     "RefreshTokenExpirationInDays": {{ jwt_refresh_ttl_days | default(7) }}
   },
   "Redis": {
-    "ConnectionString": "crm-redis:6379"
+    "ConnectionString": "{{ redis_host | default('crm-redis') }}:{{ redis_port | default(6379) }}{{ ',password=' + redis_password if redis_password else '' }}"
   },
   "Logging": {
     "LogLevel": {

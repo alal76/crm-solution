@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: crm-api
-          image: ghcr.io/youorg/crm-api:{{ crm_version }}
+          image: {{ image_prefix }}crm-api:{{ crm_version }}
           ports:
             - containerPort: 5000
           env:
@@ -42,6 +42,6 @@ spec:
     spec:
       containers:
         - name: crm-frontend
-          image: ghcr.io/youorg/crm-frontend:{{ crm_version }}
+          image: {{ image_prefix }}crm-frontend:{{ crm_version }}
           ports:
             - containerPort: 80

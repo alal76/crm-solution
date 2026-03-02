@@ -911,8 +911,55 @@ def day2_run_history():
 # Post-Install Database Operations (proxy to CRM API)
 # ---------------------------------------------------------------------------
 
-def _proxy_crm_api(profile: dict, method: str, path: str, body: dict | None = None, timeout: int = 60):
-    """Forward a request to the CRM API and return (status_code, response_dict)."""
+def _get_admin_jwt_token(profile: dict, password: str | None = None) -> str | None:
+    """Authenticate as admin against the CRM API and return a Bearer JWT token.
+
+    Credential resolution order:
+      1. ``password`` argument (explicit override from caller)
+      2. ``ADMIN_PASSWORD`` environment variable
+      3. Profile ``secrets.admin_password`` field
+      4. Hard-coded development default ``Admin@123``
+    """
+    import urllib.request  # noqa: PLC0415
+    import urllib.error  # noqa: PLC0415
+    import os  # noqa: PLC0415
+
+    secrets = profile.get("secrets", {})
+    email = secrets.get("admin_email") or "admin@crm.local"
+    resolved_password = (
+        password
+        or os.environ.get("ADMIN_PASSWORD")
+        or secrets.get("admin_password")
+        or "Admin@123"
+    )
+
+    base_url = _build_api_base_url(profile)
+    url = f"{base_url}/api/auth/login"
+    payload = json.dumps({"email": email, "password": resolved_password}).encode("utf-8")
+    req = urllib.request.Request(url, data=payload, method="POST")
+    req.add_header("Content-Type", "application/json")
+    req.add_header("Accept", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            raw = resp.read().decode("utf-8")
+            data = json.loads(raw)
+            return data.get("accessToken") or data.get("token") or data.get("access_token")
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _proxy_crm_api(
+    profile: dict,
+    method: str,
+    path: str,
+    body: dict | None = None,
+    timeout: int = 60,
+    token: str | None = None,
+):
+    """Forward a request to the CRM API and return (status_code, response_dict).
+
+    Pass ``token`` to include an ``Authorization: Bearer <token>`` header.
+    """
     import urllib.request  # noqa: PLC0415
     import urllib.error  # noqa: PLC0415
     base_url = _build_api_base_url(profile)
@@ -921,6 +968,8 @@ def _proxy_crm_api(profile: dict, method: str, path: str, body: dict | None = No
     req = urllib.request.Request(url, data=payload, method=method)
     req.add_header("Content-Type", "application/json")
     req.add_header("Accept", "application/json")
+    if token:
+        req.add_header("Authorization", f"Bearer {token}")
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             raw = resp.read().decode("utf-8")
@@ -944,8 +993,9 @@ def _proxy_crm_api(profile: dict, method: str, path: str, body: dict | None = No
 def day2_postinstall_clear_database():
     """Clear all data in the CRM database (requires confirmation code)."""
     profile, _ = _profile_from_request()
+    token = _get_admin_jwt_token(profile)
     code, data = _proxy_crm_api(profile, "POST", "/api/database/clear-data",
-                                body={"ConfirmationCode": "DELETE_ALL_DATA"}, timeout=120)
+                                body={"ConfirmationCode": "DELETE_ALL_DATA"}, timeout=120, token=token)
     return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
 
 
@@ -953,7 +1003,8 @@ def day2_postinstall_clear_database():
 def day2_postinstall_migrate_database():
     """Run EF Core migrations on the CRM database."""
     profile, _ = _profile_from_request()
-    code, data = _proxy_crm_api(profile, "POST", "/api/database/migrate", timeout=120)
+    token = _get_admin_jwt_token(profile)
+    code, data = _proxy_crm_api(profile, "POST", "/api/database/migrate", timeout=120, token=token)
     return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
 
 
@@ -961,7 +1012,8 @@ def day2_postinstall_migrate_database():
 def day2_postinstall_reseed_data():
     """Reseed core data in the CRM database."""
     profile, _ = _profile_from_request()
-    code, data = _proxy_crm_api(profile, "POST", "/api/database/reseed", timeout=120)
+    token = _get_admin_jwt_token(profile)
+    code, data = _proxy_crm_api(profile, "POST", "/api/database/reseed", timeout=120, token=token)
     return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
 
 
@@ -969,7 +1021,8 @@ def day2_postinstall_reseed_data():
 def day2_postinstall_seed_master_data():
     """Seed all master data in order via the CRM API."""
     profile, _ = _profile_from_request()
-    code, data = _proxy_crm_api(profile, "POST", "/api/admin/seed/core", timeout=180)
+    token = _get_admin_jwt_token(profile)
+    code, data = _proxy_crm_api(profile, "POST", "/api/admin/seed/core", timeout=180, token=token)
     return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
 
 
@@ -977,7 +1030,8 @@ def day2_postinstall_seed_master_data():
 def day2_postinstall_clear_sample_data():
     """Clear sample data but keep master data."""
     profile, _ = _profile_from_request()
-    code, data = _proxy_crm_api(profile, "DELETE", "/api/sampledata/clear", timeout=120)
+    token = _get_admin_jwt_token(profile)
+    code, data = _proxy_crm_api(profile, "DELETE", "/api/sampledata/clear", timeout=120, token=token)
     return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
 
 
@@ -985,7 +1039,10 @@ def day2_postinstall_clear_sample_data():
 def day2_postinstall_seed_sample_data():
     """Seed all sample data via the CRM API."""
     profile, _ = _profile_from_request()
-    code, data = _proxy_crm_api(profile, "POST", "/api/sampledata/seed", timeout=300)
+    token = _get_admin_jwt_token(profile)
+    if token is None:
+        return jsonify({"success": False, "status_code": 401, "data": {"error": "Could not authenticate with the CRM API. Check that the admin account exists and ADMIN_PASSWORD env var is set if a non-default password is used."}}), 502
+    code, data = _proxy_crm_api(profile, "POST", "/api/sampledata/seed", timeout=300, token=token)
     return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
 
 
@@ -1083,7 +1140,10 @@ def day2_postinstall_set_admin_password():
 
     # Read DB credentials from the profile's secrets
     secrets = profile.get("secrets", {})
-    db_password = secrets.get("db_root_password") or secrets.get("db_password") or "RootPass@Dev2024"
+    db_password = secrets.get("db_root_password") or secrets.get("db_password")
+    if not db_password:
+        return jsonify(success=False, error="No database password configured in profile secrets. "
+                       "Set db_root_password or db_password in the Secrets step."), 400
 
     # ── Execute via docker exec on the MariaDB container ───────────
     db_container = "crm-mariadb"

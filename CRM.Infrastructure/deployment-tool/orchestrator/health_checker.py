@@ -105,11 +105,13 @@ class HealthChecker:
     def __init__(
         self,
         deployment_name: str,
-        log_dir: str = "./logs"
+        log_dir: str = "./logs",
+        host: str = "localhost",
     ):
         self.deployment_name = deployment_name
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
+        self.host = host
         
         # Setup logging
         self.logger = logging.getLogger(f"health.{deployment_name}")
@@ -124,12 +126,13 @@ class HealthChecker:
     
     def _register_default_checks(self):
         """Register default health checks for CRM services."""
+        h = self.host
         
         # API Gateway
         self.add_check(HealthCheck(
             name="api_gateway",
             check_type=CheckType.HTTP,
-            endpoint="http://localhost:5000/health",
+            endpoint=f"http://{h}:5000/health",
             timeout_seconds=10,
             critical=True
         ))
@@ -138,7 +141,7 @@ class HealthChecker:
         self.add_check(HealthCheck(
             name="identity_service",
             check_type=CheckType.HTTP,
-            endpoint="http://localhost:5001/health",
+            endpoint=f"http://{h}:5001/health",
             timeout_seconds=10,
             critical=True
         ))
@@ -147,7 +150,7 @@ class HealthChecker:
         self.add_check(HealthCheck(
             name="customer_service",
             check_type=CheckType.HTTP,
-            endpoint="http://localhost:5002/health",
+            endpoint=f"http://{h}:5002/health",
             timeout_seconds=10,
             critical=True
         ))
@@ -156,7 +159,7 @@ class HealthChecker:
         self.add_check(HealthCheck(
             name="sales_service",
             check_type=CheckType.HTTP,
-            endpoint="http://localhost:5003/health",
+            endpoint=f"http://{h}:5003/health",
             timeout_seconds=10,
             critical=True
         ))
@@ -165,7 +168,7 @@ class HealthChecker:
         self.add_check(HealthCheck(
             name="marketing_service",
             check_type=CheckType.HTTP,
-            endpoint="http://localhost:5004/health",
+            endpoint=f"http://{h}:5004/health",
             timeout_seconds=10,
             critical=False
         ))
@@ -174,7 +177,7 @@ class HealthChecker:
         self.add_check(HealthCheck(
             name="servicedesk_service",
             check_type=CheckType.HTTP,
-            endpoint="http://localhost:5005/health",
+            endpoint=f"http://{h}:5005/health",
             timeout_seconds=10,
             critical=False
         ))
@@ -183,7 +186,7 @@ class HealthChecker:
         self.add_check(HealthCheck(
             name="frontend",
             check_type=CheckType.HTTP,
-            endpoint="http://localhost:3000",
+            endpoint=f"http://{h}:3000",
             timeout_seconds=10,
             expected_status=200,
             critical=True
@@ -193,7 +196,7 @@ class HealthChecker:
         self.add_check(HealthCheck(
             name="database_mariadb",
             check_type=CheckType.TCP,
-            endpoint="localhost:3306",
+            endpoint=f"{h}:3306",
             timeout_seconds=5,
             critical=True
         ))
@@ -202,7 +205,7 @@ class HealthChecker:
         self.add_check(HealthCheck(
             name="redis_cache",
             check_type=CheckType.TCP,
-            endpoint="localhost:6379",
+            endpoint=f"{h}:6379",
             timeout_seconds=5,
             critical=False
         ))
@@ -229,12 +232,14 @@ class HealthChecker:
         Args:
             providers: Dict of provider_type -> provider_name
         """
+        h = self.host
+        
         # Search provider
         if providers.get("search") == "meilisearch":
             self.add_check(HealthCheck(
                 name="meilisearch",
                 check_type=CheckType.HTTP,
-                endpoint="http://localhost:7700/health",
+                endpoint=f"http://{h}:7700/health",
                 timeout_seconds=10,
                 critical=False
             ))
@@ -247,7 +252,7 @@ class HealthChecker:
             self.add_check(HealthCheck(
                 name="chatwoot",
                 check_type=CheckType.HTTP,
-                endpoint="http://localhost:3000/api",
+                endpoint=f"http://{h}:3000/api",
                 timeout_seconds=10,
                 critical=False
             ))
@@ -257,7 +262,7 @@ class HealthChecker:
             self.add_check(HealthCheck(
                 name="superset",
                 check_type=CheckType.HTTP,
-                endpoint="http://localhost:8088/health",
+                endpoint=f"http://{h}:8088/health",
                 timeout_seconds=15,
                 critical=False
             ))
@@ -265,7 +270,7 @@ class HealthChecker:
             self.add_check(HealthCheck(
                 name="metabase",
                 check_type=CheckType.HTTP,
-                endpoint="http://localhost:3000/api/health",
+                endpoint=f"http://{h}:3000/api/health",
                 timeout_seconds=15,
                 critical=False
             ))
@@ -275,7 +280,7 @@ class HealthChecker:
             self.add_check(HealthCheck(
                 name="docuseal",
                 check_type=CheckType.HTTP,
-                endpoint="http://localhost:3000",
+                endpoint=f"http://{h}:3000",
                 timeout_seconds=10,
                 critical=False
             ))
@@ -285,7 +290,7 @@ class HealthChecker:
             self.add_check(HealthCheck(
                 name="n8n",
                 check_type=CheckType.HTTP,
-                endpoint="http://localhost:5678/healthz",
+                endpoint=f"http://{h}:5678/healthz",
                 timeout_seconds=10,
                 critical=False
             ))

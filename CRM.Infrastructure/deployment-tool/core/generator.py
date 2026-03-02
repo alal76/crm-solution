@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from typing import Any, Optional
 
 try:
-    from jinja2 import Environment, FileSystemLoader, StrictUndefined, TemplateNotFound
+    from jinja2 import Environment, FileSystemLoader, StrictUndefined, TemplateNotFound, select_autoescape
     _JINJA2_AVAILABLE = True
 except ImportError:
     _JINJA2_AVAILABLE = False
@@ -61,6 +61,8 @@ class GenerationResult:
 class ConfigGenerator:
     """Generates deployment configuration files from Jinja2 templates."""
 
+    _DEFAULT_DEPLOY_PATH = "/opt/crm-deployment"
+
     # Maps (container_runtime) → [(template_name, output_filename)]
     _TEMPLATE_MAP: dict[str, list[tuple[str, str]]] = {
         "docker_compose": [
@@ -84,8 +86,12 @@ class ConfigGenerator:
         self.templates_dir.mkdir(exist_ok=True)
 
         if _JINJA2_AVAILABLE:
+            # Templates produce YAML, .env, nginx.conf and shell scripts — never HTML.
+            # auto-escaping HTML entities is explicitly disabled here; enabling it would
+            # corrupt non-HTML output (e.g. "&" → "&amp;" in a YAML value).
             self._env = Environment(
                 loader=FileSystemLoader(str(self.templates_dir)),
+                autoescape=select_autoescape([]),  # no HTML templates — autoescape intentionally off
                 undefined=StrictUndefined,
                 trim_blocks=True,
                 lstrip_blocks=True,
@@ -272,6 +278,13 @@ class ConfigGenerator:
             "db_user": "crm_user",
             "db_version": "10.11",
             "domain_name": "localhost",
+            # Redis defaults (used in appsettings.j2)
+            "redis_host": "crm-redis",
+            "redis_port": 6379,
+            # Image prefix computed in _build_context — provide a safe empty default
+            "image_prefix": "",
+            # Remote deploy directory
+            "deploy_path": ConfigGenerator._DEFAULT_DEPLOY_PATH,
         }
         for key, default in defaults.items():
             ctx.setdefault(key, default)
@@ -303,6 +316,26 @@ class ConfigGenerator:
         ctx.setdefault("image_registry", "")
         ctx.setdefault("image_org", "")
         ctx.setdefault("build_locally", False)
+
+        # Compute image_prefix from registry + org so templates can do
+        # {{ image_prefix }}crm-api:{{ crm_version }}
+        registry = ctx.get("image_registry", "").rstrip("/")
+        org = ctx.get("image_org", "").strip("/")
+        if registry and org:
+            ctx.setdefault("image_prefix", f"{registry}/{org}/")
+        elif registry:
+            ctx.setdefault("image_prefix", f"{registry}/")
+        elif org:
+            ctx.setdefault("image_prefix", f"{org}/")
+        else:
+            ctx.setdefault("image_prefix", "")
+
+        # Deploy path — where files land on the remote host
+        target = profile.get("target", {})
+        if isinstance(target, dict):
+            ctx.setdefault("deploy_path", target.get("remote_deploy_dir", self._DEFAULT_DEPLOY_PATH))
+        else:
+            ctx.setdefault("deploy_path", self._DEFAULT_DEPLOY_PATH)
 
         # Auto-generate provider database passwords when the provider is
         # selected but the user hasn't supplied an explicit password.

@@ -3458,9 +3458,17 @@ class WizardHandler(SimpleHTTPRequestHandler):
         # For the CRM solution, migrations are handled by EF Core on startup
         # Just verify the database is accessible
         try:
+            db_user = config.get('db_user', 'crm_user')
+            db_password = config.get('db_password', '')
+            db_name = config.get('db_name', 'crm_db')
+            db_container = config.get('db_container', 'crm-mariadb')
+            if not db_password:
+                return {'success': False, 'error': 'No database password configured'}
             result = subprocess.run(
-                'docker exec crm-mariadb mariadb -u crm_user -pCrmPass@Dev2024 -e "SELECT 1" crm_db',
-                shell=True, capture_output=True, text=True, timeout=30
+                ['docker', 'exec', db_container,
+                 'mariadb', '-u', db_user, f'-p{db_password}',
+                 '-e', 'SELECT 1', db_name],
+                capture_output=True, text=True, timeout=30
             )
             
             if result.returncode == 0:
