@@ -42,6 +42,8 @@ services:
       REDIS_HOST: "crm-redis"
       REDIS_PORT: "6379"
       REDIS_RESULTS_DB: "1"
+      CELERY_BROKER_URL: "redis://crm-redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://crm-redis:6379/1"
       GUEST_TOKEN_JWT_SECRET: "${SUPERSET_GUEST_TOKEN_SECRET}"
       GUEST_TOKEN_JWT_EXP_SECONDS: "3600"
       TALISMAN_ENABLED: "false"
@@ -81,6 +83,8 @@ services:
       REDIS_HOST: "crm-redis"
       REDIS_PORT: "6379"
       REDIS_RESULTS_DB: "1"
+      CELERY_BROKER_URL: "redis://crm-redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://crm-redis:6379/1"
     command: celery --app=superset.tasks.celery_app:app worker --pool=prefork -O fair -c 2
     healthcheck:
       test: ["CMD-SHELL", "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME || exit 1"]

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 67,
+  "patch": 68,
   "lastUpdate": "2026-03-02",
-  "description": "fix(sonar): v0.614.67 - Fix remaining SonarCloud reliability issues: remove ambiguous JSX spacing before hidden inputs in BrandingSettings",
+  "description": "fix(docker): v0.614.68 - Fix superset worker unhealthy: add CELERY_BROKER_URL and CELERY_RESULT_BACKEND env vars to all superset containers",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
