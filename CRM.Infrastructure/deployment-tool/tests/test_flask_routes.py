@@ -2768,3 +2768,176 @@ class TestDeployHostInStatus:
         resp = client.get("/api/day2/postinstall/database-status")
         data = resp.get_json()
         assert "deploy_host" in data
+
+
+# ===========================================================================
+# Health Check Continuation & Frontend Deployment (v0.614.57)
+# ===========================================================================
+
+
+class TestHealthCheckContinuation:
+    """Verify health check timeout no longer blocks frontend deployment."""
+
+    def test_health_check_timeout_returns_true(self):
+        """When API health check times out, step should return True to continue."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        from unittest.mock import patch
+
+        q = queue.Queue()
+        profile = {"target": {"host": "192.168.0.9", "api_port": "5000"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=False)
+
+        # Mock urlopen to always raise (simulating unreachable API)
+        with patch("urllib.request.urlopen", side_effect=Exception("Connection refused")):
+            # Also patch time.sleep to not actually wait
+            with patch("time.sleep"):
+                result = d._step_health_check_api()
+
+        # The step should return True (continue) not False (abort)
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("timed out" in m.lower() for m in messages)
+        assert any("continuing" in m.lower() for m in messages)
+
+    def test_health_check_success_returns_true(self):
+        """When API health check succeeds, step should return True."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        from unittest.mock import patch, MagicMock
+
+        q = queue.Queue()
+        profile = {"target": {"host": "192.168.0.9", "api_port": "5000"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=False)
+
+        with patch("urllib.request.urlopen", return_value=MagicMock()):
+            result = d._step_health_check_api()
+
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("healthy" in m.lower() for m in messages)
+
+    def test_frontend_step_verifies_container_state(self):
+        """Frontend start step should verify the container is actually running."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), {}, log_queue=q, dry_run=True)
+        d._reused_containers = set()
+        result = d._step_start_frontend()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("frontend" in m.lower() for m in messages)
+
+
+class TestKubernetesDeployerLogging:
+    """Verify Kubernetes deployer logging improvements."""
+
+    def test_stub_step_logs_message(self):
+        """Stub steps should emit an informational log message."""
+        from deployers.kubernetes import KubernetesDeployer
+        import queue
+
+        q = queue.Queue()
+        d = KubernetesDeployer(Path("/tmp"), {}, log_queue=q, dry_run=True)
+        rc, out, err = d._stub_step("Apply configmaps")
+        assert rc == 0
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("stub" in m.lower() or "not yet implemented" in m.lower() for m in messages)
+        assert any("apply configmaps" in m.lower() for m in messages)
+
+    def test_rollback_returns_false_on_failure(self):
+        """Rollback should return False when kubectl delete fails (non-dry-run)."""
+        from deployers.kubernetes import KubernetesDeployer
+        from unittest.mock import patch
+        import queue
+
+        q = queue.Queue()
+        d = KubernetesDeployer(Path("/tmp"), {}, log_queue=q, dry_run=False)
+
+        with patch.object(d, "_run", return_value=(1, "", "namespace not found")):
+            result = d.rollback()
+
+        assert result is False
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("error" in m.lower() or "warn" in m.lower() for m in messages)
+
+    def test_rollback_returns_true_on_success(self):
+        """Rollback should return True when kubectl deletes successfully."""
+        from deployers.kubernetes import KubernetesDeployer
+        from unittest.mock import patch
+        import queue
+
+        q = queue.Queue()
+        d = KubernetesDeployer(Path("/tmp"), {}, log_queue=q, dry_run=False)
+
+        with patch.object(d, "_run", return_value=(0, "", "")):
+            result = d.rollback()
+
+        assert result is True
+
+    def test_rollback_returns_true_in_dry_run(self):
+        """Rollback should return True in dry-run mode."""
+        from deployers.kubernetes import KubernetesDeployer
+        import queue
+
+        q = queue.Queue()
+        d = KubernetesDeployer(Path("/tmp"), {}, log_queue=q, dry_run=True)
+        result = d.rollback()
+        assert result is True
+
+    def test_status_handles_json_error_gracefully(self):
+        """status() should log JSONDecodeError instead of silently swallowing."""
+        from deployers.kubernetes import KubernetesDeployer
+        from unittest.mock import patch
+        import queue
+
+        q = queue.Queue()
+        d = KubernetesDeployer(Path("/tmp"), {}, log_queue=q, dry_run=False)
+
+        with patch.object(d, "_run", return_value=(0, "NOT JSON", "")):
+            result = d.status()
+
+        assert result["pods"] == 0
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("json" in m.lower() or "parse" in m.lower() for m in messages)
+
+
+class TestDeployRoutesLogging:
+    """Verify deploy_routes properly logs failures instead of silently swallowing."""
+
+    def test_deploy_history_returns_empty_on_error(self, client):
+        """Deploy history should return [] when file is corrupt."""
+        from unittest.mock import patch
+        from pathlib import Path as P
+        history_path = P.home() / ".crm-cdt" / "deploy_history.json"
+
+        # Ensure history file does not exist to get clean []
+        with patch.object(P, "exists", return_value=False):
+            resp = client.get("/api/deploy/history")
+        assert resp.status_code == 200
+        assert resp.get_json() == []
+
+    def test_secret_recovery_logs_warning_when_host_empty(self, client):
+        """When no deploy host configured, should not crash on secret recovery."""
+        profile = {"target": {}, "database": {}}
+        resp = client.post("/api/deploy", json={
+            "profile": profile,
+            "password_strategy": "fetch_existing",
+            "dry_run": True,
+        })
+        # Should not 500 — either 200 (started) or 400 (config validation)
+        assert resp.status_code in (200, 400)

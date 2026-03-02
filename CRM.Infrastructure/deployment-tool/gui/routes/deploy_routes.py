@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Deployment management routes."""
 import io
+import logging
 import sys
 import queue
 import threading
@@ -8,6 +9,8 @@ import json
 import time
 import zipfile
 from pathlib import Path
+
+logger = logging.getLogger("cdt.deploy")
 
 try:
     from core.socket_helpers import emit_log, emit_step, emit_progress, emit_done, start_background_task
@@ -124,8 +127,8 @@ def deploy_preflight():
                         "status": status_info,
                         "group": _classify_k8s_resource(name),
                     })
-        except Exception:  # noqa: BLE001
-            pass  # kubectl may not be available locally for cloud targets
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("K8s preflight: kubectl unavailable or errored: %s", exc)
 
         return jsonify({
             "containers": [],
@@ -168,8 +171,8 @@ def deploy_preflight():
                         })
                     except json.JSONDecodeError:
                         continue
-        except Exception:  # noqa: BLE001
-            pass  # SSH unavailable — fall through to local check or empty list
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("SSH preflight to %s:%s failed: %s", deploy_host, ssh_port, exc)
     else:
         # Local Docker check
         try:
@@ -192,8 +195,8 @@ def deploy_preflight():
                         })
                     except json.JSONDecodeError:
                         continue
-        except Exception:  # noqa: BLE001
-            pass  # Docker not available
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Local Docker preflight failed: %s", exc)
 
     return jsonify({
         "containers": containers,
@@ -319,11 +322,23 @@ def start_deploy():
                     ssh_port=int(target.get("ssh_port", 22)),
                 )
                 if existing_secrets:
+                    logger.info("Recovered %d existing secrets from %s", len(existing_secrets), deploy_host)
                     DockerComposeDeployer.inject_secrets_into_profile(
                         profile, existing_secrets
                     )
-            except Exception:  # noqa: BLE001
-                pass  # Best-effort; first deploys have no .env yet
+                else:
+                    logger.warning(
+                        "No existing secrets recovered from %s:%s — new random "
+                        "passwords will be generated. If the target already has a "
+                        "running database this WILL cause a credential mismatch.",
+                        deploy_host, remote_dir,
+                    )
+            except Exception as exc:  # noqa: BLE001
+                logger.error(
+                    "Secret recovery from %s failed: %s — new random passwords "
+                    "will be generated (potential credential mismatch!)",
+                    deploy_host, exc,
+                )
 
     gen = ConfigGenerator()
     try:
@@ -449,8 +464,8 @@ def deploy_history():
     if history_file.exists():
         try:
             return jsonify(json.loads(history_file.read_text()))
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to read deploy history from %s: %s", history_file, exc)
     return jsonify([])
 
 

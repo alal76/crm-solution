@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """CRM CDT - Docker Compose Deployer."""
 from __future__ import annotations
+import logging
 import re
 import subprocess
 import queue
@@ -12,6 +13,8 @@ import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
+
+logger = logging.getLogger("cdt.deployer.docker")
 
 DOCKER_COMPOSE_FILE = "docker-compose.yml"
 
@@ -192,11 +195,13 @@ class DockerComposeDeployer:
                 )
         return rc, out, err
 
+    _LOG_LEVEL_MAP = {"info": logging.INFO, "warn": logging.WARNING, "error": logging.ERROR, "success": logging.INFO}
+
     def _emit(self, message: str, level: str = "info", step: int = 0) -> None:
         pct = int((step / self.total_steps) * 100) if self.total_steps else 0
         event = DeployEvent(time.time(), level, message, step, self.total_steps, pct)
         self.log_queue.put(event)
-        print(f"[{level.upper()}] {message}")
+        logger.log(self._LOG_LEVEL_MAP.get(level, logging.INFO), message)
 
     def abort(self) -> None:
         self._abort.set()
@@ -287,6 +292,7 @@ class DockerComposeDeployer:
             ssh.close()
             return (rc, stdout_text, stderr_text)
         except Exception as e:
+            logger.error("SSH exec on %s failed: %s", self._target_host, e)
             return (1, "", str(e))
 
     def _run_on_target(
@@ -632,7 +638,8 @@ class DockerComposeDeployer:
                 ssh.close()
                 if rc != 0 or not content.strip():
                     return {}
-            except Exception:  # noqa: BLE001
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("read_remote_env_secrets SSH to %s failed: %s", host, exc)
                 return {}
 
         parsed = DockerComposeDeployer._parse_env_file(content)
@@ -698,7 +705,8 @@ class DockerComposeDeployer:
             minor = data.get("minor", 0)
             patch = data.get("patch", 0)
             return f"{major}.{minor}.{patch}"
-        except (json.JSONDecodeError, KeyError, OSError):
+        except (json.JSONDecodeError, KeyError, OSError) as exc:
+            logger.warning("_read_version_from_repo failed (%s): %s", version_file, exc)
             return "latest"
 
     def _image_exists_locally(self, image_tag: str) -> bool:
@@ -1279,10 +1287,15 @@ class DockerComposeDeployer:
                 )
                 time.sleep(5)
         self._emit(
-            f"[{self._target_host}] API health check timed out after {max_attempts * 5}s — continuing anyway",
+            f"[{self._target_host}] API health check timed out after {max_attempts * 5}s "
+            f"— continuing with remaining steps (frontend, seed)",
             "warn",
         )
-        return False
+        # Return True so the deploy continues to start the frontend and finish.
+        # The API may still be booting; the frontend (static nginx) does not
+        # depend on a healthy API to start.  A hard failure here would silently
+        # prevent the frontend from being deployed at all.
+        return True
 
     def _step_start_frontend(self) -> bool:
         if "crm-frontend" in self._reused_containers:
@@ -1301,6 +1314,30 @@ class DockerComposeDeployer:
                     self._emit(f"  stdout: {line}", "error")
         else:
             self._emit(f"[{self._target_host}] crm-frontend container started", "info")
+
+        # Verify the container is actually running after compose up
+        if not self.dry_run:
+            time.sleep(2)  # brief settle time
+            rc_chk, state_out, _ = self._run_on_target(
+                ["docker", "inspect", "-f", "{{.State.Status}}", "crm-frontend"], timeout=10
+            )
+            state = state_out.strip() if rc_chk == 0 else "unknown"
+            if state != "running":
+                self._emit(
+                    f"[{self._target_host}] WARNING: crm-frontend container state is '{state}' after start attempt",
+                    "warn",
+                )
+                # Check container logs for clues
+                rc_log, log_out, _ = self._run_on_target(
+                    ["docker", "logs", "--tail", "20", "crm-frontend"], timeout=10
+                )
+                if rc_log == 0 and log_out.strip():
+                    self._emit(f"[{self._target_host}] crm-frontend container logs:", "warn")
+                    for line in log_out.strip().splitlines()[-10:]:
+                        self._emit(f"  {line}", "warn")
+                return False
+            self._emit(f"[{self._target_host}] crm-frontend container verified running", "info")
+
         return rc == 0 or self.dry_run
 
     def _step_configure_seed(self) -> bool:

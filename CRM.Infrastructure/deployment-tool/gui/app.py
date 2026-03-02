@@ -1,10 +1,34 @@
 #!/usr/bin/env python3
 """Flask GUI for CRM Deployment Configuration Wizard."""
 
+import logging
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+
+# ---------------------------------------------------------------------------
+# Logging configuration — set up before any other import so that all
+# modules (deployers, routes, core) that use ``logging.getLogger(...)``
+# automatically inherit these settings.
+# ---------------------------------------------------------------------------
+_LOG_DIR = Path.home() / ".crm-cdt" / "logs"
+_LOG_DIR.mkdir(parents=True, exist_ok=True)
+_LOG_FILE = _LOG_DIR / "cdt.log"
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)-7s  [%(name)s]  %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+    handlers=[
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler(_LOG_FILE, encoding="utf-8"),
+    ],
+)
+# Reduce noise from third-party libraries
+logging.getLogger("paramiko").setLevel(logging.WARNING)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
+logging.getLogger("werkzeug").setLevel(logging.WARNING)
 
 # ---------------------------------------------------------------------------
 # Prerequisite check — runs before any heavy imports.

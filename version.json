@@ -1,12 +1,13 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 56,
+  "patch": 57,
   "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.56 - Monitoring & Post Deployment — renamed Day-2 Ops to 'Monitoring & Post Deployment'; added Post-Install tab with 6 database operations (migrate, seed master data, reseed, seed/clear sample data, clear all); added Test Runner tab with BVT/CRUD loader/E2E/All test suites, real-time streaming output, pass/fail tracking, test history; added deploy_host to status/version-info API responses and Host badge in UI; fixed SSH Docker command quoting (shlex.quote) for remote monitoring; 279 tests (28 new)",
+  "description": "fix(cdt): v0.614.57 - Frontend deployment fix & comprehensive deployment logging — API health check timeout no longer blocks frontend start (Step 13); added post-start container state verification for crm-frontend; replaced 5 silent exception handlers in deploy_routes.py with structured logging; added password recovery failure warnings (root cause of credential mismatch boot loops); added Python logging framework (file + console) to app.py; replaced print() with logger calls in docker_compose.py and kubernetes.py; fixed K8s deployer rollback return value; added stub step logging for unimplemented K8s steps; 289 tests (10 new)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
+    "v0.614.57: FIX(cdt): Frontend deployment fix & deployment logging — health check timeout continues to frontend start; post-start container verification; 5 silent exception handlers replaced with logging; password recovery failure warnings; Python logging framework; logger calls in deployers; K8s rollback fix; 289 tests",
     "v0.614.56: FEAT(cdt): Monitoring & Post Deployment — renamed Day-2 to Monitoring & Post Deployment; 6 post-install DB ops (migrate/seed/clear); Test Runner with BVT/CRUD/E2E suites; deploy_host in API + UI; SSH shlex.quote fix; 279 tests",
     "v0.614.49: FEAT(portal): implement PORTAL-020/021/024 notification and CSAT TODOs — PortalAuthService sends verification email via INotificationPort; PortalService sends ticket confirmation email; ServiceRequestService sends resolution notification and triggers CSAT survey on ResolveServiceRequestAsync; NavigationConfigService AdapterRegistry TODO replaced with NOSONAR",
     "v0.614.18: FEAT(cdt): Wizard template/profile auto-population \u2014 parse ?template=&?profile= URL params from landing page, auto-select discovery platform from template target.provider, pre-fill on-prem (host/port/user) and cloud (region/subscription/project) fields, populate config with architecture/database/providers/SSL/registry, pre-fill Step 1 name+description, show info banner for loaded template/profile",

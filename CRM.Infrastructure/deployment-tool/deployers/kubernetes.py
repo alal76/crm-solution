@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """CRM CDT - Kubernetes Deployer."""
 from __future__ import annotations
+import logging
 import subprocess
 import queue
 import threading
@@ -9,6 +10,8 @@ import json
 from pathlib import Path
 from typing import Optional
 from deployers.docker_compose import DeployEvent
+
+logger = logging.getLogger("cdt.deployer.k8s")
 
 
 class KubernetesDeployer:
@@ -32,11 +35,13 @@ class KubernetesDeployer:
         self._abort = threading.Event()
         self.total_steps = 13
 
+    _LOG_LEVEL_MAP = {"info": logging.INFO, "warn": logging.WARNING, "error": logging.ERROR, "success": logging.INFO}
+
     def _emit(self, message: str, level: str = "info", step: int = 0) -> None:
         pct = int((step / self.total_steps) * 100) if self.total_steps else 0
         event = DeployEvent(time.time(), level, message, step, self.total_steps, pct)
         self.log_queue.put(event)
-        print(f"[{level.upper()}] {message}")
+        logger.log(self._LOG_LEVEL_MAP.get(level, logging.INFO), message)
 
     def abort(self) -> None:
         self._abort.set()
@@ -46,6 +51,11 @@ class KubernetesDeployer:
         if self.kubeconfig:
             cmd += ["--kubeconfig", self.kubeconfig]
         return cmd
+
+    def _stub_step(self, name: str) -> tuple:
+        """Placeholder for not-yet-implemented K8s steps. Logs explicitly."""
+        self._emit(f"  [{name}] Not yet implemented — skipping (stub)", "info")
+        return (0, "", "")
 
     def _run(self, cmd: list, timeout: int = 300) -> tuple:
         if self.dry_run:
@@ -63,6 +73,7 @@ class KubernetesDeployer:
         except subprocess.TimeoutExpired:
             return (1, "", f"Command timed out after {timeout}s")
         except Exception as e:
+            self._emit(f"Command execution failed: {e}", "error")
             return (1, "", str(e))
 
     def deploy(self) -> bool:
@@ -79,15 +90,15 @@ class KubernetesDeployer:
             (1,  "Validate kubectl",    lambda: self._run(kube + ["version"])),
             (2,  "Create namespace",    lambda: self._run(kube + ["create", "namespace", self.namespace, "--dry-run=client", "-o", "yaml"])),
             (3,  "Create secrets",      lambda: self._run(kube + ["create", "secret", "generic", "crm-secrets", "--from-env-file=.env", f"-n={self.namespace}", "--dry-run=client", "-o", "yaml"])),
-            (4,  "Apply configmaps",    lambda: (0, "", "")),
+            (4,  "Apply configmaps",    lambda: self._stub_step("Apply configmaps")),
             (5,  "Deploy MariaDB",      lambda: self._run(kube + ["apply", "-f", "crm-deployment.yaml", f"-n={self.namespace}"])),
-            (6,  "Deploy Redis",        lambda: (0, "", "")),
+            (6,  "Deploy Redis",        lambda: self._stub_step("Deploy Redis")),
             (7,  "Wait DB ready",       lambda: self._run(kube + ["rollout", "status", "deployment/crm-mariadb", f"-n={self.namespace}", "--timeout=120s"])),
-            (8,  "Run migrations",      lambda: (0, "", "")),
-            (9,  "Deploy providers",    lambda: (0, "", "")),
+            (8,  "Run migrations",      lambda: self._stub_step("Run migrations")),
+            (9,  "Deploy providers",    lambda: self._stub_step("Deploy providers")),
             (10, "Deploy API",          lambda: self._run(kube + ["apply", "-f", "crm-deployment.yaml", f"-n={self.namespace}"])),
             (11, "Deploy frontend",     lambda: self._run(kube + ["apply", "-f", "crm-deployment.yaml", f"-n={self.namespace}"])),
-            (12, "Apply ingress",       lambda: (0, "", "")),
+            (12, "Apply ingress",       lambda: self._stub_step("Apply ingress")),
             (13, "Verify pods running", lambda: self._run(kube + ["get", "pods", f"-n={self.namespace}"])),
         ]
         for step_num, step_name, step_fn in steps_list:
@@ -107,11 +118,14 @@ class KubernetesDeployer:
     def rollback(self) -> bool:
         kube = self._kube_cmd()
         self._emit(f"Rolling back — deleting namespace {self.namespace}", "warn")
-        rc, _, _ = self._run(
+        rc, _, err = self._run(
             kube + ["delete", "namespace", self.namespace, "--ignore-not-found=true"]
         )
-        self._emit("Rollback complete", "info")
-        return True
+        if rc != 0 and not self.dry_run:
+            self._emit(f"Rollback had errors (rc={rc}): {err}", "warn")
+        else:
+            self._emit("Rollback complete", "info")
+        return rc == 0 or self.dry_run
 
     def status(self) -> dict:
         kube = self._kube_cmd()
@@ -123,8 +137,8 @@ class KubernetesDeployer:
             try:
                 data = json.loads(out)
                 pods = data.get("items", [])
-            except json.JSONDecodeError:
-                pass
+            except json.JSONDecodeError as exc:
+                self._emit(f"Failed to parse kubectl pod JSON: {exc}", "warn")
         running = sum(
             1 for p in pods if p.get("status", {}).get("phase") == "Running"
         )
