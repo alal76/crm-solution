@@ -454,7 +454,7 @@ export const parseApiError = (error: any, defaultMessage = 'An error occurred'):
         let cleanField = field
           .replace(/^\$\.?/, '') // Remove leading $. or $
           .replaceAll(/([A-Z])/g, ' $1') // Add space before capitals
-          .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
+          .replace(/^./, (str: string) => str.toUpperCase()) // Capitalize first letter
           .trim();
         
         // Handle special cases

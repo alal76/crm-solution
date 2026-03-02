@@ -86,7 +86,7 @@ const getStateIcon = (state: IncidentState) => {
 };
 
 const getStateLabel = (state: IncidentState): string => {
-  return state.replaceAll('_', ' ').replaceAll(/\b\w/g, (l) => l.toUpperCase());
+  return state.replaceAll('_', ' ').replaceAll(/\b\w/g, (l: string) => l.toUpperCase());
 };
 
 const getPriorityColor = (priority: IncidentPriority): string => {

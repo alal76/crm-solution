@@ -88,7 +88,7 @@ function getDotIcon(changeType: 'created' | 'updated' | 'deleted'): React.ReactE
 function formatFieldName(fieldName: string): string {
   return fieldName
     .replaceAll(/([A-Z])/g, ' $1')
-    .replace(/^./, (str) => str.toUpperCase())
+    .replace(/^./, (str: string) => str.toUpperCase())
     .trim();
 }
 
