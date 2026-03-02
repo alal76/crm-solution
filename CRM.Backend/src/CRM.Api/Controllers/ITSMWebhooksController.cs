@@ -188,7 +188,7 @@ public class ITSMWebhooksController : CrmControllerBase
     /// </summary>
     /// <returns>List of event type names and descriptions</returns>
     [HttpGet("event-types")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public list of ITSM event types used by unauthenticated webhook integrations
     [ProducesResponseType(typeof(IEnumerable<WebhookEventTypeInfo>), StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<WebhookEventTypeInfo>> GetEventTypes()
     {

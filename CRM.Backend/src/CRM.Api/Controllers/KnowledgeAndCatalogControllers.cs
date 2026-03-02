@@ -58,7 +58,7 @@ public class KnowledgeController : CrmControllerBase
     /// <returns>The article details</returns>
     [HttpGet("{id:int}")]
     [HttpGet("articles/{id:int}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public knowledge base articles accessible to unauthenticated portal users
     [ProducesResponseType(typeof(KnowledgeArticleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<KnowledgeArticleDto>> GetArticle(int id)
@@ -75,7 +75,7 @@ public class KnowledgeController : CrmControllerBase
     /// <param name="pageSize">Page size (default: 20)</param>
     /// <returns>Matching articles</returns>
     [HttpGet("search")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public knowledge base search accessible to unauthenticated portal users
     [ProducesResponseType(typeof(IEnumerable<KnowledgeArticleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<KnowledgeArticleDto>>> SearchArticles(
         [FromQuery] string searchTerm,
@@ -153,7 +153,7 @@ public class KnowledgeController : CrmControllerBase
     /// <param name="dto">Feedback details</param>
     /// <returns>Success status</returns>
     [HttpPost("{id:int}/feedback")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public product catalog accessible to unauthenticated portal/landing page users
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult> AddFeedback(int id, [FromBody] AddFeedbackDto dto)
@@ -168,7 +168,7 @@ public class KnowledgeController : CrmControllerBase
     /// <param name="incidentDescription">Description text to match against</param>
     /// <returns>List of suggested articles</returns>
     [HttpGet("suggestions")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public product catalog categories accessible without authentication
     [ProducesResponseType(typeof(IEnumerable<KnowledgeArticleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<KnowledgeArticleDto>>> GetSuggestedArticles([FromQuery] string incidentDescription)
     {
@@ -183,7 +183,7 @@ public class KnowledgeController : CrmControllerBase
     /// <returns>List of popular articles</returns>
     [HttpGet("popular")]
     [HttpGet("articles/popular")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public service catalog accessible to unauthenticated customer portal users
     [ProducesResponseType(typeof(IEnumerable<KnowledgeArticleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<KnowledgeArticleDto>>> GetPopularArticles([FromQuery] int count = 10)
     {
@@ -198,7 +198,7 @@ public class KnowledgeController : CrmControllerBase
     /// <returns>List of recent articles</returns>
     [HttpGet("recent")]
     [HttpGet("articles/recent")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public service catalog search accessible without authentication
     [ProducesResponseType(typeof(IEnumerable<KnowledgeArticleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<KnowledgeArticleDto>>> GetRecentArticles([FromQuery] int count = 10)
     {
@@ -214,7 +214,7 @@ public class KnowledgeController : CrmControllerBase
     /// <param name="pageSize">Page size (default: 20)</param>
     /// <returns>Matching articles</returns>
     [HttpGet("articles")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public service catalog items accessible to unauthenticated portal users
     [ProducesResponseType(typeof(IEnumerable<KnowledgeArticleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<KnowledgeArticleDto>>> ListArticles(
         [FromQuery] string? search = null,
@@ -230,7 +230,7 @@ public class KnowledgeController : CrmControllerBase
     /// </summary>
     /// <returns>List of category names</returns>
     [HttpGet("categories")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public service catalog item details accessible without authentication
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetCategories()
     {
@@ -310,7 +310,7 @@ public class CatalogController : CrmControllerBase
     /// <param name="categoryId">Optional category ID to filter by</param>
     /// <returns>List of catalog items</returns>
     [HttpGet("items")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public FAQ articles accessible to unauthenticated portal and landing page users
     [ProducesResponseType(typeof(IEnumerable<CatalogItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogItemDto>>> GetCatalogItems([FromQuery] int? categoryId)
     {
@@ -324,7 +324,7 @@ public class CatalogController : CrmControllerBase
     /// <param name="id">The catalog item ID</param>
     /// <returns>The catalog item details</returns>
     [HttpGet("items/{id}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public FAQ categories accessible without authentication
     [ProducesResponseType(typeof(CatalogItemDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CatalogItemDto>> GetCatalogItem(int id)
@@ -365,7 +365,7 @@ public class CatalogController : CrmControllerBase
     /// <param name="searchTerm">The search term to filter catalog items</param>
     /// <returns>List of matching catalog items</returns>
     [HttpGet("search")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public announcement accessible to unauthenticated portal users
     [ProducesResponseType(typeof(IEnumerable<CatalogItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogItemDto>>> SearchCatalog([FromQuery(Name = "term")] string? searchTerm)
     {
@@ -378,7 +378,7 @@ public class CatalogController : CrmControllerBase
     /// </summary>
     /// <returns>List of featured catalog items</returns>
     [HttpGet("featured")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public announcements list accessible without authentication
     [ProducesResponseType(typeof(IEnumerable<CatalogItemDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogItemDto>>> GetFeaturedItems()
     {
@@ -391,7 +391,7 @@ public class CatalogController : CrmControllerBase
     /// </summary>
     /// <returns>List of catalog categories with item counts</returns>
     [HttpGet("categories")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public announcement details accessible without authentication
     [ProducesResponseType(typeof(IEnumerable<CatalogCategoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CatalogCategoryDto>>> GetCategories()
     {

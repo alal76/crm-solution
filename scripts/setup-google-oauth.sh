@@ -135,7 +135,7 @@ EOF
         SQL="UPDATE SystemSettings SET GoogleAuthEnabled = 1, GoogleClientId = '${GOOGLE_CLIENT_ID}', GoogleClientSecret = '${GOOGLE_CLIENT_SECRET}', UpdatedAt = NOW() WHERE Id = 1; SELECT GoogleAuthEnabled, GoogleClientId FROM SystemSettings WHERE Id = 1;"
         
         if command -v docker &> /dev/null; then
-            docker exec -i crm-mariadb mariadb -u root -pRootPass@Dev2024 crm_db -e "$SQL"
+            docker exec -i crm-mariadb mariadb -u root -p"${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}" crm_db -e "$SQL"
             echo -e "${GREEN}✓ Database SystemSettings updated${NC}"
         else
             echo -e "${YELLOW}Docker not found. Run this SQL manually:${NC}"
@@ -165,7 +165,7 @@ EOF
         
         SQL="UPDATE SystemSettings SET GoogleAuthEnabled = 1, GoogleClientId = '${GOOGLE_CLIENT_ID}', GoogleClientSecret = '${GOOGLE_CLIENT_SECRET}', UpdatedAt = NOW() WHERE Id = 1;"
         if command -v docker &> /dev/null; then
-            docker exec -i crm-mariadb mariadb -u root -pRootPass@Dev2024 crm_db -e "$SQL"
+            docker exec -i crm-mariadb mariadb -u root -p"${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}" crm_db -e "$SQL"
             echo -e "${GREEN}✓ Database SystemSettings updated${NC}"
         else
             echo -e "${YELLOW}Docker not found locally. Trying local mysql...${NC}"
@@ -175,13 +175,13 @@ EOF
         
     4)
         # Remote server
-        REMOTE_HOST="192.168.0.9"
+        REMOTE_HOST="${DEPLOY_HOST:?Set DEPLOY_HOST for remote deployment}"
         echo ""
         echo "Updating Google OAuth on remote server ${REMOTE_HOST}..."
         
         SQL="UPDATE SystemSettings SET GoogleAuthEnabled = 1, GoogleClientId = '${GOOGLE_CLIENT_ID}', GoogleClientSecret = '${GOOGLE_CLIENT_SECRET}', UpdatedAt = NOW() WHERE Id = 1; SELECT GoogleAuthEnabled, LEFT(GoogleClientId, 30) as ClientIdPrefix FROM SystemSettings WHERE Id = 1;"
         
-        ssh "root@${REMOTE_HOST}" "docker exec -i crm-mariadb mariadb -u root -pRootPass@Dev2024 crm_db -e \"${SQL}\""
+        ssh "root@${REMOTE_HOST}" "docker exec -i crm-mariadb mariadb -u root -p'${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}' crm_db -e \"${SQL}\""
         
         echo -e "${GREEN}✓ Remote database updated${NC}"
         echo ""

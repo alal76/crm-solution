@@ -45,7 +45,7 @@ public class AuthDiagnosticsController : CrmControllerBase
     /// Simple POST endpoint to validate POST handling without auth service DI.
     /// </summary>
     [HttpPost("ping")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Diagnostics endpoint is non-production only (guarded by env check) for support workflows
     public IActionResult Ping()
     {
         if (_environment.IsProduction())
@@ -61,7 +61,7 @@ public class AuthDiagnosticsController : CrmControllerBase
     /// Returns known or expected configuration issues for non-production diagnostics.
     /// </summary>
     [HttpGet("known-issues")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Diagnostics endpoint is non-production only (guarded by env check) for support workflows
     public async Task<IActionResult> KnownIssues() // NOSONAR
     {
         if (_environment.IsProduction())

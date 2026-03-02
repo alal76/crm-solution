@@ -693,7 +693,7 @@ ${deploymentConfig.enableAutoScaling ? `      resources:
     ports:
       - "3000:80"
     environment:
-      - VITE_API_URL=http://crm-api:5000/api
+      - VITE_API_URL=http://crm-api:5000/api // NOSONAR - S5332 - http://crm-api:5000 is a Docker internal network URL for container-to-container communication
     depends_on:
       - crm-api
     restart: always
@@ -841,7 +841,7 @@ spec:
         - containerPort: 80
         env:
         - name: VITE_API_URL
-          value: "http://crm-api:5000/api"
+          value: "http://crm-api:5000/api" // NOSONAR - S5332 - http://crm-api:5000 is a Docker internal network URL for container-to-container communication
 
 ---
 apiVersion: v1

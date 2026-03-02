@@ -310,7 +310,7 @@ public class ProviderRegistryService : IProviderRegistryService
             DocumentationUrl = "https://www.meilisearch.com/docs",
             ConfigFields = new List<ProviderConfigField>
             {
-                new() { Key = "Url", Label = "Meilisearch URL", Type = "url", Required = true, Placeholder = "http://localhost:7700" },
+                new() { Key = "Url", Label = "Meilisearch URL", Type = "url", Required = true, Placeholder = "http://localhost:7700" }, // NOSONAR - S5332 - http://localhost placeholder URL in provider default config for local dev
                 new() { Key = "ApiKey", Label = "Master API Key", Type = "password", Required = true, HelpText = "Set via MEILI_MASTER_KEY" },
                 new() { Key = "IndexPrefix", Label = "Index Prefix", Type = "text", Required = false, DefaultValue = "crm_" }
             }
@@ -342,7 +342,7 @@ public class ProviderRegistryService : IProviderRegistryService
             DocumentationUrl = "https://www.elastic.co/guide/",
             ConfigFields = new List<ProviderConfigField>
             {
-                new() { Key = "Url", Label = "Elasticsearch URL", Type = "url", Required = true, Placeholder = "http://localhost:9200" },
+                new() { Key = "Url", Label = "Elasticsearch URL", Type = "url", Required = true, Placeholder = "http://localhost:9200" }, // NOSONAR - S5332 - http://localhost placeholder URL in provider default config for local dev
                 new() { Key = "Username", Label = "Username", Type = "text", Required = false },
                 new() { Key = "Password", Label = "Password", Type = "password", Required = false }
             }
@@ -369,7 +369,7 @@ public class ProviderRegistryService : IProviderRegistryService
             DocumentationUrl = "https://www.chatwoot.com/docs/",
             ConfigFields = new List<ProviderConfigField>
             {
-                new() { Key = "BaseUrl", Label = "Chatwoot URL", Type = "url", Required = true, Placeholder = "http://localhost:3000" },
+                new() { Key = "BaseUrl", Label = "Chatwoot URL", Type = "url", Required = true, Placeholder = "http://localhost:3000" }, // NOSONAR - S5332 - http://localhost placeholder URL in provider default config for local dev
                 new() { Key = "ApiKey", Label = "API Access Token", Type = "password", Required = true },
                 new() { Key = "AccountId", Label = "Account ID", Type = "number", Required = true },
                 new() { Key = "InboxId", Label = "Inbox ID", Type = "number", Required = false }
@@ -471,7 +471,7 @@ public class ProviderRegistryService : IProviderRegistryService
             DocumentationUrl = "https://superset.apache.org/docs/",
             ConfigFields = new List<ProviderConfigField>
             {
-                new() { Key = "Url", Label = "Superset URL", Type = "url", Required = true, Placeholder = "http://localhost:8088" },
+                new() { Key = "Url", Label = "Superset URL", Type = "url", Required = true, Placeholder = "http://localhost:8088" }, // NOSONAR - S5332 - http://localhost placeholder URL in provider default config for local dev
                 new() { Key = "Username", Label = "Username", Type = "text", Required = true, DefaultValue = "admin" },
                 new() { Key = "Password", Label = "Password", Type = "password", Required = true },
                 new() { Key = "DatabaseId", Label = "Database ID", Type = "number", Required = false, DefaultValue = "1" }
@@ -516,7 +516,7 @@ public class ProviderRegistryService : IProviderRegistryService
             DocumentationUrl = "https://www.docuseal.com/docs",
             ConfigFields = new List<ProviderConfigField>
             {
-                new() { Key = "Url", Label = "DocuSeal URL", Type = "url", Required = true, Placeholder = "http://localhost:3000" },
+                new() { Key = "Url", Label = "DocuSeal URL", Type = "url", Required = true, Placeholder = "http://localhost:3000" }, // NOSONAR - S5332 - http://localhost placeholder URL in provider default config for local dev
                 new() { Key = "ApiKey", Label = "API Key", Type = "password", Required = true },
                 new() { Key = "WebhookSecret", Label = "Webhook Secret", Type = "password", Required = false }
             }
@@ -551,7 +551,7 @@ public class ProviderRegistryService : IProviderRegistryService
             DocumentationUrl = "https://ollama.com/",
             ConfigFields = new List<ProviderConfigField>
             {
-                new() { Key = "Url", Label = "Ollama URL", Type = "url", Required = true, DefaultValue = "http://localhost:11434" },
+                new() { Key = "Url", Label = "Ollama URL", Type = "url", Required = true, DefaultValue = "http://localhost:11434" }, // NOSONAR - S5332 - http://localhost placeholder URL in provider default config for local dev
                 new() { Key = "Model", Label = "Default Model", Type = "text", Required = true, DefaultValue = "llama3.1:8b" },
                 new() { Key = "EmbeddingModel", Label = "Embedding Model", Type = "text", Required = false, DefaultValue = "nomic-embed-text" }
             }
@@ -656,7 +656,7 @@ public class ProviderRegistryService : IProviderRegistryService
             DocumentationUrl = "https://docs.n8n.io/",
             ConfigFields = new List<ProviderConfigField>
             {
-                new() { Key = "BaseUrl", Label = "n8n URL", Type = "url", Required = true, Placeholder = "http://localhost:5678" },
+                new() { Key = "BaseUrl", Label = "n8n URL", Type = "url", Required = true, Placeholder = "http://localhost:5678" }, // NOSONAR - S5332 - http://localhost placeholder URL in provider default config for local dev
                 new() { Key = "ApiKey", Label = "API Key", Type = "password", Required = true },
                 new() { Key = "WebhookBaseUrl", Label = "Webhook Base URL", Type = "url", Required = false }
             }

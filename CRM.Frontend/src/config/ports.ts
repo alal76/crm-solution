@@ -48,7 +48,7 @@ export const getApiBaseUrl = (): string => {
   
   if (isLocalhost || isLocalDevServer) {
     // Local development server - use external API port
-    return `http://${hostname}:${ports.apiExternal}`;
+    return `http://${hostname}:${ports.apiExternal}`; // NOSONAR - S5332 - http:// URL constructed from runtime host variable for local dev network access
   }
   
   // Production/Cloud deployment - use same origin (nginx proxies /api to backend)

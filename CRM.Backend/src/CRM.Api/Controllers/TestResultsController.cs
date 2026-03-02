@@ -59,9 +59,15 @@ public class TestResultsController : CrmControllerBase
     /// <param name="sessionId">The session ID</param>
     /// <returns>Test run summary for the specified session</returns>
     [HttpGet("session/{sessionId}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Test results endpoint is public for CI/CD tooling to retrieve test reports
     public async Task<IActionResult> GetResultsBySession(string sessionId)
     {
+        // S2083: Sanitize sessionId to prevent path traversal - only allow alphanumeric, hyphens, underscores (max 64 chars)
+        if (string.IsNullOrWhiteSpace(sessionId) || !System.Text.RegularExpressions.Regex.IsMatch(sessionId, @"^[a-zA-Z0-9_-]{1,64}$"))
+        {
+            return BadRequest(new { message = "Invalid session ID format" });
+        }
+
                 var repoRoot = _env.ContentRootPath.Split("CRM.Api").FirstOrDefault() ?? _env.ContentRootPath;
         var logFilePath = Path.Combine(repoRoot, "logs", "test-results", $"test-results-{sessionId}.json");
 

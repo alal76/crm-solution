@@ -57,11 +57,11 @@ docker run -d \
   --network crm_crm-network \
   --network-alias crm-api \
   -p 5000:5000 \
-  -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD:-CrmPass@Dev2024};" \
+  -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD:?DB_PASSWORD must be set};" \
   -e "ASPNETCORE_ENVIRONMENT=Production" \
   -e "SKIP_DB_MIGRATION=true" \
   -e "SKIP_WORKFLOW_WORKER=true" \
-  -e "Jwt__Secret=CrmJwtSecretKey2024ForSecureAuthentication" \
+  -e "Jwt__Secret=${JWT_SECRET:?JWT_SECRET must be set}" \
   crm-api:latest
 
 echo "  - Waiting for container to start..."

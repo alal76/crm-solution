@@ -4,6 +4,13 @@
 #
 # This file is mounted at /etc/proxysql.cnf inside the crm-proxysql container.
 # After container start, run scripts/configure-proxysql.sh to load runtime config.
+#
+# ⚠️  SECURITY: All passwords in this file are PLACEHOLDERS for initial setup.
+#    Before deploying to any shared or production environment:
+#    1. Replace all passwords below with strong, unique credentials
+#    2. Use scripts/configure-proxysql.sh to load runtime credentials
+#    3. Rotate credentials regularly per your security policy
+#    4. Never commit real credentials to version control
 # =============================================================================
 
 datadir="/var/lib/proxysql"
@@ -39,8 +46,9 @@ mysql_variables =
     commands_stats         = true
     sessions_sort          = true
     # Monitor user (needs USAGE privilege on all Galera nodes)
+    # ⚠️ CHANGE before deployment — see configure-proxysql.sh
     monitor_username       = "proxysql_monitor"
-    monitor_password       = "MonitorPass@Dev2024"
+    monitor_password       = "CHANGE_ME_monitor_password"
     # Connection pool
     connection_max_age_ms  = 0
 }
@@ -90,7 +98,7 @@ mysql_users =
 (
     {
         username              = "crm_user"
-        password              = "CrmPass@Dev2024"
+        password              = "CHANGE_ME_crm_user_password"   # ⚠️ CHANGE before deployment
         default_hostgroup     = 10        # Writes go to hostgroup 10 by default
         default_schema        = "crm_db"
         active                = 1
@@ -98,7 +106,7 @@ mysql_users =
     },
     {
         username              = "crm_readonly"
-        password              = "ReadOnlyPass@Dev2024"
+        password              = "CHANGE_ME_readonly_password"   # ⚠️ CHANGE before deployment
         default_hostgroup     = 20        # Always routes to READ hostgroup
         default_schema        = "crm_db"
         active                = 1

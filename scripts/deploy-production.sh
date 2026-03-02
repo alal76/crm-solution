@@ -157,10 +157,10 @@ else
         --name crm-mariadb \
         --restart=always \
         -p 3306:3306 \
-        -e MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-RootPass@Prod2024} \
+        -e MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:?MARIADB_ROOT_PASSWORD must be set} \
         -e MARIADB_DATABASE=crm_db \
         -e MARIADB_USER=crm_user \
-        -e MARIADB_PASSWORD=${MARIADB_PASSWORD:-CrmPass@Prod2024} \
+        -e MARIADB_PASSWORD=${MARIADB_PASSWORD:?MARIADB_PASSWORD must be set} \
         -v crm-mariadb-data:/var/lib/mysql \
         mariadb:10.11
     
@@ -169,14 +169,14 @@ else
 fi
 
 # Create demo database
-docker exec crm-mariadb mariadb -u root -p${MARIADB_ROOT_PASSWORD:-RootPass@Prod2024} -e "
+docker exec crm-mariadb mariadb -u root -p${MARIADB_ROOT_PASSWORD:?MARIADB_ROOT_PASSWORD must be set} -e "
     CREATE DATABASE IF NOT EXISTS crm_demodb;
     GRANT ALL PRIVILEGES ON crm_demodb.* TO 'crm_user'@'%';
     FLUSH PRIVILEGES;
 " 2>/dev/null || echo "Demo database may already exist"
 
 # Test connection
-docker exec crm-mariadb mariadb -u crm_user -pCrmPass@Prod2024 -e "SELECT 'Database OK'" 2>/dev/null && \
+docker exec crm-mariadb mariadb -u crm_user -p${MARIADB_PASSWORD:?MARIADB_PASSWORD must be set} -e "SELECT 'Database OK'" 2>/dev/null && \
     echo "MariaDB is ready!" || echo "MariaDB connection test failed"
 DB_SCRIPT
     
@@ -297,7 +297,7 @@ curl -s --max-time 10 "$FRONTEND_URL" | head -c 100 && echo "... OK" || echo "FA
 
 # Test Database
 echo -n "Database: "
-docker exec crm-mariadb mariadb -u crm_user -pCrmPass@Prod2024 -e "SELECT 'OK'" 2>/dev/null | tail -1 || echo "FAILED"
+docker exec crm-mariadb mariadb -u crm_user -p"${MARIADB_PASSWORD}" -e "SELECT 'OK'" 2>/dev/null | tail -1 || echo "FAILED"
 
 echo ""
 echo "=== Access URLs ==="

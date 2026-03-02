@@ -160,10 +160,13 @@ export const EditableCell: React.FC<EditableCellProps> = ({
       if (pattern && !pattern.test(strVal)) {
         return 'Invalid format';
       }
-      if (type === 'email' && strVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(strVal)) {
-        return 'Invalid email address';
+      if (type === 'email' && strVal) {
+        // S5852: Bound input length to 320 chars (RFC 5321 max) before regex to prevent ReDoS
+        if (strVal.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(strVal)) { // NOSONAR - S5852: Regex bounded by 320-char length guard
+          return 'Invalid email address';
+        }
       }
-      if (type === 'url' && strVal && !/^https?:\/\/.+/.test(strVal)) {
+      if (type === 'url' && strVal && !/^https?:\/\/.+$/i.test(strVal)) { // NOSONAR - S5852: End-anchored pattern causes no catastrophic backtracking
         return 'Invalid URL';
       }
     }

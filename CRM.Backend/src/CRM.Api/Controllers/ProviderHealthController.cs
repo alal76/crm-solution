@@ -58,7 +58,7 @@ public class ProviderHealthController : CrmControllerBase
     /// </summary>
     /// <returns>Provider health report with status for each category</returns>
     [HttpGet("providers")]
-    [AllowAnonymous] // Health checks should be accessible for monitoring
+    [AllowAnonymous] // Health checks should be accessible for monitoring // NOSONAR - S4834: Health check endpoints must be accessible without auth for monitoring/load-balancers
     [ProducesResponseType(typeof(ProviderHealthReport), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProviderHealthReport), StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult<ProviderHealthReport>> GetProviderHealth()
@@ -92,7 +92,7 @@ public class ProviderHealthController : CrmControllerBase
     /// </summary>
     /// <param name="category">The provider category (Search, Chat, Notifications, etc.)</param>
     [HttpGet("providers/{category}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Health check endpoint must be accessible without auth for Kubernetes liveness probes
     [ProducesResponseType(typeof(ProviderStatus), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ProviderStatus>> GetProviderHealthByCategory(string category)

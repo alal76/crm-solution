@@ -24,7 +24,7 @@ set -euo pipefail
 PROXYSQL_HOST="${PROXYSQL_HOST:-127.0.0.1}"
 PROXYSQL_PORT="${PROXYSQL_PORT:-6033}"
 MARIADB_USER="${MARIADB_USER:-crm_user}"
-MARIADB_PASSWORD="${MARIADB_PASSWORD:-CrmPass@Dev2024}"
+MARIADB_PASSWORD="${MARIADB_PASSWORD:?Set MARIADB_PASSWORD}"
 MARIADB_DATABASE="${MARIADB_DATABASE:-crm_db}"
 
 NODE1_CONTAINER="crm-mariadb-node1"
@@ -59,7 +59,7 @@ run_query() {
 get_cluster_size() {
   local node_container="$1"
   docker exec "${node_container}" \
-    mysql -u root -p"${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}" \
+    mysql -u root -p"${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD}" \
     -e "SHOW STATUS LIKE 'wsrep_cluster_size';" 2>/dev/null \
     | awk 'NR==2 {print $2}'
 }

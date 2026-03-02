@@ -338,7 +338,7 @@ run_smoke_tests() {
     log_info "Test 2: Login endpoint..."
     local login_response=$(curl -sf -X POST "${api_url}/api/auth/login" \
         -H "Content-Type: application/json" \
-        -d '{"email":"admin@crm.local","password":"Admin@123"}' 2>/dev/null)
+        -d "{\"email\":\"${ADMIN_EMAIL:-admin@crm.local}\",\"password\":\"${ADMIN_PASSWORD:?Set ADMIN_PASSWORD}\"}" 2>/dev/null)
     
     if echo "$login_response" | grep -q "accessToken"; then
         log_success "Login test passed"

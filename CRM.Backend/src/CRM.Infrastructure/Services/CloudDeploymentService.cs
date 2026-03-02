@@ -1350,8 +1350,8 @@ public class CloudDeploymentService : ICloudDeploymentService
             {
                 Success = true,
                 Message = "Deployment completed successfully",
-                FrontendUrl = deployment.FrontendUrl ?? $"http://localhost:30080",
-                ApiUrl = deployment.ApiUrl ?? $"http://localhost:30081",
+                FrontendUrl = deployment.FrontendUrl ?? $"http://localhost:30080", // NOSONAR - S5332 - http://localhost URLs used for local Kubernetes NodePort dev access only
+                ApiUrl = deployment.ApiUrl ?? $"http://localhost:30081", // NOSONAR - S5332 - http://localhost URLs used for local Kubernetes NodePort dev access only
                 DeployLog = logs.ToString()
             };
         }
@@ -1386,8 +1386,8 @@ public class CloudDeploymentService : ICloudDeploymentService
             {
                 Success = true,
                 Message = "Docker deployment completed",
-                FrontendUrl = "http://localhost:3000",
-                ApiUrl = "http://localhost:5000",
+                FrontendUrl = "http://localhost:3000", // NOSONAR - S5332 - http://localhost URL is a development-mode service endpoint placeholder
+                ApiUrl = "http://localhost:5000", // NOSONAR - S5332 - http://localhost URL is a development-mode service endpoint placeholder
                 DeployLog = logs.ToString()
             };
         }

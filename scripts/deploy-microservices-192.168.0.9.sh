@@ -15,7 +15,7 @@ echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env de
 set -e
 
 # Configuration
-REMOTE_HOST="192.168.0.9"
+REMOTE_HOST="${DEPLOY_HOST:?Set DEPLOY_HOST environment variable}"
 REMOTE_USER="${DEPLOY_USER:-alal}"
 REMOTE_DIR="/opt/crm-solution"
 LOCAL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -103,10 +103,10 @@ build_images() {
         # Source environment variables
         export ASPNETCORE_ENVIRONMENT=Production
         export MS_VERSION=latest
-        export DB_PASSWORD=CrmPass@Dev2024
+        export DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD must be set}
         export DB_USER=crm_user
         export DB_NAME=crm_db
-        export JWT_SECRET=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+        export JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
         export PORT_FRONTEND_EXTERNAL=80
         
         echo '>>> Building all microservice images...'
@@ -126,11 +126,11 @@ deploy_containers() {
         # Export environment variables
         export ASPNETCORE_ENVIRONMENT=Production
         export MS_VERSION=latest
-        export DB_PASSWORD=CrmPass@Dev2024
+        export DB_PASSWORD=${DB_PASSWORD:?DB_PASSWORD must be set}
         export DB_USER=crm_user
         export DB_NAME=crm_db
-        export DB_ROOT_PASSWORD=RootPass@Dev2024
-        export JWT_SECRET=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
+        export DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD must be set}
+        export JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
         export PORT_FRONTEND_EXTERNAL=80
         export PORT_GATEWAY=5000
         export PORT_IDENTITY=5001

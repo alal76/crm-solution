@@ -26,12 +26,12 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 PRIMARY_HOST="${PRIMARY_HOST:-crm-mariadb}"
 PRIMARY_PORT="${PRIMARY_PORT:-3306}"
-PRIMARY_ROOT_PASSWORD="${PRIMARY_ROOT_PASSWORD:-RootPass@Dev2024}"
+PRIMARY_ROOT_PASSWORD="${PRIMARY_ROOT_PASSWORD:?Set PRIMARY_ROOT_PASSWORD}"
 MARIADB_DATABASE="${MARIADB_DATABASE:-crm_db}"
 
 REPLICA_HOST="${REPLICA_HOST:-127.0.0.1}"
 REPLICA_PORT="${REPLICA_PORT:-3307}"
-REPLICA_ROOT_PASSWORD="${REPLICA_ROOT_PASSWORD:-RootPass@Dev2024}"
+REPLICA_ROOT_PASSWORD="${REPLICA_ROOT_PASSWORD:?Set REPLICA_ROOT_PASSWORD}"
 
 REPL_USER="${REPL_USER:-repl_analytics}"
 REPL_PASSWORD="${REPL_PASSWORD:-ReplAnalytics@Dev2024}"
@@ -221,7 +221,7 @@ main() {
   log ""
   log "Replica connection details:"
   log "  Host: ${REPLICA_HOST}:${REPLICA_PORT}"
-  log "  User: crm_readonly / ReadOnlyPass@Dev2024"
+  log "  User: crm_readonly (see environment config for password)"
   log "  Database: ${MARIADB_DATABASE}"
   log ""
   log "Monitor replication lag: scripts/monitor-replication-lag.sh"

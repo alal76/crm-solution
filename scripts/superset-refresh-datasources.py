@@ -30,9 +30,12 @@ CRM_MARIADB_HOST = os.environ.get("CRM_MARIADB_HOST", "crm-mariadb")
 CRM_MARIADB_PORT = os.environ.get("CRM_MARIADB_PORT", "3306")
 CRM_MARIADB_DB   = os.environ.get("CRM_MARIADB_DB",   "crm_db")
 CRM_MARIADB_USER = os.environ.get("CRM_MARIADB_USER", "crm_user")
-# Password is URL-encoded -- @ in "CrmPass@Dev2024" must be %40 in the URI
-# otherwise the parser splits at the @ and treats "Dev2024@crm-mariadb" as the host
-_raw_pass = os.environ.get("CRM_MARIADB_PASS", "CrmPass@Dev2024")
+# Password is URL-encoded -- @ must be %40 in the URI
+# otherwise the parser splits at the @ and treats the remainder as the host
+_raw_pass = os.environ.get("CRM_MARIADB_PASS")
+if not _raw_pass:
+    print("ERROR: CRM_MARIADB_PASS environment variable must be set", file=sys.stderr)
+    sys.exit(1)
 CRM_MARIADB_PASS_ENC = urllib.parse.quote_plus(_raw_pass)
 
 # All CRM tables to register as Superset datasets

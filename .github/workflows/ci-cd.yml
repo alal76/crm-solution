@@ -586,9 +586,10 @@ jobs:
           exit 0
         fi
 
-        # NOTE: sonar.exclusions, sonar.sources, sonar.coverage.exclusions etc. are defined
-        # in sonar-project.properties at the repo root — do NOT duplicate them here as
-        # inline /d: parameters override the properties file and cause conflicts.
+        # NOTE: sonar.exclusions are mirrored inline here AND in sonar-project.properties.
+        # Inline /d: parameters are required to suppress Python/Shell/YAML/Bicep/Dockerfile
+        # analysis that SonarCloud runs as Automatic Analysis (server-side), which does NOT
+        # read sonar-project.properties. See: https://docs.sonarcloud.io/advanced-setup/ci-based-analysis/
         dotnet sonarscanner begin \
           /k:"alal76_crm-solution" \
           /o:"alal76" \
@@ -598,7 +599,9 @@ jobs:
           /d:sonar.javascript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
           /d:sonar.typescript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
           /d:sonar.links.homepage="https://github.com/alal76/crm-solution" \
-          /d:sonar.links.ci="https://github.com/alal76/crm-solution/actions"
+          /d:sonar.links.ci="https://github.com/alal76/crm-solution/actions" \
+          /d:sonar.exclusions="e2e-tests/**,scripts/**,docker/**,azure/**,kubernetes/**,CRM.Infrastructure/**,crm-script-runner/**,database/**,.github/**,DEPLOY.sh,deploy-to-dev-server.sh,deploy.sh,build.sh,start-dev.sh,nginx-frontend.conf,**/node_modules/**,**/obj/**,**/bin/**,**/dist/**,**/build/**,**/coverage/**,**/Migrations/**,**/publish/**,**/*.min.js,**/*.generated.cs,CRM.Backend/src/CRM.DatabaseSeeder/**,CRM.Backend/tests/**,**/appsettings.Development.json,**/appsettings.Testing.json,**/appsettings.Production.json,**/appsettings.Performance.json,**/Services/**/appsettings.json,**/appsettings.local.json" \
+          /d:sonar.sources="CRM.Backend/src,CRM.Frontend/src"
 
         dotnet restore CRM.Backend/CRM.sln
         dotnet build CRM.Backend/CRM.sln -c Release --no-restore

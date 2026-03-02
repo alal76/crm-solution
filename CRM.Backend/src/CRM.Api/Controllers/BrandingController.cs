@@ -36,7 +36,7 @@ public class BrandingController : CrmControllerBase
     /// </summary>
     /// <returns>Current branding configuration.</returns>
     [HttpGet]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public branding endpoint required for login-page customization before authentication
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<BrandingConfigDto>> GetBrandingConfig(CancellationToken cancellationToken = default)

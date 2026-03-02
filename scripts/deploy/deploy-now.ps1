@@ -5,11 +5,11 @@
 # Use: ./scripts/deploy.sh --env dev
 Write-Warning "This script is deprecated. Use scripts/deploy.sh --env dev instead."
 
-$RemoteHost = "192.168.0.9"
+$RemoteHost = if ($env:DEPLOY_HOST) { $env:DEPLOY_HOST } else { Write-Error "DEPLOY_HOST not set"; exit 1 }
 $RemoteUser = if ($env:BUILD_USER) { $env:BUILD_USER } else { "deploy" }
 $RemotePort = "22"
-$DeployPath = "/opt/crm"
-$Registry = "ghcr.io/alal76"
+$DeployPath = if ($env:DEPLOY_PATH) { $env:DEPLOY_PATH } else { "/opt/crm" }
+$Registry = if ($env:CONTAINER_REGISTRY) { $env:CONTAINER_REGISTRY } else { Write-Error "CONTAINER_REGISTRY not set"; exit 1 }
 $ImageTag = "development"
 $SSHKey = "$env:USERPROFILE\.ssh\crm-deploy-key"
 

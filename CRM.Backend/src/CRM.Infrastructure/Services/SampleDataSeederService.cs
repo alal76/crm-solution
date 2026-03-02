@@ -8,6 +8,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
@@ -22,6 +23,7 @@ public class SampleDataSeederService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<SampleDataSeederService> _logger;
+    private readonly IConfiguration _configuration;
     private readonly Random _random = new();
 
     // Sample company and person name data
@@ -35,10 +37,12 @@ public class SampleDataSeederService
 
     public SampleDataSeederService(
         ICrmDbContext context,
-        ILogger<SampleDataSeederService> logger)
+        ILogger<SampleDataSeederService> logger,
+        IConfiguration configuration)
     {
         _context = context;
         _logger = logger;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -171,8 +175,9 @@ public class SampleDataSeederService
             await context.SaveChangesAsync();
         }
 
-        // Password hash for "Admin@123"
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"); // NOSONAR - S2068: sample data seeder default credential for demo users
+        // Password hash for demo users - configurable via SampleData:DefaultPassword
+        var seedPassword = _configuration["SampleData:DefaultPassword"] ?? "Admin@123"; // NOSONAR - S2068: configurable sample data credential for demo users
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(seedPassword);
 
         // Demo users data: (username, first, last, email, role, groupName)
         var demoUsers = new[]

@@ -69,7 +69,7 @@ public class CalendarIntegrationController : CrmControllerBase
     /// <param name="state">State parameter (user ID)</param>
     /// <returns>Redirect to success/failure page</returns>
     [HttpGet("callback/google")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth callback endpoint must be publicly accessible for Google/Microsoft OAuth flows
     [ProducesResponseType(StatusCodes.Status302Found)]
     public async Task<IActionResult> GoogleCallback([FromQuery] string code, [FromQuery] string state)
     {
@@ -117,7 +117,7 @@ public class CalendarIntegrationController : CrmControllerBase
     /// <param name="state">State parameter (user ID)</param>
     /// <returns>Redirect to success/failure page</returns>
     [HttpGet("callback/outlook")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth callback endpoint must be publicly accessible for calendar provider OAuth flows
     [ProducesResponseType(StatusCodes.Status302Found)]
     public async Task<IActionResult> OutlookCallback([FromQuery] string code, [FromQuery] string state)
     {

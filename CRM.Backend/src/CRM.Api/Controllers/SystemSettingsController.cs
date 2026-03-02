@@ -616,7 +616,7 @@ public class SystemSettingsController : CrmControllerBase
     /// Returns settings needed for the login page
     /// </summary>
     [HttpGet("login-settings")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public localization/login-page settings must be accessible before authentication
     [ProducesResponseType(typeof(LoginSettingsResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<LoginSettingsResponse>> GetLoginSettings()
     {
@@ -800,7 +800,7 @@ public class SystemSettingsController : CrmControllerBase
     /// GET /api/systemsettings/timezones
     /// </summary>
     [HttpGet("timezones")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public branding/UI settings required for login-page rendering before authentication
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<string>> GetTimezones()
     {
@@ -812,7 +812,7 @@ public class SystemSettingsController : CrmControllerBase
     /// GET /api/systemsettings/currencies
     /// </summary>
     [HttpGet("currencies")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public branding/theme settings required before authentication
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<string>> GetCurrencies()
     {
@@ -824,7 +824,7 @@ public class SystemSettingsController : CrmControllerBase
     /// GET /api/systemsettings/languages
     /// </summary>
     [HttpGet("languages")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public branding configuration endpoint required before authentication
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public ActionResult<IEnumerable<string>> GetLanguages()
     {

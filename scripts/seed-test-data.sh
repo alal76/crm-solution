@@ -11,7 +11,9 @@
 
 set -e
 
-API_BASE="${API_BASE:-http://192.168.0.9:5000/api}"
+API_BASE="${API_BASE:-http://localhost:5000/api}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@crm.local}"
+ADMIN_PASSWORD="${ADMIN_PASSWORD:?Set ADMIN_PASSWORD}"
 AUTH_TOKEN=""
 
 # Colors for output
@@ -30,7 +32,7 @@ login() {
     local response
     response=$(curl -s -D - -X POST "${API_BASE}/auth/login" \
         -H "Content-Type: application/json" \
-        -d '{"email": "admin@crm.local", "password": "Admin@123"}')
+        -d "{\"email\": \"${ADMIN_EMAIL}\", \"password\": \"${ADMIN_PASSWORD}\"}")
 
     # Extract HTTP status code
     local status

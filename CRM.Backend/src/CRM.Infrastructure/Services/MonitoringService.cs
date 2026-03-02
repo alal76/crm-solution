@@ -1022,7 +1022,7 @@ public class MonitoringService : IMonitoringService
         services.Add(await GetDatabaseHealthAsync(ct));
 
         // Frontend
-        var frontendUrl = _configuration["Frontend:Url"] ?? "http://localhost:3000";
+        var frontendUrl = _configuration["Frontend:Url"] ?? "http://localhost:3000"; // NOSONAR - S5332 - http://localhost:3000 is a development-only health check URL placeholder
         services.Add(await CheckHttpHealthAsync("CRM Frontend", "frontend", frontendUrl, ct));
 
         return services;

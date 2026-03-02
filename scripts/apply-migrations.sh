@@ -43,6 +43,8 @@ TARGET="local"
 RESET_DB=false
 STOP_API=false
 START_API=false
+DB_ROOT_PASSWORD="${DB_ROOT_PASSWORD:-${MARIADB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD or MARIADB_ROOT_PASSWORD}}"
+REMOTE_HOST="${DEPLOY_HOST:-}"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -71,18 +73,20 @@ echo ""
 run_mariadb() {
     local sql="$1"
     if [[ "$TARGET" == "local" ]]; then
-        docker exec crm-mariadb mariadb -u root -p'RootPass@Dev2024' crm_db -e "$sql"
+        docker exec crm-mariadb mariadb -u root -p"${DB_ROOT_PASSWORD}" crm_db -e "$sql"
     else
-        ssh root@192.168.0.9 "docker exec crm-mariadb mariadb -u root -p'RootPass@Dev2024' crm_db -e \"$sql\""
+        [[ -n "$REMOTE_HOST" ]] || { echo "ERROR: DEPLOY_HOST not set for remote target"; exit 1; }
+        ssh root@"${REMOTE_HOST}" "docker exec crm-mariadb mariadb -u root -p'${DB_ROOT_PASSWORD}' crm_db -e \"$sql\""
     fi
 }
 
 run_mariadb_nodb() {
     local sql="$1"
     if [[ "$TARGET" == "local" ]]; then
-        docker exec crm-mariadb mariadb -u root -p'RootPass@Dev2024' -e "$sql"
+        docker exec crm-mariadb mariadb -u root -p"${DB_ROOT_PASSWORD}" -e "$sql"
     else
-        ssh root@192.168.0.9 "docker exec crm-mariadb mariadb -u root -p'RootPass@Dev2024' -e \"$sql\""
+        [[ -n "$REMOTE_HOST" ]] || { echo "ERROR: DEPLOY_HOST not set for remote target"; exit 1; }
+        ssh root@"${REMOTE_HOST}" "docker exec crm-mariadb mariadb -u root -p'${DB_ROOT_PASSWORD}' -e \"$sql\""
     fi
 }
 
@@ -90,10 +94,11 @@ copy_and_run_sql() {
     local sql_file="$1"
     if [[ "$TARGET" == "local" ]]; then
         docker cp "$sql_file" crm-mariadb:/tmp/migration.sql
-        docker exec crm-mariadb mariadb -u root -p'RootPass@Dev2024' crm_db -e "source /tmp/migration.sql"
+        docker exec crm-mariadb mariadb -u root -p"${DB_ROOT_PASSWORD}" crm_db -e "source /tmp/migration.sql"
     else
-        scp "$sql_file" root@192.168.0.9:/tmp/migration.sql
-        ssh root@192.168.0.9 "docker cp /tmp/migration.sql crm-mariadb:/tmp/migration.sql && docker exec crm-mariadb mariadb -u root -p'RootPass@Dev2024' crm_db -e 'source /tmp/migration.sql'"
+        [[ -n "$REMOTE_HOST" ]] || { echo "ERROR: DEPLOY_HOST not set for remote target"; exit 1; }
+        scp "$sql_file" root@"${REMOTE_HOST}":/tmp/migration.sql
+        ssh root@"${REMOTE_HOST}" "docker cp /tmp/migration.sql crm-mariadb:/tmp/migration.sql && docker exec crm-mariadb mariadb -u root -p'${DB_ROOT_PASSWORD}' crm_db -e 'source /tmp/migration.sql'"
     fi
 }
 
@@ -102,7 +107,7 @@ stop_api() {
     if [[ "$TARGET" == "local" ]]; then
         docker stop crm-api 2>/dev/null || true
     else
-        ssh root@192.168.0.9 "docker stop crm-api 2>/dev/null || true"
+        ssh root@"${REMOTE_HOST}" "docker stop crm-api 2>/dev/null || true"
     fi
     echo "API stopped."
 }
@@ -112,7 +117,7 @@ start_api() {
     if [[ "$TARGET" == "local" ]]; then
         docker start crm-api 2>/dev/null || true
     else
-        ssh root@192.168.0.9 "docker start crm-api 2>/dev/null || true"
+        ssh root@"${REMOTE_HOST}" "docker start crm-api 2>/dev/null || true"
     fi
     echo "API started."
 }

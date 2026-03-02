@@ -123,7 +123,7 @@ if [[ -n "$REMOTE_HOST" ]]; then
     echo -e "${YELLOW}Running on remote server: ${REMOTE_HOST}${NC}"
     
     ssh "root@${REMOTE_HOST}" << EOF
-docker exec -i crm-mariadb mariadb -u root -pRootPass@Dev2024 crm_db << 'EOSQL'
+docker exec -i crm-mariadb mariadb -u root -p${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD} crm_db << 'EOSQL'
 ${SQL_COMMAND}
 EOSQL
 EOF
@@ -135,7 +135,7 @@ elif [[ "$USE_DOCKER" == "true" ]]; then
     # Run against Docker container
     echo -e "${YELLOW}Running against Docker container: crm-mariadb${NC}"
     
-    docker exec -i crm-mariadb mariadb -u root -pRootPass@Dev2024 crm_db << EOF
+    docker exec -i crm-mariadb mariadb -u root -p"${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}" crm_db << EOF
 ${SQL_COMMAND}
 EOF
     

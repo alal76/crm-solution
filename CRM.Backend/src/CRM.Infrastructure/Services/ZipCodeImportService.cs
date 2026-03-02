@@ -603,6 +603,21 @@ public class ZipCodeImportService : IZipCodeImportService
         var records = new List<ZipCode>();
 
         using var archive = new ZipArchive(zipStream, ZipArchiveMode.Read);
+
+        // S5042: ZIP bomb protection - enforce entry count and uncompressed size limits
+        const int maxEntries = 50;
+        const long maxUncompressedEntrySize = 250L * 1024 * 1024; // 250 MB per entry
+        const long maxTotalUncompressedSize = 500L * 1024 * 1024; // 500 MB total
+        if (archive.Entries.Count > maxEntries)
+        {
+            throw new InvalidOperationException($"ZIP archive contains {archive.Entries.Count} entries, which exceeds the maximum allowed ({maxEntries}).");
+        }
+        var totalUncompressedSize = archive.Entries.Sum(e => e.Length);
+        if (totalUncompressedSize > maxTotalUncompressedSize)
+        {
+            throw new InvalidOperationException($"ZIP archive total uncompressed size ({totalUncompressedSize / (1024 * 1024)} MB) exceeds the maximum allowed ({maxTotalUncompressedSize / (1024 * 1024)} MB).");
+        }
+
         foreach (var entry in archive.Entries)
         {
             if (!entry.Name.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
@@ -610,6 +625,12 @@ public class ZipCodeImportService : IZipCodeImportService
                 continue;
             }
 
+            // S5042: Validate individual entry size before extraction
+            if (entry.Length > maxUncompressedEntrySize)
+            {
+                _logger.LogWarning("Skipping ZIP entry '{EntryName}' - uncompressed size {Size} MB exceeds limit", entry.Name, entry.Length / (1024 * 1024));
+                continue;
+            }
             using var reader = new StreamReader(entry.Open());
             string? line;
             while ((line = await reader.ReadLineAsync(cancellationToken)) != null)

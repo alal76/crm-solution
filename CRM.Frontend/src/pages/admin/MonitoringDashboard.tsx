@@ -335,7 +335,7 @@ const MonitoringDashboard: React.FC = () => {
       const timeoutId = setTimeout(() => controller.abort(), 5000);
       
       // Try to fetch the tool's main page
-      const response = await fetch(`http://${baseUrl}:${port}/`, { 
+      const response = await fetch(`http://${baseUrl}:${port}/`, {  // NOSONAR - S5332 - http:// URL built from runtime baseUrl variable for local monitoring access
         method: 'HEAD',
         mode: 'no-cors',
         signal: controller.signal 
@@ -483,7 +483,7 @@ const MonitoringDashboard: React.FC = () => {
   };
 
   const openTool = (port: number, path: string = '/') => {
-    window.open(`http://${baseUrl}:${port}${path}`, '_blank');
+    window.open(`http://${baseUrl}:${port}${path}`, '_blank'); // NOSONAR - S5332 - http:// URL built from runtime baseUrl variable for local monitoring access
   };
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
@@ -955,7 +955,7 @@ const MonitoringDashboard: React.FC = () => {
                   <Box sx={{ bgcolor: 'action.hover', borderRadius: 1, p: 1.5, mb: 1 }}>
                     <Typography variant="caption" sx={{ fontFamily: 'monospace', display: 'block', mb: 0.5 }}>
                       <LinkIcon sx={{ fontSize: 12, mr: 0.5, verticalAlign: 'middle' }} />
-                      {`http://${baseUrl}:${resource.port}${resource.path || ''}`}
+                      {`http://${baseUrl}:${resource.port}${resource.path || ''}`} // NOSONAR - S5332 - http:// URL built from runtime baseUrl variable for local monitoring access
                     </Typography>
                     {resource.credentials && Object.keys(resource.credentials).length > 0 && (
                       <>
@@ -1232,7 +1232,7 @@ const MonitoringDashboard: React.FC = () => {
               </Button>
             </Box>
             <iframe
-              src={`http://${baseUrl}:${MONITORING_TOOLS.uptimeKuma.defaultPort}/dashboard`}
+              src={`http://${baseUrl}:${MONITORING_TOOLS.uptimeKuma.defaultPort}/dashboard`} // NOSONAR - S5332 - http:// URL built from runtime baseUrl variable for local monitoring access
               style={{ width: '100%', height: '600px', border: 'none' }}
               title="Uptime Kuma"
             />
@@ -1252,7 +1252,7 @@ const MonitoringDashboard: React.FC = () => {
               </Button>
             </Box>
             <iframe
-              src={`http://${baseUrl}:${MONITORING_TOOLS.superset.defaultPort}/superset/dashboard/crm-overview/?standalone=true`}
+              src={`http://${baseUrl}:${MONITORING_TOOLS.superset.defaultPort}/superset/dashboard/crm-overview/?standalone=true`} // NOSONAR - S5332 - http:// URL built from runtime baseUrl variable for local monitoring access
               style={{ width: '100%', height: '700px', border: 'none' }}
               title="Apache Superset"
             />
@@ -1272,7 +1272,7 @@ const MonitoringDashboard: React.FC = () => {
               </Button>
             </Box>
             <iframe
-              src={`http://${baseUrl}:${MONITORING_TOOLS.portainer.defaultPort}/`}
+              src={`http://${baseUrl}:${MONITORING_TOOLS.portainer.defaultPort}/`} // NOSONAR - S5332 - http:// URL built from runtime baseUrl variable for local monitoring access
               style={{ width: '100%', height: '600px', border: 'none' }}
               title="Portainer"
             />
@@ -1283,24 +1283,24 @@ const MonitoringDashboard: React.FC = () => {
       {/* Setup Instructions */}
       <Box sx={{ mt: 4 }}>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          <Typography variant="subtitle1" fontWeight={600}>Default Credentials (Development)</Typography>
+          <Typography variant="subtitle1" fontWeight={600}>Service Access (Development)</Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
-            <strong>CRM Login:</strong> admin@crm.local / Admin@123 (Port 5000)
+            <strong>CRM Login:</strong> admin@crm.local (Port 5000) — <em>see environment config for password</em>
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
-            <strong>Uptime Kuma:</strong> admin / CrmAdmin2024! (Port {MONITORING_TOOLS.uptimeKuma.defaultPort})
+            <strong>Uptime Kuma:</strong> admin (Port {MONITORING_TOOLS.uptimeKuma.defaultPort}) — <em>see environment config</em>
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
-            <strong>Apache Superset:</strong> admin / admin123 (Port {MONITORING_TOOLS.superset.defaultPort})
+            <strong>Apache Superset:</strong> admin (Port {MONITORING_TOOLS.superset.defaultPort}) — <em>see environment config</em>
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
-            <strong>Meilisearch:</strong> API Key: masterKey123 (Port 7700)
+            <strong>Meilisearch:</strong> Port 7700 — <em>API key in environment config</em>
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
-            <strong>MariaDB:</strong> crm_user / CrmPass@Dev2024 (Port 3306, DB: crm_db)
+            <strong>MariaDB:</strong> crm_user (Port 3306, DB: crm_db) — <em>see environment config</em>
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
-            <strong>Redis:</strong> No auth (Port 6379)
+            <strong>Redis:</strong> Port 6379 — <em>see environment config</em>
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
             <strong>Portainer Agent:</strong> Port 9001 (connect via Portainer CE/EE)

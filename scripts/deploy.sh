@@ -90,7 +90,7 @@ docker run -d \
     -p $API_PORT:5000 \
     -e ASPNETCORE_ENVIRONMENT=Production \
     -e DatabaseProvider=mariadb \
-    -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD:-CrmPass@Dev2024};" \
+    -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD:?DB_PASSWORD must be set};" \
     -e "Jwt__Secret=$(cat /etc/crm-secrets/jwt-secret 2>/dev/null || echo 'ChangeMe-Min32CharsRequired123456')" \
     -v /var/log/crm:/app/logs \
     crm-api:latest

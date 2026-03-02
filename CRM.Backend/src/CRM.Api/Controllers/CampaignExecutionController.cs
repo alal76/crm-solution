@@ -278,7 +278,7 @@ public class CampaignExecutionController : CrmControllerBase
     /// Record an email open (typically called from tracking pixel)
     /// </summary>
     [HttpPost("recipients/{recipientId}/open")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Campaign email tracking pixel must be accessible without auth for email clients
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> RecordEmailOpen(int recipientId)
     {
@@ -306,7 +306,7 @@ public class CampaignExecutionController : CrmControllerBase
     /// Record a link click
     /// </summary>
     [HttpGet("recipients/{recipientId}/click")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Campaign unsubscribe endpoint must be accessible without auth per CAN-SPAM/GDPR
     [ProducesResponseType(StatusCodes.Status302Found)]
     public async Task<IActionResult> RecordLinkClick(
         int recipientId,
@@ -580,7 +580,7 @@ public class CampaignExecutionController : CrmControllerBase
     /// Process email tracking webhook events from email provider (MKT-001)
     /// </summary>
     [HttpPost("webhooks/email-tracking")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Campaign opt-out endpoint must be publicly accessible for email compliance
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ProcessEmailTrackingWebhook([FromBody] EmailTrackingWebhookDto dto, CancellationToken cancellationToken)

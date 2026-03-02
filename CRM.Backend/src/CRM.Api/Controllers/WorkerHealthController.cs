@@ -33,7 +33,7 @@ public class WorkerHealthController : CrmControllerBase
     /// Basic health check for worker dependencies.
     /// </summary>
     [HttpGet("health")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Worker health endpoint must be publicly accessible for Kubernetes/monitoring probes
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetHealth(CancellationToken ct)

@@ -649,7 +649,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `response_type=${encodeURIComponent(responseType)}&` +
       `scope=${encodeURIComponent(scope)}&` +
-      `state=${encodeURIComponent(Math.random().toString(36).substring(7))}`; // NOSONAR - non-security use: OAuth state parameter for UI CSRF protection (not cryptographic)
+      `state=${encodeURIComponent((() => { const arr = new Uint32Array(2); crypto.getRandomValues(arr); return arr[0].toString(16) + arr[1].toString(16); })())}`; // S2245: Using crypto.getRandomValues() for cryptographically secure OAuth CSRF state token
 
     // Redirect to Microsoft login
     window.location.href = authUrl;

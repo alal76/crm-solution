@@ -17,7 +17,7 @@
 set -e
 
 # Configuration
-REMOTE_HOST="192.168.0.9"
+REMOTE_HOST="${DEPLOY_HOST:?Set DEPLOY_HOST environment variable}"
 REMOTE_USER="root"
 REMOTE_APP_DIR="/opt/crm"
 LOCAL_IMAGE="crm-api:latest"
@@ -86,7 +86,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
       - DATABASE_PROVIDER=mariadb
-      - CONNECTIONSTRINGS__DEFAULTCONNECTION=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD:-CrmPass@Dev2024};
+      - CONNECTIONSTRINGS__DEFAULTCONNECTION=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD:?Set DB_PASSWORD};
       - REDIS__CONNECTIONSTRING=crm-redis:6379
     depends_on:
       - crm-mariadb
@@ -107,16 +107,16 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: RootPass@Dev2024
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD}
       MYSQL_DATABASE: crm_db
       MYSQL_USER: crm_user
-      MYSQL_PASSWORD: CrmPass@Dev2024
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
     volumes:
       - crm-db-data:/var/lib/mysql
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pRootPass@Dev2024"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -190,7 +190,7 @@ echo "╚═══════════════════════�
 echo ""
 echo "Services deployed:"
 echo "  • CRM API............... http://192.168.0.9:5000"
-echo "  • MariaDB............... 192.168.0.9:3306 (crm_user / CrmPass@Dev2024)"
+echo "  • MariaDB............... 192.168.0.9:3306 (crm_user / see environment config)"
 echo "  • Redis Cache........... 192.168.0.9:6379"
 echo ""
 echo "Useful commands:"

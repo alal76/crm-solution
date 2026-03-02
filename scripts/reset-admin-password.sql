@@ -5,11 +5,11 @@
 -- password setup on next login.
 --
 -- Usage:
---   # Via Docker
---   docker exec -i crm-mariadb mariadb -u root -pRootPass@Dev2024 crm_db < scripts/reset-admin-password.sql
+--   # Via Docker (set DB_ROOT_PASSWORD env var first)
+--   docker exec -i crm-mariadb mariadb -u root -p"$DB_ROOT_PASSWORD" crm_db < scripts/reset-admin-password.sql
 --
 --   # Via SSH to remote server
---   ssh root@192.168.0.9 "docker exec -i crm-mariadb mariadb -u root -pRootPass@Dev2024 crm_db" < scripts/reset-admin-password.sql
+--   ssh root@$DEPLOY_HOST "docker exec -i crm-mariadb mariadb -u root -p'$DB_ROOT_PASSWORD' crm_db" < scripts/reset-admin-password.sql
 --
 --   # Direct MariaDB connection
 --   mysql -h localhost -u crm_user -p crm_db < scripts/reset-admin-password.sql

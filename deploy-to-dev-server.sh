@@ -26,7 +26,7 @@ set -e  # Exit on error
 # CONFIGURATION
 # ============================================================================
 
-TARGET_SERVER="${TARGET_SERVER:-192.168.0.9}"
+TARGET_SERVER="${TARGET_SERVER:?Set TARGET_SERVER environment variable (e.g. 192.168.0.9)}"
 SSH_USER="${SSH_USER:-root}"
 REMOTE_DEPLOY_DIR="/opt/crm-deployment"
 REMOTE_DATA_DIR="/opt/crm/data"
@@ -273,7 +273,7 @@ transfer_env_file() {
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     
     # Create a production .env file with safe defaults
-    cat > /tmp/crm-deploy.env << 'ENVFILE'
+    cat > /tmp/crm-deploy.env << ENVFILE
 # CRM Production Environment
 ASPNETCORE_ENVIRONMENT=Production
 DATABASE_PROVIDER=mariadb
@@ -281,21 +281,21 @@ DB_HOST=mariadb
 DB_PORT=3306
 DB_NAME=crm_db
 DB_USER=crm_user
-DB_PASSWORD=CrmPass@Dev2024 # nosonar - Development script - not used in production
-DB_ROOT_PASSWORD=RootPass@Dev2024 # nosonar - Development script - not used in production
+DB_PASSWORD=${DB_PASSWORD:?Set DB_PASSWORD before running deploy}
+DB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD before running deploy}
 DB_EXTERNAL_PORT=3306
 
 # API Configuration
 API_EXTERNAL_PORT=5000
 API_INTERNAL_PORT=5000
-API_EXTERNAL_HOSTNAME=192.168.0.9
+API_EXTERNAL_HOSTNAME=${TARGET_SERVER}
 
 # Frontend Configuration
 FRONTEND_EXTERNAL_PORT=80
-FRONTEND_URL=http://192.168.0.9
+FRONTEND_URL=http://${TARGET_SERVER}
 
 # JWT Security
-JWT_SECRET=YourVeryLongAnd32CharacterMinimumSecretKeyChangeThis123
+JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET (min 32 chars)}
 JWT_EXPIRATION_MINUTES=60
 
 # Redis Configuration
@@ -310,12 +310,12 @@ Redis__Enabled=true
 
 # Meilisearch Configuration
 MEILISEARCH_ENV=production
-MEILISEARCH_API_KEY=CrmMeiliMasterKey2024Prod
+MEILISEARCH_API_KEY=${MEILISEARCH_API_KEY:-masterKey}
 MEILISEARCH_EXTERNAL_PORT=7700
 MEILISEARCH_URL=http://meilisearch:7700
 
 # React App Configuration
-REACT_APP_API_URL=http://192.168.0.9
+REACT_APP_API_URL=http://${TARGET_SERVER}
 REACT_APP_API_PORT=5000
 REACT_APP_API_EXTERNAL_PORT=5000
 REACT_APP_DB_PORT=3306
@@ -444,8 +444,8 @@ echo "Database Container: crm-mariadb"
 echo "Redis Container: crm-redis"
 echo "Search Container: crm-meilisearch"
 echo ""
-echo "API Health: http://192.168.0.9:5000/health"
-echo "Frontend: http://192.168.0.9"
+echo "API Health: http://${TARGET_SERVER}:5000/health"
+echo "Frontend: http://${TARGET_SERVER}"
 echo "=========================================="
 REMOTE_SCRIPT
 
@@ -500,7 +500,7 @@ docker logs --tail 20 crm-api 2>/dev/null || echo "Logs not available"
 
 echo ""
 echo "Database ready check:"
-docker exec crm-mariadb mysql -u crm_user -p${DB_PASSWORD:-CrmPass@Dev2024} -e "SELECT 1" 2>/dev/null && echo "✓ Database is ready" || echo "⚠ Database still initializing"
+docker exec crm-mariadb mysql -u crm_user -p\${DB_PASSWORD} -e "SELECT 1" 2>/dev/null && echo "✓ Database is ready" || echo "⚠ Database still initializing"
 HEALTHCHECK
     
     log_success "Deployment verification complete"
@@ -571,7 +571,7 @@ echo "Starting database backup at \$(date)..."
 # Backup database
 docker exec crm-mariadb mysqldump \\
   -u crm_user \\
-  -pCrmPass@Dev2024 \\
+  -p\${DB_PASSWORD} \\
   crm_db > "\$BACKUP_FILE" 2>/dev/null
 
 if [[ -f "\$BACKUP_FILE" ]]; then
@@ -640,8 +640,8 @@ MANAGEMENT:
   • Restart Stack: ssh $SSH_USER@$TARGET_SERVER 'cd $REMOTE_DEPLOY_DIR && docker-compose restart'
 
 ADMINISTRATION:
-  • Database: Log in with user 'crm_user' password 'CrmPass@Dev2024' # nosonar - Development script - not used in production
-  • Default Admin: Email: admin@crm.local, Password: Admin@123 # nosonar - Development script - not used in production
+  • Database: Log in with user 'crm_user' — see .env for password
+  • Default Admin: Email: admin@crm.local — see .env for password
 
 BACKUPS:
   • Location: /opt/crm/backups

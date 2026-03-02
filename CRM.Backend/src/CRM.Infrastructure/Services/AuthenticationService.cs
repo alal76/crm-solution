@@ -1095,9 +1095,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         {
             var frontendUrl = _configuration.GetValue<string>("FrontendUrl")
                 ?? _configuration.GetValue<string>("AllowedOrigins")
-                ?? "http://localhost:3000";
+                ?? "http://localhost:3000"; // NOSONAR - S5332 - http://localhost:3000 used only in development OAuth redirect URI
             // Take first URL if AllowedOrigins contains multiple comma-separated values
-            frontendUrl = frontendUrl.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? "http://localhost:3000";
+            frontendUrl = frontendUrl.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).FirstOrDefault() ?? "http://localhost:3000"; // NOSONAR - S5332 - http://localhost:3000 used only in development OAuth redirect URI
             var resetUrl = $"{frontendUrl.TrimEnd('/')}/reset-password?token={Uri.EscapeDataString(resetToken)}&email={Uri.EscapeDataString(user.Email)}";
 
             var emailRequest = new EmailNotificationRequest

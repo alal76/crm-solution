@@ -14,7 +14,7 @@ echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env de
 set -e
 
 # Configuration
-REMOTE_HOST="192.168.0.9"
+REMOTE_HOST="${DEPLOY_HOST:?Set DEPLOY_HOST environment variable}"
 # Default to 'deploy' user — avoid running as root in production
 REMOTE_USER="${REMOTE_USER:-deploy}"
 REMOTE_APP_DIR="/opt/crm"
@@ -101,18 +101,18 @@ deploy_databases() {
     ssh ${REMOTE_USER}@${REMOTE_HOST} << ENVFILE
 cat > ${REMOTE_APP_DIR}/docker/.env << 'EOF'
 # MariaDB Configuration
-MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024!}
+MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD}
 MARIADB_DATABASE=crm_db
 MARIADB_USER=crm_user
-MARIADB_PASSWORD=${MARIADB_PASSWORD:-CrmPass@Dev2024!}
+MARIADB_PASSWORD=${MARIADB_PASSWORD:?Set MARIADB_PASSWORD}
 
 # PostgreSQL Configuration
 POSTGRES_USER=crm_user
-POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-CrmPass@Dev2024!}
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
 POSTGRES_DB=crm_db
 
 # SQL Server Configuration
-MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-CrmPass@Dev2024!}
+MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:?Set MSSQL_SA_PASSWORD}
 EOF
 ENVFILE
     
@@ -140,7 +140,7 @@ verify_databases() {
     
     ssh ${REMOTE_USER}@${REMOTE_HOST} << 'VERIFY_DB'
         echo "=== MariaDB Status ==="
-        docker exec crm-mariadb mariadb-admin ping -h localhost -u root -pRootPass@Dev2024! 2>/dev/null && echo "MariaDB: OK" || echo "MariaDB: FAILED" # nosonar - Development deployment script
+        docker exec crm-mariadb mariadb-admin ping -h localhost -u root -p"${MARIADB_ROOT_PASSWORD}" 2>/dev/null && echo "MariaDB: OK" || echo "MariaDB: FAILED"
         
         echo ""
         echo "=== PostgreSQL Status ==="
@@ -148,7 +148,7 @@ verify_databases() {
         
         echo ""
         echo "=== SQL Server Status ==="
-        docker exec crm-mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P 'CrmPass@Dev2024!' -Q "SELECT 1" 2>/dev/null && echo "SQL Server: OK" || echo "SQL Server: FAILED (may still be starting)" # nosonar - Development deployment script
+        docker exec crm-mssql /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "${MSSQL_SA_PASSWORD}" -Q "SELECT 1" 2>/dev/null && echo "SQL Server: OK" || echo "SQL Server: FAILED (may still be starting)"
         
         echo ""
         echo "=== Container Status ==="
@@ -261,7 +261,7 @@ seed_databases() {
     
     ssh ${REMOTE_USER}@${REMOTE_HOST} << SEED_DB
         echo "=== Seeding MariaDB ==="
-        docker exec crm-mariadb mysql -u root -p${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024!} -e "
+        docker exec crm-mariadb mysql -u root -p${MARIADB_ROOT_PASSWORD} -e "
             USE crm_db;
             -- Seed data will be handled by the API on first run
             SELECT 'MariaDB ready for seeding via API' AS Status;
@@ -304,9 +304,7 @@ print_summary() {
     echo ""
     echo "  📋 DATABASE CREDENTIALS"
     echo "  ────────────────────────"
-    echo "  • MariaDB User:     crm_user / CrmPass@Dev2024!" # nosonar - Development deployment script
-    echo "  • PostgreSQL User:  crm_user / CrmPass@Dev2024!" # nosonar - Development deployment script
-    echo "  • SQL Server SA:    sa / CrmPass@Dev2024!" # nosonar - Development deployment script
+    echo "  • See environment configuration for database credentials"
     echo ""
     echo "  ✅ Deployment completed successfully!"
     echo ""

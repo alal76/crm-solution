@@ -25,7 +25,7 @@ import {
  */
 const IntegrationsSettingsPage: React.FC = () => {
   // In production, these URLs would come from backend configuration
-  const n8nUrl = process.env.REACT_APP_N8N_URL || 'http://localhost:5678';
+  const n8nUrl = process.env.REACT_APP_N8N_URL || 'http://localhost:5678'; // NOSONAR - S5332 - http://localhost:5678 is a default placeholder for local n8n dev instance
   const zapierUrl = 'https://zapier.com/app/dashboard';
   
   return (

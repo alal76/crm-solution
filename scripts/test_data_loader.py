@@ -284,8 +284,9 @@ class DockerLogCapture:
         )
 
     def get_db_processlist(self) -> str:
+        db_root_pw = os.environ["DB_ROOT_PASSWORD"]
         return self._run(
-            f"docker exec {self.db_container} mariadb -u root -pRootPass@Dev2024 "
+            f"docker exec {self.db_container} mariadb -u root -p{db_root_pw} "
             f"-e 'SHOW PROCESSLIST; SHOW WARNINGS;' 2>&1"
         )
 

@@ -24,7 +24,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 REPLICA_HOST="${REPLICA_HOST:-127.0.0.1}"
 REPLICA_PORT="${REPLICA_PORT:-3307}"
-REPLICA_ROOT_PASSWORD="${REPLICA_ROOT_PASSWORD:-RootPass@Dev2024}"
+REPLICA_ROOT_PASSWORD="${REPLICA_ROOT_PASSWORD:?Set REPLICA_ROOT_PASSWORD}"
 
 ALERT_THRESHOLD_SECONDS="${ALERT_THRESHOLD_SECONDS:-30}"
 ALERT_WEBHOOK_URL="${ALERT_WEBHOOK_URL:-}"   # Set for Slack/Teams notifications

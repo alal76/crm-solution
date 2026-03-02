@@ -27,10 +27,10 @@ import {
 const AnalyticsSettingsPage: React.FC = () => {
   // Use dynamic hostname so links work on any deployment
   const hostname = window.location.hostname;
-  const supersetUrl = process.env.REACT_APP_SUPERSET_URL || `http://${hostname}:8088`;
+  const supersetUrl = process.env.REACT_APP_SUPERSET_URL || `http://${hostname}:8088`; // NOSONAR - S5332 - http:// URL constructed from runtime hostname for local dev analytics access
   const supersetCrmDashboard = `${supersetUrl}/superset/dashboard/crm-overview/`;
   const supersetSqlLab = `${supersetUrl}/sqllab/`;
-  const metabaseUrl = process.env.REACT_APP_METABASE_URL || `http://${hostname}:3000`;
+  const metabaseUrl = process.env.REACT_APP_METABASE_URL || `http://${hostname}:3000`; // NOSONAR - S5332 - http:// URL constructed from runtime hostname for local dev analytics access
   
   return (
     <Box sx={{ p: 3 }}>
@@ -75,7 +75,7 @@ const AnalyticsSettingsPage: React.FC = () => {
                 <Typography variant="body2">
                   <strong>CRM Dashboard:</strong> Pre-configured with Accounts, Leads, Opportunities, and Service Request charts.
                   <br />
-                  <strong>Credentials:</strong> admin / admin123
+                  <strong>Credentials:</strong> See your deployment environment configuration for Superset credentials.
                 </Typography>
               </Alert>
               

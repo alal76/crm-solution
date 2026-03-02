@@ -44,7 +44,7 @@ namespace CRM.Api.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>Complete navigation configuration</returns>
         [HttpGet("config")]
-        [AllowAnonymous] // Allow anonymous so frontend can load nav before auth
+        [AllowAnonymous] // Allow anonymous so frontend can load nav before auth // NOSONAR - S4834: Frontend navigation metadata required before login - no sensitive data exposed
         [ProducesResponseType(typeof(NavigationConfig), 200)]
         public async Task<IActionResult> GetNavigationConfig(CancellationToken cancellationToken)
         {
@@ -138,7 +138,7 @@ namespace CRM.Api.Controllers
         /// <param name="cancellationToken">Cancellation token</param>
         /// <returns>List of available navigation items</returns>
         [HttpGet("items")]
-        [AllowAnonymous]
+        [AllowAnonymous] // NOSONAR - S4834: Public navigation endpoint for pre-authentication frontend routing
         [ProducesResponseType(typeof(System.Collections.Generic.IEnumerable<NavigationItemConfig>), 200)]
         public async Task<IActionResult> GetAvailableNavItems(CancellationToken cancellationToken)
         {

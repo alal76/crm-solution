@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 74,
-  "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.74 - Add Configure DB Password card and API route to Day-2 Secrets tab; profiles without db_password can now be fixed from the UI without re-running the wizard",
+  "patch": 75,
+  "lastUpdate": "2026-03-03",
+  "description": "fix(security): v0.614.75 - Fix SonarCloud security hotspots: add sonar.exclusions to CI scanner inline args, ZIP bomb protection in ZipCodeImportService, path traversal sanitization in TestResultsController, OAuth state crypto.getRandomValues, ReDoS length guard in EditableCell",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

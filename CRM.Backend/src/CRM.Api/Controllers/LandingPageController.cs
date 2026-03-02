@@ -392,7 +392,7 @@ public class LandingPageController : CrmControllerBase
     /// Serve a published landing page by slug.
     /// </summary>
     [HttpGet("p/{slug}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public landing page endpoint - unauthenticated access is by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> ServePage(string slug)
@@ -443,7 +443,7 @@ public class LandingPageController : CrmControllerBase
     /// Record time on page (beacon endpoint).
     /// </summary>
     [HttpPost("{id}/time")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Public landing page endpoint - unauthenticated access is by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult RecordTimeOnPage(int id, [FromQuery] int seconds)
     {
