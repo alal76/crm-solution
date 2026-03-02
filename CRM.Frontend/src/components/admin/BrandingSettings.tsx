@@ -348,7 +348,7 @@ const BrandingSettings: React.FC = () => {
                   </Box>
                   <Box display="flex" gap={1} flexWrap="wrap">
                     <Button variant="outlined" component="label" disabled={disabled}>
-                      Upload logo{' '}
+                      Upload logo
                       <input hidden type="file" accept="image/png,image/jpeg" onChange={handleUploadLogo} />
                     </Button>
                     <Button variant="text" color="error" onClick={handleDeleteLogo} disabled={disabled || !config?.customLogoPath}>
@@ -386,7 +386,7 @@ const BrandingSettings: React.FC = () => {
                   </Box>
                   <Box display="flex" gap={1} flexWrap="wrap">
                     <Button variant="outlined" component="label" disabled={disabled}>
-                      Upload favicon{' '}
+                      Upload favicon
                       <input hidden type="file" accept="image/png,image/x-icon,image/vnd.microsoft.icon" onChange={handleUploadFavicon} />
                     </Button>
                     <Button variant="text" color="error" onClick={handleDeleteFavicon} disabled={disabled || !config?.faviconPath}>

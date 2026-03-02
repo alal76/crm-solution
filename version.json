@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 66,
+  "patch": 67,
   "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.66 - Password handling overhaul: require manual entry for DB/admin passwords, remove auto-generate, add Day-2 admin password reset",
+  "description": "fix(sonar): v0.614.67 - Fix remaining SonarCloud reliability issues: remove ambiguous JSX spacing before hidden inputs in BrandingSettings",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
