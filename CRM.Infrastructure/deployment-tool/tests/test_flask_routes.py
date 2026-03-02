@@ -1838,3 +1838,677 @@ class TestDeployPasswordStrategy:
         for key in DockerComposeDeployer._PRESERVED_SECRET_KEYS:
             assert key in DockerComposeDeployer._ENV_TO_CONTEXT_KEY, \
                 f"Missing mapping for {key}"
+
+
+# ===========================================================================
+# Cloud-aware deployer selection (Azure/AWS/GCP → K8s or Docker Compose)
+# ===========================================================================
+
+
+class TestCloudDeployerSelection:
+    """Tests for cloud-aware deployer routing in /api/deploy."""
+
+    def test_azure_no_host_returns_400_not_500(self, client):
+        """Azure deploy without target host should return 400 (not 500)."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {"platform": "azure", "architecture": "monolith"},
+                "dry_run": False,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert "target host" in data.get("error", "").lower()
+
+    def test_azure_aks_routes_to_kubernetes_deployer(self, client):
+        """Azure with AKS compute should use KubernetesDeployer (200)."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {
+                    "platform": "azure",
+                    "architecture": "monolith",
+                    "cloud_services": {"azure": {"compute": "aks"}},
+                },
+                "dry_run": True,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+
+    def test_aws_eks_routes_to_kubernetes_deployer(self, client):
+        """AWS with EKS compute should use KubernetesDeployer (200)."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {
+                    "platform": "aws",
+                    "architecture": "monolith",
+                    "cloud_services": {"aws": {"compute": "eks"}},
+                },
+                "dry_run": True,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+
+    def test_gcp_gke_routes_to_kubernetes_deployer(self, client):
+        """GCP with GKE compute should use KubernetesDeployer (200)."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {
+                    "platform": "gcp",
+                    "architecture": "monolith",
+                    "cloud_services": {"gcp": {"compute": "gke"}},
+                },
+                "dry_run": True,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+
+    def test_azure_container_apps_routes_to_kubernetes(self, client):
+        """Azure Container Apps should route to KubernetesDeployer."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {
+                    "platform": "azure",
+                    "architecture": "monolith",
+                    "cloud_services": {"azure": {"compute": "container_apps"}},
+                },
+                "dry_run": True,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+
+    def test_azure_vm_without_host_returns_400(self, client):
+        """Azure VMs without a target host should return 400 (needs SSH host)."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {
+                    "platform": "azure",
+                    "architecture": "monolith",
+                    "cloud_services": {"azure": {"compute": "vm"}},
+                },
+                "dry_run": False,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+
+    def test_on_premises_with_host_still_works(self, client):
+        """On-premises with target host should work as before (200)."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {
+                    "platform": "on_premises",
+                    "architecture": "monolith",
+                    "target": {"host": "192.168.0.9"},
+                },
+                "dry_run": True,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+
+    def test_deploy_error_response_has_error_field(self, client):
+        """400 responses from deploy should include an 'error' field."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {"platform": "azure", "architecture": "monolith"},
+                "dry_run": False,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert "error" in data
+        assert len(data["error"]) > 0
+
+    def test_explicit_kubernetes_runtime_uses_k8s_deployer(self, client):
+        """Explicit architecture.container_runtime=kubernetes should use K8s deployer."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {
+                    "platform": "on_premises",
+                    "architecture": {"container_runtime": "kubernetes"},
+                },
+                "dry_run": True,
+                "password_strategy": "auto_generate",
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code == 200
+
+
+# ===========================================================================
+# Day-2 Profile-Aware Helpers (unit tests)
+# ===========================================================================
+
+
+class TestDay2ProfileHelpers:
+    """Unit tests for the profile-aware Day-2 helper functions."""
+
+    def test_detect_runtime_docker_by_default(self):
+        """Empty profile should default to docker_compose."""
+        from gui.routes.day2_routes import _detect_runtime
+        assert _detect_runtime({}) == "docker_compose"
+
+    def test_detect_runtime_kubernetes_from_architecture(self):
+        """architecture.container_runtime=kubernetes should be detected."""
+        from gui.routes.day2_routes import _detect_runtime
+        profile = {"architecture": {"container_runtime": "kubernetes"}}
+        assert _detect_runtime(profile) == "kubernetes"
+
+    def test_detect_runtime_docker_from_architecture(self):
+        """architecture.container_runtime=docker_compose should be detected."""
+        from gui.routes.day2_routes import _detect_runtime
+        profile = {"architecture": {"container_runtime": "docker_compose"}}
+        assert _detect_runtime(profile) == "docker_compose"
+
+    def test_detect_runtime_aks_compute_means_kubernetes(self):
+        """Azure AKS compute should resolve to kubernetes runtime."""
+        from gui.routes.day2_routes import _detect_runtime
+        profile = {
+            "platform": "azure",
+            "cloud_services": {"azure": {"compute": "aks"}},
+        }
+        assert _detect_runtime(profile) == "kubernetes"
+
+    def test_detect_runtime_eks_compute_means_kubernetes(self):
+        """AWS EKS compute should resolve to kubernetes runtime."""
+        from gui.routes.day2_routes import _detect_runtime
+        profile = {
+            "platform": "aws",
+            "cloud_services": {"aws": {"compute": "eks"}},
+        }
+        assert _detect_runtime(profile) == "kubernetes"
+
+    def test_detect_runtime_gke_compute_means_kubernetes(self):
+        """GCP GKE compute should resolve to kubernetes runtime."""
+        from gui.routes.day2_routes import _detect_runtime
+        profile = {
+            "platform": "gcp",
+            "cloud_services": {"gcp": {"compute": "gke"}},
+        }
+        assert _detect_runtime(profile) == "kubernetes"
+
+    def test_detect_runtime_container_apps_means_serverless(self):
+        """Azure Container Apps should resolve to serverless runtime."""
+        from gui.routes.day2_routes import _detect_runtime
+        profile = {
+            "platform": "azure",
+            "cloud_services": {"azure": {"compute": "container_apps"}},
+        }
+        assert _detect_runtime(profile) == "serverless"
+
+    def test_detect_runtime_fargate_means_serverless(self):
+        """AWS Fargate should resolve to serverless runtime."""
+        from gui.routes.day2_routes import _detect_runtime
+        profile = {
+            "platform": "aws",
+            "cloud_services": {"aws": {"compute": "fargate"}},
+        }
+        assert _detect_runtime(profile) == "serverless"
+
+    def test_detect_runtime_vm_stays_docker(self):
+        """VM compute should stay as docker_compose."""
+        from gui.routes.day2_routes import _detect_runtime
+        profile = {
+            "platform": "azure",
+            "cloud_services": {"azure": {"compute": "vm"}},
+        }
+        assert _detect_runtime(profile) == "docker_compose"
+
+    def test_get_deploy_host_from_target(self):
+        """Should extract host from target.host."""
+        from gui.routes.day2_routes import _get_deploy_host
+        assert _get_deploy_host({"target": {"host": "192.168.0.9"}}) == "192.168.0.9"
+
+    def test_get_deploy_host_from_domain_name(self):
+        """Should fallback to target.domain_name."""
+        from gui.routes.day2_routes import _get_deploy_host
+        assert _get_deploy_host({"target": {"domain_name": "crm.example.com"}}) == "crm.example.com"
+
+    def test_get_deploy_host_empty_for_local(self):
+        """Should return empty string for profile with no target host."""
+        from gui.routes.day2_routes import _get_deploy_host
+        assert _get_deploy_host({}) == ""
+        assert _get_deploy_host({"target": {}}) == ""
+
+    def test_is_remote_true_for_ip(self):
+        """Remote IP addresses should be considered remote."""
+        from gui.routes.day2_routes import _is_remote
+        assert _is_remote("192.168.0.9") is True
+        assert _is_remote("10.0.0.1") is True
+
+    def test_is_remote_true_for_hostname(self):
+        """Hostnames should be considered remote."""
+        from gui.routes.day2_routes import _is_remote
+        assert _is_remote("crm.example.com") is True
+
+    def test_is_remote_false_for_localhost(self):
+        """localhost and 127.0.0.1 should not be considered remote."""
+        from gui.routes.day2_routes import _is_remote
+        assert _is_remote("localhost") is False
+        assert _is_remote("127.0.0.1") is False
+        assert _is_remote("") is False
+
+    def test_build_health_url_remote_host(self):
+        """Health URL should include the remote host and port."""
+        from gui.routes.day2_routes import _build_health_url
+        profile = {"target": {"host": "192.168.0.9", "api_port": "5000"}}
+        assert _build_health_url(profile) == "http://192.168.0.9:5000/health"
+
+    def test_build_health_url_local(self):
+        """Health URL for local profiles should target localhost."""
+        from gui.routes.day2_routes import _build_health_url
+        assert _build_health_url({}) == "http://localhost:5000/health"
+
+    def test_build_health_url_custom_port(self):
+        """Health URL should respect non-default API port."""
+        from gui.routes.day2_routes import _build_health_url
+        profile = {"target": {"api_port": "8080"}}
+        assert _build_health_url(profile) == "http://localhost:8080/health"
+
+    def test_build_api_base_url_remote(self):
+        """API base URL should include the remote host."""
+        from gui.routes.day2_routes import _build_api_base_url
+        profile = {"target": {"host": "10.0.0.5", "api_port": "5000"}}
+        assert _build_api_base_url(profile) == "http://10.0.0.5:5000"
+
+    def test_build_api_base_url_local(self):
+        """API base URL for local profiles should target localhost."""
+        from gui.routes.day2_routes import _build_api_base_url
+        assert _build_api_base_url({}) == "http://localhost:5000"
+
+    def test_safe_name_strips_slash(self):
+        """_safe_name should strip leading slashes."""
+        from gui.routes.day2_routes import _safe_name
+        assert _safe_name("/crm-api") == "crm-api"
+        assert _safe_name("crm-api") == "crm-api"
+
+
+# ===========================================================================
+# Day-2 Profile-Aware Endpoints (integration tests)
+# ===========================================================================
+
+
+class TestDay2ProfileEndpoints:
+    """Integration tests for profile-aware Day-2 API endpoints."""
+
+    def test_status_returns_runtime_field(self, client):
+        """GET /api/day2/status should include a 'runtime' field."""
+        resp = client.get("/api/day2/status")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "runtime" in data
+        assert data["runtime"] in ("docker_compose", "kubernetes")
+
+    def test_status_returns_profile_name(self, client):
+        """GET /api/day2/status should include profile_name."""
+        resp = client.get("/api/day2/status")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "profile_name" in data
+
+    def test_status_all_returns_runtime_field(self, client):
+        """GET /api/day2/status/all should include a 'runtime' field."""
+        resp = client.get("/api/day2/status/all")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "runtime" in data
+        assert data["runtime"] in ("docker_compose", "kubernetes")
+
+    def test_status_all_returns_environment_type(self, client):
+        """GET /api/day2/status/all should include environment_type."""
+        resp = client.get("/api/day2/status/all")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "environment_type" in data
+
+    def test_status_all_accepts_profile_param(self, client):
+        """GET /api/day2/status/all?profile=nonexistent should still return 200."""
+        resp = client.get("/api/day2/status/all?profile=does-not-exist")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "runtime" in data
+
+    def test_version_info_returns_runtime(self, client):
+        """GET /api/day2/version-info should include runtime field."""
+        resp = client.get("/api/day2/version-info")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "runtime" in data
+        assert data["runtime"] in ("docker_compose", "kubernetes")
+
+    def test_version_info_returns_platform(self, client):
+        """GET /api/day2/version-info should include platform."""
+        resp = client.get("/api/day2/version-info")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "platform" in data
+
+    def test_version_info_accepts_profile_param(self, client):
+        """GET /api/day2/version-info?profile=x should still return 200."""
+        resp = client.get("/api/day2/version-info?profile=nonexistent")
+        assert resp.status_code == 200
+
+    def test_container_start_accepts_profile_param(self, client):
+        """POST /api/day2/container/crm-api/start?profile=x should return 200."""
+        resp = client.post("/api/day2/container/crm-api/start?profile=nonexistent")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "success" in data
+
+    def test_container_stop_accepts_profile_param(self, client):
+        """POST /api/day2/container/crm-api/stop?profile=x should return 200."""
+        resp = client.post("/api/day2/container/crm-api/stop?profile=nonexistent")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "success" in data
+
+    def test_container_logs_accepts_profile_param(self, client):
+        """GET /api/day2/container/crm-api/logs?profile=x should return 200."""
+        resp = client.get("/api/day2/container/crm-api/logs?profile=nonexistent&lines=10")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "success" in data or "logs" in data
+
+    def test_stack_stop_accepts_profile_param(self, client):
+        """POST /api/day2/stack/stop?profile=x should return 200."""
+        resp = client.post("/api/day2/stack/stop?profile=nonexistent")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "success" in data
+
+    def test_stack_start_accepts_profile_param(self, client):
+        """POST /api/day2/stack/start?profile=x should return 200."""
+        resp = client.post("/api/day2/stack/start?profile=nonexistent")
+        assert resp.status_code == 200
+
+    def test_stack_restart_accepts_profile_param(self, client):
+        """POST /api/day2/stack/restart?profile=x should return 200."""
+        resp = client.post("/api/day2/stack/restart?profile=nonexistent")
+        assert resp.status_code == 200
+
+    def test_status_all_docker_has_containers_key(self, client):
+        """Docker runtime status should have 'containers' list."""
+        resp = client.get("/api/day2/status/all")
+        data = resp.get_json()
+        if data.get("runtime") == "docker_compose":
+            assert "containers" in data
+            assert isinstance(data["containers"], list)
+
+    def test_status_all_has_health_keys(self, client):
+        """Status response should contain health sub-object."""
+        resp = client.get("/api/day2/status/all")
+        data = resp.get_json()
+        assert "health" in data
+        health = data["health"]
+        assert "api" in health
+        assert "db" in health
+        assert "redis" in health
+
+
+# ===========================================================================
+# Cloud-agnostic centralized constants & runtime detection
+# ===========================================================================
+
+
+class TestCoreConstants:
+    """Unit tests for core.constants — the single source of truth for cloud
+    compute classification, runtime detection, and kubeconfig extraction."""
+
+    # ── K8S vs Serverless classification ──────────────────────────────
+
+    def test_k8s_computes_are_true_kubernetes(self):
+        """AKS, EKS, GKE should be in K8S_COMPUTES."""
+        from core.constants import K8S_COMPUTES
+        assert "aks" in K8S_COMPUTES
+        assert "eks" in K8S_COMPUTES
+        assert "gke" in K8S_COMPUTES
+
+    def test_serverless_computes_are_separate(self):
+        """Container Apps, Fargate, Cloud Run should be in SERVERLESS_COMPUTES."""
+        from core.constants import SERVERLESS_COMPUTES
+        assert "container_apps" in SERVERLESS_COMPUTES
+        assert "fargate" in SERVERLESS_COMPUTES
+        assert "cloud_run" in SERVERLESS_COMPUTES
+
+    def test_serverless_not_in_k8s(self):
+        """Serverless computes must NOT be in K8S_COMPUTES."""
+        from core.constants import K8S_COMPUTES, SERVERLESS_COMPUTES
+        for s in SERVERLESS_COMPUTES:
+            assert s not in K8S_COMPUTES, f"{s} should not be in K8S_COMPUTES"
+
+    def test_k8s_not_in_serverless(self):
+        """K8s computes must NOT be in SERVERLESS_COMPUTES."""
+        from core.constants import K8S_COMPUTES, SERVERLESS_COMPUTES
+        for k in K8S_COMPUTES:
+            assert k not in SERVERLESS_COMPUTES, f"{k} should not be in SERVERLESS_COMPUTES"
+
+    def test_cloud_computes_is_union(self):
+        """CLOUD_COMPUTES should be the union of K8S and SERVERLESS."""
+        from core.constants import K8S_COMPUTES, SERVERLESS_COMPUTES, CLOUD_COMPUTES
+        assert CLOUD_COMPUTES == K8S_COMPUTES | SERVERLESS_COMPUTES
+
+    def test_cloud_computes_has_all_six(self):
+        """CLOUD_COMPUTES should contain exactly 6 entries."""
+        from core.constants import CLOUD_COMPUTES
+        assert len(CLOUD_COMPUTES) == 6
+
+    # ── detect_runtime() ─────────────────────────────────────────────
+
+    def test_detect_runtime_empty_profile(self):
+        """Empty dict should default to docker_compose."""
+        from core.constants import detect_runtime, RUNTIME_DOCKER_COMPOSE
+        assert detect_runtime({}) == RUNTIME_DOCKER_COMPOSE
+
+    def test_detect_runtime_explicit_kubernetes(self):
+        """Explicit architecture.container_runtime=kubernetes wins."""
+        from core.constants import detect_runtime, RUNTIME_KUBERNETES
+        p = {"architecture": {"container_runtime": "kubernetes"}}
+        assert detect_runtime(p) == RUNTIME_KUBERNETES
+
+    def test_detect_runtime_explicit_docker(self):
+        """Explicit architecture.container_runtime=docker_compose wins."""
+        from core.constants import detect_runtime, RUNTIME_DOCKER_COMPOSE
+        p = {"architecture": {"container_runtime": "docker_compose"}}
+        assert detect_runtime(p) == RUNTIME_DOCKER_COMPOSE
+
+    def test_detect_runtime_explicit_serverless(self):
+        """Explicit architecture.container_runtime=serverless wins."""
+        from core.constants import detect_runtime, RUNTIME_SERVERLESS
+        p = {"architecture": {"container_runtime": "serverless"}}
+        assert detect_runtime(p) == RUNTIME_SERVERLESS
+
+    def test_detect_runtime_aks_is_kubernetes(self):
+        """Azure AKS → kubernetes."""
+        from core.constants import detect_runtime, RUNTIME_KUBERNETES
+        p = {"platform": "azure", "cloud_services": {"azure": {"compute": "aks"}}}
+        assert detect_runtime(p) == RUNTIME_KUBERNETES
+
+    def test_detect_runtime_eks_is_kubernetes(self):
+        """AWS EKS → kubernetes."""
+        from core.constants import detect_runtime, RUNTIME_KUBERNETES
+        p = {"platform": "aws", "cloud_services": {"aws": {"compute": "eks"}}}
+        assert detect_runtime(p) == RUNTIME_KUBERNETES
+
+    def test_detect_runtime_gke_is_kubernetes(self):
+        """GCP GKE → kubernetes."""
+        from core.constants import detect_runtime, RUNTIME_KUBERNETES
+        p = {"platform": "gcp", "cloud_services": {"gcp": {"compute": "gke"}}}
+        assert detect_runtime(p) == RUNTIME_KUBERNETES
+
+    def test_detect_runtime_container_apps_is_serverless(self):
+        """Azure Container Apps → serverless."""
+        from core.constants import detect_runtime, RUNTIME_SERVERLESS
+        p = {"platform": "azure", "cloud_services": {"azure": {"compute": "container_apps"}}}
+        assert detect_runtime(p) == RUNTIME_SERVERLESS
+
+    def test_detect_runtime_fargate_is_serverless(self):
+        """AWS Fargate → serverless."""
+        from core.constants import detect_runtime, RUNTIME_SERVERLESS
+        p = {"platform": "aws", "cloud_services": {"aws": {"compute": "fargate"}}}
+        assert detect_runtime(p) == RUNTIME_SERVERLESS
+
+    def test_detect_runtime_cloud_run_is_serverless(self):
+        """GCP Cloud Run → serverless."""
+        from core.constants import detect_runtime, RUNTIME_SERVERLESS
+        p = {"platform": "gcp", "cloud_services": {"gcp": {"compute": "cloud_run"}}}
+        assert detect_runtime(p) == RUNTIME_SERVERLESS
+
+    def test_detect_runtime_vm_is_docker(self):
+        """VM compute → docker_compose (not K8s or serverless)."""
+        from core.constants import detect_runtime, RUNTIME_DOCKER_COMPOSE
+        p = {"platform": "azure", "cloud_services": {"azure": {"compute": "vm"}}}
+        assert detect_runtime(p) == RUNTIME_DOCKER_COMPOSE
+
+    def test_detect_runtime_on_premises_is_docker(self):
+        """On-premises with no cloud services → docker_compose."""
+        from core.constants import detect_runtime, RUNTIME_DOCKER_COMPOSE
+        p = {"platform": "on_premises"}
+        assert detect_runtime(p) == RUNTIME_DOCKER_COMPOSE
+
+    def test_detect_runtime_mismatched_platform_falls_back(self):
+        """Cloud services for wrong platform → docker_compose."""
+        from core.constants import detect_runtime, RUNTIME_DOCKER_COMPOSE
+        p = {"platform": "aws", "cloud_services": {"azure": {"compute": "aks"}}}
+        assert detect_runtime(p) == RUNTIME_DOCKER_COMPOSE
+
+    # ── get_kubeconfig() ─────────────────────────────────────────────
+
+    def test_get_kubeconfig_from_target_kubeconfig(self):
+        """Should extract from target.kubeconfig."""
+        from core.constants import get_kubeconfig
+        p = {"target": {"kubeconfig": "/path/to/kubeconfig"}}
+        assert get_kubeconfig(p) == "/path/to/kubeconfig"
+
+    def test_get_kubeconfig_from_target_kubeconfig_path(self):
+        """Should fallback to target.kubeconfig_path."""
+        from core.constants import get_kubeconfig
+        p = {"target": {"kubeconfig_path": "/alt/path"}}
+        assert get_kubeconfig(p) == "/alt/path"
+
+    def test_get_kubeconfig_from_profile_root(self):
+        """Should fallback to profile.kubeconfig."""
+        from core.constants import get_kubeconfig
+        p = {"kubeconfig": "/root/kube"}
+        assert get_kubeconfig(p) == "/root/kube"
+
+    def test_get_kubeconfig_priority_order(self):
+        """target.kubeconfig should take priority over kubeconfig_path."""
+        from core.constants import get_kubeconfig
+        p = {
+            "target": {"kubeconfig": "/first", "kubeconfig_path": "/second"},
+            "kubeconfig": "/third",
+        }
+        assert get_kubeconfig(p) == "/first"
+
+    def test_get_kubeconfig_empty_for_no_config(self):
+        """Should return empty string when no kubeconfig is set."""
+        from core.constants import get_kubeconfig
+        assert get_kubeconfig({}) == ""
+        assert get_kubeconfig({"target": {}}) == ""
+
+
+class TestDeployPreflightCloudAgnostic:
+    """Integration tests for /api/deploy/preflight ensuring cloud-agnostic behavior."""
+
+    @pytest.fixture()
+    def client(self):
+        app.config["TESTING"] = True
+        with app.test_client() as c:
+            yield c
+
+    def test_preflight_returns_runtime_for_k8s(self, client):
+        """Preflight with AKS compute should return runtime=kubernetes."""
+        resp = client.post("/api/deploy/preflight", json={
+            "platform": "azure",
+            "cloud_services": {"azure": {"compute": "aks"}},
+        })
+        data = resp.get_json()
+        assert data["runtime"] == "kubernetes"
+
+    def test_preflight_returns_runtime_for_serverless(self, client):
+        """Preflight with container_apps should return runtime=serverless."""
+        resp = client.post("/api/deploy/preflight", json={
+            "platform": "azure",
+            "cloud_services": {"azure": {"compute": "container_apps"}},
+        })
+        data = resp.get_json()
+        assert data["runtime"] == "serverless"
+
+    def test_preflight_returns_runtime_for_docker(self, client):
+        """Preflight with on_premises should return runtime=docker_compose."""
+        resp = client.post("/api/deploy/preflight", json={
+            "platform": "on_premises",
+        })
+        data = resp.get_json()
+        assert data["runtime"] == "docker_compose"
+
+    def test_preflight_eks_is_kubernetes(self, client):
+        """EKS should be treated as kubernetes preflight."""
+        resp = client.post("/api/deploy/preflight", json={
+            "platform": "aws",
+            "cloud_services": {"aws": {"compute": "eks"}},
+        })
+        data = resp.get_json()
+        assert data["runtime"] == "kubernetes"
+
+    def test_preflight_gke_is_kubernetes(self, client):
+        """GKE should be treated as kubernetes preflight."""
+        resp = client.post("/api/deploy/preflight", json={
+            "platform": "gcp",
+            "cloud_services": {"gcp": {"compute": "gke"}},
+        })
+        data = resp.get_json()
+        assert data["runtime"] == "kubernetes"
+
+    def test_preflight_fargate_is_serverless(self, client):
+        """Fargate should be treated as serverless preflight."""
+        resp = client.post("/api/deploy/preflight", json={
+            "platform": "aws",
+            "cloud_services": {"aws": {"compute": "fargate"}},
+        })
+        data = resp.get_json()
+        assert data["runtime"] == "serverless"
+
+    def test_preflight_cloud_run_is_serverless(self, client):
+        """Cloud Run should be treated as serverless preflight."""
+        resp = client.post("/api/deploy/preflight", json={
+            "platform": "gcp",
+            "cloud_services": {"gcp": {"compute": "cloud_run"}},
+        })
+        data = resp.get_json()
+        assert data["runtime"] == "serverless"
+
+    def test_preflight_has_existing_flag(self, client):
+        """All preflight responses should include has_existing flag."""
+        resp = client.post("/api/deploy/preflight", json={"platform": "on_premises"})
+        data = resp.get_json()
+        assert "has_existing" in data
+
+    def test_preflight_empty_body_defaults_docker(self, client):
+        """Empty body should default to docker_compose."""
+        resp = client.post("/api/deploy/preflight", json={})
+        data = resp.get_json()
+        assert data["runtime"] == "docker_compose"

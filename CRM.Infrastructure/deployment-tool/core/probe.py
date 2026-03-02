@@ -566,10 +566,14 @@ class EnvironmentProbe:
         elif ct == "cloud_azure":
             checks.append(self.check_cloud_auth_azure(target.cloud_credentials))
             checks.append(self.check_internet_access())
+            if target.kubeconfig_path:
+                checks.append(self.check_kubectl_access(target.kubeconfig_path))
 
         elif ct == "cloud_gcp":
             checks.append(self.check_cloud_auth_gcp(target.cloud_credentials))
             checks.append(self.check_internet_access())
+            if target.kubeconfig_path:
+                checks.append(self.check_kubectl_access(target.kubeconfig_path))
 
         elif ct == "kubernetes":
             checks.append(self.check_kubectl_access(target.kubeconfig_path))
@@ -617,12 +621,16 @@ class EnvironmentProbe:
                 lambda: self.check_cloud_auth_azure(target.cloud_credentials),
                 self.check_internet_access,
             ]
+            if target.kubeconfig_path:
+                tasks.append(lambda: self.check_kubectl_access(target.kubeconfig_path))
 
         elif ct == "cloud_gcp":
             tasks = [
                 lambda: self.check_cloud_auth_gcp(target.cloud_credentials),
                 self.check_internet_access,
             ]
+            if target.kubeconfig_path:
+                tasks.append(lambda: self.check_kubectl_access(target.kubeconfig_path))
 
         elif ct == "kubernetes":
             tasks = [

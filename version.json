@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 54,
+  "patch": 55,
   "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.54 - Password reuse for redeployments — CDT reads existing .env secrets via SSH before generating config so passwords stay consistent across redeployments; UI option for 'Fetch from Deployment' (default) vs 'Auto-Generate New'; added _parse_env_file, read_remote_env_secrets, inject_secrets_into_profile; fixed server crash-loop (missing columns from partial migrations); 23 new tests (172 total)",
+  "description": "feat(cdt): v0.614.55 - Cloud-agnostic CDT — centralized runtime detection (core/constants.py) separating true K8s (AKS/EKS/GKE) from serverless (Container Apps/Fargate/Cloud Run); kubeconfig propagation to preflight/day2/probe kubectl commands for Azure/GCP parity with AWS; runtime-aware container/stack ops (kubectl scale/rollout/logs for K8s, docker for compose); serverless badge in Day-2 UI; pod image extraction for K8s version-info; infrastructure_action wired to KubernetesDeployer; 33 new tests (251 total)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

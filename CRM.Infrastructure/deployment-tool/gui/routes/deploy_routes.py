@@ -37,6 +37,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from flask import Blueprint, request, jsonify, Response, stream_with_context
 from core.generator import ConfigGenerator
+from core.constants import (
+    K8S_COMPUTES,
+    SERVERLESS_COMPUTES,
+    CLOUD_COMPUTES,
+    RUNTIME_DOCKER_COMPOSE,
+    RUNTIME_KUBERNETES,
+    RUNTIME_SERVERLESS,
+    detect_runtime,
+    get_kubeconfig,
+)
 from deployers.docker_compose import DockerComposeDeployer, classify_container
 from deployers.kubernetes import KubernetesDeployer
 
@@ -46,39 +56,163 @@ _active_deploys: dict = {}
 
 @deploy_bp.route("/api/deploy/preflight", methods=["POST"])
 def deploy_preflight():
-    """Check for existing CRM containers before deployment.
+    """Check for existing CRM infrastructure before deployment.
 
-    Returns a list of existing containers so the UI can ask the user
-    whether to *reuse* or *recreate* them.
+    Platform-aware: checks local/remote Docker containers for docker_compose
+    deployments, Kubernetes pods/deployments for K8s targets, and returns
+    structured info so the UI can show a reuse/recreate choice regardless
+    of platform.
+
+    Body (JSON — all optional):
+      { "platform": "on_premises|azure|aws|gcp",
+        "runtime":  "docker_compose|kubernetes",
+        "target":   { "host": "...", "ssh_user": "root", "ssh_port": 22 },
+        "cloud_services": { "<platform>": { "compute": "aks|eks|..." } },
+        "namespace": "crm-prod" }
+
+    Returns:
+      { "containers": [...],          # Docker containers found
+        "resources":  [...],          # K8s resources found
+        "runtime":    "docker_compose|kubernetes",
+        "has_existing": true|false }  # convenience flag
     """
     import subprocess  # noqa: PLC0415
 
-    try:
-        result = subprocess.run(
-            ["docker", "ps", "-a", "--filter", "name=crm-", "--format", "{{json .}}"],
-            capture_output=True, text=True, timeout=15,
-        )
-    except Exception as exc:
-        return jsonify({"error": f"Docker not available: {exc}"}), 500
+    body = request.get_json(silent=True) or {}
+    target = body.get("target", {})
+    deploy_host = (
+        target.get("host")
+        or target.get("domain_name")
+        or body.get("host")
+        or body.get("deployment_host")
+        or ""
+    )
 
+    # Determine runtime using centralized logic
+    runtime = detect_runtime(body)
+
+    # ── Kubernetes preflight ─────────────────────────────────────────
+    if runtime in (RUNTIME_KUBERNETES, RUNTIME_SERVERLESS):
+        ns = body.get("namespace", "crm-prod")
+        resources = []
+        try:
+            kubeconfig = get_kubeconfig(body)
+            cmd = ["kubectl"]
+            if kubeconfig:
+                cmd += ["--kubeconfig", kubeconfig]
+            cmd += ["get", "all", f"-n={ns}", "-o", "json"]
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+            if result.returncode == 0 and result.stdout.strip():
+                data = json.loads(result.stdout)
+                for item in data.get("items", []):
+                    kind = item.get("kind", "")
+                    meta = item.get("metadata", {})
+                    name = meta.get("name", "")
+                    status_info = ""
+                    if kind == "Pod":
+                        status_info = item.get("status", {}).get("phase", "")
+                    elif kind in ("Deployment", "StatefulSet"):
+                        spec_r = item.get("spec", {}).get("replicas", 0)
+                        ready_r = item.get("status", {}).get("readyReplicas", 0)
+                        status_info = f"{ready_r}/{spec_r} ready"
+                    elif kind == "Service":
+                        svc_type = item.get("spec", {}).get("type", "")
+                        status_info = svc_type
+                    resources.append({
+                        "kind": kind,
+                        "name": name,
+                        "status": status_info,
+                        "group": _classify_k8s_resource(name),
+                    })
+        except Exception:  # noqa: BLE001
+            pass  # kubectl may not be available locally for cloud targets
+
+        return jsonify({
+            "containers": [],
+            "resources": resources,
+            "runtime": runtime,
+            "has_existing": len(resources) > 0,
+            "namespace": ns,
+        })
+
+    # ── Docker Compose preflight ─────────────────────────────────────
     containers = []
-    if result.returncode == 0 and result.stdout.strip():
-        for line in result.stdout.strip().splitlines():
-            try:
-                obj = json.loads(line)
-                name = obj.get("Names", "")
-                containers.append({
-                    "name": name,
-                    "image": obj.get("Image", ""),
-                    "status": obj.get("Status", ""),
-                    "state": obj.get("State", ""),
-                    "ports": obj.get("Ports", ""),
-                    "group": classify_container(name),
-                })
-            except json.JSONDecodeError:
-                continue
 
-    return jsonify({"containers": containers})
+    # Remote target: check via SSH
+    if deploy_host and deploy_host not in ("localhost", "127.0.0.1", "", "NO_HOST_CONFIGURED"):
+        ssh_user = target.get("ssh_user", "root")
+        ssh_port = int(target.get("ssh_port", 22))
+        try:
+            import paramiko  # noqa: PLC0415
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(hostname=deploy_host, username=ssh_user, port=ssh_port, timeout=10)
+            _, stdout, _ = client.exec_command(
+                'docker ps -a --filter name=crm- --format \'{"Names":"{{.Names}}","Image":"{{.Image}}","Status":"{{.Status}}","State":"{{.State}}","Ports":"{{.Ports}}"}\'',
+                timeout=15,
+            )
+            raw = stdout.read().decode().strip()
+            client.close()
+            if raw:
+                for line in raw.splitlines():
+                    try:
+                        obj = json.loads(line)
+                        name = obj.get("Names", "")
+                        containers.append({
+                            "name": name,
+                            "image": obj.get("Image", ""),
+                            "status": obj.get("Status", ""),
+                            "state": obj.get("State", ""),
+                            "ports": obj.get("Ports", ""),
+                            "group": classify_container(name),
+                        })
+                    except json.JSONDecodeError:
+                        continue
+        except Exception:  # noqa: BLE001
+            pass  # SSH unavailable — fall through to local check or empty list
+    else:
+        # Local Docker check
+        try:
+            result = subprocess.run(
+                ["docker", "ps", "-a", "--filter", "name=crm-", "--format", "{{json .}}"],
+                capture_output=True, text=True, timeout=15,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                for line in result.stdout.strip().splitlines():
+                    try:
+                        obj = json.loads(line)
+                        name = obj.get("Names", "")
+                        containers.append({
+                            "name": name,
+                            "image": obj.get("Image", ""),
+                            "status": obj.get("Status", ""),
+                            "state": obj.get("State", ""),
+                            "ports": obj.get("Ports", ""),
+                            "group": classify_container(name),
+                        })
+                    except json.JSONDecodeError:
+                        continue
+        except Exception:  # noqa: BLE001
+            pass  # Docker not available
+
+    return jsonify({
+        "containers": containers,
+        "resources": [],
+        "runtime": "docker_compose",
+        "has_existing": len(containers) > 0,
+    })
+
+
+def _classify_k8s_resource(name: str) -> str:
+    """Classify a Kubernetes resource by name into a UI group."""
+    name_lower = name.lower()
+    if any(k in name_lower for k in ("mariadb", "mysql", "postgres", "redis", "mongo")):
+        return "database"
+    if any(k in name_lower for k in ("api", "frontend", "gateway")):
+        return "app"
+    if any(k in name_lower for k in ("meilisearch", "ollama", "chatwoot", "novu", "superset", "docuseal", "n8n")):
+        return "provider"
+    return "other"
 
 
 @deploy_bp.route("/api/target/arch", methods=["POST"])
@@ -198,22 +332,25 @@ def start_deploy():
         return jsonify({"error": f"Configuration error: {exc}"}), 400
 
     log_q: queue.Queue = queue.Queue()
-    arch = profile.get("architecture", {})
-    runtime = (
-        arch.get("container_runtime", "docker_compose")
-        if isinstance(arch, dict)
-        else (arch or "docker_compose")
-    )
-    if runtime == "kubernetes":
-        deployer = KubernetesDeployer(
-            result.output_dir or Path("/tmp"), profile, log_q, dry_run=dry_run
-        )
-    else:
-        deployer = DockerComposeDeployer(
-            result.output_dir or Path("/tmp"), profile, log_q, dry_run=dry_run,
-            container_action=container_action,
-            containers_to_remove=containers_to_remove,
-        )
+
+    # ── Determine deployer runtime (centralized) ────────────────────
+    runtime = detect_runtime(profile)
+
+    try:
+        if runtime == RUNTIME_KUBERNETES:
+            deployer = KubernetesDeployer(
+                result.output_dir or Path("/tmp"), profile, log_q, dry_run=dry_run,
+                infrastructure_action=container_action,
+            )
+        else:
+            # docker_compose AND serverless both use DockerComposeDeployer
+            deployer = DockerComposeDeployer(
+                result.output_dir or Path("/tmp"), profile, log_q, dry_run=dry_run,
+                container_action=container_action,
+                containers_to_remove=containers_to_remove,
+            )
+    except (ValueError, TypeError) as exc:
+        return jsonify({"error": str(exc)}), 400
 
     # Register session BEFORE starting background task to avoid race condition
     _active_deploys[session_id] = {

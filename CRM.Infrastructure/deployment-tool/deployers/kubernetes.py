@@ -20,6 +20,7 @@ class KubernetesDeployer:
         dry_run: bool = False,
         namespace: str = "crm-prod",
         kubeconfig: str = "",
+        infrastructure_action: str = "fresh",
     ):
         self.work_dir = Path(work_dir)
         self.profile = profile
@@ -27,6 +28,7 @@ class KubernetesDeployer:
         self.dry_run = dry_run
         self.namespace = namespace
         self.kubeconfig = kubeconfig
+        self.infrastructure_action = infrastructure_action  # fresh | reuse | recreate
         self._abort = threading.Event()
         self.total_steps = 13
 
@@ -65,6 +67,14 @@ class KubernetesDeployer:
 
     def deploy(self) -> bool:
         kube = self._kube_cmd()
+
+        # Handle infrastructure_action: reuse vs recreate vs fresh
+        if self.infrastructure_action == "recreate":
+            self._emit("Recreating namespace (infrastructure_action=recreate)", "warn", 0)
+            self._run(kube + ["delete", "namespace", self.namespace, "--ignore-not-found=true"])
+        elif self.infrastructure_action == "reuse":
+            self._emit("Reusing existing namespace (infrastructure_action=reuse)", "info", 0)
+
         steps_list = [
             (1,  "Validate kubectl",    lambda: self._run(kube + ["version"])),
             (2,  "Create namespace",    lambda: self._run(kube + ["create", "namespace", self.namespace, "--dry-run=client", "-o", "yaml"])),

@@ -30,7 +30,13 @@
         <a class="navbar-brand" href="/"><i class="bi bi-cloud-arrow-up"></i> CRM CDT</a>
         <span class="navbar-text text-light fw-bold">Day-2 Operations</span>
         <div class="d-flex gap-2 align-items-center">
-            <span class="badge bg-secondary" id="nav-active-profile" title="Active deployment profile"></span>
+            <!-- Profile selector -->
+            <select class="form-select form-select-sm bg-dark text-light border-secondary"
+                    id="profileSelector" style="width:auto;max-width:200px"
+                    onchange="onProfileChange(this.value)" title="Select deployment profile to monitor">
+                <option value="">Loading profiles…</option>
+            </select>
+            <span class="badge bg-info" id="nav-runtime-badge" title="Deployment runtime"></span>
             <a href="/" class="btn btn-sm btn-outline-light"><i class="bi bi-arrow-left"></i> Wizard</a>
             <a href="/profiles" class="btn btn-sm btn-outline-light"><i class="bi bi-person-lines-fill"></i> Profiles</a>
             <button class="btn btn-sm btn-outline-light" id="autoRefreshToggle" onclick="toggleAutoRefresh()" title="Auto-refresh every 30s"><i class="bi bi-arrow-repeat"></i> Auto</button>
@@ -57,13 +63,13 @@
         <div class="col-6 col-xl-2">
             <div class="card stat-card text-center p-3">
                 <div class="fs-5 fw-bold" id="card-containers">—</div>
-                <div class="text-muted small">Running / Total</div>
+                <div class="text-muted small" id="card-containers-label">Running / Total</div>
             </div>
         </div>
         <div class="col-6 col-xl-2">
             <div class="card stat-card text-center p-3">
                 <div class="fs-6 fw-semibold text-success" id="card-profile">—</div>
-                <div class="text-muted small">Active Profile</div>
+                <div class="text-muted small">Monitored Profile</div>
             </div>
         </div>
         <div class="col-6 col-xl-2">
@@ -102,7 +108,7 @@
 
     <!-- Main Tabs -->
     <ul class="nav nav-tabs mb-3" id="day2Tabs">
-        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-containers"><i class="bi bi-boxes"></i> Containers</button></li>
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-containers"><i class="bi bi-boxes"></i> <span id="tab-containers-label">Containers</span></button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-versions"><i class="bi bi-tag"></i> Versions</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-profiles"><i class="bi bi-person-lines-fill"></i> Profiles</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-history"><i class="bi bi-clock-history"></i> History</button></li>
@@ -118,7 +124,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h5 class="card-title mb-0"><i class="bi bi-boxes"></i> Container Status</h5>
+                        <h5 class="card-title mb-0"><i class="bi bi-boxes"></i> <span id="containers-card-title">Container Status</span></h5>
                         <div class="d-flex gap-2">
                             <button class="btn btn-sm btn-outline-secondary" onclick="loadContainers()">
                                 <i class="bi bi-arrow-clockwise"></i> Refresh
@@ -306,6 +312,74 @@
 // ── State ──────────────────────────────────────────────────────────────────
 let _confirmCallback = null;
 let _autoRefreshTimer = null;
+let _selectedProfile = sessionStorage.getItem('day2_profile') || '';
+let _currentRuntime = 'docker_compose';
+
+// ── Profile selector ───────────────────────────────────────────────────────
+function _profileQS() {
+    return _selectedProfile ? `?profile=${encodeURIComponent(_selectedProfile)}` : '';
+}
+
+async function loadProfileSelector() {
+    const sel = document.getElementById('profileSelector');
+    try {
+        const [pr, ar] = await Promise.all([fetch('/api/profiles'), fetch('/api/profiles/active')]);
+        const pdata = await pr.json();
+        const profiles = Array.isArray(pdata) ? pdata : (pdata.profiles || []);
+        const { active_profile } = await ar.json();
+
+        sel.innerHTML = '';
+        if (!profiles.length) {
+            sel.innerHTML = '<option value="">No profiles</option>';
+            return;
+        }
+        profiles.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.name;
+            opt.textContent = p.name + (p.name === active_profile ? ' ★' : '');
+            if (p.environment_type) opt.textContent += ` [${p.environment_type}]`;
+            sel.appendChild(opt);
+        });
+
+        // Pre-select: saved choice → active profile → first
+        if (_selectedProfile && profiles.some(p => p.name === _selectedProfile)) {
+            sel.value = _selectedProfile;
+        } else if (active_profile && profiles.some(p => p.name === active_profile)) {
+            sel.value = active_profile;
+            _selectedProfile = active_profile;
+            sessionStorage.setItem('day2_profile', active_profile);
+        } else if (profiles.length) {
+            sel.value = profiles[0].name;
+            _selectedProfile = profiles[0].name;
+            sessionStorage.setItem('day2_profile', profiles[0].name);
+        }
+    } catch(e) {
+        sel.innerHTML = '<option value="">Error loading</option>';
+    }
+}
+
+function onProfileChange(name) {
+    _selectedProfile = name;
+    sessionStorage.setItem('day2_profile', name);
+    refreshAll();
+}
+
+function _updateRuntimeUI(runtime) {
+    _currentRuntime = runtime || 'docker_compose';
+    const isK8s = _currentRuntime === 'kubernetes';
+    const isSvl = _currentRuntime === 'serverless';
+    const badge = document.getElementById('nav-runtime-badge');
+    if (badge) {
+        badge.textContent = isK8s ? 'K8s' : isSvl ? 'Serverless' : 'Docker';
+        badge.className = 'badge ' + (isK8s ? 'bg-primary' : isSvl ? 'bg-warning text-dark' : 'bg-info');
+    }
+    const tabLabel = document.getElementById('tab-containers-label');
+    if (tabLabel) tabLabel.textContent = isK8s ? 'Resources' : isSvl ? 'Services' : 'Containers';
+    const cardTitle = document.getElementById('containers-card-title');
+    if (cardTitle) cardTitle.textContent = isK8s ? 'Kubernetes Resources' : isSvl ? 'Managed Services' : 'Container Status';
+    const cardLabel = document.getElementById('card-containers-label');
+    if (cardLabel) cardLabel.textContent = isK8s ? 'Pods / Resources' : isSvl ? 'Running / Total' : 'Running / Total';
+}
 
 // ── Confirm modal ──────────────────────────────────────────────────────────
 function showConfirm(title, body, cb) {
@@ -323,11 +397,12 @@ document.getElementById('confirmModal').addEventListener('hide.bs.modal', () => 
     document.getElementById('confirmModalBtn').style.display = '';
 });
 
-// ── Status + health ────────────────────────────────────────────────────────
+// ── Status + health (profile-aware) ────────────────────────────────────────
 async function loadStatus() {
     try {
-        const r = await fetch('/api/day2/status/all');
+        const r = await fetch('/api/day2/status/all' + _profileQS());
         const d = await r.json();
+        _updateRuntimeUI(d.runtime);
         document.getElementById('cards-version').textContent = d.crm_version || '—';
         const h = d.health || {};
         document.getElementById('card-api-health').innerHTML = h.api
@@ -338,8 +413,6 @@ async function loadStatus() {
         document.getElementById('card-profile').textContent = d.profile_name || '—';
         document.getElementById('card-env-type').textContent = d.environment_type || '—';
         document.getElementById('card-refreshed').textContent = new Date().toLocaleTimeString();
-        const navBadge = document.getElementById('nav-active-profile');
-        if (navBadge) navBadge.textContent = d.profile_name || '';
         document.getElementById('stack-health-api').className = 'badge ' + (h.api ? 'bg-success' : 'bg-danger');
         document.getElementById('stack-health-api').textContent = 'API ' + (h.api ? '✓' : '✗');
         document.getElementById('stack-health-db').className = 'badge ' + (h.db ? 'bg-success' : 'bg-secondary');
@@ -348,15 +421,21 @@ async function loadStatus() {
         document.getElementById('stack-health-redis').textContent = 'Redis ' + (h.redis ? '✓' : '—');
         if (document.getElementById('upgrade-current-version'))
             document.getElementById('upgrade-current-version').textContent = d.crm_version || 'unknown';
-        loadContainerList(d.containers || []);
+
+        // Render based on runtime
+        if (d.runtime === 'kubernetes') {
+            loadResourceList(d.resources || []);
+        } else {
+            loadContainerList(d.containers || []);
+        }
     } catch(e) { console.error('Status load failed', e); }
 }
 
-// ── Container table with Start / Stop / Restart / Logs ────────────────────
+// ── Docker container table ─────────────────────────────────────────────────
 function loadContainerList(containers) {
     const el = document.getElementById('containers-table');
     if (!containers.length) {
-        el.innerHTML = '<div class="alert alert-info">No CRM containers found. Is Docker running?</div>';
+        el.innerHTML = '<div class="alert alert-info">No CRM containers found on this environment. Verify the profile target host is correct.</div>';
         return;
     }
     const rows = containers.map(c => {
@@ -389,12 +468,42 @@ function loadContainerList(containers) {
     </div>`;
 }
 
+// ── Kubernetes resource table ──────────────────────────────────────────────
+function loadResourceList(resources) {
+    const el = document.getElementById('containers-table');
+    if (!resources.length) {
+        el.innerHTML = '<div class="alert alert-info">No Kubernetes resources found in the target namespace. Verify the profile and kubectl context.</div>';
+        return;
+    }
+    const kindColors = {Pod:'primary', Deployment:'success', Service:'info', StatefulSet:'warning', ReplicaSet:'secondary', ConfigMap:'dark', Secret:'danger'};
+    const rows = resources.map(r => {
+        const statusOk = r.status === 'Running' || (r.status || '').includes('ready');
+        const badgeCls = statusOk ? 'bg-success' : 'bg-warning text-dark';
+        const kindCls = kindColors[r.kind] || 'secondary';
+        return `<tr>
+            <td><span class="badge bg-${kindCls} me-1">${r.kind}</span></td>
+            <td class="fw-semibold">${r.name}</td>
+            <td><small class="text-muted">${r.namespace || '—'}</small></td>
+            <td><span class="badge ${badgeCls}">${r.status || '—'}</span></td>
+        </tr>`;
+    }).join('');
+    el.innerHTML = `<div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-light"><tr><th>Kind</th><th>Name</th><th>Namespace</th><th>Status</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+    </div>`;
+}
+
 async function loadContainers() { await loadStatus(); }
 
+// ── Container actions (profile-aware) ──────────────────────────────────────
 async function containerAction(name, action) {
+    const qs = _profileQS();
+    const sep = qs ? '&' : '?';
     const doIt = async () => {
         try {
-            const r = await fetch(`/api/day2/container/${encodeURIComponent(name)}/${action}`, { method: 'POST' });
+            const r = await fetch(`/api/day2/container/${encodeURIComponent(name)}/${action}${qs}`, { method: 'POST' });
             const d = await r.json();
             if (!d.success) alert(`${action} failed for ${name}: ${d.output || JSON.stringify(d)}`);
             loadStatus();
@@ -407,7 +516,9 @@ async function containerAction(name, action) {
 
 async function showContainerLogs(name) {
     try {
-        const r = await fetch(`/api/day2/container/${encodeURIComponent(name)}/logs?lines=200`);
+        const qs = _profileQS();
+        const sep = qs ? '&' : '?';
+        const r = await fetch(`/api/day2/container/${encodeURIComponent(name)}/logs${qs}${qs ? '&' : '?'}lines=200`);
         const d = await r.json();
         const pre = document.createElement('pre');
         pre.style.cssText = 'max-height:400px;overflow:auto;font-size:11px;background:#1e1e1e;color:#d4d4d4;padding:.5rem;border-radius:.25rem;margin:0';
@@ -420,28 +531,29 @@ async function showContainerLogs(name) {
     } catch(e) { alert('Log fetch failed: ' + e.message); }
 }
 
-// ── Stack-level controls ───────────────────────────────────────────────────
+// ── Stack-level controls (profile-aware) ───────────────────────────────────
 async function stackAction(action) {
+    const isK8s = _currentRuntime === 'kubernetes';
     const msgs = {
-        start: 'Start all stopped CRM containers?',
-        stop: 'Stop ALL running CRM containers? This will take down the whole stack.',
-        restart: 'Restart all running CRM containers?'
+        start: isK8s ? 'Scale up all CRM pods?' : 'Start all stopped CRM containers?',
+        stop: isK8s ? 'Scale down ALL CRM pods? Services will be unavailable.' : 'Stop ALL running CRM containers? This will take down the whole stack.',
+        restart: isK8s ? 'Restart all CRM pods?' : 'Restart all running CRM containers?'
     };
     showConfirm(`Stack ${action.charAt(0).toUpperCase()+action.slice(1)}`, msgs[action], async () => {
         try {
-            const r = await fetch(`/api/day2/stack/${action}`, { method: 'POST' });
+            const r = await fetch(`/api/day2/stack/${action}${_profileQS()}`, { method: 'POST' });
             const d = await r.json();
             const list = d.started || d.stopped || d.restarted || [];
-            alert(d.success ? `✓ ${action}: ${list.length} container(s)` : `Errors: ${(d.errors||[]).join(', ')}`);
+            alert(d.success ? `✓ ${action}: ${list.length} item(s)` : `Errors: ${(d.errors||[]).join(', ')}`);
             loadStatus();
         } catch(e) { alert('Stack action failed: ' + e.message); }
     });
 }
 
-// ── Version info tab ───────────────────────────────────────────────────────
+// ── Version info tab (profile-aware) ───────────────────────────────────────
 async function loadVersionInfo() {
     try {
-        const r = await fetch('/api/day2/version-info');
+        const r = await fetch('/api/day2/version-info' + _profileQS());
         const d = await r.json();
         document.getElementById('vi-profile').textContent = d.profile_name || '—';
         document.getElementById('vi-crm-version').innerHTML = `<span class="version-chip">${d.crm_version || '—'}</span>`;
@@ -456,13 +568,16 @@ async function loadVersionInfo() {
         const imgs = d.images || {};
         const imgEl = document.getElementById('version-images-list');
         const keys = Object.keys(imgs);
-        if (!keys.length) { imgEl.innerHTML = '<div class="text-muted small">No running CRM containers detected.</div>'; return; }
+        if (!keys.length) {
+            imgEl.innerHTML = `<div class="text-muted small">No running ${d.runtime === 'kubernetes' ? 'pods' : 'containers'} detected.</div>`;
+            return;
+        }
         imgEl.innerHTML = `<table class="table table-sm">
-            <thead><tr><th>Container</th><th>Image</th><th>Status</th></tr></thead>
+            <thead><tr><th>${d.runtime === 'kubernetes' ? 'Pod' : 'Container'}</th><th>Image</th><th>Status</th></tr></thead>
             <tbody>${keys.map(k => `<tr>
                 <td class="fw-semibold">${k}</td>
-                <td><span class="img-tag">${imgs[k].image}</span></td>
-                <td><small class="text-muted">${imgs[k].status}</small></td>
+                <td><span class="img-tag">${imgs[k].image || '—'}</span></td>
+                <td><small class="text-muted">${imgs[k].status || '—'}</small></td>
             </tr>`).join('')}</tbody></table>`;
     } catch(e) { console.warn('Version info failed', e); }
 }
@@ -481,20 +596,27 @@ async function loadProfilesSummary() {
         }
         grid.innerHTML = profiles.map(p => {
             const isActive = p.name === active_profile;
+            const isMonitored = p.name === _selectedProfile;
             return `<div class="col-md-4 col-lg-3">
-                <div class="card profile-card ${isActive ? 'active-profile' : ''}">
+                <div class="card profile-card ${isActive ? 'active-profile' : ''}" ${isMonitored ? 'style="border-color:#0d6efd !important"' : ''}>
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <h6 class="card-title mb-1">${p.name}</h6>
-                            ${isActive ? '<span class="badge bg-success">Active</span>' : ''}
+                            <div>
+                                ${isActive ? '<span class="badge bg-success me-1">Active</span>' : ''}
+                                ${isMonitored ? '<span class="badge bg-primary">Monitored</span>' : ''}
+                            </div>
                         </div>
                         <div class="text-muted small mb-1">${p.environment_type || p.platform || '—'}</div>
                         <div class="text-muted small">v${p.crm_version || '?'} · ${p.updated_at ? new Date(p.updated_at).toLocaleDateString() : '—'}</div>
                     </div>
                     <div class="card-footer d-flex gap-1">
+                        ${!isMonitored
+                            ? `<button class="btn btn-sm btn-primary flex-fill" onclick="onProfileChange('${p.name}'); document.getElementById('profileSelector').value='${p.name}'; loadProfilesSummary();"><i class="bi bi-eye"></i> Monitor</button>`
+                            : '<span class="btn btn-sm btn-outline-primary flex-fill disabled">Monitoring</span>'}
                         ${!isActive
-                            ? `<button class="btn btn-sm btn-success flex-fill" onclick="activateProfileInline('${p.name}')"><i class="bi bi-check-circle"></i> Activate</button>`
-                            : '<span class="btn btn-sm btn-outline-success flex-fill disabled">Current</span>'}
+                            ? `<button class="btn btn-sm btn-success" onclick="activateProfileInline('${p.name}')"><i class="bi bi-check-circle"></i></button>`
+                            : ''}
                         <a href="/profiles" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></a>
                     </div>
                 </div>
@@ -537,7 +659,7 @@ async function loadHistory() {
     } catch(e) { el.innerHTML = `<div class="alert alert-danger">Load failed: ${e.message}</div>`; }
 }
 
-// ── Upgrade / Rollback / Scale / Secrets (unchanged logic) ────────────────
+// ── Upgrade / Rollback / Scale / Secrets ──────────────────────────────────
 async function loadVersions() {
     try {
         const r = await fetch('/api/day2/versions');
@@ -678,12 +800,15 @@ document.querySelectorAll('#day2Tabs button[data-bs-toggle="tab"]').forEach(btn 
     });
 });
 
-// ── Bootstrap ─────────────────────────────────────────────────────────────
-loadStatus();
-loadVersionInfo();
-loadVersions();
-buildScaleList();
-toggleAutoRefresh(); // start auto-refresh on
+// ── Bootstrap — load profile selector first, then data ────────────────────
+(async function init() {
+    await loadProfileSelector();
+    loadStatus();
+    loadVersionInfo();
+    loadVersions();
+    buildScaleList();
+    toggleAutoRefresh(); // start auto-refresh on
+})();
 </script>
 </body>
 </html>

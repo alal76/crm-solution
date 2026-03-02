@@ -3657,11 +3657,23 @@
             if (config.platform === 'on_premises') {
                 return document.getElementById('discoveryHost')?.value || '192.168.0.9';
             }
-            // Cloud: use domain name if provided, else fall through (no localhost)
+            // Cloud: use domain name if provided
             const sslDomain = document.getElementById('sslDomain')?.value;
             if (sslDomain) return sslDomain;
-            // Return the already-configured target host, or empty string — never 'localhost'
-            return config.target?.host || config.deployment_host || '';
+            // Already-configured target host
+            if (config.target?.host) return config.target.host;
+            if (config.deployment_host) return config.deployment_host;
+            // Cloud platforms: derive a synthetic host from platform + resource group
+            // so the deployer has something to work with (used as a label, not SSH target).
+            const _cloudPlatforms = ['azure', 'aws', 'gcp'];
+            if (_cloudPlatforms.includes(config.platform)) {
+                const rg = document.getElementById('azureResourceGroup')?.value
+                        || document.getElementById('awsVpcId')?.value
+                        || document.getElementById('gcpProject')?.value
+                        || 'crm';
+                return `${config.platform}-${rg}`.replace(/\s+/g, '-').toLowerCase();
+            }
+            return '';
         }
 
         /**
@@ -6153,31 +6165,39 @@
         async function startDeployment() {
             if (_deploy.evtSource) { _deploy.evtSource.close(); }
 
-            // ── Pre-flight: check for existing containers ──────────────
+            // ── Pre-flight: check for existing infrastructure ──────────
+            // Send platform & target info so the backend can check remote
+            // Docker containers or K8s resources, not just local Docker.
+            let pfData = { containers: [], resources: [], runtime: 'docker_compose', has_existing: false };
             try {
                 const pfResp = await fetch('/api/deploy/preflight', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: '{}',
+                    body: JSON.stringify({
+                        platform: config.platform,
+                        architecture: config.architecture,
+                        target: config.target,
+                        cloud_services: config.cloud_services,
+                        host: config.deployment_host,
+                    }),
                 });
-                if (!pfResp.ok) throw new Error('HTTP ' + pfResp.status);
-                const pfData = await pfResp.json();
-                if (pfData.containers && pfData.containers.length > 0) {
-                    const result = await _showContainerActionModal(pfData.containers);
-                    if (result.action === 'cancel') return;
-                    _deploy.containerAction = result.action;
-                    _deploy.containersToRemove = result.containersToRemove || [];
-                    _deploy.passwordStrategy = result.passwordStrategy || 'fetch_existing';
-                } else {
-                    _deploy.containerAction = 'recreate';
-                    _deploy.containersToRemove = [];
-                    _deploy.passwordStrategy = 'auto_generate'; // first deploy — no existing secrets
-                }
-            } catch (e) {
-                // If preflight fails, default to recreate and proceed
+                if (pfResp.ok) pfData = await pfResp.json();
+            } catch (_) {
+                // preflight failed — continue with defaults
+            }
+
+            // Always show the infrastructure action modal so the user can
+            // choose between reusing existing infrastructure and deploying fresh.
+            try {
+                const result = await _showInfraActionModal(pfData);
+                if (result.action === 'cancel') return;
+                _deploy.containerAction = result.action;
+                _deploy.containersToRemove = result.containersToRemove || [];
+                _deploy.passwordStrategy = result.passwordStrategy || 'fetch_existing';
+            } catch (_) {
                 _deploy.containerAction = 'recreate';
                 _deploy.containersToRemove = [];
-                _deploy.passwordStrategy = 'fetch_existing'; // still try to fetch
+                _deploy.passwordStrategy = 'auto_generate';
             }
 
             // Reset UI
@@ -6211,7 +6231,11 @@
                         password_strategy: _deploy.passwordStrategy || 'fetch_existing',
                     }),
                 });
-                if (!resp.ok) throw new Error('HTTP ' + resp.status);
+                if (!resp.ok) {
+                    let detail = 'HTTP ' + resp.status;
+                    try { const body = await resp.json(); if (body.error) detail = body.error; } catch (_) {}
+                    throw new Error(detail);
+                }
                 const data = await resp.json();
                 if (data.error) throw new Error(data.error);
                 _deploy.jobId = data.session_id;
@@ -6226,16 +6250,26 @@
         }
 
         /**
-         * Show a Bootstrap modal listing existing containers grouped by category
-         * (Application, Infrastructure, Providers).  Each group has its own
-         * Reuse / Recreate toggle.  Returns a Promise resolving to:
-         *   { action: 'recreate'|'reuse'|'cancel', containersToRemove: string[] }
+         * Show a Bootstrap modal for ALL deployment types allowing the user to
+         * choose between reusing existing infrastructure and deploying fresh.
          *
-         * When the user picks per-group options, action is set to 'recreate'
-         * and containersToRemove lists only the containers in "recreate" groups.
+         * For Docker Compose: shows existing containers grouped by category
+         * with per-group Reuse / Recreate toggles.
+         * For Kubernetes: shows existing pods/deployments/services.
+         * When no existing resources found: shows a clean first-deploy panel.
+         *
+         * Returns a Promise resolving to:
+         *   { action: 'recreate'|'reuse'|'cancel',
+         *     containersToRemove: string[],
+         *     passwordStrategy: 'fetch_existing'|'auto_generate' }
          */
-        function _showContainerActionModal(containers) {
+        function _showInfraActionModal(pfData) {
             return new Promise((resolve) => {
+                const runtime = pfData.runtime || 'docker_compose';
+                const containers = pfData.containers || [];
+                const resources = pfData.resources || [];
+                const hasExisting = pfData.has_existing || false;
+                const isK8s = runtime === 'kubernetes';
 
                 // ── Group labels & icons ────────────────────────────
                 const GROUP_META = {
@@ -6245,130 +6279,195 @@
                     other:    { label: 'Other',           icon: 'bi-box',            color: 'dark'     },
                 };
 
-                // Bucket containers by group
-                const groups = {};
-                containers.forEach(c => {
-                    const g = c.group || 'other';
-                    if (!groups[g]) groups[g] = [];
-                    groups[g].push(c);
-                });
-
-                // ── Build modal (or reuse existing) ─────────────────
-                let modal = document.getElementById('cdtContainerActionModal');
+                // Remove existing modal if present
+                let modal = document.getElementById('cdtInfraActionModal');
                 if (modal) modal.remove();
 
+                let bodyHtml = '';
                 const groupOrder = ['app', 'database', 'provider', 'other'];
-                let bodyHtml = `
-                    <p class="mb-3">The following CRM containers already exist on this host.
-                       Choose <strong>Reuse</strong> to keep a group as-is, or
-                       <strong>Recreate</strong> to remove &amp; redeploy.</p>`;
 
-                groupOrder.forEach(gKey => {
-                    const items = groups[gKey];
-                    if (!items || items.length === 0) return;
-                    const meta = GROUP_META[gKey] || GROUP_META.other;
-                    bodyHtml += `
-                    <div class="card mb-3 border-${meta.color}">
-                      <div class="card-header d-flex align-items-center justify-content-between bg-${meta.color} bg-opacity-10 py-2 px-3">
-                        <span><i class="bi ${meta.icon} me-2 text-${meta.color}"></i><strong>${meta.label}</strong>
-                          <span class="badge bg-${meta.color} ms-1">${items.length}</span>
-                        </span>
-                        <div class="btn-group btn-group-sm" role="group">
-                          <input type="radio" class="btn-check" name="grp_${gKey}" id="grp_${gKey}_reuse"
-                                 value="reuse" autocomplete="off">
-                          <label class="btn btn-outline-success btn-sm" for="grp_${gKey}_reuse">
-                            <i class="bi bi-recycle me-1"></i>Reuse
-                          </label>
-                          <input type="radio" class="btn-check" name="grp_${gKey}" id="grp_${gKey}_recreate"
-                                 value="recreate" autocomplete="off" checked>
-                          <label class="btn btn-outline-primary btn-sm" for="grp_${gKey}_recreate">
-                            <i class="bi bi-arrow-repeat me-1"></i>Recreate
-                          </label>
-                        </div>
+                if (hasExisting) {
+                    // ── Existing infrastructure found ───────────────────
+                    const items = isK8s ? resources : containers;
+                    const entityLabel = isK8s ? 'resources' : 'containers';
+
+                    // Bucket items by group
+                    const groups = {};
+                    items.forEach(c => {
+                        const g = c.group || 'other';
+                        if (!groups[g]) groups[g] = [];
+                        groups[g].push(c);
+                    });
+
+                    const platformBadge = isK8s
+                        ? `<span class="badge bg-info ms-2"><i class="bi bi-kubernetes me-1"></i>Kubernetes</span>`
+                        : `<span class="badge bg-success ms-2"><i class="bi bi-box-seam me-1"></i>Docker Compose</span>`;
+
+                    bodyHtml = `
+                        <p class="mb-3">Existing CRM ${entityLabel} were detected on the target.${platformBadge}<br>
+                           Choose <strong>Reuse</strong> to keep a group as-is, or
+                           <strong>Deploy Fresh</strong> to remove &amp; redeploy.</p>`;
+
+                    groupOrder.forEach(gKey => {
+                        const gItems = groups[gKey];
+                        if (!gItems || gItems.length === 0) return;
+                        const meta = GROUP_META[gKey] || GROUP_META.other;
+                        bodyHtml += `
+                        <div class="card mb-3 border-${meta.color}">
+                          <div class="card-header d-flex align-items-center justify-content-between bg-${meta.color} bg-opacity-10 py-2 px-3">
+                            <span><i class="bi ${meta.icon} me-2 text-${meta.color}"></i><strong>${meta.label}</strong>
+                              <span class="badge bg-${meta.color} ms-1">${gItems.length}</span>
+                            </span>
+                            <div class="btn-group btn-group-sm" role="group">
+                              <input type="radio" class="btn-check" name="grp_${gKey}" id="grp_${gKey}_reuse"
+                                     value="reuse" autocomplete="off">
+                              <label class="btn btn-outline-success btn-sm" for="grp_${gKey}_reuse">
+                                <i class="bi bi-recycle me-1"></i>Reuse
+                              </label>
+                              <input type="radio" class="btn-check" name="grp_${gKey}" id="grp_${gKey}_recreate"
+                                     value="recreate" autocomplete="off" checked>
+                              <label class="btn btn-outline-primary btn-sm" for="grp_${gKey}_recreate">
+                                <i class="bi bi-arrow-repeat me-1"></i>Deploy Fresh
+                              </label>
+                            </div>
+                          </div>
+                          <div class="card-body py-1 px-3">
+                            <table class="table table-sm table-borderless mb-0 small">
+                              <tbody>
+                                ${gItems.map(c => {
+                                    if (isK8s) {
+                                        const sc = (c.status || '').toLowerCase().includes('running') ? 'text-success' : 'text-muted';
+                                        return `<tr>
+                                          <td style="width:18%"><span class="badge bg-secondary">${c.kind || ''}</span></td>
+                                          <td class="fw-semibold">${c.name}</td>
+                                          <td class="${sc}" style="width:22%">${c.status}</td>
+                                        </tr>`;
+                                    } else {
+                                        const sc = (c.state || '').toLowerCase() === 'running' ? 'text-success' : 'text-muted';
+                                        return `<tr>
+                                          <td class="fw-semibold" style="width:30%">${c.name}</td>
+                                          <td><code>${c.image}</code></td>
+                                          <td class="${sc}" style="width:22%">${c.status}</td>
+                                        </tr>`;
+                                    }
+                                }).join('')}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>`;
+                    });
+                } else {
+                    // ── No existing infrastructure — first deploy ────────
+                    const platformLabel = {
+                        azure: 'Azure', aws: 'AWS', gcp: 'GCP',
+                        on_premises: 'On-Premises'
+                    }[config.platform] || config.platform || 'Target';
+                    const runtimeLabel = isK8s ? 'Kubernetes' : 'Docker Compose';
+
+                    bodyHtml = `
+                        <div class="text-center py-3">
+                          <i class="bi bi-rocket-takeoff text-primary" style="font-size: 2.5rem"></i>
+                          <h5 class="mt-3">Ready to Deploy</h5>
+                          <p class="text-muted mb-2">
+                            No existing CRM infrastructure was detected on the target.<br>
+                            This appears to be a <strong>first-time deployment</strong>.
+                          </p>
+                          <div class="d-flex justify-content-center gap-2 small">
+                            <span class="badge bg-primary"><i class="bi bi-geo-alt me-1"></i>${platformLabel}</span>
+                            <span class="badge bg-info"><i class="bi bi-gear me-1"></i>${runtimeLabel}</span>
+                          </div>
+                        </div>`;
+                }
+
+                // ── Password strategy section ───────────────────────
+                const defaultPwStrategy = hasExisting ? 'fetch_existing' : 'auto_generate';
+                const pwSection = `
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div>
+                        <i class="bi bi-key-fill text-warning me-2"></i>
+                        <strong class="small">Password Strategy</strong>
+                        <span class="text-muted small ms-1">— how to handle DB &amp; service passwords</span>
                       </div>
-                      <div class="card-body py-1 px-3">
-                        <table class="table table-sm table-borderless mb-0 small">
-                          <tbody>
-                            ${items.map(c => {
-                                const sc = (c.state || '').toLowerCase() === 'running' ? 'text-success' : 'text-muted';
-                                return `<tr>
-                                  <td class="fw-semibold" style="width:30%">${c.name}</td>
-                                  <td><code>${c.image}</code></td>
-                                  <td class="${sc}" style="width:22%">${c.status}</td>
-                                </tr>`;
-                            }).join('')}
-                          </tbody>
-                        </table>
+                      <div class="btn-group btn-group-sm" role="group">
+                        <input type="radio" class="btn-check" name="passwordStrategy" id="pwStratFetch"
+                               value="fetch_existing" autocomplete="off" ${defaultPwStrategy === 'fetch_existing' ? 'checked' : ''}>
+                        <label class="btn btn-outline-success btn-sm" for="pwStratFetch"
+                               title="Read existing passwords from the deployed .env — keeps database access working">
+                          <i class="bi bi-download me-1"></i>Fetch from Deployment
+                        </label>
+                        <input type="radio" class="btn-check" name="passwordStrategy" id="pwStratGenerate"
+                               value="auto_generate" autocomplete="off" ${defaultPwStrategy === 'auto_generate' ? 'checked' : ''}>
+                        <label class="btn btn-outline-danger btn-sm" for="pwStratGenerate"
+                               title="Generate fresh random passwords — use only for first deploy or full reset">
+                          <i class="bi bi-shuffle me-1"></i>Auto-Generate New
+                        </label>
                       </div>
                     </div>`;
-                });
+
+                // ── Build modal ─────────────────────────────────────
+                const headerBg = hasExisting ? 'bg-warning text-dark' : 'bg-primary text-white';
+                const headerIcon = hasExisting ? 'bi-exclamation-triangle-fill' : 'bi-rocket-takeoff';
+                const headerTitle = hasExisting ? 'Existing Infrastructure Detected' : 'Deployment Options';
 
                 const wrapper = document.createElement('div');
                 wrapper.innerHTML = `
-                <div class="modal fade" id="cdtContainerActionModal" tabindex="-1" data-bs-backdrop="static">
+                <div class="modal fade" id="cdtInfraActionModal" tabindex="-1" data-bs-backdrop="static">
                   <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content">
-                      <div class="modal-header bg-warning text-dark py-2">
-                        <h6 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Existing Containers Detected</h6>
+                      <div class="modal-header ${headerBg} py-2">
+                        <h6 class="modal-title"><i class="bi ${headerIcon} me-2"></i>${headerTitle}</h6>
                       </div>
                       <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
                         ${bodyHtml}
                       </div>
                       <div class="modal-body border-top pt-3 pb-2 px-4" style="background:#f8f9fa">
-                        <div class="d-flex align-items-center justify-content-between">
-                          <div>
-                            <i class="bi bi-key-fill text-warning me-2"></i>
-                            <strong class="small">Password Strategy</strong>
-                            <span class="text-muted small ms-1">— how to handle DB &amp; service passwords</span>
-                          </div>
-                          <div class="btn-group btn-group-sm" role="group">
-                            <input type="radio" class="btn-check" name="passwordStrategy" id="pwStratFetch"
-                                   value="fetch_existing" autocomplete="off" checked>
-                            <label class="btn btn-outline-success btn-sm" for="pwStratFetch"
-                                   title="Read existing passwords from the deployed .env — keeps database access working">
-                              <i class="bi bi-download me-1"></i>Fetch from Deployment
-                            </label>
-                            <input type="radio" class="btn-check" name="passwordStrategy" id="pwStratGenerate"
-                                   value="auto_generate" autocomplete="off">
-                            <label class="btn btn-outline-danger btn-sm" for="pwStratGenerate"
-                                   title="Generate fresh random passwords — use only for first deploy or full reset">
-                              <i class="bi bi-shuffle me-1"></i>Auto-Generate New
-                            </label>
-                          </div>
-                        </div>
+                        ${pwSection}
                       </div>
                       <div class="modal-footer py-2 d-flex justify-content-between">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="cdtCABtnCancel">
-                          <i class="bi bi-x-circle me-1"></i>Cancel Deployment
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="cdtIABtnCancel">
+                          <i class="bi bi-x-circle me-1"></i>Cancel
                         </button>
                         <div>
-                          <button type="button" class="btn btn-sm btn-success me-1" id="cdtCABtnReuseAll">
+                          ${hasExisting ? `
+                          <button type="button" class="btn btn-sm btn-success me-1" id="cdtIABtnReuseAll">
                             <i class="bi bi-recycle me-1"></i>Reuse All
                           </button>
-                          <button type="button" class="btn btn-sm btn-primary me-1" id="cdtCABtnRecreateAll">
-                            <i class="bi bi-arrow-repeat me-1"></i>Recreate All
+                          <button type="button" class="btn btn-sm btn-primary me-1" id="cdtIABtnFreshAll">
+                            <i class="bi bi-arrow-repeat me-1"></i>Deploy Fresh
                           </button>
-                          <button type="button" class="btn btn-sm btn-dark" id="cdtCABtnApply">
+                          <button type="button" class="btn btn-sm btn-dark" id="cdtIABtnApply">
                             <i class="bi bi-check2-circle me-1"></i>Apply Selections
                           </button>
+                          ` : `
+                          <button type="button" class="btn btn-sm btn-primary" id="cdtIABtnDeploy">
+                            <i class="bi bi-rocket-takeoff me-1"></i>Start Deployment
+                          </button>
+                          `}
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>`;
                 document.body.appendChild(wrapper.firstElementChild);
-                modal = document.getElementById('cdtContainerActionModal');
+                modal = document.getElementById('cdtInfraActionModal');
 
                 const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
 
                 function getContainersToRemove() {
                     const toRemove = [];
+                    const items = isK8s ? resources : containers;
+                    const groups = {};
+                    items.forEach(c => {
+                        const g = c.group || 'other';
+                        if (!groups[g]) groups[g] = [];
+                        groups[g].push(c);
+                    });
                     groupOrder.forEach(gKey => {
-                        const items = groups[gKey];
-                        if (!items) return;
+                        const gItems = groups[gKey];
+                        if (!gItems) return;
                         const radio = modal.querySelector(`input[name="grp_${gKey}"]:checked`);
                         if (radio && radio.value === 'recreate') {
-                            items.forEach(c => toRemove.push(c.name));
+                            gItems.forEach(c => toRemove.push(c.name));
                         }
                     });
                     return toRemove;
@@ -6376,7 +6475,7 @@
 
                 function getPasswordStrategy() {
                     const radio = modal.querySelector('input[name="passwordStrategy"]:checked');
-                    return radio ? radio.value : 'fetch_existing';
+                    return radio ? radio.value : defaultPwStrategy;
                 }
 
                 function cleanup(result) {
@@ -6385,22 +6484,33 @@
                     resolve(result);
                 }
 
-                modal.querySelector('#cdtCABtnCancel').addEventListener('click', () => {
+                // Cancel button
+                modal.querySelector('#cdtIABtnCancel').addEventListener('click', () => {
                     cleanup({ action: 'cancel', containersToRemove: [], passwordStrategy: 'fetch_existing' });
                 });
-                modal.querySelector('#cdtCABtnReuseAll').addEventListener('click', () => {
-                    cleanup({ action: 'reuse', containersToRemove: [], passwordStrategy: getPasswordStrategy() });
-                });
-                modal.querySelector('#cdtCABtnRecreateAll').addEventListener('click', () => {
-                    const all = containers.map(c => c.name);
-                    cleanup({ action: 'recreate', containersToRemove: all, passwordStrategy: getPasswordStrategy() });
-                });
-                modal.querySelector('#cdtCABtnApply').addEventListener('click', () => {
-                    const toRemove = getContainersToRemove();
-                    // If nothing to remove, treat as reuse-all
-                    const action = toRemove.length > 0 ? 'recreate' : 'reuse';
-                    cleanup({ action, containersToRemove: toRemove, passwordStrategy: getPasswordStrategy() });
-                });
+
+                if (hasExisting) {
+                    // Reuse All
+                    modal.querySelector('#cdtIABtnReuseAll').addEventListener('click', () => {
+                        cleanup({ action: 'reuse', containersToRemove: [], passwordStrategy: getPasswordStrategy() });
+                    });
+                    // Deploy Fresh (all)
+                    modal.querySelector('#cdtIABtnFreshAll').addEventListener('click', () => {
+                        const all = (isK8s ? resources : containers).map(c => c.name);
+                        cleanup({ action: 'recreate', containersToRemove: all, passwordStrategy: getPasswordStrategy() });
+                    });
+                    // Apply per-group selections
+                    modal.querySelector('#cdtIABtnApply').addEventListener('click', () => {
+                        const toRemove = getContainersToRemove();
+                        const action = toRemove.length > 0 ? 'recreate' : 'reuse';
+                        cleanup({ action, containersToRemove: toRemove, passwordStrategy: getPasswordStrategy() });
+                    });
+                } else {
+                    // First deploy — just proceed
+                    modal.querySelector('#cdtIABtnDeploy').addEventListener('click', () => {
+                        cleanup({ action: 'recreate', containersToRemove: [], passwordStrategy: getPasswordStrategy() });
+                    });
+                }
 
                 bsModal.show();
             });
