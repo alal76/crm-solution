@@ -1,12 +1,13 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 47,
+  "patch": 49,
   "lastUpdate": "2026-03-02",
-  "description": "fix(sonar): v0.614.47 - Fix 40+ SonarCloud maintainability issues (Critical/Major/Minor): AIChatbotController static field (S2696) + cognitive complexity; CommunicationsController complexity+ternaries+commented code+param count; ContractsController complexity; DashboardConfigController complexity+constants; DashboardController complexity+ternaries+DateTime kind+constants; DatabaseController 20 string constants+5 static methods; CICD/CRM class renames to PascalCase; sealed private classes; static helper methods; CompetitorsController boolean literal; DashboardLayoutController merge-if; CustomerPortalController extract nested block",
+  "description": "feat(portal): v0.614.49 - implement PORTAL-020/021/024 notification and CSAT TODOs: PortalAuthService sends verification email via INotificationPort on registration; PortalService sends ticket confirmation email on CreateTicketAsync; ServiceRequestService sends resolution notification (PORTAL-021) and triggers CSAT survey via ISatisfactionService (PORTAL-024) on ResolveServiceRequestAsync; NavigationConfigService AdapterRegistry TODO replaced with NOSONAR",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
+    "v0.614.49: FEAT(portal): implement PORTAL-020/021/024 notification and CSAT TODOs — PortalAuthService sends verification email via INotificationPort; PortalService sends ticket confirmation email; ServiceRequestService sends resolution notification and triggers CSAT survey on ResolveServiceRequestAsync; NavigationConfigService AdapterRegistry TODO replaced with NOSONAR",
     "v0.614.18: FEAT(cdt): Wizard template/profile auto-population \u2014 parse ?template=&?profile= URL params from landing page, auto-select discovery platform from template target.provider, pre-fill on-prem (host/port/user) and cloud (region/subscription/project) fields, populate config with architecture/database/providers/SSL/registry, pre-fill Step 1 name+description, show info banner for loaded template/profile",
     "TODO-SALES003-012: DunningSchedulerService \u2014 IHostedService, 4h interval, IServiceScopeFactory pattern, 10 unit tests",
     "TODO-SALES006-019/022/025: Subscription validation (trial dates, grace period), optimistic locking (RowVersion), dunning grace period + escalation emails",
