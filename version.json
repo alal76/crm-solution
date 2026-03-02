@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 45,
+  "patch": 47,
   "lastUpdate": "2026-03-02",
-  "description": "fix(sonar): v0.614.45 - Fix 98 SonarCloud maintainability blockers: S3237 property setters using value keyword, S2699 test assertions, function always-same-return in service-worker/docker_compose/load_data",
+  "description": "fix(sonar): v0.614.47 - Fix 40+ SonarCloud maintainability issues (Critical/Major/Minor): AIChatbotController static field (S2696) + cognitive complexity; CommunicationsController complexity+ternaries+commented code+param count; ContractsController complexity; DashboardConfigController complexity+constants; DashboardController complexity+ternaries+DateTime kind+constants; DatabaseController 20 string constants+5 static methods; CICD/CRM class renames to PascalCase; sealed private classes; static helper methods; CompetitorsController boolean literal; DashboardLayoutController merge-if; CustomerPortalController extract nested block",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
