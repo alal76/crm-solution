@@ -165,7 +165,7 @@ public class LeadService : ILeadService
         lead.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
-        _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
+        await _eventDispatcher.DispatchEntityEventAsync("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
 
         // FEAT-AISCORING: record history entry when FitScore changed
         if (_scoreHistory != null && lead.FitScore != previousFitScore)
@@ -196,7 +196,7 @@ public class LeadService : ILeadService
         lead.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
-        _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnDelete);
+        await _eventDispatcher.DispatchEntityEventAsync("Lead", lead.Id, WorkflowTriggerType.OnDelete);
         return true;
     }
 

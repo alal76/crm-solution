@@ -1,14 +1,14 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 62,
+  "patch": 63,
   "lastUpdate": "2026-03-02",
-  "description": "fix(frontend): v0.614.62 - Fix frontend compilation — add ES2021 to tsconfig lib for replaceAll support; add type annotations to fix implicit-any errors in 4 files",
+  "description": "fix(ci-cd): v0.614.63 - Fix CI/CD backend test failures from Sonar async refactoring",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
     "api": {
-      "version": "0.614.58",
+      "version": "0.614.63",
       "lastUpdate": "2026-03-02"
     },
     "frontend": {
@@ -21,6 +21,7 @@
     }
   },
   "features": [
+    "v0.614.63: FIX(ci-cd): Fix CI/CD backend test failures from Sonar async refactoring — LeadService.DeleteAsync/UpdateAsync now use await DispatchEntityEventAsync; test Verify calls updated in 3 test files (7 total) to match async method signature with CancellationToken",
     "v0.614.62: FIX(frontend): Fix frontend compilation — add ES2021 to tsconfig lib for replaceAll support; add type annotations for implicit-any in ChangeHistoryTimeline, RelatedIncidentsWidget, WorkflowSimulator, errorHandler",
     "v0.614.59: FIX(cdt): Credential mismatch prevention on CDT redeploy — inject_secrets_into_profile() force-overrides stale wizard values; deploy aborts with 400 when MariaDB volume exists but secret recovery fails; _step_wait_databases validates+repairs DB credentials via ALTER USER; _step_run_migrations uses configured password; check_remote_db_volume_exists detects existing MariaDB volumes; 244 CDT tests",
     "v0.614.58: FEAT(versioning): Independent API & frontend versioning — per-component versions in version.json (api, frontend, cdt); CDT tags Docker images with component-specific versions; deploy-to-dev-server.sh uses component versions; AboutPage.tsx fetches version dynamically; Footer.tsx shows API/frontend versions in tooltip; bump-version.py auto-detects git diffs and bumps correct component; syncs .csproj and package.json",

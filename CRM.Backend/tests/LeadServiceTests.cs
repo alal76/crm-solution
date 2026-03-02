@@ -58,7 +58,7 @@ public class LeadServiceTests
         var saved = await context.Leads.FindAsync(id);
         Assert.NotNull(saved);
         Assert.Equal(LeadLifecycleStatus.New, saved!.Status);
-        dispatcher.Verify(d => d.DispatchEntityEvent("Lead", id, WorkflowTriggerType.OnCreate, null, null, null, null, null), Times.Once);
+        dispatcher.Verify(d => d.DispatchEntityEventAsync("Lead", id, WorkflowTriggerType.OnCreate, null, null, null, null, null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class LeadServiceTests
 
         Assert.True(updated);
         Assert.Equal("New", saved!.FirstName);
-        dispatcher.Verify(d => d.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate, null, null, null, null, null), Times.Once);
+        dispatcher.Verify(d => d.DispatchEntityEventAsync("Lead", lead.Id, WorkflowTriggerType.OnUpdate, null, null, null, null, null, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

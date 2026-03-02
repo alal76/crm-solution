@@ -254,8 +254,8 @@ public class LeadServiceTests
 
         // Assert
         _mockEventDispatcher.Verify(
-            d => d.DispatchEntityEvent("Lead", It.IsAny<int>(), WorkflowTriggerType.OnCreate,
-                It.IsAny<int?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>()),
+            d => d.DispatchEntityEventAsync("Lead", It.IsAny<int>(), WorkflowTriggerType.OnCreate,
+                It.IsAny<int?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -308,8 +308,8 @@ public class LeadServiceTests
 
         // Assert
         _mockEventDispatcher.Verify(
-            d => d.DispatchEntityEvent("Lead", 1, WorkflowTriggerType.OnUpdate,
-                It.IsAny<int?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>()),
+            d => d.DispatchEntityEventAsync("Lead", 1, WorkflowTriggerType.OnUpdate,
+                It.IsAny<int?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -355,8 +355,8 @@ public class LeadServiceTests
 
         // Assert
         _mockEventDispatcher.Verify(
-            d => d.DispatchEntityEvent("Lead", 1, WorkflowTriggerType.OnDelete,
-                It.IsAny<int?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>()),
+            d => d.DispatchEntityEventAsync("Lead", 1, WorkflowTriggerType.OnDelete,
+                It.IsAny<int?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
