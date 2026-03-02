@@ -173,7 +173,7 @@ jobs:
       working-directory: CRM.Backend
       run: |
         # Find ALL Cobertura coverage files from the 4 test projects
-        COVERAGE_FILES=$(find tests/TestResults -name "coverage.cobertura.xml" -type f 2>/dev/null)
+        COVERAGE_FILES=$(find tests/TestResults -name "coverage.opencover.xml" -type f 2>/dev/null)
         if [[ -z "$COVERAGE_FILES" ]]; then
           echo "⚠️ No coverage file found — skipping coverage summary"
           exit 0
@@ -189,7 +189,7 @@ jobs:
         # Merge all coverage files into a single Cobertura report
         MERGED_FILE="tests/TestResults/merged-coverage.cobertura.xml"
         reportgenerator \
-          -reports:"tests/TestResults/**/coverage.cobertura.xml" \
+          -reports:"tests/TestResults/**/coverage.opencover.xml" \
           -targetdir:"tests/TestResults/merged" \
           -reporttypes:"Cobertura" \
           -verbosity:Warning
@@ -594,12 +594,13 @@ jobs:
           /o:"alal76" \
           /d:sonar.token="$SONAR_TOKEN" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.cs.opencover.reportsPaths="CRM.Backend/tests/TestResults/**/coverage.cobertura.xml" \
+          /d:sonar.cs.opencover.reportsPaths="CRM.Backend/tests/TestResults/**/coverage.opencover.xml" \
           /d:sonar.javascript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
           /d:sonar.typescript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
           /d:sonar.links.homepage="https://github.com/alal76/crm-solution" \
           /d:sonar.links.ci="https://github.com/alal76/crm-solution/actions"
 
+        dotnet restore CRM.Backend/CRM.sln
         dotnet build CRM.Backend/CRM.sln -c Release --no-restore
 
         dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
