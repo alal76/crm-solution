@@ -3671,7 +3671,7 @@
                         || document.getElementById('awsVpcId')?.value
                         || document.getElementById('gcpProject')?.value
                         || 'crm';
-                return `${config.platform}-${rg}`.replace(/\s+/g, '-').toLowerCase();
+                return `${config.platform}-${rg}`.replaceAll(/\s+/g, '-').toLowerCase();
             }
             return '';
         }
@@ -4701,7 +4701,7 @@
 
             // Refresh smart defaults for preset's arch/db/providers
             onConfigContextChange();
-            showToast?.('Preset "' + (p.name || preset) + '" applied', 'success');
+    void showToast?.('Preset "' + (p.name || preset) + '" applied', 'success');
         }
 
         // ── Welcome modal ─────────────────────────────────────────────────────
@@ -4774,7 +4774,7 @@
                     if (r.ok) showToast?.('Draft saved to server', 'success');
                     else showToast?.('Draft saved locally (server save failed)', 'warning');
                 }).catch(() => {
-                    showToast?.('Draft saved locally only', 'info');
+    void showToast?.('Draft saved locally only', 'info');
                 });
             } catch(e) { console.warn('Draft save failed:', e); }
         }
@@ -6048,7 +6048,7 @@
         }
 
         function _escHtml(s) {
-            return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return String(s).replaceAll(/&/g,'&amp;').replaceAll(/</g,'&lt;').replaceAll(/>/g,'&gt;');
         }
 
         function _setDeployPhase(activeKey) {
@@ -7220,11 +7220,11 @@ function clearDeployLog() {
 function copyDeployLogs() {
     const el = document.getElementById('log-output');
     if (!el) return;
-    navigator.clipboard.writeText(el.textContent).then(() => { showToast?.('Logs copied', 'success'); });
+    navigator.clipboard.writeText(el.textContent).then(() => { void showToast?.('Logs copied', 'success'); });
 }
 
 function escapeHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return String(s).replaceAll(/&/g,'&amp;').replaceAll(/</g,'&lt;').replaceAll(/>/g,'&gt;');
 }
 
 function showDeploymentDone(result) {
@@ -7301,7 +7301,7 @@ function copyCredentials() {
     const pass = document.getElementById('done-creds-pass')?.textContent || '';
     const url = document.getElementById('done-creds-url')?.textContent || '';
     navigator.clipboard.writeText(`URL: ${url}\nUsername: ${user}\nPassword: ${pass}`);
-    showToast?.('Credentials copied', 'success');
+    void showToast?.('Credentials copied', 'success');
 }
 
 function togglePasswordVisibility(id) {

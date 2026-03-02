@@ -282,7 +282,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
         log.timestamp,
         log.eventType,
         log.actorName || log.actorType,
-        `"${log.description.replaceAll(/"/g, '""')}"`,
+        `"${log.description.replaceAll('"', '""')}"`,
         log.ipAddress || '',
       ].join(',')),
     ].join('\n');

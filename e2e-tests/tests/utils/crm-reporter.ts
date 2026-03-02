@@ -407,7 +407,7 @@ class CRMTestReporter implements Reporter {
               <div class="test-id">${log.testId}</div>
               <div class="test-name">${log.testName}</div>
               <div class="test-module">${log.module}</div>
-              ${log.error ? `<div class="error">${log.error.replaceAll(/</g, '&lt;').replaceAll(/>/g, '&gt;')}</div>` : ''}
+              ${log.error ? `<div class="error">${log.error.replaceAll('<', '&lt;').replaceAll('>', '&gt;')}</div>` : ''}
             </div>
             <div class="duration">${log.duration}ms</div>
           </div>

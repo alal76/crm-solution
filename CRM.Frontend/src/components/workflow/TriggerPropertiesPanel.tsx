@@ -648,7 +648,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
                     disabled={readonly}
                   >
                     {COMMON_TIMEZONES.map(tz => (
-                      <MenuItem key={tz} value={tz}>{tz.replaceAll(/_/g, ' ')}</MenuItem>
+                      <MenuItem key={tz} value={tz}>{tz.replaceAll('_', ' ')}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 60,
+  "patch": 61,
   "lastUpdate": "2026-03-02",
-  "description": "fix(sonar): v0.614.60 - SonarCloud reliability rating A — second pass: await C# async calls in 7 services (S6966); TS replaceAll/codePointAt/JSX-spacing fixes; K8s ConfigMap deduplication (S6907); wizard.html replaceAll+showToast; day2.html identical ternary; kubernetes.template.yaml ephemeral-storage; SQL NOSONAR for SET=NULL false positive",
+  "description": "fix(sonar): v0.614.61 - SonarCloud reliability final pass: 16 remaining issues — S7781 replaceAll string literals (BulkExportButton, AuditLogViewer, TriggerPropertiesPanel, crm-reporter.ts); S7781 wizard.html regex replace→replaceAll; S3699 wizard.html void showToast; S7773 Number.parseInt in configure-uptime-kuma.js",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
