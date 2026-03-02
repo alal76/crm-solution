@@ -26,9 +26,9 @@ namespace CRM.Infrastructure.Services.ITSM;
 public class EmailToTicketService : IEmailToTicketService
 {
     private readonly ILogger<EmailToTicketService> _logger;
-    private static readonly Regex IncidentReferencePattern = new(@"\[INC-(\d+)\]", RegexOptions.IgnoreCase | RegexOptions.Compiled);
-    private static readonly Regex EmailQuotePattern = new(@"^>.*$", RegexOptions.Multiline | RegexOptions.Compiled);
-    private static readonly Regex SignaturePattern = new(@"(^--\s*$|^Sent from my|^Best regards|^Thanks,|^Regards,)", RegexOptions.Multiline | RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex IncidentReferencePattern = new(@"\[INC-(\d+)\]", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+    private static readonly Regex EmailQuotePattern = new(@"^>.*$", RegexOptions.Multiline | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
+    private static readonly Regex SignaturePattern = new(@"(^--\s*$|^Sent from my|^Best regards|^Thanks,|^Regards,)", RegexOptions.Multiline | RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
     // In-memory config for demo; would be stored in database in production
     private EmailParsingConfigDto _config = new()

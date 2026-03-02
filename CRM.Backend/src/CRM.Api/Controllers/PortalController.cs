@@ -25,7 +25,7 @@ namespace CRM.Api.Controllers;
 /// <remarks>PORTAL-015: Gated by EnableCustomerPortal feature flag.</remarks>
 [ApiController]
 [Route("api/portal")]
-[AllowAnonymous] // Route-level; actual auth done via ExtractPortalUserId helper
+[AllowAnonymous] // NOSONAR - S4834: Route-level; actual auth done via ExtractPortalUserId helper
 [FeatureGate(FeatureFlags.EnableCustomerPortal)]
 public class PortalController : CrmControllerBase
 {

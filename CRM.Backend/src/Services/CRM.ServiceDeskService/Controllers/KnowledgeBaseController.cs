@@ -239,7 +239,7 @@ public class KnowledgeBaseController : ControllerBase
     /// Get article by slug (public)
     /// </summary>
     [HttpGet("articles/slug/{slug}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public knowledge base article access, anonymous access required for self-service portal
     public async Task<IActionResult> GetArticleBySlug(string slug)
     {
         try
@@ -509,7 +509,7 @@ public class KnowledgeBaseController : ControllerBase
     /// Record helpful/not helpful feedback
     /// </summary>
     [HttpPost("articles/{id}/feedback")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public knowledge base article feedback, anonymous access required for self-service portal
     public async Task<IActionResult> SubmitFeedback(int id, [FromBody] ArticleFeedbackRequest request)
     {
         try
@@ -746,7 +746,7 @@ public class KnowledgeBaseController : ControllerBase
     /// Search articles (public)
     /// </summary>
     [HttpGet("search")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public knowledge base search, anonymous access required for self-service portal
     public async Task<IActionResult> SearchArticles([FromQuery] string query, [FromQuery] int limit = 10)
     {
         try

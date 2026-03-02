@@ -174,61 +174,328 @@ services:
 {% endif %}
 
 {% if providers.get('chat_provider') == 'chatwoot' %}
+  # ── Chatwoot: Customer support with omnichannel inbox ──────────
+  crm-chatwoot-postgres:
+    image: postgres:15-alpine
+    container_name: crm-chatwoot-postgres
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_DB=chatwoot"
+      - "POSTGRES_USER=chatwoot"
+      - "POSTGRES_PASSWORD={{ docker_escape(chatwoot_db_password | default(generate_password(24))) }}"
+    volumes:
+      - chatwoot_postgres_data:/var/lib/postgresql/data
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatwoot -d chatwoot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  crm-chatwoot-redis:
+    image: redis:7-alpine
+    container_name: crm-chatwoot-redis
+    restart: unless-stopped
+    volumes:
+      - chatwoot_redis_data:/data
+    networks:
+      - crm-network
+
   crm-chatwoot:
-    image: chatwoot/chatwoot:latest
+    image: chatwoot/chatwoot:v3.13.0
     container_name: crm-chatwoot
     restart: unless-stopped
     environment:
       - "SECRET_KEY_BASE={{ docker_escape(chatwoot_secret_key | default(generate_password(64))) }}"
-      - "FRONTEND_URL=http://localhost:3000"
+      - "FRONTEND_URL=http://{{ domain_name | default('localhost') }}:3003"
       - "RAILS_ENV=production"
-      - "DATABASE_URL=postgres://{{ db_user | default('crm_user') }}:{{ docker_escape(db_password) }}@crm-postgres:5432/chatwoot"
-      - "REDIS_URL=redis://crm-redis:6379"
+      - "DATABASE_URL=postgres://chatwoot:{{ docker_escape(chatwoot_db_password | default(generate_password(24))) }}@crm-chatwoot-postgres:5432/chatwoot"
+      - "REDIS_URL=redis://crm-chatwoot-redis:6379"
+      - "RAILS_LOG_TO_STDOUT=true"
     depends_on:
-      - crm-redis
+      crm-chatwoot-postgres:
+        condition: service_healthy
+      crm-chatwoot-redis:
+        condition: service_started
+    ports:
+      - "3003:3000"
     volumes:
       - chatwoot_data:/app/storage
     networks:
       - crm-network
+    command: bundle exec rails s -p 3000 -b 0.0.0.0
+
+  crm-chatwoot-worker:
+    image: chatwoot/chatwoot:v3.13.0
+    container_name: crm-chatwoot-worker
+    restart: unless-stopped
+    environment:
+      - "SECRET_KEY_BASE={{ docker_escape(chatwoot_secret_key | default(generate_password(64))) }}"
+      - "RAILS_ENV=production"
+      - "DATABASE_URL=postgres://chatwoot:{{ docker_escape(chatwoot_db_password | default(generate_password(24))) }}@crm-chatwoot-postgres:5432/chatwoot"
+      - "REDIS_URL=redis://crm-chatwoot-redis:6379"
+    depends_on:
+      crm-chatwoot-postgres:
+        condition: service_healthy
+      crm-chatwoot-redis:
+        condition: service_started
+    networks:
+      - crm-network
+    command: bundle exec sidekiq -C config/sidekiq.yml
 {% endif %}
 
 {% if providers.get('notification_provider') == 'novu' %}
+  # ── Novu: Multi-channel notification infrastructure ────────────
+  crm-novu-mongo:
+    image: mongo:6
+    container_name: crm-novu-mongo
+    restart: unless-stopped
+    volumes:
+      - novu_mongo_data:/data/db
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  crm-novu-redis:
+    image: redis:7-alpine
+    container_name: crm-novu-redis
+    restart: unless-stopped
+    volumes:
+      - novu_redis_data:/data
+    networks:
+      - crm-network
+
   crm-novu:
-    image: ghcr.io/novuhq/novu/api:latest
+    image: ghcr.io/novuhq/novu/api:0.24.0
     container_name: crm-novu
     restart: unless-stopped
     environment:
       - "NODE_ENV=production"
-      - "REDIS_HOST=crm-redis"
+      - "MONGO_URL=mongodb://crm-novu-mongo:27017/novu"
+      - "REDIS_HOST=crm-novu-redis"
+      - "REDIS_PORT=6379"
       - "JWT_SECRET={{ docker_escape(novu_jwt_secret | default(generate_token(32))) }}"
-      - "API_KEY={{ docker_escape(novu_api_key | default('')) }}"
+      - "API_ROOT_URL=http://{{ domain_name | default('localhost') }}:3000"
     depends_on:
-      - crm-redis
+      crm-novu-mongo:
+        condition: service_healthy
+      crm-novu-redis:
+        condition: service_started
+    ports:
+      - "3000:3000"
+    networks:
+      - crm-network
+
+  crm-novu-worker:
+    image: ghcr.io/novuhq/novu/worker:0.24.0
+    container_name: crm-novu-worker
+    restart: unless-stopped
+    environment:
+      - "NODE_ENV=production"
+      - "MONGO_URL=mongodb://crm-novu-mongo:27017/novu"
+      - "REDIS_HOST=crm-novu-redis"
+      - "REDIS_PORT=6379"
+      - "JWT_SECRET={{ docker_escape(novu_jwt_secret | default(generate_token(32))) }}"
+    depends_on:
+      crm-novu-mongo:
+        condition: service_healthy
+      crm-novu-redis:
+        condition: service_started
+    networks:
+      - crm-network
+
+  crm-novu-ws:
+    image: ghcr.io/novuhq/novu/ws:0.24.0
+    container_name: crm-novu-ws
+    restart: unless-stopped
+    environment:
+      - "NODE_ENV=production"
+      - "MONGO_URL=mongodb://crm-novu-mongo:27017/novu"
+      - "REDIS_HOST=crm-novu-redis"
+      - "REDIS_PORT=6379"
+      - "JWT_SECRET={{ docker_escape(novu_jwt_secret | default(generate_token(32))) }}"
+    depends_on:
+      crm-novu-mongo:
+        condition: service_healthy
+      crm-novu-redis:
+        condition: service_started
+    ports:
+      - "3002:3002"
     networks:
       - crm-network
 {% endif %}
 
 {% if providers.get('analytics_provider') == 'superset' %}
+  # ── Superset: BI platform with SQL Lab & dashboards ────────────
+  crm-superset-postgres:
+    image: postgres:15-alpine
+    container_name: crm-superset-postgres
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_DB=superset"
+      - "POSTGRES_USER=superset"
+      - "POSTGRES_PASSWORD={{ docker_escape(superset_db_password | default(generate_password(24))) }}"
+    volumes:
+      - superset_postgres_data:/var/lib/postgresql/data
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  crm-superset-redis:
+    image: redis:7-alpine
+    container_name: crm-superset-redis
+    restart: unless-stopped
+    volumes:
+      - superset_redis_data:/data
+    networks:
+      - crm-network
+
   crm-superset:
-    image: apache/superset:latest
+    image: apache/superset:3.1.0
     container_name: crm-superset
     restart: unless-stopped
     environment:
       - "SUPERSET_SECRET_KEY={{ docker_escape(superset_secret_key | default(generate_password(42))) }}"
-      - "SUPERSET_SQLALCHEMY_DATABASE_URI=mysql://{{ db_user | default('crm_user') }}:{{ docker_escape(db_password) }}@crm-mariadb:3306/superset"
+      - "SUPERSET_LOAD_EXAMPLES=false"
+      - "DATABASE_DIALECT=postgresql"
+      - "DATABASE_HOST=crm-superset-postgres"
+      - "DATABASE_PORT=5432"
+      - "DATABASE_DB=superset"
+      - "DATABASE_USER=superset"
+      - "DATABASE_PASSWORD={{ docker_escape(superset_db_password | default(generate_password(24))) }}"
+      - "REDIS_HOST=crm-superset-redis"
+      - "REDIS_PORT=6379"
+      - "REDIS_RESULTS_DB=1"
+      - "CELERY_BROKER_URL=redis://crm-superset-redis:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://crm-superset-redis:6379/1"
+      - "TALISMAN_ENABLED=false"
+      - "WTF_CSRF_ENABLED=false"
+      - "ENABLE_PROXY_FIX=true"
+    depends_on:
+      crm-superset-postgres:
+        condition: service_healthy
+      crm-superset-redis:
+        condition: service_started
+    ports:
+      - "8088:8088"
     volumes:
       - superset_data:/app/superset_home
     networks:
       - crm-network
+    command: >
+      bash -c "superset db upgrade &&
+      superset fab create-admin --username admin --firstname Admin --lastname User
+      --email admin@crm.local --password $${SUPERSET_ADMIN_PASSWORD:-admin} || true &&
+      superset init &&
+      gunicorn --bind 0.0.0.0:8088 --workers 4 --timeout 120
+      --limit-request-line 0 --limit-request-field_size 0
+      'superset.app:create_app()'"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  crm-superset-worker:
+    image: apache/superset:3.1.0
+    container_name: crm-superset-worker
+    restart: unless-stopped
+    environment:
+      - "SUPERSET_SECRET_KEY={{ docker_escape(superset_secret_key | default(generate_password(42))) }}"
+      - "DATABASE_DIALECT=postgresql"
+      - "DATABASE_HOST=crm-superset-postgres"
+      - "DATABASE_PORT=5432"
+      - "DATABASE_DB=superset"
+      - "DATABASE_USER=superset"
+      - "DATABASE_PASSWORD={{ docker_escape(superset_db_password | default(generate_password(24))) }}"
+      - "REDIS_HOST=crm-superset-redis"
+      - "REDIS_PORT=6379"
+      - "REDIS_RESULTS_DB=1"
+      - "CELERY_BROKER_URL=redis://crm-superset-redis:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://crm-superset-redis:6379/1"
+    depends_on:
+      crm-superset-postgres:
+        condition: service_healthy
+    networks:
+      - crm-network
+    command: celery --app=superset.tasks.celery_app:app worker --pool=prefork -O fair -c 2
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+
+  crm-superset-beat:
+    image: apache/superset:3.1.0
+    container_name: crm-superset-beat
+    restart: unless-stopped
+    environment:
+      - "SUPERSET_SECRET_KEY={{ docker_escape(superset_secret_key | default(generate_password(42))) }}"
+      - "DATABASE_DIALECT=postgresql"
+      - "DATABASE_HOST=crm-superset-postgres"
+      - "DATABASE_PORT=5432"
+      - "DATABASE_DB=superset"
+      - "DATABASE_USER=superset"
+      - "DATABASE_PASSWORD={{ docker_escape(superset_db_password | default(generate_password(24))) }}"
+      - "REDIS_HOST=crm-superset-redis"
+      - "REDIS_PORT=6379"
+      - "CELERY_BROKER_URL=redis://crm-superset-redis:6379/0"
+      - "CELERY_RESULT_BACKEND=redis://crm-superset-redis:6379/1"
+    depends_on:
+      crm-superset-postgres:
+        condition: service_healthy
+    networks:
+      - crm-network
+    command: celery --app=superset.tasks.celery_app:app beat --pidfile /tmp/celerybeat.pid -s /tmp/celerybeat-schedule
 {% endif %}
 
 {% if providers.get('signature_provider') == 'docuseal' %}
+  # ── DocuSeal: E-signature with template management ─────────────
+  crm-docuseal-postgres:
+    image: postgres:15-alpine
+    container_name: crm-docuseal-postgres
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_DB=docuseal"
+      - "POSTGRES_USER=docuseal"
+      - "POSTGRES_PASSWORD={{ docker_escape(docuseal_db_password | default(generate_password(24))) }}"
+    volumes:
+      - docuseal_postgres_data:/var/lib/postgresql/data
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docuseal -d docuseal"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   crm-docuseal:
-    image: docuseal/docuseal:latest
+    image: docuseal/docuseal:1.5.7
     container_name: crm-docuseal
     restart: unless-stopped
     environment:
       - "SECRET_KEY_BASE={{ docker_escape(docuseal_secret_key | default(generate_password(64))) }}"
+      - "DATABASE_URL=postgres://docuseal:{{ docker_escape(docuseal_db_password | default(generate_password(24))) }}@crm-docuseal-postgres:5432/docuseal"
+    depends_on:
+      crm-docuseal-postgres:
+        condition: service_healthy
+    ports:
+      - "3001:3000"
     volumes:
       - docuseal_data:/data
     networks:
@@ -236,15 +503,49 @@ services:
 {% endif %}
 
 {% if providers.get('integration_provider') == 'n8n' %}
+  # ── n8n: Workflow automation with 400+ integrations ────────────
+  crm-n8n-postgres:
+    image: postgres:15-alpine
+    container_name: crm-n8n-postgres
+    restart: unless-stopped
+    environment:
+      - "POSTGRES_DB=n8n"
+      - "POSTGRES_USER=n8n"
+      - "POSTGRES_PASSWORD={{ docker_escape(n8n_db_password | default(generate_password(24))) }}"
+    volumes:
+      - n8n_postgres_data:/var/lib/postgresql/data
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n -d n8n"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   crm-n8n:
-    image: n8nio/n8n:latest
+    image: docker.n8n.io/n8nio/n8n:latest
     container_name: crm-n8n
     restart: unless-stopped
     environment:
       - "N8N_BASIC_AUTH_ACTIVE=true"
       - "N8N_BASIC_AUTH_USER={{ n8n_username | default('admin') }}"
       - "N8N_BASIC_AUTH_PASSWORD={{ docker_escape(n8n_password | default(generate_password(16))) }}"
+      - "N8N_HOST=0.0.0.0"
+      - "N8N_PORT=5678"
+      - "N8N_PROTOCOL=http"
       - "WEBHOOK_URL=http://crm-n8n:5678/"
+      - "DB_TYPE=postgresdb"
+      - "DB_POSTGRESDB_HOST=crm-n8n-postgres"
+      - "DB_POSTGRESDB_PORT=5432"
+      - "DB_POSTGRESDB_DATABASE=n8n"
+      - "DB_POSTGRESDB_USER=n8n"
+      - "DB_POSTGRESDB_PASSWORD={{ docker_escape(n8n_db_password | default(generate_password(24))) }}"
+    depends_on:
+      crm-n8n-postgres:
+        condition: service_healthy
+    ports:
+      - "5678:5678"
     volumes:
       - n8n_data:/home/node/.n8n
     networks:
@@ -269,13 +570,23 @@ volumes:
 {% endif %}
 {% if providers.get('chat_provider') == 'chatwoot' %}
   chatwoot_data:
+  chatwoot_postgres_data:
+  chatwoot_redis_data:
+{% endif %}
+{% if providers.get('notification_provider') == 'novu' %}
+  novu_mongo_data:
+  novu_redis_data:
 {% endif %}
 {% if providers.get('analytics_provider') == 'superset' %}
   superset_data:
+  superset_postgres_data:
+  superset_redis_data:
 {% endif %}
 {% if providers.get('signature_provider') == 'docuseal' %}
   docuseal_data:
+  docuseal_postgres_data:
 {% endif %}
 {% if providers.get('integration_provider') == 'n8n' %}
   n8n_data:
+  n8n_postgres_data:
 {% endif %}

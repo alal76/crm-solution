@@ -25,7 +25,7 @@ namespace CRM.Api.Controllers.Webhooks;
 /// </summary>
 [ApiController]
 [Route("api/webhooks/docusign")]
-[AllowAnonymous]
+[AllowAnonymous] // NOSONAR - S4834: DocuSign webhook; HMAC signature verified in handler, not cookie/JWT auth
 public class DocuSignWebhookController : CrmControllerBase
 {
     private readonly DocuSignConfiguration _config;

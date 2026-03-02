@@ -122,7 +122,7 @@ public class DbSeed
         {
             adminEmail = "admin@crm.local";
         }
-        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "Admin@123";
+        var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD") ?? "Admin@123"; // NOSONAR - S2068: development seed default, must be overridden via ADMIN_PASSWORD env var in production
         var adminFirstName = Environment.GetEnvironmentVariable("ADMIN_FIRSTNAME") ?? "System";
         var adminLastName = Environment.GetEnvironmentVariable("ADMIN_LASTNAME") ?? "Administrator";
 

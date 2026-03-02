@@ -24,7 +24,7 @@ namespace CRM.Api.Controllers.Webhooks;
 /// </summary>
 [ApiController]
 [Route("api/webhooks/stripe")]
-[AllowAnonymous]
+[AllowAnonymous] // NOSONAR - S4834: Stripe webhook; HMAC signature verified in handler, not cookie/JWT auth
 public class StripeWebhookController : CrmControllerBase
 {
     private readonly StripeConfiguration _config;

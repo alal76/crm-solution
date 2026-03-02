@@ -20,7 +20,7 @@ namespace CRM.Api.Controllers;
 /// <remarks>PORTAL-015: Gated by EnableCustomerPortal feature flag.</remarks>
 [ApiController]
 [Route("api/portal/auth")]
-[AllowAnonymous]
+[AllowAnonymous] // NOSONAR - S4834: Customer portal authentication endpoint; anonymous access required for portal login by design
 [FeatureGate(FeatureFlags.EnableCustomerPortal)]
 public class PortalAuthController : CrmControllerBase
 {

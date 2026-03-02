@@ -36,7 +36,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Start a new chat session.
     /// </summary>
     [HttpPost("session")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(typeof(ChatSessionDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ChatSessionDto>> StartSession()
     {
@@ -59,7 +59,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Send a message to the chatbot.
     /// </summary>
     [HttpPost("message")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(typeof(ChatbotResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ChatbotResponseDto>> SendMessage([FromBody] ChatbotMessageDto message)
     {
@@ -81,7 +81,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Get chat session history.
     /// </summary>
     [HttpGet("session/{sessionId}/history")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(typeof(List<ChatMessageDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ChatMessageDto>>> GetSessionHistory(string sessionId)
     {
@@ -93,7 +93,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// End a chat session.
     /// </summary>
     [HttpPost("session/{sessionId}/end")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> EndSession(string sessionId)
     {
@@ -105,7 +105,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Get available quick actions.
     /// </summary>
     [HttpGet("quick-actions")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(typeof(List<QuickActionDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<QuickActionDto>>> GetQuickActions()
     {
@@ -117,7 +117,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Execute a quick action.
     /// </summary>
     [HttpPost("quick-actions/{actionId}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(typeof(ChatbotResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ChatbotResponseDto>> ExecuteQuickAction(string actionId)
     {
@@ -139,7 +139,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Search knowledge base.
     /// </summary>
     [HttpGet("search")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot knowledge search, anonymous access required
     [ProducesResponseType(typeof(List<KnowledgeSearchResultDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<KnowledgeSearchResultDto>>> SearchKnowledge([FromQuery] string query)
     {
@@ -170,7 +170,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Check incident status.
     /// </summary>
     [HttpGet("incidents/{incidentNumber}/status")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public incident status check for self-service portal, anonymous access required
     [ProducesResponseType(typeof(IncidentStatusResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IncidentStatusResponseDto>> CheckIncidentStatus(string incidentNumber)
@@ -198,7 +198,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Create a new chat session.
     /// </summary>
     [HttpPost("sessions")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> CreateSession()
     {
@@ -219,7 +219,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Send a message to a chat session.
     /// </summary>
     [HttpPost("sessions/{sessionId}/messages")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> SendSessionMessage(string sessionId, [FromBody] ChatbotSessionMessageRequest request)
     {
@@ -241,7 +241,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Get a chat session and its messages.
     /// </summary>
     [HttpGet("sessions/{sessionId}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot endpoint, anonymous access required by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetSession(string sessionId)
     {
@@ -261,7 +261,7 @@ public class SelfServiceChatbotController : CrmControllerBase
     /// Search knowledge base via POST.
     /// </summary>
     [HttpPost("search")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public self-service chatbot knowledge search, anonymous access required
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> SearchKnowledgeBase([FromBody] ChatbotSearchRequest searchRequest)
     {

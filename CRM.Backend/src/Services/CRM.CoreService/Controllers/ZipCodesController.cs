@@ -31,7 +31,7 @@ public class ZipCodesController : ControllerBase
     /// </summary>
     /// <returns>List of countries</returns>
     [HttpGet("countries")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     public async Task<ActionResult<IEnumerable<CountryInfo>>> GetCountries()
     {
         var results = await _zipCodeService.GetCountriesAsync();
@@ -45,7 +45,7 @@ public class ZipCodesController : ControllerBase
     /// <param name="countryCode">Optional country code (defaults to all countries)</param>
     /// <returns>List of matching address details</returns>
     [HttpGet("lookup/{postalCode}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> LookupByPostalCode(
         string postalCode,
         [FromQuery] string? countryCode = null)
@@ -67,7 +67,7 @@ public class ZipCodesController : ControllerBase
     /// <param name="limit">Maximum number of results (default 20)</param>
     /// <returns>List of matching cities with postal codes</returns>
     [HttpGet("search/city")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> SearchByCity(
         [FromQuery] string city,
         [FromQuery] string? countryCode = null,
@@ -88,7 +88,7 @@ public class ZipCodesController : ControllerBase
     /// <param name="countryCode">Country code (e.g., "US", "CA")</param>
     /// <returns>List of states/provinces</returns>
     [HttpGet("states/{countryCode}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     public async Task<ActionResult<IEnumerable<StateInfo>>> GetStates(string countryCode)
     {
         if (string.IsNullOrWhiteSpace(countryCode))
@@ -107,7 +107,7 @@ public class ZipCodesController : ControllerBase
     /// <param name="stateCode">State code</param>
     /// <returns>List of city names</returns>
     [HttpGet("cities/{countryCode}/{stateCode}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     public async Task<ActionResult<IEnumerable<string>>> GetCities(string countryCode, string stateCode)
     {
         if (string.IsNullOrWhiteSpace(countryCode) || string.IsNullOrWhiteSpace(stateCode))
@@ -127,7 +127,7 @@ public class ZipCodesController : ControllerBase
     /// <param name="city">City name</param>
     /// <returns>List of postal codes</returns>
     [HttpGet("postalcodes/{countryCode}/{stateCode}/{city}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> GetPostalCodes(string countryCode, string stateCode, string city)
     {
         if (string.IsNullOrWhiteSpace(countryCode) || string.IsNullOrWhiteSpace(stateCode) || string.IsNullOrWhiteSpace(city))
@@ -146,7 +146,7 @@ public class ZipCodesController : ControllerBase
     /// <param name="countryCode">Country code</param>
     /// <returns>Validation result</returns>
     [HttpGet("validate")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     public async Task<ActionResult<ZipCodeValidationResult>> ValidatePostalCode(
         [FromQuery] string postalCode,
         [FromQuery] string countryCode)

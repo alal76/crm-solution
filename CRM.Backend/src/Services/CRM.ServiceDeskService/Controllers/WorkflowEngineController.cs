@@ -489,7 +489,7 @@ public class WorkflowEngineController : ControllerBase
     /// Health check endpoint
     /// </summary>
     [HttpGet("health")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: service health check endpoint, anonymous access required for infrastructure probes
     public IActionResult Health()
     {
         return Ok(new

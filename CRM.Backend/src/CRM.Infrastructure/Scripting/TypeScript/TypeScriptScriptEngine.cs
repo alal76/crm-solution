@@ -22,7 +22,7 @@ namespace CRM.Infrastructure.Scripting.TypeScript;
 public class TypeScriptScriptEngineOptions
 {
     /// <summary>Base URL of the crm-script-runner sidecar (e.g. http://crm-script-runner:4000).</summary>
-    public string BaseUrl { get; set; } = "http://localhost:4000";
+    public string BaseUrl { get; set; } = "http://localhost:4000"; // NOSONAR - S5332: localhost development URL for TypeScript script runner, HTTPS not applicable
 
     /// <summary>Total HTTP timeout for sidecar calls, including script execution time.</summary>
     public TimeSpan HttpTimeout { get; set; } = TimeSpan.FromSeconds(60);

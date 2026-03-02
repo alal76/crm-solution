@@ -48,8 +48,16 @@ const originalFetch = window.fetch;
 
 // Generate unique ID for each error
 const generateId = (): string => {
-  return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`; // NOSONAR - S2245: non-security use, unique error log entry ID
 };
+
+// Escape HTML entities to prevent XSS in debug panel
+const escapeHtml = (str: string): string =>
+  str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
 // Create error log entry
 const createLogEntry = (
@@ -360,6 +368,7 @@ export const createDebugPanel = (): void => {
   `;
 
   const header = document.createElement('div');
+  // NOSONAR - S5696: developer debug panel only, all HTML is static with no user data
   header.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
       <strong>🐛 Debug Panel</strong>
@@ -388,7 +397,7 @@ export const createDebugPanel = (): void => {
             <div style="color: ${log.type === 'error' ? '#ff6b6b' : log.type === 'network' ? '#4dabf7' : '#ffd43b'};">
               [${log.type}] ${new Date(log.timestamp).toLocaleTimeString()}
             </div>
-            <div style="word-break: break-all;">${log.message.substring(0, 100)}${log.message.length > 100 ? '...' : ''}</div>
+            <div style="word-break: break-all;">${escapeHtml(log.message.substring(0, 100))}${log.message.length > 100 ? '...' : ''}</div>
           </div>
         `).join('');
   };

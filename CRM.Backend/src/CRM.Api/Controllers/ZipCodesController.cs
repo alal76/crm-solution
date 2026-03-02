@@ -46,7 +46,7 @@ public class ZipCodesController : CrmControllerBase
     /// </summary>
     /// <returns>List of countries</returns>
     [HttpGet("countries")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     [ProducesResponseType(typeof(IEnumerable<CountryInfo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CountryInfo>>> GetCountries()
     {
@@ -61,7 +61,7 @@ public class ZipCodesController : CrmControllerBase
     /// <param name="countryCode">Optional country code (defaults to all countries)</param>
     /// <returns>List of matching address details</returns>
     [HttpGet("lookup/{postalCode}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     [ProducesResponseType(typeof(IEnumerable<ZipCodeLookupResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> LookupByPostalCode(
         string postalCode,
@@ -84,7 +84,7 @@ public class ZipCodesController : CrmControllerBase
     /// <param name="limit">Maximum number of results (default 20)</param>
     /// <returns>List of matching cities with postal codes</returns>
     [HttpGet("search/city")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     [ProducesResponseType(typeof(IEnumerable<ZipCodeLookupResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> SearchByCity(
         [FromQuery] string city,
@@ -106,7 +106,7 @@ public class ZipCodesController : CrmControllerBase
     /// <param name="countryCode">Country code (e.g., "US", "CA")</param>
     /// <returns>List of states/provinces</returns>
     [HttpGet("states/{countryCode}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     [ProducesResponseType(typeof(IEnumerable<StateInfo>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<StateInfo>>> GetStates(string countryCode)
     {
@@ -126,7 +126,7 @@ public class ZipCodesController : CrmControllerBase
     /// <param name="stateCode">State code</param>
     /// <returns>List of city names</returns>
     [HttpGet("cities/{countryCode}/{stateCode}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<string>>> GetCities(string countryCode, string stateCode)
     {
@@ -147,7 +147,7 @@ public class ZipCodesController : CrmControllerBase
     /// <param name="city">City name</param>
     /// <returns>List of postal codes</returns>
     [HttpGet("postalcodes/{countryCode}/{stateCode}/{city}")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     [ProducesResponseType(typeof(IEnumerable<ZipCodeLookupResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ZipCodeLookupResult>>> GetPostalCodes(string countryCode, string stateCode, string city)
     {
@@ -167,7 +167,7 @@ public class ZipCodesController : CrmControllerBase
     /// <param name="countryCode">Country code</param>
     /// <returns>Validation result</returns>
     [HttpGet("validate")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code data, anonymous access required for address auto-population UI
     [ProducesResponseType(typeof(ZipCodeValidationResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZipCodeValidationResult>> ValidatePostalCode(
         [FromQuery] string postalCode,
@@ -472,7 +472,7 @@ public class ZipCodesController : CrmControllerBase
     /// </summary>
     /// <returns>Statistics about ZIP code data</returns>
     [HttpGet("stats")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public postal code statistics, anonymous access required
     [ProducesResponseType(typeof(ZipCodeStats), StatusCodes.Status200OK)]
     public async Task<ActionResult<ZipCodeStats>> GetStats()
     {

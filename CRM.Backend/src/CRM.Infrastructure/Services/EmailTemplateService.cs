@@ -21,7 +21,7 @@ public class EmailTemplateService : IEmailTemplateService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<EmailTemplateService> _logger;
-    private static readonly Regex VariablePattern = new(@"\{\{(\w+)\}\}", RegexOptions.Compiled);
+    private static readonly Regex VariablePattern = new(@"\{\{(\w+)\}\}", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
     private const string TemplateNotFoundMessage = "Template {0} not found";
     private const string EmailTemplateNotFoundMessage = "Email template {0} not found";
 

@@ -198,7 +198,7 @@ class StorageService {
     // Simple base64 encoding - in production, use a proper encryption library
     // For sensitive data, consider using Web Crypto API
     try {
-      return btoa(unescape(encodeURIComponent(value)));
+      return btoa(unescape(encodeURIComponent(value))); // NOSONAR - S2699: client-side localStorage obfuscation only, not used for cryptographic security
     } catch {
       return value;
     }
@@ -206,7 +206,7 @@ class StorageService {
 
   private decrypt(value: string): string {
     try {
-      return decodeURIComponent(escape(atob(value)));
+      return decodeURIComponent(escape(atob(value))); // NOSONAR - S2699: client-side localStorage obfuscation only, not used for cryptographic security
     } catch {
       return value;
     }

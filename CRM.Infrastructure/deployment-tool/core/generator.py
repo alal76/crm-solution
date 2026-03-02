@@ -236,15 +236,19 @@ class ConfigGenerator:
             "chatwoot_api_key": "",
             "chatwoot_secret_key": "",
             "chatwoot_account_id": "1",
+            "chatwoot_db_password": "",
             "novu_api_key": "",
             "novu_jwt_secret": self.generate_token(32),
             "superset_secret_key": "",
             "superset_admin_password": "",
+            "superset_db_password": "",
             "docuseal_api_key": "",
             "docuseal_secret_key": "",
+            "docuseal_db_password": "",
             "n8n_api_key": "",
             "n8n_username": "admin",
             "n8n_password": "",
+            "n8n_db_password": "",
             "openai_api_key": "",
             "openai_model": "gpt-4o",
             "anthropic_api_key": "",
@@ -299,6 +303,19 @@ class ConfigGenerator:
         ctx.setdefault("image_registry", "")
         ctx.setdefault("image_org", "")
         ctx.setdefault("build_locally", False)
+
+        # Auto-generate provider database passwords when the provider is
+        # selected but the user hasn't supplied an explicit password.
+        _provider_pw_keys = {
+            "chatwoot_db_password": "chat_provider",
+            "superset_db_password": "analytics_provider",
+            "docuseal_db_password": "signature_provider",
+            "n8n_db_password": "integration_provider",
+        }
+        for pw_key, provider_key in _provider_pw_keys.items():
+            provider_val = ctx.get(provider_key, "builtin")
+            if provider_val and provider_val != "builtin" and not ctx.get(pw_key):
+                ctx[pw_key] = self.generate_password(20)
 
         # SSL defaults
         ctx.setdefault("ssl_enabled", False)

@@ -3596,3 +3596,140 @@ class TestAdminPasswordEndpoint:
         )
         # Will be 502 in test env (no docker), not 400 (validation passed)
         assert resp.status_code != 400, f"Expected 502 (no docker), got 400: {resp.get_json()}"
+
+
+# ===========================================================================
+# Day-2 Monitoring — Networks, Images, Image History
+# ===========================================================================
+
+
+class TestDay2MonitoringEndpoints:
+    """Tests for the Day-2 monitoring endpoints (networks, images, image history)."""
+
+    def test_networks_endpoint_exists(self, client):
+        """GET /api/day2/networks should return a response (not 404)."""
+        resp = client.get("/api/day2/networks")
+        assert resp.status_code != 404, "networks endpoint should exist"
+        data = resp.get_json()
+        assert "networks" in data
+
+    def test_images_endpoint_exists(self, client):
+        """GET /api/day2/images should return a response (not 404)."""
+        resp = client.get("/api/day2/images")
+        assert resp.status_code != 404, "images endpoint should exist"
+        data = resp.get_json()
+        assert "images" in data
+
+    def test_image_history_endpoint_exists(self, client):
+        """GET /api/day2/images/history should return a response (not 404)."""
+        resp = client.get("/api/day2/images/history")
+        assert resp.status_code != 404, "image history endpoint should exist"
+        data = resp.get_json()
+        assert "images" in data
+
+    def test_networks_returns_profile_name(self, client):
+        """Networks endpoint should include profile_name in response."""
+        resp = client.get("/api/day2/networks")
+        data = resp.get_json()
+        assert "profile_name" in data
+
+    def test_images_returns_profile_name(self, client):
+        """Images endpoint should include profile_name in response."""
+        resp = client.get("/api/day2/images")
+        data = resp.get_json()
+        assert "profile_name" in data
+
+    def test_image_history_returns_profile_name(self, client):
+        """Image history endpoint should include profile_name in response."""
+        resp = client.get("/api/day2/images/history")
+        data = resp.get_json()
+        assert "profile_name" in data
+
+
+class TestDay2MonitoringUI:
+    """Tests for the Day-2 monitoring tab in the wizard HTML."""
+
+    def test_monitoring_tab_exists(self, client):
+        """Wizard should have a Monitoring tab button."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert "showDay2Tab('monitoring'" in html
+
+    def test_monitoring_pane_exists(self, client):
+        """Wizard should have the day2-monitoring pane."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="day2-monitoring"' in html
+
+    def test_admin_tab_removed(self, client):
+        """Old day2-admin pane should no longer exist."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="day2-admin"' not in html
+
+    def test_admin_password_in_secrets_tab(self, client):
+        """Admin password form should be inside the secrets tab pane."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        # d2AdminPassword input should exist
+        assert 'id="d2AdminPassword"' in html
+        # It should be within the day2-secrets pane (check that secrets pane comes before the admin input)
+        secrets_pos = html.find('id="day2-secrets"')
+        admin_pw_pos = html.find('id="d2AdminPassword"')
+        monitoring_pos = html.find('id="day2-monitoring"')
+        assert secrets_pos < admin_pw_pos < monitoring_pos, \
+            "Admin password form should be inside the Secrets tab, before Monitoring tab"
+
+    def test_networks_section_in_monitoring(self, client):
+        """Monitoring pane should have a networks section."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="d2NetworkList"' in html
+
+    def test_images_section_in_monitoring(self, client):
+        """Monitoring pane should have an images section."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="d2ImageList"' in html
+
+    def test_image_history_section_in_monitoring(self, client):
+        """Monitoring pane should have an image history section."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="d2ImageHistory"' in html
+
+    def test_js_network_function_exists(self, client):
+        """loadDay2Networks JS function should exist."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert "loadDay2Networks" in html
+
+    def test_js_images_function_exists(self, client):
+        """loadDay2Images JS function should exist."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert "loadDay2Images" in html
+
+    def test_js_image_history_function_exists(self, client):
+        """loadDay2ImageHistory JS function should exist."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert "loadDay2ImageHistory" in html
+
+
+class TestIntegrationProviderGrid:
+    """Tests for the integration provider selection grid."""
+
+    def test_integration_grid_exists(self, client):
+        """Wizard should have an integration provider grid."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="integrationProviderGrid"' in html
+
+    def test_integration_provider_options(self, client):
+        """Integration grid should have Built-in, n8n, Zapier, Make options."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        for provider in ["builtin", "n8n", "zapier", "make"]:
+            assert f'data-value="{provider}"' in html or provider in html.lower(), \
+                f"Integration provider option '{provider}' should exist"

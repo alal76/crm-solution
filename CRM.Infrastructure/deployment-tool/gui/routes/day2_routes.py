@@ -758,6 +758,121 @@ def day2_version_info():  # NOSONAR - complexity acceptable for version aggregat
 
 
 # ---------------------------------------------------------------------------
+# Monitoring — networks, images, image history
+# ---------------------------------------------------------------------------
+
+@day2_bp.route("/api/day2/networks", methods=["GET"])
+def day2_networks():
+    """List Docker networks relevant to the CRM deployment."""
+    profile, pname = _profile_from_request()
+    ok, out, err = _docker_cmd_profile(
+        profile, "network", "ls", "--format", "{{json .}}", timeout=15,
+    )
+    if not ok:
+        return jsonify({"error": err or "Failed to list networks", "networks": []}), 500
+
+    networks: list[dict] = []
+    if out:
+        for line in out.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                net = json.loads(line)
+                name = net.get("Name", "")
+                # Include CRM-related networks and always include bridge/host
+                if "crm" in name.lower() or name in ("bridge", "host", "none"):
+                    # Try to get subnet info via network inspect
+                    subnet = ""
+                    try:
+                        iok, iout, _ = _docker_cmd_profile(
+                            profile, "network", "inspect", name,
+                            "--Format", "{{range .IPAM.Config}}{{.Subnet}}{{end}}",
+                            timeout=10,
+                        )
+                        if iok and iout:
+                            subnet = iout.strip()
+                    except Exception:  # noqa: BLE001
+                        pass
+                    net["Subnet"] = subnet
+                    networks.append(net)
+            except json.JSONDecodeError:
+                continue
+
+    return jsonify({"profile_name": pname, "networks": networks})
+
+
+@day2_bp.route("/api/day2/images", methods=["GET"])
+def day2_images():
+    """List Docker images related to CRM on the deployment host."""
+    profile, pname = _profile_from_request()
+    ok, out, err = _docker_cmd_profile(
+        profile, "images", "--format", "{{json .}}", timeout=15,
+    )
+    if not ok:
+        return jsonify({"error": err or "Failed to list images", "images": []}), 500
+
+    images: list[dict] = []
+    if out:
+        for line in out.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                img = json.loads(line)
+                repo = img.get("Repository", "")
+                # Filter CRM-related images (crm-*, plus common provider images)
+                crm_keywords = (
+                    "crm", "mariadb", "redis", "postgres", "meilisearch",
+                    "chatwoot", "novu", "superset", "docuseal", "n8n",
+                    "ollama", "nginx", "mongo",
+                )
+                if any(kw in repo.lower() for kw in crm_keywords):
+                    images.append(img)
+            except json.JSONDecodeError:
+                continue
+
+    return jsonify({"profile_name": pname, "images": images})
+
+
+@day2_bp.route("/api/day2/images/history", methods=["GET"])
+def day2_image_history():
+    """List all locally available image tags for rollback targets.
+
+    Returns every tag (not just 'latest') for CRM-related images,
+    grouped by repository.
+    """
+    profile, pname = _profile_from_request()
+    ok, out, err = _docker_cmd_profile(
+        profile, "images", "--no-trunc", "--format", "{{json .}}", timeout=20,
+    )
+    if not ok:
+        return jsonify({"error": err or "Failed to list image history", "images": []}), 500
+
+    images: list[dict] = []
+    if out:
+        for line in out.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                img = json.loads(line)
+                repo = img.get("Repository", "")
+                tag = img.get("Tag", "")
+                crm_keywords = (
+                    "crm", "mariadb", "redis", "postgres", "meilisearch",
+                    "chatwoot", "novu", "superset", "docuseal", "n8n",
+                    "ollama", "nginx", "mongo",
+                )
+                if any(kw in repo.lower() for kw in crm_keywords) and tag != "<none>":
+                    images.append(img)
+            except json.JSONDecodeError:
+                continue
+
+    return jsonify({"profile_name": pname, "images": images})
+
+
+# ---------------------------------------------------------------------------
 # Deployment run history
 # ---------------------------------------------------------------------------
 

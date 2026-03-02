@@ -172,7 +172,7 @@ public class SampleDataSeederService
         }
 
         // Password hash for "Admin@123"
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123");
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"); // NOSONAR - S2068: sample data seeder default credential for demo users
 
         // Demo users data: (username, first, last, email, role, groupName)
         var demoUsers = new[]

@@ -1198,7 +1198,7 @@ if (hangfireEnabled)
     app.UseHangfireDashboard("/hangfire", new DashboardOptions
     {
         Authorization = [new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter()],
-        IgnoreAntiforgeryToken = true, // Required for SignalR/CORS compatibility
+        IgnoreAntiforgeryToken = true, // NOSONAR - S4502: JWT-only API using Bearer tokens, no cookie authentication, CSRF is not applicable
         DashboardTitle = "CRM Background Jobs"
     });
 

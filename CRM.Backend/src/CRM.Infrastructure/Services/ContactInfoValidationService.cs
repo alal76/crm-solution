@@ -22,7 +22,7 @@ public class ContactInfoValidationService : IContactInfoValidationService
     // Email regex - RFC 5322 compliant simplified version
     private static readonly Regex EmailRegex = new(
         @"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+        RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(1));
 
     // Phone number patterns by country
     private static readonly Dictionary<string, (string Pattern, string Format)> PhonePatterns = new()

@@ -850,7 +850,7 @@
                 <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('scale',this)">Scale</button></li>
                 <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('secrets',this)">Secrets</button></li>
                 <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('containers',this)">Containers</button></li>
-                <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('admin',this)">Admin</button></li>
+                <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('monitoring',this)">Monitoring</button></li>
             </ul>
 
             <!-- Upgrade -->
@@ -907,24 +907,11 @@
                 <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="d2SecretJwt" checked><label class="form-check-label" for="d2SecretJwt">JWT Secret</label></div>
                 <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="d2SecretDb" checked><label class="form-check-label" for="d2SecretDb">Database Password</label></div>
                 <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="d2SecretAdmin"><label class="form-check-label" for="d2SecretAdmin">Admin Password</label></div>
-                <button class="btn btn-warning" onclick="day2Action('rotate_secrets')">
+                <button class="btn btn-warning mb-4" onclick="day2Action('rotate_secrets')">
                     <i class="bi bi-key me-1"></i>Rotate Secrets
                 </button>
-            </div>
 
-            <!-- Containers -->
-            <div id="day2-containers" class="day2-tab-pane" style="display:none;">
-                <h6>Container Management</h6>
-                <div id="d2ContainerList" class="mb-3">
-                    <button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Containers()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                    </button>
-                    <div class="text-muted small">Click Refresh to load running containers.</div>
-                </div>
-            </div>
-
-            <!-- Admin -->
-            <div id="day2-admin" class="day2-tab-pane" style="display:none;">
+                <hr>
                 <h6><i class="bi bi-person-lock me-1"></i>Set Admin Password</h6>
                 <p class="text-muted small mb-3">
                     Update the CRM admin user credentials on the running deployment.
@@ -957,6 +944,47 @@
                 <button class="btn btn-primary" onclick="day2SetAdminPassword()">
                     <i class="bi bi-check-circle me-1"></i>Set Admin Password
                 </button>
+            </div>
+
+            <!-- Containers -->
+            <div id="day2-containers" class="day2-tab-pane" style="display:none;">
+                <h6>Container Management</h6>
+                <div id="d2ContainerList" class="mb-3">
+                    <button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Containers()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                    </button>
+                    <div class="text-muted small">Click Refresh to load running containers.</div>
+                </div>
+            </div>
+
+            <!-- Monitoring -->
+            <div id="day2-monitoring" class="day2-tab-pane" style="display:none;">
+                <h6><i class="bi bi-hdd-network me-1"></i>Docker Networks</h6>
+                <button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Networks()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh Networks
+                </button>
+                <div id="d2NetworkList" class="mb-4">
+                    <div class="text-muted small">Click Refresh to load Docker networks.</div>
+                </div>
+
+                <hr>
+                <h6><i class="bi bi-box me-1"></i>Docker Images</h6>
+                <button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Images()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh Images
+                </button>
+                <div id="d2ImageList" class="mb-4">
+                    <div class="text-muted small">Click Refresh to load Docker images.</div>
+                </div>
+
+                <hr>
+                <h6><i class="bi bi-clock-history me-1"></i>Image History (Rollback Targets)</h6>
+                <p class="text-muted small mb-2">All locally available CRM image tags that can be used for rollback.</p>
+                <button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2ImageHistory()">
+                    <i class="bi bi-arrow-clockwise me-1"></i>Refresh History
+                </button>
+                <div id="d2ImageHistory" class="mb-3">
+                    <div class="text-muted small">Click Refresh to load image history.</div>
+                </div>
             </div>
 
             <!-- Day-2 log -->
@@ -2490,6 +2518,33 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- Integrations -->
+                <div class="mb-4">
+                    <p class="fw-semibold mb-2"><i class="bi bi-gear-wide-connected me-2 text-info"></i>Integration / Workflow Provider</p>
+                    <div class="pv2-grid" id="integrationProviderGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('integration','builtin')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📦</span><span class="pv2-card-title">Built-in</span></div>
+                            <div class="pv2-card-desc">Webhook-based integrations with built-in REST connectors.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span><span class="pv2-tag rec">Recommended</span></div>
+                        </button>
+                        <button type="button" class="pv2-card" onclick="selectProvider('integration','n8n')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">⚙️</span><span class="pv2-card-title">n8n</span></div>
+                            <div class="pv2-card-desc">OSS workflow automation with 400+ integrations. Visual node editor.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
+                        </button>
+                        <button type="button" class="pv2-card" onclick="selectProvider('integration','zapier')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">⚡</span><span class="pv2-card-title">Zapier</span></div>
+                            <div class="pv2-card-desc">Cloud workflow platform with 6000+ app connectors. Pay per Zap.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
+                        </button>
+                        <button type="button" class="pv2-card" onclick="selectProvider('integration','make')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🔗</span><span class="pv2-card-title">Make</span></div>
+                            <div class="pv2-card-desc">Visual automation platform (formerly Integromat). Complex workflows.</div>
+                            <div class="pv2-tags"><span class="pv2-tag saas">SaaS</span></div>
+                        </button>
+                    </div>
+                </div>
             
                 </div>
 
@@ -3854,7 +3909,8 @@
             };
             const activeProviders = [
                 config.search_provider, config.chat_provider, config.notification_provider,
-                config.analytics_provider, config.ai_provider
+                config.analytics_provider, config.ai_provider,
+                config.signature_provider, config.integration_provider
             ];
             for (const [provKey, containerName] of Object.entries(provMap)) {
                 if (activeProviders.includes(provKey)) {
@@ -4915,9 +4971,9 @@
         // ── Provider preset quick-select ──────────────────────────────────────
         function applyProviderPreset(preset) {
             const presets = {
-                builtin: { search:'builtin', chat:'builtin', notification:'builtin', analytics:'builtin', signature:'builtin', ai:'ollama' },
-                oss:     { search:'meilisearch', chat:'chatwoot', notification:'novu', analytics:'superset', signature:'docuseal', ai:'ollama' },
-                cloud:   { search:'algolia', chat:'intercom', notification:'sendgrid', analytics:'powerbi', signature:'docusign', ai:'openai' },
+                builtin: { search:'builtin', chat:'builtin', notification:'builtin', analytics:'builtin', signature:'builtin', ai:'ollama', integration:'builtin' },
+                oss:     { search:'meilisearch', chat:'chatwoot', notification:'novu', analytics:'superset', signature:'docuseal', ai:'ollama', integration:'n8n' },
+                cloud:   { search:'algolia', chat:'intercom', notification:'sendgrid', analytics:'powerbi', signature:'docusign', ai:'openai', integration:'zapier' },
             };
             const p = presets[preset];
             if (!p) return;
@@ -7686,6 +7742,81 @@ async function loadDay2Containers() {
         html += '</div>';
         el.innerHTML = '<button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Containers()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>' + html;
     } catch(e) { el.innerHTML = `<div class="alert alert-warning">Could not load containers: ${e.message}</div>`; showToast('Container load failed: ' + e.message, 'error'); }
+}
+
+async function loadDay2Networks() {
+    const el = document.getElementById('d2NetworkList');
+    el.innerHTML = '<div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Loading networks…</div>';
+    try {
+        const resp = await fetch('/api/day2/networks');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const networks = data.networks || [];
+        if (!networks.length) { el.innerHTML = '<p class="text-muted">No CRM networks found.</p>'; return; }
+        let html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th>Name</th><th>Driver</th><th>Scope</th><th>Subnet</th></tr></thead><tbody>';
+        networks.forEach(n => {
+            html += `<tr><td><code>${n.Name||n.name||''}</code></td><td>${n.Driver||n.driver||''}</td>`
+                  + `<td>${n.Scope||n.scope||''}</td><td><small>${n.Subnet||n.subnet||'—'}</small></td></tr>`;
+        });
+        html += '</tbody></table></div>';
+        el.innerHTML = '<button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Networks()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Networks</button>' + html;
+    } catch(e) {
+        el.innerHTML = `<div class="alert alert-warning py-1 small">Could not load networks: ${e.message}</div>`;
+    }
+}
+
+async function loadDay2Images() {
+    const el = document.getElementById('d2ImageList');
+    el.innerHTML = '<div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Loading images…</div>';
+    try {
+        const resp = await fetch('/api/day2/images');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const images = data.images || [];
+        if (!images.length) { el.innerHTML = '<p class="text-muted">No CRM images found.</p>'; return; }
+        let html = '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th>Repository</th><th>Tag</th><th>Size</th><th>Created</th></tr></thead><tbody>';
+        images.forEach(i => {
+            html += `<tr><td><code>${i.Repository||i.repository||''}</code></td><td><span class="badge bg-info">${i.Tag||i.tag||''}</span></td>`
+                  + `<td><small>${i.Size||i.size||''}</small></td><td><small>${i.CreatedSince||i.created||''}</small></td></tr>`;
+        });
+        html += '</tbody></table></div>';
+        el.innerHTML = '<button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Images()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Images</button>' + html;
+    } catch(e) {
+        el.innerHTML = `<div class="alert alert-warning py-1 small">Could not load images: ${e.message}</div>`;
+    }
+}
+
+async function loadDay2ImageHistory() {
+    const el = document.getElementById('d2ImageHistory');
+    el.innerHTML = '<div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Loading image history…</div>';
+    try {
+        const resp = await fetch('/api/day2/images/history');
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        const images = data.images || [];
+        if (!images.length) { el.innerHTML = '<p class="text-muted">No historical images found.</p>'; return; }
+        // Group by repository
+        const groups = {};
+        images.forEach(i => {
+            const repo = i.Repository || i.repository || 'unknown';
+            if (!groups[repo]) groups[repo] = [];
+            groups[repo].push(i);
+        });
+        let html = '';
+        Object.keys(groups).sort().forEach(repo => {
+            html += `<div class="mb-3"><h6 class="mb-1"><code>${repo}</code> <span class="badge bg-secondary">${groups[repo].length} tags</span></h6>`;
+            html += '<div class="table-responsive"><table class="table table-sm table-striped mb-0"><thead><tr><th>Tag</th><th>Image ID</th><th>Size</th><th>Created</th></tr></thead><tbody>';
+            groups[repo].forEach(i => {
+                html += `<tr><td><span class="badge bg-${(i.Tag||i.tag||'')=='latest'?'primary':'outline-secondary'}">${i.Tag||i.tag||''}</span></td>`
+                      + `<td><code class="small">${(i.ID||i.id||'').substring(0,12)}</code></td>`
+                      + `<td><small>${i.Size||i.size||''}</small></td><td><small>${i.CreatedSince||i.created||''}</small></td></tr>`;
+            });
+            html += '</tbody></table></div></div>';
+        });
+        el.innerHTML = '<button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2ImageHistory()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh History</button>' + html;
+    } catch(e) {
+        el.innerHTML = `<div class="alert alert-warning py-1 small">Could not load image history: ${e.message}</div>`;
+    }
 }
 
 async function day2SetAdminPassword() {

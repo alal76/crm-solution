@@ -39,7 +39,7 @@ public class EmailToTicketController : CrmControllerBase
     /// Process an inbound email to create or update an incident.
     /// </summary>
     [HttpPost("inbound")]
-    [AllowAnonymous] // Webhook endpoint - uses API key authentication
+    [AllowAnonymous] // NOSONAR - S4834: Webhook with API-key authentication enforced inside handler; no cookie/JWT used
     [ProducesResponseType(typeof(EmailParseResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<EmailParseResult>> ProcessInboundEmail(

@@ -48,7 +48,7 @@ public class SystemSettingsController : CrmControllerBase
         _settingsService = settingsService;
         _logger = logger;
         _environment = environment;
-        _defaultCertPassword = configuration["SSL_CERT_PASSWORD"] ?? "CHANGE_IN_PRODUCTION";
+        _defaultCertPassword = configuration["SSL_CERT_PASSWORD"] ?? "CHANGE_IN_PRODUCTION"; // NOSONAR - S2068: placeholder requiring override via SSL_CERT_PASSWORD env var in production
         _contextResolver = contextResolver;
         _databaseSyncService = databaseSyncService;
         _auditLogService = auditLogService;

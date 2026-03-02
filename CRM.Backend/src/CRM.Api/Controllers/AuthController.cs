@@ -105,7 +105,7 @@ public class AuthController : CrmControllerBase
     /// <response code="400">If the registration data is invalid or email already exists</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("register")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: authentication endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -147,7 +147,7 @@ public class AuthController : CrmControllerBase
     /// <response code="401">If credentials are incorrect or account is locked</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("login")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: authentication endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -205,7 +205,7 @@ public class AuthController : CrmControllerBase
     /// <response code="401">If the 2FA code is incorrect or expired</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("login/2fa")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: authentication endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -241,7 +241,7 @@ public class AuthController : CrmControllerBase
     /// <response code="401">If the refresh token is invalid, expired, or revoked</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("refresh")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: token refresh endpoint, authorization handled via refresh token validation
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -278,7 +278,7 @@ public class AuthController : CrmControllerBase
     /// <response code="400">If the OAuth data is invalid</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("oauth-login")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth authentication endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -469,7 +469,7 @@ public class AuthController : CrmControllerBase
     /// <response code="400">If the request data is invalid</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("password-reset/request")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: password reset endpoint, anonymous access required by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -503,7 +503,7 @@ public class AuthController : CrmControllerBase
     /// <response code="400">If the token is invalid/expired or passwords don't match</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("password-reset/confirm")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: password reset endpoint, anonymous access required by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -590,7 +590,7 @@ public class AuthController : CrmControllerBase
     /// <response code="401">If the setup token is invalid or expired</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("setup-password")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: initial password setup endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -626,7 +626,7 @@ public class AuthController : CrmControllerBase
     /// <response code="200">Returns password complexity requirements</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("password-requirements")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public endpoint to expose password policy, anonymous access required
     [ProducesResponseType(typeof(PasswordComplexityRequirements), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPasswordRequirements()
@@ -764,7 +764,7 @@ public class AuthController : CrmControllerBase
     /// <response code="200">Returns the LinkedIn authorization URL</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("oauth/linkedin")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth authentication endpoint, anonymous access required by design
     [ProducesResponseType(typeof(OAuthRedirectDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetLinkedInAuthUrl(
@@ -799,7 +799,7 @@ public class AuthController : CrmControllerBase
     /// <response code="400">If the callback data is invalid</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("oauth/linkedin/callback")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth callback endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -849,7 +849,7 @@ public class AuthController : CrmControllerBase
     /// <response code="200">Returns the Apple authorization URL</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("oauth/apple")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth authentication endpoint, anonymous access required by design
     [ProducesResponseType(typeof(OAuthRedirectDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GetAppleAuthUrl(
@@ -885,7 +885,7 @@ public class AuthController : CrmControllerBase
     /// <response code="400">If the callback data is invalid</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("oauth/apple/callback")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth callback endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -1044,7 +1044,7 @@ public class AuthController : CrmControllerBase
     /// <response code="400">If the request is invalid</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("webauthn/login/options")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: WebAuthn passkey authentication challenge endpoint, anonymous access required
     [ProducesResponseType(typeof(WebAuthnAuthenticationOptionsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -1075,7 +1075,7 @@ public class AuthController : CrmControllerBase
     /// <response code="401">If authentication fails</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("webauthn/login/complete")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: WebAuthn passkey authentication completion endpoint, anonymous access required
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -1205,7 +1205,7 @@ public class AuthController : CrmControllerBase
     /// <response code="200">Returns the generated state token</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("oauth/state")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth CSRF state parameter generation, anonymous access required
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public IActionResult GenerateOAuthState([FromQuery] string? returnUrl = null)
@@ -1224,7 +1224,7 @@ public class AuthController : CrmControllerBase
     /// <response code="400">If the state token is invalid, expired, or already consumed</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("oauth/state/validate")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth CSRF state validation endpoint, anonymous access required
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -1485,7 +1485,7 @@ public class AuthController : CrmControllerBase
     /// is single-use. Responds 200 even when the email is not found (to prevent enumeration).
     /// </summary>
     [HttpPost("magic-link/request")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: passwordless magic-link authentication endpoint, anonymous access required
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -1524,7 +1524,7 @@ public class AuthController : CrmControllerBase
     /// The token is invalidated on first use and expires in 15 minutes.
     /// </summary>
     [HttpPost("magic-link/verify")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: passwordless magic-link authentication endpoint, anonymous access required
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -1667,7 +1667,7 @@ public class AuthController : CrmControllerBase
     /// Get the authorization URL for a configured OIDC provider.
     /// </summary>
     [HttpGet("oidc/authorize")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OIDC authentication endpoint, anonymous access required by design
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> OidcAuthorize(
@@ -1703,7 +1703,7 @@ public class AuthController : CrmControllerBase
     /// Handle OIDC provider callback with authorization code exchange.
     /// </summary>
     [HttpPost("oidc/callback")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OIDC authentication callback endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> OidcCallback(
@@ -1772,7 +1772,7 @@ public class AuthController : CrmControllerBase
     /// List configured OIDC providers.
     /// </summary>
     [HttpGet("oidc/providers")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public endpoint listing available OIDC providers, anonymous access required
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
     public IActionResult GetOidcProviders()
     {
@@ -1788,7 +1788,7 @@ public class AuthController : CrmControllerBase
     /// Get biometric authentication options (challenge) for verifying a credential.
     /// </summary>
     [HttpPost("biometric/options")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: biometric authentication challenge endpoint, anonymous access required
     [ProducesResponseType(typeof(BiometricAuthenticationOptions), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBiometricAuthOptions(
         [FromBody] BiometricAuthOptionsRequestDto? request = null,
@@ -1803,7 +1803,7 @@ public class AuthController : CrmControllerBase
     /// POST /api/auth/biometric/verify
     /// </summary>
     [HttpPost("biometric/verify")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: biometric authentication endpoint, anonymous access required
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -1900,7 +1900,7 @@ public class AuthController : CrmControllerBase
     /// Initiate Okta SSO login flow.
     /// </summary>
     [HttpGet("sso/okta")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Okta SSO authentication endpoint, anonymous access required by design
     [ProducesResponseType(StatusCodes.Status302Found)]
     public IActionResult InitiateOktaSso([FromQuery] string? redirectUri = null, [FromQuery] string? state = null)
     {
@@ -1913,7 +1913,7 @@ public class AuthController : CrmControllerBase
     /// Handle Okta SSO callback.
     /// </summary>
     [HttpPost("sso/okta/callback")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: Okta SSO callback endpoint, anonymous access required by design
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> OktaSsoCallback(
@@ -2133,7 +2133,7 @@ public class AuthController : CrmControllerBase
     /// Returns device_code and user_code for the device to display.
     /// </summary>
     [HttpPost("device/authorize")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth 2.0 device authorization flow (RFC 8628), anonymous access required
     [ProducesResponseType(typeof(DeviceAuthorizationResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> InitiateDeviceAuthorization(
         [FromBody] DeviceAuthorizationRequestDto request,
@@ -2166,7 +2166,7 @@ public class AuthController : CrmControllerBase
     /// Poll for device authorization token (called by the device).
     /// </summary>
     [HttpPost("device/token")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth 2.0 device authorization flow (RFC 8628), anonymous access required
     [ProducesResponseType(typeof(DeviceTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeviceToken(

@@ -25,7 +25,8 @@ def _sample_profile():
             "db_port": 3306,
             "db_name": "crm_db",
             "db_user": "crm_user",
-            "db_password": "",
+            "db_password": "TestDbPass@1234",  # noqa: S105 -- test credential
+            "db_root_password": "TestRootPass@1234",  # noqa: S105 -- test credential
             "db_deployment": "new_container",
         },
         "security": {
@@ -82,9 +83,32 @@ def test_build_context_auto_fills_password():
     from core.generator import ConfigGenerator
 
     g = ConfigGenerator()
-    ctx = g._build_context(_sample_profile())
-    assert ctx.get("db_password"), "db_password should be auto-filled"
+    # db_password and db_root_password are now required — an empty password
+    # should raise ValueError instead of silently auto-filling.
+    profile = _sample_profile()
+    ctx = g._build_context(profile)
+    assert ctx.get("db_password"), "db_password should be present"
     assert len(ctx["db_password"]) > 0
+
+
+def test_build_context_raises_on_missing_db_password():
+    from core.generator import ConfigGenerator
+
+    g = ConfigGenerator()
+    profile = _sample_profile()
+    profile["database"]["db_password"] = ""
+    with pytest.raises(ValueError, match="Database password is required"):
+        g._build_context(profile)
+
+
+def test_build_context_raises_on_missing_db_root_password():
+    from core.generator import ConfigGenerator
+
+    g = ConfigGenerator()
+    profile = _sample_profile()
+    profile["database"]["db_root_password"] = ""
+    with pytest.raises(ValueError, match="Database root password is required"):
+        g._build_context(profile)
 
 
 def test_build_context_auto_fills_jwt_secret():

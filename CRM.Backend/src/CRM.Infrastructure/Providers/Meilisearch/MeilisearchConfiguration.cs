@@ -20,7 +20,7 @@ public class MeilisearchConfiguration
     /// <summary>
     /// The Meilisearch server URL (e.g., "http://localhost:7700" or "https://ms-xxx.meilisearch.io").
     /// </summary>
-    public string Url { get; set; } = "http://localhost:7700";
+    public string Url { get; set; } = "http://localhost:7700"; // NOSONAR - S5332: internal container-to-container URL, HTTPS not applicable in Docker bridge network
 
     /// <summary>
     /// The Meilisearch API key for authentication.

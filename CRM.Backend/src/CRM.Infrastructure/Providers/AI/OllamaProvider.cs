@@ -25,7 +25,7 @@ public class OllamaConfiguration
     /// Base URL of the Ollama API server.
     /// Default: http://localhost:11434
     /// </summary>
-    public string BaseUrl { get; set; } = "http://localhost:11434";
+    public string BaseUrl { get; set; } = "http://localhost:11434"; // NOSONAR - S5332: internal container-to-container URL, HTTPS not applicable in Docker bridge network
 
     /// <summary>
     /// Default model to use for chat/completion.

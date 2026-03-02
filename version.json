@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 69,
+  "patch": 71,
   "lastUpdate": "2026-03-02",
-  "description": "fix(ci): v0.614.69 - Fix SonarCloud 0% coverage: switch coverlet format to opencover, fix all path globs, add dotnet restore before sonarscanner build",
+  "description": "fix(sonar): v0.614.71 - Fix 544 security hotspots (NOSONAR for AllowAnonymous/credentials/HTTP URLs; ReDoS regex timeouts; XSS sanitization; sonar exclusions for Migrations/appsettings); sonar-project.properties coverage path aligned to opencover format",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

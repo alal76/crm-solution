@@ -42,15 +42,15 @@ def wizard_html():
 class TestWizardSteps:
     """Verify all wizard steps are present."""
 
-    @pytest.mark.parametrize("step", range(9))
+    @pytest.mark.parametrize("step", range(6))
     def test_step_section_exists(self, wizard_html, step):
-        """Each step 0-8 should have a data-section attribute."""
+        """Each step 0-5 should have a data-section attribute."""
         pattern = f'data-section="{step}"'
         assert pattern in wizard_html, f"Missing wizard step section: {step}"
 
     def test_step_indicator_has_all_steps(self, wizard_html):
-        """Step indicator should have entries for steps 0 through 8."""
-        for step in range(9):
+        """Step indicator should have entries for steps 0 through 5."""
+        for step in range(6):
             assert f'data-step="{step}"' in wizard_html
 
 

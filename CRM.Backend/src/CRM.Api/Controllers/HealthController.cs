@@ -19,7 +19,7 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("[controller]")]
 [EnableCors("AllowAll")]
-[AllowAnonymous] // Allow Kubernetes health probes without authentication
+[AllowAnonymous] // NOSONAR - S4834: Kubernetes liveness/readiness health probe endpoints; authentication cannot be required for health checks
 public class HealthController : CrmControllerBase
 {
     private readonly ILogger<HealthController> _logger;

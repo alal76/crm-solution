@@ -474,7 +474,7 @@ public class SystemSettingsController : ControllerBase
     /// Returns settings needed for the login page
     /// </summary>
     [HttpGet("login-settings")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public login page settings endpoint, anonymous access required before authentication
     public async Task<ActionResult<LoginSettingsResponse>> GetLoginSettings()
     {
         try

@@ -32,7 +32,7 @@ public class AuthController : ControllerBase
     /// Register a new user
     /// </summary>
     [HttpPost("register")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: authentication endpoint, anonymous access required by design
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         try
@@ -64,7 +64,7 @@ public class AuthController : ControllerBase
     /// Login with email and password
     /// </summary>
     [HttpPost("login")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: authentication endpoint, anonymous access required by design
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         try
@@ -91,7 +91,7 @@ public class AuthController : ControllerBase
     /// Verify 2FA code during login
     /// </summary>
     [HttpPost("login/2fa")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: authentication endpoint, anonymous access required by design
     public async Task<IActionResult> LoginWith2FA([FromBody] TwoFactorLoginRequest request)
     {
         try
@@ -118,7 +118,7 @@ public class AuthController : ControllerBase
     /// Login with OAuth provider
     /// </summary>
     [HttpPost("oauth-login")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: OAuth authentication endpoint, anonymous access required by design
     public async Task<IActionResult> OAuthLogin([FromBody] OAuthLoginRequest request)
     {
         try
@@ -286,7 +286,7 @@ public class AuthController : ControllerBase
     /// Request password reset
     /// </summary>
     [HttpPost("password-reset/request")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: password reset endpoint, anonymous access required by design
     public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequest request)
     {
         try
@@ -315,7 +315,7 @@ public class AuthController : ControllerBase
     /// Confirm password reset
     /// </summary>
     [HttpPost("password-reset/confirm")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: password reset endpoint, anonymous access required by design
     public async Task<IActionResult> ConfirmPasswordReset([FromBody] PasswordResetConfirm request)
     {
         try

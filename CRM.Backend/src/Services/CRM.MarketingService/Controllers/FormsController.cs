@@ -734,7 +734,7 @@ public class FormsController : ControllerBase
     /// Submit a form (public endpoint for form submissions)
     /// </summary>
     [HttpPost("{formKey}/submit")]
-    [AllowAnonymous]
+    [AllowAnonymous] // NOSONAR - S4834: public form submission endpoint for marketing lead capture, anonymous access required
     public async Task<IActionResult> SubmitForm(string formKey, [FromBody] Dictionary<string, object> formData)
     {
         try

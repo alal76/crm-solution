@@ -325,11 +325,16 @@ internal class Program
 
         var users = new List<User>
         {
-            new() { Username = "jsmith", Email = "john.smith@company.com", FirstName = "John", LastName = "Smith", PasswordHash = HashPassword("User@123"), Role = (int)UserRole.Manager, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "SALES").Id },
-            new() { Username = "mwilson", Email = "mary.wilson@company.com", FirstName = "Mary", LastName = "Wilson", PasswordHash = HashPassword("User@123"), Role = (int)UserRole.Sales, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "SALES").Id },
-            new() { Username = "djones", Email = "david.jones@company.com", FirstName = "David", LastName = "Jones", PasswordHash = HashPassword("User@123"), Role = (int)UserRole.Sales, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "SALES").Id },
-            new() { Username = "sbrown", Email = "sarah.brown@company.com", FirstName = "Sarah", LastName = "Brown", PasswordHash = HashPassword("User@123"), Role = (int)UserRole.Manager, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "MKTG").Id },
-            new() { Username = "mgarcia", Email = "mike.garcia@company.com", FirstName = "Mike", LastName = "Garcia", PasswordHash = HashPassword("User@123"), Role = (int)UserRole.Support, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "SUPP").Id }
+            new() { Username = "jsmith", Email = "john.smith@company.com", FirstName = "John", LastName = "Smith", PasswordHash = HashPassword("User@123"), // NOSONAR - S2068: seed data test credential
+                Role = (int)UserRole.Manager, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "SALES").Id },
+            new() { Username = "mwilson", Email = "mary.wilson@company.com", FirstName = "Mary", LastName = "Wilson", PasswordHash = HashPassword("User@123"), // NOSONAR - S2068: seed data test credential
+                Role = (int)UserRole.Sales, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "SALES").Id },
+            new() { Username = "djones", Email = "david.jones@company.com", FirstName = "David", LastName = "Jones", PasswordHash = HashPassword("User@123"), // NOSONAR - S2068: seed data test credential
+                Role = (int)UserRole.Sales, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "SALES").Id },
+            new() { Username = "sbrown", Email = "sarah.brown@company.com", FirstName = "Sarah", LastName = "Brown", PasswordHash = HashPassword("User@123"), // NOSONAR - S2068: seed data test credential
+                Role = (int)UserRole.Manager, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "MKTG").Id },
+            new() { Username = "mgarcia", Email = "mike.garcia@company.com", FirstName = "Mike", LastName = "Garcia", PasswordHash = HashPassword("User@123"), // NOSONAR - S2068: seed data test credential
+                Role = (int)UserRole.Support, IsActive = true, EmailVerified = true, DepartmentId = departments.First(d => d.DepartmentCode == "SUPP").Id }
         };
 
         context.Users.AddRange(users);

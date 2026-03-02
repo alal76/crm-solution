@@ -32,6 +32,7 @@ import {
   Code as CodeIcon,
 } from '@mui/icons-material';
 import { EmailTemplate } from '../../types/marketing';
+import { createSafeHtml } from '../../utils/sanitize';
 
 // ============================================================================
 // Types
@@ -298,7 +299,7 @@ const EmailTemplateEditor: React.FC<EmailTemplateEditorProps> = ({
                   <Divider sx={{ mb: 2 }} />
                   {renderedPreview ? (
                     <div
-                      dangerouslySetInnerHTML={{ __html: renderedPreview }}
+                      dangerouslySetInnerHTML={createSafeHtml(renderedPreview)}
                       style={{ maxWidth: '100%', wordBreak: 'break-word' }}
                     />
                   ) : (
