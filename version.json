@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 73,
+  "patch": 74,
   "lastUpdate": "2026-03-02",
-  "description": "fix(cdt): v0.614.73 - Eliminate hardcoded IPs, passwords, paths, image registries, and localhost URLs across CDT; externalize test credentials; parameterize health_checker and orchestrator hosts; add image_prefix/redis/deploy_path to generator context; 496 CDT tests passing",
+  "description": "feat(cdt): v0.614.74 - Add Configure DB Password card and API route to Day-2 Secrets tab; profiles without db_password can now be fixed from the UI without re-running the wizard",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
