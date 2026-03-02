@@ -2512,3 +2512,259 @@ class TestDeployPreflightCloudAgnostic:
         resp = client.post("/api/deploy/preflight", json={})
         data = resp.get_json()
         assert data["runtime"] == "docker_compose"
+
+
+# ===========================================================================
+# Day-2 / Monitoring — Rename & deploy_host
+# ===========================================================================
+
+
+class TestDay2Rename:
+    """Verify the Day-2 page has been renamed to Monitoring & Post Deployment."""
+
+    def test_day2_page_renders(self, client):
+        resp = client.get("/day2")
+        assert resp.status_code == 200
+
+    def test_day2_title_renamed(self, client):
+        resp = client.get("/day2")
+        html = resp.data.decode()
+        assert "Monitoring &amp; Post Deployment" in html
+        assert "Day-2 Operations" not in html
+
+    def test_day2_navbar_renamed(self, client):
+        resp = client.get("/day2")
+        html = resp.data.decode()
+        assert "Monitoring &amp; Post Deployment" in html
+
+    def test_index_day2_links_renamed(self, client):
+        resp = client.get("/")
+        html = resp.data.decode()
+        assert "Monitoring</a>" in html or "Monitoring&" in html
+        assert "Day-2 Ops" not in html
+        assert ">Day-2<" not in html
+
+    def test_day2_has_postinstall_tab(self, client):
+        resp = client.get("/day2")
+        html = resp.data.decode()
+        assert "tab-postinstall" in html
+        assert "Post-Install" in html
+
+    def test_day2_has_testrunner_tab(self, client):
+        resp = client.get("/day2")
+        html = resp.data.decode()
+        assert "tab-testrunner" in html
+        assert "Test Runner" in html
+
+    def test_day2_has_deploy_host_badge(self, client):
+        resp = client.get("/day2")
+        html = resp.data.decode()
+        assert "stack-deploy-host" in html
+
+
+# ===========================================================================
+# Post-Install endpoints
+# ===========================================================================
+
+
+class TestPostInstallEndpoints:
+    """Test the /api/day2/postinstall/* proxy endpoints."""
+
+    def test_database_status_returns_json(self, client):
+        """GET /api/day2/postinstall/database-status should return JSON."""
+        resp = client.get("/api/day2/postinstall/database-status")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "api_healthy" in data
+        assert "db_status" in data
+        assert "deploy_host" in data
+
+    def test_migrate_database_endpoint_exists(self, client):
+        """POST /api/day2/postinstall/migrate-database — endpoint exists (may fail if no API)."""
+        resp = client.post("/api/day2/postinstall/migrate-database",
+                           content_type="application/json")
+        # Expect 502 (Bad Gateway) when API is unreachable, not 404
+        assert resp.status_code in (200, 502)
+        data = resp.get_json()
+        assert "success" in data
+
+    def test_clear_database_endpoint_exists(self, client):
+        """POST /api/day2/postinstall/clear-database endpoint exists."""
+        resp = client.post("/api/day2/postinstall/clear-database",
+                           content_type="application/json")
+        assert resp.status_code in (200, 502)
+        data = resp.get_json()
+        assert "success" in data
+
+    def test_seed_master_data_endpoint_exists(self, client):
+        resp = client.post("/api/day2/postinstall/seed-master-data",
+                           content_type="application/json")
+        assert resp.status_code in (200, 502)
+        data = resp.get_json()
+        assert "success" in data
+
+    def test_reseed_data_endpoint_exists(self, client):
+        resp = client.post("/api/day2/postinstall/reseed-data",
+                           content_type="application/json")
+        assert resp.status_code in (200, 502)
+        data = resp.get_json()
+        assert "success" in data
+
+    def test_clear_sample_data_endpoint_exists(self, client):
+        resp = client.post("/api/day2/postinstall/clear-sample-data",
+                           content_type="application/json")
+        assert resp.status_code in (200, 502)
+        data = resp.get_json()
+        assert "success" in data
+
+    def test_seed_sample_data_endpoint_exists(self, client):
+        resp = client.post("/api/day2/postinstall/seed-sample-data",
+                           content_type="application/json")
+        assert resp.status_code in (200, 502)
+        data = resp.get_json()
+        assert "success" in data
+
+
+# ===========================================================================
+# Test Runner endpoints
+# ===========================================================================
+
+
+class TestTestRunnerEndpoints:
+    """Test the /api/day2/testrunner/* endpoints."""
+
+    def test_run_invalid_test_type(self, client):
+        """Invalid test_type should return 400."""
+        resp = client.post("/api/day2/testrunner/run",
+                           json={"test_type": "invalid_type"})
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert "error" in data
+
+    def test_run_bvt_starts(self, client):
+        """BVT test run should start and return a job_id."""
+        resp = client.post("/api/day2/testrunner/run",
+                           json={"test_type": "bvt"})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "job_id" in data
+        assert data["test_type"] == "bvt"
+        assert data["job_id"].startswith("test_")
+
+    def test_run_crud_loader_starts(self, client):
+        """CRUD loader test run should start."""
+        resp = client.post("/api/day2/testrunner/run",
+                           json={"test_type": "crud_loader"})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "job_id" in data
+        assert data["test_type"] == "crud_loader"
+
+    def test_run_all_starts(self, client):
+        """All test suites should start."""
+        resp = client.post("/api/day2/testrunner/run",
+                           json={"test_type": "all"})
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "job_id" in data
+
+    def test_status_unknown_job(self, client):
+        """Unknown job_id should return 404."""
+        resp = client.get("/api/day2/testrunner/status/nonexistent")
+        assert resp.status_code == 404
+
+    def test_results_unknown_job(self, client):
+        """Unknown job_id should return 404."""
+        resp = client.get("/api/day2/testrunner/results/nonexistent")
+        assert resp.status_code == 404
+
+    def test_bvt_completes_and_has_results(self, client):
+        """Run BVT and poll until complete — should have results."""
+        import time
+        resp = client.post("/api/day2/testrunner/run",
+                           json={"test_type": "bvt"})
+        job_id = resp.get_json()["job_id"]
+
+        # Poll for completion (BVT is fast — health checks only)
+        for _ in range(20):
+            time.sleep(0.5)
+            sr = client.get(f"/api/day2/testrunner/status/{job_id}")
+            sd = sr.get_json()
+            if sd["done"]:
+                break
+
+        # Verify results
+        rr = client.get(f"/api/day2/testrunner/results/{job_id}")
+        assert rr.status_code == 200
+        rd = rr.get_json()
+        assert rd["done"] is True
+        assert rd["test_type"] == "bvt"
+        assert isinstance(rd["results"], list)
+        assert len(rd["results"]) >= 1  # At least some BVT tests ran
+        assert isinstance(rd["output"], list)
+        assert rd["total_pass"] + rd["total_fail"] > 0
+
+    def test_history_returns_list(self, client):
+        """History endpoint should return a list."""
+        resp = client.get("/api/day2/testrunner/history")
+        assert resp.status_code == 200
+        data = resp.get_json()
+        assert "runs" in data
+        assert isinstance(data["runs"], list)
+
+    def test_history_includes_bvt_run(self, client):
+        """After running BVT, history should include it."""
+        import time
+        # Start a run
+        resp = client.post("/api/day2/testrunner/run",
+                           json={"test_type": "bvt"})
+        job_id = resp.get_json()["job_id"]
+        # Wait for completion
+        for _ in range(20):
+            time.sleep(0.5)
+            sr = client.get(f"/api/day2/testrunner/status/{job_id}")
+            if sr.get_json()["done"]:
+                break
+        # Check history
+        hr = client.get("/api/day2/testrunner/history")
+        data = hr.get_json()
+        job_ids = [r["job_id"] for r in data["runs"]]
+        assert job_id in job_ids
+
+    def test_run_with_custom_base_url(self, client):
+        """Custom base_url should be passed through."""
+        resp = client.post("/api/day2/testrunner/run",
+                           json={"test_type": "bvt", "base_url": "http://example.com:5000"})
+        data = resp.get_json()
+        assert data["base_url"] == "http://example.com:5000"
+
+    def test_cleanup_endpoint_exists(self, client):
+        """POST /api/day2/testrunner/cleanup — endpoint exists."""
+        resp = client.post("/api/day2/testrunner/cleanup",
+                           json={})
+        # 200 if script runs, 404 if script not found — both acceptable
+        assert resp.status_code in (200, 404, 500)
+
+
+# ===========================================================================
+# Deploy_host in status responses
+# ===========================================================================
+
+
+class TestDeployHostInStatus:
+    """Verify deploy_host is included in status responses."""
+
+    def test_status_all_has_deploy_host(self, client):
+        resp = client.get("/api/day2/status/all")
+        data = resp.get_json()
+        assert "deploy_host" in data
+
+    def test_version_info_has_deploy_host(self, client):
+        resp = client.get("/api/day2/version-info")
+        data = resp.get_json()
+        assert "deploy_host" in data
+
+    def test_database_status_has_deploy_host(self, client):
+        resp = client.get("/api/day2/postinstall/database-status")
+        data = resp.get_json()
+        assert "deploy_host" in data

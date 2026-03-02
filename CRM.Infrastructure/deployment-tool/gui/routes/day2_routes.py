@@ -165,6 +165,7 @@ def _docker_cmd_profile(profile: dict, *args, timeout: int = 30):
 
     Returns ``(ok, stdout, stderr)``.
     """
+    import shlex  # noqa: PLC0415
     host = _get_deploy_host(profile)
 
     # Remote execution via SSH
@@ -173,7 +174,7 @@ def _docker_cmd_profile(profile: dict, *args, timeout: int = 30):
         if not client:
             return False, "", f"SSH connection to {host} failed"
         try:
-            full_cmd = "docker " + " ".join(str(a) for a in args)
+            full_cmd = "docker " + " ".join(shlex.quote(str(a)) for a in args)
             _, stdout, stderr = client.exec_command(full_cmd, timeout=timeout)
             out = stdout.read().decode().strip()
             err = stderr.read().decode().strip()
@@ -663,6 +664,7 @@ def day2_status_all():
             "crm_version": meta.get("crm_version", "unknown"),
             "profile_name": pname,
             "runtime": "kubernetes",
+            "deploy_host": _get_deploy_host(profile),
             "environment_type": profile.get("target", {}).get("environment_type",
                                 profile.get("environment_type", "—")),
             "resources": resources,
@@ -678,6 +680,7 @@ def day2_status_all():
         "crm_version": meta.get("crm_version", "unknown"),
         "profile_name": pname,
         "runtime": "docker_compose",
+        "deploy_host": _get_deploy_host(profile),
         "environment_type": profile.get("target", {}).get("environment_type",
                             profile.get("environment_type", "—")),
         "containers": containers,
@@ -746,6 +749,7 @@ def day2_version_info():  # NOSONAR - complexity acceptable for version aggregat
         "crm_version": meta.get("crm_version", api_version or "unknown"),
         "api_version": api_version,
         "runtime": runtime,
+        "deploy_host": _get_deploy_host(profile),
         "environment_type": profile.get("target", {}).get("environment_type", "—"),
         "deployed_at": meta.get("updated_at", meta.get("created_at", "—")),
         "platform": profile.get("platform", profile.get("target", {}).get("platform", "—")),
@@ -786,3 +790,373 @@ def day2_run_history():
         except Exception:
             pass
     return jsonify({"runs": []})
+
+
+# ---------------------------------------------------------------------------
+# Post-Install Database Operations (proxy to CRM API)
+# ---------------------------------------------------------------------------
+
+def _proxy_crm_api(profile: dict, method: str, path: str, body: dict | None = None, timeout: int = 60):
+    """Forward a request to the CRM API and return (status_code, response_dict)."""
+    import urllib.request  # noqa: PLC0415
+    import urllib.error  # noqa: PLC0415
+    base_url = _build_api_base_url(profile)
+    url = f"{base_url}{path}"
+    payload = json.dumps(body).encode("utf-8") if body else None
+    req = urllib.request.Request(url, data=payload, method=method)
+    req.add_header("Content-Type", "application/json")
+    req.add_header("Accept", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8")
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError:
+                data = {"raw": raw}
+            return resp.status, data
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode("utf-8") if exc.fp else ""
+        try:
+            data = json.loads(raw)
+        except Exception:
+            data = {"raw": raw}
+        return exc.code, data
+    except Exception as exc:
+        return 0, {"error": str(exc)}
+
+
+@day2_bp.route("/api/day2/postinstall/clear-database", methods=["POST"])
+def day2_postinstall_clear_database():
+    """Clear all data in the CRM database (requires confirmation code)."""
+    profile, _ = _profile_from_request()
+    code, data = _proxy_crm_api(profile, "POST", "/api/database/clear-data",
+                                body={"ConfirmationCode": "DELETE_ALL_DATA"}, timeout=120)
+    return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
+
+
+@day2_bp.route("/api/day2/postinstall/migrate-database", methods=["POST"])
+def day2_postinstall_migrate_database():
+    """Run EF Core migrations on the CRM database."""
+    profile, _ = _profile_from_request()
+    code, data = _proxy_crm_api(profile, "POST", "/api/database/migrate", timeout=120)
+    return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
+
+
+@day2_bp.route("/api/day2/postinstall/reseed-data", methods=["POST"])
+def day2_postinstall_reseed_data():
+    """Reseed core data in the CRM database."""
+    profile, _ = _profile_from_request()
+    code, data = _proxy_crm_api(profile, "POST", "/api/database/reseed", timeout=120)
+    return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
+
+
+@day2_bp.route("/api/day2/postinstall/seed-master-data", methods=["POST"])
+def day2_postinstall_seed_master_data():
+    """Seed all master data in order via the CRM API."""
+    profile, _ = _profile_from_request()
+    code, data = _proxy_crm_api(profile, "POST", "/api/admin/seed/core", timeout=180)
+    return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
+
+
+@day2_bp.route("/api/day2/postinstall/clear-sample-data", methods=["POST"])
+def day2_postinstall_clear_sample_data():
+    """Clear sample data but keep master data."""
+    profile, _ = _profile_from_request()
+    code, data = _proxy_crm_api(profile, "DELETE", "/api/sampledata/clear", timeout=120)
+    return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
+
+
+@day2_bp.route("/api/day2/postinstall/seed-sample-data", methods=["POST"])
+def day2_postinstall_seed_sample_data():
+    """Seed all sample data via the CRM API."""
+    profile, _ = _profile_from_request()
+    code, data = _proxy_crm_api(profile, "POST", "/api/sampledata/seed", timeout=300)
+    return jsonify({"success": 200 <= code < 300, "status_code": code, "data": data}), (200 if 200 <= code < 300 else 502)
+
+
+@day2_bp.route("/api/day2/postinstall/database-status", methods=["GET"])
+def day2_postinstall_database_status():
+    """Return CRM database health via the API health endpoint."""
+    profile, pname = _profile_from_request()
+    api_healthy = _check_health(profile)
+    base_url = _build_api_base_url(profile)
+
+    # Try to get detailed DB status from /health/ready
+    db_status = "unknown"
+    try:
+        import urllib.request  # noqa: PLC0415
+        with urllib.request.urlopen(f"{base_url}/health/ready", timeout=5) as resp:
+            _ = resp.read()  # consume body
+            db_status = "healthy" if resp.status == 200 else "degraded"
+    except Exception:
+        db_status = "unreachable" if not api_healthy else "unknown"
+
+    return jsonify({
+        "profile_name": pname,
+        "deploy_host": _get_deploy_host(profile),
+        "api_healthy": api_healthy,
+        "db_status": db_status,
+        "base_url": base_url,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Test Runner
+# ---------------------------------------------------------------------------
+
+_test_jobs: dict = {}
+
+_WORKSPACE_ROOT = str(Path(__file__).resolve().parent.parent.parent.parent.parent)
+
+
+def _test_runner_thread(job_id: str, test_type: str, base_url: str, cleanup: bool):
+    """Run tests in background thread, updating ``_test_jobs[job_id]``."""
+    job = _test_jobs[job_id]
+    job["status"] = "running"
+    job["started_at"] = time.time()
+    results: list[dict] = []
+    total_pass = 0
+    total_fail = 0
+    output_lines: list[str] = []
+
+    def _log(line: str):
+        output_lines.append(line)
+        job["output"] = output_lines
+
+    try:
+        # ----- BVT -----
+        if test_type in ("bvt", "all"):
+            _log("[BVT] Starting health-check tests …")
+            bvt_endpoints = [
+                ("GET", "/health", 200),
+                ("GET", "/health/ready", 200),
+                ("GET", "/health/live", 200),
+                ("GET", "/api/version", 200),
+            ]
+            for method, path, expected in bvt_endpoints:
+                try:
+                    import urllib.request, urllib.error  # noqa: PLC0415,E401
+                    req = urllib.request.Request(f"{base_url}{path}", method=method)
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        status = resp.status
+                except urllib.error.HTTPError as exc:
+                    status = exc.code
+                except Exception as exc:
+                    status = 0
+                    _log(f"  [BVT] {method} {path} -> ERROR: {exc}")
+                passed = status == expected
+                total_pass += int(passed)
+                total_fail += int(not passed)
+                results.append({"suite": "bvt", "test": f"{method} {path}", "expected": expected, "actual": status, "passed": passed})
+                _log(f"  [BVT] {method} {path} -> {status} {'✓' if passed else '✗'}")
+            _log(f"[BVT] Done. {total_pass} passed, {total_fail} failed.")
+
+        # ----- CRUD Loader -----
+        if test_type in ("crud_loader", "all"):
+            _log("[CRUD_LOADER] Starting test_data_loader.py …")
+            loader_script = Path(_WORKSPACE_ROOT) / "scripts" / "test_data_loader.py"
+            if not loader_script.exists():
+                _log(f"  [CRUD_LOADER] Script not found: {loader_script}")
+                total_fail += 1
+                results.append({"suite": "crud_loader", "test": "script_exists", "passed": False, "error": "script not found"})
+            else:
+                cmd = [
+                    sys.executable, str(loader_script),
+                    "--base-url", base_url,
+                ]
+                if cleanup:
+                    cmd.append("--cleanup")
+                try:
+                    proc = subprocess.Popen(
+                        cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                        text=True, cwd=_WORKSPACE_ROOT,
+                    )
+                    for line in iter(proc.stdout.readline, ""):
+                        _log(f"  [CRUD_LOADER] {line.rstrip()}")
+                    proc.wait(timeout=600)
+                    passed = proc.returncode == 0
+                    total_pass += int(passed)
+                    total_fail += int(not passed)
+                    results.append({"suite": "crud_loader", "test": "test_data_loader", "passed": passed, "returncode": proc.returncode})
+                    _log(f"[CRUD_LOADER] Done. Exit code: {proc.returncode}")
+                except subprocess.TimeoutExpired:
+                    proc.kill()
+                    total_fail += 1
+                    results.append({"suite": "crud_loader", "test": "test_data_loader", "passed": False, "error": "timeout"})
+                    _log("[CRUD_LOADER] Timed out after 600s.")
+                except Exception as exc:
+                    total_fail += 1
+                    results.append({"suite": "crud_loader", "test": "test_data_loader", "passed": False, "error": str(exc)})
+                    _log(f"[CRUD_LOADER] Error: {exc}")
+
+        # ----- E2E (Playwright) -----
+        if test_type in ("e2e", "all"):
+            _log("[E2E] Starting Playwright tests …")
+            e2e_dir = Path(_WORKSPACE_ROOT) / "e2e-tests"
+            if not e2e_dir.exists():
+                _log(f"  [E2E] e2e-tests directory not found: {e2e_dir}")
+                total_fail += 1
+                results.append({"suite": "e2e", "test": "e2e_dir_exists", "passed": False, "error": "directory not found"})
+            else:
+                npx = shutil.which("npx")
+                if not npx:
+                    _log("  [E2E] npx not found — skipping Playwright tests.")
+                    results.append({"suite": "e2e", "test": "npx_available", "passed": False, "error": "npx not found"})
+                    total_fail += 1
+                else:
+                    try:
+                        env = {**__import__("os").environ, "BASE_URL": base_url}
+                        proc = subprocess.Popen(
+                            [npx, "playwright", "test", "--reporter=json"],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            text=True, cwd=str(e2e_dir), env=env,
+                        )
+                        for line in iter(proc.stdout.readline, ""):
+                            _log(f"  [E2E] {line.rstrip()}")
+                        proc.wait(timeout=600)
+                        passed = proc.returncode == 0
+                        total_pass += int(passed)
+                        total_fail += int(not passed)
+                        results.append({"suite": "e2e", "test": "playwright", "passed": passed, "returncode": proc.returncode})
+                        _log(f"[E2E] Done. Exit code: {proc.returncode}")
+                    except subprocess.TimeoutExpired:
+                        proc.kill()
+                        total_fail += 1
+                        results.append({"suite": "e2e", "test": "playwright", "passed": False, "error": "timeout"})
+                        _log("[E2E] Timed out after 600s.")
+                    except Exception as exc:
+                        total_fail += 1
+                        results.append({"suite": "e2e", "test": "playwright", "passed": False, "error": str(exc)})
+                        _log(f"[E2E] Error: {exc}")
+
+        job["status"] = "completed"
+
+    except Exception as exc:
+        _log(f"[ERROR] Unhandled: {exc}")
+        job["status"] = "failed"
+        job["error"] = str(exc)
+
+    job["finished_at"] = time.time()
+    job["elapsed"] = round(job["finished_at"] - job["started_at"], 2)
+    job["results"] = results
+    job["total_pass"] = total_pass
+    job["total_fail"] = total_fail
+    job["done"] = True
+
+
+@day2_bp.route("/api/day2/testrunner/run", methods=["POST"])
+def day2_testrunner_run():
+    """Start an async test run against the deployed CRM."""
+    data = request.json or {}
+    test_type = data.get("test_type", "bvt")
+    if test_type not in ("bvt", "e2e", "crud_loader", "all"):
+        return jsonify({"error": f"Invalid test_type '{test_type}'. Use bvt|e2e|crud_loader|all"}), 400
+    cleanup = bool(data.get("cleanup", False))
+
+    profile, pname = _profile_from_request()
+    base_url = data.get("base_url") or _build_api_base_url(profile)
+    job_id = f"test_{int(time.time())}_{test_type}"
+
+    _test_jobs[job_id] = {
+        "job_id": job_id,
+        "test_type": test_type,
+        "base_url": base_url,
+        "profile_name": pname,
+        "done": False,
+        "status": "pending",
+        "output": [],
+        "results": [],
+        "total_pass": 0,
+        "total_fail": 0,
+        "started_at": None,
+        "finished_at": None,
+        "elapsed": 0,
+        "error": None,
+    }
+
+    threading.Thread(target=_test_runner_thread, args=(job_id, test_type, base_url, cleanup), daemon=True).start()
+    return jsonify({"message": "Test run started", "job_id": job_id, "test_type": test_type, "base_url": base_url})
+
+
+@day2_bp.route("/api/day2/testrunner/status/<job_id>", methods=["GET"])
+def day2_testrunner_status(job_id: str):
+    """Return status / progress for a test run."""
+    if job_id not in _test_jobs:
+        return jsonify({"error": "Job not found"}), 404
+    job = _test_jobs[job_id]
+    return jsonify({
+        "job_id": job_id,
+        "status": job["status"],
+        "done": job["done"],
+        "total_pass": job["total_pass"],
+        "total_fail": job["total_fail"],
+        "elapsed": round(time.time() - job["started_at"], 1) if job["started_at"] and not job["done"] else job.get("elapsed", 0),
+        "output_tail": job["output"][-30:] if job["output"] else [],
+    })
+
+
+@day2_bp.route("/api/day2/testrunner/results/<job_id>", methods=["GET"])
+def day2_testrunner_results(job_id: str):
+    """Return full test results for a completed run."""
+    if job_id not in _test_jobs:
+        return jsonify({"error": "Job not found"}), 404
+    job = _test_jobs[job_id]
+    return jsonify({
+        "job_id": job_id,
+        "test_type": job["test_type"],
+        "base_url": job["base_url"],
+        "profile_name": job["profile_name"],
+        "status": job["status"],
+        "done": job["done"],
+        "total_pass": job["total_pass"],
+        "total_fail": job["total_fail"],
+        "elapsed": job.get("elapsed", 0),
+        "results": job["results"],
+        "output": job["output"],
+        "error": job.get("error"),
+    })
+
+
+@day2_bp.route("/api/day2/testrunner/cleanup", methods=["POST"])
+def day2_testrunner_cleanup():
+    """Run cleanup of test data against the deployed CRM."""
+    profile, _ = _profile_from_request()
+    base_url = (request.json or {}).get("base_url") or _build_api_base_url(profile)
+    loader_script = Path(_WORKSPACE_ROOT) / "scripts" / "test_data_loader.py"
+    if not loader_script.exists():
+        return jsonify({"success": False, "error": f"Script not found: {loader_script}"}), 404
+    try:
+        result = subprocess.run(
+            [sys.executable, str(loader_script), "--base-url", base_url, "--cleanup"],
+            capture_output=True, text=True, timeout=300, cwd=_WORKSPACE_ROOT,
+        )
+        return jsonify({
+            "success": result.returncode == 0,
+            "returncode": result.returncode,
+            "stdout": result.stdout[-5000:] if result.stdout else "",
+            "stderr": result.stderr[-2000:] if result.stderr else "",
+        })
+    except Exception as exc:
+        return jsonify({"success": False, "error": str(exc)}), 500
+
+
+@day2_bp.route("/api/day2/testrunner/history", methods=["GET"])
+def day2_testrunner_history():
+    """List past test runs (from in-memory store)."""
+    limit = int(request.args.get("limit", 25))
+    runs = sorted(_test_jobs.values(), key=lambda j: j.get("started_at") or 0, reverse=True)[:limit]
+    summary = []
+    for j in runs:
+        summary.append({
+            "job_id": j["job_id"],
+            "test_type": j["test_type"],
+            "base_url": j["base_url"],
+            "profile_name": j["profile_name"],
+            "status": j["status"],
+            "done": j["done"],
+            "total_pass": j["total_pass"],
+            "total_fail": j["total_fail"],
+            "elapsed": j.get("elapsed", 0),
+            "started_at": j.get("started_at"),
+        })
+    return jsonify({"runs": summary})

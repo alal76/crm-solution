@@ -1823,7 +1823,7 @@ if __name__ == "__main__":
     print("=" * 60)
     print()
     print(f"   Wizard:   http://localhost:{args.port}")
-    print(f"   Day-2:    http://localhost:{args.port}/day2")
+    print(f"   Monitoring: http://localhost:{args.port}/day2")
     print()
     print("   Press Ctrl+C to stop")
     print("=" * 60)

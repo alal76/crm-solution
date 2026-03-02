@@ -1,12 +1,13 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 55,
+  "patch": 56,
   "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.55 - Cloud-agnostic CDT — centralized runtime detection (core/constants.py) separating true K8s (AKS/EKS/GKE) from serverless (Container Apps/Fargate/Cloud Run); kubeconfig propagation to preflight/day2/probe kubectl commands for Azure/GCP parity with AWS; runtime-aware container/stack ops (kubectl scale/rollout/logs for K8s, docker for compose); serverless badge in Day-2 UI; pod image extraction for K8s version-info; infrastructure_action wired to KubernetesDeployer; 33 new tests (251 total)",
+  "description": "feat(cdt): v0.614.56 - Monitoring & Post Deployment — renamed Day-2 Ops to 'Monitoring & Post Deployment'; added Post-Install tab with 6 database operations (migrate, seed master data, reseed, seed/clear sample data, clear all); added Test Runner tab with BVT/CRUD loader/E2E/All test suites, real-time streaming output, pass/fail tracking, test history; added deploy_host to status/version-info API responses and Host badge in UI; fixed SSH Docker command quoting (shlex.quote) for remote monitoring; 279 tests (28 new)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
+    "v0.614.56: FEAT(cdt): Monitoring & Post Deployment — renamed Day-2 to Monitoring & Post Deployment; 6 post-install DB ops (migrate/seed/clear); Test Runner with BVT/CRUD/E2E suites; deploy_host in API + UI; SSH shlex.quote fix; 279 tests",
     "v0.614.49: FEAT(portal): implement PORTAL-020/021/024 notification and CSAT TODOs — PortalAuthService sends verification email via INotificationPort; PortalService sends ticket confirmation email; ServiceRequestService sends resolution notification and triggers CSAT survey on ResolveServiceRequestAsync; NavigationConfigService AdapterRegistry TODO replaced with NOSONAR",
     "v0.614.18: FEAT(cdt): Wizard template/profile auto-population \u2014 parse ?template=&?profile= URL params from landing page, auto-select discovery platform from template target.provider, pre-fill on-prem (host/port/user) and cloud (region/subscription/project) fields, populate config with architecture/database/providers/SSL/registry, pre-fill Step 1 name+description, show info banner for loaded template/profile",
     "TODO-SALES003-012: DunningSchedulerService \u2014 IHostedService, 4h interval, IServiceScopeFactory pattern, 10 unit tests",

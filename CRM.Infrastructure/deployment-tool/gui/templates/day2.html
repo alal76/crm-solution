@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CRM CDT - Day-2 Operations</title>
+    <title>CRM CDT - Monitoring &amp; Post Deployment</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
@@ -28,7 +28,7 @@
 <nav class="navbar navbar-dark bg-dark mb-4">
     <div class="container-fluid">
         <a class="navbar-brand" href="/"><i class="bi bi-cloud-arrow-up"></i> CRM CDT</a>
-        <span class="navbar-text text-light fw-bold">Day-2 Operations</span>
+        <span class="navbar-text text-light fw-bold">Monitoring &amp; Post Deployment</span>
         <div class="d-flex gap-2 align-items-center">
             <!-- Profile selector -->
             <select class="form-select form-select-sm bg-dark text-light border-secondary"
@@ -103,6 +103,7 @@
         <span id="stack-health-api" class="badge bg-secondary">API —</span>
         <span id="stack-health-db" class="badge bg-secondary">DB —</span>
         <span id="stack-health-redis" class="badge bg-secondary">Redis —</span>
+        <span class="badge bg-dark ms-2" id="stack-deploy-host" title="Target host"></span>
         <div class="ms-auto text-muted small" id="stack-deployed-at"></div>
     </div>
 
@@ -116,6 +117,8 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rollback"><i class="bi bi-arrow-counterclockwise"></i> Rollback</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-scale"><i class="bi bi-diagram-3"></i> Scale</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-secrets"><i class="bi bi-shield-lock"></i> Secrets</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-postinstall"><i class="bi bi-database-gear"></i> Post-Install</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-testrunner"><i class="bi bi-clipboard-check"></i> Test Runner</button></li>
     </ul>
 
     <div class="tab-content">
@@ -288,6 +291,175 @@
             </div>
         </div>
 
+        <!-- Post-Install Tab -->
+        <div class="tab-pane fade" id="tab-postinstall">
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="card-title mb-0"><i class="bi bi-database-gear"></i> Database Operations</h5>
+                                <div>
+                                    <span class="badge bg-secondary me-1" id="pi-db-status">DB: checking…</span>
+                                    <span class="text-muted small" id="pi-deploy-host"></span>
+                                </div>
+                            </div>
+                            <div class="alert alert-warning py-2 small mb-3">
+                                <i class="bi bi-exclamation-triangle"></i> These operations modify the deployed database directly. Use with caution on production environments.
+                            </div>
+                            <div class="row g-3">
+                                <!-- Migrate Database -->
+                                <div class="col-md-4">
+                                    <div class="card h-100 border-primary">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-arrow-up-circle fs-2 text-primary"></i>
+                                            <h6 class="mt-2">Migrate Database</h6>
+                                            <p class="text-muted small">Apply pending EF Core migrations to update the database schema.</p>
+                                            <button class="btn btn-primary w-100" onclick="postInstallAction('migrate-database', 'Migrate Database')">
+                                                <i class="bi bi-play-fill"></i> Run Migrations
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Seed Master Data -->
+                                <div class="col-md-4">
+                                    <div class="card h-100 border-success">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-database-fill-add fs-2 text-success"></i>
+                                            <h6 class="mt-2">Seed Master Data</h6>
+                                            <p class="text-muted small">Seed all master/reference data (countries, currencies, roles, etc.) in order.</p>
+                                            <button class="btn btn-success w-100" onclick="postInstallAction('seed-master-data', 'Seed Master Data')">
+                                                <i class="bi bi-play-fill"></i> Seed Master Data
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Reseed Core Data -->
+                                <div class="col-md-4">
+                                    <div class="card h-100 border-info">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-arrow-repeat fs-2 text-info"></i>
+                                            <h6 class="mt-2">Reseed Core Data</h6>
+                                            <p class="text-muted small">Reseed core data — refreshes default settings and system records.</p>
+                                            <button class="btn btn-info w-100" onclick="postInstallAction('reseed-data', 'Reseed Core Data')">
+                                                <i class="bi bi-play-fill"></i> Reseed
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Seed Sample Data -->
+                                <div class="col-md-4">
+                                    <div class="card h-100 border-secondary">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-people-fill fs-2 text-secondary"></i>
+                                            <h6 class="mt-2">Seed Sample Data</h6>
+                                            <p class="text-muted small">Seed demonstration data (accounts, contacts, opportunities, etc.).</p>
+                                            <button class="btn btn-secondary w-100" onclick="postInstallAction('seed-sample-data', 'Seed Sample Data')">
+                                                <i class="bi bi-play-fill"></i> Seed Samples
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Clear Sample Data -->
+                                <div class="col-md-4">
+                                    <div class="card h-100 border-warning">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-eraser-fill fs-2 text-warning"></i>
+                                            <h6 class="mt-2">Clear Sample Data</h6>
+                                            <p class="text-muted small">Remove sample data while keeping master/reference data intact.</p>
+                                            <button class="btn btn-warning w-100" onclick="postInstallActionConfirm('clear-sample-data', 'Clear Sample Data', 'This will remove all sample/demo data. Master data will be preserved.')">
+                                                <i class="bi bi-eraser"></i> Clear Samples
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Clear All Data -->
+                                <div class="col-md-4">
+                                    <div class="card h-100 border-danger">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-trash3-fill fs-2 text-danger"></i>
+                                            <h6 class="mt-2">Clear ALL Data</h6>
+                                            <p class="text-muted small">Delete ALL data from all tables. Requires confirmation. <strong>Irreversible!</strong></p>
+                                            <button class="btn btn-danger w-100" onclick="postInstallActionConfirm('clear-database', 'Clear ALL Data', 'This will DELETE ALL DATA in the database. This action is IRREVERSIBLE. Continue?')">
+                                                <i class="bi bi-trash3"></i> Clear Database
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3" id="pi-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Runner Tab -->
+        <div class="tab-pane fade" id="tab-testrunner">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-clipboard-check"></i> Run Tests</h5>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="tr-test-type">Test Suite</label>
+                                <select class="form-select" id="tr-test-type">
+                                    <option value="bvt">BVT — Health Checks Only</option>
+                                    <option value="crud_loader">CRUD Loader — Full Data Loader</option>
+                                    <option value="e2e">E2E — Playwright End-to-End</option>
+                                    <option value="all" selected>All — Run Everything</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="tr-base-url">Target URL</label>
+                                <input type="text" class="form-control" id="tr-base-url" placeholder="Auto-detect from profile">
+                                <div class="form-text">Leave empty to auto-detect from the selected profile.</div>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="tr-cleanup">
+                                <label class="form-check-label" for="tr-cleanup">Clean up test data after run</label>
+                            </div>
+                            <button class="btn btn-primary w-100 mb-2" onclick="startTestRun()" id="tr-start-btn">
+                                <i class="bi bi-play-circle"></i> Start Test Run
+                            </button>
+                            <button class="btn btn-outline-warning w-100" onclick="cleanupTestData()" id="tr-cleanup-btn">
+                                <i class="bi bi-eraser"></i> Clean Up Test Data Only
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-7">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title mb-0"><i class="bi bi-terminal"></i> Test Output</h5>
+                                <div>
+                                    <span class="badge bg-secondary" id="tr-status-badge">Idle</span>
+                                    <span class="badge bg-success" id="tr-pass-badge">Pass: 0</span>
+                                    <span class="badge bg-danger" id="tr-fail-badge">Fail: 0</span>
+                                </div>
+                            </div>
+                            <div class="progress mb-2" style="height:6px">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" id="tr-progress" style="width:0%"></div>
+                            </div>
+                            <div class="log-output" id="tr-output" style="height:350px;font-size:11px;">Waiting for test run…</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Test History</h5>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="loadTestHistory()"><i class="bi bi-arrow-clockwise"></i></button>
+                            </div>
+                            <div id="tr-history-table"><div class="text-muted small">No test runs yet.</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -305,7 +477,7 @@
     </div>
 </div>
 
-<footer class="text-center text-muted small py-4 mt-4">CRM CDT v0.614.15 — <a href="/profiles">Profiles</a> · <a href="/day2">Day-2</a></footer>
+<footer class="text-center text-muted small py-4 mt-4">CRM CDT — <a href="/profiles">Profiles</a> · <a href="/day2">Monitoring</a></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -419,6 +591,8 @@ async function loadStatus() {
         document.getElementById('stack-health-db').textContent = 'DB ' + (h.db ? '✓' : '—');
         document.getElementById('stack-health-redis').className = 'badge ' + (h.redis ? 'bg-success' : 'bg-secondary');
         document.getElementById('stack-health-redis').textContent = 'Redis ' + (h.redis ? '✓' : '—');
+        const hostBadge = document.getElementById('stack-deploy-host');
+        if (hostBadge) hostBadge.textContent = d.deploy_host ? `Host: ${d.deploy_host}` : 'Host: localhost';
         if (document.getElementById('upgrade-current-version'))
             document.getElementById('upgrade-current-version').textContent = d.crm_version || 'unknown';
 
@@ -789,6 +963,188 @@ function toggleAutoRefresh() {
 
 function refreshAll() { loadStatus(); loadVersionInfo(); }
 
+// ── Post-Install operations ────────────────────────────────────────────────
+async function loadPostInstallStatus() {
+    try {
+        const r = await fetch('/api/day2/postinstall/database-status' + _profileQS());
+        const d = await r.json();
+        const el = document.getElementById('pi-db-status');
+        if (el) {
+            el.textContent = `DB: ${d.db_status || 'unknown'}`;
+            el.className = 'badge me-1 ' + (d.db_status === 'healthy' ? 'bg-success' : d.db_status === 'unreachable' ? 'bg-danger' : 'bg-secondary');
+        }
+        const hostEl = document.getElementById('pi-deploy-host');
+        if (hostEl) hostEl.textContent = d.deploy_host ? `Target: ${d.deploy_host}` : 'Target: localhost';
+    } catch(e) { console.warn('Post-install status failed', e); }
+}
+
+async function postInstallAction(action, label) {
+    const resultEl = document.getElementById('pi-result');
+    resultEl.innerHTML = `<div class="alert alert-info"><i class="bi bi-hourglass-split"></i> Running: ${label}…</div>`;
+    try {
+        const r = await fetch(`/api/day2/postinstall/${action}${_profileQS()}`, { method: 'POST', headers: {'Content-Type': 'application/json'} });
+        const d = await r.json();
+        if (d.success) {
+            resultEl.innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle"></i> ${label} completed successfully.${d.data?.message ? ' ' + d.data.message : ''}</div>`;
+        } else {
+            resultEl.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> ${label} failed (HTTP ${d.status_code}).${d.data?.error ? ' ' + d.data.error : ''}<pre class="mt-2 mb-0 small">${JSON.stringify(d.data, null, 2)}</pre></div>`;
+        }
+        loadPostInstallStatus();
+    } catch(e) {
+        resultEl.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Request failed: ${e.message}</div>`;
+    }
+}
+
+function postInstallActionConfirm(action, label, msg) {
+    showConfirm(label, `<p>${msg}</p><p class="text-danger fw-bold">Are you sure?</p>`, () => postInstallAction(action, label));
+}
+
+// ── Test Runner ────────────────────────────────────────────────────────────
+let _testJobId = null;
+let _testPollTimer = null;
+
+async function startTestRun() {
+    const testType = document.getElementById('tr-test-type').value;
+    const baseUrl = document.getElementById('tr-base-url').value.trim() || undefined;
+    const cleanup = document.getElementById('tr-cleanup').checked;
+    const btn = document.getElementById('tr-start-btn');
+    const output = document.getElementById('tr-output');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Running…';
+    output.textContent = 'Starting test run…\n';
+    document.getElementById('tr-status-badge').textContent = 'Starting';
+    document.getElementById('tr-status-badge').className = 'badge bg-info';
+    document.getElementById('tr-progress').style.width = '5%';
+    document.getElementById('tr-pass-badge').textContent = 'Pass: 0';
+    document.getElementById('tr-fail-badge').textContent = 'Fail: 0';
+
+    try {
+        const r = await fetch(`/api/day2/testrunner/run${_profileQS()}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ test_type: testType, base_url: baseUrl, cleanup }),
+        });
+        const d = await r.json();
+        if (d.error) { output.textContent = 'Error: ' + d.error; btn.disabled = false; btn.innerHTML = '<i class="bi bi-play-circle"></i> Start Test Run'; return; }
+        _testJobId = d.job_id;
+        output.textContent += `Job: ${d.job_id}\nType: ${d.test_type}\nTarget: ${d.base_url}\n\n`;
+        _testPollTimer = setInterval(pollTestStatus, 2000);
+    } catch(e) {
+        output.textContent += 'Request failed: ' + e.message;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-play-circle"></i> Start Test Run';
+    }
+}
+
+async function pollTestStatus() {
+    if (!_testJobId) return;
+    try {
+        const r = await fetch(`/api/day2/testrunner/status/${_testJobId}`);
+        const d = await r.json();
+        const output = document.getElementById('tr-output');
+        const statusBadge = document.getElementById('tr-status-badge');
+        const passBadge = document.getElementById('tr-pass-badge');
+        const failBadge = document.getElementById('tr-fail-badge');
+        const progress = document.getElementById('tr-progress');
+
+        statusBadge.textContent = d.status;
+        statusBadge.className = 'badge ' + (d.status === 'completed' ? 'bg-success' : d.status === 'failed' ? 'bg-danger' : 'bg-info');
+        passBadge.textContent = `Pass: ${d.total_pass}`;
+        failBadge.textContent = `Fail: ${d.total_fail}`;
+
+        if (d.output_tail && d.output_tail.length) {
+            output.textContent = d.output_tail.join('\n');
+            output.scrollTop = output.scrollHeight;
+        }
+
+        if (!d.done) {
+            progress.style.width = Math.min(90, 5 + (d.elapsed || 0) / 3) + '%';
+        }
+
+        if (d.done) {
+            clearInterval(_testPollTimer);
+            _testPollTimer = null;
+            progress.style.width = '100%';
+            progress.classList.remove('progress-bar-animated');
+            const btn = document.getElementById('tr-start-btn');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-play-circle"></i> Start Test Run';
+            // Load full results
+            loadTestResults(_testJobId);
+            loadTestHistory();
+        }
+    } catch(e) { console.warn('Poll failed', e); }
+}
+
+async function loadTestResults(jobId) {
+    try {
+        const r = await fetch(`/api/day2/testrunner/results/${jobId}`);
+        const d = await r.json();
+        const output = document.getElementById('tr-output');
+        let text = `=== Test Results: ${d.test_type} ===\n`;
+        text += `Status: ${d.status} | Elapsed: ${d.elapsed}s\n`;
+        text += `Passed: ${d.total_pass} | Failed: ${d.total_fail}\n`;
+        text += '─'.repeat(60) + '\n';
+        (d.results || []).forEach(t => {
+            text += `${t.passed ? '✓' : '✗'} [${t.suite}] ${t.test}`;
+            if (t.expected !== undefined) text += ` (expected=${t.expected}, got=${t.actual})`;
+            if (t.error) text += ` ERROR: ${t.error}`;
+            text += '\n';
+        });
+        text += '─'.repeat(60) + '\n';
+        if (d.output && d.output.length) {
+            text += '\n=== Full Output ===\n' + d.output.join('\n');
+        }
+        output.textContent = text;
+        output.scrollTop = 0;
+    } catch(e) { console.warn('Results load failed', e); }
+}
+
+async function loadTestHistory() {
+    const el = document.getElementById('tr-history-table');
+    try {
+        const r = await fetch('/api/day2/testrunner/history');
+        const d = await r.json();
+        const runs = d.runs || [];
+        if (!runs.length) { el.innerHTML = '<div class="text-muted small">No test runs yet.</div>'; return; }
+        el.innerHTML = `<div class="table-responsive"><table class="table table-sm table-hover">
+            <thead class="table-light"><tr><th>Job</th><th>Type</th><th>Profile</th><th>Status</th><th>Pass</th><th>Fail</th><th>Duration</th><th>Actions</th></tr></thead>
+            <tbody>${runs.map(r => `<tr>
+                <td><code class="small">${r.job_id}</code></td>
+                <td>${r.test_type}</td>
+                <td>${r.profile_name || '—'}</td>
+                <td><span class="badge ${r.status === 'completed' ? 'bg-success' : r.status === 'failed' ? 'bg-danger' : 'bg-info'}">${r.status}</span></td>
+                <td class="text-success">${r.total_pass}</td>
+                <td class="${r.total_fail > 0 ? 'text-danger fw-bold' : ''}">${r.total_fail}</td>
+                <td>${r.elapsed ? r.elapsed + 's' : '—'}</td>
+                <td><button class="btn btn-sm btn-outline-secondary" onclick="loadTestResults('${r.job_id}')"><i class="bi bi-eye"></i></button></td>
+            </tr>`).join('')}</tbody></table></div>`;
+    } catch(e) { el.innerHTML = `<div class="alert alert-danger small">Load failed: ${e.message}</div>`; }
+}
+
+async function cleanupTestData() {
+    const btn = document.getElementById('tr-cleanup-btn');
+    const output = document.getElementById('tr-output');
+    showConfirm('Clean Up Test Data', 'This will run the test data cleanup script to remove all data created by the CRUD loader. Continue?', async () => {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Cleaning…';
+        output.textContent = 'Running cleanup…\n';
+        try {
+            const baseUrl = document.getElementById('tr-base-url').value.trim() || undefined;
+            const body = baseUrl ? { base_url: baseUrl } : {};
+            const r = await fetch(`/api/day2/testrunner/cleanup${_profileQS()}`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body),
+            });
+            const d = await r.json();
+            output.textContent += d.success ? '✓ Cleanup completed.\n' : `✗ Cleanup failed (exit ${d.returncode}).\n`;
+            if (d.stdout) output.textContent += '\n' + d.stdout;
+            if (d.stderr) output.textContent += '\nSTDERR:\n' + d.stderr;
+        } catch(e) { output.textContent += 'Error: ' + e.message; }
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-eraser"></i> Clean Up Test Data Only';
+    });
+}
+
 // ── Lazy-load tabs ─────────────────────────────────────────────────────────
 document.querySelectorAll('#day2Tabs button[data-bs-toggle="tab"]').forEach(btn => {
     btn.addEventListener('shown.bs.tab', e => {
@@ -797,6 +1153,8 @@ document.querySelectorAll('#day2Tabs button[data-bs-toggle="tab"]').forEach(btn 
         else if (t === '#tab-versions') loadVersionInfo();
         else if (t === '#tab-history') loadHistory();
         else if (t === '#tab-rollback') loadSnapshots();
+        else if (t === '#tab-postinstall') loadPostInstallStatus();
+        else if (t === '#tab-testrunner') loadTestHistory();
     });
 });
 
