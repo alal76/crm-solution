@@ -941,7 +941,7 @@
                     </div>
                 </div>
                 <div id="d2AdminMsg" class="mb-2" style="display:none;"></div>
-                <button class="btn btn-primary" onclick="day2SetAdminPassword()">
+                <button class="btn btn-primary" onclick="setAdminPwFrom('d2')">
                     <i class="bi bi-check-circle me-1"></i>Set Admin Password
                 </button>
             </div>
@@ -985,6 +985,39 @@
                 <div id="d2ImageHistory" class="mb-3">
                     <div class="text-muted small">Click Refresh to load image history.</div>
                 </div>
+
+                <hr>
+                <h6><i class="bi bi-person-lock me-1"></i>Set Admin Password</h6>
+                <p class="text-muted small mb-3">
+                    Update the CRM admin user credentials on the running deployment.
+                </p>
+                <div class="mb-2">
+                    <label class="form-label" for="monAdminUsername">Admin Username</label>
+                    <input type="text" class="form-control" id="monAdminUsername" value="admin" placeholder="admin">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="monAdminEmail">Admin Email</label>
+                    <input type="email" class="form-control" id="monAdminEmail" value="admin@crm.local" placeholder="admin@crm.local">
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="monAdminPassword">New Password</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="monAdminPassword" placeholder="Enter new password" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('monAdminPassword')"><i class="bi bi-eye"></i></button>
+                    </div>
+                    <div class="form-text">Minimum 8 characters, must include upper, lower, digit, and special character.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="monAdminPasswordConfirm">Confirm Password</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control" id="monAdminPasswordConfirm" placeholder="Confirm new password" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('monAdminPasswordConfirm')"><i class="bi bi-eye"></i></button>
+                    </div>
+                </div>
+                <div id="monAdminMsg" class="mb-2" style="display:none;"></div>
+                <button class="btn btn-primary" onclick="setAdminPwFrom('mon')">
+                    <i class="bi bi-check-circle me-1"></i>Set Admin Password
+                </button>
             </div>
 
             <!-- Day-2 log -->
@@ -3559,6 +3592,48 @@
                       <thead class="table-light"><tr><th>Check</th><th>Status</th><th>Details</th></tr></thead>
                       <tbody id="done-validation-tbody"></tbody>
                     </table>
+                  </div>
+                </div>
+              </div>
+
+                <!-- Set Admin Password (post-deploy) -->
+                <div id="pd-admin-card" class="card mb-3">
+                  <div class="card-header py-2">
+                    <i class="bi bi-person-lock me-1"></i> Set Admin Password
+                  </div>
+                  <div class="card-body">
+                    <p class="text-muted small mb-3">Update the CRM admin user credentials on the freshly deployed instance.</p>
+                    <div class="row g-2">
+                      <div class="col-md-4">
+                        <label class="form-label" for="pdAdminUsername">Username</label>
+                        <input type="text" class="form-control form-control-sm" id="pdAdminUsername" value="admin" placeholder="admin">
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label" for="pdAdminEmail">Email</label>
+                        <input type="email" class="form-control form-control-sm" id="pdAdminEmail" value="admin@crm.local" placeholder="admin@crm.local">
+                      </div>
+                    </div>
+                    <div class="row g-2 mt-1">
+                      <div class="col-md-4">
+                        <label class="form-label" for="pdAdminPassword">New Password</label>
+                        <div class="input-group input-group-sm">
+                          <input type="password" class="form-control" id="pdAdminPassword" placeholder="Enter new password" required>
+                          <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('pdAdminPassword')"><i class="bi bi-eye"></i></button>
+                        </div>
+                        <div class="form-text">Min 8 chars, upper+lower+digit+special.</div>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label" for="pdAdminPasswordConfirm">Confirm Password</label>
+                        <div class="input-group input-group-sm">
+                          <input type="password" class="form-control" id="pdAdminPasswordConfirm" placeholder="Confirm new password" required>
+                          <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVis('pdAdminPasswordConfirm')"><i class="bi bi-eye"></i></button>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="pdAdminMsg" class="mb-2 mt-2" style="display:none;"></div>
+                    <button class="btn btn-primary btn-sm mt-2" onclick="setAdminPwFrom('pd')">
+                      <i class="bi bi-check-circle me-1"></i>Set Admin Password
+                    </button>
                   </div>
                 </div>
               </div>
@@ -7817,6 +7892,41 @@ async function loadDay2ImageHistory() {
     } catch(e) {
         el.innerHTML = `<div class="alert alert-warning py-1 small">Could not load image history: ${e.message}</div>`;
     }
+}
+
+async function setAdminPwFrom(prefix) {
+    const msgEl  = document.getElementById(prefix + 'AdminMsg');
+    const username = (document.getElementById(prefix + 'AdminUsername')?.value || '').trim();
+    const email    = (document.getElementById(prefix + 'AdminEmail')?.value || '').trim();
+    const pw       = document.getElementById(prefix + 'AdminPassword')?.value || '';
+    const pwConf   = document.getElementById(prefix + 'AdminPasswordConfirm')?.value || '';
+    const showMsg  = (msg, type) => { if (msgEl) { msgEl.style.display = 'block'; msgEl.className = `mb-2 alert alert-${type} py-1 small`; msgEl.innerHTML = msg; } };
+
+    if (!username) { showMsg('Username is required.', 'warning'); return; }
+    if (!email)    { showMsg('Email is required.', 'warning'); return; }
+    if (!pw)       { showMsg('Password is required.', 'warning'); return; }
+    if (pw !== pwConf) { showMsg('Passwords do not match.', 'warning'); return; }
+    if (pw.length < 8) { showMsg('Password must be at least 8 characters.', 'warning'); return; }
+    const pwRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!pwRegex.test(pw)) { showMsg('Password must include uppercase, lowercase, digit, and special character.', 'warning'); return; }
+
+    showMsg('Setting admin password\u2026', 'info');
+    try {
+        const resp = await fetch('/api/day2/postinstall/set-admin-password', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password: pw }),
+        });
+        if (!resp.ok) {
+            let errMsg = 'HTTP ' + resp.status;
+            try { const d = await resp.json(); errMsg = d.error || d.message || errMsg; } catch(_){}
+            showMsg(errMsg, 'danger'); return;
+        }
+        const data = await resp.json();
+        showMsg(data.message || 'Admin password updated successfully.', 'success');
+        showToast('Admin password updated', 'success');
+        document.getElementById(prefix + 'AdminPassword').value = '';
+        document.getElementById(prefix + 'AdminPasswordConfirm').value = '';
+    } catch (e) { showMsg('Error: ' + e.message, 'danger'); }
 }
 
 async function day2SetAdminPassword() {

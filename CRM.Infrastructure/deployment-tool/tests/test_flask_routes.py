@@ -3733,3 +3733,90 @@ class TestIntegrationProviderGrid:
         for provider in ["builtin", "n8n", "zapier", "make"]:
             assert f'data-value="{provider}"' in html or provider in html.lower(), \
                 f"Integration provider option '{provider}' should exist"
+
+
+class TestAdminPasswordPlacements:
+    """Tests that Set Admin Password form appears in Secrets, Monitoring, and Post-Deployment."""
+
+    def test_admin_pw_in_monitoring_tab(self, client):
+        """Monitoring pane should contain a Set Admin Password form."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="monAdminPassword"' in html
+
+    def test_admin_pw_monitoring_has_username(self, client):
+        """Monitoring admin pw form should have a username field."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="monAdminUsername"' in html
+
+    def test_admin_pw_monitoring_has_email(self, client):
+        """Monitoring admin pw form should have an email field."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="monAdminEmail"' in html
+
+    def test_admin_pw_monitoring_has_confirm(self, client):
+        """Monitoring admin pw form should have a confirm password field."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="monAdminPasswordConfirm"' in html
+
+    def test_admin_pw_monitoring_position(self, client):
+        """Admin pw form in Monitoring should be inside day2-monitoring pane."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        mon_start = html.find('id="day2-monitoring"')
+        mon_admin = html.find('id="monAdminPassword"')
+        assert mon_start < mon_admin, "Admin pw form should be inside the Monitoring pane"
+
+    def test_admin_pw_in_post_deploy(self, client):
+        """Post-deployment Done step should contain a Set Admin Password form."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="pdAdminPassword"' in html
+
+    def test_admin_pw_post_deploy_has_username(self, client):
+        """Post-deploy admin pw form should have a username field."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="pdAdminUsername"' in html
+
+    def test_admin_pw_post_deploy_has_confirm(self, client):
+        """Post-deploy admin pw form should have a confirm password field."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert 'id="pdAdminPasswordConfirm"' in html
+
+    def test_admin_pw_post_deploy_position(self, client):
+        """Admin pw form should appear in the Done step after validation table."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        validation_pos = html.find('id="done-validation"')
+        pd_admin_pos = html.find('id="pd-admin-card"')
+        assert validation_pos < pd_admin_pos, \
+            "Post-deploy admin pw form should be after the validation table"
+
+    def test_shared_setadminpwfrom_function(self, client):
+        """The shared setAdminPwFrom JS function should exist."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert "function setAdminPwFrom" in html
+
+    def test_secrets_tab_uses_shared_function(self, client):
+        """Secrets tab should call setAdminPwFrom('d2')."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert "setAdminPwFrom('d2')" in html
+
+    def test_monitoring_tab_uses_shared_function(self, client):
+        """Monitoring tab should call setAdminPwFrom('mon')."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert "setAdminPwFrom('mon')" in html
+
+    def test_post_deploy_uses_shared_function(self, client):
+        """Post-deploy should call setAdminPwFrom('pd')."""
+        resp = client.get("/wizard")
+        html = resp.data.decode()
+        assert "setAdminPwFrom('pd')" in html

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 71,
+  "patch": 72,
   "lastUpdate": "2026-03-02",
-  "description": "fix(sonar): v0.614.71 - Fix 544 security hotspots (NOSONAR for AllowAnonymous/credentials/HTTP URLs; ReDoS regex timeouts; XSS sanitization; sonar exclusions for Migrations/appsettings); sonar-project.properties coverage path aligned to opencover format",
+  "description": "feat(cdt): v0.614.72 - Add Set Admin Password to Monitoring tab and Post-Deployment step; shared setAdminPwFrom JS function; 496 CDT tests passing",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
