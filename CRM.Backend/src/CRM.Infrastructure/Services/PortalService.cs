@@ -7,6 +7,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -21,11 +22,13 @@ public class PortalService : IPortalService
 {
     private readonly ICrmDbContext _db;
     private readonly ILogger<PortalService> _logger;
+    private readonly INotificationPort? _notificationPort;
 
-    public PortalService(ICrmDbContext db, ILogger<PortalService> logger)
+    public PortalService(ICrmDbContext db, ILogger<PortalService> logger, INotificationPort? notificationPort = null)
     {
         _db = db;
         _logger = logger;
+        _notificationPort = notificationPort;
     }
 
     // ── Tickets ───────────────────────────────────────────────────────────────
@@ -123,15 +126,25 @@ public class PortalService : IPortalService
         _db.ServiceRequests.Add(sr);
         await _db.SaveChangesAsync(ct);
 
-        // PORTAL-020: Ticket confirmation email (best-effort)
-        // TODO: Inject INotificationPort or IEmailService and send ticket confirmation: // NOSONAR
-        // try
-        // {
-        //     await _emailService.SendAsync(new EmailMessage { To = portalUser.Email,
-        //         Subject = $"Ticket {ticketNumber} created",
-        //         Body = $"Your support ticket has been created. Reference: {ticketNumber}" });
-        // }
-        // catch (Exception ex) { _logger.LogWarning(ex, "Failed to send ticket confirmation email"); }
+        // PORTAL-020: Ticket confirmation email (best-effort) // NOSONAR
+        if (_notificationPort != null)
+        {
+            try
+            {
+                await _notificationPort.SendEmailAsync(new EmailNotificationRequest
+                {
+                    To = portalUser.Email,
+                    ToName = portalUser.DisplayName,
+                    Subject = $"Ticket {ticketNumber} created",
+                    Body = $"<p>Your support ticket has been created.</p><p>Reference: <strong>{ticketNumber}</strong></p>",
+                    IsHtml = true
+                }, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send ticket confirmation email to {Email}", portalUser.Email);
+            }
+        }
 
         _logger.LogInformation("Portal ticket {TicketNumber} created by user {Email}", ticketNumber, portalUser.Email);
         return MapTicket(sr);
@@ -421,8 +434,7 @@ public class PortalService : IPortalService
         _logger.LogInformation("Portal user {UserId} cancelled ticket {TicketNumber}",
             portalUserId, sr.TicketNumber);
 
-        // PORTAL-024: CSAT is not triggered on cancellation, only on Resolved.
-        // TODO: Inject ISatisfactionService and call CreateSurveyAsync when ticket is Resolved. // NOSONAR
+        // PORTAL-024: CSAT is not triggered on cancellation — survey is sent on resolution via ServiceRequestService. // NOSONAR
     }
 
     // ── Config ────────────────────────────────────────────────────────────────

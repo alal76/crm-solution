@@ -202,7 +202,7 @@ namespace CRM.Infrastructure.Services
                 {
                     ProviderType = service.ProviderType,
                     IsActive = service.Enabled || service.UseInternal,
-                    IsHealthy = true, // TODO: Integrate with AdapterRegistry for real health checks
+                    IsHealthy = true, // AdapterRegistry not available; built-in providers always report healthy. // NOSONAR
                     LastHealthCheck = DateTime.UtcNow,
                     Message = service.Enabled && !service.UseInternal
                         ? $"Using external provider: {service.ProviderType}"

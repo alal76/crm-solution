@@ -10,6 +10,7 @@ using System.Text;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ public class PortalAuthService : IPortalAuthService
 {
     private readonly ICrmDbContext _db;
     private readonly ILogger<PortalAuthService> _logger;
+    private readonly INotificationPort? _notificationPort;
     private readonly string _jwtSecret;
     private readonly string _jwtIssuer;
     private readonly string _jwtAudience;
@@ -33,10 +35,12 @@ public class PortalAuthService : IPortalAuthService
     public PortalAuthService(
         ICrmDbContext db,
         ILogger<PortalAuthService> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        INotificationPort? notificationPort = null)
     {
         _db = db;
         _logger = logger;
+        _notificationPort = notificationPort;
         _jwtSecret = configuration["Jwt:Secret"]
             ?? "development-only-jwt-secret-key-minimum-32-chars";
         _jwtIssuer = configuration["Jwt:Issuer"] ?? "CRMApp";
@@ -125,16 +129,26 @@ public class PortalAuthService : IPortalAuthService
         _db.PortalUsers.Add(portalUser);
         await _db.SaveChangesAsync(ct);
 
-        // PORTAL-020: Email verification notification (best-effort)
-        // TODO: Inject INotificationPort or email service and send verification email: // NOSONAR
-        // try
-        // {
-        //     var verificationUrl = $"/portal/verify-email?token={portalUser.EmailVerificationToken}";
-        //     await _emailService.SendAsync(new EmailMessage { To = portalUser.Email,
-        //         Subject = "Verify your portal email",
-        //         Body = $"Please verify your email by clicking: {verificationUrl}" });
-        // }
-        // catch (Exception ex) { _logger.LogWarning(ex, "Failed to send verification email to {Email}", portalUser.Email); }
+        // PORTAL-020: Email verification notification (best-effort) // NOSONAR
+        if (_notificationPort != null)
+        {
+            try
+            {
+                var verificationUrl = $"/portal/verify-email?token={portalUser.EmailVerificationToken}";
+                await _notificationPort.SendEmailAsync(new EmailNotificationRequest
+                {
+                    To = portalUser.Email,
+                    ToName = portalUser.DisplayName,
+                    Subject = "Verify your portal email",
+                    Body = $"<p>Please verify your email address by visiting: <a href='{verificationUrl}'>{verificationUrl}</a></p>",
+                    IsHtml = true
+                }, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send verification email to {Email}", portalUser.Email);
+            }
+        }
 
         _logger.LogInformation("New portal user registered: {Email} (Id={Id})", portalUser.Email, portalUser.Id);
 

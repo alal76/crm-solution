@@ -7,8 +7,10 @@
 using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Enums;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -28,14 +30,23 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
     private readonly ICrmDbContext _context;
     private readonly ILogger<ServiceRequestService> _logger;
     private readonly NormalizationService _normalizationService;
+    private readonly INotificationPort? _notificationPort;
+    private readonly ISatisfactionService? _satisfactionService;
     private static int _ticketCounter = 0;
     private static bool _counterInitialized = false;
 
-    public ServiceRequestService(ICrmDbContext context, ILogger<ServiceRequestService> logger, NormalizationService normalizationService)
+    public ServiceRequestService(
+        ICrmDbContext context,
+        ILogger<ServiceRequestService> logger,
+        NormalizationService normalizationService,
+        INotificationPort? notificationPort = null,
+        ISatisfactionService? satisfactionService = null)
     {
         _context = context;
         _logger = logger;
         _normalizationService = normalizationService;
+        _notificationPort = notificationPort;
+        _satisfactionService = satisfactionService;
     }
 
     #region Helper Methods
@@ -767,10 +778,49 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         await _context.SaveChangesAsync();
 
-        // PORTAL-021/024: Best-effort portal notification and CSAT trigger on resolve.
-        // TODO: Inject INotificationPort via constructor to notify portal user of status change (PORTAL-021). // NOSONAR
-        // TODO: Inject ISatisfactionService via constructor and call CreateSurveyAsync(id) for CSAT (PORTAL-024). // NOSONAR
-        _logger.LogDebug("PORTAL-021/024: SR {TicketNumber} resolved — notification/CSAT hook placeholder", entity.TicketNumber);
+        // PORTAL-021/024: Best-effort portal notification and CSAT trigger on resolve. // NOSONAR
+        if (_notificationPort != null && !string.IsNullOrEmpty(entity.RequesterEmail))
+        {
+            try
+            {
+                await _notificationPort.SendEmailAsync(new EmailNotificationRequest
+                {
+                    To = entity.RequesterEmail,
+                    ToName = entity.RequesterName,
+                    Subject = $"Your ticket {entity.TicketNumber} has been resolved",
+                    Body = $"<p>Hi {entity.RequesterName ?? "there"},</p>" +
+                           $"<p>Your support ticket <strong>{entity.TicketNumber}</strong> has been resolved.</p>" +
+                           (string.IsNullOrEmpty(entity.ResolutionSummary)
+                               ? string.Empty
+                               : $"<p><strong>Resolution:</strong> {entity.ResolutionSummary}</p>"),
+                    IsHtml = true
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send resolution notification for ticket {TicketNumber}", entity.TicketNumber);
+            }
+        }
+
+        if (_satisfactionService != null)
+        {
+            try
+            {
+                await _satisfactionService.CreateSurveyAsync(new CreateSatisfactionSurveyDto
+                {
+                    EntityType = "ServiceRequest",
+                    EntityId = entity.Id,
+                    Type = SurveyType.CSAT,
+                    ContactId = entity.ContactId,
+                    AccountId = entity.AccountId,
+                    Subject = $"How was our service for ticket {entity.TicketNumber}?"
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create CSAT survey for ticket {TicketNumber}", entity.TicketNumber);
+            }
+        }
 
         _logger.LogInformation("Resolved service request {TicketNumber}", entity.TicketNumber);
 
