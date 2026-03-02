@@ -22,11 +22,11 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/admin/config/crm")]
 [RequireRole(UserRole.Admin)]
-public class CRMConfigurationController : CrmControllerBase
+public class CrmConfigurationController : CrmControllerBase
 {
     private readonly ICRMConfigurationService _crmConfig;
 
-    public CRMConfigurationController(
+    public CrmConfigurationController(
         ICRMConfigurationService crmConfig)
     {
         _crmConfig = crmConfig;
@@ -62,7 +62,7 @@ public class CRMConfigurationController : CrmControllerBase
     {
         try
         {
-            var userId = GetUserId();
+            var userId = GetUserId(User);
             await _crmConfig.UpdateAIProviderAsync(provider, config, userId, ct);
             return NoContent();
         }
@@ -104,7 +104,7 @@ public class CRMConfigurationController : CrmControllerBase
     {
         try
         {
-            var userId = GetUserId();
+            var userId = GetUserId(User);
             await _crmConfig.UpdateIntegrationAsync(type, provider, config, userId, ct);
             return NoContent();
         }
@@ -143,7 +143,7 @@ public class CRMConfigurationController : CrmControllerBase
     {
         try
         {
-            var userId = GetUserId();
+            var userId = GetUserId(User);
             await _crmConfig.UpdateWorkerConfigAsync(config, userId, ct);
             return NoContent();
         }
@@ -167,7 +167,7 @@ public class CRMConfigurationController : CrmControllerBase
     {
         try
         {
-            var userId = GetUserId();
+            var userId = GetUserId(User);
             await _crmConfig.UpdateAIAgentsAsync(agents, userId, ct);
             return NoContent();
         }
@@ -181,9 +181,9 @@ public class CRMConfigurationController : CrmControllerBase
 
     #region Helpers
 
-    private int GetUserId()
+    private static int GetUserId(System.Security.Claims.ClaimsPrincipal user)
     {
-        var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        var claim = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
         return claim != null ? int.Parse(claim.Value) : 0;
     }
 

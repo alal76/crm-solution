@@ -17,6 +17,31 @@ using CRM.Api.Infrastructure;
 namespace CRM.Api.Controllers;
 
 /// <summary>
+/// Query parameters for filtering messages in GetMessages.
+/// Grouped into a parameter object to stay within the allowed parameter count.
+/// </summary>
+public sealed class MessagesFilter
+{
+    /// <summary>Filter by channel type (Email, WhatsApp, Twitter, Facebook, SMS, LinkedIn).</summary>
+    public string? ChannelType { get; set; }
+
+    /// <summary>Filter by message direction (Inbound, Outbound).</summary>
+    public string? Direction { get; set; }
+
+    /// <summary>Filter by message status (Sending, Sent, Delivered, Failed, etc.).</summary>
+    public string? Status { get; set; }
+
+    /// <summary>When true, returns only unread messages.</summary>
+    public bool? UnreadOnly { get; set; }
+
+    /// <summary>Filter by linked account ID.</summary>
+    public int? AccountId { get; set; }
+
+    /// <summary>Filter by linked contact ID.</summary>
+    public int? ContactId { get; set; }
+}
+
+/// <summary>
 /// Controller for managing communication channels and unified messaging
 /// Supports Email, WhatsApp, X (Twitter), and Facebook
 /// </summary>
@@ -242,44 +267,29 @@ public class CommunicationsController : CrmControllerBase
         channel.UpdatedAt = DateTime.UtcNow;
 
         // Only update credentials if provided (non-null)
-        if (!string.IsNullOrEmpty(dto.ApiKey))
-        {
-            channel.ApiKey = dto.ApiKey;
-        }
-        if (!string.IsNullOrEmpty(dto.ApiSecret))
-        {
-            channel.ApiSecret = dto.ApiSecret;
-        }
-        if (!string.IsNullOrEmpty(dto.ClientId))
-        {
-            channel.ClientId = dto.ClientId;
-        }
-        if (!string.IsNullOrEmpty(dto.ClientSecret))
-        {
-            channel.ClientSecret = dto.ClientSecret;
-        }
-        if (!string.IsNullOrEmpty(dto.AccessToken))
-        {
-            channel.AccessToken = dto.AccessToken;
-        }
-        if (!string.IsNullOrEmpty(dto.RefreshToken))
-        {
-            channel.RefreshToken = dto.RefreshToken;
-        }
-        if (!string.IsNullOrEmpty(dto.SmtpPassword))
-        {
-            channel.SmtpPassword = dto.SmtpPassword;
-        }
-        if (!string.IsNullOrEmpty(dto.PageAccessToken))
-        {
-            channel.PageAccessToken = dto.PageAccessToken;
-        }
+        UpdateChannelCredentials(channel, dto);
 
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated communication channel {ChannelId}", id);
 
         return Ok(await GetChannel(id));
+    }
+
+    /// <summary>
+    /// Updates only the non-empty credential fields from the DTO onto the channel entity.
+    /// Extracted to reduce cognitive complexity of UpdateChannel.
+    /// </summary>
+    private static void UpdateChannelCredentials(CommunicationChannel channel, CommunicationChannelCreateDto dto)
+    {
+        if (!string.IsNullOrEmpty(dto.ApiKey)) channel.ApiKey = dto.ApiKey;
+        if (!string.IsNullOrEmpty(dto.ApiSecret)) channel.ApiSecret = dto.ApiSecret;
+        if (!string.IsNullOrEmpty(dto.ClientId)) channel.ClientId = dto.ClientId;
+        if (!string.IsNullOrEmpty(dto.ClientSecret)) channel.ClientSecret = dto.ClientSecret;
+        if (!string.IsNullOrEmpty(dto.AccessToken)) channel.AccessToken = dto.AccessToken;
+        if (!string.IsNullOrEmpty(dto.RefreshToken)) channel.RefreshToken = dto.RefreshToken;
+        if (!string.IsNullOrEmpty(dto.SmtpPassword)) channel.SmtpPassword = dto.SmtpPassword;
+        if (!string.IsNullOrEmpty(dto.PageAccessToken)) channel.PageAccessToken = dto.PageAccessToken;
     }
 
     /// <summary>
@@ -550,8 +560,7 @@ public class CommunicationsController : CrmControllerBase
 
         try
         {
-            // In production, would verify LinkedIn OAuth token:
-            // var response = await _httpClient.GetAsync("https://api.linkedin.com/v2/me", authHeaders);
+            // In production, verify LinkedIn OAuth token via the LinkedIn API.
             _logger.LogInformation("LinkedIn channel {ChannelId} connection test validated", channel.Id);
 
             return new ChannelTestResult
@@ -583,6 +592,29 @@ public class CommunicationsController : CrmControllerBase
             ChannelType.LinkedIn => await SendLinkedInAsync(channel, message),
             _ => new MessageSendResult { Success = false, ErrorMessage = "Unknown channel type" }
         };
+    }
+
+    /// <summary>
+    /// Attempts to send an immediate (non-scheduled) message and updates the message entity with the result.
+    /// Extracted to reduce cognitive complexity of SendMessage.
+    /// </summary>
+    private async Task ApplySendResultAsync(CommunicationChannel channel, CommunicationMessage message, DateTime? scheduledAt)
+    {
+        if (scheduledAt.HasValue) return;
+
+        var sendResult = await SendMessageViaChannelAsync(channel, message);
+        if (sendResult.Success)
+        {
+            message.Status = MessageStatus.Sent;
+            message.SentAt = DateTime.UtcNow;
+            message.ExternalMessageId = sendResult.ExternalMessageId;
+        }
+        else
+        {
+            message.Status = MessageStatus.Failed;
+            message.ErrorMessage = sendResult.ErrorMessage;
+            _logger.LogWarning("Failed to send message {MessageId}: {Error}", message.Id, sendResult.ErrorMessage);
+        }
     }
 
     /// <summary>
@@ -775,46 +807,41 @@ public class CommunicationsController : CrmControllerBase
     [HttpGet("messages")]
     [ProducesResponseType(typeof(List<CommunicationMessageListDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CommunicationMessageListDto>>> GetMessages(
-        [FromQuery] string? channelType = null,
-        [FromQuery] string? direction = null,
-        [FromQuery] string? status = null,
-        [FromQuery] bool? unreadOnly = null,
-        [FromQuery] int? accountId = null,
-        [FromQuery] int? contactId = null,
+        [FromQuery] MessagesFilter filter,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
     {
                 var query = _context.CommunicationMessages
             .Where(m => !m.IsDeleted && !m.IsArchived);
 
-        if (!string.IsNullOrEmpty(channelType) && Enum.TryParse<ChannelType>(channelType, true, out var ct))
+        if (!string.IsNullOrEmpty(filter.ChannelType) && Enum.TryParse<ChannelType>(filter.ChannelType, true, out var ct))
         {
             query = query.Where(m => m.ChannelType == ct);
         }
 
-        if (!string.IsNullOrEmpty(direction) && Enum.TryParse<MessageDirection>(direction, true, out var dir))
+        if (!string.IsNullOrEmpty(filter.Direction) && Enum.TryParse<MessageDirection>(filter.Direction, true, out var dir))
         {
             query = query.Where(m => m.Direction == dir);
         }
 
-        if (!string.IsNullOrEmpty(status) && Enum.TryParse<MessageStatus>(status, true, out var st))
+        if (!string.IsNullOrEmpty(filter.Status) && Enum.TryParse<MessageStatus>(filter.Status, true, out var st))
         {
             query = query.Where(m => m.Status == st);
         }
 
-        if (unreadOnly == true)
+        if (filter.UnreadOnly == true)
         {
             query = query.Where(m => !m.IsRead);
         }
 
-        if (accountId.HasValue)
+        if (filter.AccountId.HasValue)
         {
-            query = query.Where(m => m.AccountId == accountId);
+            query = query.Where(m => m.AccountId == filter.AccountId);
         }
 
-        if (contactId.HasValue)
+        if (filter.ContactId.HasValue)
         {
-            query = query.Where(m => m.ContactId == contactId);
+            query = query.Where(m => m.ContactId == filter.ContactId);
         }
 
         var messages = await query
@@ -826,7 +853,7 @@ public class CommunicationsController : CrmControllerBase
                 Id = m.Id,
                 ChannelType = m.ChannelType.ToString(),
                 Subject = m.Subject,
-                BodyPreview = m.Body == null ? null : m.Body.Length > 100 ? m.Body.Substring(0, 100) + "..." : m.Body,
+                BodyPreview = m.Body != null && m.Body.Length > 100 ? m.Body.Substring(0, 100) + "..." : m.Body,
                 Direction = m.Direction.ToString(),
                 Status = m.Status.ToString(),
                 FromAddress = m.FromAddress,
@@ -973,33 +1000,24 @@ public class CommunicationsController : CrmControllerBase
         };
 
         // Send via channel-specific service
-        if (!dto.ScheduledAt.HasValue)
-        {
-            var sendResult = await SendMessageViaChannelAsync(channel, message);
-            if (sendResult.Success)
-            {
-                message.Status = MessageStatus.Sent;
-                message.SentAt = DateTime.UtcNow;
-                message.ExternalMessageId = sendResult.ExternalMessageId;
-            }
-            else
-            {
-                message.Status = MessageStatus.Failed;
-                message.ErrorMessage = sendResult.ErrorMessage;
-                _logger.LogWarning("Failed to send message {MessageId}: {Error}", message.Id, sendResult.ErrorMessage);
-            }
-        }
+        await ApplySendResultAsync(channel, message, dto.ScheduledAt);
 
         _context.CommunicationMessages.Add(message);
         await _context.SaveChangesAsync();
 
         // Create activity record
+        string? entityType;
+        if (dto.AccountId.HasValue) entityType = "Customer";
+        else if (dto.ContactId.HasValue) entityType = "Contact";
+        else if (dto.LeadId.HasValue) entityType = "Lead";
+        else entityType = null;
+
         var activity = new Activity
         {
             ActivityType = channel.ChannelType == ChannelType.Email ? ActivityType.EmailSent : ActivityType.ChatMessage,
             Title = $"Message sent via {channel.ChannelType}",
             Description = dto.Subject ?? dto.Body?.Substring(0, Math.Min(100, dto.Body.Length)),
-            EntityType = dto.AccountId.HasValue ? "Customer" : dto.ContactId.HasValue ? "Contact" : dto.LeadId.HasValue ? "Lead" : null,
+            EntityType = entityType,
             EntityId = dto.AccountId ?? dto.ContactId ?? dto.LeadId,
             ActivityDate = DateTime.UtcNow
         };
@@ -1479,7 +1497,7 @@ public class CommunicationsController : CrmControllerBase
     /// <summary>
     /// Result of a channel connection test.
     /// </summary>
-    private class ChannelTestResult
+    private sealed class ChannelTestResult
     {
         public bool Success { get; set; }
         public string Message { get; set; } = string.Empty;
@@ -1490,7 +1508,7 @@ public class CommunicationsController : CrmControllerBase
     /// <summary>
     /// Result of sending a message via external service.
     /// </summary>
-    private class MessageSendResult
+    private sealed class MessageSendResult
     {
         public bool Success { get; set; }
         public string? ExternalMessageId { get; set; }

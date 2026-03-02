@@ -68,13 +68,9 @@ public class DashboardLayoutController : CrmControllerBase
     {
         // Only allow users to update their own layout (unless admin)
         var callerClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (!int.TryParse(callerClaim, out var callerId) || callerId != userId)
+        if ((!int.TryParse(callerClaim, out var callerId) || callerId != userId) && !User.IsInRole("Admin"))
         {
-            // Check if the caller is an admin
-            if (!User.IsInRole("Admin"))
-            {
-                return Forbid();
-            }
+            return Forbid();
         }
 
         var existing = await _db.UserDashboardLayouts

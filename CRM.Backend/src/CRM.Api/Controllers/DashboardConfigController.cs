@@ -24,6 +24,12 @@ namespace CRM.Api.Controllers;
 public class DashboardConfigController : CrmControllerBase
 {
     private const string DashboardNotFoundMessage = "Dashboard not found";
+    private const string CategoryAccounts = "Accounts";
+    private const string CategoryOpportunities = "Opportunities";
+    private const string CategoryTasks = "Tasks";
+    private const string CategoryService = "Service";
+    private const string TypeCount = "count";
+    private const string TypeDistribution = "distribution";
 
     private readonly CrmDbContext _context;
     private readonly ILogger<DashboardConfigController> _logger;
@@ -375,57 +381,28 @@ public class DashboardConfigController : CrmControllerBase
             }
         }
 
-        if (!string.IsNullOrWhiteSpace(dto.Name))
-        {
-            dashboard.Name = dto.Name;
-        }
-        if (dto.Description != null)
-        {
-            dashboard.Description = dto.Description;
-        }
-        if (dto.IsDefault.HasValue)
-        {
-            dashboard.IsDefault = dto.IsDefault.Value;
-        }
-        if (dto.IsActive.HasValue)
-        {
-            dashboard.IsActive = dto.IsActive.Value;
-        }
-        if (!string.IsNullOrWhiteSpace(dto.IconName))
-        {
-            dashboard.IconName = dto.IconName;
-        }
-        if (dto.DisplayOrder.HasValue)
-        {
-            dashboard.DisplayOrder = dto.DisplayOrder.Value;
-        }
-        if (dto.ColumnCount.HasValue)
-        {
-            dashboard.ColumnCount = dto.ColumnCount.Value;
-        }
-        if (dto.RefreshIntervalSeconds.HasValue)
-        {
-            dashboard.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
-        }
-        if (dto.LayoutConfig != null)
-        {
-            dashboard.LayoutConfig = dto.LayoutConfig;
-        }
-        if (dto.Visibility != null && Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis))
-        {
-            dashboard.Visibility = vis;
-        }
-        if (dto.AllowedRoles != null)
-        {
-            dashboard.AllowedRoles = dto.AllowedRoles;
-        }
-
+        ApplyDashboardFieldUpdates(dashboard, dto);
         dashboard.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Dashboard {Id} updated", id);
 
         return Ok(new { message = "Dashboard updated successfully" });
+    }
+
+    private static void ApplyDashboardFieldUpdates(Dashboard dashboard, UpdateDashboardDto dto)
+    {
+        if (!string.IsNullOrWhiteSpace(dto.Name)) dashboard.Name = dto.Name;
+        if (dto.Description != null) dashboard.Description = dto.Description;
+        if (dto.IsDefault.HasValue) dashboard.IsDefault = dto.IsDefault.Value;
+        if (dto.IsActive.HasValue) dashboard.IsActive = dto.IsActive.Value;
+        if (!string.IsNullOrWhiteSpace(dto.IconName)) dashboard.IconName = dto.IconName;
+        if (dto.DisplayOrder.HasValue) dashboard.DisplayOrder = dto.DisplayOrder.Value;
+        if (dto.ColumnCount.HasValue) dashboard.ColumnCount = dto.ColumnCount.Value;
+        if (dto.RefreshIntervalSeconds.HasValue) dashboard.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
+        if (dto.LayoutConfig != null) dashboard.LayoutConfig = dto.LayoutConfig;
+        if (dto.Visibility != null && Enum.TryParse<DashboardVisibility>(dto.Visibility, out var vis)) dashboard.Visibility = vis;
+        if (dto.AllowedRoles != null) dashboard.AllowedRoles = dto.AllowedRoles;
     }
 
     /// <summary>
@@ -569,85 +546,40 @@ public class DashboardConfigController : CrmControllerBase
             return NotFound(new { message = "Widget not found" });
         }
 
-        if (!string.IsNullOrWhiteSpace(dto.Title))
-        {
-            widget.Title = dto.Title;
-        }
-        if (dto.Subtitle != null)
-        {
-            widget.Subtitle = dto.Subtitle;
-        }
-        if (dto.WidgetType != null && Enum.TryParse<WidgetType>(dto.WidgetType, out var wt))
-        {
-            widget.WidgetType = wt;
-        }
-        if (dto.DataSource != null)
-        {
-            widget.DataSource = dto.DataSource;
-        }
-        if (dto.RowIndex.HasValue)
-        {
-            widget.RowIndex = dto.RowIndex.Value;
-        }
-        if (dto.ColumnIndex.HasValue)
-        {
-            widget.ColumnIndex = dto.ColumnIndex.Value;
-        }
-        if (dto.ColumnSpan.HasValue)
-        {
-            widget.ColumnSpan = dto.ColumnSpan.Value;
-        }
-        if (dto.RowSpan.HasValue)
-        {
-            widget.RowSpan = dto.RowSpan.Value;
-        }
-        if (dto.DisplayOrder.HasValue)
-        {
-            widget.DisplayOrder = dto.DisplayOrder.Value;
-        }
-        if (dto.IsVisible.HasValue)
-        {
-            widget.IsVisible = dto.IsVisible.Value;
-        }
-        if (dto.IconName != null)
-        {
-            widget.IconName = dto.IconName;
-        }
-        if (dto.Color != null)
-        {
-            widget.Color = dto.Color;
-        }
-        if (dto.BackgroundColor != null)
-        {
-            widget.BackgroundColor = dto.BackgroundColor;
-        }
-        if (dto.NavigationLink != null)
-        {
-            widget.NavigationLink = dto.NavigationLink;
-        }
-        if (dto.ConfigJson != null)
-        {
-            widget.ConfigJson = dto.ConfigJson;
-        }
-        if (dto.ShowTrend.HasValue)
-        {
-            widget.ShowTrend = dto.ShowTrend.Value;
-        }
-        if (dto.TrendPeriodDays.HasValue)
-        {
-            widget.TrendPeriodDays = dto.TrendPeriodDays.Value;
-        }
-        if (dto.RefreshIntervalSeconds.HasValue)
-        {
-            widget.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
-        }
-
+        ApplyWidgetPositionFields(widget, dto);
+        ApplyWidgetStyleFields(widget, dto);
         widget.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Widget {Id} updated", id);
 
         return Ok(new { message = "Widget updated successfully" });
+    }
+
+    private static void ApplyWidgetPositionFields(DashboardWidget widget, UpdateWidgetDto dto)
+    {
+        if (!string.IsNullOrWhiteSpace(dto.Title)) widget.Title = dto.Title;
+        if (dto.Subtitle != null) widget.Subtitle = dto.Subtitle;
+        if (dto.WidgetType != null && Enum.TryParse<WidgetType>(dto.WidgetType, out var wt)) widget.WidgetType = wt;
+        if (dto.DataSource != null) widget.DataSource = dto.DataSource;
+        if (dto.RowIndex.HasValue) widget.RowIndex = dto.RowIndex.Value;
+        if (dto.ColumnIndex.HasValue) widget.ColumnIndex = dto.ColumnIndex.Value;
+        if (dto.ColumnSpan.HasValue) widget.ColumnSpan = dto.ColumnSpan.Value;
+        if (dto.RowSpan.HasValue) widget.RowSpan = dto.RowSpan.Value;
+        if (dto.DisplayOrder.HasValue) widget.DisplayOrder = dto.DisplayOrder.Value;
+        if (dto.IsVisible.HasValue) widget.IsVisible = dto.IsVisible.Value;
+    }
+
+    private static void ApplyWidgetStyleFields(DashboardWidget widget, UpdateWidgetDto dto)
+    {
+        if (dto.IconName != null) widget.IconName = dto.IconName;
+        if (dto.Color != null) widget.Color = dto.Color;
+        if (dto.BackgroundColor != null) widget.BackgroundColor = dto.BackgroundColor;
+        if (dto.NavigationLink != null) widget.NavigationLink = dto.NavigationLink;
+        if (dto.ConfigJson != null) widget.ConfigJson = dto.ConfigJson;
+        if (dto.ShowTrend.HasValue) widget.ShowTrend = dto.ShowTrend.Value;
+        if (dto.TrendPeriodDays.HasValue) widget.TrendPeriodDays = dto.TrendPeriodDays.Value;
+        if (dto.RefreshIntervalSeconds.HasValue) widget.RefreshIntervalSeconds = dto.RefreshIntervalSeconds.Value;
     }
 
     /// <summary>
@@ -729,43 +661,43 @@ public class DashboardConfigController : CrmControllerBase
     {
         var dataSources = new[]
         {
-            new { id = "accounts.count", name = "Account Count", category = "Accounts", type = "count" },
-            new { id = "accounts.new_this_month", name = "New Accounts This Month", category = "Accounts", type = "count" },
-            new { id = "accounts.by_lifecycle", name = "Accounts by Lifecycle Stage", category = "Accounts", type = "distribution" },
+            new { id = "accounts.count", name = "Account Count", category = CategoryAccounts, type = TypeCount },
+            new { id = "accounts.new_this_month", name = "New Accounts This Month", category = CategoryAccounts, type = TypeCount },
+            new { id = "accounts.by_lifecycle", name = "Accounts by Lifecycle Stage", category = CategoryAccounts, type = TypeDistribution },
 
-            new { id = "contacts.count", name = "Contact Count", category = "Contacts", type = "count" },
+            new { id = "contacts.count", name = "Contact Count", category = "Contacts", type = TypeCount },
 
-            new { id = "opportunities.count", name = "Opportunity Count", category = "Opportunities", type = "count" },
-            new { id = "opportunities.pipeline_value", name = "Pipeline Value", category = "Opportunities", type = "currency" },
-            new { id = "opportunities.won_value", name = "Won Value", category = "Opportunities", type = "currency" },
-            new { id = "opportunities.by_stage", name = "Opportunities by Stage", category = "Opportunities", type = "distribution" },
-            new { id = "opportunities.pipeline_trend", name = "Pipeline Trend", category = "Opportunities", type = "trend" },
-            new { id = "opportunities.close_forecast", name = "Expected Closings", category = "Opportunities", type = "forecast" },
-            new { id = "opportunities.recent", name = "Recent Opportunities", category = "Opportunities", type = "list" },
+            new { id = "opportunities.count", name = "Opportunity Count", category = CategoryOpportunities, type = TypeCount },
+            new { id = "opportunities.pipeline_value", name = "Pipeline Value", category = CategoryOpportunities, type = "currency" },
+            new { id = "opportunities.won_value", name = "Won Value", category = CategoryOpportunities, type = "currency" },
+            new { id = "opportunities.by_stage", name = "Opportunities by Stage", category = CategoryOpportunities, type = TypeDistribution },
+            new { id = "opportunities.pipeline_trend", name = "Pipeline Trend", category = CategoryOpportunities, type = "trend" },
+            new { id = "opportunities.close_forecast", name = "Expected Closings", category = CategoryOpportunities, type = "forecast" },
+            new { id = "opportunities.recent", name = "Recent Opportunities", category = CategoryOpportunities, type = "list" },
 
-            new { id = "campaigns.count", name = "Campaign Count", category = "Marketing", type = "count" },
-            new { id = "campaigns.active", name = "Active Campaigns", category = "Marketing", type = "count" },
+            new { id = "campaigns.count", name = "Campaign Count", category = "Marketing", type = TypeCount },
+            new { id = "campaigns.active", name = "Active Campaigns", category = "Marketing", type = TypeCount },
             new { id = "campaigns.budget_total", name = "Total Budget", category = "Marketing", type = "currency" },
 
-            new { id = "tasks.count", name = "Task Count", category = "Tasks", type = "count" },
-            new { id = "tasks.pending", name = "Pending Tasks", category = "Tasks", type = "count" },
-            new { id = "tasks.overdue", name = "Overdue Tasks", category = "Tasks", type = "count" },
-            new { id = "tasks.my_tasks", name = "My Tasks", category = "Tasks", type = "list" },
+            new { id = "tasks.count", name = "Task Count", category = CategoryTasks, type = TypeCount },
+            new { id = "tasks.pending", name = "Pending Tasks", category = CategoryTasks, type = TypeCount },
+            new { id = "tasks.overdue", name = "Overdue Tasks", category = CategoryTasks, type = TypeCount },
+            new { id = "tasks.my_tasks", name = "My Tasks", category = CategoryTasks, type = "list" },
 
-            new { id = "service_requests.count", name = "Service Request Count", category = "Service", type = "count" },
-            new { id = "service_requests.open", name = "Open Requests", category = "Service", type = "count" },
-            new { id = "service_requests.by_status", name = "Requests by Status", category = "Service", type = "distribution" },
-            new { id = "service_requests.by_priority", name = "Requests by Priority", category = "Service", type = "distribution" },
+            new { id = "service_requests.count", name = "Service Request Count", category = CategoryService, type = TypeCount },
+            new { id = "service_requests.open", name = "Open Requests", category = CategoryService, type = TypeCount },
+            new { id = "service_requests.by_status", name = "Requests by Status", category = CategoryService, type = TypeDistribution },
+            new { id = "service_requests.by_priority", name = "Requests by Priority", category = CategoryService, type = TypeDistribution },
 
-            new { id = "products.count", name = "Product Count", category = "Products", type = "count" },
-            new { id = "products.active", name = "Active Products", category = "Products", type = "count" },
+            new { id = "products.count", name = "Product Count", category = "Products", type = TypeCount },
+            new { id = "products.active", name = "Active Products", category = "Products", type = TypeCount },
 
-            new { id = "users.active", name = "Active Users", category = "Users", type = "count" },
+            new { id = "users.active", name = "Active Users", category = "Users", type = TypeCount },
 
             new { id = "activities.recent", name = "Recent Activities", category = "Activities", type = "list" },
 
-            new { id = "leads.count", name = "Lead Count", category = "Leads", type = "count" },
-            new { id = "leads.this_month", name = "Leads This Month", category = "Leads", type = "count" },
+            new { id = "leads.count", name = "Lead Count", category = "Leads", type = TypeCount },
+            new { id = "leads.this_month", name = "Leads This Month", category = "Leads", type = TypeCount },
             new { id = "leads.conversion_rate", name = "Lead Conversion Rate", category = "Leads", type = "percentage" }
         };
 
@@ -809,7 +741,7 @@ public class DashboardConfigController : CrmControllerBase
         {
             new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Total Pipeline", DataSource = "opportunities.pipeline_value", WidgetType = WidgetType.StatCard, IconName = "TrendingUp", Color = "#6750A4", ColumnSpan = 1, DisplayOrder = 1, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow },
             new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Won Revenue", DataSource = "opportunities.won_value", WidgetType = WidgetType.StatCard, IconName = "AttachMoney", Color = "#06A77D", ColumnSpan = 1, DisplayOrder = 2, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow },
-            new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Accounts", DataSource = "accounts.count", WidgetType = WidgetType.StatCard, IconName = "People", Color = "#0092BC", ColumnSpan = 1, DisplayOrder = 3, NavigationLink = "/accounts", CreatedAt = DateTime.UtcNow },
+            new DashboardWidget { DashboardId = salesDashboard.Id, Title = CategoryAccounts, DataSource = "accounts.count", WidgetType = WidgetType.StatCard, IconName = "People", Color = "#0092BC", ColumnSpan = 1, DisplayOrder = 3, NavigationLink = "/accounts", CreatedAt = DateTime.UtcNow },
             new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Pipeline Trend", DataSource = "opportunities.pipeline_trend", WidgetType = WidgetType.LineChart, ColumnSpan = 2, RowSpan = 2, DisplayOrder = 4, CreatedAt = DateTime.UtcNow },
             new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Opportunities by Stage", DataSource = "opportunities.by_stage", WidgetType = WidgetType.PieChart, ColumnSpan = 1, RowSpan = 2, DisplayOrder = 5, CreatedAt = DateTime.UtcNow },
             new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Recent Opportunities", DataSource = "opportunities.recent", WidgetType = WidgetType.DataTable, ColumnSpan = 3, DisplayOrder = 6, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow }

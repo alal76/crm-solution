@@ -26,6 +26,28 @@ namespace CRM.Api.Controllers;
 [Authorize(Roles = "Admin")]
 public class DatabaseController : CrmControllerBase
 {
+    // String constants (S1192 - avoid duplicate literals)
+    private const string StatusInProgress = "in-progress";
+    private const string StatusCompleted = "completed";
+    private const string DbProviderKey = "DatabaseProvider";
+    private const string DbSqlite = "sqlite";
+    private const string DbMysql = "mysql";
+    private const string DbMariadb = "mariadb";
+    private const string DbPostgresql = "postgresql";
+    private const string DbSqlServer = "sqlserver";
+    private const string DbOracle = "oracle";
+    private const string DbMongodb = "mongodb";
+    private const string UnknownValue = "Unknown";
+    private const string AnalyzeCommand = "ANALYZE";
+    private const string AllTablesValue = "All tables";
+    private const string SelectTableNamesQuery = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+    private const string DbNameParam = "@dbName";
+    private const string TableUsers = "Users";
+    private const string TableAccounts = "Accounts";
+    private const string TableContacts = "Contacts";
+    private const string TableProducts = "Products";
+    private const string TableOpportunities = "Opportunities";
+
     private readonly ICrmDbContext _context;
     private readonly ILogger<DatabaseController> _logger;
     private readonly IWebHostEnvironment _environment;
@@ -163,7 +185,7 @@ public class DatabaseController : CrmControllerBase
         };
 
         // Step 1: Test connection
-        result.Steps.Add(new MigrationStep { Name = "Testing Connection", Status = "in-progress" });
+        result.Steps.Add(new MigrationStep { Name = "Testing Connection", Status = StatusInProgress });
         var connTest = await TestDatabaseConnectionAsync(new DatabaseConnectionRequest
         {
             Provider = request.TargetProvider,
@@ -182,14 +204,14 @@ public class DatabaseController : CrmControllerBase
             result.ErrorMessage = connTest.Message;
             return Ok(result);
         }
-        result.Steps[0].Status = "completed";
+        result.Steps[0].Status = StatusCompleted;
 
         // Step 2: Create schema
-        result.Steps.Add(new MigrationStep { Name = "Creating Schema", Status = "in-progress" });
+        result.Steps.Add(new MigrationStep { Name = "Creating Schema", Status = StatusInProgress });
         try
         {
             await CreateSchemaOnTargetAsync(request);
-            result.Steps[1].Status = "completed";
+            result.Steps[1].Status = StatusCompleted;
         }
         catch (Exception ex)
         {
@@ -203,11 +225,11 @@ public class DatabaseController : CrmControllerBase
         // Step 3: Migrate data (if requested)
         if (request.MigrateData)
         {
-            result.Steps.Add(new MigrationStep { Name = "Migrating Data", Status = "in-progress" });
+            result.Steps.Add(new MigrationStep { Name = "Migrating Data", Status = StatusInProgress });
             try
             {
                 var recordCount = await MigrateDataToTargetAsync(request);
-                result.Steps[2].Status = "completed";
+                result.Steps[2].Status = StatusCompleted;
                 result.Steps[2].Details = $"Migrated {recordCount} records";
             }
             catch (Exception ex)
@@ -221,10 +243,10 @@ public class DatabaseController : CrmControllerBase
         }
 
         // Step 4: Generate configuration
-        result.Steps.Add(new MigrationStep { Name = "Generating Configuration", Status = "in-progress" });
+        result.Steps.Add(new MigrationStep { Name = "Generating Configuration", Status = StatusInProgress });
         result.NewConnectionString = BuildConnectionString(request);
         result.NewProvider = request.TargetProvider;
-        result.Steps[^1].Status = "completed";
+        result.Steps[^1].Status = StatusCompleted;
 
         result.Success = true;
         result.EndTime = DateTime.UtcNow;
@@ -238,7 +260,7 @@ public class DatabaseController : CrmControllerBase
 
     private async Task<DatabaseProviderInfo> GetDatabaseProviderInfoAsync()
     {
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
         var info = new DatabaseProviderInfo { ProviderName = provider };
 
         try
@@ -251,43 +273,43 @@ public class DatabaseController : CrmControllerBase
             // Get version based on provider
             switch (provider)
             {
-                case "mysql":
-                case "mariadb":
+                case DbMysql:
+                case DbMariadb:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "SELECT VERSION()";
                         var version = await cmd.ExecuteScalarAsync();
-                        info.Version = version?.ToString() ?? "Unknown";
+                        info.Version = version?.ToString() ?? UnknownValue;
                         info.ProviderName = info.Version.Contains("MariaDB", StringComparison.OrdinalIgnoreCase) ? "MariaDB" : "MySQL";
                         info.Engine = info.ProviderName;
                     }
                     break;
-                case "postgresql":
+                case DbPostgresql:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "SELECT version()";
                         var version = await cmd.ExecuteScalarAsync();
-                        info.Version = version?.ToString()?.Split(',').FirstOrDefault() ?? "Unknown";
+                        info.Version = version?.ToString()?.Split(',').FirstOrDefault() ?? UnknownValue;
                         info.ProviderName = "PostgreSQL";
                         info.Engine = "PostgreSQL";
                     }
                     break;
-                case "sqlserver":
+                case DbSqlServer:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "SELECT @@VERSION";
                         var version = await cmd.ExecuteScalarAsync();
-                        info.Version = version?.ToString()?.Split('\n').FirstOrDefault() ?? "Unknown";
+                        info.Version = version?.ToString()?.Split('\n').FirstOrDefault() ?? UnknownValue;
                         info.ProviderName = "SQL Server";
                         info.Engine = "SQL Server";
                     }
                     break;
-                case "oracle":
+                case DbOracle:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "SELECT * FROM V$VERSION WHERE BANNER LIKE 'Oracle%'";
                         var version = await cmd.ExecuteScalarAsync();
-                        info.Version = version?.ToString() ?? "Unknown";
+                        info.Version = version?.ToString() ?? UnknownValue;
                         info.ProviderName = "Oracle";
                         info.Engine = "Oracle Database";
                     }
@@ -297,7 +319,7 @@ public class DatabaseController : CrmControllerBase
                     {
                         cmd.CommandText = "SELECT sqlite_version()";
                         var version = await cmd.ExecuteScalarAsync();
-                        info.Version = version?.ToString() ?? "Unknown";
+                        info.Version = version?.ToString() ?? UnknownValue;
                         info.ProviderName = "SQLite";
                         info.Engine = "SQLite";
                     }
@@ -307,7 +329,7 @@ public class DatabaseController : CrmControllerBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Could not get database version");
-            info.Version = "Unknown";
+            info.Version = UnknownValue;
         }
 
         return info;
@@ -315,13 +337,13 @@ public class DatabaseController : CrmControllerBase
 
     private ConnectionInfo GetConnectionInfo()
     {
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
         // Get connection string from the actual resolved context, not from static configuration
         // This ensures we get the correct database (demo or production) based on current mode
         var connectionString = _context.Database.GetConnectionString() ?? _configuration.GetConnectionString("DefaultConnection") ?? "";
         var info = new ConnectionInfo();
 
-        if (provider == "sqlite")
+        if (provider == DbSqlite)
         {
             info.Host = "localhost (embedded)";
             info.Port = 0;
@@ -332,23 +354,23 @@ public class DatabaseController : CrmControllerBase
         else
         {
             // Parse connection string for other databases
-            info.Host = ExtractConnectionParam(connectionString, new[] { "Server", "Host", "Data Source" }) ?? "Unknown";
+            info.Host = ExtractConnectionParam(connectionString, new[] { "Server", "Host", "Data Source" }) ?? UnknownValue;
             info.Port = int.TryParse(ExtractConnectionParam(connectionString, new[] { "Port" }), out var port) ? port : GetDefaultPort(provider);
-            info.Database = ExtractConnectionParam(connectionString, new[] { "Database", "Initial Catalog" }) ?? "Unknown";
-            info.UserId = ExtractConnectionParam(connectionString, new[] { "User", "User Id", "Uid", "Username" }) ?? "Unknown";
+            info.Database = ExtractConnectionParam(connectionString, new[] { "Database", "Initial Catalog" }) ?? UnknownValue;
+            info.UserId = ExtractConnectionParam(connectionString, new[] { "User", "User Id", "Uid", "Username" }) ?? UnknownValue;
             info.Password = ExtractConnectionParam(connectionString, new[] { "Password", "Pwd" }) ?? "";
         }
 
         return info;
     }
 
-    private string ExtractSqliteDbPath(string connectionString)
+    private static string ExtractSqliteDbPath(string connectionString)
     {
         var match = System.Text.RegularExpressions.Regex.Match(connectionString, @"Data Source=([^;]+)", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromSeconds(1));
         return match.Success ? match.Groups[1].Value : "crm.db";
     }
 
-    private string? ExtractConnectionParam(string connectionString, string[] paramNames)
+    private static string? ExtractConnectionParam(string connectionString, string[] paramNames)
     {
         foreach (var param in paramNames)
         {
@@ -362,16 +384,16 @@ public class DatabaseController : CrmControllerBase
         return null;
     }
 
-    private int GetDefaultPort(string provider) => provider switch
+    private static int GetDefaultPort(string provider) => provider switch
     {
-        "mysql" or "mariadb" => 3306,
-        "postgresql" => 5432,
-        "sqlserver" => 1433,
-        "oracle" => 1521,
+        DbMysql or DbMariadb => 3306,
+        DbPostgresql => 5432,
+        DbSqlServer => 1433,
+        DbOracle => 1521,
         _ => 0
     };
 
-    private string MaskPassword(string? password)
+    private static string MaskPassword(string? password)
     {
         if (string.IsNullOrEmpty(password) || password == "N/A")
         {
@@ -388,22 +410,22 @@ public class DatabaseController : CrmControllerBase
         try
         {
             // Special handling for MongoDB (NoSQL)
-            if (request.Provider.ToLower() == "mongodb")
+            if (request.Provider.ToLower() == DbMongodb)
             {
                 return await TestMongoDbConnectionAsync(request);
             }
 
             // Special handling for Oracle (requires Oracle.ManagedDataAccess)
-            if (request.Provider.ToLower() == "oracle")
+            if (request.Provider.ToLower() == DbOracle)
             {
                 return await TestOracleConnectionAsync(request);
             }
 
             DbConnection connection = request.Provider.ToLower() switch
             {
-                "mysql" or "mariadb" => new MySqlConnector.MySqlConnection(connectionString),
-                "postgresql" => new Npgsql.NpgsqlConnection(connectionString),
-                "sqlserver" => new Microsoft.Data.SqlClient.SqlConnection(connectionString),
+                DbMysql or DbMariadb => new MySqlConnector.MySqlConnection(connectionString),
+                DbPostgresql => new Npgsql.NpgsqlConnection(connectionString),
+                DbSqlServer => new Microsoft.Data.SqlClient.SqlConnection(connectionString),
                 _ => throw new NotSupportedException($"Provider {request.Provider} is not supported for live migration")
             };
 
@@ -415,9 +437,9 @@ public class DatabaseController : CrmControllerBase
                 using var cmd = connection.CreateCommand();
                 cmd.CommandText = request.Provider.ToLower() switch
                 {
-                    "mysql" or "mariadb" => "SELECT VERSION()",
-                    "postgresql" => "SELECT version()",
-                    "sqlserver" => "SELECT @@VERSION",
+                    DbMysql or DbMariadb => "SELECT VERSION()",
+                    DbPostgresql => "SELECT version()",
+                    DbSqlServer => "SELECT @@VERSION",
                     _ => "SELECT 1"
                 };
 
@@ -425,7 +447,7 @@ public class DatabaseController : CrmControllerBase
 
                 result.Success = true;
                 result.Message = "Connection successful";
-                result.ServerVersion = version?.ToString()?.Split('\n').FirstOrDefault() ?? "Unknown";
+                result.ServerVersion = version?.ToString()?.Split('\n').FirstOrDefault() ?? UnknownValue;
             }
         }
         catch (Exception ex)
@@ -480,15 +502,15 @@ public class DatabaseController : CrmControllerBase
         return Task.FromResult(result);
     }
 
-    private string BuildConnectionString(DatabaseConnectionRequest request)
+    private static string BuildConnectionString(DatabaseConnectionRequest request)
     {
         return request.Provider.ToLower() switch
         {
-            "mysql" or "mariadb" => $"Server={request.Host};Port={request.Port};Database={request.Database};User={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
-            "postgresql" => $"Host={request.Host};Port={request.Port};Database={request.Database};Username={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
-            "sqlserver" => $"Server={request.Host},{request.Port};Database={request.Database};User Id={request.UserId};Password={request.Password};TrustServerCertificate=True;", // NOSONAR - user-supplied connection credentials passed through
-            "oracle" => $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={request.Host})(PORT={request.Port}))(CONNECT_DATA=(SERVICE_NAME={request.Database})));User Id={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
-            "mongodb" => $"mongodb://{request.UserId}:{request.Password}@{request.Host}:{request.Port}/{request.Database}", // NOSONAR - user-supplied connection credentials passed through
+            DbMysql or DbMariadb => $"Server={request.Host};Port={request.Port};Database={request.Database};User={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
+            DbPostgresql => $"Host={request.Host};Port={request.Port};Database={request.Database};Username={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
+            DbSqlServer => $"Server={request.Host},{request.Port};Database={request.Database};User Id={request.UserId};Password={request.Password};TrustServerCertificate=True;", // NOSONAR - user-supplied connection credentials passed through
+            DbOracle => $"Data Source=(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={request.Host})(PORT={request.Port}))(CONNECT_DATA=(SERVICE_NAME={request.Database})));User Id={request.UserId};Password={request.Password};", // NOSONAR - user-supplied connection credentials passed through
+            DbMongodb => $"mongodb://{request.UserId}:{request.Password}@{request.Host}:{request.Port}/{request.Database}", // NOSONAR - user-supplied connection credentials passed through
             _ => throw new NotSupportedException($"Provider {request.Provider} is not supported")
         };
     }
@@ -512,9 +534,9 @@ public class DatabaseController : CrmControllerBase
 
         DbConnection connection = request.TargetProvider.ToLower() switch
         {
-            "mysql" or "mariadb" => new MySqlConnector.MySqlConnection(connectionString),
-            "postgresql" => new Npgsql.NpgsqlConnection(connectionString),
-            "sqlserver" => new Microsoft.Data.SqlClient.SqlConnection(connectionString),
+            DbMysql or DbMariadb => new MySqlConnector.MySqlConnection(connectionString),
+            DbPostgresql => new Npgsql.NpgsqlConnection(connectionString),
+            DbSqlServer => new Microsoft.Data.SqlClient.SqlConnection(connectionString),
             _ => throw new NotSupportedException($"Provider {request.TargetProvider} is not supported")
         };
 
@@ -599,7 +621,7 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<BackupDto>> CreateBackup([FromBody] CreateBackupRequest request)
     {
-                var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+                var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
         var backupName = request.BackupName ?? $"backup_{DateTime.UtcNow:yyyyMMdd_HHmmss}";
         var backupDir = Path.Combine(_environment.ContentRootPath, "backups");
         Directory.CreateDirectory(backupDir);
@@ -610,8 +632,8 @@ Then restart the API container:
 
         switch (provider)
         {
-            case "mysql":
-            case "mariadb":
+            case DbMysql:
+            case DbMariadb:
                 // Generate mysqldump command (requires mysqldump to be available)
                 backupPath = Path.Combine(backupDir, $"{backupName}.sql");
                 var connInfo = GetConnectionInfo();
@@ -636,9 +658,9 @@ Then restart the API container:
 
                     // Get tables using parameterized query
                     using var cmd = connection.CreateCommand();
-                    cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                    cmd.CommandText = SelectTableNamesQuery;
                     var dbParam = cmd.CreateParameter();
-                    dbParam.ParameterName = "@dbName";
+                    dbParam.ParameterName = DbNameParam;
                     dbParam.Value = connInfo.Database;
                     cmd.Parameters.Add(dbParam);
 
@@ -662,7 +684,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "postgresql":
+            case DbPostgresql:
                 backupPath = Path.Combine(backupDir, $"{backupName}.sql");
                 var pgConn = GetConnectionInfo();
                 backupInstructions = $"pg_dump -h {pgConn.Host} -p {pgConn.Port} -U {pgConn.UserId} -d {pgConn.Database} -f {backupPath}";
@@ -670,7 +692,7 @@ Then restart the API container:
                 fileSize = new FileInfo(backupPath).Length;
                 break;
 
-            case "sqlserver":
+            case DbSqlServer:
                 backupPath = Path.Combine(backupDir, $"{backupName}.bak");
                 var sqlConn = GetConnectionInfo();
                 try
@@ -695,7 +717,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "oracle":
+            case DbOracle:
                 backupPath = Path.Combine(backupDir, $"{backupName}.dmp");
                 var oraConn = GetConnectionInfo();
                 backupInstructions = $"expdp {oraConn.UserId}/{oraConn.Password}@{oraConn.Host}:{oraConn.Port}/{oraConn.Database} DIRECTORY=backup_dir DUMPFILE={backupName}.dmp";
@@ -778,7 +800,7 @@ Then restart the API container:
             Operations = new List<string>()
         };
 
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
         var connection = _context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
@@ -788,16 +810,16 @@ Then restart the API container:
 
         switch (provider)
         {
-            case "mysql":
-            case "mariadb":
+            case DbMysql:
+            case DbMariadb:
                 // Get all tables and optimize them
                 var dbName = GetConnectionInfo().Database;
                 using (var cmd = connection.CreateCommand())
                 {
                     // Use parameterized query to get table names
-                    cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                    cmd.CommandText = SelectTableNamesQuery;
                     var dbParam = cmd.CreateParameter();
-                    dbParam.ParameterName = "@dbName";
+                    dbParam.ParameterName = DbNameParam;
                     dbParam.Value = dbName;
                     cmd.Parameters.Add(dbParam);
 
@@ -836,7 +858,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "postgresql":
+            case DbPostgresql:
                 using (var cmd = connection.CreateCommand())
                 {
                     cmd.CommandText = "VACUUM ANALYZE";
@@ -845,7 +867,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "sqlserver":
+            case DbSqlServer:
                 // Update statistics for all tables
                 using (var cmd = connection.CreateCommand())
                 {
@@ -863,7 +885,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "oracle":
+            case DbOracle:
                 // Oracle: Gather statistics
                 using (var cmd = connection.CreateCommand())
                 {
@@ -876,7 +898,7 @@ Then restart the API container:
             default: // SQLite
                 await _context.Database.ExecuteSqlRawAsync("VACUUM");
                 result.Operations.Add("VACUUM completed - database file optimized");
-                await _context.Database.ExecuteSqlRawAsync("ANALYZE");
+                await _context.Database.ExecuteSqlRawAsync(AnalyzeCommand);
                 result.Operations.Add("ANALYZE completed - query statistics updated");
                 break;
         }
@@ -902,7 +924,7 @@ Then restart the API container:
             TablesAnalyzed = new List<string>()
         };
 
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
         var connection = _context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
@@ -912,14 +934,14 @@ Then restart the API container:
 
         switch (provider)
         {
-            case "mysql":
-            case "mariadb":
+            case DbMysql:
+            case DbMariadb:
                 var dbName = GetConnectionInfo().Database;
                 using (var cmd = connection.CreateCommand())
                 {
-                    cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                    cmd.CommandText = SelectTableNamesQuery;
                     var dbParam = cmd.CreateParameter();
-                    dbParam.ParameterName = "@dbName";
+                    dbParam.ParameterName = DbNameParam;
                     dbParam.Value = dbName;
                     cmd.Parameters.Add(dbParam);
 
@@ -943,40 +965,40 @@ Then restart the API container:
                 result.Command = "ANALYZE TABLE";
                 break;
 
-            case "postgresql":
+            case DbPostgresql:
                 using (var cmd = connection.CreateCommand())
                 {
-                    cmd.CommandText = "ANALYZE";
+                    cmd.CommandText = AnalyzeCommand;
                     await cmd.ExecuteNonQueryAsync();
-                    result.Command = "ANALYZE";
-                    result.TablesAnalyzed.Add("All tables");
+                    result.Command = AnalyzeCommand;
+                    result.TablesAnalyzed.Add(AllTablesValue);
                 }
                 break;
 
-            case "sqlserver":
+            case DbSqlServer:
                 using (var cmd = connection.CreateCommand())
                 {
                     cmd.CommandText = "EXEC sp_updatestats";
                     await cmd.ExecuteNonQueryAsync();
                     result.Command = "sp_updatestats";
-                    result.TablesAnalyzed.Add("All tables");
+                    result.TablesAnalyzed.Add(AllTablesValue);
                 }
                 break;
 
-            case "oracle":
+            case DbOracle:
                 using (var cmd = connection.CreateCommand())
                 {
                     cmd.CommandText = "BEGIN DBMS_STATS.GATHER_SCHEMA_STATS(USER); END;";
                     await cmd.ExecuteNonQueryAsync();
                     result.Command = "GATHER_SCHEMA_STATS";
-                    result.TablesAnalyzed.Add("All tables");
+                    result.TablesAnalyzed.Add(AllTablesValue);
                 }
                 break;
 
             default: // SQLite
-                await _context.Database.ExecuteSqlRawAsync("ANALYZE");
-                result.Command = "ANALYZE";
-                result.TablesAnalyzed.Add("All tables");
+                await _context.Database.ExecuteSqlRawAsync(AnalyzeCommand);
+                result.Command = AnalyzeCommand;
+                result.TablesAnalyzed.Add(AllTablesValue);
                 break;
         }
 
@@ -1013,7 +1035,7 @@ Then restart the API container:
             IsEnabled = settings?.StatisticsRefreshEnabled ?? false,
             IntervalMinutes = settings?.StatisticsRefreshIntervalMinutes ?? 60,
             LastRefreshed = settings?.StatisticsLastRefreshed,
-            DatabaseProvider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite"
+            DatabaseProvider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite
         };
 
         // Calculate next scheduled refresh
@@ -1064,7 +1086,7 @@ Then restart the API container:
             Operations = new List<string>()
         };
 
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
         var connection = _context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
@@ -1074,16 +1096,16 @@ Then restart the API container:
 
         switch (provider)
         {
-            case "mysql":
-            case "mariadb":
+            case DbMysql:
+            case DbMariadb:
                 // MySQL/MariaDB: Repair and rebuild indexes for each table
                 var dbName = GetConnectionInfo().Database;
                 using (var cmd = connection.CreateCommand())
                 {
                     // Use parameterized query
-                    cmd.CommandText = "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'";
+                    cmd.CommandText = SelectTableNamesQuery;
                     var dbParam = cmd.CreateParameter();
-                    dbParam.ParameterName = "@dbName";
+                    dbParam.ParameterName = DbNameParam;
                     dbParam.Value = dbName;
                     cmd.Parameters.Add(dbParam);
 
@@ -1112,7 +1134,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "postgresql":
+            case DbPostgresql:
                 // PostgreSQL: REINDEX DATABASE
                 using (var cmd = connection.CreateCommand())
                 {
@@ -1123,7 +1145,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "sqlserver":
+            case DbSqlServer:
                 // SQL Server: Rebuild all indexes
                 using (var cmd = connection.CreateCommand())
                 {
@@ -1137,7 +1159,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "oracle":
+            case DbOracle:
                 // Oracle: Rebuild all indexes
                 using (var cmd = connection.CreateCommand())
                 {
@@ -1183,11 +1205,11 @@ Then restart the API container:
         await GenerateInsertStatements(script, "Departments", await _context.Departments.ToListAsync());
         await GenerateInsertStatements(script, "UserGroups", await _context.UserGroups.ToListAsync());
         await GenerateInsertStatements(script, "UserProfiles", await _context.UserProfiles.ToListAsync());
-        await GenerateInsertStatements(script, "Users", await _context.Users.Where(u => !u.IsDeleted).ToListAsync());
-        await GenerateInsertStatements(script, "Accounts", await _context.Accounts.Where(c => !c.IsDeleted).ToListAsync());
-        await GenerateInsertStatements(script, "Contacts", await _context.Contacts.ToListAsync());
-        await GenerateInsertStatements(script, "Products", await _context.Products.Where(p => !p.IsDeleted).ToListAsync());
-        await GenerateInsertStatements(script, "Opportunities", await _context.Opportunities.Where(o => !o.IsDeleted).ToListAsync());
+        await GenerateInsertStatements(script, TableUsers, await _context.Users.Where(u => !u.IsDeleted).ToListAsync());
+        await GenerateInsertStatements(script, TableAccounts, await _context.Accounts.Where(c => !c.IsDeleted).ToListAsync());
+        await GenerateInsertStatements(script, TableContacts, await _context.Contacts.ToListAsync());
+        await GenerateInsertStatements(script, TableProducts, await _context.Products.Where(p => !p.IsDeleted).ToListAsync());
+        await GenerateInsertStatements(script, TableOpportunities, await _context.Opportunities.Where(o => !o.IsDeleted).ToListAsync());
         await GenerateInsertStatements(script, "MarketingCampaigns", await _context.MarketingCampaigns.Where(m => !m.IsDeleted).ToListAsync());
 
         var result = new SeedScriptDto
@@ -1279,7 +1301,7 @@ Then restart the API container:
             return BadRequest(new { message = "Invalid confirmation code" });
         }
 
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
         var connection = _context.Database.GetDbConnection();
 
         if (connection.State != System.Data.ConnectionState.Open)
@@ -1296,8 +1318,8 @@ Then restart the API container:
 
         switch (provider)
         {
-            case "mysql":
-            case "mariadb":
+            case DbMysql:
+            case DbMariadb:
                 // Disable foreign key checks temporarily
                 using (var cmd = connection.CreateCommand())
                 {
@@ -1326,7 +1348,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "postgresql":
+            case DbPostgresql:
                 // Use TRUNCATE with CASCADE
                 foreach (var table in tablesToClear)
                 {
@@ -1343,7 +1365,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "sqlserver":
+            case DbSqlServer:
                 // Delete in reverse order due to foreign keys
                 foreach (var table in tablesToClear)
                 {
@@ -1360,7 +1382,7 @@ Then restart the API container:
                 }
                 break;
 
-            case "oracle":
+            case DbOracle:
                 // Disable constraints, truncate, re-enable
                 foreach (var table in tablesToClear)
                 {
@@ -1431,17 +1453,17 @@ Then restart the API container:
     [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<List<DatabaseProviderDto>> GetSupportedProviders()
     {
-        var currentProvider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var currentProvider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
 
         var providers = new List<DatabaseProviderDto>
         {
-            new() { Name = "SQLite", Code = "sqlite", Description = "Lightweight embedded database", IsCurrentProvider = currentProvider == "sqlite" },
-            new() { Name = "MariaDB", Code = "mariadb", Description = "Open-source MySQL fork with enhanced features", IsCurrentProvider = currentProvider == "mariadb" },
-            new() { Name = "MySQL", Code = "mysql", Description = "Popular open-source relational database", IsCurrentProvider = currentProvider == "mysql" },
-            new() { Name = "PostgreSQL", Code = "postgresql", Description = "Advanced open-source database with JSON support", IsCurrentProvider = currentProvider == "postgresql" },
-            new() { Name = "SQL Server", Code = "sqlserver", Description = "Microsoft enterprise database", IsCurrentProvider = currentProvider == "sqlserver" },
-            new() { Name = "Oracle", Code = "oracle", Description = "Enterprise-grade database from Oracle", IsCurrentProvider = currentProvider == "oracle" },
-            new() { Name = "MongoDB", Code = "mongodb", Description = "NoSQL document database (requires schema mapping)", IsCurrentProvider = currentProvider == "mongodb" }
+            new() { Name = "SQLite", Code = DbSqlite, Description = "Lightweight embedded database", IsCurrentProvider = currentProvider == DbSqlite },
+            new() { Name = "MariaDB", Code = DbMariadb, Description = "Open-source MySQL fork with enhanced features", IsCurrentProvider = currentProvider == DbMariadb },
+            new() { Name = "MySQL", Code = DbMysql, Description = "Popular open-source relational database", IsCurrentProvider = currentProvider == DbMysql },
+            new() { Name = "PostgreSQL", Code = DbPostgresql, Description = "Advanced open-source database with JSON support", IsCurrentProvider = currentProvider == DbPostgresql },
+            new() { Name = "SQL Server", Code = DbSqlServer, Description = "Microsoft enterprise database", IsCurrentProvider = currentProvider == DbSqlServer },
+            new() { Name = "Oracle", Code = DbOracle, Description = "Enterprise-grade database from Oracle", IsCurrentProvider = currentProvider == DbOracle },
+            new() { Name = "MongoDB", Code = DbMongodb, Description = "NoSQL document database (requires schema mapping)", IsCurrentProvider = currentProvider == DbMongodb }
         };
 
         return Ok(providers);
@@ -1451,7 +1473,7 @@ Then restart the API container:
     private async Task<List<ForeignKeyDto>> GetForeignKeyRelationshipsAsync(string? tableName)
     {
         var foreignKeys = new List<ForeignKeyDto>();
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
 
         try
         {
@@ -1463,8 +1485,8 @@ Then restart the API container:
 
             switch (provider)
             {
-                case "mysql":
-                case "mariadb":
+                case DbMysql:
+                case DbMariadb:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
@@ -1493,7 +1515,7 @@ Then restart the API container:
 
                         cmd.CommandText = query;
                         var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
+                        dbParam.ParameterName = DbNameParam;
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
 
@@ -1522,7 +1544,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "postgresql":
+                case DbPostgresql:
                     using (var cmd = connection.CreateCommand())
                     {
                         var query = @"
@@ -1579,7 +1601,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "sqlite":
+                case DbSqlite:
                 default:
                     // SQLite uses PRAGMA for foreign key info
                     using (var tablesCmd = connection.CreateCommand())
@@ -1631,7 +1653,7 @@ Then restart the API container:
 
     private async Task<string> GetDatabaseSizeAsync()
     {
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
 
         try
         {
@@ -1640,14 +1662,14 @@ Then restart the API container:
 
             switch (provider)
             {
-                case "mysql":
-                case "mariadb":
+                case DbMysql:
+                case DbMariadb:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
                         cmd.CommandText = "SELECT ROUND(SUM(data_length + index_length), 2) FROM information_schema.tables WHERE table_schema = @dbName";
                         var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
+                        dbParam.ParameterName = DbNameParam;
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
                         var result = await cmd.ExecuteScalarAsync();
@@ -1658,7 +1680,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "postgresql":
+                case DbPostgresql:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "SELECT pg_database_size(current_database())";
@@ -1670,7 +1692,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "sqlserver":
+                case DbSqlServer:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = "SELECT SUM(size * 8 * 1024) FROM sys.database_files";
@@ -1692,12 +1714,12 @@ Then restart the API container:
                     break;
             }
 
-            return "Unknown";
+            return UnknownValue;
         }
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Could not get database size");
-            return "Unknown";
+            return UnknownValue;
         }
     }
 
@@ -1720,7 +1742,7 @@ Then restart the API container:
     private async Task<List<TableStatDto>> GetTableStatisticsAsync()
     {
         var tables = new List<TableStatDto>();
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
 
         try
         {
@@ -1733,8 +1755,8 @@ Then restart the API container:
 
             switch (provider)
             {
-                case "mysql":
-                case "mariadb":
+                case DbMysql:
+                case DbMariadb:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
@@ -1748,7 +1770,7 @@ Then restart the API container:
                             WHERE TABLE_SCHEMA = @dbName AND TABLE_TYPE = 'BASE TABLE'
                             ORDER BY TABLE_NAME";
                         var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
+                        dbParam.ParameterName = DbNameParam;
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
 
@@ -1766,7 +1788,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "postgresql":
+                case DbPostgresql:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
@@ -1790,7 +1812,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "sqlserver":
+                case DbSqlServer:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
@@ -1820,15 +1842,15 @@ Then restart the API container:
                     break;
 
                 default: // SQLite - use entity counts
-                    tables.Add(new TableStatDto { Name = "Users", RecordCount = await _context.Users.CountAsync(u => !u.IsDeleted) });
+                    tables.Add(new TableStatDto { Name = TableUsers, RecordCount = await _context.Users.CountAsync(u => !u.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "UserGroups", RecordCount = await _context.UserGroups.CountAsync(g => !g.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "UserProfiles", RecordCount = await _context.UserProfiles.CountAsync() });
                     tables.Add(new TableStatDto { Name = "Departments", RecordCount = await _context.Departments.CountAsync(d => !d.IsDeleted) });
-                    tables.Add(new TableStatDto { Name = "Accounts", RecordCount = await _context.Accounts.CountAsync(c => !c.IsDeleted) });
-                    tables.Add(new TableStatDto { Name = "Contacts", RecordCount = await _context.Contacts.CountAsync() });
+                    tables.Add(new TableStatDto { Name = TableAccounts, RecordCount = await _context.Accounts.CountAsync(c => !c.IsDeleted) });
+                    tables.Add(new TableStatDto { Name = TableContacts, RecordCount = await _context.Contacts.CountAsync() });
                     tables.Add(new TableStatDto { Name = "Leads", RecordCount = await _context.Leads.CountAsync(l => !l.IsDeleted) });
-                    tables.Add(new TableStatDto { Name = "Opportunities", RecordCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted) });
-                    tables.Add(new TableStatDto { Name = "Products", RecordCount = await _context.Products.CountAsync(p => !p.IsDeleted) });
+                    tables.Add(new TableStatDto { Name = TableOpportunities, RecordCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted) });
+                    tables.Add(new TableStatDto { Name = TableProducts, RecordCount = await _context.Products.CountAsync(p => !p.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "MarketingCampaigns", RecordCount = await _context.MarketingCampaigns.CountAsync(m => !m.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "CrmTasks", RecordCount = await _context.CrmTasks.CountAsync(t => !t.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "Notes", RecordCount = await _context.Notes.CountAsync(n => !n.IsDeleted) });
@@ -1849,7 +1871,7 @@ Then restart the API container:
     private async Task<List<ViewStatDto>> GetViewStatisticsAsync()
     {
         var views = new List<ViewStatDto>();
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
 
         try
         {
@@ -1861,8 +1883,8 @@ Then restart the API container:
 
             switch (provider)
             {
-                case "mysql":
-                case "mariadb":
+                case DbMysql:
+                case DbMariadb:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
@@ -1871,7 +1893,7 @@ Then restart the API container:
                             FROM information_schema.VIEWS
                             WHERE TABLE_SCHEMA = @dbName";
                         var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
+                        dbParam.ParameterName = DbNameParam;
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
 
@@ -1887,7 +1909,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "postgresql":
+                case DbPostgresql:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
@@ -1907,7 +1929,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "sqlserver":
+                case DbSqlServer:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
@@ -1954,7 +1976,7 @@ Then restart the API container:
     private async Task<List<IndexStatDto>> GetIndexStatisticsAsync()
     {
         var indexes = new List<IndexStatDto>();
-        var provider = _configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "sqlite";
+        var provider = _configuration[DbProviderKey]?.ToLowerInvariant() ?? DbSqlite;
 
         try
         {
@@ -1966,8 +1988,8 @@ Then restart the API container:
 
             switch (provider)
             {
-                case "mysql":
-                case "mariadb":
+                case DbMysql:
+                case DbMariadb:
                     using (var cmd = connection.CreateCommand())
                     {
                         var dbName = GetConnectionInfo().Database;
@@ -1983,7 +2005,7 @@ Then restart the API container:
                             GROUP BY INDEX_NAME, TABLE_NAME, NON_UNIQUE
                             ORDER BY TABLE_NAME, INDEX_NAME";
                         var dbParam = cmd.CreateParameter();
-                        dbParam.ParameterName = "@dbName";
+                        dbParam.ParameterName = DbNameParam;
                         dbParam.Value = dbName;
                         cmd.Parameters.Add(dbParam);
 
@@ -2002,7 +2024,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "postgresql":
+                case DbPostgresql:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
@@ -2035,7 +2057,7 @@ Then restart the API container:
                     }
                     break;
 
-                case "sqlserver":
+                case DbSqlServer:
                     using (var cmd = connection.CreateCommand())
                     {
                         cmd.CommandText = @"
@@ -2202,12 +2224,12 @@ Then restart the API container:
             ["Departments"] = GetDepartmentsSchema(targetDb),
             ["UserGroups"] = GetUserGroupsSchema(targetDb),
             ["UserProfiles"] = GetUserProfilesSchema(targetDb),
-            ["Users"] = GetUsersSchema(targetDb),
-            ["Accounts"] = GetAccountsSchema(targetDb),
-            ["Contacts"] = GetContactsSchema(targetDb),
-            ["Products"] = GetProductsSchema(targetDb),
+            [TableUsers] = GetUsersSchema(targetDb),
+            [TableAccounts] = GetAccountsSchema(targetDb),
+            [TableContacts] = GetContactsSchema(targetDb),
+            [TableProducts] = GetProductsSchema(targetDb),
             ["ProductCategories"] = GetProductCategoriesSchema(targetDb),
-            ["Opportunities"] = GetOpportunitiesSchema(targetDb),
+            [TableOpportunities] = GetOpportunitiesSchema(targetDb),
             ["OpportunityProducts"] = GetOpportunityProductsSchema(targetDb),
             ["Leads"] = GetLeadsSchema(targetDb),
             ["MarketingCampaigns"] = GetCampaignsSchema(targetDb),
@@ -2228,7 +2250,7 @@ Then restart the API container:
 
     private string GetDepartmentsSchema(string db) => db switch
     {
-        "postgresql" => @"CREATE TABLE Departments (
+        DbPostgresql => @"CREATE TABLE Departments (
     Id SERIAL PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     Description TEXT,
@@ -2237,7 +2259,7 @@ Then restart the API container:
     UpdatedAt TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE
 );",
-        "mysql" or "mariadb" => @"CREATE TABLE Departments (
+        DbMysql or DbMariadb => @"CREATE TABLE Departments (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     Description TEXT,
@@ -2246,7 +2268,7 @@ Then restart the API container:
     UpdatedAt DATETIME,
     IsDeleted TINYINT(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;",
-        "sqlserver" => @"CREATE TABLE Departments (
+        DbSqlServer => @"CREATE TABLE Departments (
     Id INT IDENTITY(1,1) PRIMARY KEY,
     Name NVARCHAR(100) NOT NULL,
     Description NVARCHAR(MAX),
@@ -2255,7 +2277,7 @@ Then restart the API container:
     UpdatedAt DATETIME2,
     IsDeleted BIT DEFAULT 0
 );",
-        "oracle" => @"CREATE TABLE Departments (
+        DbOracle => @"CREATE TABLE Departments (
     Id NUMBER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
     Name VARCHAR2(100) NOT NULL,
     Description CLOB,
@@ -2277,7 +2299,7 @@ Then restart the API container:
 
     private string GetUserGroupsSchema(string db) => db switch
     {
-        "postgresql" => @"CREATE TABLE UserGroups (
+        DbPostgresql => @"CREATE TABLE UserGroups (
     Id SERIAL PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     Description TEXT,
@@ -2287,7 +2309,7 @@ Then restart the API container:
     UpdatedAt TIMESTAMP,
     IsDeleted BOOLEAN DEFAULT FALSE
 );",
-        "mysql" or "mariadb" => @"CREATE TABLE UserGroups (
+        DbMysql or DbMariadb => @"CREATE TABLE UserGroups (
     Id INT AUTO_INCREMENT PRIMARY KEY,
     Name VARCHAR(100) NOT NULL,
     Description TEXT,
@@ -2336,9 +2358,9 @@ Then restart the API container:
         var indexes = new[]
         {
             ("IX_Users_Email", "Users", "Email"),
-            ("IX_Accounts_Email", "Accounts", "Email"),
-            ("IX_Contacts_AccountId", "Contacts", "AccountId"),
-            ("IX_Opportunities_AccountId", "Opportunities", "AccountId"),
+            ("IX_Accounts_Email", TableAccounts, "Email"),
+            ("IX_Contacts_AccountId", TableContacts, "AccountId"),
+            ("IX_Opportunities_AccountId", TableOpportunities, "AccountId"),
             ("IX_Leads_Email", "Leads", "Email"),
             ("IX_Products_SKU", "Products", "Sku"),
             ("IX_CrmTasks_AssignedToUserId", "CrmTasks", "AssignedToUserId")
@@ -2348,9 +2370,9 @@ Then restart the API container:
         {
             script.AppendLine(targetDb switch
             {
-                "postgresql" or "mysql" or "mariadb" => $"CREATE INDEX {name} ON {table} ({column});",
-                "sqlserver" => $"CREATE NONCLUSTERED INDEX {name} ON {table} ({column});",
-                "oracle" => $"CREATE INDEX {name} ON {table} ({column});",
+                DbPostgresql or DbMysql or DbMariadb => $"CREATE INDEX {name} ON {table} ({column});",
+                DbSqlServer => $"CREATE NONCLUSTERED INDEX {name} ON {table} ({column});",
+                DbOracle => $"CREATE INDEX {name} ON {table} ({column});",
                 _ => $"CREATE INDEX {name} ON {table} ({column});"
             });
         }

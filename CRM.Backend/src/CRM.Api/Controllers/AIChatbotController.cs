@@ -521,14 +521,17 @@ public class AIChatbotController : CrmControllerBase
         documentation.AppendLine("- Configure Allen AI models for cost-effective AI features (free tier available)");
 
         var result = documentation.ToString();
+        UpdateDocumentationCache(result);
+        return result;
+    }
 
+    private static void UpdateDocumentationCache(string result)
+    {
         lock (_cacheLock)
         {
             _cachedDocumentation = result;
             _cacheExpiry = DateTime.UtcNow.AddHours(1); // Cache for 1 hour
         }
-
-        return result;
     }
 
     private static string BuildSystemPrompt(string documentation, string? accountContext)
@@ -593,23 +596,7 @@ public class AIChatbotController : CrmControllerBase
                 var name = !string.IsNullOrEmpty(account.Company)
                     ? account.Company
                     : $"{account.FirstName} {account.LastName}";
-
-                context.AppendLine($"Account: {name}");
-                if (!string.IsNullOrEmpty(account.Email))
-                {
-                    context.AppendLine($"  - Email: {account.Email}");
-                }
-                if (!string.IsNullOrEmpty(account.Industry))
-                {
-                    context.AppendLine($"  - Industry: {account.Industry}");
-                }
-                context.AppendLine($"  - Lifecycle Stage: {account.LifecycleStage}");
-                context.AppendLine($"  - Open Opportunities: {account.OpportunityCount}");
-                if (account.OpenOpportunityValue > 0)
-                {
-                    context.AppendLine($"  - Open Opportunity Value: ${account.OpenOpportunityValue:N2}");
-                }
-                context.AppendLine();
+                AppendAccountDetails(context, name, account.Email, account.Industry, $"{account.LifecycleStage}", account.OpportunityCount, account.OpenOpportunityValue);
             }
         }
         catch (Exception ex)
@@ -618,6 +605,33 @@ public class AIChatbotController : CrmControllerBase
         }
 
         return context.ToString();
+    }
+
+    private static void AppendAccountDetails(
+        StringBuilder context,
+        string name,
+        string? email,
+        string? industry,
+        string? lifecycleStage,
+        int opportunityCount,
+        decimal openOpportunityValue)
+    {
+        context.AppendLine($"Account: {name}");
+        if (!string.IsNullOrEmpty(email))
+        {
+            context.AppendLine($"  - Email: {email}");
+        }
+        if (!string.IsNullOrEmpty(industry))
+        {
+            context.AppendLine($"  - Industry: {industry}");
+        }
+        context.AppendLine($"  - Lifecycle Stage: {lifecycleStage}");
+        context.AppendLine($"  - Open Opportunities: {opportunityCount}");
+        if (openOpportunityValue > 0)
+        {
+            context.AppendLine($"  - Open Opportunity Value: ${openOpportunityValue:N2}");
+        }
+        context.AppendLine();
     }
 
     private static string GetDefaultModelForProvider(LLMSettingsDto settings, string provider)

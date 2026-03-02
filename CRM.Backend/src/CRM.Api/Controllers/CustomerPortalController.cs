@@ -146,12 +146,18 @@ public class CustomerPortalController : CrmControllerBase
 
         // Increment view count
         var tracked = await _db.KnowledgeArticles.FindAsync(new object[] { id }, ct);
-        if (tracked != null)
-        {
-            { tracked.ViewCount++; await _db.SaveChangesAsync(ct); }
-        }
+        await IncrementArticleViewCountAsync(tracked, ct);
 
         return Ok(article);
+    }
+
+    private async Task IncrementArticleViewCountAsync(KnowledgeArticle? article, CancellationToken ct)
+    {
+        if (article != null)
+        {
+            article.ViewCount++;
+            await _db.SaveChangesAsync(ct);
+        }
     }
 
     /// <summary>Submits feedback on a knowledge base article.</summary>

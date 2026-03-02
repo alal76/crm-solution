@@ -928,7 +928,7 @@ def _add_provider_services(config, services, volumes, network_name, get_host_con
     """Populate services/volumes dict with optional provider containers."""
     if config.get('search_provider') == 'meilisearch':
         meili_host = get_host_config('meilisearch', 'localhost', 7700)
-        services['meilisearch'] = {
+        services['crm-meilisearch'] = {
             'image': 'getmeili/meilisearch:v1.6',
             'container_name': 'crm-meilisearch',
             'restart': 'unless-stopped',
@@ -941,7 +941,7 @@ def _add_provider_services(config, services, volumes, network_name, get_host_con
 
     if config.get('chat_provider') == 'chatwoot':
         chatwoot_host = get_host_config('chatwoot', 'localhost', 3000)
-        services['chatwoot'] = {
+        services['crm-chatwoot'] = {
             'image': 'chatwoot/chatwoot:latest',
             'container_name': 'crm-chatwoot',
             'restart': 'unless-stopped',
@@ -949,35 +949,35 @@ def _add_provider_services(config, services, volumes, network_name, get_host_con
             'environment': {
                 'INSTALLATION_ENV': 'docker',
                 'SECRET_KEY_BASE': '${CHATWOOT_SECRET_KEY}',
-                'POSTGRES_HOST': 'chatwoot-postgres',
+                'POSTGRES_HOST': 'crm-chatwoot-postgres',
                 'POSTGRES_USERNAME': 'chatwoot',
                 'POSTGRES_PASSWORD': '${CHATWOOT_DB_PASSWORD}',
                 'REDIS_URL': f"redis://crm-redis:{redis_host['port']}/1",
             },
-            'depends_on': ['chatwoot-postgres'],
+            'depends_on': ['crm-chatwoot-postgres'],
             'networks': [network_name],
         }
-        services['chatwoot-postgres'] = _pg_service('chatwoot', 'crm-chatwoot-postgres', network_name)
+        services['crm-chatwoot-postgres'] = _pg_service('chatwoot', 'crm-chatwoot-postgres', network_name)
         volumes['chatwoot_data'] = {'driver': 'local'}
 
     if config.get('notification_provider') == 'novu':
         novu_host = get_host_config('novu', 'localhost', 3001)
-        services['novu'] = {
+        services['crm-novu'] = {
             'image': 'novu/novu:latest',
             'container_name': 'crm-novu',
             'restart': 'unless-stopped',
             'ports': [f"{novu_host['port']}:3000"],
             'environment': {
                 'NODE_ENV': 'production',
-                'MONGO_URL': 'mongodb://novu-mongo:27017/novu',
+                'MONGO_URL': 'mongodb://crm-novu-mongo:27017/novu',
                 'REDIS_URL': f"redis://crm-redis:{redis_host['port']}/2",
                 'API_SECRET_KEY': '${NOVU_API_KEY}',
                 'JWT_SECRET': '${NOVU_JWT_SECRET}',
             },
-            'depends_on': ['novu-mongo'],
+            'depends_on': ['crm-novu-mongo'],
             'networks': [network_name],
         }
-        services['novu-mongo'] = {
+        services['crm-novu-mongo'] = {
             'image': 'mongo:7', 'container_name': 'crm-novu-mongo',
             'restart': 'unless-stopped',
             'environment': {'MONGO_INITDB_DATABASE': 'novu'},
@@ -988,7 +988,7 @@ def _add_provider_services(config, services, volumes, network_name, get_host_con
 
     if config.get('analytics_provider') == 'superset':
         superset_host = get_host_config('superset', 'localhost', 8088)
-        services['superset'] = {
+        services['crm-superset'] = {
             'image': 'apache/superset:latest',
             'container_name': 'crm-superset',
             'restart': 'unless-stopped',
@@ -997,39 +997,38 @@ def _add_provider_services(config, services, volumes, network_name, get_host_con
                 'SUPERSET_SECRET_KEY': '${SUPERSET_SECRET_KEY}',
                 'POSTGRES_DB': 'superset', 'POSTGRES_USER': 'superset',
                 'POSTGRES_PASSWORD': '${SUPERSET_DB_PASSWORD}',
-                'POSTGRES_HOST': 'superset-postgres',
+                'POSTGRES_HOST': 'crm-superset-postgres',
             },
-            'depends_on': ['superset-postgres'],
+            'depends_on': ['crm-superset-postgres'],
             'networks': [network_name],
         }
-        services['superset-postgres'] = _pg_service('superset', 'crm-superset-postgres', network_name)
+        services['crm-superset-postgres'] = _pg_service('superset', 'crm-superset-postgres', network_name)
         volumes['superset_data'] = {'driver': 'local'}
 
     if config.get('signature_provider') == 'docuseal':
         docuseal_host = get_host_config('docuseal', 'localhost', 3002)
-        docuseal_db_pw = os.environ.get('DOCUSEAL_DB_PASSWORD', 'docuseal')
-        services['docuseal'] = {
+        services['crm-docuseal'] = {
             'image': 'docuseal/docuseal:latest',
             'container_name': 'crm-docuseal',
             'restart': 'unless-stopped',
             'ports': [f"{docuseal_host['port']}:3000"],
             'environment': {
                 'DATABASE_URL': (
-                    f"postgresql://docuseal:{docuseal_db_pw}"
+                    "postgresql://docuseal:${DOCUSEAL_DB_PASSWORD}"
                     "@crm-docuseal-postgres:5432/docuseal"
                 ),
                 'SECRET_KEY_BASE': '${DOCUSEAL_SECRET_KEY}',
                 'HOST': '0.0.0.0',
             },
-            'depends_on': ['docuseal-postgres'],
+            'depends_on': ['crm-docuseal-postgres'],
             'networks': [network_name],
         }
-        services['docuseal-postgres'] = _pg_service('docuseal', 'crm-docuseal-postgres', network_name)
+        services['crm-docuseal-postgres'] = _pg_service('docuseal', 'crm-docuseal-postgres', network_name)
         volumes['docuseal_data'] = {'driver': 'local'}
 
     if config.get('ai_provider') == 'ollama':
         ollama_host = get_host_config('ollama', 'localhost', 11434)
-        services['ollama'] = {
+        services['crm-ollama'] = {
             'image': 'ollama/ollama:latest',
             'container_name': 'crm-ollama',
             'restart': 'unless-stopped',
@@ -1041,7 +1040,7 @@ def _add_provider_services(config, services, volumes, network_name, get_host_con
 
     if config.get('integration_provider') == 'n8n':
         n8n_host = get_host_config('n8n', 'localhost', 5678)
-        services['n8n'] = {
+        services['crm-n8n'] = {
             'image': 'n8nio/n8n:latest',
             'container_name': 'crm-n8n',
             'restart': 'unless-stopped',
@@ -1053,16 +1052,16 @@ def _add_provider_services(config, services, volumes, network_name, get_host_con
                 'N8N_ENCRYPTION_KEY': '${N8N_ENCRYPTION_KEY}',
                 'DB_TYPE': 'postgresdb',
                 'DB_POSTGRESDB_DATABASE': 'n8n',
-                'DB_POSTGRESDB_HOST': 'n8n-postgres',
+                'DB_POSTGRESDB_HOST': 'crm-n8n-postgres',
                 'DB_POSTGRESDB_PORT': '5432',
                 'DB_POSTGRESDB_USER': 'n8n',
                 'DB_POSTGRESDB_PASSWORD': '${N8N_DB_PASSWORD}',
             },
-            'depends_on': ['n8n-postgres'],
+            'depends_on': ['crm-n8n-postgres'],
             'volumes': ['n8n_data:/home/node/.n8n'],
             'networks': [network_name],
         }
-        services['n8n-postgres'] = _pg_service('n8n', 'crm-n8n-postgres', network_name)
+        services['crm-n8n-postgres'] = _pg_service('n8n', 'crm-n8n-postgres', network_name)
         volumes['n8n_data'] = {'driver': 'local'}
 
 
@@ -1086,7 +1085,6 @@ def generate_docker_compose(config):
     """Generate docker-compose.yml from config."""
     import yaml
     
-    version = "3.8"
     network_topology = config.get('network_topology', 'single')
     expose_db = config.get('network_expose_db', False)
     expose_redis = config.get('network_expose_redis', False)
@@ -1200,7 +1198,7 @@ def generate_docker_compose(config):
         if expose_db:
             db_svc['ports'] = [f"{db_host['port']}:3306"]
         _apply_host_mode(db_svc)
-        services['mariadb'] = db_svc
+        services['crm-mariadb'] = db_svc
         volumes['db_data'] = {'driver': 'local'}
     
     # Redis
@@ -1214,7 +1212,7 @@ def generate_docker_compose(config):
     if expose_redis:
         redis_svc['ports'] = [f"{redis_host['port']}:6379"]
     _apply_host_mode(redis_svc)
-    services['redis'] = redis_svc
+    services['crm-redis'] = redis_svc
     
     # API
     api_host = get_host_config('api', 'localhost', 5000)
@@ -1317,7 +1315,7 @@ def generate_docker_compose(config):
         'restart': 'unless-stopped',
         'environment': api_env,
         'ports': [f"{api_host['port']}:5000"],
-        'depends_on': ['mariadb', 'redis'],
+        'depends_on': ['crm-mariadb', 'crm-redis'],
         **_svc_networks(api_nets),
         'healthcheck': {
             'test': ["CMD", "curl", "-f", "http://localhost:5000/health"],
@@ -1327,11 +1325,11 @@ def generate_docker_compose(config):
         }
     }
     _apply_host_mode(api_svc)
-    services['api'] = api_svc
+    services['crm-api'] = api_svc
     
     # Add SSL volumes if SSL is enabled
     if ssl_enabled:
-        services['api']['volumes'] = ['ssl_certs:/app/ssl']
+        services['crm-api']['volumes'] = ['ssl_certs:/app/ssl']
         volumes['ssl_certs'] = {'driver': 'local'}
     
     # Frontend — sits on the public-facing / core network
@@ -1344,17 +1342,16 @@ def generate_docker_compose(config):
             'REACT_APP_API_URL': f"{protocol}://{deployment_host}:{api_port}/api"
         },
         'ports': [f"{frontend_host['port']}:80"],
-        'depends_on': ['api'],
+        'depends_on': ['crm-api'],
         **_svc_networks([net_core])
     }
     _apply_host_mode(fe_svc)
-    services['frontend'] = fe_svc
+    services['crm-frontend'] = fe_svc
     
     # Add provider services based on selection (providers go on components network)
     _add_provider_services(config, services, volumes, provider_network_name, get_host_config, redis_host)
     
     compose = {
-        'version': version,
         'services': services,
         'volumes': volumes,
     }
@@ -1452,7 +1449,8 @@ def generate_env_file(config):
     if config.get('signature_provider') == 'docuseal':
         env_vars.extend([
             f"DOCUSEAL_SECRET_KEY={secrets.token_urlsafe(32)}",
-            f"DOCUSEAL_API_KEY={secrets.token_urlsafe(32)}"
+            f"DOCUSEAL_API_KEY={secrets.token_urlsafe(32)}",
+            f"DOCUSEAL_DB_PASSWORD={generate_secure_password()}"
         ])
     
     if config.get('ai_provider') == 'ollama':

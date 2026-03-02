@@ -29,6 +29,7 @@ public class DashboardController : CrmControllerBase
     private readonly IDashboardService _dashboardService;
     private const string WidgetSizeMedium = "medium";
     private const string WidgetSizeLarge = "large";
+    private const string UnknownLabel = "Unknown";
 
     public DashboardController(CrmDbContext context, IDashboardService dashboardService)
     {
@@ -217,7 +218,7 @@ public class DashboardController : CrmControllerBase
 
         for (int i = 0; i < months; i++)
         {
-            var periodStart = new DateTime(now.Year, now.Month, 1).AddMonths(i);
+            var periodStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(i);
             var periodEnd = periodStart.AddMonths(1);
 
             var periodOpportunities = await _context.Opportunities
@@ -332,49 +333,9 @@ public class DashboardController : CrmControllerBase
         CancellationToken cancellationToken = default)
     {
                 var now = DateTime.UtcNow;
-
-        var overdueTasks = await _context.CrmTasks
-            .Where(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate < now)
-            .OrderBy(t => t.DueDate)
-            .Take(limit)
-            .Select(t => new TaskSummary
-            {
-                Id = t.Id,
-                Title = t.Subject,
-                DueDate = t.DueDate,
-                Priority = t.Priority.ToString(),
-                Status = t.Status.ToString(),
-                AssignedToId = t.AssignedToUserId,
-                EntityType = t.AccountId != null ? "Account" : t.ContactId != null ? "Contact" : t.OpportunityId != null ? "Opportunity" : null,
-                EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
-            })
-            .ToListAsync(cancellationToken);
-
-        var upcomingTasks = await _context.CrmTasks
-            .Where(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate >= now && t.DueDate <= now.AddDays(7))
-            .OrderBy(t => t.DueDate)
-            .Take(limit)
-            .Select(t => new TaskSummary
-            {
-                Id = t.Id,
-                Title = t.Subject,
-                DueDate = t.DueDate,
-                Priority = t.Priority.ToString(),
-                Status = t.Status.ToString(),
-                AssignedToId = t.AssignedToUserId,
-                EntityType = t.AccountId != null ? "Account" : t.ContactId != null ? "Contact" : t.OpportunityId != null ? "Opportunity" : null,
-                EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
-            })
-            .ToListAsync(cancellationToken);
-
-        var taskStats = new TaskStatsDetail
-        {
-            Total = await _context.CrmTasks.CountAsync(t => !t.IsDeleted, cancellationToken),
-            Completed = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.Completed, cancellationToken),
-            InProgress = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.InProgress, cancellationToken),
-            NotStarted = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.NotStarted, cancellationToken),
-            Overdue = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate < now, cancellationToken)
-        };
+        var overdueTasks = await BuildOverdueTasksAsync(limit, now, cancellationToken);
+        var upcomingTasks = await BuildUpcomingTasksAsync(limit, now, cancellationToken);
+        var taskStats = await BuildTaskStatsAsync(now, cancellationToken);
 
         return Ok(new TaskDashboardResponse
         {
@@ -382,6 +343,70 @@ public class DashboardController : CrmControllerBase
             UpcomingTasks = upcomingTasks,
             Stats = taskStats
         });
+    }
+
+    private static string? ResolveTaskEntityType(int? accountId, int? contactId, int? opportunityId)
+    {
+        if (accountId != null) return "Account";
+        if (contactId != null) return "Contact";
+        if (opportunityId != null) return "Opportunity";
+        return null;
+    }
+
+    private async Task<List<TaskSummary>> BuildOverdueTasksAsync(int limit, DateTime now, CancellationToken cancellationToken)
+    {
+        var rawTasks = await _context.CrmTasks
+            .Where(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate < now)
+            .OrderBy(t => t.DueDate)
+            .Take(limit)
+            .Select(t => new { t.Id, t.Subject, t.DueDate, t.Priority, t.Status, t.AssignedToUserId, t.AccountId, t.ContactId, t.OpportunityId })
+            .ToListAsync(cancellationToken);
+
+        return rawTasks.Select(t => new TaskSummary
+        {
+            Id = t.Id,
+            Title = t.Subject,
+            DueDate = t.DueDate,
+            Priority = t.Priority.ToString(),
+            Status = t.Status.ToString(),
+            AssignedToId = t.AssignedToUserId,
+            EntityType = ResolveTaskEntityType(t.AccountId, t.ContactId, t.OpportunityId),
+            EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
+        }).ToList();
+    }
+
+    private async Task<List<TaskSummary>> BuildUpcomingTasksAsync(int limit, DateTime now, CancellationToken cancellationToken)
+    {
+        var rawTasks = await _context.CrmTasks
+            .Where(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate >= now && t.DueDate <= now.AddDays(7))
+            .OrderBy(t => t.DueDate)
+            .Take(limit)
+            .Select(t => new { t.Id, t.Subject, t.DueDate, t.Priority, t.Status, t.AssignedToUserId, t.AccountId, t.ContactId, t.OpportunityId })
+            .ToListAsync(cancellationToken);
+
+        return rawTasks.Select(t => new TaskSummary
+        {
+            Id = t.Id,
+            Title = t.Subject,
+            DueDate = t.DueDate,
+            Priority = t.Priority.ToString(),
+            Status = t.Status.ToString(),
+            AssignedToId = t.AssignedToUserId,
+            EntityType = ResolveTaskEntityType(t.AccountId, t.ContactId, t.OpportunityId),
+            EntityId = t.AccountId ?? t.ContactId ?? t.OpportunityId
+        }).ToList();
+    }
+
+    private async Task<TaskStatsDetail> BuildTaskStatsAsync(DateTime now, CancellationToken cancellationToken)
+    {
+        return new TaskStatsDetail
+        {
+            Total = await _context.CrmTasks.CountAsync(t => !t.IsDeleted, cancellationToken),
+            Completed = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.Completed, cancellationToken),
+            InProgress = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.InProgress, cancellationToken),
+            NotStarted = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status == CrmTaskStatus.NotStarted, cancellationToken),
+            Overdue = await _context.CrmTasks.CountAsync(t => !t.IsDeleted && t.Status != CrmTaskStatus.Completed && t.DueDate < now, cancellationToken)
+        };
     }
 
     #endregion
@@ -433,7 +458,7 @@ public class DashboardController : CrmControllerBase
             UserId = l.UserId ?? 0,
             UserName = users.ContainsKey(l.UserId ?? 0)
                 ? $"{users[l.UserId ?? 0].FirstName} {users[l.UserId ?? 0].LastName}"
-                : "Unknown",
+                : UnknownLabel,
             TotalRevenue = l.TotalRevenue,
             DealsWon = l.DealsWon,
             AverageDealSize = l.AverageDealSize
@@ -483,7 +508,7 @@ public class DashboardController : CrmControllerBase
             UserId = l.UserId ?? 0,
             UserName = l.UserId.HasValue && users.ContainsKey(l.UserId.Value)
                 ? $"{users[l.UserId.Value].FirstName} {users[l.UserId.Value].LastName}"
-                : "Unknown",
+                : UnknownLabel,
             TotalActivities = l.TotalActivities,
             Calls = l.Calls,
             Emails = l.Emails,
@@ -677,8 +702,8 @@ public class DashboardController : CrmControllerBase
             Rank = index + 1,
             AccountId = c.AccountId,
             AccountName = accounts.ContainsKey(c.AccountId)
-                ? accounts[c.AccountId].Company ?? "Unknown"
-                : "Unknown",
+                ? accounts[c.AccountId].Company ?? UnknownLabel
+                : UnknownLabel,
             Industry = accounts.ContainsKey(c.AccountId)
                 ? accounts[c.AccountId].Industry
                 : null,

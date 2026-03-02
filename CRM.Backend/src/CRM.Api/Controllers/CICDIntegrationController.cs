@@ -18,14 +18,14 @@ namespace CRM.Api.Controllers;
 [ApiController]
 [Route("api/itsm/cicd")]
 [Tags("ITSM - CI/CD Integration")]
-public class CICDIntegrationController : CrmControllerBase
+public class CicdIntegrationController : CrmControllerBase
 {
     private readonly ICICDIntegrationService _cicdService;
-    private readonly ILogger<CICDIntegrationController> _logger;
+    private readonly ILogger<CicdIntegrationController> _logger;
 
-    public CICDIntegrationController(
+    public CicdIntegrationController(
         ICICDIntegrationService cicdService,
-        ILogger<CICDIntegrationController> logger)
+        ILogger<CicdIntegrationController> logger)
     {
         _cicdService = cicdService;
         _logger = logger;

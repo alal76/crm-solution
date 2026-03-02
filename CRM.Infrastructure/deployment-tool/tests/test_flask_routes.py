@@ -1102,3 +1102,101 @@ class TestGenerateAPI:
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["status"] == "ok"
+
+
+class TestComposeServiceNames:
+    """Verify generated docker-compose uses crm-prefixed service names matching the deployer."""
+
+    def test_compose_service_names_are_crm_prefixed(self):
+        """Core services must use crm- prefix so deployer can reference them."""
+        import yaml
+        from gui.app import generate_docker_compose
+
+        config = {
+            "name": "test",
+            "platform": "on_premises",
+            "database_type": "mariadb",
+            "target": {"host": "10.0.0.1"},
+        }
+        compose_yaml = generate_docker_compose(config)
+        compose = yaml.safe_load(compose_yaml)
+        svc_names = list(compose["services"].keys())
+        assert "crm-mariadb" in svc_names, f"Expected crm-mariadb in {svc_names}"
+        assert "crm-redis" in svc_names, f"Expected crm-redis in {svc_names}"
+        assert "crm-api" in svc_names, f"Expected crm-api in {svc_names}"
+        assert "crm-frontend" in svc_names, f"Expected crm-frontend in {svc_names}"
+        # Short names must NOT be present
+        for short in ("mariadb", "redis", "api", "frontend"):
+            assert short not in svc_names, f"Short service name '{short}' should not appear"
+
+    def test_compose_provider_service_names_are_crm_prefixed(self):
+        """Provider services must also use crm- prefix."""
+        import yaml
+        from gui.app import generate_docker_compose
+
+        config = {
+            "name": "test",
+            "platform": "on_premises",
+            "database_type": "mariadb",
+            "target": {"host": "10.0.0.1"},
+            "search_provider": "meilisearch",
+            "ai_provider": "ollama",
+            "signature_provider": "docuseal",
+        }
+        compose_yaml = generate_docker_compose(config)
+        compose = yaml.safe_load(compose_yaml)
+        svc_names = list(compose["services"].keys())
+        assert "crm-meilisearch" in svc_names
+        assert "crm-ollama" in svc_names
+        assert "crm-docuseal" in svc_names
+        assert "crm-docuseal-postgres" in svc_names
+        for short in ("meilisearch", "ollama", "docuseal", "docuseal-postgres"):
+            assert short not in svc_names, f"Short service name '{short}' should not appear"
+
+    def test_compose_depends_on_uses_crm_prefixed(self):
+        """depends_on references must use crm-prefixed names."""
+        import yaml
+        from gui.app import generate_docker_compose
+
+        config = {
+            "name": "test",
+            "platform": "on_premises",
+            "database_type": "mariadb",
+            "target": {"host": "10.0.0.1"},
+        }
+        compose_yaml = generate_docker_compose(config)
+        compose = yaml.safe_load(compose_yaml)
+        api_deps = compose["services"]["crm-api"]["depends_on"]
+        assert "crm-mariadb" in api_deps
+        assert "crm-redis" in api_deps
+        fe_deps = compose["services"]["crm-frontend"]["depends_on"]
+        assert "crm-api" in fe_deps
+
+    def test_compose_no_version_attribute(self):
+        """Generated compose should not include the obsolete 'version' attribute."""
+        import yaml
+        from gui.app import generate_docker_compose
+
+        config = {
+            "name": "test",
+            "platform": "on_premises",
+            "database_type": "mariadb",
+            "target": {"host": "10.0.0.1"},
+        }
+        compose_yaml = generate_docker_compose(config)
+        compose = yaml.safe_load(compose_yaml)
+        assert "version" not in compose, "Compose 'version' attribute is obsolete and should be omitted"
+
+    def test_env_file_includes_docuseal_db_password(self):
+        """When docuseal is selected, .env must include DOCUSEAL_DB_PASSWORD."""
+        from gui.app import generate_env_file
+
+        config = {
+            "name": "test",
+            "platform": "on_premises",
+            "database_type": "mariadb",
+            "target": {"host": "10.0.0.1"},
+            "signature_provider": "docuseal",
+        }
+        env_content = generate_env_file(config)
+        assert "DOCUSEAL_DB_PASSWORD=" in env_content

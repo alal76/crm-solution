@@ -1030,14 +1030,14 @@ public class CommissionsController : CrmControllerBase
         return $"{initials}-{DateTime.UtcNow.Year}";
     }
 
-    private ActionResult HandleServiceException(Exception ex)
+    private static ActionResult HandleServiceException(Exception ex)
     {
         if (ex is InvalidOperationException)
         {
-            return BadRequest(ex.Message);
+            return new BadRequestObjectResult(ex.Message);
         }
 
-        return StatusCode(500, "An unexpected error occurred.");
+        return new ObjectResult("An unexpected error occurred.") { StatusCode = 500 };
     }
 
     #endregion
