@@ -53,8 +53,8 @@ const WorkflowInstanceDetailPage: React.FC = () => {
       try {
         setLoading(true);
         const [detail, logEntries] = await Promise.all([
-          workflowInstanceService.getInstance(parseInt(id)),
-          workflowInstanceService.getInstanceLogs(parseInt(id))
+          workflowInstanceService.getInstance(Number.parseInt(id)),
+          workflowInstanceService.getInstanceLogs(Number.parseInt(id))
         ]);
         setInstance(detail);
         setLogs(logEntries);

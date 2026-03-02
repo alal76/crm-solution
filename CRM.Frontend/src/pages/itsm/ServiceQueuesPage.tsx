@@ -379,7 +379,7 @@ const ServiceQueuesPage: React.FC = () => {
                 label="Priority (1-10)"
                 type="number"
                 value={formData.priority ?? 5}
-                onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value, 10) || 5 }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, priority: Number.parseInt(e.target.value, 10) || 5 }))}
                 fullWidth
                 inputProps={{ min: 1, max: 10 }}
                 helperText="1 = highest, 10 = lowest"
@@ -391,7 +391,7 @@ const ServiceQueuesPage: React.FC = () => {
                 type="number"
                 value={formData.maxQueueDepth ?? ''}
                 onChange={(e) => {
-                  const val = e.target.value ? parseInt(e.target.value, 10) : undefined;
+                  const val = e.target.value ? Number.parseInt(e.target.value, 10) : undefined;
                   setFormData(prev => ({ ...prev, maxQueueDepth: val }));
                 }}
                 fullWidth

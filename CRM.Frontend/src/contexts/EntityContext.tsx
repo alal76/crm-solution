@@ -97,7 +97,7 @@ function parseContextFromPath(pathname: string): EntityContextInfo {
   for (const { pattern, entityType } of routePatterns) {
     const match = pathname.match(pattern);
     if (match) {
-      const entityId = match[1] ? parseInt(match[1], 10) : null;
+      const entityId = match[1] ? Number.parseInt(match[1], 10) : null;
       return {
         entityType,
         entityId,

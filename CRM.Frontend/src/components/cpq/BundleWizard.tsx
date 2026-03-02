@@ -157,14 +157,14 @@ const BundleWizard: React.FC<BundleWizardProps> = ({ onAddToQuote }) => {
   };
 
   const handleDiscountChange = (productId: number, value: string) => {
-    const discount = Math.min(100, Math.max(0, parseFloat(value) || 0));
+    const discount = Math.min(100, Math.max(0, Number.parseFloat(value) || 0));
     setLineItems((prev) =>
       prev.map((li) => (li.productId === productId ? { ...li, discount } : li)),
     );
   };
 
   const handleQtyChange = (productId: number, value: string) => {
-    const qty = Math.max(1, parseInt(value) || 1);
+    const qty = Math.max(1, Number.parseInt(value) || 1);
     setLineItems((prev) =>
       prev.map((li) => (li.productId === productId ? { ...li, quantity: qty } : li)),
     );

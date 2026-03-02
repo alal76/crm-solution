@@ -95,7 +95,7 @@ const AgentChatPage = () => {
   const [feedbackText, setFeedbackText] = useState('');
   const [ratingSubmitting, setRatingSubmitting] = useState(false);
 
-  const numericAgentId = agentId ? parseInt(agentId, 10) : 0;
+  const numericAgentId = agentId ? Number.parseInt(agentId, 10) : 0;
 
   // Auto-scroll to bottom on new messages
   const scrollToBottom = useCallback(() => {

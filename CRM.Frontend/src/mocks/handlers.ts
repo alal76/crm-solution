@@ -67,8 +67,8 @@ export const handlers = [
   
   rest.get(`${API_BASE}/accounts`, (req, res, ctx) => {
     const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
+    const page = Number.parseInt(url.searchParams.get('page') || '1');
+    const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10');
     
     const start = (page - 1) * pageSize;
     const items = mockCustomers.slice(start, start + pageSize);
@@ -82,7 +82,7 @@ export const handlers = [
   }),
   
   rest.get(`${API_BASE}/accounts/:id`, (req, res, ctx) => {
-    const id = parseInt(req.params.id as string);
+    const id = Number.parseInt(req.params.id as string);
     const customer = mockCustomers.find(c => c.id === id);
     
     if (!customer) {
@@ -103,7 +103,7 @@ export const handlers = [
   }),
   
   rest.put(`${API_BASE}/accounts/:id`, async (req, res, ctx) => {
-    const id = parseInt(req.params.id as string);
+    const id = Number.parseInt(req.params.id as string);
     const body = await req.json() as Record<string, unknown>;
     const index = mockCustomers.findIndex(c => c.id === id);
     
@@ -116,7 +116,7 @@ export const handlers = [
   }),
   
   rest.delete(`${API_BASE}/accounts/:id`, (req, res, ctx) => {
-    const id = parseInt(req.params.id as string);
+    const id = Number.parseInt(req.params.id as string);
     const index = mockCustomers.findIndex(c => c.id === id);
     
     if (index === -1) {
@@ -133,8 +133,8 @@ export const handlers = [
   
   rest.get(`${API_BASE}/contacts`, (req, res, ctx) => {
     const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
+    const page = Number.parseInt(url.searchParams.get('page') || '1');
+    const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10');
     
     const start = (page - 1) * pageSize;
     const items = mockContacts.slice(start, start + pageSize);
@@ -148,7 +148,7 @@ export const handlers = [
   }),
   
   rest.get(`${API_BASE}/contacts/:id`, (req, res, ctx) => {
-    const id = parseInt(req.params.id as string);
+    const id = Number.parseInt(req.params.id as string);
     const contact = mockContacts.find(c => c.id === id);
     
     if (!contact) {
@@ -164,8 +164,8 @@ export const handlers = [
   
   rest.get(`${API_BASE}/leads`, (req, res, ctx) => {
     const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
+    const page = Number.parseInt(url.searchParams.get('page') || '1');
+    const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10');
     
     const start = (page - 1) * pageSize;
     const items = mockLeads.slice(start, start + pageSize);
@@ -184,8 +184,8 @@ export const handlers = [
   
   rest.get(`${API_BASE}/opportunities`, (req, res, ctx) => {
     const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
+    const page = Number.parseInt(url.searchParams.get('page') || '1');
+    const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10');
     
     const start = (page - 1) * pageSize;
     const items = mockOpportunities.slice(start, start + pageSize);
@@ -204,8 +204,8 @@ export const handlers = [
   
   rest.get(`${API_BASE}/servicerequests`, (req, res, ctx) => {
     const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
+    const page = Number.parseInt(url.searchParams.get('page') || '1');
+    const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10');
     
     const start = (page - 1) * pageSize;
     const items = mockServiceRequests.slice(start, start + pageSize);
@@ -224,8 +224,8 @@ export const handlers = [
   
   rest.get(`${API_BASE}/campaigns`, (req, res, ctx) => {
     const url = new URL(req.url);
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const pageSize = parseInt(url.searchParams.get('pageSize') || '10');
+    const page = Number.parseInt(url.searchParams.get('page') || '1');
+    const pageSize = Number.parseInt(url.searchParams.get('pageSize') || '10');
     
     const start = (page - 1) * pageSize;
     const items = mockCampaigns.slice(start, start + pageSize);
@@ -250,7 +250,7 @@ export const handlers = [
   }),
   
   rest.get(`${API_BASE}/users/:id`, (req, res, ctx) => {
-    const id = parseInt(req.params.id as string);
+    const id = Number.parseInt(req.params.id as string);
     const user = mockUsers.find(u => u.id === id);
     
     if (!user) {

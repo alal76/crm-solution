@@ -324,7 +324,7 @@ function ContractsPage() {
     const checked = (e.target as HTMLInputElement).checked;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'checkbox' ? checked : type === 'number' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 

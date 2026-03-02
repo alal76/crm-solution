@@ -394,7 +394,7 @@ export const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = (
           size="small"
           label="Temperature"
           value={config.llmTemperature ?? 0.7}
-          onChange={(e) => updateConfig({ llmTemperature: parseFloat(e.target.value) })}
+          onChange={(e) => updateConfig({ llmTemperature: Number.parseFloat(e.target.value) })}
           disabled={readonly}
           inputProps={{ min: 0, max: 2, step: 0.1 }}
           sx={{ flex: 1 }}
@@ -404,7 +404,7 @@ export const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = (
           size="small"
           label="Max Tokens"
           value={config.llmMaxTokens ?? 1000}
-          onChange={(e) => updateConfig({ llmMaxTokens: parseInt(e.target.value) })}
+          onChange={(e) => updateConfig({ llmMaxTokens: Number.parseInt(e.target.value) })}
           disabled={readonly}
           inputProps={{ min: 1, max: 128000 }}
           sx={{ flex: 1 }}
@@ -449,8 +449,8 @@ export const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = (
           label="Retry Count"
           value={retryCount || config.retryCount || 3}
           onChange={(e) => {
-            onChange('retryCount', parseInt(e.target.value));
-            updateConfig({ retryCount: parseInt(e.target.value) });
+            onChange('retryCount', Number.parseInt(e.target.value));
+            updateConfig({ retryCount: Number.parseInt(e.target.value) });
           }}
           disabled={readonly}
           inputProps={{ min: 0, max: 10 }}
@@ -461,7 +461,7 @@ export const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = (
           size="small"
           label="Retry Delay (seconds)"
           value={config.retryDelaySeconds ?? 30}
-          onChange={(e) => updateConfig({ retryDelaySeconds: parseInt(e.target.value) })}
+          onChange={(e) => updateConfig({ retryDelaySeconds: Number.parseInt(e.target.value) })}
           disabled={readonly}
           sx={{ flex: 1 }}
         />
@@ -629,7 +629,7 @@ export const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = (
         size="small"
         label="Timeout (minutes)"
         value={timeoutMinutes}
-        onChange={(e) => onChange('timeoutMinutes', parseInt(e.target.value) || 0)}
+        onChange={(e) => onChange('timeoutMinutes', Number.parseInt(e.target.value) || 0)}
         disabled={readonly}
         helperText="0 = no timeout"
       />
@@ -690,7 +690,7 @@ export const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = (
               size="small"
               label="Wait Duration (minutes)"
               value={config.waitMinutes || 60}
-              onChange={(e) => updateConfig({ waitMinutes: parseInt(e.target.value) })}
+              onChange={(e) => updateConfig({ waitMinutes: Number.parseInt(e.target.value) })}
               disabled={readonly}
             />
             <TextField
@@ -743,7 +743,7 @@ export const EnhancedPropertiesPanel: React.FC<EnhancedPropertiesPanelProps> = (
               size="small"
               label="Due In (minutes)"
               value={config.dueInMinutes || 1440}
-              onChange={(e) => updateConfig({ dueInMinutes: parseInt(e.target.value) })}
+              onChange={(e) => updateConfig({ dueInMinutes: Number.parseInt(e.target.value) })}
               disabled={readonly}
             />
           </Box>

@@ -177,7 +177,7 @@ export const CommissionPlanForm: React.FC<CommissionPlanFormProps> = ({
               type="number"
               label="Base Rate (%)"
               value={formData.baseRate}
-              onChange={(e) => setFormData({ ...formData, baseRate: parseFloat(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, baseRate: Number.parseFloat(e.target.value) })}
               disabled={loading}
               inputProps={{ step: 0.01 }}
             />
@@ -187,7 +187,7 @@ export const CommissionPlanForm: React.FC<CommissionPlanFormProps> = ({
               type="number"
               label="Cap Amount (optional)"
               value={formData.capAmount || ''}
-              onChange={(e) => setFormData({ ...formData, capAmount: e.target.value ? parseFloat(e.target.value) : undefined })}
+              onChange={(e) => setFormData({ ...formData, capAmount: e.target.value ? Number.parseFloat(e.target.value) : undefined })}
               disabled={loading}
             />
 
@@ -196,7 +196,7 @@ export const CommissionPlanForm: React.FC<CommissionPlanFormProps> = ({
               type="number"
               label="Quota Amount (optional)"
               value={formData.quotaAmount || ''}
-              onChange={(e) => setFormData({ ...formData, quotaAmount: e.target.value ? parseFloat(e.target.value) : undefined })}
+              onChange={(e) => setFormData({ ...formData, quotaAmount: e.target.value ? Number.parseFloat(e.target.value) : undefined })}
               disabled={loading}
             />
           </Stack>
@@ -276,7 +276,7 @@ export const CommissionPlanForm: React.FC<CommissionPlanFormProps> = ({
               label="Minimum Amount"
               value={editingTier?.minAmount || ''}
               onChange={(e) =>
-                setEditingTier(editingTier ? { ...editingTier, minAmount: parseFloat(e.target.value) } : null)
+                setEditingTier(editingTier ? { ...editingTier, minAmount: Number.parseFloat(e.target.value) } : null)
               }
             />
             <TextField
@@ -285,7 +285,7 @@ export const CommissionPlanForm: React.FC<CommissionPlanFormProps> = ({
               label="Maximum Amount (optional)"
               value={editingTier?.maxAmount || ''}
               onChange={(e) =>
-                setEditingTier(editingTier ? { ...editingTier, maxAmount: e.target.value ? parseFloat(e.target.value) : undefined } : null)
+                setEditingTier(editingTier ? { ...editingTier, maxAmount: e.target.value ? Number.parseFloat(e.target.value) : undefined } : null)
               }
             />
             <TextField
@@ -294,7 +294,7 @@ export const CommissionPlanForm: React.FC<CommissionPlanFormProps> = ({
               label="Rate (%)"
               value={editingTier?.rate || ''}
               onChange={(e) =>
-                setEditingTier(editingTier ? { ...editingTier, rate: parseFloat(e.target.value) } : null)
+                setEditingTier(editingTier ? { ...editingTier, rate: Number.parseFloat(e.target.value) } : null)
               }
             />
             <TextField
@@ -303,7 +303,7 @@ export const CommissionPlanForm: React.FC<CommissionPlanFormProps> = ({
               label="Bonus (optional)"
               value={editingTier?.bonus || ''}
               onChange={(e) =>
-                setEditingTier(editingTier ? { ...editingTier, bonus: e.target.value ? parseFloat(e.target.value) : undefined } : null)
+                setEditingTier(editingTier ? { ...editingTier, bonus: e.target.value ? Number.parseFloat(e.target.value) : undefined } : null)
               }
             />
           </Stack>

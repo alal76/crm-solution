@@ -18,7 +18,7 @@ OLD_PIDS=$(lsof -ti :"$CDT_PORT" 2>/dev/null || true)
 APP_PIDS=$(pgrep -f 'gui/app\.py' 2>/dev/null || true)
 ALL_PIDS=$(echo "$OLD_PIDS $APP_PIDS" | tr ' ' '\n' | sort -u | grep -v '^$' || true)
 
-if [ -n "$ALL_PIDS" ]; then
+if [[ -n "$ALL_PIDS" ]]; then
     echo "  Found existing CDT process(es): $ALL_PIDS"
     for pid in $ALL_PIDS; do
         echo "  Stopping PID $pid..."

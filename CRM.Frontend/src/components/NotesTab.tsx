@@ -366,9 +366,9 @@ const NotesTab: React.FC<NotesTabProps> = ({
             >
               <MenuItem value={-1}>All Types</MenuItem>
               {Object.entries(noteTypeLabels).map(([value, label]) => (
-                <MenuItem key={value} value={parseInt(value)}>
+                <MenuItem key={value} value={Number.parseInt(value)}>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    {noteTypeIcons[parseInt(value) as NoteType]}
+                    {noteTypeIcons[Number.parseInt(value) as NoteType]}
                     <span>{label}</span>
                   </Stack>
                 </MenuItem>
@@ -568,9 +568,9 @@ const NotesTab: React.FC<NotesTabProps> = ({
                   onChange={(e) => setFormData({ ...formData, noteType: e.target.value as NoteType })}
                 >
                   {Object.entries(noteTypeLabels).map(([value, label]) => (
-                    <MenuItem key={value} value={parseInt(value)}>
+                    <MenuItem key={value} value={Number.parseInt(value)}>
                       <Stack direction="row" spacing={1} alignItems="center">
-                        {noteTypeIcons[parseInt(value) as NoteType]}
+                        {noteTypeIcons[Number.parseInt(value) as NoteType]}
                         <span>{label}</span>
                       </Stack>
                     </MenuItem>
@@ -586,7 +586,7 @@ const NotesTab: React.FC<NotesTabProps> = ({
                   onChange={(e) => setFormData({ ...formData, visibility: e.target.value as NoteVisibility })}
                 >
                   {Object.entries(visibilityLabels).map(([value, label]) => (
-                    <MenuItem key={value} value={parseInt(value)}>{label}</MenuItem>
+                    <MenuItem key={value} value={Number.parseInt(value)}>{label}</MenuItem>
                   ))}
                 </Select>
               </FormControl>

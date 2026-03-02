@@ -101,8 +101,8 @@ const AgentCreatorPage = () => {
     str
       .trim()
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_|_$/g, '');
+      .replaceAll(/[^a-z0-9]+/g, '_')
+      .replaceAll(/^_|_$/g, '');
 
   const togglePlugin = (plugin: string) => {
     setSelectedPlugins((prev) =>
@@ -285,7 +285,7 @@ const AgentCreatorPage = () => {
           {pluginSuggestions.map((plugin) => (
             <Chip
               key={plugin}
-              label={plugin.replace('Plugin', '')}
+              label={plugin.replaceAll('Plugin', '')}
               size="small"
               onClick={() => togglePlugin(plugin)}
               variant={selectedPlugins.includes(plugin) ? 'filled' : 'outlined'}

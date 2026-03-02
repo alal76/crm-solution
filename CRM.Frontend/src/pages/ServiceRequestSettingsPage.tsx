@@ -796,7 +796,7 @@ function ServiceRequestSettingsPage() {
                   label="Default Priority"
                 >
                   {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-                    <MenuItem key={key} value={parseInt(key)}>
+                    <MenuItem key={key} value={Number.parseInt(key)}>
                       {label}
                     </MenuItem>
                   ))}
@@ -809,7 +809,7 @@ function ServiceRequestSettingsPage() {
                 type="number"
                 value={categoryForm.slaResponseHours || ''}
                 onChange={(e) =>
-                  setCategoryForm({ ...categoryForm, slaResponseHours: e.target.value ? parseInt(e.target.value) : undefined })
+                  setCategoryForm({ ...categoryForm, slaResponseHours: e.target.value ? Number.parseInt(e.target.value) : undefined })
                 }
                 fullWidth
                 inputProps={{ min: 0 }}
@@ -821,7 +821,7 @@ function ServiceRequestSettingsPage() {
                 type="number"
                 value={categoryForm.slaResolutionHours || ''}
                 onChange={(e) =>
-                  setCategoryForm({ ...categoryForm, slaResolutionHours: e.target.value ? parseInt(e.target.value) : undefined })
+                  setCategoryForm({ ...categoryForm, slaResolutionHours: e.target.value ? Number.parseInt(e.target.value) : undefined })
                 }
                 fullWidth
                 inputProps={{ min: 0 }}
@@ -942,7 +942,7 @@ function ServiceRequestSettingsPage() {
                 onChange={(e) =>
                   setSubcategoryForm({
                     ...subcategoryForm,
-                    slaResponseHours: e.target.value ? parseInt(e.target.value) : undefined,
+                    slaResponseHours: e.target.value ? Number.parseInt(e.target.value) : undefined,
                   })
                 }
                 fullWidth
@@ -958,7 +958,7 @@ function ServiceRequestSettingsPage() {
                 onChange={(e) =>
                   setSubcategoryForm({
                     ...subcategoryForm,
-                    slaResolutionHours: e.target.value ? parseInt(e.target.value) : undefined,
+                    slaResolutionHours: e.target.value ? Number.parseInt(e.target.value) : undefined,
                   })
                 }
                 fullWidth
@@ -1033,7 +1033,7 @@ function ServiceRequestSettingsPage() {
                   label="Field Type"
                 >
                   {Object.entries(FIELD_TYPE_LABELS).map(([key, label]) => (
-                    <MenuItem key={key} value={parseInt(key)}>
+                    <MenuItem key={key} value={Number.parseInt(key)}>
                       {label}
                     </MenuItem>
                   ))}
@@ -1072,7 +1072,7 @@ function ServiceRequestSettingsPage() {
                     type="number"
                     value={fieldForm.minValue ?? ''}
                     onChange={(e) =>
-                      setFieldForm({ ...fieldForm, minValue: e.target.value ? parseFloat(e.target.value) : undefined })
+                      setFieldForm({ ...fieldForm, minValue: e.target.value ? Number.parseFloat(e.target.value) : undefined })
                     }
                     fullWidth
                   />
@@ -1083,7 +1083,7 @@ function ServiceRequestSettingsPage() {
                     type="number"
                     value={fieldForm.maxValue ?? ''}
                     onChange={(e) =>
-                      setFieldForm({ ...fieldForm, maxValue: e.target.value ? parseFloat(e.target.value) : undefined })
+                      setFieldForm({ ...fieldForm, maxValue: e.target.value ? Number.parseFloat(e.target.value) : undefined })
                     }
                     fullWidth
                   />

@@ -95,9 +95,11 @@ spec:
           requests:
             memory: "256Mi"
             cpu: "250m"
+            ephemeral-storage: "256Mi"
           limits:
             memory: "512Mi"
             cpu: "500m"
+            ephemeral-storage: "512Mi"
         # Startup probe: Allow container to start before liveness checks begin
         startupProbe:
           httpGet:

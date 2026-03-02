@@ -164,9 +164,9 @@ export default function ImportProgress({
     try {
       // The existing service uses numeric IDs; if jobId is a string representation
       // of a number, cast it. Otherwise treat as string (future UUID support).
-      const numericId = parseInt(jobId, 10);
+      const numericId = Number.parseInt(jobId, 10);
       const job = await importExportService.getImportJob(
-        isNaN(numericId) ? (jobId as unknown as number) : numericId,
+        Number.isNaN(numericId) ? (jobId as unknown as number) : numericId,
       );
       // Map ImportJobDto → JobStatus
       const status: JobStatus = {
@@ -204,8 +204,8 @@ export default function ImportProgress({
   const handleDownloadErrors = async () => {
     setDownloadingErrors(true);
     try {
-      const numericId = parseInt(jobId, 10);
-      const id = isNaN(numericId) ? (jobId as unknown as number) : numericId;
+      const numericId = Number.parseInt(jobId, 10);
+      const id = Number.isNaN(numericId) ? (jobId as unknown as number) : numericId;
       const job = await importExportService.getImportJob(id);
       if (job.errors && job.errors.length > 0) {
         const csv = [

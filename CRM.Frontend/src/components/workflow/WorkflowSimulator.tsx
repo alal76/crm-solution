@@ -377,7 +377,7 @@ const evaluateCondition = (
 };
 
 const interpolateTemplate = (template: string, context: Record<string, any>): string => {
-  return template.replace(/\{\{(\w+(?:\.\w+)*)\}\}/g, (match, path) => {
+  return template.replaceAll(/\{\{(\w+(?:\.\w+)*)\}\}/g, (match, path) => {
     const parts = path.split('.');
     let value: any = context;
     for (const part of parts) {

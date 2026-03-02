@@ -17,7 +17,7 @@
 export function formatDate(dateString: string | null | undefined): string {
   if (!dateString) return '-';
   const d = new Date(dateString);
-  return isNaN(d.getTime()) ? '-' : d.toLocaleDateString();
+  return Number.isNaN(d.getTime()) ? '-' : d.toLocaleDateString();
 }
 
 /**
@@ -27,7 +27,7 @@ export function formatDate(dateString: string | null | undefined): string {
 export function formatDateTime(dateString: string | null | undefined): string {
   if (!dateString) return '-';
   const d = new Date(dateString);
-  return isNaN(d.getTime()) ? '-' : d.toLocaleString();
+  return Number.isNaN(d.getTime()) ? '-' : d.toLocaleString();
 }
 
 /**

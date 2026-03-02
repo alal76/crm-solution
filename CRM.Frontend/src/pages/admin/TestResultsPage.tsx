@@ -824,7 +824,7 @@ const TestResultsPage: React.FC = () => {
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={(e, p) => setPage(p)}
-            onRowsPerPageChange={(e) => { setRowsPerPage(parseInt(e.target.value, 10)); setPage(0); }}
+            onRowsPerPageChange={(e) => { setRowsPerPage(Number.parseInt(e.target.value, 10)); setPage(0); }}
           />
         </Paper>
       )}

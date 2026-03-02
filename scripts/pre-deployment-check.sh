@@ -91,10 +91,10 @@ run_check "Docker installed" "command -v docker"
 run_check "Docker daemon running" "docker ps >/dev/null"
 run_check "Docker Compose available" "docker compose --version"
 run_check "SSH client available" "command -v ssh"
-run_check "Solution directory exists" "[ -d './CRM.Backend' ]"
-run_check "Dockerfile.backend exists" "[ -f 'docker/Dockerfile.backend' ]"
-run_check "Dockerfile.frontend exists" "[ -f 'docker/Dockerfile.frontend' ]"
-run_check "docker-compose.yml exists" "[ -f 'docker/docker-compose.yml' ]"
+run_check "Solution directory exists" "[[ -d './CRM.Backend' ]]"
+run_check "Dockerfile.backend exists" "[[ -f 'docker/Dockerfile.backend' ]]"
+run_check "Dockerfile.frontend exists" "[[ -f 'docker/Dockerfile.frontend' ]]"
+run_check "docker-compose.yml exists" "[[ -f 'docker/docker-compose.yml' ]]"
 
 echo ""
 
@@ -154,7 +154,7 @@ fi
 ((check_count++))
 
 # Check required directories can be created
-run_check "Can create deployment directory" "ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_SERVER 'mkdir -p /opt/crm-deployment 2>/dev/null && [ -d /opt/crm-deployment ]'"
+run_check "Can create deployment directory" "ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_SERVER 'mkdir -p /opt/crm-deployment 2>/dev/null && [[ -d /opt/crm-deployment ]]'"
 
 echo ""
 
@@ -178,7 +178,7 @@ echo ""
 echo "🐳 DOCKER IMAGE BUILD READINESS"
 echo "─────────────────────────────────────────"
 
-run_check ".NET SDK dependencies available" "[ -d 'CRM.Backend/src' ]"
+run_check ".NET SDK dependencies available" "[[ -d 'CRM.Backend/src' ]]"
 run_check "Project files parseable" "ls CRM.Backend/src/CRM.*/CRM.*.csproj >/dev/null 2>&1 | wc -l | grep -q '^[1-9]'"
 
 echo ""

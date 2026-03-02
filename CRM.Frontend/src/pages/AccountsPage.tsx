@@ -565,7 +565,7 @@ function AccountsPage() {
     const checked = (e.target as HTMLInputElement).checked;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'checkbox' ? checked : type === 'number' ? Number.parseFloat(value) || 0 : value,
     }));
   }, []);
 
@@ -1392,7 +1392,7 @@ function AccountsPage() {
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <Typography fontWeight={500}>{contact.contactName}</Typography>
                                   <Chip
-                                    label={CONTACT_ROLES.find(r => r.value === parseInt(contact.role))?.label || contact.role}
+                                    label={CONTACT_ROLES.find(r => r.value === Number.parseInt(contact.role))?.label || contact.role}
                                     size="small"
                                     color="primary"
                                     variant="outlined"

@@ -283,7 +283,7 @@ export const ChangeManagementPage: React.FC = () => {
                 rowsPerPage={pageSize}
                 page={page}
                 onPageChange={(_, newPage) => setPage(newPage)}
-                onRowsPerPageChange={(e) => setPageSize(parseInt(e.target.value))}
+                onRowsPerPageChange={(e) => setPageSize(Number.parseInt(e.target.value))}
               />
             </CardContent>
           </Card>

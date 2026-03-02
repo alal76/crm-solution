@@ -208,7 +208,7 @@ export default function CommissionStatementsPage() {
     try {
       setGenerating(true);
       const request: CommissionStatementGenerateRequest = {
-        userId: parseInt(generateForm.userId),
+        userId: Number.parseInt(generateForm.userId),
         periodStart: generateForm.periodStart.toISOString(),
         periodEnd: generateForm.periodEnd.toISOString(),
       };

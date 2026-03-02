@@ -207,8 +207,8 @@ const EscalationRulesPage: React.FC = () => {
 
   const handleRunTest = async () => {
     if (!testingRule) return;
-    const srId = parseInt(testServiceRequestId, 10);
-    if (isNaN(srId) || srId <= 0) {
+    const srId = Number.parseInt(testServiceRequestId, 10);
+    if (Number.isNaN(srId) || srId <= 0) {
       setTestError('Please enter a valid Service Request ID.');
       return;
     }
@@ -498,7 +498,7 @@ const EscalationRulesPage: React.FC = () => {
             label="Escalation Delay (minutes)"
             type="number"
             value={formData.escalationDelayMinutes}
-            onChange={(e) => setFormData(prev => ({ ...prev, escalationDelayMinutes: parseInt(e.target.value, 10) || 0 }))}
+            onChange={(e) => setFormData(prev => ({ ...prev, escalationDelayMinutes: Number.parseInt(e.target.value, 10) || 0 }))}
             fullWidth
             inputProps={{ min: 0 }}
             sx={{ mb: 2 }}

@@ -323,7 +323,7 @@ export const FeatureFlagsDashboard: React.FC = () => {
               <TextField
                 type="number"
                 value={rolloutPercentage}
-                onChange={(e) => setRolloutPercentage(Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+                onChange={(e) => setRolloutPercentage(Math.min(100, Math.max(0, Number.parseInt(e.target.value) || 0)))}
                 inputProps={{ min: 0, max: 100 }}
                 fullWidth
                 sx={{ mt: 2 }}

@@ -533,7 +533,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
                     size="small"
                     type="number"
                     value={config.intervalMinutes || 60}
-                    onChange={(e) => updateSchedule({ intervalMinutes: Math.max(1, parseInt(e.target.value) || 60) })}
+                    onChange={(e) => updateSchedule({ intervalMinutes: Math.max(1, Number.parseInt(e.target.value) || 60) })}
                     disabled={readonly}
                     inputProps={{ min: 1, style: { textAlign: 'center' } }}
                     sx={{ width: 90 }}
@@ -616,7 +616,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
                   type="number"
                   label="Day of month (1–28)"
                   value={config.scheduleDayOfMonth ?? 1}
-                  onChange={(e) => updateSchedule({ scheduleDayOfMonth: Math.min(28, Math.max(1, parseInt(e.target.value) || 1)) })}
+                  onChange={(e) => updateSchedule({ scheduleDayOfMonth: Math.min(28, Math.max(1, Number.parseInt(e.target.value) || 1)) })}
                   disabled={readonly}
                   inputProps={{ min: 1, max: 28 }}
                   helperText="Use 1 for first day · max 28 avoids month-end issues"
@@ -648,7 +648,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
                     disabled={readonly}
                   >
                     {COMMON_TIMEZONES.map(tz => (
-                      <MenuItem key={tz} value={tz}>{tz.replace(/_/g, ' ')}</MenuItem>
+                      <MenuItem key={tz} value={tz}>{tz.replaceAll(/_/g, ' ')}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -727,7 +727,7 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
               type="number"
               label="Batch Size"
               value={config.batchSize || 100}
-              onChange={(e) => updateConfig({ batchSize: parseInt(e.target.value) || 100 })}
+              onChange={(e) => updateConfig({ batchSize: Number.parseInt(e.target.value) || 100 })}
               disabled={readonly}
               inputProps={{ min: 1, max: 1000 }}
             />

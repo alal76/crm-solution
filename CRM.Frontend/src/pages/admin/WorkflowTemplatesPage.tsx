@@ -24,8 +24,8 @@ import { workflowService, type WorkflowDefinition } from '../../services/workflo
 
 const slugify = (value: string) => value
   .toLowerCase()
-  .replace(/[^a-z0-9]+/g, '-')
-  .replace(/(^-|-$)/g, '');
+  .replaceAll(/[^a-z0-9]+/g, '-')
+  .replaceAll(/(^-|-$)/g, '');
 
 const WorkflowTemplatesPage: React.FC = () => {
   const [templates, setTemplates] = useState<WorkflowDefinition[]>([]);

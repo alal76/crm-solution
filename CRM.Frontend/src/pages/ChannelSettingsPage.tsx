@@ -392,8 +392,8 @@ function ChannelSettingsPage() {
     try {
       const payload = {
         ...channelForm,
-        smtpPort: parseInt(String(channelForm.smtpPort)) || 587,
-        imapPort: parseInt(String(channelForm.imapPort)) || 993,
+        smtpPort: Number.parseInt(String(channelForm.smtpPort)) || 587,
+        imapPort: Number.parseInt(String(channelForm.imapPort)) || 993,
       };
       
       if (editingChannel) {
@@ -574,7 +574,7 @@ function ChannelSettingsPage() {
   };
 
   const getWebhookUrl = (channelType: string) => {
-    const baseUrl = window.location.origin.replace('3000', '5000');
+    const baseUrl = window.location.origin.replaceAll('3000', '5000');
     switch (channelType) {
       case 'Email': return `${baseUrl}/api/webhooks/email/inbound`;
       case 'Twitter': return `${baseUrl}/api/webhooks/twitter`;
@@ -730,7 +730,7 @@ function ChannelSettingsPage() {
                   label="Port"
                   type="number"
                   value={channelForm.smtpPort}
-                  onChange={(e) => setChannelForm({ ...channelForm, smtpPort: parseInt(e.target.value) || 587 })}
+                  onChange={(e) => setChannelForm({ ...channelForm, smtpPort: Number.parseInt(e.target.value) || 587 })}
                   fullWidth
                 />
               </Grid>
@@ -789,7 +789,7 @@ function ChannelSettingsPage() {
                   label="Port"
                   type="number"
                   value={channelForm.imapPort}
-                  onChange={(e) => setChannelForm({ ...channelForm, imapPort: parseInt(e.target.value) || 993 })}
+                  onChange={(e) => setChannelForm({ ...channelForm, imapPort: Number.parseInt(e.target.value) || 993 })}
                   fullWidth
                 />
               </Grid>
@@ -1000,7 +1000,7 @@ function ChannelSettingsPage() {
               </Grid>
               <Grid item xs={12}>
                 <Alert severity="info">
-                  Configure this webhook URL in Meta Developer Console:
+                  Configure this webhook URL in Meta Developer Console:{' '}
                   <code style={{ display: 'block', marginTop: 8 }}>{getWebhookUrl(channelForm.channelType)}</code>
                 </Alert>
               </Grid>

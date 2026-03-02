@@ -573,7 +573,7 @@ const LeadScoreRulesPage: React.FC = () => {
                     type="number"
                     fullWidth
                     value={formData.decayDaysThreshold}
-                    onChange={(e) => setFormData({ ...formData, decayDaysThreshold: parseInt(e.target.value) || 30 })}
+                    onChange={(e) => setFormData({ ...formData, decayDaysThreshold: Number.parseInt(e.target.value) || 30 })}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -582,7 +582,7 @@ const LeadScoreRulesPage: React.FC = () => {
                     type="number"
                     fullWidth
                     value={formData.decayPointsPerPeriod}
-                    onChange={(e) => setFormData({ ...formData, decayPointsPerPeriod: parseInt(e.target.value) || 5 })}
+                    onChange={(e) => setFormData({ ...formData, decayPointsPerPeriod: Number.parseInt(e.target.value) || 5 })}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -591,7 +591,7 @@ const LeadScoreRulesPage: React.FC = () => {
                     type="number"
                     fullWidth
                     value={formData.decayPeriodDays}
-                    onChange={(e) => setFormData({ ...formData, decayPeriodDays: parseInt(e.target.value) || 7 })}
+                    onChange={(e) => setFormData({ ...formData, decayPeriodDays: Number.parseInt(e.target.value) || 7 })}
                   />
                 </Grid>
               </>
@@ -642,7 +642,7 @@ const LeadScoreRulesPage: React.FC = () => {
                 fullWidth
                 required
                 value={formData.scoreImpact}
-                onChange={(e) => setFormData({ ...formData, scoreImpact: parseInt(e.target.value) || 0 })}
+                onChange={(e) => setFormData({ ...formData, scoreImpact: Number.parseInt(e.target.value) || 0 })}
                 helperText="Positive = bonus, Negative = penalty"
               />
             </Grid>
@@ -652,7 +652,7 @@ const LeadScoreRulesPage: React.FC = () => {
                 type="number"
                 fullWidth
                 value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 100 })}
+                onChange={(e) => setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 100 })}
                 helperText="Lower = higher priority"
               />
             </Grid>

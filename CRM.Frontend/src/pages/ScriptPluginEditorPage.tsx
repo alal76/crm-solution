@@ -103,7 +103,7 @@ const ScriptPluginEditorPage = () => {
   const { id } = useParams<{ id: string }>();
 
   const isEditMode = id !== undefined && id !== 'new';
-  const pluginId = isEditMode ? parseInt(id as string, 10) : null;
+  const pluginId = isEditMode ? Number.parseInt(id as string, 10) : null;
 
   // Form
   const [form, setForm] = useState<FormValues>(INITIAL_FORM);

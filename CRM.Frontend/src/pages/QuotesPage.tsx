@@ -258,7 +258,7 @@ function QuotesPage() {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'number' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 

@@ -208,7 +208,7 @@ const SystemSettingsPanel: React.FC = () => {
                 label="SMTP Port"
                 type="number"
                 value={changes.smtpPort !== undefined ? changes.smtpPort : settings.smtpPort}
-                onChange={(e) => handleChange('smtpPort', parseInt(e.target.value))}
+                onChange={(e) => handleChange('smtpPort', Number.parseInt(e.target.value))}
                 variant="outlined"
                 size="small"
                 placeholder="587"
@@ -453,7 +453,7 @@ const SystemSettingsPanel: React.FC = () => {
                 label="Rate Limit per Minute"
                 type="number"
                 value={changes.rateLimitPerMinute !== undefined ? changes.rateLimitPerMinute : settings.rateLimitPerMinute}
-                onChange={(e) => handleChange('rateLimitPerMinute', parseInt(e.target.value))}
+                onChange={(e) => handleChange('rateLimitPerMinute', Number.parseInt(e.target.value))}
                 variant="outlined"
                 size="small"
                 helperText="Maximum API requests per minute per user"

@@ -395,7 +395,7 @@ const SLAManagementPage: React.FC = () => {
                 label="Response Time (minutes)"
                 type="number"
                 value={formData.responseTimeMinutes}
-                onChange={(e) => setFormData(prev => ({ ...prev, responseTimeMinutes: parseInt(e.target.value, 10) || 0 }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, responseTimeMinutes: Number.parseInt(e.target.value, 10) || 0 }))}
                 fullWidth
                 required
                 inputProps={{ min: 1 }}
@@ -407,7 +407,7 @@ const SLAManagementPage: React.FC = () => {
                 label="Resolution Time (minutes)"
                 type="number"
                 value={formData.resolutionTimeMinutes}
-                onChange={(e) => setFormData(prev => ({ ...prev, resolutionTimeMinutes: parseInt(e.target.value, 10) || 0 }))}
+                onChange={(e) => setFormData(prev => ({ ...prev, resolutionTimeMinutes: Number.parseInt(e.target.value, 10) || 0 }))}
                 fullWidth
                 required
                 inputProps={{ min: 1 }}

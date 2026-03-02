@@ -516,7 +516,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
           onPageChange={(_, newPage) => setPage(newPage)}
           rowsPerPage={pageSize}
           onRowsPerPageChange={(e) => {
-            setPageSize(parseInt(e.target.value));
+            setPageSize(Number.parseInt(e.target.value));
             setPage(0);
           }}
           rowsPerPageOptions={[10, 25, 50, 100]}

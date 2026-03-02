@@ -1967,7 +1967,7 @@
 
                     <div class="row g-3 mb-3" id="networkTopoGrid">
                         <div class="col-md-6">
-                            <div class="net-topo-card selected" onclick="selectNetworkTopology('single')">
+                            <div class="net-topo-card selected" role="button" tabindex="0" onclick="selectNetworkTopology('single')" onkeypress="if(event.key==='Enter'||event.key===' '){selectNetworkTopology('single')}">
                                 <div class="d-flex align-items-center gap-2 mb-1">
                                     <i class="bi bi-circle text-primary"></i>
                                     <h6 class="mb-0">Single Network</h6>
@@ -1981,7 +1981,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="net-topo-card" onclick="selectNetworkTopology('segmented')">
+                            <div class="net-topo-card" role="button" tabindex="0" onclick="selectNetworkTopology('segmented')" onkeypress="if(event.key==='Enter'||event.key===' '){selectNetworkTopology('segmented')}">
                                 <div class="d-flex align-items-center gap-2 mb-1">
                                     <i class="bi bi-diagram-2 text-info"></i>
                                     <h6 class="mb-0">Segmented (Recommended)</h6>
@@ -1995,7 +1995,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="net-topo-card" onclick="selectNetworkTopology('dmz')">
+                            <div class="net-topo-card" role="button" tabindex="0" onclick="selectNetworkTopology('dmz')" onkeypress="if(event.key==='Enter'||event.key===' '){selectNetworkTopology('dmz')}">
                                 <div class="d-flex align-items-center gap-2 mb-1">
                                     <i class="bi bi-shield-check text-warning"></i>
                                     <h6 class="mb-0">DMZ + Internal</h6>
@@ -2009,7 +2009,7 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="net-topo-card" onclick="selectNetworkTopology('host')">
+                            <div class="net-topo-card" role="button" tabindex="0" onclick="selectNetworkTopology('host')" onkeypress="if(event.key==='Enter'||event.key===' '){selectNetworkTopology('host')}">
                                 <div class="d-flex align-items-center gap-2 mb-1">
                                     <i class="bi bi-pc-display text-secondary"></i>
                                     <h6 class="mb-0">Host Networking</h6>
@@ -3477,49 +3477,49 @@
             <div class="sidebar-section">
                 <div class="sidebar-section-title">Configuration Status</div>
                 <div id="sidebarDecisionStack">
-                    <div class="sidebar-item" onclick="goToStep(0)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(0)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(0)}">
                         <span class="si-icon"><i class="bi bi-crosshair"></i></span>
                         <span class="si-label">Target</span>
                         <span class="si-value" id="sb-target">—</span>
                         <span class="si-status pending" id="sb-target-status">⏳</span>
                     </div>
-                    <div class="sidebar-item" onclick="goToStep(1)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(1)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(1)}">
                         <span class="si-icon"><i class="bi bi-pencil"></i></span>
                         <span class="si-label">Name</span>
                         <span class="si-value" id="sb-name">—</span>
                         <span class="si-status pending" id="sb-name-status">⏳</span>
                     </div>
-                    <div class="sidebar-item" onclick="goToStep(2)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(2)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(2)}">
                         <span class="si-icon"><i class="bi bi-cloud"></i></span>
                         <span class="si-label">Platform</span>
                         <span class="si-value" id="sb-platform">—</span>
                         <span class="si-status pending" id="sb-platform-status">⏳</span>
                     </div>
-                    <div class="sidebar-item" onclick="goToStep(3)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(3)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(3)}">
                         <span class="si-icon"><i class="bi bi-diagram-3"></i></span>
                         <span class="si-label">Architecture</span>
                         <span class="si-value" id="sb-arch">—</span>
                         <span class="si-status pending" id="sb-arch-status">⏳</span>
                     </div>
-                    <div class="sidebar-item" onclick="goToStep(3)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(3)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(3)}">
                         <span class="si-icon"><i class="bi bi-lock"></i></span>
                         <span class="si-label">SSL</span>
                         <span class="si-value" id="sb-ssl">Disabled</span>
                         <span class="si-status pending" id="sb-ssl-status">⏳</span>
                     </div>
-                    <div class="sidebar-item" onclick="goToStep(4)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(4)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(4)}">
                         <span class="si-icon"><i class="bi bi-database"></i></span>
                         <span class="si-label">Database</span>
                         <span class="si-value" id="sb-db">MariaDB</span>
                         <span class="si-status pending" id="sb-db-status">⏳</span>
                     </div>
-                    <div class="sidebar-item" onclick="goToStep(3)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(3)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(3)}">
                         <span class="si-icon"><i class="bi bi-hdd-network"></i></span>
                         <span class="si-label">Network</span>
                         <span class="si-value" id="sb-network">Single</span>
                         <span class="si-status pending" id="sb-network-status">⏳</span>
                     </div>
-                    <div class="sidebar-item" onclick="goToStep(4)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(4)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(4)}">
                         <span class="si-icon"><i class="bi bi-puzzle"></i></span>
                         <span class="si-label">Providers</span>
                         <span class="si-value" id="sb-providers">All Built-in</span>
@@ -3527,7 +3527,7 @@
                     </div>
                     <!-- Expanded provider detail rows (populated by JS) -->
                     <div class="sidebar-providers-group" id="sb-providers-detail"></div>
-                    <div class="sidebar-item" onclick="goToStep(4)">
+                    <div class="sidebar-item" role="button" tabindex="0" onclick="goToStep(4)" onkeypress="if(event.key==='Enter'||event.key===' '){goToStep(4)}">
                         <span class="si-icon"><i class="bi bi-shield-lock"></i></span>
                         <span class="si-label">Secrets</span>
                         <span class="si-value" id="sb-secrets">Auto-generate</span>
@@ -4246,7 +4246,7 @@
 
         async function generateSslCert() {
             const domain = document.getElementById('sslDomain')?.value || 'localhost';
-            const days = parseInt(document.getElementById('sslDays')?.value || '365');
+            const days = Number.parseInt(document.getElementById('sslDays')?.value || '365');
             const org = document.getElementById('sslOrg')?.value || 'CRM Solution';
             const result = document.getElementById('sslGenResult');
             if (result) { result.style.display = ''; result.innerHTML = '<div class="spinner-border spinner-border-sm me-2"></div>Generating...'; }
@@ -4507,7 +4507,7 @@
 
             if (platform === 'on_premises') {
                 config.host             = document.getElementById('discoveryHost').value.trim();
-                config.port             = parseInt(document.getElementById('discoveryPort').value) || 22;
+                config.port             = Number.parseInt(document.getElementById('discoveryPort').value) || 22;
                 config.username         = document.getElementById('discoveryUsername').value.trim() || 'root';
                 config.auth_method      = document.getElementById('discoveryAuthMethod').value;
                 config.password         = document.getElementById('discoveryPassword').value;
@@ -4718,7 +4718,7 @@
                 // Capture form fields into config first
                 const nm = document.getElementById('deploymentName');   if (nm) config.name = nm.value;
                 const ds = document.getElementById('deploymentDescription'); if (ds) config.description = ds.value;
-                const eu = document.getElementById('expectedUsers');    if (eu) config.expected_users = parseInt(eu.value)||100;
+                const eu = document.getElementById('expectedUsers');    if (eu) config.expected_users = Number.parseInt(eu.value)||100;
                 collectStepData();
                 localStorage.setItem(DRAFT_KEY, JSON.stringify({ config, step: currentStep }));
 
@@ -4840,7 +4840,7 @@
 
         // ── Rich review summary ───────────────────────────────────────────────
         function buildReviewSummary() {
-            const pl = (config.platform || 'unknown').replace('_',' ').toUpperCase();
+            const pl = (config.platform || 'unknown').replaceAll('_',' ').toUpperCase();
             const db = (config.database_type || 'mariadb').toUpperCase();
             const arch = config.architecture ? config.architecture.charAt(0).toUpperCase() + config.architecture.slice(1) : '—';
             const users = config.expected_users || 100;
@@ -4853,7 +4853,7 @@
             // SSL & protocol info
             const sslEnabled = config.ssl?.ssl_enabled;
             const protocol = sslEnabled ? 'HTTPS' : 'HTTP';
-            const sslMode = sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replace('_', ' ') : 'Disabled';
+            const sslMode = sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replaceAll('_', ' ') : 'Disabled';
             const sslBadge = sslEnabled
                 ? `<span class="badge bg-success"><i class="bi bi-lock-fill me-1"></i>${protocol}</span>`
                 : `<span class="badge bg-warning text-dark"><i class="bi bi-unlock me-1"></i>${protocol}</span>`;
@@ -5097,7 +5097,7 @@
 
             // Update recommendation and arch suggestion on user count change
             document.getElementById('expectedUsers').addEventListener('change', function() {
-                config.expected_users = parseInt(this.value);
+                config.expected_users = Number.parseInt(this.value);
                 loadRecommendation();
                 updateArchSuggestion();
             });
@@ -5318,7 +5318,7 @@
             const payload = {
                 db_type:  document.getElementById('migSrcType')?.value,
                 host:     document.getElementById('migSrcHost')?.value,
-                port:     parseInt(document.getElementById('migSrcPort')?.value) || 3306,
+                port:     Number.parseInt(document.getElementById('migSrcPort')?.value) || 3306,
                 database: document.getElementById('migSrcDb')?.value,
                 username: document.getElementById('migSrcUser')?.value,
                 password: document.getElementById('migSrcPassword')?.value,
@@ -5412,9 +5412,9 @@
 
             setItem('sb-target', targetHost || '—', !!targetHost);
             setItem('sb-name', name || '—', !!name);
-            setItem('sb-platform', platform ? platform.replace('_', ' ').toUpperCase() : '—', !!platform);
+            setItem('sb-platform', platform ? platform.replaceAll('_', ' ').toUpperCase() : '—', !!platform);
             setItem('sb-arch', arch ? arch.charAt(0).toUpperCase() + arch.slice(1) : '—', !!arch);
-            setItem('sb-ssl', sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replace('_', ' ') : 'Disabled', sslEnabled);
+            setItem('sb-ssl', sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replaceAll('_', ' ') : 'Disabled', sslEnabled);
             const netLabels = { single: 'Single', segmented: 'Segmented', dmz: 'DMZ + Internal', host: 'Host' };
             setItem('sb-network', netLabels[netTopo] || netTopo, true);
             setItem('sb-db', db.toUpperCase(), true);
@@ -5717,7 +5717,7 @@
                     if (!config.target) config.target = {};
                     config.target.host = dHost;
                     config.target.ssh_user = document.getElementById('discoveryUsername')?.value || 'root';
-                    config.target.ssh_port = parseInt(document.getElementById('discoveryPort')?.value || '22');
+                    config.target.ssh_port = Number.parseInt(document.getElementById('discoveryPort')?.value || '22');
                     config.target.api_port = config.target.api_port || '5000';
                     config.target.frontend_port = config.target.frontend_port || '80';
                     config.deployment_host = dHost;
@@ -5725,7 +5725,7 @@
             } else if (currentStep === 1) {
                 config.name = document.getElementById('deploymentName').value;
                 config.description = document.getElementById('deploymentDescription').value;
-                config.expected_users = parseInt(document.getElementById('expectedUsers').value);
+                config.expected_users = Number.parseInt(document.getElementById('expectedUsers').value);
             } else if (currentStep === 2) {
                 // Platform-specific data
                 if (config.platform === 'azure') {
@@ -5754,7 +5754,7 @@
             } else if (currentStep === 4) {
                 // Components step: collect DB + Secrets
                 config.database_name = document.getElementById('dbName').value;
-                config.database_port = parseInt(document.getElementById('dbPort').value);
+                config.database_port = Number.parseInt(document.getElementById('dbPort').value);
                 config.database_ha = document.getElementById('dbHighAvailability').checked;
                 _collectSecretsData();
             }
@@ -5768,7 +5768,7 @@
                 ssl_enabled: document.getElementById('sslEnabled')?.checked || false,
                 ssl_mode: document.getElementById('sslMode')?.value || 'self_signed',
                 ssl_domain: document.getElementById('sslDomain')?.value || '',
-                ssl_days: parseInt(document.getElementById('sslDays')?.value || '365'),
+                ssl_days: Number.parseInt(document.getElementById('sslDays')?.value || '365'),
                 ssl_org: document.getElementById('sslOrg')?.value || 'CRM Solution',
                 ssl_letsencrypt_email: document.getElementById('sslLetsEncryptEmail')?.value || '',
                 ssl_letsencrypt_staging: document.getElementById('sslLetsEncryptStaging')?.checked || false,
@@ -5872,7 +5872,7 @@
             // Update preflight checklist
             const checks = [
                 { id: 'chk-name',     ok: !!config.name,         ok_msg: '✅ Deployment name: ' + (config.name || '—'),    fail_msg: '❌ Deployment name not set' },
-                { id: 'chk-platform', ok: !!config.platform,     ok_msg: '✅ Platform: ' + (config.platform||'').replace('_',' ').toUpperCase(), fail_msg: '❌ No platform selected' },
+                { id: 'chk-platform', ok: !!config.platform,     ok_msg: '✅ Platform: ' + (config.platform||'').replaceAll('_',' ').toUpperCase(), fail_msg: '❌ No platform selected' },
                 { id: 'chk-db',       ok: !!config.database_type,ok_msg: '✅ Database: ' + (config.database_type||'mariadb').toUpperCase(), fail_msg: '⚠️ Using default database (MariaDB)' },
                 { id: 'chk-arch',     ok: !!config.architecture, ok_msg: '✅ Architecture: ' + (config.architecture ? config.architecture.charAt(0).toUpperCase()+config.architecture.slice(1) : 'Monolithic'), fail_msg: '⚠️ Using default architecture (Monolithic)' },
                 { id: 'chk-secrets',  ok: !!(config.secrets && (config.secrets.db_password || config.secrets.jwt_secret)), ok_msg: '✅ Secrets configured', fail_msg: '⚠️ Secrets will be auto-generated' },
@@ -5892,10 +5892,10 @@
             const host = _getDeploymentHost();
             const sshUser = document.getElementById('discoveryUsername')?.value || 'root';
             const sshPort = document.getElementById('discoveryPort')?.value || '22';
-            const platform = (config.platform || 'unknown').replace('_', ' ').toUpperCase();
+            const platform = (config.platform || 'unknown').replaceAll('_', ' ').toUpperCase();
             const arch = config.architecture ? config.architecture.charAt(0).toUpperCase() + config.architecture.slice(1) : 'Monolithic';
             const sslEnabled = config.ssl?.ssl_enabled;
-            const sslMode = sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replace('_', ' ') : 'Disabled';
+            const sslMode = sslEnabled ? (config.ssl.ssl_mode || 'self_signed').replaceAll('_', ' ') : 'Disabled';
             const protocol = sslEnabled ? 'HTTPS' : 'HTTP';
             const aspEnv = sslEnabled || platform.includes('PREM') ? 'Production' : 'Development';
 
@@ -5916,7 +5916,7 @@
                 const archResp = await fetch('/api/target/arch', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ host, ssh_user: sshUser, ssh_port: parseInt(sshPort) }),
+                    body: JSON.stringify({ host, ssh_user: sshUser, ssh_port: Number.parseInt(sshPort) }),
                 });
                 if (archResp.ok) {
                     const archData = await archResp.json();
@@ -5979,7 +5979,7 @@
                     config.target.target_arch = targetDockerPlatform.split('/')[1] || 'amd64';
                     config.target.host = host;
                     config.target.ssh_user = sshUser;
-                    config.target.ssh_port = parseInt(sshPort) || 22;
+                    config.target.ssh_port = Number.parseInt(sshPort) || 22;
                     config.target.api_port = '5000';
                     config.target.frontend_port = '80';
                     config.deployment_host = host;
@@ -6005,7 +6005,7 @@
                 if (!config.target) config.target = {};
                 if (!config.target.host) config.target.host = host;
                 if (!config.target.ssh_user) config.target.ssh_user = sshUser;
-                if (!config.target.ssh_port) config.target.ssh_port = parseInt(sshPort) || 22;
+                if (!config.target.ssh_port) config.target.ssh_port = Number.parseInt(sshPort) || 22;
                 if (!config.target.api_port) config.target.api_port = '5000';
                 if (!config.target.frontend_port) config.target.frontend_port = '80';
                 config.deployment_host = host;
@@ -6031,10 +6031,10 @@
 
         const DEPLOY_PHASE_KEYS = ['generate','pull','start','health','done'];
         const DEPLOY_PHASE_PATTERNS = {
-            pull:     /pulling|docker pull|Pulling\s/i,
-            start:    /starting|docker-compose up|Creating|Starting\s/i,
-            health:   /health.?check|healthy|waiting for/i,
-            done:     /deployment complete|all services up|done\s*$/i,
+            pull:     /(?:pulling|docker pull|Pulling\s)/i,
+            start:    /(?:starting|docker-compose up|Creating|Starting\s)/i,
+            health:   /(?:health.?check|healthy|waiting for)/i,
+            done:     /(?:deployment complete|all services up|done\s*$)/i,
         };
 
         function _deployLog(msg, cls = 'dl-info') {
@@ -6092,7 +6092,7 @@
                     if (!config.target) config.target = {};
                     config.target.host = config.target.host || _host;
                     config.target.ssh_user = config.target.ssh_user || document.getElementById('discoveryUsername')?.value || 'root';
-                    config.target.ssh_port = config.target.ssh_port || parseInt(document.getElementById('discoveryPort')?.value || '22');
+                    config.target.ssh_port = config.target.ssh_port || Number.parseInt(document.getElementById('discoveryPort')?.value || '22');
                     config.target.api_port = config.target.api_port || '5000';
                     config.target.frontend_port = config.target.frontend_port || '80';
                     config.deployment_host = config.deployment_host || _host;
@@ -6844,7 +6844,7 @@ function generateSecret() {
         el.value = data.password || data;
         updateStrengthMeter('jwt_secret', el.value);
       }
-    }).catch(e => showToast('Failed to generate secret: ' + e.message, 'error'));
+    }).catch(e => { showToast('Failed to generate secret: ' + e.message, 'error'); });
 }
 
 function updateStrengthMeter(fieldId, value) {
@@ -6945,7 +6945,7 @@ function renderDetectionGrid(components) {
       <span class="badge bg-${bClass} mb-1">${bText}</span>
       ${c.version ? `<small class="d-block text-muted">v${c.version}</small>` : ''}
       <select class="form-select form-select-sm mt-1" id="action_${c.key}">
-        ${actionOptions.map(a => `<option value="${a}"${a===c.action?' selected':''}>${a.replace('_',' ')}</option>`).join('')}
+        ${actionOptions.map(a => `<option value="${a}"${a===c.action?' selected':''}>${a.replaceAll('_',' ')}</option>`).join('')}
       </select>
     </div></div></div>`;
   });
@@ -7220,7 +7220,7 @@ function clearDeployLog() {
 function copyDeployLogs() {
     const el = document.getElementById('log-output');
     if (!el) return;
-    navigator.clipboard.writeText(el.textContent).then(() => showToast?.('Logs copied', 'success'));
+    navigator.clipboard.writeText(el.textContent).then(() => { showToast?.('Logs copied', 'success'); });
 }
 
 function escapeHtml(s) {
@@ -7500,7 +7500,7 @@ async function day2Action(action) {
     const payload = {action};
     if (action === 'upgrade')  { payload.version = document.getElementById('d2UpgradeVersion')?.value; payload.registry = document.getElementById('d2UpgradeRegistry')?.value; }
     if (action === 'rollback') { payload.version  = document.getElementById('d2RollbackVersion')?.value; }
-    if (action === 'scale')    { payload.service  = document.getElementById('d2ScaleService')?.value; payload.replicas = parseInt(document.getElementById('d2ScaleReplicas')?.value||'2'); }
+    if (action === 'scale')    { payload.service  = document.getElementById('d2ScaleService')?.value; payload.replicas = Number.parseInt(document.getElementById('d2ScaleReplicas')?.value||'2'); }
     if (action === 'rotate_secrets') {
         payload.secret_type = 'all';
         payload.secrets = [];

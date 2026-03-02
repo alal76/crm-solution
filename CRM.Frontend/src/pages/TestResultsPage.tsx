@@ -87,7 +87,7 @@ const TestResultRow: React.FC<TestResultRowProps> = ({ result }) => {
   };
 
   const parseDuration = (duration: string): number => {
-    return parseFloat(duration.replace('PT', '').replace('S', '')) * 1000;
+    return Number.parseFloat(duration.replace('PT', '').replace('S', '')) * 1000;
   };
 
   return (

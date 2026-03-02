@@ -261,7 +261,7 @@ const ProductBundleWizard: React.FC<ProductBundleWizardProps> = ({
                           size="small"
                           value={item.quantity}
                           onChange={(e) =>
-                            handleQuantityChange(item.product.id, parseInt(e.target.value, 10) || 1)
+                            handleQuantityChange(item.product.id, Number.parseInt(e.target.value, 10) || 1)
                           }
                           inputProps={{ min: 1, style: { textAlign: 'center' } }}
                           sx={{ width: 80 }}
@@ -317,7 +317,7 @@ const ProductBundleWizard: React.FC<ProductBundleWizardProps> = ({
                         onChange={(e) =>
                           handleDiscountChange(
                             item.product.id,
-                            parseFloat(e.target.value) || 0,
+                            Number.parseFloat(e.target.value) || 0,
                           )
                         }
                         InputProps={{
@@ -344,7 +344,7 @@ const ProductBundleWizard: React.FC<ProductBundleWizardProps> = ({
                   type="number"
                   size="small"
                   value={bundleDiscount}
-                  onChange={(e) => setBundleDiscount(Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))}
+                  onChange={(e) => setBundleDiscount(Math.max(0, Math.min(100, Number.parseFloat(e.target.value) || 0)))}
                   InputProps={{
                     endAdornment: <InputAdornment position="end">%</InputAdornment>,
                   }}

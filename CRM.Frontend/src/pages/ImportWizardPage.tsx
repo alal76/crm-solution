@@ -100,10 +100,10 @@ function parseFileHeaders(file: File): Promise<{ headers: string[]; previewRows:
         resolve({ headers: [], previewRows: [] });
         return;
       }
-      const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = lines[0].split(',').map(h => h.trim().replaceAll(/^"|"$/g, ''));
       const previewRows: Record<string, string>[] = [];
       for (let i = 1; i < Math.min(lines.length, 4); i++) {
-        const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+        const values = lines[i].split(',').map(v => v.trim().replaceAll(/^"|"$/g, ''));
         const row: Record<string, string> = {};
         headers.forEach((h, idx) => {
           row[h] = values[idx] || '';
@@ -119,9 +119,9 @@ function parseFileHeaders(file: File): Promise<{ headers: string[]; previewRows:
 
 function autoDetectMappings(sourceColumns: string[], targetFields: string[]): ColumnMappingDto[] {
   return sourceColumns.map(source => {
-    const normalizedSource = source.toLowerCase().replace(/[_\s-]/g, '');
+    const normalizedSource = source.toLowerCase().replaceAll(/[_\s-]/g, '');
     const match = targetFields.find(
-      f => f.toLowerCase().replace(/[_\s-]/g, '') === normalizedSource
+      f => f.toLowerCase().replaceAll(/[_\s-]/g, '') === normalizedSource
     );
     return { sourceColumn: source, targetField: match || '' };
   });

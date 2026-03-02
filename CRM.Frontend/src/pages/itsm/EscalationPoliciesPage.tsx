@@ -571,7 +571,7 @@ const EscalationPoliciesPage: React.FC = () => {
                       value={level.timeThresholdMinutes}
                       onChange={e =>
                         updateLevel(idx, {
-                          timeThresholdMinutes: parseInt(e.target.value, 10) || 0,
+                          timeThresholdMinutes: Number.parseInt(e.target.value, 10) || 0,
                         })
                       }
                       fullWidth

@@ -57,7 +57,7 @@ const priorityColor = (priority: string) => {
 const PortalTicketDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const ticketId = parseInt(id ?? '0', 10);
+  const ticketId = Number.parseInt(id ?? '0', 10);
 
   const [ticket, setTicket] = useState<PortalTicketDto | null>(null);
   const [comments, setComments] = useState<PortalCommentDto[]>([]);

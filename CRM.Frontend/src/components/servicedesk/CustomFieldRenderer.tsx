@@ -153,8 +153,8 @@ const CustomFieldRenderer: React.FC<CustomFieldRendererProps> = ({
           type="number"
           value={value ?? ''}
           onChange={(e) => {
-            const parsed = parseFloat(e.target.value);
-            onChange?.(isNaN(parsed) ? '' : parsed);
+            const parsed = Number.parseFloat(e.target.value);
+            onChange?.(Number.isNaN(parsed) ? '' : parsed);
           }}
           inputProps={{ step: 'any' }}
         />

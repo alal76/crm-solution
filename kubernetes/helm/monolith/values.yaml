@@ -24,9 +24,11 @@ api:
     requests:
       cpu: 250m
       memory: 512Mi
+      ephemeral-storage: 256Mi
     limits:
       cpu: 1000m
       memory: 1Gi
+      ephemeral-storage: 1Gi
   hpa:
     enabled: false
     minReplicas: 2
@@ -43,9 +45,11 @@ frontend:
     requests:
       cpu: 100m
       memory: 256Mi
+      ephemeral-storage: 128Mi
     limits:
       cpu: 500m
       memory: 512Mi
+      ephemeral-storage: 256Mi
   hpa:
     enabled: false
     minReplicas: 2
@@ -77,9 +81,11 @@ db:
     requests:
       cpu: 250m
       memory: 256Mi
+      ephemeral-storage: 256Mi
     limits:
       cpu: 500m
       memory: 512Mi
+      ephemeral-storage: 512Mi
 
 ingress:
   enabled: false

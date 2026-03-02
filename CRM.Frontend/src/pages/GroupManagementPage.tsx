@@ -293,7 +293,7 @@ function GroupManagementPage() {
   };
 
   const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
+    setRowsPerPage(Number.parseInt(event.target.value, 10));
     setPage(0);
   };
 
@@ -532,7 +532,7 @@ function GroupManagementPage() {
                           }
                         />
                       }
-                      label={key.replace(/([A-Z])/g, ' $1').trim()}
+                      label={key.replaceAll(/([A-Z])/g, ' $1').trim()}
                     />
                   );
                 }

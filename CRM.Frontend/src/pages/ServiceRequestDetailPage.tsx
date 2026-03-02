@@ -56,7 +56,7 @@ export const ServiceRequestDetailPage: React.FC = () => {
       
       try {
         setLoading(true);
-        const response = await itsmService.getIncidentById(parseInt(id, 10));
+        const response = await itsmService.getIncidentById(Number.parseInt(id, 10));
         setIncident(response.data);
       } catch (err) {
         setError('Failed to load service request');

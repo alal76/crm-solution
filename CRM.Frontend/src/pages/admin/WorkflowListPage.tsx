@@ -528,7 +528,7 @@ function WorkflowListPage() {
                 label="Workflow Key"
                 value={formData.workflowKey}
                 onChange={(e) =>
-                  setFormData({ ...formData, workflowKey: e.target.value.replace(/\s/g, '_').toLowerCase() })
+                  setFormData({ ...formData, workflowKey: e.target.value.replaceAll(/\s/g, '_').toLowerCase() })
                 }
                 disabled={!!editingWorkflow}
                 helperText="Unique identifier (lowercase, no spaces)"
@@ -587,7 +587,7 @@ function WorkflowListPage() {
                 type="number"
                 label="Priority"
                 value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) || 100 })}
+                onChange={(e) => setFormData({ ...formData, priority: Number.parseInt(e.target.value) || 100 })}
                 helperText="Lower = higher priority"
               />
             </Grid>
@@ -598,7 +598,7 @@ function WorkflowListPage() {
                 label="Max Concurrent Instances"
                 value={formData.maxConcurrentInstances}
                 onChange={(e) =>
-                  setFormData({ ...formData, maxConcurrentInstances: parseInt(e.target.value) || 0 })
+                  setFormData({ ...formData, maxConcurrentInstances: Number.parseInt(e.target.value) || 0 })
                 }
                 helperText="0 = unlimited"
               />
@@ -610,7 +610,7 @@ function WorkflowListPage() {
                 label="Default Timeout (hours)"
                 value={formData.defaultTimeoutHours}
                 onChange={(e) =>
-                  setFormData({ ...formData, defaultTimeoutHours: parseInt(e.target.value) || 0 })
+                  setFormData({ ...formData, defaultTimeoutHours: Number.parseInt(e.target.value) || 0 })
                 }
                 helperText="0 = no timeout"
               />

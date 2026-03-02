@@ -284,7 +284,7 @@ fi
   for i in $(seq 0 $((NUM_SUITES - 1))); do
     RC=${SUITE_RCS[$i]}
     STATUS="PASS"
-    [ "$RC" != "0" ] && STATUS="FAIL"
+    [[ "$RC" != "0" ]] && STATUS="FAIL"
     echo "SUITE=${SUITE_IDS[$i]} STATUS=$STATUS RC=$RC NAME=${SUITE_NAMES[$i]}"
   done
   echo ""

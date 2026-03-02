@@ -612,7 +612,7 @@ export const ActionPropertiesPanel: React.FC<ActionPropertiesPanelProps> = ({
                   type="number"
                   label="Due In (days)"
                   value={config.taskDueDays || 1}
-                  onChange={(e) => updateConfig({ taskDueDays: parseInt(e.target.value) || 1 })}
+                  onChange={(e) => updateConfig({ taskDueDays: Number.parseInt(e.target.value) || 1 })}
                   disabled={readonly}
                   sx={{ flex: 1 }}
                 />
@@ -965,7 +965,7 @@ export const ActionPropertiesPanel: React.FC<ActionPropertiesPanelProps> = ({
               size="small"
               label="Retry Count"
               value={config.retryCount || 3}
-              onChange={(e) => updateConfig({ retryCount: parseInt(e.target.value) || 0 })}
+              onChange={(e) => updateConfig({ retryCount: Number.parseInt(e.target.value) || 0 })}
               disabled={readonly}
               inputProps={{ min: 0, max: 10 }}
               sx={{ flex: 1 }}
@@ -975,7 +975,7 @@ export const ActionPropertiesPanel: React.FC<ActionPropertiesPanelProps> = ({
               size="small"
               label="Retry Delay (seconds)"
               value={config.retryDelaySeconds || 30}
-              onChange={(e) => updateConfig({ retryDelaySeconds: parseInt(e.target.value) || 30 })}
+              onChange={(e) => updateConfig({ retryDelaySeconds: Number.parseInt(e.target.value) || 30 })}
               disabled={readonly}
               sx={{ flex: 1 }}
             />

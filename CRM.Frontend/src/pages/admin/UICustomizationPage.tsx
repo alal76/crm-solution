@@ -279,7 +279,7 @@ const ThemeLayoutTab: React.FC = () => {
                 label="Default Page Size"
                 type="number"
                 value={preferences.defaultPageSize}
-                onChange={(e) => savePreferences({ defaultPageSize: parseInt(e.target.value) })}
+                onChange={(e) => savePreferences({ defaultPageSize: Number.parseInt(e.target.value) })}
                 disabled={isSaving}
                 size="small"
               />

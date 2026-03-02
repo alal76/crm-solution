@@ -377,10 +377,10 @@ function ServiceRequestsPage() {
         page: page + 1,
         pageSize,
         searchTerm: searchTerm || undefined,
-        status: filterStatus ? [parseInt(filterStatus)] : undefined,
-        priority: filterPriority ? [parseInt(filterPriority)] : undefined,
-        channel: filterChannel ? [parseInt(filterChannel)] : undefined,
-        categoryId: filterCategory ? parseInt(filterCategory) : undefined,
+        status: filterStatus ? [Number.parseInt(filterStatus)] : undefined,
+        priority: filterPriority ? [Number.parseInt(filterPriority)] : undefined,
+        channel: filterChannel ? [Number.parseInt(filterChannel)] : undefined,
+        categoryId: filterCategory ? Number.parseInt(filterCategory) : undefined,
       };
       const response = await serviceRequestService.getAll(filter);
       setRequests(response.data.items);
@@ -517,7 +517,7 @@ function ServiceRequestsPage() {
       const customFieldValuesArray = Object.entries(customFieldValues)
         .filter(([, value]) => value)
         .map(([fieldId, value]) => ({
-          fieldDefinitionId: parseInt(fieldId),
+          fieldDefinitionId: Number.parseInt(fieldId),
           value,
         }));
 
@@ -623,9 +623,9 @@ function ServiceRequestsPage() {
     await bulkApi.execute(async () => {
       const updates = selectedIds.map(id => {
         const updatePayload: any = {};
-        if (bulkFormData.status) updatePayload.status = parseInt(bulkFormData.status);
-        if (bulkFormData.priority) updatePayload.priority = parseInt(bulkFormData.priority);
-        if (bulkFormData.assignedToUserId) updatePayload.assignedToUserId = parseInt(bulkFormData.assignedToUserId);
+        if (bulkFormData.status) updatePayload.status = Number.parseInt(bulkFormData.status);
+        if (bulkFormData.priority) updatePayload.priority = Number.parseInt(bulkFormData.priority);
+        if (bulkFormData.assignedToUserId) updatePayload.assignedToUserId = Number.parseInt(bulkFormData.assignedToUserId);
         return serviceRequestService.update(id, updatePayload);
       });
       await Promise.all(updates);
@@ -1149,7 +1149,7 @@ function ServiceRequestsPage() {
                 onPageChange={(_, newPage) => setPage(newPage)}
                 rowsPerPage={pageSize}
                 onRowsPerPageChange={(e) => {
-                  setPageSize(parseInt(e.target.value, 10));
+                  setPageSize(Number.parseInt(e.target.value, 10));
                   setPage(0);
                 }}
                 rowsPerPageOptions={[10, 25, 50, 100]}

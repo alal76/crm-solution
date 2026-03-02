@@ -185,7 +185,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name.includes('Amount') || name === 'subtotal' ? parseFloat(value) || 0 : value,
+      [name]: name.includes('Amount') || name === 'subtotal' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 

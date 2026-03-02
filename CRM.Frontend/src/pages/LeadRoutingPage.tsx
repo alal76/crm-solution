@@ -670,7 +670,7 @@ const LeadRoutingPage = () => {
                 label="Priority"
                 type="number"
                 value={formData.priority || 1}
-                onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, priority: Number.parseInt(e.target.value) })}
                 fullWidth
               />
             </Grid>

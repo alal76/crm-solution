@@ -459,7 +459,7 @@ export default function QuoteLineItemsEditor({ quoteId, readOnly = false, onTota
                 label="Quantity"
                 type="number"
                 value={editingItem.quantity}
-                onChange={(e) => handleFormChange('quantity', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleFormChange('quantity', Number.parseFloat(e.target.value) || 0)}
                 required
                 sx={{ width: 120 }}
                 inputProps={{ min: 0, step: 1 }}
@@ -474,7 +474,7 @@ export default function QuoteLineItemsEditor({ quoteId, readOnly = false, onTota
                 label="Unit Price"
                 type="number"
                 value={editingItem.unitPrice}
-                onChange={(e) => handleFormChange('unitPrice', parseFloat(e.target.value) || 0)}
+                onChange={(e) => handleFormChange('unitPrice', Number.parseFloat(e.target.value) || 0)}
                 required
                 fullWidth
                 InputProps={{
@@ -503,7 +503,7 @@ export default function QuoteLineItemsEditor({ quoteId, readOnly = false, onTota
                   label="Discount %"
                   type="number"
                   value={editingItem.discountPercent}
-                  onChange={(e) => handleFormChange('discountPercent', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => handleFormChange('discountPercent', Number.parseFloat(e.target.value) || 0)}
                   sx={{ width: 120 }}
                   InputProps={{
                     endAdornment: <InputAdornment position="end">%</InputAdornment>,
@@ -516,7 +516,7 @@ export default function QuoteLineItemsEditor({ quoteId, readOnly = false, onTota
                   label="Discount Amount"
                   type="number"
                   value={editingItem.discountAmount}
-                  onChange={(e) => handleFormChange('discountAmount', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => handleFormChange('discountAmount', Number.parseFloat(e.target.value) || 0)}
                   sx={{ width: 150 }}
                   InputProps={{
                     startAdornment: <InputAdornment position="start">$</InputAdornment>,
@@ -550,7 +550,7 @@ export default function QuoteLineItemsEditor({ quoteId, readOnly = false, onTota
                   label="Tax Rate"
                   type="number"
                   value={editingItem.taxRate}
-                  onChange={(e) => handleFormChange('taxRate', parseFloat(e.target.value) || 0)}
+                  onChange={(e) => handleFormChange('taxRate', Number.parseFloat(e.target.value) || 0)}
                   sx={{ width: 120 }}
                   InputProps={{
                     endAdornment: <InputAdornment position="end">%</InputAdornment>,

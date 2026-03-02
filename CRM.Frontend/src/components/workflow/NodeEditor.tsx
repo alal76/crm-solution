@@ -146,7 +146,7 @@ const NodeEditor: React.FC<NodeEditorProps> = ({
         type="number"
         label="Timeout (minutes)"
         value={selectedNode.timeoutMinutes}
-        onChange={(e) => onUpdateProperty('timeoutMinutes', parseInt(e.target.value, 10) || 0)}
+        onChange={(e) => onUpdateProperty('timeoutMinutes', Number.parseInt(e.target.value, 10) || 0)}
       />
       <TextField
         fullWidth
@@ -154,7 +154,7 @@ const NodeEditor: React.FC<NodeEditorProps> = ({
         type="number"
         label="Retry Count"
         value={selectedNode.retryCount}
-        onChange={(e) => onUpdateProperty('retryCount', parseInt(e.target.value, 10) || 0)}
+        onChange={(e) => onUpdateProperty('retryCount', Number.parseInt(e.target.value, 10) || 0)}
       />
 
       <Divider />

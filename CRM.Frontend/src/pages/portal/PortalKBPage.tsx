@@ -179,7 +179,7 @@ const PortalKBPage: React.FC = () => {
               page={page}
               onPageChange={(_e, newPage) => setPage(newPage)}
               rowsPerPage={pageSize}
-              onRowsPerPageChange={(e) => { setPageSize(parseInt(e.target.value, 10)); setPage(0); }}
+              onRowsPerPageChange={(e) => { setPageSize(Number.parseInt(e.target.value, 10)); setPage(0); }}
               rowsPerPageOptions={[12, 24, 48]}
             />
           </>

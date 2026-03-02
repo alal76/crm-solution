@@ -186,7 +186,7 @@ class CRMTestReporter implements Reporter {
     const parts = file.split('/');
     const testsIndex = parts.indexOf('tests');
     if (testsIndex !== -1 && parts[testsIndex + 1]) {
-      return parts[testsIndex + 1].replace('.spec.ts', '');
+      return parts[testsIndex + 1].replaceAll('.spec.ts', '');
     }
     return 'unknown';
   }
@@ -225,7 +225,7 @@ class CRMTestReporter implements Reporter {
   }
 
   private formatDate(date: Date): string {
-    return date.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    return date.toISOString().replaceAll(/[:.]/g, '-').slice(0, 19);
   }
 
   private async generateReports() {
@@ -407,7 +407,7 @@ class CRMTestReporter implements Reporter {
               <div class="test-id">${log.testId}</div>
               <div class="test-name">${log.testName}</div>
               <div class="test-module">${log.module}</div>
-              ${log.error ? `<div class="error">${log.error.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : ''}
+              ${log.error ? `<div class="error">${log.error.replaceAll(/</g, '&lt;').replaceAll(/>/g, '&gt;')}</div>` : ''}
             </div>
             <div class="duration">${log.duration}ms</div>
           </div>

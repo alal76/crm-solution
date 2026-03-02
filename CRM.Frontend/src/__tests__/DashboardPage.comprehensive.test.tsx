@@ -179,7 +179,7 @@ describe('DashboardPage - Recent Activities', () => {
     // Assuming time is formatted as "X hours ago"
     const parseTime = (time: string) => {
       const match = time.match(/(\d+)/);
-      return match ? parseInt(match[1]) : 0;
+      return match ? Number.parseInt(match[1]) : 0;
     };
     
     const times = mockRecentActivities.map(a => parseTime(a.time));

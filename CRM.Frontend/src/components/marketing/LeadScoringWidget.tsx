@@ -108,11 +108,11 @@ const getStarRating = (score: number): React.ReactNode => {
 
   return (
     <Box display="flex">
-      {[...Array(fullStars)].map((_, i) => (
+      {[...new Array(fullStars)].map((_, i) => (
         <Star key={`full-${i}`} sx={{ color: '#ffc107', fontSize: 16 }} />
       ))}
       {halfStar && <StarHalf sx={{ color: '#ffc107', fontSize: 16 }} />}
-      {[...Array(emptyStars)].map((_, i) => (
+      {[...new Array(emptyStars)].map((_, i) => (
         <StarBorder key={`empty-${i}`} sx={{ color: '#ffc107', fontSize: 16 }} />
       ))}
     </Box>

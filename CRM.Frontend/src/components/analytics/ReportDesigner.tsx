@@ -355,7 +355,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
           return 'Please enter a valid date (YYYY-MM-DD or ISO 8601)';
         }
         const parsed = new Date(value.trim());
-        if (isNaN(parsed.getTime())) {
+        if (Number.isNaN(parsed.getTime())) {
           return 'Invalid date — check day, month and year values';
         }
       }
@@ -975,7 +975,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
             type="number"
             label="Row Limit"
             value={config.limitRows || 1000}
-            onChange={(e) => setConfig(prev => ({ ...prev, limitRows: parseInt(e.target.value) || 1000 }))}
+            onChange={(e) => setConfig(prev => ({ ...prev, limitRows: Number.parseInt(e.target.value) || 1000 }))}
             sx={{ width: 120 }}
           />
         </Box>

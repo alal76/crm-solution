@@ -260,14 +260,14 @@ const LLMSettingsTab: React.FC = () => {
               <TextField
                 fullWidth size="small" type="number" label="Timeout (seconds)"
                 value={editGeneral.timeoutSeconds}
-                onChange={e => setGeneralField('timeoutSeconds', parseInt(e.target.value) || 60)}
+                onChange={e => setGeneralField('timeoutSeconds', Number.parseInt(e.target.value) || 60)}
               />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth size="small" type="number" label="Max Retries"
                 value={editGeneral.maxRetries}
-                onChange={e => setGeneralField('maxRetries', parseInt(e.target.value) || 3)}
+                onChange={e => setGeneralField('maxRetries', Number.parseInt(e.target.value) || 3)}
               />
             </Grid>
           </Grid>

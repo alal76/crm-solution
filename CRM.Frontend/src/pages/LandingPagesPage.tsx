@@ -305,8 +305,8 @@ export default function LandingPagesPage() {
   const generateSlug = (name: string) => {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replaceAll(/[^a-z0-9]+/g, '-')
+      .replaceAll(/^-|-$/g, '');
   };
 
   // Handlers
@@ -843,7 +843,7 @@ export default function LandingPagesPage() {
                   type="number"
                   label="Linked Form ID"
                   value={form.formDefinitionId || ''}
-                  onChange={e => handleFormChange('formDefinitionId', e.target.value ? parseInt(e.target.value) : null)}
+                  onChange={e => handleFormChange('formDefinitionId', e.target.value ? Number.parseInt(e.target.value) : null)}
                   helperText="Enter the Form ID to embed on this page"
                 />
               </Grid>
@@ -853,7 +853,7 @@ export default function LandingPagesPage() {
                   type="number"
                   label="Campaign ID"
                   value={form.campaignId || ''}
-                  onChange={e => handleFormChange('campaignId', e.target.value ? parseInt(e.target.value) : null)}
+                  onChange={e => handleFormChange('campaignId', e.target.value ? Number.parseInt(e.target.value) : null)}
                   helperText="Link this page to a marketing campaign"
                 />
               </Grid>

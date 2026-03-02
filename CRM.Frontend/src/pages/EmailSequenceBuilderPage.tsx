@@ -418,7 +418,7 @@ const StepEditDialog: React.FC<{
                 value={editedStep.emailTemplateId || ''}
                 onChange={(e) => setEditedStep({
                   ...editedStep,
-                  emailTemplateId: parseInt(e.target.value) || undefined
+                  emailTemplateId: Number.parseInt(e.target.value) || undefined
                 })}
               />
               <TextField
@@ -438,7 +438,7 @@ const StepEditDialog: React.FC<{
                 value={editedStep.delayDays || 0}
                 onChange={(e) => setEditedStep({
                   ...editedStep,
-                  delayDays: parseInt(e.target.value) || 0
+                  delayDays: Number.parseInt(e.target.value) || 0
                 })}
               />
               <TextField
@@ -448,7 +448,7 @@ const StepEditDialog: React.FC<{
                 value={editedStep.delayHours || 0}
                 onChange={(e) => setEditedStep({
                   ...editedStep,
-                  delayHours: parseInt(e.target.value) || 0
+                  delayHours: Number.parseInt(e.target.value) || 0
                 })}
               />
             </>

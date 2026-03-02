@@ -479,7 +479,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
                 value={editingWidget.position.x}
                 onChange={(e) => setEditingWidget({
                   ...editingWidget,
-                  position: { ...editingWidget.position, x: parseInt(e.target.value) }
+                  position: { ...editingWidget.position, x: Number.parseInt(e.target.value) }
                 })}
               />
               <TextField
@@ -489,7 +489,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
                 value={editingWidget.position.y}
                 onChange={(e) => setEditingWidget({
                   ...editingWidget,
-                  position: { ...editingWidget.position, y: parseInt(e.target.value) }
+                  position: { ...editingWidget.position, y: Number.parseInt(e.target.value) }
                 })}
               />
               <TextField
@@ -499,7 +499,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
                 value={editingWidget.position.width}
                 onChange={(e) => setEditingWidget({
                   ...editingWidget,
-                  position: { ...editingWidget.position, width: parseInt(e.target.value) }
+                  position: { ...editingWidget.position, width: Number.parseInt(e.target.value) }
                 })}
               />
               <TextField
@@ -509,7 +509,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
                 value={editingWidget.position.height}
                 onChange={(e) => setEditingWidget({
                   ...editingWidget,
-                  position: { ...editingWidget.position, height: parseInt(e.target.value) }
+                  position: { ...editingWidget.position, height: Number.parseInt(e.target.value) }
                 })}
               />
             </Stack>

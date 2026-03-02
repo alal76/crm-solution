@@ -171,7 +171,7 @@ export const EditableCell: React.FC<EditableCellProps> = ({
     // Number validations
     if (type === 'number') {
       const numVal = Number(val);
-      if (isNaN(numVal)) {
+      if (Number.isNaN(numVal)) {
         return 'Invalid number';
       }
       if (min !== undefined && numVal < min) {

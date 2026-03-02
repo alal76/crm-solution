@@ -88,7 +88,7 @@ get_frontend_version() {
 
 # Get git commit hash
 get_git_hash() {
-    if command -v git &> /dev/null && [ -d "${PROJECT_ROOT}/.git" ]; then
+    if command -v git &> /dev/null && [[ -d "${PROJECT_ROOT}/.git" ]]; then
         git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/null || echo "unknown"
     else
         echo "unknown"
@@ -97,7 +97,7 @@ get_git_hash() {
 
 # Get git branch
 get_git_branch() {
-    if command -v git &> /dev/null && [ -d "${PROJECT_ROOT}/.git" ]; then
+    if command -v git &> /dev/null && [[ -d "${PROJECT_ROOT}/.git" ]]; then
         git -C "${PROJECT_ROOT}" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown"
     else
         echo "unknown"

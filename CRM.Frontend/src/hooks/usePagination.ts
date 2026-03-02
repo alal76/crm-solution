@@ -78,7 +78,7 @@ export function usePagination<T>(
   }, []);
 
   const handlePageSizeChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const newSize = parseInt(event.target.value, 10);
+    const newSize = Number.parseInt(event.target.value, 10);
     setPageSize(newSize);
     setPage(0); // Reset to first page when changing page size
   }, []);
@@ -133,7 +133,7 @@ export function useServerPagination(
   }, []);
 
   const handlePageSizeChange = useCallback((event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const newSize = parseInt(event.target.value, 10);
+    const newSize = Number.parseInt(event.target.value, 10);
     setPageSize(newSize);
     setPage(0);
   }, []);

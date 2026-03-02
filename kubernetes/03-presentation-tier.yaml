@@ -32,7 +32,7 @@ spec:
       containers:
       - name: crm-frontend
         image: ${REGISTRY_HOST:-registry.local}:5000/crm-frontend:v1  # Replace REGISTRY_HOST
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
           name: http
@@ -47,9 +47,11 @@ spec:
           requests:
             memory: "256Mi"
             cpu: "250m"
+            ephemeral-storage: "128Mi"
           limits:
             memory: "512Mi"
             cpu: "500m"
+            ephemeral-storage: "256Mi"
         # Startup probe: Allow container to start before liveness checks begin
         startupProbe:
           httpGet:

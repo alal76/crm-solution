@@ -91,9 +91,9 @@ function formatDate(year: number, month: number, day: number): string {
 function parseDate(dateStr: string): { year: number; month: number; day: number } {
   const parts = dateStr.split('-');
   return {
-    year: parseInt(parts[0], 10),
-    month: parseInt(parts[1], 10) - 1,
-    day: parseInt(parts[2], 10),
+    year: Number.parseInt(parts[0], 10),
+    month: Number.parseInt(parts[1], 10) - 1,
+    day: Number.parseInt(parts[2], 10),
   };
 }
 

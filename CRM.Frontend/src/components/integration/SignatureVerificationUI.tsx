@@ -254,7 +254,7 @@ export const SignatureVerificationUI: React.FC<SignatureVerificationUIProps> = (
                   onChange={(e) =>
                     onChange({
                       ...settings,
-                      rotationIntervalDays: parseInt(e.target.value, 10) || 90,
+                      rotationIntervalDays: Number.parseInt(e.target.value, 10) || 90,
                     })
                   }
                   disabled={readOnly}
@@ -304,7 +304,7 @@ export const SignatureVerificationUI: React.FC<SignatureVerificationUIProps> = (
                 onChange={(e) =>
                   onChange({
                     ...settings,
-                    timestampToleranceSeconds: parseInt(e.target.value, 10) || 300,
+                    timestampToleranceSeconds: Number.parseInt(e.target.value, 10) || 300,
                   })
                 }
                 disabled={readOnly}

@@ -412,9 +412,9 @@ function InteractionsPage() {
     if (!selectedInteraction) return;
     try {
       await apiClient.post(`/interactions/${selectedInteraction.id}/link`, {
-        accountId: linkForm.accountId ? parseInt(linkForm.accountId) : null,
-        contactId: linkForm.contactId ? parseInt(linkForm.contactId) : null,
-        opportunityId: linkForm.opportunityId ? parseInt(linkForm.opportunityId) : null,
+        accountId: linkForm.accountId ? Number.parseInt(linkForm.accountId) : null,
+        contactId: linkForm.contactId ? Number.parseInt(linkForm.contactId) : null,
+        opportunityId: linkForm.opportunityId ? Number.parseInt(linkForm.opportunityId) : null,
         notes: linkForm.notes,
       });
       setSuccess('Interaction linked successfully');
@@ -459,7 +459,7 @@ function InteractionsPage() {
         email: contactForm.email,
         phone: contactForm.phone,
         title: contactForm.title,
-        accountId: contactForm.accountId ? parseInt(contactForm.accountId) : null,
+        accountId: contactForm.accountId ? Number.parseInt(contactForm.accountId) : null,
         createCustomerIfNeeded: contactForm.createCustomerIfNeeded,
       });
       setSuccess('Contact created successfully');
@@ -595,7 +595,7 @@ function InteractionsPage() {
             >
               <MenuItem value="">All Types</MenuItem>
               {Object.entries(INTERACTION_TYPES).map(([key, val]) => (
-                <MenuItem key={key} value={parseInt(key)}>{val.label}</MenuItem>
+                <MenuItem key={key} value={Number.parseInt(key)}>{val.label}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -610,7 +610,7 @@ function InteractionsPage() {
             >
               <MenuItem value="">All Directions</MenuItem>
               {Object.entries(DIRECTION_LABELS).map(([key, val]) => (
-                <MenuItem key={key} value={parseInt(key)}>{val.label}</MenuItem>
+                <MenuItem key={key} value={Number.parseInt(key)}>{val.label}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -625,7 +625,7 @@ function InteractionsPage() {
             >
               <MenuItem value="">All Outcomes</MenuItem>
               {Object.entries(OUTCOME_LABELS).map(([key, val]) => (
-                <MenuItem key={key} value={parseInt(key)}>{val.label}</MenuItem>
+                <MenuItem key={key} value={Number.parseInt(key)}>{val.label}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -924,21 +924,21 @@ function InteractionsPage() {
           <Autocomplete
             options={accounts}
             getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
-            value={accounts.find(c => c.id === parseInt(linkForm.accountId)) || null}
+            value={accounts.find(c => c.id === Number.parseInt(linkForm.accountId)) || null}
             onChange={(_, v) => setLinkForm({ ...linkForm, accountId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Account" fullWidth />}
           />
           <Autocomplete
-            options={contacts.filter(c => !linkForm.accountId || c.accountId === parseInt(linkForm.accountId))}
+            options={contacts.filter(c => !linkForm.accountId || c.accountId === Number.parseInt(linkForm.accountId))}
             getOptionLabel={(c) => `${c.firstName} ${c.lastName}` + (c.email ? ` (${c.email})` : '')}
-            value={contacts.find(c => c.id === parseInt(linkForm.contactId)) || null}
+            value={contacts.find(c => c.id === Number.parseInt(linkForm.contactId)) || null}
             onChange={(_, v) => setLinkForm({ ...linkForm, contactId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Contact" fullWidth />}
           />
           <Autocomplete
-            options={opportunities.filter(o => !linkForm.accountId || o.accountId === parseInt(linkForm.accountId))}
+            options={opportunities.filter(o => !linkForm.accountId || o.accountId === Number.parseInt(linkForm.accountId))}
             getOptionLabel={(o) => o.title}
-            value={opportunities.find(o => o.id === parseInt(linkForm.opportunityId)) || null}
+            value={opportunities.find(o => o.id === Number.parseInt(linkForm.opportunityId)) || null}
             onChange={(_, v) => setLinkForm({ ...linkForm, opportunityId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Opportunity" fullWidth />}
           />
@@ -1063,7 +1063,7 @@ function InteractionsPage() {
           <Autocomplete
             options={accounts}
             getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
-            value={accounts.find(c => c.id === parseInt(contactForm.accountId)) || null}
+            value={accounts.find(c => c.id === Number.parseInt(contactForm.accountId)) || null}
             onChange={(_, v) => setContactForm({ ...contactForm, accountId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Account" fullWidth />}
           />

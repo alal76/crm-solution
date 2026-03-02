@@ -35,7 +35,7 @@ spec:
       containers:
       - name: crm-api
         image: ${REGISTRY_HOST:-registry.local}:5000/crm-api:v1  # Replace REGISTRY_HOST
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
           name: http
@@ -73,6 +73,7 @@ spec:
           requests:
             memory: "512Mi"
             cpu: "500m"
+            ephemeral-storage: "256Mi"
           limits:
             memory: "1Gi"
             cpu: "1000m"

@@ -265,7 +265,7 @@ function TasksPage() {
     const { name, value, type } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'number' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 
@@ -823,7 +823,7 @@ function TasksPage() {
                       name="campaignId"
                       type="number"
                       value={formData.campaignId}
-                      onChange={(e) => setFormData(prev => ({ ...prev, campaignId: e.target.value ? parseInt(e.target.value) : '' }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, campaignId: e.target.value ? Number.parseInt(e.target.value) : '' }))}
                       placeholder="Campaign ID"
                     />
                   </Grid>

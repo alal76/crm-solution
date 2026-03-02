@@ -119,7 +119,7 @@ const isSessionExpiredDueToInactivity = (): boolean => {
   const lastActivity = localStorage.getItem('crm_last_activity');
   if (!lastActivity) return false;
   
-  const lastActivityTime = parseInt(lastActivity, 10);
+  const lastActivityTime = Number.parseInt(lastActivity, 10);
   const now = Date.now();
   const inactivityMs = now - lastActivityTime;
   
@@ -171,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const lastActivityRef = useRef<number>(
     (() => {
       const saved = localStorage.getItem('crm_last_activity');
-      return saved ? parseInt(saved, 10) : Date.now();
+      return saved ? Number.parseInt(saved, 10) : Date.now();
     })()
   );
 

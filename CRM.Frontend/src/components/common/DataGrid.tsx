@@ -562,7 +562,7 @@ export function DataGrid<T extends { id: number | string }>({
           rowsPerPage={pageSize}
           rowsPerPageOptions={pageSizeOptions}
           onPageChange={(_, newPage) => onPageChange?.(newPage)}
-          onRowsPerPageChange={(e) => onPageSizeChange?.(parseInt(e.target.value, 10))}
+          onRowsPerPageChange={(e) => onPageSizeChange?.(Number.parseInt(e.target.value, 10))}
           aria-label="Table pagination"
         />
       )}

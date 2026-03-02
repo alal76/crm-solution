@@ -37,7 +37,7 @@ const fileToBase64 = (file: File): Promise<string> =>
       const base64 = result.includes(',') ? result.split(',')[1] : result;
       resolve(base64);
     };
-    reader.onerror = () => reject(reader.error);
+    reader.onerror = () => reject(new Error(reader.error?.message ?? 'File read error'));
     reader.readAsDataURL(file);
   });
 
@@ -50,7 +50,7 @@ const loadImageDimensions = (file: File): Promise<{ width: number; height: numbe
       img.onerror = () => reject(new Error('Unable to read image dimensions'));
       img.src = reader.result as string;
     };
-    reader.onerror = () => reject(reader.error);
+    reader.onerror = () => reject(new Error(reader.error?.message ?? 'File read error'));
     reader.readAsDataURL(file);
   });
 

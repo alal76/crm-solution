@@ -606,7 +606,7 @@ function LeadsPage() {
           accountId: accountId,
           stage: 0, // Prospecting
           probability: 20,
-          amount: parseFloat(convertFormData.estimatedValue) || 0,
+          amount: Number.parseFloat(convertFormData.estimatedValue) || 0,
           currency: 'USD',
           expectedCloseDate: convertFormData.expectedCloseDate || null,
           leadId: convertingLead.id,

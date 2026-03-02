@@ -84,12 +84,12 @@ export const InvoiceDetailsPage: React.FC = () => {
       
       try {
         setLoading(true);
-        const response = await invoiceService.getById(parseInt(id, 10));
+        const response = await invoiceService.getById(Number.parseInt(id, 10));
         setInvoice(response.data);
         
         // Load line items
         try {
-          const lineItemsResponse = await invoiceService.getLineItems(parseInt(id, 10));
+          const lineItemsResponse = await invoiceService.getLineItems(Number.parseInt(id, 10));
           setLineItems(lineItemsResponse.data || []);
         } catch (err) {
           console.error('Error loading line items:', err);
@@ -464,7 +464,7 @@ export const InvoiceDetailsPage: React.FC = () => {
               label="Payment Amount"
               type="number"
               value={paymentAmount}
-              onChange={(e) => setPaymentAmount(parseFloat(e.target.value))}
+              onChange={(e) => setPaymentAmount(Number.parseFloat(e.target.value))}
               sx={{ mb: 2 }}
               inputProps={{ min: 0, step: 0.01 }}
             />

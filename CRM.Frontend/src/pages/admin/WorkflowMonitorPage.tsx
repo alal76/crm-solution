@@ -186,7 +186,7 @@ function WorkflowMonitorPage() {
       if (statusFilter) params.status = statusFilter;
       if (entityTypeFilter) params.entityType = entityTypeFilter;
       if (searchQuery) params.search = searchQuery;
-      if (workflowId) params.workflowDefinitionId = parseInt(workflowId);
+      if (workflowId) params.workflowDefinitionId = Number.parseInt(workflowId);
 
       const result = await workflowInstanceService.getInstances(params);
       setInstances(result.items || []);
@@ -201,7 +201,7 @@ function WorkflowMonitorPage() {
 
   const loadStatistics = useCallback(async () => {
     try {
-      const params = workflowId ? { workflowDefinitionId: parseInt(workflowId) } : undefined;
+      const params = workflowId ? { workflowDefinitionId: Number.parseInt(workflowId) } : undefined;
       const stats = await workflowInstanceService.getStatistics(params);
       setStatistics(stats);
     } catch (err) {
@@ -603,7 +603,7 @@ function WorkflowMonitorPage() {
             rowsPerPage={rowsPerPage}
             onPageChange={(_, p) => setPage(p)}
             onRowsPerPageChange={(e) => {
-              setRowsPerPage(parseInt(e.target.value, 10));
+              setRowsPerPage(Number.parseInt(e.target.value, 10));
               setPage(0);
             }}
             rowsPerPageOptions={[10, 25, 50, 100]}
@@ -756,7 +756,7 @@ function WorkflowMonitorPage() {
       {/* AI Analytics Tab */}
       <TabPanel value={tabValue} index={3}>
         <AIAnalyticsDashboard
-          workflowId={workflowId ? parseInt(workflowId) : undefined}
+          workflowId={workflowId ? Number.parseInt(workflowId) : undefined}
         />
       </TabPanel>
 

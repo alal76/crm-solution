@@ -292,7 +292,7 @@ export const ProblemManagementPage: React.FC = () => {
                 rowsPerPage={pageSize}
                 page={page}
                 onPageChange={(_, newPage) => setPage(newPage)}
-                onRowsPerPageChange={(e) => setPageSize(parseInt(e.target.value))}
+                onRowsPerPageChange={(e) => setPageSize(Number.parseInt(e.target.value))}
               />
             </CardContent>
           </Card>
@@ -391,7 +391,7 @@ export const ProblemManagementPage: React.FC = () => {
               fullWidth
               label="Priority"
               value={formData.priority}
-              onChange={(e) => setFormData({ ...formData, priority: parseInt(e.target.value) as ProblemPriority })}
+              onChange={(e) => setFormData({ ...formData, priority: Number.parseInt(e.target.value) as ProblemPriority })}
             >
               <MenuItem value={ProblemPriority.Critical}>Critical</MenuItem>
               <MenuItem value={ProblemPriority.High}>High</MenuItem>

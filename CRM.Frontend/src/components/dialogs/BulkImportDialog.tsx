@@ -42,13 +42,13 @@ const parseCSV = (content: string): string[][] => {
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === ',' && !inQuotes) {
-        result.push(current.trim().replace(/^"|"$/g, ''));
+        result.push(current.trim().replaceAll(/^"|"$/g, ''));
         current = '';
       } else {
         current += char;
       }
     }
-    result.push(current.trim().replace(/^"|"$/g, ''));
+    result.push(current.trim().replaceAll(/^"|"$/g, ''));
     return result;
   });
 };
@@ -184,7 +184,7 @@ const BulkImportDialog: React.FC<BulkImportDialogProps> = ({
         email: row.data.email || '',
         phone: row.data.phone || null,
         company: row.data.company || null,
-        category: row.data.category ? parseInt(row.data.category, 10) : 1,
+        category: row.data.category ? Number.parseInt(row.data.category, 10) : 1,
         industry: row.data.industry || null,
       }));
 

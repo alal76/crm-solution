@@ -1,12 +1,13 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 57,
+  "patch": 59,
   "lastUpdate": "2026-03-02",
-  "description": "fix(cdt): v0.614.57 - Frontend deployment fix & comprehensive deployment logging — API health check timeout no longer blocks frontend start (Step 13); added post-start container state verification for crm-frontend; replaced 5 silent exception handlers in deploy_routes.py with structured logging; added password recovery failure warnings (root cause of credential mismatch boot loops); added Python logging framework (file + console) to app.py; replaced print() with logger calls in docker_compose.py and kubernetes.py; fixed K8s deployer rollback return value; added stub step logging for unimplemented K8s steps; 289 tests (10 new)",
+  "description": "fix(sonar): v0.614.59 - SonarCloud reliability rating A — fixed 465+ reliability issues: parseInt→Number.parseInt (206 TS/TSX), parseFloat→Number.parseFloat, isNaN→Number.isNaN, replace→replaceAll (42 calls), Promise rejection with non-Error, Array()→new Array(), kubectl storage requests (20 K8s YAMLs), shell [ ]→[[ ]] conditionals (8 scripts), wizard.html/day2.html JS fixes with keyboard accessibility",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
+    "v0.614.58: FIX(sonar): SonarCloud reliability — String#replace→replaceAll across 20 TS/TSX files; S6772 JSX spacing fixes in ChannelSettingsPage & SocialLoginSettingsTab; 34 conversions total",
     "v0.614.57: FIX(cdt): Frontend deployment fix & deployment logging — health check timeout continues to frontend start; post-start container verification; 5 silent exception handlers replaced with logging; password recovery failure warnings; Python logging framework; logger calls in deployers; K8s rollback fix; 289 tests",
     "v0.614.56: FEAT(cdt): Monitoring & Post Deployment — renamed Day-2 to Monitoring & Post Deployment; 6 post-install DB ops (migrate/seed/clear); Test Runner with BVT/CRUD/E2E suites; deploy_host in API + UI; SSH shlex.quote fix; 279 tests",
     "v0.614.49: FEAT(portal): implement PORTAL-020/021/024 notification and CSAT TODOs — PortalAuthService sends verification email via INotificationPort; PortalService sends ticket confirmation email; ServiceRequestService sends resolution notification and triggers CSAT survey on ResolveServiceRequestAsync; NavigationConfigService AdapterRegistry TODO replaced with NOSONAR",

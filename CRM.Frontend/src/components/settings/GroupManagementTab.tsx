@@ -799,7 +799,7 @@ function GroupManagementTab() {
                     value={formData.passwordExpirationDays ?? ''}
                     onChange={(e) => setFormData({ 
                       ...formData, 
-                      passwordExpirationDays: e.target.value ? parseInt(e.target.value) : null 
+                      passwordExpirationDays: e.target.value ? Number.parseInt(e.target.value) : null 
                     })}
                     inputProps={{ min: 0, max: 365 }}
                     helperText="0 or empty for no expiration"
@@ -814,7 +814,7 @@ function GroupManagementTab() {
                     value={formData.passwordExpirationWarningDays ?? 7}
                     onChange={(e) => setFormData({ 
                       ...formData, 
-                      passwordExpirationWarningDays: parseInt(e.target.value) || 7 
+                      passwordExpirationWarningDays: Number.parseInt(e.target.value) || 7 
                     })}
                     inputProps={{ min: 1, max: 30 }}
                     helperText="Days before expiration to start warning users"

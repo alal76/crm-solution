@@ -123,7 +123,7 @@ const getVisibilityLabel = (visibility: ArticleVisibility) =>
   VISIBILITY_OPTIONS.find(v => v.value === visibility)?.label || 'Unknown';
 
 const generateSlug = (title: string): string => {
-  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return title.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-').replaceAll(/^-|-$/g, '');
 };
 
 const formatDate = (dateString?: string) =>
@@ -950,7 +950,7 @@ function KnowledgeBasePage() {
                 type="number"
                 label="Display Order"
                 value={categoryForm.order}
-                onChange={(e) => setCategoryForm(prev => ({ ...prev, order: parseInt(e.target.value) || 0 }))}
+                onChange={(e) => setCategoryForm(prev => ({ ...prev, order: Number.parseInt(e.target.value) || 0 }))}
               />
             </Grid>
           </Grid>

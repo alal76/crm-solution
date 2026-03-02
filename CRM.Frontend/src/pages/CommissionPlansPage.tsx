@@ -679,7 +679,7 @@ export default function CommissionPlansPage() {
                   label={planForm.commissionType === CommissionType.FixedAmount ? 'Base Amount' : 'Base Rate (%)'}
                   type="number"
                   value={planForm.baseRate}
-                  onChange={(e) => setPlanForm({ ...planForm, baseRate: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setPlanForm({ ...planForm, baseRate: Number.parseFloat(e.target.value) || 0 })}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -706,7 +706,7 @@ export default function CommissionPlansPage() {
                   label="Clawback Period (days)"
                   type="number"
                   value={planForm.clawbackPeriodDays}
-                  onChange={(e) => setPlanForm({ ...planForm, clawbackPeriodDays: parseInt(e.target.value) || 0 })}
+                  onChange={(e) => setPlanForm({ ...planForm, clawbackPeriodDays: Number.parseInt(e.target.value) || 0 })}
                 />
               </Grid>
               
@@ -722,7 +722,7 @@ export default function CommissionPlansPage() {
                   label="Min Deal Size"
                   type="number"
                   value={planForm.minDealSize}
-                  onChange={(e) => setPlanForm({ ...planForm, minDealSize: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setPlanForm({ ...planForm, minDealSize: Number.parseFloat(e.target.value) || 0 })}
                 />
               </Grid>
               <Grid item xs={12} sm={4}>
@@ -731,7 +731,7 @@ export default function CommissionPlansPage() {
                   label="Max Commission Per Deal"
                   type="number"
                   value={planForm.maxCommissionPerDeal}
-                  onChange={(e) => setPlanForm({ ...planForm, maxCommissionPerDeal: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setPlanForm({ ...planForm, maxCommissionPerDeal: Number.parseFloat(e.target.value) || 0 })}
                   helperText="0 = no cap"
                 />
               </Grid>
@@ -741,7 +741,7 @@ export default function CommissionPlansPage() {
                   label="Max Commission Per Period"
                   type="number"
                   value={planForm.maxCommissionPerPeriod}
-                  onChange={(e) => setPlanForm({ ...planForm, maxCommissionPerPeriod: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setPlanForm({ ...planForm, maxCommissionPerPeriod: Number.parseFloat(e.target.value) || 0 })}
                   helperText="0 = no cap"
                 />
               </Grid>
@@ -769,7 +769,7 @@ export default function CommissionPlansPage() {
                   label="Default Overlay Percent"
                   type="number"
                   value={planForm.defaultOverlayPercent}
-                  onChange={(e) => setPlanForm({ ...planForm, defaultOverlayPercent: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setPlanForm({ ...planForm, defaultOverlayPercent: Number.parseFloat(e.target.value) || 0 })}
                 />
               </Grid>
               
@@ -801,7 +801,7 @@ export default function CommissionPlansPage() {
                   label="Fiscal Year"
                   type="number"
                   value={planForm.fiscalYear}
-                  onChange={(e) => setPlanForm({ ...planForm, fiscalYear: parseInt(e.target.value) || new Date().getFullYear() })}
+                  onChange={(e) => setPlanForm({ ...planForm, fiscalYear: Number.parseInt(e.target.value) || new Date().getFullYear() })}
                 />
               </Grid>
             </Grid>
@@ -904,7 +904,7 @@ export default function CommissionPlansPage() {
                   label="Order"
                   type="number"
                   value={tierForm.tierOrder}
-                  onChange={(e) => setTierForm({ ...tierForm, tierOrder: parseInt(e.target.value) || 1 })}
+                  onChange={(e) => setTierForm({ ...tierForm, tierOrder: Number.parseInt(e.target.value) || 1 })}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -913,7 +913,7 @@ export default function CommissionPlansPage() {
                   label="Min Value"
                   type="number"
                   value={tierForm.minValue}
-                  onChange={(e) => setTierForm({ ...tierForm, minValue: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setTierForm({ ...tierForm, minValue: Number.parseFloat(e.target.value) || 0 })}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -922,7 +922,7 @@ export default function CommissionPlansPage() {
                   label="Max Value"
                   type="number"
                   value={tierForm.maxValue}
-                  onChange={(e) => setTierForm({ ...tierForm, maxValue: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setTierForm({ ...tierForm, maxValue: Number.parseFloat(e.target.value) || 0 })}
                   helperText="0 = unlimited"
                 />
               </Grid>
@@ -932,7 +932,7 @@ export default function CommissionPlansPage() {
                   label="Commission Rate (%)"
                   type="number"
                   value={tierForm.commissionRate}
-                  onChange={(e) => setTierForm({ ...tierForm, commissionRate: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setTierForm({ ...tierForm, commissionRate: Number.parseFloat(e.target.value) || 0 })}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -941,7 +941,7 @@ export default function CommissionPlansPage() {
                   label="Fixed Amount"
                   type="number"
                   value={tierForm.fixedAmount}
-                  onChange={(e) => setTierForm({ ...tierForm, fixedAmount: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setTierForm({ ...tierForm, fixedAmount: Number.parseFloat(e.target.value) || 0 })}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -950,7 +950,7 @@ export default function CommissionPlansPage() {
                   label="Min Attainment %"
                   type="number"
                   value={tierForm.minAttainmentPercent}
-                  onChange={(e) => setTierForm({ ...tierForm, minAttainmentPercent: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setTierForm({ ...tierForm, minAttainmentPercent: Number.parseFloat(e.target.value) || 0 })}
                 />
               </Grid>
               <Grid item xs={6}>
@@ -959,7 +959,7 @@ export default function CommissionPlansPage() {
                   label="Max Attainment %"
                   type="number"
                   value={tierForm.maxAttainmentPercent}
-                  onChange={(e) => setTierForm({ ...tierForm, maxAttainmentPercent: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => setTierForm({ ...tierForm, maxAttainmentPercent: Number.parseFloat(e.target.value) || 0 })}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -968,7 +968,7 @@ export default function CommissionPlansPage() {
                   label="Multiplier"
                   type="number"
                   value={tierForm.multiplier}
-                  onChange={(e) => setTierForm({ ...tierForm, multiplier: parseFloat(e.target.value) || 1 })}
+                  onChange={(e) => setTierForm({ ...tierForm, multiplier: Number.parseFloat(e.target.value) || 1 })}
                   helperText="Applied to base rate/amount"
                 />
               </Grid>

@@ -192,7 +192,7 @@ function ServicesPage() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'price' || name === 'cost' ? parseFloat(value) || 0 : value,
+      [name]: name === 'price' || name === 'cost' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 

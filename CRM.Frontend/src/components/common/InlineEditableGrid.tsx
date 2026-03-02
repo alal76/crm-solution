@@ -387,7 +387,7 @@ export function InlineEditableGrid<T extends { id: number | string }>({
           page={page}
           onPageChange={(_, newPage) => onPageChange(newPage)}
           rowsPerPage={pageSize}
-          onRowsPerPageChange={(e) => onPageSizeChange?.(parseInt(e.target.value, 10))}
+          onRowsPerPageChange={(e) => onPageSizeChange?.(Number.parseInt(e.target.value, 10))}
           rowsPerPageOptions={[10, 25, 50, 100]}
         />
       )}

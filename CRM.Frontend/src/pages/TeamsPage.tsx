@@ -487,7 +487,7 @@ function TeamsPage() {
                   type="number"
                   label="Manager User ID"
                   value={formData.managerId || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, managerId: e.target.value ? parseInt(e.target.value) : null }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, managerId: e.target.value ? Number.parseInt(e.target.value) : null }))}
                   helperText="Enter the user ID of the team manager"
                 />
               </Grid>
@@ -497,7 +497,7 @@ function TeamsPage() {
                   type="number"
                   label="Parent Team ID"
                   value={formData.parentTeamId || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, parentTeamId: e.target.value ? parseInt(e.target.value) : null }))}
+                  onChange={(e) => setFormData(prev => ({ ...prev, parentTeamId: e.target.value ? Number.parseInt(e.target.value) : null }))}
                   helperText="Enter the parent team ID for hierarchy"
                 />
               </Grid>
@@ -580,7 +580,7 @@ function TeamsPage() {
                 type="number"
                 label="User ID"
                 value={memberFormData.userId || ''}
-                onChange={(e) => setMemberFormData(prev => ({ ...prev, userId: e.target.value ? parseInt(e.target.value) : null }))}
+                onChange={(e) => setMemberFormData(prev => ({ ...prev, userId: e.target.value ? Number.parseInt(e.target.value) : null }))}
                 helperText="Enter the user ID to add"
               />
             </Grid>

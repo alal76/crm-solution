@@ -1289,7 +1289,7 @@ function MasterDataSettingsTab() {
               onPageChange={(_, newPage) => setZipPage(newPage)}
               rowsPerPage={zipRowsPerPage}
               onRowsPerPageChange={(e) => {
-                setZipRowsPerPage(parseInt(e.target.value, 10));
+                setZipRowsPerPage(Number.parseInt(e.target.value, 10));
                 setZipPage(0);
               }}
               rowsPerPageOptions={[10, 25, 50, 100]}

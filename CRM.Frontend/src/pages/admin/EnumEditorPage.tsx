@@ -99,7 +99,7 @@ function ItemFormDialog({ open, initial, isEdit, isSystemValue, onSave, onClose 
   };
 
   const set = (field: keyof CreateLookupItemDto) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(prev => ({ ...prev, [field]: field === 'sortOrder' ? parseInt(e.target.value) || 0 : e.target.value }));
+    setForm(prev => ({ ...prev, [field]: field === 'sortOrder' ? Number.parseInt(e.target.value) || 0 : e.target.value }));
 
   const setSwitch = (field: keyof CreateLookupItemDto) => (_: unknown, checked: boolean) =>
     setForm(prev => ({ ...prev, [field]: checked }));

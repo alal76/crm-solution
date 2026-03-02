@@ -112,7 +112,7 @@ const EVENT_CONFIG: Record<TimelineEventType, EventConfig> = {
 
 function formatTimestamp(ts: string): string {
   const date = new Date(ts);
-  if (isNaN(date.getTime())) return ts;
+  if (Number.isNaN(date.getTime())) return ts;
   return date.toLocaleString(undefined, {
     dateStyle: 'medium',
     timeStyle: 'short',

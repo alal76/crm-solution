@@ -1722,7 +1722,7 @@ echo "Frontend URL: http://localhost:3000"
                     label="Min Replicas"
                     type="number"
                     value={deploymentConfig.minReplicas}
-                    onChange={(e) => handleConfigChange('minReplicas', parseInt(e.target.value))}
+                    onChange={(e) => handleConfigChange('minReplicas', Number.parseInt(e.target.value))}
                     inputProps={{ min: 1, max: 10 }}
                   />
                 </Grid>
@@ -1732,7 +1732,7 @@ echo "Frontend URL: http://localhost:3000"
                     label="Max Replicas"
                     type="number"
                     value={deploymentConfig.maxReplicas}
-                    onChange={(e) => handleConfigChange('maxReplicas', parseInt(e.target.value))}
+                    onChange={(e) => handleConfigChange('maxReplicas', Number.parseInt(e.target.value))}
                     inputProps={{ min: 1, max: 50 }}
                   />
                 </Grid>
@@ -1754,7 +1754,7 @@ echo "Frontend URL: http://localhost:3000"
               label="API Replicas / Instances"
               type="number"
               value={deploymentConfig.apiReplicas}
-              onChange={(e) => handleConfigChange('apiReplicas', parseInt(e.target.value))}
+              onChange={(e) => handleConfigChange('apiReplicas', Number.parseInt(e.target.value))}
               inputProps={{ min: 1, max: 10 }}
               helperText="Number of API server instances"
             />
@@ -1765,7 +1765,7 @@ echo "Frontend URL: http://localhost:3000"
               label="Frontend Replicas / Instances"
               type="number"
               value={deploymentConfig.frontendReplicas}
-              onChange={(e) => handleConfigChange('frontendReplicas', parseInt(e.target.value))}
+              onChange={(e) => handleConfigChange('frontendReplicas', Number.parseInt(e.target.value))}
               inputProps={{ min: 1, max: 10 }}
               helperText="Number of frontend server instances"
             />

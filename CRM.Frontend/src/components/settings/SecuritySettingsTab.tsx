@@ -901,7 +901,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                 label="Minimum Password Length"
                 type="number"
                 value={passwordSettings.minPasswordLength}
-                onChange={(e) => setPasswordSettings(prev => ({ ...prev, minPasswordLength: parseInt(e.target.value) || 8 }))}
+                onChange={(e) => setPasswordSettings(prev => ({ ...prev, minPasswordLength: Number.parseInt(e.target.value) || 8 }))}
                 inputProps={{ min: 6, max: 128 }}
                 size="small"
                 helperText="Minimum: 6 characters"
@@ -913,7 +913,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                 label="Maximum Password Length"
                 type="number"
                 value={passwordSettings.maxPasswordLength}
-                onChange={(e) => setPasswordSettings(prev => ({ ...prev, maxPasswordLength: parseInt(e.target.value) || 128 }))}
+                onChange={(e) => setPasswordSettings(prev => ({ ...prev, maxPasswordLength: Number.parseInt(e.target.value) || 128 }))}
                 inputProps={{ min: 16, max: 256 }}
                 size="small"
                 helperText="0 for unlimited"
@@ -925,7 +925,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                 label="Default Password Expiration (days)"
                 type="number"
                 value={passwordSettings.defaultPasswordExpirationDays}
-                onChange={(e) => setPasswordSettings(prev => ({ ...prev, defaultPasswordExpirationDays: parseInt(e.target.value) || 0 }))}
+                onChange={(e) => setPasswordSettings(prev => ({ ...prev, defaultPasswordExpirationDays: Number.parseInt(e.target.value) || 0 }))}
                 inputProps={{ min: 0, max: 365 }}
                 size="small"
                 helperText="0 for no expiration. Groups can override this."
@@ -1106,7 +1106,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                 fullWidth
                 label="Verification Code"
                 value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => setVerificationCode(e.target.value.replaceAll(/\D/g, '').slice(0, 6))}
                 placeholder="000000"
                 inputProps={{
                   maxLength: 6,
@@ -1199,7 +1199,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
             fullWidth
             label="Verification Code"
             value={disableCode}
-            onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            onChange={(e) => setDisableCode(e.target.value.replaceAll(/\D/g, '').slice(0, 6))}
             placeholder="000000"
             inputProps={{
               maxLength: 6,

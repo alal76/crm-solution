@@ -436,7 +436,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
                 label="Price"
                 type="number"
                 value={productForm.price}
-                onChange={(e) => setProductForm({ ...productForm, price: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => setProductForm({ ...productForm, price: Number.parseFloat(e.target.value) || 0 })}
               />
             </Grid>
             <Grid item xs={6}>
@@ -478,7 +478,7 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
                 label="Amount"
                 type="number"
                 value={opportunityForm.amount}
-                onChange={(e) => setOpportunityForm({ ...opportunityForm, amount: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => setOpportunityForm({ ...opportunityForm, amount: Number.parseFloat(e.target.value) || 0 })}
               />
             </Grid>
             <Grid item xs={6}>

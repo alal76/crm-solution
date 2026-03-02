@@ -889,11 +889,11 @@ function buildScaleList() {
 
 function adjustReplica(svc, delta) {
     const el = document.getElementById(`scale-${svc}`);
-    el.value = Math.max(0, parseInt(el.value || 1) + delta);
+    el.value = Math.max(0, Number.parseInt(el.value || 1) + delta);
 }
 
 async function applyScale(svc) {
-    const replicas = parseInt(document.getElementById(`scale-${svc}`).value || 1);
+    const replicas = Number.parseInt(document.getElementById(`scale-${svc}`).value || 1);
     const r = await fetch('/api/day2/scale', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({service: svc, replicas})});
     const d = await r.json();
     alert(d.success ? `Scaled ${svc} to ${replicas}` : 'Scale failed: ' + JSON.stringify(d));

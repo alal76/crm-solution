@@ -86,13 +86,13 @@ export const ContractDetailsPage: React.FC = () => {
       
       try {
         setLoading(true);
-        const response = await contractService.getById(parseInt(id, 10));
+        const response = await contractService.getById(Number.parseInt(id, 10));
         setContract(response.data);
         setRenewalValue(response.data.value || 0);
         
         // Load documents
         try {
-          const docsResponse = await contractService.getDocuments(parseInt(id, 10));
+          const docsResponse = await contractService.getDocuments(Number.parseInt(id, 10));
           setDocuments(docsResponse.data || []);
         } catch (err) {
           console.error('Error loading documents:', err);
@@ -609,7 +609,7 @@ export const ContractDetailsPage: React.FC = () => {
               label="Renewal Term (Months)"
               type="number"
               value={renewalMonths}
-              onChange={(e) => setRenewalMonths(parseInt(e.target.value))}
+              onChange={(e) => setRenewalMonths(Number.parseInt(e.target.value))}
               sx={{ mb: 2 }}
               inputProps={{ min: 1, max: 120 }}
             />
@@ -618,7 +618,7 @@ export const ContractDetailsPage: React.FC = () => {
               label="New Contract Value"
               type="number"
               value={renewalValue}
-              onChange={(e) => setRenewalValue(parseFloat(e.target.value))}
+              onChange={(e) => setRenewalValue(Number.parseFloat(e.target.value))}
               inputProps={{ min: 0, step: 0.01 }}
               helperText="Leave at current value or enter new amount"
             />

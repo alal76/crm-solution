@@ -769,7 +769,7 @@ main() {
     print_info "Host: $DB_HOST:$DB_PORT"
     print_info "Database: $DB_NAME"
     print_info "User: $DB_USER"
-    [ "$USE_DOCKER" = "true" ] && print_info "Docker Container: $DOCKER_CONTAINER"
+    [[ "$USE_DOCKER" = "true" ]] && print_info "Docker Container: $DOCKER_CONTAINER"
     
     # Test connection
     print_step "Testing database connection..."

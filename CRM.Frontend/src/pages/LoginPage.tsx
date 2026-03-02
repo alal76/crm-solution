@@ -622,7 +622,7 @@ const LoginPage: React.FC = () => {
                     fullWidth
                     label="Verification Code"
                     value={twoFactorCode}
-                    onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    onChange={(e) => setTwoFactorCode(e.target.value.replaceAll(/\D/g, '').slice(0, 6))}
                     disabled={loading}
                     margin="normal"
                     autoComplete="one-time-code"

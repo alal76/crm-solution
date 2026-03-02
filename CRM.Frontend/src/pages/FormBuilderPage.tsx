@@ -258,7 +258,7 @@ const getFieldTypeLabel = (type: FormFieldType) =>
   FIELD_TYPE_OPTIONS.find(f => f.value === type)?.label || 'Unknown';
 
 const generateFormKey = (name: string): string => {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return name.toLowerCase().replaceAll(/[^a-z0-9]+/g, '-').replaceAll(/^-|-$/g, '');
 };
 
 // ==================== MAIN COMPONENT ====================
@@ -1136,7 +1136,7 @@ function FormBuilderPage() {
                 required
                 label="Field Name"
                 value={editingField?.fieldName || ''}
-                onChange={(e) => setEditingField(prev => prev ? { ...prev, fieldName: e.target.value.replace(/\s/g, '_') } : null)}
+                onChange={(e) => setEditingField(prev => prev ? { ...prev, fieldName: e.target.value.replaceAll(/\s/g, '_') } : null)}
                 helperText="Internal name (no spaces)"
               />
             </Grid>

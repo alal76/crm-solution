@@ -943,7 +943,7 @@ function DatabaseSettingsTab() {
     const k = 1024;
     const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   return (
@@ -1982,7 +1982,7 @@ function DatabaseSettingsTab() {
                     label="Port"
                     type="number"
                     value={wizardForm.port}
-                    onChange={(e) => setWizardForm({ ...wizardForm, port: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => setWizardForm({ ...wizardForm, port: Number.parseInt(e.target.value) || 0 })}
                     fullWidth
                   />
                 </Grid>
@@ -2321,7 +2321,7 @@ function DatabaseSettingsTab() {
                 label="Retention Days"
                 type="number"
                 value={scheduleForm.retentionDays}
-                onChange={(e) => setScheduleForm({ ...scheduleForm, retentionDays: parseInt(e.target.value) || 0 })}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, retentionDays: Number.parseInt(e.target.value) || 0 })}
                 fullWidth
                 helperText="Delete backups older than X days (0 = keep forever)"
               />
@@ -2331,7 +2331,7 @@ function DatabaseSettingsTab() {
                 label="Max Backups to Keep"
                 type="number"
                 value={scheduleForm.maxBackupsToKeep}
-                onChange={(e) => setScheduleForm({ ...scheduleForm, maxBackupsToKeep: parseInt(e.target.value) || 0 })}
+                onChange={(e) => setScheduleForm({ ...scheduleForm, maxBackupsToKeep: Number.parseInt(e.target.value) || 0 })}
                 fullWidth
                 helperText="Keep only the last X backups (0 = unlimited)"
               />

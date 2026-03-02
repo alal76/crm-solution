@@ -150,8 +150,8 @@ fi
 if [[ $TAIL_LOGS -eq 1 ]]; then
     echo
     echo -e "${BLUE}Latest log entries:${NC}"
-    [ -f "$API_LOG" ] && echo "=== API ===" && tail -20 "$API_LOG"
-    [ -f "$FRONTEND_LOG" ] && echo "=== Frontend ===" && tail -20 "$FRONTEND_LOG"
+    [[ -f "$API_LOG" ]] && echo "=== API ===" && tail -20 "$API_LOG"
+    [[ -f "$FRONTEND_LOG" ]] && echo "=== Frontend ===" && tail -20 "$FRONTEND_LOG"
 fi
 
 exit $BUILD_FAILED

@@ -72,7 +72,7 @@ export const IncidentFormPage: React.FC = () => {
                   select
                   label="Impact"
                   value={formData.impact}
-                  onChange={(e) => setFormData({...formData, impact: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, impact: Number.parseInt(e.target.value)})}
                   required
                   fullWidth
                 >
@@ -86,7 +86,7 @@ export const IncidentFormPage: React.FC = () => {
                   select
                   label="Urgency"
                   value={formData.urgency}
-                  onChange={(e) => setFormData({...formData, urgency: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, urgency: Number.parseInt(e.target.value)})}
                   required
                   fullWidth
                 >

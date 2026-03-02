@@ -49,7 +49,7 @@ const PartnerPortalPage: React.FC = () => {
     if (!form.contactLastName.trim()) errs.contactLastName = 'Required';
     if (!form.companyName.trim()) errs.companyName = 'Required';
     if (!form.email.trim() || !isEmailLikelyValid(form.email)) errs.email = 'Valid email required';
-    if (!form.dealValue || isNaN(Number(form.dealValue)) || Number(form.dealValue) <= 0)
+    if (!form.dealValue || Number.isNaN(Number(form.dealValue)) || Number(form.dealValue) <= 0)
       errs.dealValue = 'Enter a positive number';
     setErrors(errs);
     return Object.keys(errs).length === 0;

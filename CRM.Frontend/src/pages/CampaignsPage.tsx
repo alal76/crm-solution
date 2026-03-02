@@ -278,7 +278,7 @@ function CampaignsPage() {
     const checked = (e.target as HTMLInputElement).checked;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'checkbox' ? checked : type === 'number' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 
@@ -387,9 +387,9 @@ function CampaignsPage() {
     
     await bulkApi.execute(async () => {
       const updatePayload: any = {};
-      if (bulkFormData.status) updatePayload.status = parseInt(bulkFormData.status);
-      if (bulkFormData.priority) updatePayload.priority = parseInt(bulkFormData.priority);
-      if (bulkFormData.campaignType) updatePayload.campaignType = parseInt(bulkFormData.campaignType);
+      if (bulkFormData.status) updatePayload.status = Number.parseInt(bulkFormData.status);
+      if (bulkFormData.priority) updatePayload.priority = Number.parseInt(bulkFormData.priority);
+      if (bulkFormData.campaignType) updatePayload.campaignType = Number.parseInt(bulkFormData.campaignType);
       
       // Send same payload to all selected campaigns
       await Promise.all(selectedIds.map(id => 
@@ -517,7 +517,7 @@ function CampaignsPage() {
                   const status = getStatus(campaign.status);
                   const type = getType(campaign.campaignType);
                   const priority = getPriority(campaign.priority);
-                  const roi = parseFloat(calculateROI(campaign));
+                  const roi = Number.parseFloat(calculateROI(campaign));
                   const budgetUsed = campaign.budget > 0 ? (campaign.actualSpend / campaign.budget) * 100 : 0;
                   
                   return (

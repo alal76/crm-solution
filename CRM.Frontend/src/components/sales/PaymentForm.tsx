@@ -177,7 +177,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'amount' ? parseFloat(value) || 0 : value,
+      [name]: name === 'amount' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 
@@ -193,7 +193,7 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
   const handlePaymentMethodChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
       ...prev,
-      paymentMethod: parseInt(e.target.value, 10) as PaymentMethod,
+      paymentMethod: Number.parseInt(e.target.value, 10) as PaymentMethod,
     }));
   };
 

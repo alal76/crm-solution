@@ -378,7 +378,7 @@ function CommissionsPage() {
     const { name, value, type } = e.target;
     setCommissionForm(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'number' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 
@@ -571,7 +571,7 @@ function CommissionsPage() {
     } else {
       setPlanForm(prev => ({
         ...prev,
-        [name]: type === 'number' ? parseFloat(value) || 0 : value,
+        [name]: type === 'number' ? Number.parseFloat(value) || 0 : value,
       }));
     }
   };
@@ -687,7 +687,7 @@ function CommissionsPage() {
     const { name, value, type } = e.target;
     setTierForm(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'number' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 

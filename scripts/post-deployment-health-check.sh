@@ -100,7 +100,7 @@ log_check() {
         FAILED_CHECKS=$((FAILED_CHECKS + 1))
         if [[ "$JSON_OUTPUT" = false ]]; then
             echo -e "  ${RED}✗${NC} $message"
-            [ -n "$details" ] && echo -e "    ${RED}$details${NC}"
+            [[ -n "$details" ]] && echo -e "    ${RED}$details${NC}"
         fi
         RESULTS+=("{\"check\":\"$message\",\"status\":\"fail\",\"details\":\"$details\"}")
         FAILED_ITEMS+=("$message: $details")
@@ -108,7 +108,7 @@ log_check() {
         WARNINGS=$((WARNINGS + 1))
         if [[ "$JSON_OUTPUT" = false ]]; then
             echo -e "  ${YELLOW}⚠${NC} $message"
-            [ -n "$details" ] && echo -e "    ${YELLOW}$details${NC}"
+            [[ -n "$details" ]] && echo -e "    ${YELLOW}$details${NC}"
         fi
         RESULTS+=("{\"check\":\"$message\",\"status\":\"warning\",\"details\":\"$details\"}")
     elif [[ "$status" = "SKIP" ]]; then
@@ -378,7 +378,7 @@ check_schema_completion() {
     local missing_tables=()
     for table in "${expected_tables[@]}"; do
         if echo "$db_tables" | grep -q "^${table}$"; then
-            [ "$VERBOSE" = true ] && log_check "PASS" "Table: $table" "exists"
+            [[ "$VERBOSE" = true ]] && log_check "PASS" "Table: $table" "exists"
         else
             missing_tables+=("$table")
         fi
@@ -779,7 +779,7 @@ generate_report() {
         echo "    \"failed\": $FAILED_CHECKS,"
         echo "    \"warnings\": $WARNINGS"
         echo "  },"
-        echo "  \"overallHealthy\": $([ $FAILED_CHECKS -eq 0 ] && echo "true" || echo "false"),"
+        echo "  \"overallHealthy\": $([[ $FAILED_CHECKS -eq 0 ]] && echo "true" || echo "false"),"
         echo "  \"results\": ["
         local first=true
         for result in "${RESULTS[@]}"; do

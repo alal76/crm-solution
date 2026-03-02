@@ -400,7 +400,7 @@ function OpportunitiesPage() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'amount' ? parseFloat(value) || 0 : value,
+      [name]: name === 'amount' ? Number.parseFloat(value) || 0 : value,
     }));
   };
 

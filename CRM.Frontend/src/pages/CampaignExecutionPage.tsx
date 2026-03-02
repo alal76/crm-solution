@@ -62,7 +62,7 @@ interface WorkflowDefinition {
 function CampaignExecutionPage() {
   const { campaignId: campaignIdParam } = useParams<{ campaignId: string }>();
   const navigate = useNavigate();
-  const campaignId = campaignIdParam ? parseInt(campaignIdParam) : 0;
+  const campaignId = campaignIdParam ? Number.parseInt(campaignIdParam) : 0;
 
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);

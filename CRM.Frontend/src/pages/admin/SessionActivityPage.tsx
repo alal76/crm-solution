@@ -60,7 +60,7 @@ const SessionActivityPage: React.FC = () => {
         pageSize: rowsPerPage,
       };
       if (searchUserId) {
-        params.userId = parseInt(searchUserId, 10);
+        params.userId = Number.parseInt(searchUserId, 10);
       }
       const response = await apiClient.get('/auth/sessions', { params });
       const data = response.data;
@@ -230,7 +230,7 @@ const SessionActivityPage: React.FC = () => {
               onPageChange={(_, newPage) => setPage(newPage)}
               rowsPerPage={rowsPerPage}
               onRowsPerPageChange={(e) => {
-                setRowsPerPage(parseInt(e.target.value, 10));
+                setRowsPerPage(Number.parseInt(e.target.value, 10));
                 setPage(0);
               }}
               rowsPerPageOptions={[10, 25, 50, 100]}

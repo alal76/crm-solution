@@ -348,7 +348,7 @@ function NavigationSettingsTab() {
   // Category management functions
   const handleAddCategory = () => {
     if (!newCategoryName.trim()) return;
-    const newId = newCategoryName.toLowerCase().replace(/\s+/g, '-');
+    const newId = newCategoryName.toLowerCase().replaceAll(/\s+/g, '-');
     const newCategory: NavCategory = {
       id: newId,
       label: newCategoryName.trim(),
@@ -408,7 +408,7 @@ function NavigationSettingsTab() {
   // Admin subcategory management functions
   const handleAddAdminSubcategory = () => {
     if (!newSubcategoryName.trim()) return;
-    const newId = 'admin-' + newSubcategoryName.toLowerCase().replace(/\s+/g, '-');
+    const newId = 'admin-' + newSubcategoryName.toLowerCase().replaceAll(/\s+/g, '-');
     const newSubcategory: AdminSubcategory = {
       id: newId,
       label: newSubcategoryName.trim(),

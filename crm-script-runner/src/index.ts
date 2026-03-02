@@ -2,7 +2,7 @@ import express from 'express';
 import { executeScript } from './engine';
 import type { ScriptExecutionRequest } from './types/context';
 
-const PORT = process.env['PORT'] ? parseInt(process.env['PORT'], 10) : 4000;
+const PORT = process.env['PORT'] ? Number.parseInt(process.env['PORT'], 10) : 4000;
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 

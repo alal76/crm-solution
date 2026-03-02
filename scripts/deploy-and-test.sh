@@ -87,7 +87,7 @@ get_version() {
 
 # Get git commit hash
 get_git_hash() {
-    if command -v git &> /dev/null && [ -d "${PROJECT_ROOT}/.git" ]; then
+    if command -v git &> /dev/null && [[ -d "${PROJECT_ROOT}/.git" ]]; then
         git -C "${PROJECT_ROOT}" rev-parse --short HEAD 2>/dev/null || echo "unknown"
     else
         echo "unknown"

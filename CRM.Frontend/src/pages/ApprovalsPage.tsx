@@ -872,7 +872,7 @@ const ApprovalsPage = () => {
             label="Delegate to User ID"
             type="number"
             value={delegateToUserId || ''}
-            onChange={(e) => setDelegateToUserId(parseInt(e.target.value))}
+            onChange={(e) => setDelegateToUserId(Number.parseInt(e.target.value))}
             fullWidth
             required
             sx={{ mt: 2 }}

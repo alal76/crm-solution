@@ -24,10 +24,10 @@ const DEFAULT_PORTS: ServicePorts = {
  */
 export const getServicePorts = (): ServicePorts => {
   return {
-    api: parseInt(process.env.REACT_APP_API_PORT || String(DEFAULT_PORTS.api), 10),
-    apiExternal: parseInt(process.env.REACT_APP_API_EXTERNAL_PORT || String(DEFAULT_PORTS.apiExternal), 10),
-    database: parseInt(process.env.REACT_APP_DB_PORT || String(DEFAULT_PORTS.database), 10),
-    frontend: parseInt(process.env.REACT_APP_FRONTEND_PORT || String(DEFAULT_PORTS.frontend), 10),
+    api: Number.parseInt(process.env.REACT_APP_API_PORT || String(DEFAULT_PORTS.api), 10),
+    apiExternal: Number.parseInt(process.env.REACT_APP_API_EXTERNAL_PORT || String(DEFAULT_PORTS.apiExternal), 10),
+    database: Number.parseInt(process.env.REACT_APP_DB_PORT || String(DEFAULT_PORTS.database), 10),
+    frontend: Number.parseInt(process.env.REACT_APP_FRONTEND_PORT || String(DEFAULT_PORTS.frontend), 10),
   };
 };
 

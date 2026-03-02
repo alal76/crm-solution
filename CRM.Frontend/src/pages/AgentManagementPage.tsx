@@ -714,8 +714,8 @@ const AgentManagementPage: React.FC = () => {
                   type="number"
                   value={editMaxTokens}
                   onChange={(e) => {
-                    const v = parseInt(e.target.value, 10);
-                    if (!isNaN(v)) setEditMaxTokens(v);
+                    const v = Number.parseInt(e.target.value, 10);
+                    if (!Number.isNaN(v)) setEditMaxTokens(v);
                   }}
                   inputProps={{ min: 256, max: 16384 }}
                   fullWidth

@@ -108,8 +108,8 @@ const ReportShareDialog: React.FC<Props> = ({ open, reportId, reportName, onClos
   const handleShare = async () => {
     const ids = userIdInput
       .split(/[\s,;]+/)
-      .map((v) => parseInt(v.trim(), 10))
-      .filter((n) => !isNaN(n) && n > 0);
+      .map((v) => Number.parseInt(v.trim(), 10))
+      .filter((n) => !Number.isNaN(n) && n > 0);
 
     if (ids.length === 0) {
       setError('Please enter at least one valid user ID.');

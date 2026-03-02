@@ -445,7 +445,7 @@ function WorkflowDesignerPage() {
     if (!id) return;
     try {
       setLoading(true);
-      const workflowData = await workflowService.getWorkflow(parseInt(id));
+      const workflowData = await workflowService.getWorkflow(Number.parseInt(id));
       setWorkflow(workflowData);
 
       // Sort versions newest-first (versions are already ordered desc by versionNumber from backend,
@@ -480,14 +480,14 @@ function WorkflowDesignerPage() {
         }
       } else if (latestActive) {
         // No draft at all — create a new draft cloned from the active version
-        const newVersion = await workflowService.createVersion(parseInt(id), latestActive.id);
+        const newVersion = await workflowService.createVersion(Number.parseInt(id), latestActive.id);
         const versionData = await workflowService.getVersion(newVersion.id);
         setVersion(versionData);
         setNodes(versionData.nodes.map(n => ({ ...n, selected: false })));
         setTransitions(versionData.transitions.map(t => ({ ...t, selected: false })));
       } else if (sortedVersions.length > 0) {
         // Only deprecated versions remain — create a new draft from the most recent one
-        const newVersion = await workflowService.createVersion(parseInt(id), sortedVersions[0].id);
+        const newVersion = await workflowService.createVersion(Number.parseInt(id), sortedVersions[0].id);
         const versionData = await workflowService.getVersion(newVersion.id);
         setVersion(versionData);
         setNodes(versionData.nodes.map(n => ({ ...n, selected: false })));
@@ -609,7 +609,7 @@ function WorkflowDesignerPage() {
       const targetNode = target.closest('.workflow-node') as HTMLElement;
 
       if (targetNode && targetHandle) {
-        const targetNodeId = parseInt(targetNode.dataset.nodeId || '0');
+        const targetNodeId = Number.parseInt(targetNode.dataset.nodeId || '0');
         if (targetNodeId && targetNodeId !== connectState.sourceNodeId) {
           // Create transition
           await createTransition({

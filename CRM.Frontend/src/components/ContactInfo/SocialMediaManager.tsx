@@ -490,7 +490,7 @@ const SocialMediaManager: React.FC<SocialMediaManagerProps> = ({
                 label="Followers"
                 type="number"
                 value={formData.followerCount || ''}
-                onChange={(e) => setFormData({ ...formData, followerCount: e.target.value ? parseInt(e.target.value) : undefined })}
+                onChange={(e) => setFormData({ ...formData, followerCount: e.target.value ? Number.parseInt(e.target.value) : undefined })}
                 size="small"
               />
             </Grid>
@@ -500,7 +500,7 @@ const SocialMediaManager: React.FC<SocialMediaManagerProps> = ({
                 label="Following"
                 type="number"
                 value={formData.followingCount || ''}
-                onChange={(e) => setFormData({ ...formData, followingCount: e.target.value ? parseInt(e.target.value) : undefined })}
+                onChange={(e) => setFormData({ ...formData, followingCount: e.target.value ? Number.parseInt(e.target.value) : undefined })}
                 size="small"
               />
             </Grid>

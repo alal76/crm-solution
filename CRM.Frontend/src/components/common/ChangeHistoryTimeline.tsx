@@ -87,7 +87,7 @@ function getDotIcon(changeType: 'created' | 'updated' | 'deleted'): React.ReactE
  */
 function formatFieldName(fieldName: string): string {
   return fieldName
-    .replace(/([A-Z])/g, ' $1')
+    .replaceAll(/([A-Z])/g, ' $1')
     .replace(/^./, (str) => str.toUpperCase())
     .trim();
 }
@@ -102,7 +102,7 @@ function formatValue(value: string | null, dataType: string): string {
   if (dataType === 'DateTime' || dataType === 'DateTimeOffset') {
     try {
       const date = new Date(value);
-      if (!isNaN(date.getTime())) {
+      if (!Number.isNaN(date.getTime())) {
         return date.toLocaleString();
       }
     } catch {

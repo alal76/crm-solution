@@ -657,7 +657,7 @@ function SocialLoginSettingsTab() {
               <li>Once created, go to "Add Products" and set up "Facebook Login"</li>
               <li>Click "Settings" under Facebook Login in the left menu</li>
               <li>
-                Add to "Valid OAuth Redirect URIs":
+                Add to "Valid OAuth Redirect URIs":{' '}
                 <code style={{ display: 'block', marginTop: 4, backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4 }}>
                   {window.location.origin}/auth/facebook/callback
                 </code>

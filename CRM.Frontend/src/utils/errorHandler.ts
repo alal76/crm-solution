@@ -273,7 +273,7 @@ export const exportLogsAsJson = (): void => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `crm_error_logs_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+  a.download = `crm_error_logs_${new Date().toISOString().replaceAll(/[:.]/g, '-')}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -453,7 +453,7 @@ export const parseApiError = (error: any, defaultMessage = 'An error occurred'):
         // Clean up field names: remove $ prefix, camelCase to readable
         let cleanField = field
           .replace(/^\$\.?/, '') // Remove leading $. or $
-          .replace(/([A-Z])/g, ' $1') // Add space before capitals
+          .replaceAll(/([A-Z])/g, ' $1') // Add space before capitals
           .replace(/^./, str => str.toUpperCase()) // Capitalize first letter
           .trim();
         
@@ -478,10 +478,10 @@ export const parseApiError = (error: any, defaultMessage = 'An error occurred'):
         const msgs = fe.messages.map(m => {
           // Make common error messages more user-friendly
           return m
-            .replace(/The JSON value could not be converted to [^.]+\./g, 'Invalid format.')
-            .replace(/is required/gi, 'is required')
-            .replace(/must be/gi, 'must be')
-            .replace(/cannot be/gi, 'cannot be');
+            .replaceAll(/The JSON value could not be converted to [^.]+\./g, 'Invalid format.')
+            .replaceAll(/is required/gi, 'is required')
+            .replaceAll(/must be/gi, 'must be')
+            .replaceAll(/cannot be/gi, 'cannot be');
         }).join('; ');
         return `${fieldName}: ${msgs}`;
       });

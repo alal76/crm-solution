@@ -518,7 +518,7 @@ class TestLogger {
    * Helper: Format date for filename
    */
   private formatDate(date: Date): string {
-    return date.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    return date.toISOString().replaceAll(/[:.]/g, '-').slice(0, 19);
   }
 
   /**

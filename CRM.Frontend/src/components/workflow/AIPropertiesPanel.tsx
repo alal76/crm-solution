@@ -382,7 +382,7 @@ const AIDecisionPanel: React.FC<AIDecisionPanelProps> = ({
               type="number"
               label="Max Tokens"
               value={config.maxTokens}
-              onChange={(e) => onChange({ ...config, maxTokens: parseInt(e.target.value) || 500 })}
+              onChange={(e) => onChange({ ...config, maxTokens: Number.parseInt(e.target.value) || 500 })}
               disabled={disabled}
             />
           </Grid>
@@ -393,7 +393,7 @@ const AIDecisionPanel: React.FC<AIDecisionPanelProps> = ({
               type="number"
               label="Confidence Threshold"
               value={config.confidenceThreshold}
-              onChange={(e) => onChange({ ...config, confidenceThreshold: parseFloat(e.target.value) || 0.7 })}
+              onChange={(e) => onChange({ ...config, confidenceThreshold: Number.parseFloat(e.target.value) || 0.7 })}
               disabled={disabled}
               inputProps={{ min: 0, max: 1, step: 0.05 }}
             />
@@ -657,7 +657,7 @@ const AIAgentPanel: React.FC<AIAgentPanelProps> = ({
               type="number"
               label="Max Tokens"
               value={config.maxTokens}
-              onChange={(e) => onChange({ ...config, maxTokens: parseInt(e.target.value) || 1000 })}
+              onChange={(e) => onChange({ ...config, maxTokens: Number.parseInt(e.target.value) || 1000 })}
               disabled={disabled}
             />
           </Grid>
@@ -668,7 +668,7 @@ const AIAgentPanel: React.FC<AIAgentPanelProps> = ({
               type="number"
               label="Max Iterations"
               value={config.maxIterations}
-              onChange={(e) => onChange({ ...config, maxIterations: parseInt(e.target.value) || 10 })}
+              onChange={(e) => onChange({ ...config, maxIterations: Number.parseInt(e.target.value) || 10 })}
               disabled={disabled}
               helperText="Max tool calls"
             />
@@ -819,7 +819,7 @@ const AIAgentPanel: React.FC<AIAgentPanelProps> = ({
                   type="number"
                   label="Max Memory Items"
                   value={config.maxMemoryItems}
-                  onChange={(e) => onChange({ ...config, maxMemoryItems: parseInt(e.target.value) || 10 })}
+                  onChange={(e) => onChange({ ...config, maxMemoryItems: Number.parseInt(e.target.value) || 10 })}
                   disabled={disabled}
                 />
               </Grid>
@@ -880,7 +880,7 @@ const AIAgentPanel: React.FC<AIAgentPanelProps> = ({
               type="number"
               label="Max Cost ($)"
               value={config.maxCost || ''}
-              onChange={(e) => onChange({ ...config, maxCost: parseFloat(e.target.value) || undefined })}
+              onChange={(e) => onChange({ ...config, maxCost: Number.parseFloat(e.target.value) || undefined })}
               disabled={disabled}
               placeholder="No limit"
             />
@@ -892,7 +892,7 @@ const AIAgentPanel: React.FC<AIAgentPanelProps> = ({
               type="number"
               label="Max API Calls"
               value={config.maxApiCalls || ''}
-              onChange={(e) => onChange({ ...config, maxApiCalls: parseInt(e.target.value) || undefined })}
+              onChange={(e) => onChange({ ...config, maxApiCalls: Number.parseInt(e.target.value) || undefined })}
               disabled={disabled}
               placeholder="No limit"
             />
@@ -1022,7 +1022,7 @@ const AIContentGeneratorPanel: React.FC<AIContentGeneratorPanelProps> = ({
               type="number"
               label="Max Tokens"
               value={config.maxTokens}
-              onChange={(e) => onChange({ ...config, maxTokens: parseInt(e.target.value) || 1000 })}
+              onChange={(e) => onChange({ ...config, maxTokens: Number.parseInt(e.target.value) || 1000 })}
               disabled={disabled}
             />
           </Grid>
@@ -1033,7 +1033,7 @@ const AIContentGeneratorPanel: React.FC<AIContentGeneratorPanelProps> = ({
               type="number"
               label="Max Length (chars)"
               value={config.maxLength || ''}
-              onChange={(e) => onChange({ ...config, maxLength: parseInt(e.target.value) || undefined })}
+              onChange={(e) => onChange({ ...config, maxLength: Number.parseInt(e.target.value) || undefined })}
               disabled={disabled}
               placeholder="No limit"
             />
@@ -1196,7 +1196,7 @@ const AIDataExtractorPanel: React.FC<AIDataExtractorPanelProps> = ({
               type="number"
               label="Max Tokens"
               value={config.maxTokens}
-              onChange={(e) => onChange({ ...config, maxTokens: parseInt(e.target.value) || 500 })}
+              onChange={(e) => onChange({ ...config, maxTokens: Number.parseInt(e.target.value) || 500 })}
               disabled={disabled}
             />
           </Grid>
@@ -1483,7 +1483,7 @@ const AIClassifierPanel: React.FC<AIClassifierPanelProps> = ({
               type="number"
               label="Confidence Threshold"
               value={config.confidenceThreshold}
-              onChange={(e) => onChange({ ...config, confidenceThreshold: parseFloat(e.target.value) || 0.7 })}
+              onChange={(e) => onChange({ ...config, confidenceThreshold: Number.parseFloat(e.target.value) || 0.7 })}
               disabled={disabled}
               inputProps={{ min: 0, max: 1, step: 0.05 }}
             />
@@ -1805,7 +1805,7 @@ const AISentimentAnalyzerPanel: React.FC<AISentimentAnalyzerPanelProps> = ({
                 ...config,
                 sentimentThresholds: {
                   ...config.sentimentThresholds,
-                  positive: parseFloat(e.target.value) || 0.6,
+                  positive: Number.parseFloat(e.target.value) || 0.6,
                   neutral: config.sentimentThresholds?.neutral ?? 0,
                   negative: config.sentimentThresholds?.negative ?? -0.6,
                 },
@@ -1826,7 +1826,7 @@ const AISentimentAnalyzerPanel: React.FC<AISentimentAnalyzerPanelProps> = ({
                 sentimentThresholds: {
                   ...config.sentimentThresholds,
                   positive: config.sentimentThresholds?.positive ?? 0.6,
-                  neutral: parseFloat(e.target.value) || 0,
+                  neutral: Number.parseFloat(e.target.value) || 0,
                   negative: config.sentimentThresholds?.negative ?? -0.6,
                 },
               })}
@@ -1847,7 +1847,7 @@ const AISentimentAnalyzerPanel: React.FC<AISentimentAnalyzerPanelProps> = ({
                   ...config.sentimentThresholds,
                   positive: config.sentimentThresholds?.positive ?? 0.6,
                   neutral: config.sentimentThresholds?.neutral ?? 0,
-                  negative: parseFloat(e.target.value) || -0.6,
+                  negative: Number.parseFloat(e.target.value) || -0.6,
                 },
               })}
               disabled={disabled}
@@ -1965,7 +1965,7 @@ const HumanReviewPanel: React.FC<HumanReviewPanelProps> = ({
               type="number"
               label="Due In (minutes)"
               value={config.dueInMinutes}
-              onChange={(e) => onChange({ ...config, dueInMinutes: parseInt(e.target.value) || 60 })}
+              onChange={(e) => onChange({ ...config, dueInMinutes: Number.parseInt(e.target.value) || 60 })}
               disabled={disabled}
             />
           </Grid>

@@ -116,7 +116,7 @@ const SubscriptionDetailPage: React.FC = () => {
   const subscriptionId = Number(id);
 
   const loadSubscription = useCallback(async () => {
-    if (!id || isNaN(subscriptionId)) {
+    if (!id || Number.isNaN(subscriptionId)) {
       setError('Invalid subscription ID');
       setLoading(false);
       return;
@@ -135,7 +135,7 @@ const SubscriptionDetailPage: React.FC = () => {
   }, [id, subscriptionId]);
 
   const loadBilling = useCallback(async () => {
-    if (isNaN(subscriptionId)) return;
+    if (Number.isNaN(subscriptionId)) return;
     try {
       const data = await billingService.getBillingHistory(subscriptionId);
       setBillingHistory(data);
@@ -146,7 +146,7 @@ const SubscriptionDetailPage: React.FC = () => {
   }, [subscriptionId]);
 
   const loadUsage = useCallback(async () => {
-    if (isNaN(subscriptionId)) return;
+    if (Number.isNaN(subscriptionId)) return;
     try {
       const data = await billingService.getUsageRecords(subscriptionId);
       setUsageRecords(data);
