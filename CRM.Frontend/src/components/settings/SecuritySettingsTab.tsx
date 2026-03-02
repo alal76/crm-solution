@@ -855,7 +855,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
                 />
               </Box>
               <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                Show a "Quick Admin Login" button on the login page for faster development access.
+                Show a "Quick Admin Login" button on the login page for faster development access.{' '}
                 <strong> This should be disabled in production environments.</strong>
               </Typography>
               

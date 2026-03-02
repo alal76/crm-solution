@@ -946,7 +946,7 @@ await fetch('${baseUrl}/api/accounts', {
             <Typography variant="subtitle1" gutterBottom>Rate Limiting</Typography>
             <Alert severity="info">
               API requests are limited to 1000 requests per minute per user.
-              The remaining quota is returned in response headers:
+              The remaining quota is returned in response headers:{' '}
               <code>X-RateLimit-Remaining</code>, <code>X-RateLimit-Reset</code>
             </Alert>
           </Box>

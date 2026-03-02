@@ -741,7 +741,7 @@ public class ContractService : IContractService
         // Object 4: Content stream
         offsets.Add(ms.Position);
         Write($"4 0 obj\n<< /Length {contentBytes.Length} >>\nstream\n");
-        ms.Write(contentBytes, 0, contentBytes.Length);
+        await ms.WriteAsync(contentBytes, 0, contentBytes.Length);
         Write("\nendstream\nendobj\n");
 
         // Object 5: Font (Helvetica - built-in PDF Type1 font)

@@ -64,7 +64,7 @@ function getInitials(name: string): string {
 function stringToColor(s: string): string {
   let hash = 0;
   for (let i = 0; i < s.length; i++) {
-    hash = s.charCodeAt(i) + ((hash << 5) - hash);
+    hash = (s.codePointAt(i) ?? 0) + ((hash << 5) - hash);
   }
   const h = Math.abs(hash) % 360;
   return `hsl(${h}, 45%, 45%)`;

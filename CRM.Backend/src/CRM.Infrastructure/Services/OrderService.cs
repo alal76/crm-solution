@@ -102,7 +102,7 @@ public class OrderService : IOrderService
         _context.Orders.Add(order);
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Created order {OrderNumber} for account {AccountId}", order.OrderNumber, order.AccountId);
-        _eventDispatcher.DispatchEntityEvent("Order", order.Id, WorkflowTriggerType.OnCreate);
+        await _eventDispatcher.DispatchEntityEventAsync("Order", order.Id, WorkflowTriggerType.OnCreate);
         return MapToOrderDto(order);
     }
 
@@ -119,7 +119,7 @@ public class OrderService : IOrderService
         MapUpdateOrderDtoToEntity(dto, existing);
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated order {OrderNumber}", existing.OrderNumber);
-        _eventDispatcher.DispatchEntityEvent("Order", existing.Id, WorkflowTriggerType.OnUpdate);
+        await _eventDispatcher.DispatchEntityEventAsync("Order", existing.Id, WorkflowTriggerType.OnUpdate);
         return MapToOrderDto(existing);
     }
 
@@ -138,7 +138,7 @@ public class OrderService : IOrderService
         _logger.LogInformation("Deleted order {OrderNumber}", order.OrderNumber);
 
         // Fire workflow triggers for entity deletion
-        _eventDispatcher.DispatchEntityEvent("Order", id, WorkflowTriggerType.OnDelete);
+        await _eventDispatcher.DispatchEntityEventAsync("Order", id, WorkflowTriggerType.OnDelete);
 
         return true;
     }

@@ -290,7 +290,7 @@ public class ContactsService : IContactsService, IContactInputPort
         }
 
         // Fire workflow triggers for entity creation
-        _eventDispatcher.DispatchEntityEvent("Contact", contact.Id, WorkflowTriggerType.OnCreate);
+        await _eventDispatcher.DispatchEntityEventAsync("Contact", contact.Id, WorkflowTriggerType.OnCreate);
 
         return await MapToDtoAsync(contact);
     }
@@ -732,7 +732,7 @@ public class ContactsService : IContactsService, IContactInputPort
         await _context.SaveChangesAsync();
 
         // Fire workflow triggers for entity deletion
-        _eventDispatcher.DispatchEntityEvent("Contact", id, WorkflowTriggerType.OnDelete);
+        await _eventDispatcher.DispatchEntityEventAsync("Contact", id, WorkflowTriggerType.OnDelete);
 
         return true;
     }

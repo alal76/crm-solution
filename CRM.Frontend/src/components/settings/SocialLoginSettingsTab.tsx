@@ -278,7 +278,7 @@ function SocialLoginSettingsTab() {
               <li>Select "Web application" as the application type</li>
               <li>Add your app's URL to "Authorized JavaScript origins" (e.g., http://localhost:3000)</li>
               <li>
-                Add callback URL to "Authorized redirect URIs":
+                Add callback URL to "Authorized redirect URIs":{' '}
                 <code style={{ display: 'block', marginTop: 4, backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4 }}>
                   {window.location.origin}/auth/google/callback
                 </code>
@@ -361,7 +361,7 @@ function SocialLoginSettingsTab() {
                 Select <strong>"Accounts in any organizational directory and personal Microsoft accounts"</strong>
               </li>
               <li>
-                Add Redirect URI as "Web" with:
+                Add Redirect URI as "Web" with:{' '}
                 <code style={{ display: 'block', marginTop: 4, backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4 }}>
                   {window.location.origin}/auth/microsoft/callback
                 </code>
@@ -459,7 +459,7 @@ function SocialLoginSettingsTab() {
                 <strong>"Accounts in any organizational directory"</strong> (Multi-tenant)
               </li>
               <li>
-                Add Redirect URI as "Web" with:
+                Add Redirect URI as "Web" with:{' '}
                 <code style={{ display: 'block', marginTop: 4, backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4 }}>
                   {window.location.origin}/auth/azuread/callback
                 </code>
@@ -567,7 +567,7 @@ function SocialLoginSettingsTab() {
               <li>Fill in the app details (name, LinkedIn page, logo)</li>
               <li>Once created, go to the "Auth" tab</li>
               <li>
-                Add OAuth 2.0 Authorized Redirect URL:
+                Add OAuth 2.0 Authorized Redirect URL:{' '}
                 <code style={{ display: 'block', marginTop: 4, backgroundColor: '#f5f5f5', padding: 8, borderRadius: 4 }}>
                   {window.location.origin}/auth/linkedin/callback
                 </code>

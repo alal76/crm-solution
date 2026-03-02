@@ -131,7 +131,7 @@ public class LeadService : ILeadService
         }
 
         // Fire workflow triggers for entity creation
-        _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnCreate);
+        await _eventDispatcher.DispatchEntityEventAsync("Lead", lead.Id, WorkflowTriggerType.OnCreate);
 
         // FEAT-AISCORING: record initial score history entry when lead has a score
         if (_scoreHistory != null && lead.FitScore > 0)
@@ -233,8 +233,8 @@ public class LeadService : ILeadService
         await _context.SaveChangesAsync();
 
         // Fire events
-        _eventDispatcher.DispatchEntityEvent("Opportunity", opportunity.Id, WorkflowTriggerType.OnCreate);
-        _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
+        await _eventDispatcher.DispatchEntityEventAsync("Opportunity", opportunity.Id, WorkflowTriggerType.OnCreate);
+        await _eventDispatcher.DispatchEntityEventAsync("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
 
         return (opportunity.Id, lead.Id);
     }

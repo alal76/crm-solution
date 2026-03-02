@@ -372,7 +372,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         }
 
         // Fire workflow triggers for entity creation
-        _eventDispatcher.DispatchEntityEvent("Account", account.Id, WorkflowTriggerType.OnCreate);
+        await _eventDispatcher.DispatchEntityEventAsync("Account", account.Id, WorkflowTriggerType.OnCreate);
 
         return await MapToDto(account);
     }
@@ -868,7 +868,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         }
 
         // Fire workflow triggers for entity update
-        _eventDispatcher.DispatchEntityEvent("Account", account.Id, WorkflowTriggerType.OnUpdate);
+        await _eventDispatcher.DispatchEntityEventAsync("Account", account.Id, WorkflowTriggerType.OnUpdate);
 
         return await MapToDto(account);
     }
@@ -887,7 +887,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         await _accountRepository.SaveAsync();
 
         // Fire workflow triggers for entity deletion
-        _eventDispatcher.DispatchEntityEvent("Account", id, WorkflowTriggerType.OnDelete);
+        await _eventDispatcher.DispatchEntityEventAsync("Account", id, WorkflowTriggerType.OnDelete);
 
         return true;
     }

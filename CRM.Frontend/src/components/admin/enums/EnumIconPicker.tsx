@@ -84,7 +84,7 @@ function IconTile({ name, selected, onClick }: { name: string; selected: boolean
       >
         {IconComponent ? <IconComponent sx={{ fontSize: 22 }} /> : <CircularProgress size={16} />}
         <Typography variant="caption" sx={{ fontSize: '0.55rem', textAlign: 'center', lineHeight: 1.1 }}>
-          {name.replace(/([A-Z])/g, ' $1').trim().slice(0, 10)}
+          {name.replaceAll(/([A-Z])/g, ' $1').trim().slice(0, 10)}
         </Typography>
       </Box>
     </Tooltip>

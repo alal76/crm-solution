@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 58,
+  "patch": 59,
   "lastUpdate": "2026-03-02",
-  "description": "feat(versioning): v0.614.58 - Independent API & frontend versioning — version.json now tracks per-component versions (api, frontend, cdt); CDT deployer tags each Docker image with its own component version; deploy-to-dev-server.sh uses component-specific versions; AboutPage.tsx fetches version dynamically from version.json; Footer.tsx shows separate API/frontend versions in tooltip; bump-version.py auto-detects changed files via git diff and bumps the correct component; syncs CRM.Api.csproj and package.json automatically",
+  "description": "fix(cdt): v0.614.59 - Credential mismatch prevention on CDT redeploy — recovered secrets force-override stale wizard values; abort deploy when MariaDB volume exists but secret recovery fails; validate+repair DB credentials after container startup; migrations use configured password instead of hardcoded default; 244 tests",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
@@ -16,11 +16,12 @@
       "lastUpdate": "2026-03-02"
     },
     "cdt": {
-      "version": "0.614.58",
+      "version": "0.614.59",
       "lastUpdate": "2026-03-02"
     }
   },
   "features": [
+    "v0.614.59: FIX(cdt): Credential mismatch prevention on CDT redeploy — inject_secrets_into_profile() force-overrides stale wizard values; deploy aborts with 400 when MariaDB volume exists but secret recovery fails; _step_wait_databases validates+repairs DB credentials via ALTER USER; _step_run_migrations uses configured password; check_remote_db_volume_exists detects existing MariaDB volumes; 244 CDT tests",
     "v0.614.58: FEAT(versioning): Independent API & frontend versioning — per-component versions in version.json (api, frontend, cdt); CDT tags Docker images with component-specific versions; deploy-to-dev-server.sh uses component versions; AboutPage.tsx fetches version dynamically; Footer.tsx shows API/frontend versions in tooltip; bump-version.py auto-detects git diffs and bumps correct component; syncs .csproj and package.json",
     "v0.614.57: FIX(cdt): Frontend deployment fix & deployment logging — health check timeout continues to frontend start; post-start container verification; 5 silent exception handlers replaced with logging; password recovery failure warnings; Python logging framework; logger calls in deployers; K8s rollback fix; 289 tests",
     "v0.614.56: FEAT(cdt): Monitoring & Post Deployment — renamed Day-2 to Monitoring & Post Deployment; 6 post-install DB ops (migrate/seed/clear); Test Runner with BVT/CRUD/E2E suites; deploy_host in API + UI; SSH shlex.quote fix; 279 tests",

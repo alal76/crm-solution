@@ -550,7 +550,7 @@ function _updateRuntimeUI(runtime) {
     const cardTitle = document.getElementById('containers-card-title');
     if (cardTitle) cardTitle.textContent = isK8s ? 'Kubernetes Resources' : isSvl ? 'Managed Services' : 'Container Status';
     const cardLabel = document.getElementById('card-containers-label');
-    if (cardLabel) cardLabel.textContent = isK8s ? 'Pods / Resources' : isSvl ? 'Running / Total' : 'Running / Total';
+    if (cardLabel) cardLabel.textContent = isK8s ? 'Pods / Resources' : 'Running / Total';
 }
 
 // ── Confirm modal ──────────────────────────────────────────────────────────

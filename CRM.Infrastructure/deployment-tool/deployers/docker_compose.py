@@ -686,11 +686,60 @@ class DockerComposeDeployer:
 
         for key, value in secrets.items():
             if key in db_keys:
-                db_section.setdefault(key, value)
+                # Force-override: recovered secrets from the running deployment
+                # MUST take precedence over stale wizard/profile values,
+                # because MariaDB ignores MYSQL_PASSWORD after first volume init.
+                db_section[key] = value
             else:
-                secrets_section.setdefault(key, value)
+                secrets_section[key] = value
 
         return profile
+
+    @staticmethod
+    def check_remote_db_volume_exists(
+        host: str,
+        ssh_user: str = "root",
+        ssh_port: int = 22,
+        volume_name: str = "mariadb_data",
+    ) -> bool:
+        """Check if a MariaDB data volume exists on the remote *host*.
+
+        Returns ``True`` if the volume exists (meaning MariaDB has been
+        previously initialized and MYSQL_PASSWORD env vars will be
+        ignored on container recreation).
+        """
+        if host in ("localhost", "127.0.0.1", "0.0.0.0", ""):
+            import subprocess
+            try:
+                rc = subprocess.run(
+                    ["docker", "volume", "inspect", volume_name],
+                    capture_output=True, timeout=10,
+                ).returncode
+                return rc == 0
+            except Exception:  # noqa: BLE001
+                return False
+        else:
+            try:
+                import paramiko  # noqa: delayed import
+                ssh = paramiko.SSHClient()
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh.connect(host, port=ssh_port, username=ssh_user, timeout=15)
+                # Check multiple possible volume name patterns
+                # (compose project prefixes the volume name)
+                cmd = (
+                    f"docker volume ls --format '{{{{.Name}}}}' "
+                    f"| grep -q '{volume_name}'"
+                )
+                _, stdout_ch, _ = ssh.exec_command(cmd, timeout=15)
+                rc = stdout_ch.channel.recv_exit_status()
+                ssh.close()
+                return rc == 0
+            except Exception as exc:  # noqa: BLE001
+                logger.warning(
+                    "check_remote_db_volume_exists SSH to %s failed: %s",
+                    host, exc,
+                )
+                return False  # Assume no volume → safe to generate new passwords
 
     # ------------------------------------------------------------------ #
     #  Version-aware image helpers                                        #
@@ -1054,6 +1103,96 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] Network crm-network created", "info")
         return True
 
+    # ------------------------------------------------------------------ #
+    #  Database credential helpers                                        #
+    # ------------------------------------------------------------------ #
+    def _get_configured_db_password(self) -> str:
+        """Extract the DB password that was configured for this deployment."""
+        # Check profile sections in order of specificity
+        pw = (
+            self.profile.get("database", {}).get("db_password")
+            or self.profile.get("secrets", {}).get("db_password")
+            or self.profile.get("db_password")
+            or ""
+        )
+        return pw
+
+    def _get_configured_db_root_password(self) -> str:
+        """Extract the DB root password that was configured for this deployment."""
+        return (
+            self.profile.get("database", {}).get("db_root_password")
+            or self.profile.get("secrets", {}).get("db_root_password")
+            or self.profile.get("db_root_password")
+            or ""
+        )
+
+    def _validate_db_credentials(
+        self, db_user: str, db_password: str, db_name: str
+    ) -> bool:
+        """Test that *db_user* can connect to MariaDB with *db_password*.
+
+        Tries both ``mariadb`` and ``mysql`` client binaries.
+        """
+        for client in ("mariadb", "mysql"):
+            rc, _, _ = self._run_on_target(
+                [
+                    "docker", "exec", "crm-mariadb",
+                    client, "-u", db_user, f"-p{db_password}",
+                    "-e", "SELECT 1 AS auth_ok;", db_name,
+                ],
+                timeout=15,
+            )
+            if rc == 0:
+                self._emit(
+                    f"[{self._target_host}] DB credential validation OK (via {client})",
+                    "success",
+                )
+                return True
+        return False
+
+    def _repair_db_credentials(
+        self, db_user: str, db_password: str
+    ) -> bool:
+        """Attempt to ALTER the DB user's password via root to match config.
+
+        MariaDB ignores MYSQL_PASSWORD on existing volumes, so on redeploy
+        the only way to sync is via ALTER USER using root credentials.
+        """
+        root_pw = self._get_configured_db_root_password()
+        if not root_pw:
+            self._emit(
+                f"[{self._target_host}] No root password available — cannot repair credentials",
+                "warn",
+            )
+            return False
+
+        # Escape single quotes in passwords for shell
+        escaped_user_pw = db_password.replace("'", "'\\''")
+
+        for client in ("mariadb", "mysql"):
+            rc, _, err = self._run_on_target(
+                [
+                    "docker", "exec", "crm-mariadb",
+                    client, "-u", "root", f"-p{root_pw}",
+                    "-e",
+                    f"ALTER USER '{db_user}'@'%' IDENTIFIED BY '{escaped_user_pw}'; FLUSH PRIVILEGES;",
+                ],
+                timeout=15,
+            )
+            if rc == 0:
+                self._emit(
+                    f"[{self._target_host}] Password for '{db_user}' reset via {client} root access",
+                    "info",
+                )
+                return True
+
+        self._emit(
+            f"[{self._target_host}] Root access also failed — "
+            f"stderr: {(err or '').strip()[:200]}",
+            "error",
+        )
+        return False
+
     def _step_start_databases(self) -> bool:
         all_db = ["crm-mariadb", "crm-redis"]
         self._ensure_reused_running(all_db)
@@ -1130,6 +1269,56 @@ class DockerComposeDeployer:
                     f"[{self._target_host}] MariaDB ready after {attempt} attempt(s)",
                     "success",
                 )
+                # ── Validate database credentials ──────────────────────
+                # MariaDB ignores MYSQL_PASSWORD env var after first volume
+                # initialization.  Verify the configured password actually
+                # works before letting the API container start (and fail
+                # with ACCESS DENIED).
+                db_password = self._get_configured_db_password()
+                db_user = (
+                    self.profile.get("database", {}).get("db_user")
+                    or self.profile.get("db_user")
+                    or "crm_user"
+                )
+                db_name = (
+                    self.profile.get("database", {}).get("db_name")
+                    or self.profile.get("db_name")
+                    or "crm_db"
+                )
+                if db_password:
+                    self._emit(
+                        f"[{self._target_host}] Validating DB credentials for user '{db_user}'…",
+                        "info",
+                    )
+                    auth_ok = self._validate_db_credentials(
+                        db_user, db_password, db_name
+                    )
+                    if not auth_ok:
+                        self._emit(
+                            f"[{self._target_host}] DB credential validation FAILED — "
+                            "attempting password repair via root…",
+                            "warn",
+                        )
+                        repaired = self._repair_db_credentials(
+                            db_user, db_password
+                        )
+                        if repaired:
+                            self._emit(
+                                f"[{self._target_host}] DB credentials repaired successfully",
+                                "success",
+                            )
+                        else:
+                            self._emit(
+                                f"[{self._target_host}] DB credential repair FAILED — "
+                                "API may fail to connect. Check DB password manually.",
+                                "error",
+                            )
+                            # Non-fatal: let API attempt anyway — it has retry logic
+                else:
+                    self._emit(
+                        f"[{self._target_host}] No DB password in profile — skipping credential check",
+                        "warn",
+                    )
                 return True
 
             detail = (err or out or "").strip()[:120]
@@ -1170,13 +1359,25 @@ class DockerComposeDeployer:
         )
 
         # Quick connectivity check — exec into the mariadb container
+        # Use the configured password (not hardcoded) to verify access
+        db_password = self._get_configured_db_password() or "CrmPass@Dev2024"
+        db_user = (
+            self.profile.get("database", {}).get("db_user")
+            or self.profile.get("db_user")
+            or "crm_user"
+        )
+        db_name = (
+            self.profile.get("database", {}).get("db_name")
+            or self.profile.get("db_name")
+            or "crm_db"
+        )
         mig_start = time.time()
-        rc, out, err = self._run_on_target(
+        rc, _, err = self._run_on_target(
             [
                 "docker", "exec", "crm-mariadb",
-                "mariadb", "-u", "crm_user", "-pCrmPass@Dev2024",
+                "mariadb", "-u", db_user, f"-p{db_password}",
                 "-e", "SELECT 1 AS db_ready;",
-                "crm_db",
+                db_name,
             ],
             timeout=30,
             log_command=True,
@@ -1185,12 +1386,12 @@ class DockerComposeDeployer:
 
         if rc != 0:
             # Fallback: try mysql client name (older images)
-            rc2, out2, err2 = self._run_on_target(
+            rc2, _, err2 = self._run_on_target(
                 [
                     "docker", "exec", "crm-mariadb",
-                    "mysql", "-u", "crm_user", "-pCrmPass@Dev2024",
+                    "mysql", "-u", db_user, f"-p{db_password}",
                     "-e", "SELECT 1 AS db_ready;",
-                    "crm_db",
+                    db_name,
                 ],
                 timeout=30,
             )

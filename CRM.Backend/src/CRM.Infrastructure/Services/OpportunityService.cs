@@ -103,7 +103,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         }
 
         // Fire workflow triggers for entity creation
-        _eventDispatcher.DispatchEntityEvent("Opportunity", opportunity.Id, WorkflowTriggerType.OnCreate);
+        await _eventDispatcher.DispatchEntityEventAsync("Opportunity", opportunity.Id, WorkflowTriggerType.OnCreate);
 
         return opportunity.Id;
     }
@@ -114,7 +114,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         await _repository.SaveAsync();
 
         // Fire workflow triggers for entity update
-        _eventDispatcher.DispatchEntityEvent("Opportunity", opportunity.Id, WorkflowTriggerType.OnUpdate);
+        await _eventDispatcher.DispatchEntityEventAsync("Opportunity", opportunity.Id, WorkflowTriggerType.OnUpdate);
     }
 
     public async Task DeleteOpportunityAsync(int id)
@@ -126,7 +126,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             await _repository.SaveAsync();
 
             // Fire workflow triggers for entity deletion
-            _eventDispatcher.DispatchEntityEvent("Opportunity", id, WorkflowTriggerType.OnDelete);
+            await _eventDispatcher.DispatchEntityEventAsync("Opportunity", id, WorkflowTriggerType.OnDelete);
         }
     }
 

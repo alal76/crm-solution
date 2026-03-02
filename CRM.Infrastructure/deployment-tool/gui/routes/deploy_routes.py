@@ -314,12 +314,14 @@ def start_deploy():
             profile.get("remote_deploy_dir", "/opt/crm-deployment"),
         )
         if deploy_host and deploy_host not in ("NO_HOST_CONFIGURED",):
+            ssh_user = target.get("ssh_user", "root")
+            ssh_port = int(target.get("ssh_port", 22))
             try:
                 existing_secrets = DockerComposeDeployer.read_remote_env_secrets(
                     host=deploy_host,
                     remote_deploy_dir=remote_dir,
-                    ssh_user=target.get("ssh_user", "root"),
-                    ssh_port=int(target.get("ssh_port", 22)),
+                    ssh_user=ssh_user,
+                    ssh_port=ssh_port,
                 )
                 if existing_secrets:
                     logger.info("Recovered %d existing secrets from %s", len(existing_secrets), deploy_host)
@@ -327,16 +329,62 @@ def start_deploy():
                         profile, existing_secrets
                     )
                 else:
+                    # Check if a MariaDB volume exists — if so, generating
+                    # fresh passwords will cause ACCESS DENIED because
+                    # MariaDB ignores MYSQL_PASSWORD after first init.
+                    volume_exists = DockerComposeDeployer.check_remote_db_volume_exists(
+                        host=deploy_host,
+                        ssh_user=ssh_user,
+                        ssh_port=ssh_port,
+                    )
+                    if volume_exists:
+                        logger.error(
+                            "No .env secrets recovered from %s but MariaDB "
+                            "data volume exists — fresh passwords WILL cause "
+                            "credential mismatch. Aborting deploy.",
+                            deploy_host,
+                        )
+                        return jsonify({
+                            "error": (
+                                f"Cannot recover existing DB passwords from "
+                                f"{deploy_host}:{remote_dir}/.env, but MariaDB "
+                                f"data volume already exists.  Generating new "
+                                f"random passwords would cause ACCESS DENIED.  "
+                                f"Please ensure the remote .env file exists or "
+                                f"use password_strategy='auto_generate' with a "
+                                f"fresh database volume."
+                            ),
+                        }), 400
                     logger.warning(
                         "No existing secrets recovered from %s:%s — new random "
-                        "passwords will be generated. If the target already has a "
-                        "running database this WILL cause a credential mismatch.",
+                        "passwords will be generated (first-time deploy).",
                         deploy_host, remote_dir,
                     )
             except Exception as exc:  # noqa: BLE001
-                logger.error(
-                    "Secret recovery from %s failed: %s — new random passwords "
-                    "will be generated (potential credential mismatch!)",
+                # Recovery failed — check if this is a dangerous re-deploy
+                volume_exists = DockerComposeDeployer.check_remote_db_volume_exists(
+                    host=deploy_host,
+                    ssh_user=ssh_user,
+                    ssh_port=ssh_port,
+                )
+                if volume_exists:
+                    logger.error(
+                        "Secret recovery from %s failed (%s) AND MariaDB volume "
+                        "exists — aborting to prevent credential mismatch.",
+                        deploy_host, exc,
+                    )
+                    return jsonify({
+                        "error": (
+                            f"Secret recovery from {deploy_host} failed: {exc}. "
+                            f"MariaDB data volume exists — generating fresh "
+                            f"passwords would cause ACCESS DENIED.  Fix SSH "
+                            f"access or use password_strategy='auto_generate' "
+                            f"with a fresh database volume."
+                        ),
+                    }), 400
+                logger.warning(
+                    "Secret recovery from %s failed: %s — generating new "
+                    "passwords (no existing DB volume detected, safe to proceed).",
                     deploy_host, exc,
                 )
 

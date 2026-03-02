@@ -7156,7 +7156,7 @@ async function applySelectedProfile() {
         updateSidebar();
 
         document.getElementById('step-profile-browser').style.display = 'none';
-        showToast?.('Profile loaded — wizard fields updated', 'success');
+        if (showToast) { showToast('Profile loaded — wizard fields updated', 'success'); }
     } catch(e) { showErrorPopup('Profile Load Error', 'Failed to load profile', e.message); }
 }
 function closeProfileBrowser() {

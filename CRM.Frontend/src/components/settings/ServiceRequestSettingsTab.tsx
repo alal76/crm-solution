@@ -1096,7 +1096,7 @@ function ServiceRequestSettingsTab() {
                 fullWidth
                 label="Field Name (internal)"
                 value={fieldForm.name}
-                onChange={(e) => setFieldForm({ ...fieldForm, name: e.target.value.replace(/\s/g, '_').toLowerCase() })}
+                onChange={(e) => setFieldForm({ ...fieldForm, name: e.target.value.replaceAll(/\s/g, '_').toLowerCase() })}
                 required
                 helperText="No spaces, lowercase"
               />

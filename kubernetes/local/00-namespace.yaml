@@ -6,19 +6,10 @@ metadata:
     app: crm
     name: crm-dev
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: crm-config
-  namespace: crm-dev
-data:
-  ASPNETCORE_ENVIRONMENT: "Development"
-  DatabaseProvider: "MariaDb"
-  NODE_ENV: "production"
-  REACT_APP_API_URL: "/api"
-  # DEPRECATED: Demo database feature removed - system uses single database only
-  # DemoDatabase__AutoSeed: "true"
-  # DemoDatabase__DatabaseName: "crm_demodb"
+# NOTE: crm-config ConfigMap is defined in ../00-namespace-config.yaml (source of truth).
+# Local environment overrides (ASPNETCORE_ENVIRONMENT, DatabaseProvider, NODE_ENV,
+# REACT_APP_API_URL) should be applied via a Kustomize patch or Helm values override
+# rather than redefining the ConfigMap here, to avoid S6907 duplicate-key violations.
 ---
 apiVersion: v1
 kind: Secret

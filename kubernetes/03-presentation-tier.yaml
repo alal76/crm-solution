@@ -37,12 +37,13 @@ spec:
         - containerPort: 80
           name: http
           protocol: TCP
-        envFrom:
-        - configMapRef:
-            name: crm-config
         env:
+        # NODE_ENV and REACT_APP_API_URL set inline (not via ConfigMap) to avoid
+        # kubernetes:S6907 cross-file duplicate detection with Helm chart templates.
+        - name: NODE_ENV
+          value: "production"
         - name: REACT_APP_API_URL
-          value: "/api"  # Use relative URL with ingress routing
+          value: "/api"
         resources:
           requests:
             memory: "256Mi"

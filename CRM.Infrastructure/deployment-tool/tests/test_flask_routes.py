@@ -1823,17 +1823,21 @@ class TestInjectSecretsIntoProfile:
         assert profile["secrets"]["jwt_secret"] == "tok123"
         assert profile["secrets"]["redis_password"] == "red456"
 
-    def test_existing_values_not_overwritten(self):
-        """setdefault() should not clobber explicit profile values."""
+    def test_recovered_secrets_override_stale_profile_values(self):
+        """Recovered secrets from remote .env MUST override stale wizard values.
+
+        MariaDB ignores MYSQL_PASSWORD env var after first volume init, so the
+        recovered password from the running deployment is authoritative.
+        """
         from deployers.docker_compose import DockerComposeDeployer
         profile = {
-            "database": {"db_password": "explicit_pass"},
-            "secrets": {"jwt_secret": "explicit_jwt"},
+            "database": {"db_password": "stale_wizard_pass"},
+            "secrets": {"jwt_secret": "stale_wizard_jwt"},
         }
         secrets = {"db_password": "recovered_pass", "jwt_secret": "recovered_jwt"}
         DockerComposeDeployer.inject_secrets_into_profile(profile, secrets)
-        assert profile["database"]["db_password"] == "explicit_pass"
-        assert profile["secrets"]["jwt_secret"] == "explicit_jwt"
+        assert profile["database"]["db_password"] == "recovered_pass"
+        assert profile["secrets"]["jwt_secret"] == "recovered_jwt"
 
     def test_empty_secrets_noop(self):
         from deployers.docker_compose import DockerComposeDeployer
@@ -1861,6 +1865,169 @@ class TestInjectSecretsIntoProfile:
         assert profile["secrets"]["jwt_secret"] == "jwt"
         assert profile["secrets"]["redis_password"] == "redis"
         assert profile["secrets"]["openai_api_key"] == "sk-123"
+
+
+class TestCheckRemoteDbVolumeExists:
+    """Tests for DockerComposeDeployer.check_remote_db_volume_exists()."""
+
+    def test_localhost_volume_not_found(self):
+        """Returns False when docker volume inspect fails locally."""
+        from deployers.docker_compose import DockerComposeDeployer
+        from unittest.mock import patch, MagicMock
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        with patch("subprocess.run", return_value=mock_result):
+            result = DockerComposeDeployer.check_remote_db_volume_exists(
+                host="localhost", volume_name="nonexistent_vol"
+            )
+        assert result is False
+
+    def test_localhost_volume_found(self):
+        """Returns True when docker volume inspect succeeds locally."""
+        from deployers.docker_compose import DockerComposeDeployer
+        from unittest.mock import patch, MagicMock
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        with patch("subprocess.run", return_value=mock_result):
+            result = DockerComposeDeployer.check_remote_db_volume_exists(
+                host="localhost", volume_name="mariadb_data"
+            )
+        assert result is True
+
+    def test_empty_host_returns_false(self):
+        """Empty host string should use local check and handle gracefully."""
+        from deployers.docker_compose import DockerComposeDeployer
+        from unittest.mock import patch, MagicMock
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        with patch("subprocess.run", return_value=mock_result):
+            result = DockerComposeDeployer.check_remote_db_volume_exists(host="")
+        assert result is False
+
+    def test_remote_ssh_failure_returns_false(self):
+        """SSH failure for remote host should return False (safe to generate)."""
+        from deployers.docker_compose import DockerComposeDeployer
+        from unittest.mock import patch
+
+        with patch("paramiko.SSHClient") as mock_ssh_cls:
+            mock_ssh_cls.return_value.connect.side_effect = Exception("SSH timeout")
+            result = DockerComposeDeployer.check_remote_db_volume_exists(
+                host="192.168.0.9"
+            )
+        assert result is False
+
+
+class TestCredentialHelpers:
+    """Tests for _get_configured_db_password and _get_configured_db_root_password."""
+
+    def _make_deployer(self, profile):
+        """Create a DockerComposeDeployer with a minimal profile for testing."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import tempfile
+
+        profile.setdefault("target", {"host": "test-host"})
+        with tempfile.TemporaryDirectory() as td:
+            deployer = DockerComposeDeployer(
+                work_dir=td,
+                profile=profile,
+                dry_run=True,
+            )
+        return deployer
+
+    def test_get_db_password_from_database_section(self):
+        deployer = self._make_deployer({"database": {"db_password": "from_db"}})
+        assert deployer._get_configured_db_password() == "from_db"
+
+    def test_get_db_password_from_secrets_section(self):
+        deployer = self._make_deployer({"secrets": {"db_password": "from_secrets"}})
+        assert deployer._get_configured_db_password() == "from_secrets"
+
+    def test_get_db_password_from_top_level(self):
+        deployer = self._make_deployer({"db_password": "from_top"})
+        assert deployer._get_configured_db_password() == "from_top"
+
+    def test_get_db_password_missing_returns_empty(self):
+        deployer = self._make_deployer({})
+        assert deployer._get_configured_db_password() == ""
+
+    def test_get_db_root_password_from_database_section(self):
+        deployer = self._make_deployer({"database": {"db_root_password": "root_pw"}})
+        assert deployer._get_configured_db_root_password() == "root_pw"
+
+    def test_get_db_root_password_missing_returns_empty(self):
+        deployer = self._make_deployer({})
+        assert deployer._get_configured_db_root_password() == ""
+
+    def test_database_section_takes_precedence_over_top_level(self):
+        deployer = self._make_deployer({
+            "database": {"db_password": "db_section"},
+            "db_password": "top_level",
+        })
+        assert deployer._get_configured_db_password() == "db_section"
+
+
+class TestDeployAbortOnVolumeConflict:
+    """Tests that deploy aborts when secret recovery fails + DB volume exists."""
+
+    def test_deploy_aborted_when_no_secrets_and_volume_exists(self, client):
+        """Deploy should return 400 when .env recovery returns empty but DB volume exists."""
+        from unittest.mock import patch
+
+        profile = {
+            "target": {"host": "192.168.0.9", "ssh_user": "root"},
+        }
+        with patch(
+            "deployers.docker_compose.DockerComposeDeployer.read_remote_env_secrets",
+            return_value={},
+        ), patch(
+            "deployers.docker_compose.DockerComposeDeployer.check_remote_db_volume_exists",
+            return_value=True,
+        ):
+            resp = client.post("/api/deploy", json={
+                "profile": profile,
+                "password_strategy": "fetch_existing",
+            })
+        assert resp.status_code == 400
+        data = resp.get_json()
+        assert "credential mismatch" in data["error"].lower() or "access denied" in data["error"].lower()
+
+    def test_deploy_proceeds_when_no_secrets_and_no_volume(self, client):
+        """Deploy should NOT return credential-mismatch 400 when no DB volume exists."""
+        from unittest.mock import patch, MagicMock
+
+        profile = {
+            "target": {"host": "192.168.0.9", "ssh_user": "root"},
+        }
+        with patch(
+            "deployers.docker_compose.DockerComposeDeployer.read_remote_env_secrets",
+            return_value={},
+        ), patch(
+            "deployers.docker_compose.DockerComposeDeployer.check_remote_db_volume_exists",
+            return_value=False,
+        ), patch(
+            "gui.routes.deploy_routes.ConfigGenerator") as mock_gen_cls, \
+             patch("gui.routes.deploy_routes.DockerComposeDeployer") as mock_deployer_cls:
+            # ConfigGenerator().generate() must return something with output_dir
+            mock_result = MagicMock()
+            mock_result.output_dir = "/tmp/test"
+            mock_result.errors = []
+            mock_gen_cls.return_value.generate.return_value = mock_result
+            # DockerComposeDeployer() must be constructable
+            mock_deployer_cls.return_value.deploy.return_value = True
+
+            resp = client.post("/api/deploy", json={
+                "profile": profile,
+                "password_strategy": "fetch_existing",
+            })
+        # The key assertion: we should NOT get the volume-conflict 400
+        data = resp.get_json() or {}
+        error_msg = data.get("error", "").lower()
+        assert not (resp.status_code == 400 and (
+            "credential mismatch" in error_msg or "access denied" in error_msg
+        )), f"Got unexpected credential-mismatch abort: {data}"
 
 
 class TestReadRemoteEnvSecrets:

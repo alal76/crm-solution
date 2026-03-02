@@ -933,7 +933,7 @@ function DatabaseSettingsTab() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${scriptTitle.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.sql`;
+    a.download = `${scriptTitle.toLowerCase().replaceAll(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.sql`;
     a.click();
     URL.revokeObjectURL(url);
   };

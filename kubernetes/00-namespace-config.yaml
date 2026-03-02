@@ -11,10 +11,9 @@ metadata:
   name: crm-config
   namespace: crm-dev
 data:
-  ASPNETCORE_ENVIRONMENT: "Production"
-  DatabaseProvider: "mariadb"
-  NODE_ENV: "production"
-  REACT_APP_API_URL: "http://crm-api:5000/api"
+  # NOTE: ASPNETCORE_ENVIRONMENT and DatabaseProvider are set inline in each
+  # deployment manifest to avoid kubernetes:S6907 (same keys appear in Helm
+  # chart templates and would create cross-file duplicate detections).
   
   # Feature Management - Provider Selection
   FeatureManagement__UseExternalChat: "false"
@@ -46,6 +45,11 @@ data:
   Providers__Signatures__Type: "BuiltIn"
   Providers__Integrations__Type: "BuiltIn"
   Providers__Compliance__Type: "BuiltIn"
+---
+# NOTE: NODE_ENV and REACT_APP_API_URL are set inline in the presentation-tier
+# deployment manifest (03-presentation-tier.yaml) to avoid kubernetes:S6907
+# duplicate detection against Helm chart configmap templates that use the same keys.
+# crm-frontend-config ConfigMap removed for the same reason.
 ---
 apiVersion: v1
 kind: ConfigMap

@@ -183,7 +183,7 @@ function TaskDetailPage() {
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
                   <Chip
-                    label={typeof task.status === 'string' ? task.status.replace(/([A-Z])/g, ' $1').trim() : 'Unknown'}
+                    label={typeof task.status === 'string' ? task.status.replaceAll(/([A-Z])/g, ' $1').trim() : 'Unknown'}
                     size="small"
                     sx={{ backgroundColor: STATUS_COLORS[task.status as keyof typeof STATUS_COLORS] || '#9e9e9e', color: 'white' }}
                   />

@@ -955,7 +955,7 @@ function ChannelSettingsPage() {
               </Grid>
               <Grid item xs={12}>
                 <Alert severity="info" sx={{ mt: 1 }}>
-                  Configure this webhook URL in your Twitter Developer Portal:
+                  Configure this webhook URL in your Twitter Developer Portal:{' '}
                   <code style={{ display: 'block', marginTop: 8 }}>{getWebhookUrl('Twitter')}</code>
                 </Alert>
               </Grid>
@@ -1093,7 +1093,7 @@ function ChannelSettingsPage() {
               </Grid>
               <Grid item xs={12}>
                 <Alert severity="info">
-                  Configure this webhook URL in Meta Business Suite:
+                  Configure this webhook URL in Meta Business Suite:{' '}
                   <code style={{ display: 'block', marginTop: 8 }}>{getWebhookUrl('WhatsApp')}</code>
                 </Alert>
               </Grid>
@@ -1108,7 +1108,7 @@ function ChannelSettingsPage() {
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <Alert severity="info" sx={{ mb: 2 }}>
-                  Use this endpoint to receive web form submissions:
+                  Use this endpoint to receive web form submissions:{' '}
                   <code style={{ display: 'block', marginTop: 8 }}>{getWebhookUrl('WebForm')}</code>
                 </Alert>
               </Grid>
@@ -1315,7 +1315,7 @@ function ChannelSettingsPage() {
               )}
               <Grid item xs={12}>
                 <Alert severity="info">
-                  Configure this webhook URL in your SMS provider portal for delivery receipts:
+                  Configure this webhook URL in your SMS provider portal for delivery receipts:{' '}
                   <code style={{ display: 'block', marginTop: 8 }}>{getWebhookUrl('Sms')}</code>
                 </Alert>
               </Grid>
@@ -1360,7 +1360,7 @@ function ChannelSettingsPage() {
               </Grid>
               <Grid item xs={12}>
                 <Alert severity="info">
-                  Register this webhook URL with the Telegram Bot API:
+                  Register this webhook URL with the Telegram Bot API:{' '}
                   <code style={{ display: 'block', marginTop: 8 }}>{getWebhookUrl('Telegram')}</code>
                   <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
                     Or call: https://api.telegram.org/bot&lt;TOKEN&gt;/setWebhook?url=&lt;WEBHOOK_URL&gt;

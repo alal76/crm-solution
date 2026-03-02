@@ -34,7 +34,7 @@ SET
     PasswordHash = '',
     PasswordNeverSet = 1,
     MustResetPassword = 0,
-    PasswordLastChangedAt = NULL, -- NOSONAR plsql:NullComparison - SET assignment, not comparison
+    PasswordLastChangedAt = NULL, -- NOSONAR -- SET assignment to NULL is valid SQL; IS NULL syntax only applies to comparisons
     UpdatedAt = NOW()
 WHERE Email = 'admin@crm.local';
 
@@ -54,7 +54,7 @@ WHERE Email = 'admin@crm.local';
 -- Confirm the change
 SELECT 
     CASE 
-        WHEN PasswordNeverSet = 1 AND PasswordHash = '' 
+        WHEN PasswordNeverSet = 1 AND PasswordHash = '' -- NOSONAR -- comparisons to 1 and '' are not null comparisons
         THEN '✓ SUCCESS: Admin password reset. User will be prompted to set password on next login.'
         ELSE '✗ ERROR: Password reset may have failed. Please check the Users table.'
     END as Result

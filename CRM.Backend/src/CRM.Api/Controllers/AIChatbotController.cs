@@ -74,7 +74,7 @@ public class AIChatbotController : CrmControllerBase
             var model = AIServiceHelper.GetDefaultModelForProvider(settings!, provider);
 
             // Check if the provider is configured
-            var isConfigured = _llmService.IsConfigured(provider);
+            var isConfigured = await _llmService.IsConfiguredAsync(provider);
 
             if (!isConfigured)
             {

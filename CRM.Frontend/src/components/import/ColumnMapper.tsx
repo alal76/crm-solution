@@ -61,7 +61,7 @@ export interface ColumnMapperProps {
  * E.g. "First Name" → "firstname", "email_address" → "emailaddress"
  */
 function normalise(value: string): string {
-  return value.toLowerCase().replace(/[\s_\-\.]/g, '');
+  return value.toLowerCase().replaceAll(/[\s_\-\.]/g, '');
 }
 
 function autoMap(

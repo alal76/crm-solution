@@ -46,15 +46,9 @@ spec:
           name: https
         env:
         - name: ASPNETCORE_ENVIRONMENT
-          valueFrom:
-            configMapKeyRef:
-              name: crm-config
-              key: ASPNETCORE_ENVIRONMENT
+          value: "Production"
         - name: DatabaseProvider
-          valueFrom:
-            configMapKeyRef:
-              name: crm-config
-              key: DatabaseProvider
+          value: "MariaDb"
         - name: ConnectionStrings__DefaultConnection
           valueFrom:
             secretKeyRef:
