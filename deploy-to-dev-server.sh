@@ -61,6 +61,22 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+# Get CRM version from version.json
+get_crm_version() {
+    local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    local version_file="$script_dir/version.json"
+    if [[ -f "$version_file" ]] && command -v python3 &>/dev/null; then
+        python3 -c "
+import json, sys
+with open('$version_file') as f:
+    v = json.load(f)
+print(f\"{v['major']}.{v['minor']}.{v['patch']}\")
+" 2>/dev/null || echo "latest"
+    else
+        echo "latest"
+    fi
+}
+
 # Test SSH connectivity
 test_ssh_connection() {
     log_info "Testing SSH connectivity to $SSH_USER@$TARGET_SERVER..."
@@ -97,16 +113,24 @@ build_images() {
     
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     
+    # Read version from version.json
+    CRM_VERSION=$(get_crm_version)
+    log_info "Code version: $CRM_VERSION"
+    
     # Build Backend API image
-    log_info "Building backend API image..."
-    if [[ -f "$SCRIPT_DIR/docker/Dockerfile.backend" ]]; then
+    local api_tag="crm-api:${CRM_VERSION}"
+    if [[ "$CRM_VERSION" != "latest" ]] && docker images -q "$api_tag" 2>/dev/null | grep -q .; then
+        log_success "Image $api_tag already exists — skipping build"
+    elif [[ -f "$SCRIPT_DIR/docker/Dockerfile.backend" ]]; then
+        log_info "Building backend API image ($api_tag)..."
         if docker buildx build \
             --platform $BUILD_PLATFORM \
-            -t crm-api:latest \
+            -t "$api_tag" \
             -f "$SCRIPT_DIR/docker/Dockerfile.backend" \
             "$SCRIPT_DIR" \
             --load 2>&1 | tail -20; then
-            log_success "Backend API image built successfully"
+            docker tag "$api_tag" crm-api:latest
+            log_success "Backend API image built: $api_tag"
         else
             log_error "Failed to build backend API image"
             return 1
@@ -117,15 +141,19 @@ build_images() {
     fi
     
     # Build Frontend image
-    log_info "Building frontend image..."
-    if [[ -f "$SCRIPT_DIR/docker/Dockerfile.frontend" ]]; then
+    local fe_tag="crm-frontend:${CRM_VERSION}"
+    if [[ "$CRM_VERSION" != "latest" ]] && docker images -q "$fe_tag" 2>/dev/null | grep -q .; then
+        log_success "Image $fe_tag already exists — skipping build"
+    elif [[ -f "$SCRIPT_DIR/docker/Dockerfile.frontend" ]]; then
+        log_info "Building frontend image ($fe_tag)..."
         if docker buildx build \
             --platform $BUILD_PLATFORM \
-            -t crm-frontend:latest \
+            -t "$fe_tag" \
             -f "$SCRIPT_DIR/docker/Dockerfile.frontend" \
             "$SCRIPT_DIR" \
             --load 2>&1 | tail -20; then
-            log_success "Frontend image built successfully"
+            docker tag "$fe_tag" crm-frontend:latest
+            log_success "Frontend image built: $fe_tag"
         else
             log_error "Failed to build frontend image"
             return 1
@@ -143,16 +171,20 @@ save_images() {
     TEMP_DIR="/tmp/crm-deployment-$$"
     mkdir -p "$TEMP_DIR"
     
-    log_info "Saving crm-api image..." >&2
-    docker save crm-api:latest -o "$TEMP_DIR/crm-api.tar" || {
-        log_error "Failed to save crm-api image" >&2
+    CRM_VERSION=$(get_crm_version)
+    local api_tag="crm-api:${CRM_VERSION}"
+    local fe_tag="crm-frontend:${CRM_VERSION}"
+    
+    log_info "Saving $api_tag image..." >&2
+    docker save "$api_tag" -o "$TEMP_DIR/crm-api.tar" || {
+        log_error "Failed to save $api_tag image" >&2
         return 1
     }
     log_success "crm-api.tar saved ($(du -h "$TEMP_DIR/crm-api.tar" | cut -f1))" >&2
     
-    log_info "Saving crm-frontend image..." >&2
-    docker save crm-frontend:latest -o "$TEMP_DIR/crm-frontend.tar" || {
-        log_error "Failed to save crm-frontend image" >&2
+    log_info "Saving $fe_tag image..." >&2
+    docker save "$fe_tag" -o "$TEMP_DIR/crm-frontend.tar" || {
+        log_error "Failed to save $fe_tag image" >&2
         return 1
     }
     log_success "crm-frontend.tar saved ($(du -h "$TEMP_DIR/crm-frontend.tar" | cut -f1))" >&2

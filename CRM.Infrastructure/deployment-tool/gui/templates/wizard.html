@@ -6167,14 +6167,17 @@
                     if (result.action === 'cancel') return;
                     _deploy.containerAction = result.action;
                     _deploy.containersToRemove = result.containersToRemove || [];
+                    _deploy.passwordStrategy = result.passwordStrategy || 'fetch_existing';
                 } else {
                     _deploy.containerAction = 'recreate';
                     _deploy.containersToRemove = [];
+                    _deploy.passwordStrategy = 'auto_generate'; // first deploy — no existing secrets
                 }
             } catch (e) {
                 // If preflight fails, default to recreate and proceed
                 _deploy.containerAction = 'recreate';
                 _deploy.containersToRemove = [];
+                _deploy.passwordStrategy = 'fetch_existing'; // still try to fetch
             }
 
             // Reset UI
@@ -6205,6 +6208,7 @@
                         dry_run: config.dry_run || false,
                         container_action: _deploy.containerAction || 'recreate',
                         containers_to_remove: _deploy.containersToRemove || [],
+                        password_strategy: _deploy.passwordStrategy || 'fetch_existing',
                     }),
                 });
                 if (!resp.ok) throw new Error('HTTP ' + resp.status);
@@ -6310,6 +6314,29 @@
                       <div class="modal-body" style="max-height:65vh;overflow-y:auto;">
                         ${bodyHtml}
                       </div>
+                      <div class="modal-body border-top pt-3 pb-2 px-4" style="background:#f8f9fa">
+                        <div class="d-flex align-items-center justify-content-between">
+                          <div>
+                            <i class="bi bi-key-fill text-warning me-2"></i>
+                            <strong class="small">Password Strategy</strong>
+                            <span class="text-muted small ms-1">— how to handle DB &amp; service passwords</span>
+                          </div>
+                          <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="passwordStrategy" id="pwStratFetch"
+                                   value="fetch_existing" autocomplete="off" checked>
+                            <label class="btn btn-outline-success btn-sm" for="pwStratFetch"
+                                   title="Read existing passwords from the deployed .env — keeps database access working">
+                              <i class="bi bi-download me-1"></i>Fetch from Deployment
+                            </label>
+                            <input type="radio" class="btn-check" name="passwordStrategy" id="pwStratGenerate"
+                                   value="auto_generate" autocomplete="off">
+                            <label class="btn btn-outline-danger btn-sm" for="pwStratGenerate"
+                                   title="Generate fresh random passwords — use only for first deploy or full reset">
+                              <i class="bi bi-shuffle me-1"></i>Auto-Generate New
+                            </label>
+                          </div>
+                        </div>
+                      </div>
                       <div class="modal-footer py-2 d-flex justify-content-between">
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="cdtCABtnCancel">
                           <i class="bi bi-x-circle me-1"></i>Cancel Deployment
@@ -6347,6 +6374,11 @@
                     return toRemove;
                 }
 
+                function getPasswordStrategy() {
+                    const radio = modal.querySelector('input[name="passwordStrategy"]:checked');
+                    return radio ? radio.value : 'fetch_existing';
+                }
+
                 function cleanup(result) {
                     bsModal.hide();
                     modal.addEventListener('hidden.bs.modal', () => modal.remove(), { once: true });
@@ -6354,20 +6386,20 @@
                 }
 
                 modal.querySelector('#cdtCABtnCancel').addEventListener('click', () => {
-                    cleanup({ action: 'cancel', containersToRemove: [] });
+                    cleanup({ action: 'cancel', containersToRemove: [], passwordStrategy: 'fetch_existing' });
                 });
                 modal.querySelector('#cdtCABtnReuseAll').addEventListener('click', () => {
-                    cleanup({ action: 'reuse', containersToRemove: [] });
+                    cleanup({ action: 'reuse', containersToRemove: [], passwordStrategy: getPasswordStrategy() });
                 });
                 modal.querySelector('#cdtCABtnRecreateAll').addEventListener('click', () => {
                     const all = containers.map(c => c.name);
-                    cleanup({ action: 'recreate', containersToRemove: all });
+                    cleanup({ action: 'recreate', containersToRemove: all, passwordStrategy: getPasswordStrategy() });
                 });
                 modal.querySelector('#cdtCABtnApply').addEventListener('click', () => {
                     const toRemove = getContainersToRemove();
                     // If nothing to remove, treat as reuse-all
                     const action = toRemove.length > 0 ? 'recreate' : 'reuse';
-                    cleanup({ action, containersToRemove: toRemove });
+                    cleanup({ action, containersToRemove: toRemove, passwordStrategy: getPasswordStrategy() });
                 });
 
                 bsModal.show();

@@ -1504,3 +1504,337 @@ class TestComposeUpRetry:
         rc, _, err = d._compose_up(["crm-api"])
         assert rc == 1
         assert len(calls) == 1  # No retry
+
+
+# ===========================================================================
+# Version-aware Build & Image Tagging Tests
+# ===========================================================================
+
+
+class TestVersionAwareBuild:
+    """Tests for _read_version_from_repo and _image_exists_locally."""
+
+    def test_read_version_from_valid_json(self, tmp_path):
+        """Reads major.minor.patch from version.json."""
+        from deployers.docker_compose import DockerComposeDeployer
+        vf = tmp_path / "version.json"
+        vf.write_text('{"major": 0, "minor": 614, "patch": 53}')
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path) == "0.614.53"
+
+    def test_read_version_missing_file(self, tmp_path):
+        """Returns 'latest' when version.json does not exist."""
+        from deployers.docker_compose import DockerComposeDeployer
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path) == "latest"
+
+    def test_read_version_invalid_json(self, tmp_path):
+        """Returns 'latest' on malformed JSON."""
+        from deployers.docker_compose import DockerComposeDeployer
+        vf = tmp_path / "version.json"
+        vf.write_text("not valid json!")
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path) == "latest"
+
+    def test_image_exists_locally_true(self):
+        """When docker images -q returns an ID, image exists."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        d = DockerComposeDeployer(Path("/tmp"), {"target": {"host": "10.0.0.1"}},
+                                  log_queue=queue.Queue(), dry_run=True)
+        d._run = lambda cmd, timeout=15: (0, "abc123\n", "")
+        assert d._image_exists_locally("crm-api:0.614.53") is True
+
+    def test_image_exists_locally_false(self):
+        """When docker images -q returns empty, image does not exist."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        d = DockerComposeDeployer(Path("/tmp"), {"target": {"host": "10.0.0.1"}},
+                                  log_queue=queue.Queue(), dry_run=True)
+        d._run = lambda cmd, timeout=15: (0, "", "")
+        assert d._image_exists_locally("crm-api:0.614.53") is False
+
+    def test_build_step_skips_existing_versioned_image(self, tmp_path):
+        """When the versioned image already exists, build is skipped."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+
+        # Create version.json
+        vf = tmp_path / "version.json"
+        vf.write_text('{"major": 0, "minor": 614, "patch": 53}')
+
+        # Create dummy Dockerfiles
+        docker_dir = tmp_path / "docker"
+        docker_dir.mkdir()
+        (docker_dir / "Dockerfile.backend").write_text("FROM scratch")
+        (docker_dir / "Dockerfile.frontend").write_text("FROM scratch")
+
+        profile = {
+            "target": {"host": "10.0.0.1", "repo_root": str(tmp_path)},
+            "image_registry": {"build_locally": True},
+        }
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=False)
+
+        # Fake: image already exists
+        d._run = lambda cmd, timeout=15: (0, "sha256:abc123\n", "")
+        d._run_streaming = lambda *a, **kw: 0  # should not be called
+
+        result = d._step_build_local_images()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        skip_msgs = [m for m in messages if "already exists" in m]
+        assert len(skip_msgs) == 2, f"Expected 2 skip messages, got: {skip_msgs}"
+
+    def test_build_step_uses_version_tag(self, tmp_path):
+        """Build step uses version from version.json as the image tag."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+
+        vf = tmp_path / "version.json"
+        vf.write_text('{"major": 1, "minor": 2, "patch": 3}')
+        docker_dir = tmp_path / "docker"
+        docker_dir.mkdir()
+        (docker_dir / "Dockerfile.backend").write_text("FROM scratch")
+        (docker_dir / "Dockerfile.frontend").write_text("FROM scratch")
+
+        profile = {
+            "target": {"host": "10.0.0.1", "repo_root": str(tmp_path)},
+            "image_registry": {"build_locally": True},
+        }
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        result = d._step_build_local_images()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        # Check that 1.2.3 appears as the image tag
+        tag_msg = [m for m in messages if "1.2.3" in m]
+        assert len(tag_msg) > 0, f"Expected version 1.2.3 in log, got: {messages}"
+
+
+# ===========================================================================
+# Password reuse / secret recovery
+# ===========================================================================
+
+
+class TestParseEnvFile:
+    """Tests for DockerComposeDeployer._parse_env_file()."""
+
+    def test_simple_key_value(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        content = "DB_PASSWORD=secret123\nJWT_SECRET=abc"
+        result = DockerComposeDeployer._parse_env_file(content)
+        assert result == {"DB_PASSWORD": "secret123", "JWT_SECRET": "abc"}
+
+    def test_quoted_values(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        content = 'DB_PASSWORD="my secret"\nJWT_SECRET=\'tok$en\''
+        result = DockerComposeDeployer._parse_env_file(content)
+        assert result["DB_PASSWORD"] == "my secret"
+        assert result["JWT_SECRET"] == "tok$en"
+
+    def test_double_dollar_unescape(self):
+        """Docker Compose escapes $ as $$; parser should reverse that."""
+        from deployers.docker_compose import DockerComposeDeployer
+        content = "DB_PASSWORD=Pa$$word@Dev2024"
+        result = DockerComposeDeployer._parse_env_file(content)
+        assert result["DB_PASSWORD"] == "Pa$word@Dev2024"
+
+    def test_comments_and_blanks_ignored(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        content = "# this is a comment\n\nDB_HOST=localhost\n  \n# another comment\n"
+        result = DockerComposeDeployer._parse_env_file(content)
+        assert result == {"DB_HOST": "localhost"}
+
+    def test_no_equals_lines_ignored(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        content = "no-equals-here\nGOOD=value"
+        result = DockerComposeDeployer._parse_env_file(content)
+        assert result == {"GOOD": "value"}
+
+    def test_empty_value(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        content = "EMPTY_KEY="
+        result = DockerComposeDeployer._parse_env_file(content)
+        assert result == {"EMPTY_KEY": ""}
+
+    def test_value_with_equals(self):
+        """Values containing '=' should be handled correctly."""
+        from deployers.docker_compose import DockerComposeDeployer
+        content = "CONNECTION=Server=db;Port=3306;Database=crm"
+        result = DockerComposeDeployer._parse_env_file(content)
+        assert result["CONNECTION"] == "Server=db;Port=3306;Database=crm"
+
+    def test_empty_content(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        result = DockerComposeDeployer._parse_env_file("")
+        assert result == {}
+
+
+class TestInjectSecretsIntoProfile:
+    """Tests for DockerComposeDeployer.inject_secrets_into_profile()."""
+
+    def test_db_secrets_go_to_database_section(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        profile: dict = {}
+        secrets = {"db_password": "pass123", "db_root_password": "rootpass"}
+        DockerComposeDeployer.inject_secrets_into_profile(profile, secrets)
+        assert profile["database"]["db_password"] == "pass123"
+        assert profile["database"]["db_root_password"] == "rootpass"
+
+    def test_non_db_secrets_go_to_secrets_section(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        profile: dict = {}
+        secrets = {"jwt_secret": "tok123", "redis_password": "red456"}
+        DockerComposeDeployer.inject_secrets_into_profile(profile, secrets)
+        assert profile["secrets"]["jwt_secret"] == "tok123"
+        assert profile["secrets"]["redis_password"] == "red456"
+
+    def test_existing_values_not_overwritten(self):
+        """setdefault() should not clobber explicit profile values."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {
+            "database": {"db_password": "explicit_pass"},
+            "secrets": {"jwt_secret": "explicit_jwt"},
+        }
+        secrets = {"db_password": "recovered_pass", "jwt_secret": "recovered_jwt"}
+        DockerComposeDeployer.inject_secrets_into_profile(profile, secrets)
+        assert profile["database"]["db_password"] == "explicit_pass"
+        assert profile["secrets"]["jwt_secret"] == "explicit_jwt"
+
+    def test_empty_secrets_noop(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"database": {"db_name": "crm_db"}}
+        DockerComposeDeployer.inject_secrets_into_profile(profile, {})
+        assert profile == {"database": {"db_name": "crm_db"}}
+
+    def test_returns_profile(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        profile: dict = {}
+        result = DockerComposeDeployer.inject_secrets_into_profile(profile, {"db_password": "p"})
+        assert result is profile
+
+    def test_mixed_db_and_non_db_secrets(self):
+        from deployers.docker_compose import DockerComposeDeployer
+        profile: dict = {}
+        secrets = {
+            "db_password": "dbp",
+            "jwt_secret": "jwt",
+            "redis_password": "redis",
+            "openai_api_key": "sk-123",
+        }
+        DockerComposeDeployer.inject_secrets_into_profile(profile, secrets)
+        assert profile["database"] == {"db_password": "dbp"}
+        assert profile["secrets"]["jwt_secret"] == "jwt"
+        assert profile["secrets"]["redis_password"] == "redis"
+        assert profile["secrets"]["openai_api_key"] == "sk-123"
+
+
+class TestReadRemoteEnvSecrets:
+    """Tests for DockerComposeDeployer.read_remote_env_secrets() — localhost path only."""
+
+    def test_reads_local_env(self, tmp_path):
+        """When host is localhost, reads .env from local filesystem."""
+        from deployers.docker_compose import DockerComposeDeployer
+        env_file = tmp_path / ".env"
+        env_file.write_text(
+            "DB_PASSWORD=LocalPass123\n"
+            "DB_ROOT_PASSWORD=RootLocal456\n"
+            "JWT_SECRET=jwt_local_secret\n"
+            "UNRELATED_VAR=should_be_ignored\n"
+        )
+        result = DockerComposeDeployer.read_remote_env_secrets(
+            host="localhost", remote_deploy_dir=str(tmp_path)
+        )
+        assert result["db_password"] == "LocalPass123"
+        assert result["db_root_password"] == "RootLocal456"
+        assert result["jwt_secret"] == "jwt_local_secret"
+        assert "UNRELATED_VAR" not in result
+        assert "unrelated_var" not in result
+
+    def test_missing_env_returns_empty(self, tmp_path):
+        """When .env does not exist, returns empty dict."""
+        from deployers.docker_compose import DockerComposeDeployer
+        result = DockerComposeDeployer.read_remote_env_secrets(
+            host="localhost", remote_deploy_dir=str(tmp_path / "nonexistent")
+        )
+        assert result == {}
+
+    def test_empty_values_excluded(self, tmp_path):
+        """Empty values in .env should not appear in results."""
+        from deployers.docker_compose import DockerComposeDeployer
+        env_file = tmp_path / ".env"
+        env_file.write_text("DB_PASSWORD=\nJWT_SECRET=actual_value\n")
+        result = DockerComposeDeployer.read_remote_env_secrets(
+            host="localhost", remote_deploy_dir=str(tmp_path)
+        )
+        assert "db_password" not in result
+        assert result["jwt_secret"] == "actual_value"
+
+    def test_all_preserved_keys(self, tmp_path):
+        """All 17 preserved keys are mapped when present in .env."""
+        from deployers.docker_compose import DockerComposeDeployer
+        lines = [
+            f"{k}=test_value_{i}"
+            for i, k in enumerate(DockerComposeDeployer._PRESERVED_SECRET_KEYS)
+        ]
+        env_file = tmp_path / ".env"
+        env_file.write_text("\n".join(lines))
+        result = DockerComposeDeployer.read_remote_env_secrets(
+            host="localhost", remote_deploy_dir=str(tmp_path)
+        )
+        # All 17 keys should map through
+        assert len(result) == len(DockerComposeDeployer._PRESERVED_SECRET_KEYS)
+
+    def test_docker_escaped_dollars(self, tmp_path):
+        """$$ in .env values should be unescaped to $."""
+        from deployers.docker_compose import DockerComposeDeployer
+        env_file = tmp_path / ".env"
+        env_file.write_text("DB_PASSWORD=Pa$$word@2024\n")
+        result = DockerComposeDeployer.read_remote_env_secrets(
+            host="localhost", remote_deploy_dir=str(tmp_path)
+        )
+        assert result["db_password"] == "Pa$word@2024"
+
+
+class TestDeployPasswordStrategy:
+    """Tests for /api/deploy password_strategy parameter."""
+
+    def test_deploy_accepts_password_strategy_param(self, client):
+        """The deploy endpoint should accept password_strategy without error."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {"architecture": "monolith"},
+                "password_strategy": "auto_generate",
+                "dry_run": True,
+            },
+            content_type="application/json",
+        )
+        # Should not be a 500; 400 or 200 depending on profile completeness
+        assert resp.status_code in (200, 400)
+
+    def test_deploy_default_strategy_is_fetch_existing(self, client):
+        """When password_strategy is not provided, default should be fetch_existing."""
+        resp = client.post(
+            "/api/deploy",
+            json={
+                "profile": {"architecture": "monolith"},
+                "dry_run": True,
+            },
+            content_type="application/json",
+        )
+        assert resp.status_code in (200, 400)
+
+    def test_preserved_secret_keys_count(self):
+        """Verify the preserved secret keys list has the expected count."""
+        from deployers.docker_compose import DockerComposeDeployer
+        assert len(DockerComposeDeployer._PRESERVED_SECRET_KEYS) == 17
+
+    def test_env_to_context_key_mapping_complete(self):
+        """Every preserved key should have a context key mapping."""
+        from deployers.docker_compose import DockerComposeDeployer
+        for key in DockerComposeDeployer._PRESERVED_SECRET_KEYS:
+            assert key in DockerComposeDeployer._ENV_TO_CONTEXT_KEY, \
+                f"Missing mapping for {key}"

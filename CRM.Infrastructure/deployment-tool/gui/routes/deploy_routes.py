@@ -153,6 +153,43 @@ def start_deploy():
     dry_run = data.get("dry_run", False)
     container_action = data.get("container_action", "recreate")  # reuse | recreate
     containers_to_remove = data.get("containers_to_remove", [])  # explicit list
+    # "fetch_existing" (default) reads secrets from the remote .env so
+    # redeployments keep the same passwords.  "auto_generate" always
+    # creates fresh random credentials (useful for first-time deploys or
+    # full environment resets).
+    password_strategy = data.get("password_strategy", "fetch_existing")
+
+    # ── Recover existing secrets from remote deployment ──────────────
+    # When redeploying to a server that already has containers running,
+    # read passwords/secrets from the existing .env so we don't generate
+    # new random values that mismatch the already-initialized databases.
+    if password_strategy == "fetch_existing":
+        target = profile.get("target", {})
+        deploy_host = (
+            target.get("host")
+            or target.get("domain_name")
+            or profile.get("host")
+            or profile.get("deployment_host")
+            or ""
+        )
+        remote_dir = target.get(
+            "remote_deploy_dir",
+            profile.get("remote_deploy_dir", "/opt/crm-deployment"),
+        )
+        if deploy_host and deploy_host not in ("NO_HOST_CONFIGURED",):
+            try:
+                existing_secrets = DockerComposeDeployer.read_remote_env_secrets(
+                    host=deploy_host,
+                    remote_deploy_dir=remote_dir,
+                    ssh_user=target.get("ssh_user", "root"),
+                    ssh_port=int(target.get("ssh_port", 22)),
+                )
+                if existing_secrets:
+                    DockerComposeDeployer.inject_secrets_into_profile(
+                        profile, existing_secrets
+                    )
+            except Exception:  # noqa: BLE001
+                pass  # Best-effort; first deploys have no .env yet
 
     gen = ConfigGenerator()
     try:

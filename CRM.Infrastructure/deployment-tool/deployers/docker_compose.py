@@ -529,10 +529,196 @@ class DockerComposeDeployer:
         return failed == 0  # return False when container removal failed
 
     # ------------------------------------------------------------------ #
+    #  Existing deployment secrets recovery                               #
+    # ------------------------------------------------------------------ #
+    # Keys in the remote .env that should be preserved across deploys
+    _PRESERVED_SECRET_KEYS: list[str] = [
+        "DB_PASSWORD", "DB_ROOT_PASSWORD", "JWT_SECRET",
+        "REDIS_PASSWORD", "MEILI_MASTER_KEY",
+        "CHATWOOT_API_KEY", "CHATWOOT_SECRET_KEY",
+        "NOVU_API_KEY", "NOVU_JWT_SECRET",
+        "SUPERSET_SECRET_KEY", "SUPERSET_ADMIN_PASSWORD",
+        "DOCUSEAL_API_KEY", "DOCUSEAL_SECRET_KEY",
+        "N8N_API_KEY",
+        "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
+        "AZURE_OPENAI_API_KEY",
+    ]
+
+    # Map from .env key → profile context key used by the Jinja2 generator
+    _ENV_TO_CONTEXT_KEY: dict[str, str] = {
+        "DB_PASSWORD": "db_password",
+        "DB_ROOT_PASSWORD": "db_root_password",
+        "JWT_SECRET": "jwt_secret",
+        "REDIS_PASSWORD": "redis_password",
+        "MEILI_MASTER_KEY": "meilisearch_master_key",
+        "CHATWOOT_API_KEY": "chatwoot_api_key",
+        "CHATWOOT_SECRET_KEY": "chatwoot_secret_key",
+        "NOVU_API_KEY": "novu_api_key",
+        "NOVU_JWT_SECRET": "novu_jwt_secret",
+        "SUPERSET_SECRET_KEY": "superset_secret_key",
+        "SUPERSET_ADMIN_PASSWORD": "superset_admin_password",
+        "DOCUSEAL_API_KEY": "docuseal_api_key",
+        "DOCUSEAL_SECRET_KEY": "docuseal_secret_key",
+        "N8N_API_KEY": "n8n_api_key",
+        "OPENAI_API_KEY": "openai_api_key",
+        "ANTHROPIC_API_KEY": "anthropic_api_key",
+        "AZURE_OPENAI_API_KEY": "azure_openai_api_key",
+    }
+
+    @staticmethod
+    def _parse_env_file(content: str) -> dict[str, str]:
+        """Parse a .env file content and return a {KEY: VALUE} dict.
+
+        Handles:
+        - ``KEY=VALUE``
+        - ``KEY="VALUE"`` (strips quotes)
+        - ``KEY='VALUE'`` (strips quotes)
+        - Comments (``#``) and blank lines are skipped
+        - Docker-escaped ``$$`` is unescaped back to ``$``
+        """
+        result: dict[str, str] = {}
+        for line in content.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            key = key.strip()
+            value = value.strip()
+            # Strip surrounding quotes
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
+                value = value[1:-1]
+            # Unescape Docker Compose $$ → $
+            value = value.replace("$$", "$")
+            result[key] = value
+        return result
+
+    @staticmethod
+    def read_remote_env_secrets(
+        host: str,
+        remote_deploy_dir: str = "/opt/crm-deployment",
+        ssh_user: str = "root",
+        ssh_port: int = 22,
+    ) -> dict[str, str]:
+        """SSH to *host* and read existing secrets from the deployed ``.env`` file.
+
+        Returns a dict mapping **context keys** (e.g. ``db_password``) to their
+        existing values.  Only non-empty secrets listed in
+        ``_PRESERVED_SECRET_KEYS`` are returned.
+
+        If the remote ``.env`` does not exist or SSH fails, returns ``{}``.
+        This is intentionally best-effort so that first-time deployments
+        (where no ``.env`` exists yet) silently fall through to generation.
+        """
+        if host in ("localhost", "127.0.0.1", "0.0.0.0", ""):
+            # Local deployment — try reading .env directly
+            env_path = Path(remote_deploy_dir) / ".env"
+            if env_path.is_file():
+                content = env_path.read_text(encoding="utf-8", errors="replace")
+            else:
+                return {}
+        else:
+            try:
+                import paramiko  # noqa: delayed import
+                ssh = paramiko.SSHClient()
+                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+                ssh.connect(host, port=ssh_port, username=ssh_user, timeout=15)
+                _, stdout_ch, _ = ssh.exec_command(
+                    f"cat {remote_deploy_dir}/.env 2>/dev/null", timeout=15
+                )
+                content = stdout_ch.read().decode("utf-8", errors="replace")
+                rc = stdout_ch.channel.recv_exit_status()
+                ssh.close()
+                if rc != 0 or not content.strip():
+                    return {}
+            except Exception:  # noqa: BLE001
+                return {}
+
+        parsed = DockerComposeDeployer._parse_env_file(content)
+        secrets: dict[str, str] = {}
+        for env_key in DockerComposeDeployer._PRESERVED_SECRET_KEYS:
+            ctx_key = DockerComposeDeployer._ENV_TO_CONTEXT_KEY.get(env_key)
+            if not ctx_key:
+                continue
+            value = parsed.get(env_key, "")
+            if value:
+                secrets[ctx_key] = value
+        return secrets
+
+    @staticmethod
+    def inject_secrets_into_profile(profile: dict, secrets: dict[str, str]) -> dict:
+        """Merge recovered *secrets* into *profile* so the config generator
+        reuses them instead of auto-generating new values.
+
+        Secrets are placed under ``profile['database']`` for DB creds and
+        ``profile['secrets']`` for everything else, matching how the
+        generator's ``_flatten_profile_sections`` reads them.
+
+        Returns the mutated *profile* for convenience.
+        """
+        if not secrets:
+            return profile
+
+        db_keys = {"db_password", "db_root_password"}
+        db_section = profile.setdefault("database", {})
+        if not isinstance(db_section, dict):
+            db_section = {}
+            profile["database"] = db_section
+
+        secrets_section = profile.setdefault("secrets", {})
+        if not isinstance(secrets_section, dict):
+            secrets_section = {}
+            profile["secrets"] = secrets_section
+
+        for key, value in secrets.items():
+            if key in db_keys:
+                db_section.setdefault(key, value)
+            else:
+                secrets_section.setdefault(key, value)
+
+        return profile
+
+    # ------------------------------------------------------------------ #
+    #  Version-aware image helpers                                        #
+    # ------------------------------------------------------------------ #
+    @staticmethod
+    def _read_version_from_repo(repo_root: Path) -> str:
+        """Read version string from ``version.json`` at *repo_root*.
+
+        Returns a string like ``0.614.52`` or ``"latest"`` on failure.
+        """
+        version_file = repo_root / "version.json"
+        if not version_file.is_file():
+            return "latest"
+        try:
+            with open(version_file) as fh:
+                data = json.load(fh)
+            major = data.get("major", 0)
+            minor = data.get("minor", 0)
+            patch = data.get("patch", 0)
+            return f"{major}.{minor}.{patch}"
+        except (json.JSONDecodeError, KeyError, OSError):
+            return "latest"
+
+    def _image_exists_locally(self, image_tag: str) -> bool:
+        """Return True when *image_tag* already exists in the local Docker daemon."""
+        rc, out, _ = self._run(
+            ["docker", "images", "-q", image_tag], timeout=15
+        )
+        return rc == 0 and bool(out.strip())
+
+    # ------------------------------------------------------------------ #
     #  Step 3 — Build Local Images (skipped when using a remote registry) #
     # ------------------------------------------------------------------ #
     def _step_build_local_images(self) -> bool:
-        """Build CRM Docker images from source when build_locally is enabled."""
+        """Build CRM Docker images from source when build_locally is enabled.
+
+        Images are tagged with the version from ``version.json``
+        (e.g. ``crm-api:0.614.52``) **and** ``:latest``.
+        If a versioned image already exists locally the build is skipped
+        for that image, saving significant time on repeated deployments.
+        """
         img_reg = self.profile.get("image_registry", {})
         build_locally = img_reg.get("build_locally", False)
 
@@ -554,16 +740,22 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] Repo root not found: {repo_root}", "error")
             return False
 
-        # Determine image tag — use crm_version from profile or 'latest'
-        tag = self.profile.get("target", {}).get("crm_version", "latest")
+        # Determine image tag — prefer version.json, then profile, then 'latest'
+        code_version = self._read_version_from_repo(repo_root)
+        tag = (
+            self.profile.get("target", {}).get("crm_version")
+            or code_version
+            or "latest"
+        )
 
         self._emit(f"[{self._target_host}] Build configuration:", "info")
-        self._emit(f"  Repo root:   {repo_root}", "info")
-        self._emit(f"  Image tag:   {tag}", "info")
-        self._emit(f"  Platform:    {self._target_docker_platform}", "info")
+        self._emit(f"  Repo root:       {repo_root}", "info")
+        self._emit(f"  Code version:    {code_version}", "info")
+        self._emit(f"  Image tag:       {tag}", "info")
+        self._emit(f"  Platform:        {self._target_docker_platform}", "info")
         self._emit(f"  Images to build: {', '.join(LOCAL_BUILD_IMAGES.keys())}", "info")
 
-        built, failed = 0, 0
+        built, skipped, failed = 0, 0, 0
         for name, dockerfile in LOCAL_BUILD_IMAGES.items():
             df_path = repo_root / dockerfile
             if not df_path.is_file():
@@ -571,6 +763,16 @@ class DockerComposeDeployer:
                 continue
 
             image_tag = f"{name}:{tag}"
+
+            # --- Skip build when the versioned image already exists -----
+            if not self.dry_run and tag != "latest" and self._image_exists_locally(image_tag):
+                self._emit(
+                    f"[{self._target_host}] Image {image_tag} already exists — skipping build",
+                    "info",
+                )
+                skipped += 1
+                continue
+
             self._emit(f"[{self._target_host}] ── Building {image_tag} ──", "info")
             self._emit(f"  Dockerfile: {df_path}", "info")
             self._emit(f"  Context:    {repo_root}", "info")
@@ -599,12 +801,22 @@ class DockerComposeDeployer:
                     f"[{self._target_host}] Built {image_tag} successfully in {build_elapsed:.1f}s",
                     "success",
                 )
+                # Also tag as :latest for backwards-compatibility
+                self._run(["docker", "tag", image_tag, f"{name}:latest"], timeout=15)
                 built += 1
 
         if failed > 0:
             self._emit(f"[{self._target_host}] {failed} image(s) failed to build", "error")
             return False
-        self._emit(f"[{self._target_host}] {built} image(s) built successfully", "success")
+        summary_parts = []
+        if built:
+            summary_parts.append(f"{built} built")
+        if skipped:
+            summary_parts.append(f"{skipped} skipped (already up-to-date)")
+        self._emit(
+            f"[{self._target_host}] Image build complete: {', '.join(summary_parts) or 'nothing to do'}",
+            "success",
+        )
         return True
 
     # ------------------------------------------------------------------ #
@@ -624,7 +836,16 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] Local deployment — images already available", "info")
             return True
 
-        tag = self.profile.get("target", {}).get("crm_version", "latest")
+        # Resolve version tag — consistent with _step_build_local_images
+        repo_root = self.profile.get("target", {}).get("repo_root")
+        if not repo_root:
+            repo_root = str(Path(__file__).resolve().parent.parent.parent.parent)
+        code_version = self._read_version_from_repo(Path(repo_root))
+        tag = (
+            self.profile.get("target", {}).get("crm_version")
+            or code_version
+            or "latest"
+        )
         images_to_transfer = [f"{name}:{tag}" for name in LOCAL_BUILD_IMAGES]
         self._emit(
             f"[{self._target_host}] Transferring {len(images_to_transfer)} image(s) "

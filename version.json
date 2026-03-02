@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 52,
+  "patch": 54,
   "lastUpdate": "2026-03-02",
-  "description": "fix(cdt): v0.614.52 - Fix provider key mismatch in CDT deployer and Jinja2 template — profiles store short keys (search, ai, chat) but deployer and template checked long keys (search_provider, ai_provider, chat_provider) causing all provider containers to be skipped; add key normalization in ConfigGenerator and dual-key lookup in DockerComposeDeployer._step_start_providers; 12 new tests (142 total)",
+  "description": "feat(cdt): v0.614.54 - Password reuse for redeployments — CDT reads existing .env secrets via SSH before generating config so passwords stay consistent across redeployments; UI option for 'Fetch from Deployment' (default) vs 'Auto-Generate New'; added _parse_env_file, read_remote_env_secrets, inject_secrets_into_profile; fixed server crash-loop (missing columns from partial migrations); 23 new tests (172 total)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
