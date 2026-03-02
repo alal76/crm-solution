@@ -1203,6 +1203,207 @@ class TestComposeServiceNames:
 
 
 # ===========================================================================
+# Provider Key Normalization & Detection Tests
+# ===========================================================================
+
+
+class TestProviderKeyNormalization:
+    """Verify generator normalizes short provider keys to long keys and vice versa."""
+
+    def test_normalize_short_keys_to_long(self):
+        """Profiles store short keys; templates expect long keys."""
+        from core.generator import ConfigGenerator
+        providers = {"search": "meilisearch", "ai": "ollama", "chat": "chatwoot"}
+        result = ConfigGenerator._normalize_provider_keys(providers)
+        assert result["search_provider"] == "meilisearch"
+        assert result["ai_provider"] == "ollama"
+        assert result["chat_provider"] == "chatwoot"
+        # Short keys preserved
+        assert result["search"] == "meilisearch"
+        assert result["ai"] == "ollama"
+        assert result["chat"] == "chatwoot"
+
+    def test_normalize_long_keys_to_short(self):
+        """Backward compat: if someone uses search_provider, short key also set."""
+        from core.generator import ConfigGenerator
+        providers = {"search_provider": "meilisearch", "ai_provider": "ollama"}
+        result = ConfigGenerator._normalize_provider_keys(providers)
+        assert result["search"] == "meilisearch"
+        assert result["ai"] == "ollama"
+
+    def test_normalize_all_seven_providers(self):
+        """All 7 provider categories are normalized."""
+        from core.generator import ConfigGenerator
+        providers = {
+            "search": "meilisearch",
+            "ai": "ollama",
+            "chat": "chatwoot",
+            "notification": "novu",
+            "analytics": "superset",
+            "signature": "docuseal",
+            "integration": "n8n",
+        }
+        result = ConfigGenerator._normalize_provider_keys(providers)
+        for short, long in ConfigGenerator._PROVIDER_KEY_MAP.items():
+            assert short in result, f"Missing short key: {short}"
+            assert long in result, f"Missing long key: {long}"
+            assert result[short] == result[long]
+
+    def test_normalize_empty_dict(self):
+        """Empty providers dict stays empty."""
+        from core.generator import ConfigGenerator
+        result = ConfigGenerator._normalize_provider_keys({})
+        assert result == {}
+
+    def test_normalize_preserves_extra_keys(self):
+        """Non-provider keys must not be dropped."""
+        from core.generator import ConfigGenerator
+        providers = {"search": "meilisearch", "extra_key": "value"}
+        result = ConfigGenerator._normalize_provider_keys(providers)
+        assert result["extra_key"] == "value"
+
+    def test_template_context_gets_normalized_providers(self):
+        """ConfigGenerator._build_context normalizes provider keys."""
+        from core.generator import ConfigGenerator
+        gen = ConfigGenerator()
+        profile = {
+            "providers": {"search": "meilisearch", "ai": "ollama"},
+            "database": {"db_password": "test", "db_host": "localhost"},
+            "security": {"jwt_secret": "x" * 64},
+        }
+        ctx = gen._build_context(profile)
+        assert ctx["providers"]["search_provider"] == "meilisearch"
+        assert ctx["providers"]["ai_provider"] == "ollama"
+
+    def test_jinja2_template_renders_meilisearch_with_short_keys(self):
+        """docker-compose.j2 renders meilisearch service when profile uses short keys."""
+        import yaml
+        from core.generator import ConfigGenerator
+        gen = ConfigGenerator()
+        profile = {
+            "providers": {"search": "meilisearch"},
+            "database": {"db_password": "test123", "db_host": "crm-mariadb"},
+            "security": {"jwt_secret": "x" * 64},
+        }
+        ctx = gen._build_context(profile)
+        # Render the docker-compose template
+        tmpl = gen._env.get_template("docker-compose.j2")
+        rendered = tmpl.render(ctx)
+        compose = yaml.safe_load(rendered)
+        assert "crm-meilisearch" in compose["services"], \
+            f"Expected crm-meilisearch in {list(compose['services'].keys())}"
+
+    def test_jinja2_template_renders_all_providers_with_short_keys(self):
+        """All providers render when profile uses short keys."""
+        import yaml
+        from core.generator import ConfigGenerator
+        gen = ConfigGenerator()
+        profile = {
+            "providers": {
+                "search": "meilisearch",
+                "ai": "ollama",
+                "chat": "chatwoot",
+                "notification": "novu",
+                "analytics": "superset",
+                "signature": "docuseal",
+                "integration": "n8n",
+            },
+            "database": {"db_password": "test123", "db_host": "crm-mariadb"},
+            "security": {"jwt_secret": "x" * 64},
+        }
+        ctx = gen._build_context(profile)
+        tmpl = gen._env.get_template("docker-compose.j2")
+        rendered = tmpl.render(ctx)
+        compose = yaml.safe_load(rendered)
+        svc = list(compose["services"].keys())
+        for expected in ("crm-meilisearch", "crm-ollama", "crm-chatwoot",
+                         "crm-novu", "crm-superset", "crm-docuseal", "crm-n8n"):
+            assert expected in svc, f"Missing provider service {expected} in {svc}"
+
+
+class TestDeployerProviderDetection:
+    """Verify the deployer step_start_providers detects providers with both key formats."""
+
+    def _make_deployer(self, profile):
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        return d, q
+
+    def test_detects_providers_with_short_keys(self):
+        """Profile uses short keys (search, ai, etc.) — providers should be detected."""
+        profile = {
+            "target": {"host": "10.0.0.1"},
+            "providers": {
+                "search": "meilisearch",
+                "ai": "ollama",
+                "chat": "chatwoot",
+                "notification": "novu",
+                "analytics": "superset",
+                "signature": "docuseal",
+                "integration": "n8n",
+            },
+        }
+        d, q = self._make_deployer(profile)
+        # Stub _ensure_reused_running and _services_to_start to capture calls
+        requested = []
+        d._ensure_reused_running = lambda svcs: None
+        d._services_to_start = lambda svcs: svcs
+        d._compose_up = lambda svcs, timeout=120: (0, "", "")
+        d._step_start_providers()
+        # Check log messages for requested providers
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        provider_msg = [m for m in messages if "Requested providers" in m]
+        assert len(provider_msg) == 1, f"Expected 1 'Requested providers' log, got {provider_msg}"
+        for container in ("crm-meilisearch", "crm-ollama", "crm-chatwoot",
+                          "crm-novu", "crm-superset", "crm-docuseal", "crm-n8n"):
+            assert container in provider_msg[0], f"Missing {container} in {provider_msg[0]}"
+
+    def test_detects_providers_with_long_keys_in_wizard_config(self):
+        """wizard_config uses long keys (search_provider, etc.) — should also be detected."""
+        profile = {
+            "target": {"host": "10.0.0.1"},
+            "providers": {},
+            "wizard_config": {
+                "search_provider": "meilisearch",
+                "ai_provider": "ollama",
+            },
+        }
+        d, q = self._make_deployer(profile)
+        d._ensure_reused_running = lambda svcs: None
+        d._services_to_start = lambda svcs: svcs
+        d._compose_up = lambda svcs, timeout=120: (0, "", "")
+        d._step_start_providers()
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        provider_msg = [m for m in messages if "Requested providers" in m]
+        assert len(provider_msg) == 1
+        assert "crm-meilisearch" in provider_msg[0]
+        assert "crm-ollama" in provider_msg[0]
+
+    def test_no_providers_emits_skip_message(self):
+        """Empty providers dict emits skip message."""
+        profile = {"target": {"host": "10.0.0.1"}, "providers": {}}
+        d, q = self._make_deployer(profile)
+        d._step_start_providers()
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("No external providers selected" in m for m in messages)
+
+    def test_resolve_provider_static_method(self):
+        """The _resolve_provider helper checks short then long keys."""
+        from deployers.docker_compose import DockerComposeDeployer
+        assert DockerComposeDeployer._resolve_provider({"search": "meilisearch"}, "search", "search_provider") == "meilisearch"
+        assert DockerComposeDeployer._resolve_provider({"search_provider": "meilisearch"}, "search", "search_provider") == "meilisearch"
+        assert DockerComposeDeployer._resolve_provider({}, "search", "search_provider") == ""
+
+
+# ===========================================================================
 # DockerComposeDeployer — _compose_up Retry Tests
 # ===========================================================================
 

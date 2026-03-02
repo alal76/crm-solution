@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 51,
+  "patch": 52,
   "lastUpdate": "2026-03-02",
-  "description": "fix(sonar): v0.614.51 - Fix SonarCloud reliability bug S2583 in WorkflowOrchestrator — extract Compensation to local variable before lambda capture so static analysis can distinguish null vs non-null path; restores Reliability rating to A",
+  "description": "fix(cdt): v0.614.52 - Fix provider key mismatch in CDT deployer and Jinja2 template — profiles store short keys (search, ai, chat) but deployer and template checked long keys (search_provider, ai_provider, chat_provider) causing all provider containers to be skipped; add key normalization in ConfigGenerator and dual-key lookup in DockerComposeDeployer._step_start_providers; 12 new tests (142 total)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
