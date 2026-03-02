@@ -11,10 +11,9 @@ metadata:
   name: crm-config
   namespace: crm-dev
 data:
-  # NOTE: ASPNETCORE_ENVIRONMENT and DatabaseProvider are set inline in each
-  # deployment manifest to avoid kubernetes:S6907 (same keys appear in Helm
-  # chart templates and would create cross-file duplicate detections).
-  
+  ASPNETCORE_ENVIRONMENT: "Production"
+  DatabaseProvider: "mariadb"
+
   # Feature Management - Provider Selection
   FeatureManagement__UseExternalChat: "false"
   FeatureManagement__UseExternalSearch: "false"

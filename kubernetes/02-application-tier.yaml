@@ -43,15 +43,7 @@ spec:
         envFrom:
         - configMapRef:
             name: crm-config
-        - secretRef:
-            name: crm-secrets
         env:
-        # Deployment-specific vars set inline (not in ConfigMap) to avoid
-        # kubernetes:S6907 cross-file duplicate detection with Helm templates.
-        - name: ASPNETCORE_ENVIRONMENT
-          value: "Production"
-        - name: DatabaseProvider
-          value: "mariadb"
         - name: Jwt__Secret
           valueFrom:
             secretKeyRef:
