@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 64,
+  "patch": 65,
   "lastUpdate": "2026-03-02",
-  "description": "feat(cdt): v0.614.64 - CDT deploy logging, build server selection, profile artifacts & encryption",
+  "description": "fix(tests): v0.614.65 - Fix OrderServiceTests to verify DispatchEntityEventAsync instead of sync DispatchEntityEvent",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
