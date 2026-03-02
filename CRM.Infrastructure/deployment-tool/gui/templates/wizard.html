@@ -2500,6 +2500,45 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Build Server selection (visible when Build Locally is checked) -->
+                        <div id="buildServerSection" class="row g-3 mt-1" style="display:none">
+                            <div class="col-12">
+                                <div class="card border-secondary">
+                                    <div class="card-body py-2">
+                                        <p class="form-label fw-semibold mb-2"><i class="bi bi-pc-display me-1"></i>Build Server</p>
+                                        <div class="form-check form-check-inline mb-2">
+                                            <input class="form-check-input" type="radio" name="buildServerType" id="buildServerLocal" value="local" checked onchange="toggleBuildServerFields()">
+                                            <label class="form-check-label" for="buildServerLocal">This machine (CDT host)</label>
+                                        </div>
+                                        <div class="form-check form-check-inline mb-2">
+                                            <input class="form-check-input" type="radio" name="buildServerType" id="buildServerRemote" value="remote" onchange="toggleBuildServerFields()">
+                                            <label class="form-check-label" for="buildServerRemote">Remote build server</label>
+                                        </div>
+                                        <div id="buildServerRemoteFields" class="row g-2 mt-1" style="display:none">
+                                            <div class="col-md-4">
+                                                <label class="form-label small" for="buildServerHost">Build Server Host</label>
+                                                <input type="text" class="form-control form-control-sm" id="buildServerHost" placeholder="192.168.0.10 or build.example.com">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small" for="buildServerSshUser">SSH User</label>
+                                                <input type="text" class="form-control form-control-sm" id="buildServerSshUser" placeholder="root" value="root">
+                                            </div>
+                                            <div class="col-md-2">
+                                                <label class="form-label small" for="buildServerSshPort">SSH Port</label>
+                                                <input type="number" class="form-control form-control-sm" id="buildServerSshPort" value="22" min="1" max="65535">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small" for="buildServerRepoPath">Repo Path</label>
+                                                <input type="text" class="form-control form-control-sm" id="buildServerRepoPath" placeholder="/opt/crm-solution">
+                                            </div>
+                                            <div class="col-12">
+                                                <small class="text-muted"><i class="bi bi-info-circle me-1"></i>The remote build server must have Docker installed and the CRM source code at the specified path. SSH key auth is used.</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -2900,6 +2939,7 @@
                                     <div class="col-md-4 deploy-details-col">
                                         <div class="deploy-details-group-title"><i class="bi bi-pc-display me-1"></i>Build Server</div>
                                         <div class="deploy-details-kv">
+                                            <span class="ddk">Build Mode</span><span class="ddv" id="dd-build-mode">Local</span>
                                             <span class="ddk">Hostname</span><span class="ddv" id="dd-build-hostname">—</span>
                                             <span class="ddk">OS</span><span class="ddv" id="dd-build-os">—</span>
                                             <span class="ddk">Machine Arch</span><span class="ddv" id="dd-build-arch">—</span>
@@ -4162,6 +4202,25 @@
             const el = document.getElementById(fieldId);
             if (!el) return;
             el.type = el.type === 'password' ? 'text' : 'password';
+        }
+
+        // Toggle build server section visibility based on buildLocally checkbox
+        function toggleBuildServerSection() {
+            const buildLocally = document.getElementById('buildLocally')?.checked;
+            const section = document.getElementById('buildServerSection');
+            if (section) section.style.display = buildLocally ? '' : 'none';
+        }
+        // Attach listener to buildLocally checkbox
+        document.addEventListener('DOMContentLoaded', () => {
+            const bl = document.getElementById('buildLocally');
+            if (bl) bl.addEventListener('change', toggleBuildServerSection);
+        });
+
+        // Toggle remote build server fields
+        function toggleBuildServerFields() {
+            const isRemote = document.getElementById('buildServerRemote')?.checked;
+            const fields = document.getElementById('buildServerRemoteFields');
+            if (fields) fields.style.display = isRemote ? '' : 'none';
         }
 
         // Auto-generate a password into a field
@@ -5803,6 +5862,15 @@
                     image_org: document.getElementById('secretImageOrg')?.value || '',
                     build_locally: document.getElementById('buildLocally')?.checked || false,
                 };
+                // Build server configuration
+                const bsType = document.querySelector('input[name="buildServerType"]:checked')?.value || 'local';
+                config.build_server = {
+                    type: bsType,
+                    host: bsType === 'remote' ? (document.getElementById('buildServerHost')?.value || '') : '',
+                    ssh_user: bsType === 'remote' ? (document.getElementById('buildServerSshUser')?.value || 'root') : '',
+                    ssh_port: bsType === 'remote' ? (Number.parseInt(document.getElementById('buildServerSshPort')?.value) || 22) : 22,
+                    repo_path: bsType === 'remote' ? (document.getElementById('buildServerRepoPath')?.value || '/opt/crm-solution') : '',
+                };
                 config.service_accounts = {};
                 const gcpSa = document.getElementById('secretGcpSaJson')?.value;
                 if (gcpSa) {
@@ -5948,6 +6016,9 @@
             _setText('dd-cfg-name', config.name || '—');
 
             // ── Build server info (fetched once, cached) ──
+            const bsConfig = config.build_server || {};
+            const isBuildRemote = bsConfig.type === 'remote' && bsConfig.host;
+            _setText('dd-build-mode', isBuildRemote ? `Remote (${bsConfig.host})` : 'Local (this machine)');
             try {
                 if (!_systemInfoCache) {
                     const resp = await fetch('/api/system/info');
@@ -6037,12 +6108,15 @@
             done:     /(?:deployment complete|all services up|done\s*$)/i,
         };
 
-        function _deployLog(msg, cls = 'dl-info') {
+        function _deployLog(msg, cls = 'dl-info', host = '') {
             const box = document.getElementById('deployLog');
             if (!box) return;
             const ts  = new Date().toTimeString().slice(0, 8);
+            const levelMap = {'dl-info':'INFO','dl-error':'ERROR','dl-warn':'WARN','dl-success':'OK','dl-cmd':'CMD'};
+            const prefix = levelMap[cls] || 'INFO';
+            const hostTag = host ? `<span class="dl-host">[${_escHtml(host)}]</span> ` : '';
             const line = document.createElement('div');
-            line.innerHTML = `<span class="dl-ts">${ts}</span><span class="${cls}">${_escHtml(msg)}</span>`;
+            line.innerHTML = `<span class="dl-ts">${ts}</span> <span class="dl-prefix ${cls}">[${prefix}]</span> ${hostTag}<span class="${cls}">${_escHtml(msg)}</span>`;
             box.appendChild(line);
             box.scrollTop = box.scrollHeight;
         }
@@ -6536,7 +6610,7 @@
                           : level === 'success' ? 'dl-success'
                           : level === 'cmd'   ? 'dl-cmd'
                           : 'dl-info';
-                _deployLog(msg.message || msg.text || '', cls);
+                _deployLog(msg.message || msg.text || '', cls, msg.host || '');
 
                 // Use server-reported percent if available, else pattern-match
                 if (msg.percent) {
@@ -7349,6 +7423,8 @@ function togglePasswordVisibility(id) {
             .deploy-log-wrap .dl-success { color:#a6e3a1; font-weight:600; }
             .deploy-log-wrap .dl-cmd     { color:#cba6f7; }
             .deploy-log-wrap .dl-ts      { color:#6c7086; margin-right:6px; user-select:none; }
+            .deploy-log-wrap .dl-host    { color:#94a3b8; font-weight:600; font-size:.68rem; }
+            .deploy-log-wrap .dl-prefix  { font-weight:700; font-size:.66rem; letter-spacing:.3px; margin-right:3px; }
             .deploy-progress-row { background:#fff; padding:10px 16px; border-top:1px solid #f0f0f0; }
             .deploy-progress-bar-wrap { height:6px; background:#e9ecef; border-radius:3px; overflow:hidden; margin-bottom:8px; }
             .deploy-progress-bar-inner { height:100%; width:0; background:linear-gradient(90deg,#667eea,#764ba2); transition:width .4s ease; border-radius:3px; }

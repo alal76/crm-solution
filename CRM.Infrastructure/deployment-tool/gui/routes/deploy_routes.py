@@ -431,6 +431,30 @@ def start_deploy():
         emit_progress(session_id, 5, "initializing")
         try:
             success = bool(deployer.deploy())
+            # ── Save generated artifacts with the profile ──
+            try:
+                from core.profile import ProfileManager
+                pm = ProfileManager()
+                profile_name = (
+                    profile.get("meta", {}).get("profile_name")
+                    or profile.get("name")
+                    or session_id
+                )
+                artifact_files: dict[str, str] = {}
+                if result and result.files:
+                    for gf in result.files:
+                        if gf.filename and gf.content:
+                            artifact_files[gf.filename] = gf.content
+                if artifact_files:
+                    pm.save_artifacts(profile_name, artifact_files)
+                    emit_log(
+                        session_id, "INFO",
+                        f"Saved {len(artifact_files)} deployment artifact(s) "
+                        f"with profile '{profile_name}'",
+                    )
+            except Exception as ae:  # noqa: BLE001
+                logger.warning("Failed to save deployment artifacts: %s", ae)
+
             level = "SUCCESS" if success else "ERROR"
             msg = "Deployment finished" if success else "Deployment failed"
             emit_log(session_id, level, msg)

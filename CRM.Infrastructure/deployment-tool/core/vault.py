@@ -114,6 +114,41 @@ def _decrypt(key: bytes, entry: dict) -> str:
         raise VaultCorruptError("Failed to decrypt entry — wrong password or corrupted vault.") from exc
 
 
+def encrypt_data(data: bytes, password: str) -> bytes:
+    """Encrypt arbitrary *data* bytes with *password* using AES-256-GCM + PBKDF2.
+
+    Returns a self-contained blob:
+        salt (32 hex chars, 16 bytes) | nonce (24 hex chars, 12 bytes) | ciphertext (hex)
+
+    The blob is pure ASCII hex so it can be stored as text if needed.
+    """
+    salt_hex = secrets.token_hex(_SALT_BYTES)
+    key = _derive_key(password, salt_hex)
+    nonce = os.urandom(_NONCE_BYTES)
+    aesgcm = AESGCM(key)
+    ct = aesgcm.encrypt(nonce, data, None)
+    return (salt_hex + nonce.hex() + ct.hex()).encode("ascii")
+
+
+def decrypt_data(blob: bytes, password: str) -> bytes:
+    """Decrypt a blob produced by :func:`encrypt_data`.
+
+    Raises :class:`VaultCorruptError` on failure.
+    """
+    try:
+        text = blob.decode("ascii")
+        salt_hex = text[: _SALT_BYTES * 2]
+        nonce_hex = text[_SALT_BYTES * 2 : _SALT_BYTES * 2 + _NONCE_BYTES * 2]
+        ct_hex = text[_SALT_BYTES * 2 + _NONCE_BYTES * 2 :]
+        key = _derive_key(password, salt_hex)
+        aesgcm = AESGCM(key)
+        return aesgcm.decrypt(bytes.fromhex(nonce_hex), bytes.fromhex(ct_hex), None)
+    except VaultCorruptError:
+        raise
+    except Exception as exc:
+        raise VaultCorruptError("Failed to decrypt data — wrong password or corrupted blob.") from exc
+
+
 # ---------------------------------------------------------------------------
 # VaultManager
 # ---------------------------------------------------------------------------

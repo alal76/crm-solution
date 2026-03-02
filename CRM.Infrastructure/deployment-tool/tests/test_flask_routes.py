@@ -3240,3 +3240,213 @@ class TestDeployRoutesLogging:
         })
         # Should not 500 — either 200 (started) or 400 (config validation)
         assert resp.status_code in (200, 400)
+
+
+# ===========================================================================
+# DeployEvent host field
+# ===========================================================================
+
+
+class TestDeployEventHost:
+    """Verify DeployEvent includes the 'host' field."""
+
+    def test_deploy_event_has_host_field(self):
+        from deployers.docker_compose import DeployEvent
+        evt = DeployEvent(timestamp=1.0, level="info", message="test")
+        assert hasattr(evt, "host")
+        assert evt.host == ""
+
+    def test_deploy_event_host_in_to_dict(self):
+        from deployers.docker_compose import DeployEvent
+        evt = DeployEvent(timestamp=1.0, level="info", message="hello", host="192.168.0.9")
+        d = evt.to_dict()
+        assert d["host"] == "192.168.0.9"
+        assert d["level"] == "info"
+        assert d["message"] == "hello"
+
+    def test_deploy_event_host_defaults_empty(self):
+        from deployers.docker_compose import DeployEvent
+        evt = DeployEvent(timestamp=1.0, level="success", message="done")
+        d = evt.to_dict()
+        assert d["host"] == ""
+
+
+# ===========================================================================
+# Vault encrypt_data / decrypt_data
+# ===========================================================================
+
+
+class TestVaultEncryptDecrypt:
+    """Tests for the new encrypt_data / decrypt_data functions in vault.py."""
+
+    def test_encrypt_decrypt_roundtrip(self):
+        from core.vault import encrypt_data, decrypt_data
+        original = b"Hello, CRM deployment secrets!"
+        password = "super-secret-password"
+        encrypted = encrypt_data(original, password)
+        assert encrypted != original
+        decrypted = decrypt_data(encrypted, password)
+        assert decrypted == original
+
+    def test_encrypt_decrypt_empty_data(self):
+        from core.vault import encrypt_data, decrypt_data
+        original = b""
+        encrypted = encrypt_data(original, "pw")
+        decrypted = decrypt_data(encrypted, "pw")
+        assert decrypted == original
+
+    def test_decrypt_wrong_password_raises(self):
+        from core.vault import encrypt_data, decrypt_data, VaultCorruptError
+        encrypted = encrypt_data(b"secret data", "correct-password")
+        with pytest.raises(VaultCorruptError):
+            decrypt_data(encrypted, "wrong-password")
+
+    def test_encrypt_produces_ascii_hex(self):
+        from core.vault import encrypt_data
+        encrypted = encrypt_data(b"test data", "pw")
+        # Should be pure ASCII hex bytes
+        assert isinstance(encrypted, bytes)
+        encrypted.decode("ascii")  # Should not raise
+
+    def test_encrypt_decrypt_large_payload(self):
+        from core.vault import encrypt_data, decrypt_data
+        # ~100KB profile-like payload
+        original = json.dumps({"key": "x" * 100_000}).encode("utf-8")
+        encrypted = encrypt_data(original, "big-pass")
+        decrypted = decrypt_data(encrypted, "big-pass")
+        assert decrypted == original
+
+
+# ===========================================================================
+# Profile artifacts
+# ===========================================================================
+
+
+class TestProfileArtifacts:
+    """Tests for ProfileManager artifact storage."""
+
+    def test_save_and_load_artifacts(self, tmp_path, monkeypatch):
+        from core.profile import ProfileManager
+        pm = ProfileManager()
+
+        def _make_art_dir(name):
+            d = tmp_path / name
+            d.mkdir(parents=True, exist_ok=True)
+            return d
+
+        monkeypatch.setattr(pm, "_artifacts_dir", _make_art_dir)
+
+        files = {
+            "docker-compose.yml": "version: '3.8'\nservices: {}",
+            ".env": "DB_HOST=localhost\nDB_PORT=3306",
+        }
+        pm.save_artifacts("test-profile", files)
+
+        manifest = pm.load_artifacts("test-profile")
+        assert "files" in manifest
+        assert set(manifest["files"]) == {"docker-compose.yml", ".env"}
+        assert "saved_at" in manifest
+
+    def test_get_artifact_returns_content(self, tmp_path, monkeypatch):
+        from core.profile import ProfileManager
+        pm = ProfileManager()
+
+        def _make_art_dir(name):
+            d = tmp_path / name
+            d.mkdir(parents=True, exist_ok=True)
+            return d
+
+        monkeypatch.setattr(pm, "_artifacts_dir", _make_art_dir)
+
+        files = {"test.yml": "hello: world"}
+        pm.save_artifacts("myprofile", files)
+        content = pm.get_artifact("myprofile", "test.yml")
+        assert content == "hello: world"
+
+    def test_get_artifact_missing_raises(self, tmp_path, monkeypatch):
+        from core.profile import ProfileManager, ProfileNotFoundError
+        pm = ProfileManager()
+
+        def _make_art_dir(name):
+            d = tmp_path / name
+            d.mkdir(parents=True, exist_ok=True)
+            return d
+
+        monkeypatch.setattr(pm, "_artifacts_dir", _make_art_dir)
+
+        with pytest.raises(ProfileNotFoundError):
+            pm.get_artifact("nonexistent", "no-file.yml")
+
+    def test_load_artifacts_empty_dir(self, tmp_path, monkeypatch):
+        from core.profile import ProfileManager
+        pm = ProfileManager()
+        d = tmp_path / "empty-profile"
+        d.mkdir()
+        monkeypatch.setattr(pm, "_artifacts_dir", lambda name: d)
+
+        manifest = pm.load_artifacts("empty-profile")
+        assert manifest["files"] == []
+
+
+# ===========================================================================
+# Artifact API endpoints
+# ===========================================================================
+
+
+class TestArtifactEndpoints:
+    """Tests for profile artifact REST endpoints."""
+
+    def test_list_artifacts_404_when_profile_missing(self, client):
+        resp = client.get("/api/profiles/nonexistent-xyz/artifacts")
+        # Either 404 or empty list depending on implementation
+        assert resp.status_code in (200, 404)
+
+    def test_get_artifact_404_when_missing(self, client):
+        resp = client.get("/api/profiles/nonexistent-xyz/artifacts/docker-compose.yml")
+        assert resp.status_code in (404, 500)
+
+    def test_list_artifacts_endpoint_exists(self, client):
+        """The /api/profiles/<name>/artifacts endpoint should respond."""
+        resp = client.get("/api/profiles/test-profile/artifacts")
+        # Should not be 405 Method Not Allowed
+        assert resp.status_code != 405
+
+
+# ===========================================================================
+# Build server config in collectStepData
+# ===========================================================================
+
+
+class TestBuildServerConfig:
+    """Verify build_server config structure is accepted by the deploy endpoint."""
+
+    def test_deploy_accepts_build_server_config(self, client):
+        profile = {
+            "target": {"host": "192.168.0.9"},
+            "database": {},
+            "build_server": {
+                "type": "remote",
+                "host": "build.example.com",
+                "ssh_user": "builder",
+                "ssh_port": 22,
+                "repo_path": "/opt/crm-solution",
+            },
+        }
+        resp = client.post("/api/deploy", json={
+            "profile": profile,
+            "dry_run": True,
+        })
+        # Should not 500 — the deploy endpoint should handle the extra key
+        assert resp.status_code in (200, 400)
+
+    def test_deploy_accepts_local_build_server(self, client):
+        profile = {
+            "target": {"host": "localhost"},
+            "database": {},
+            "build_server": {"type": "local"},
+        }
+        resp = client.post("/api/deploy", json={
+            "profile": profile,
+            "dry_run": True,
+        })
+        assert resp.status_code in (200, 400)

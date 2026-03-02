@@ -268,6 +268,82 @@ class ProfileManager:
         path.unlink()
 
     # ------------------------------------------------------------------
+    # Artifacts (generated deployment files saved with profile)
+    # ------------------------------------------------------------------
+
+    def _artifacts_dir(self, name: str) -> Path:
+        """Return (and create) the directory for deployment artifacts."""
+        base = self._profiles_dir.parent / "artifacts" / name
+        base.mkdir(parents=True, exist_ok=True)
+        return base
+
+    def save_artifacts(
+        self, name: str, files: dict[str, str]
+    ) -> list[str]:
+        """Save generated deployment files alongside the profile.
+
+        Parameters
+        ----------
+        name:
+            Profile name.
+        files:
+            Mapping of ``{filename: content_string}`` to persist.
+
+        Returns
+        -------
+        list[str]
+            Filenames that were saved.
+        """
+        art_dir = self._artifacts_dir(name)
+        saved: list[str] = []
+        for filename, content in files.items():
+            (art_dir / filename).write_text(content, encoding="utf-8")
+            saved.append(filename)
+        # Write a manifest for quick listing / auditing
+        manifest = {
+            "profile": name,
+            "saved_at": datetime.now(timezone.utc).isoformat(),
+            "files": saved,
+        }
+        (art_dir / "_manifest.json").write_text(
+            json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        return saved
+
+    def load_artifacts(self, name: str) -> dict:
+        """Return the artifact manifest for *name*.
+
+        If no manifest exists, returns a best-effort listing of files
+        in the artifacts directory.
+        """
+        art_dir = self._artifacts_dir(name)
+        manifest_path = art_dir / "_manifest.json"
+        if manifest_path.exists():
+            return json.loads(manifest_path.read_text(encoding="utf-8"))
+        # No manifest — enumerate files
+        files = [
+            f.name
+            for f in art_dir.iterdir()
+            if f.is_file() and f.name != "_manifest.json"
+        ]
+        return {"profile": name, "files": files}
+
+    def get_artifact(self, name: str, filename: str) -> str:
+        """Return the content of a specific artifact file.
+
+        Raises
+        ------
+        ProfileNotFoundError
+            If the artifact does not exist.
+        """
+        path = self._artifacts_dir(name) / filename
+        if not path.exists():
+            raise ProfileNotFoundError(
+                f"Artifact '{filename}' not found for profile '{name}'."
+            )
+        return path.read_text(encoding="utf-8")
+
+    # ------------------------------------------------------------------
     # Import / export
     # ------------------------------------------------------------------
 

@@ -298,3 +298,35 @@ def export_profile_sanitized(name: str):
         return jsonify({"error": f"Profile '{name}' not found."}), 404
     except Exception as exc:
         return jsonify({"error": str(exc)}), 500
+
+
+# ── Artifact endpoints ─────────────────────────────────────────────
+@profile_bp.route("/api/profiles/<name>/artifacts", methods=["GET"])
+def list_artifacts(name: str):
+    """Return a manifest of deployment artifacts saved with profile *name*."""
+    try:
+        manifest = profile_manager.load_artifacts(name)
+        return jsonify(manifest)
+    except ProfileNotFoundError:
+        return jsonify({"error": f"Profile '{name}' not found."}), 404
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
+@profile_bp.route("/api/profiles/<name>/artifacts/<path:filename>", methods=["GET"])
+def get_artifact(name: str, filename: str):
+    """Return the content of a single deployment artifact."""
+    try:
+        content = profile_manager.get_artifact(name, filename)
+        # Guess content type: YAML, env or plain text
+        ct = "text/plain"
+        if filename.endswith((".yml", ".yaml")):
+            ct = "text/yaml"
+        elif filename.endswith(".json"):
+            ct = "application/json"
+        from flask import Response
+        return Response(content, mimetype=ct)
+    except ProfileNotFoundError:
+        return jsonify({"error": f"Artifact '{filename}' not found for profile '{name}'."}), 404
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500

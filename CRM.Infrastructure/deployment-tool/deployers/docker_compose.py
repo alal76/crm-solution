@@ -39,6 +39,7 @@ class DeployEvent:
     step: int = 0
     total_steps: int = 12
     percent: int = 0
+    host: str = ""
 
     def to_dict(self) -> dict:
         return {
@@ -48,6 +49,7 @@ class DeployEvent:
             "step": self.step,
             "total_steps": self.total_steps,
             "percent": self.percent,
+            "host": self.host,
         }
 
 
@@ -205,7 +207,8 @@ class DockerComposeDeployer:
 
     def _emit(self, message: str, level: str = "info", step: int = 0) -> None:
         pct = int((step / self.total_steps) * 100) if self.total_steps else 0
-        event = DeployEvent(time.time(), level, message, step, self.total_steps, pct)
+        host = getattr(self, "_target_host", "") or ""
+        event = DeployEvent(time.time(), level, message, step, self.total_steps, pct, host)
         self.log_queue.put(event)
         logger.log(self._LOG_LEVEL_MAP.get(level, logging.INFO), message)
 
@@ -256,7 +259,7 @@ class DockerComposeDeployer:
             for line in proc.stdout:
                 stripped = line.rstrip()
                 # Emit meaningful lines (skip blank / overly repetitive)
-                if stripped and time.time() - last_emit > 0.5:
+                if stripped and time.time() - last_emit > 0.1:
                     tag = f"[{prefix}] " if prefix else ""
                     self._emit(f"{tag}{stripped}", "info")
                     last_emit = time.time()
@@ -787,6 +790,59 @@ class DockerComposeDeployer:
         return rc == 0 and bool(out.strip())
 
     # ------------------------------------------------------------------ #
+    #  Remote build server helpers                                        #
+    # ------------------------------------------------------------------ #
+    def _run_build_server_ssh(
+        self, build_server: dict, cmd_str: str, timeout: int = 300
+    ) -> tuple:
+        """Execute a shell command on the remote build server via SSH.
+
+        Returns (returncode, stdout, stderr).
+        """
+        host = build_server.get("host", "")
+        ssh_user = build_server.get("ssh_user", "root")
+        ssh_port = int(build_server.get("ssh_port", 22))
+
+        if self.dry_run:
+            self._emit(
+                f"[DRY-RUN] [{host}] Would SSH: {cmd_str}", "info"
+            )
+            return (0, "", "")
+        try:
+            import paramiko
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(host, port=ssh_port, username=ssh_user, timeout=15)
+            _, stdout, stderr = ssh.exec_command(cmd_str, timeout=timeout)
+            rc = stdout.channel.recv_exit_status()
+            out = stdout.read().decode("utf-8", errors="replace")
+            err = stderr.read().decode("utf-8", errors="replace")
+            ssh.close()
+            return (rc, out, err)
+        except Exception as e:
+            self._emit(f"[{host}] Build server SSH error: {e}", "error")
+            return (1, "", str(e))
+
+    def _read_remote_version(self, build_server: dict) -> str:
+        """Read version from version.json on the remote build server."""
+        repo_path = build_server.get("repo_path", "/opt/crm-solution")
+        rc, out, _ = self._run_build_server_ssh(
+            build_server,
+            f"cat {repo_path}/version.json",
+            timeout=10,
+        )
+        if rc != 0 or not out.strip():
+            return "latest"
+        try:
+            data = json.loads(out)
+            major = data.get("major", 0)
+            minor = data.get("minor", 0)
+            patch = data.get("patch", 0)
+            return f"{major}.{minor}.{patch}"
+        except (json.JSONDecodeError, KeyError):
+            return "latest"
+
+    # ------------------------------------------------------------------ #
     #  Step 3 — Build Local Images (skipped when using a remote registry) #
     # ------------------------------------------------------------------ #
     def _step_build_local_images(self) -> bool:
@@ -797,6 +853,10 @@ class DockerComposeDeployer:
         ``crm-frontend:0.614.58``) **and** ``:latest``.
         If a versioned image already exists locally the build is skipped
         for that image, saving significant time on repeated deployments.
+
+        Supports building on a **remote build server** when
+        ``profile.build_server.type == "remote"`` — the build commands
+        are executed via SSH on that server instead of locally.
         """
         img_reg = self.profile.get("image_registry", {})
         build_locally = img_reg.get("build_locally", False)
@@ -809,28 +869,47 @@ class DockerComposeDeployer:
             )
             return True
 
-        # Resolve repo root: profile may override, else walk up from this file
-        repo_root = self.profile.get("target", {}).get("repo_root")
-        if not repo_root:
-            repo_root = str(Path(__file__).resolve().parent.parent.parent.parent)
-        repo_root = Path(repo_root)
+        # ── Check for remote build server ──
+        build_server = self.profile.get("build_server", {})
+        use_remote_build = build_server.get("type") == "remote" and build_server.get("host")
+        build_host_label = build_server.get("host", "localhost") if use_remote_build else "localhost"
 
-        if not repo_root.is_dir():
-            self._emit(f"[{self._target_host}] Repo root not found: {repo_root}", "error")
+        # Resolve repo root: profile may override, else walk up from this file
+        if use_remote_build:
+            repo_root_str = build_server.get("repo_path", "/opt/crm-solution")
+            repo_root = Path(repo_root_str)
+            self._emit(f"[{build_host_label}] Using remote build server: {build_server.get('host')}", "info")
+            self._emit(f"[{build_host_label}] Remote repo path: {repo_root_str}", "info")
+        else:
+            repo_root_str = self.profile.get("target", {}).get("repo_root")
+            if not repo_root_str:
+                repo_root_str = str(Path(__file__).resolve().parent.parent.parent.parent)
+            repo_root = Path(repo_root_str)
+
+        if not use_remote_build and not repo_root.is_dir():
+            self._emit(f"[{build_host_label}] Repo root not found: {repo_root}", "error")
             return False
 
         # Read solution-level version and per-component versions
-        code_version = self._read_version_from_repo(repo_root)
+        if not use_remote_build:
+            code_version = self._read_version_from_repo(repo_root)
+        else:
+            # For remote builds, try to read version via SSH
+            code_version = self._read_remote_version(build_server) or "latest"
         profile_version = self.profile.get("target", {}).get("crm_version")
 
         # Build a map of image name → version tag
         image_tags: dict[str, str] = {}
         for name in LOCAL_BUILD_IMAGES:
             component = IMAGE_COMPONENT_MAP.get(name)
-            comp_ver = self._read_version_from_repo(repo_root, component) if component else None
+            if not use_remote_build:
+                comp_ver = self._read_version_from_repo(repo_root, component) if component else None
+            else:
+                comp_ver = None  # remote builds use solution-level version
             image_tags[name] = profile_version or comp_ver or code_version or "latest"
 
-        self._emit(f"[{self._target_host}] Build configuration:", "info")
+        self._emit(f"[{build_host_label}] Build configuration:", "info")
+        self._emit(f"  Build server:    {build_host_label}", "info")
         self._emit(f"  Repo root:       {repo_root}", "info")
         self._emit(f"  Solution ver:    {code_version}", "info")
         for name, tag in image_tags.items():
@@ -840,53 +919,77 @@ class DockerComposeDeployer:
 
         built, skipped, failed = 0, 0, 0
         for name, dockerfile in LOCAL_BUILD_IMAGES.items():
-            df_path = repo_root / dockerfile
-            if not df_path.is_file():
-                self._emit(f"[{self._target_host}] Dockerfile not found: {df_path} — skipping {name}", "warn")
-                continue
-
             tag = image_tags[name]
             image_tag = f"{name}:{tag}"
 
-            # --- Skip build when the versioned image already exists -----
-            if not self.dry_run and tag != "latest" and self._image_exists_locally(image_tag):
-                self._emit(
-                    f"[{self._target_host}] Image {image_tag} already exists — skipping build",
-                    "info",
-                )
-                skipped += 1
-                continue
+            if not use_remote_build:
+                df_path = repo_root / dockerfile
+                if not df_path.is_file():
+                    self._emit(f"[{build_host_label}] Dockerfile not found: {df_path} — skipping {name}", "warn")
+                    continue
 
-            self._emit(f"[{self._target_host}] ── Building {image_tag} ──", "info")
-            self._emit(f"  Dockerfile: {df_path}", "info")
-            self._emit(f"  Context:    {repo_root}", "info")
-            build_start = time.time()
-            rc = self._run_streaming(
-                [
-                    "docker", "build",
-                    "--platform", self._target_docker_platform,
-                    "-t", image_tag,
-                    "-f", str(df_path),
-                    ".",
-                ],
-                cwd=repo_root,
-                timeout=600,
-                prefix=name,
-            )
+                # --- Skip build when the versioned image already exists -----
+                if not self.dry_run and tag != "latest" and self._image_exists_locally(image_tag):
+                    self._emit(
+                        f"[{build_host_label}] Image {image_tag} already exists — skipping build",
+                        "info",
+                    )
+                    skipped += 1
+                    continue
+
+                self._emit(f"[{build_host_label}] ── Building {image_tag} ──", "info")
+                self._emit(f"  Dockerfile: {df_path}", "info")
+                self._emit(f"  Context:    {repo_root}", "info")
+                build_start = time.time()
+                rc = self._run_streaming(
+                    [
+                        "docker", "build",
+                        "--platform", self._target_docker_platform,
+                        "-t", image_tag,
+                        "-f", str(df_path),
+                        ".",
+                    ],
+                    cwd=repo_root,
+                    timeout=600,
+                    prefix=name,
+                )
+            else:
+                # Remote build: execute docker build via SSH on the build server
+                remote_df = f"{repo_root_str}/{dockerfile}"
+                self._emit(f"[{build_host_label}] ── Building {image_tag} (remote) ──", "info")
+                self._emit(f"  Dockerfile: {remote_df}", "info")
+                self._emit(f"  Context:    {repo_root_str}", "info")
+                build_start = time.time()
+                build_cmd = (
+                    f"cd {repo_root_str} && docker build"
+                    f" --platform {self._target_docker_platform}"
+                    f" -t {image_tag}"
+                    f" -f {remote_df}"
+                    f" ."
+                )
+                rc_t, out, err = self._run_build_server_ssh(build_server, build_cmd, timeout=600)
+                rc = rc_t
+                if out and out.strip():
+                    for line in out.strip().splitlines()[-20:]:
+                        self._emit(f"  [{build_host_label}] {line}", "info")
+
             build_elapsed = time.time() - build_start
             if rc != 0:
                 self._emit(
-                    f"[{self._target_host}] Build FAILED for {name} (exit code {rc}, took {build_elapsed:.1f}s)",
+                    f"[{build_host_label}] Build FAILED for {name} (exit code {rc}, took {build_elapsed:.1f}s)",
                     "error",
                 )
                 failed += 1
             else:
                 self._emit(
-                    f"[{self._target_host}] Built {image_tag} successfully in {build_elapsed:.1f}s",
+                    f"[{build_host_label}] Built {image_tag} successfully in {build_elapsed:.1f}s",
                     "success",
                 )
                 # Also tag as :latest for backwards-compatibility
-                self._run(["docker", "tag", image_tag, f"{name}:latest"], timeout=15)
+                if use_remote_build:
+                    self._run_build_server_ssh(build_server, f"docker tag {image_tag} {name}:latest", timeout=15)
+                else:
+                    self._run(["docker", "tag", image_tag, f"{name}:latest"], timeout=15)
                 built += 1
 
         if failed > 0:
@@ -1613,6 +1716,60 @@ class DockerComposeDeployer:
             f"  API:      {protocol}://{self._target_host}:{self._api_port}/health",
             "success",
         )
+
+        # ── Push encrypted profile bundle to deployment target ──
+        try:
+            from core.profile import ProfileManager
+            from core.vault import encrypt_data
+
+            pm = ProfileManager()
+            profile_name = (
+                self.profile.get("meta", {}).get("profile_name")
+                or self.profile.get("name")
+                or "default"
+            )
+
+            # Collect profile JSON + artifacts into a single bundle dict
+            bundle: dict = {"profile": self.profile}
+            try:
+                artifacts = pm.load_artifacts(profile_name)
+                if artifacts:
+                    bundle["artifacts"] = artifacts
+            except Exception:
+                pass  # No artifacts yet — that's fine
+
+            bundle_json = json.dumps(bundle, indent=2, default=str).encode("utf-8")
+            # Encrypt with a deterministic password derived from profile name + host
+            enc_password = f"crm-cdt-{profile_name}-{self._target_host}"
+            encrypted = encrypt_data(bundle_json, enc_password)
+
+            remote_path = f"{self._remote_deploy_dir}/.crm-profile.enc"
+
+            if self._is_local:
+                import pathlib
+                pathlib.Path(remote_path).parent.mkdir(parents=True, exist_ok=True)
+                pathlib.Path(remote_path).write_bytes(encrypted)
+                self._emit(f"Encrypted profile saved to {remote_path}", "info")
+            else:
+                # Write temp file, SCP to target
+                import tempfile
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".enc") as tmp:
+                    tmp.write(encrypted)
+                    tmp_path = tmp.name
+                try:
+                    scp_cmd = [
+                        "scp", "-o", "StrictHostKeyChecking=no",
+                        "-P", str(self._ssh_port),
+                        tmp_path,
+                        f"{self._ssh_user}@{self._target_host}:{remote_path}",
+                    ]
+                    subprocess.run(scp_cmd, timeout=30, capture_output=True, check=True)
+                    self._emit(f"Encrypted profile pushed to {self._target_host}:{remote_path}", "info")
+                finally:
+                    os.unlink(tmp_path)
+        except Exception as enc_exc:
+            self._emit(f"Warning: Could not save encrypted profile: {enc_exc}", "warn")
+
         return True
 
     def rollback(self) -> bool:
