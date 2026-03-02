@@ -24,6 +24,12 @@ LOCAL_BUILD_IMAGES = {
     "crm-frontend": "docker/Dockerfile.frontend",
 }
 
+# Map image name → component key in version.json components section
+IMAGE_COMPONENT_MAP = {
+    "crm-api": "api",
+    "crm-frontend": "frontend",
+}
+
 
 @dataclass
 class DeployEvent:
@@ -690,10 +696,16 @@ class DockerComposeDeployer:
     #  Version-aware image helpers                                        #
     # ------------------------------------------------------------------ #
     @staticmethod
-    def _read_version_from_repo(repo_root: Path) -> str:
+    def _read_version_from_repo(repo_root: Path, component: str | None = None) -> str:
         """Read version string from ``version.json`` at *repo_root*.
 
-        Returns a string like ``0.614.52`` or ``"latest"`` on failure.
+        When *component* is ``None`` returns the solution-level version
+        (e.g. ``0.614.58``).  When *component* is ``"api"`` or
+        ``"frontend"`` the component-specific version from the
+        ``components`` section is returned, falling back to the
+        solution-level version when the component key is missing.
+
+        Returns ``"latest"`` on any read/parse failure.
         """
         version_file = repo_root / "version.json"
         if not version_file.is_file():
@@ -701,6 +713,15 @@ class DockerComposeDeployer:
         try:
             with open(version_file) as fh:
                 data = json.load(fh)
+
+            # Component-specific version
+            if component:
+                comp = data.get("components", {}).get(component, {})
+                comp_ver = comp.get("version")
+                if comp_ver:
+                    return comp_ver
+
+            # Fallback: solution-level version
             major = data.get("major", 0)
             minor = data.get("minor", 0)
             patch = data.get("patch", 0)
@@ -722,8 +743,9 @@ class DockerComposeDeployer:
     def _step_build_local_images(self) -> bool:
         """Build CRM Docker images from source when build_locally is enabled.
 
-        Images are tagged with the version from ``version.json``
-        (e.g. ``crm-api:0.614.52``) **and** ``:latest``.
+        Each image is tagged with its **component-specific** version from
+        ``version.json`` (e.g. ``crm-api:0.614.58``,
+        ``crm-frontend:0.614.58``) **and** ``:latest``.
         If a versioned image already exists locally the build is skipped
         for that image, saving significant time on repeated deployments.
         """
@@ -748,18 +770,22 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] Repo root not found: {repo_root}", "error")
             return False
 
-        # Determine image tag — prefer version.json, then profile, then 'latest'
+        # Read solution-level version and per-component versions
         code_version = self._read_version_from_repo(repo_root)
-        tag = (
-            self.profile.get("target", {}).get("crm_version")
-            or code_version
-            or "latest"
-        )
+        profile_version = self.profile.get("target", {}).get("crm_version")
+
+        # Build a map of image name → version tag
+        image_tags: dict[str, str] = {}
+        for name in LOCAL_BUILD_IMAGES:
+            component = IMAGE_COMPONENT_MAP.get(name)
+            comp_ver = self._read_version_from_repo(repo_root, component) if component else None
+            image_tags[name] = profile_version or comp_ver or code_version or "latest"
 
         self._emit(f"[{self._target_host}] Build configuration:", "info")
         self._emit(f"  Repo root:       {repo_root}", "info")
-        self._emit(f"  Code version:    {code_version}", "info")
-        self._emit(f"  Image tag:       {tag}", "info")
+        self._emit(f"  Solution ver:    {code_version}", "info")
+        for name, tag in image_tags.items():
+            self._emit(f"  {name} tag:  {tag}", "info")
         self._emit(f"  Platform:        {self._target_docker_platform}", "info")
         self._emit(f"  Images to build: {', '.join(LOCAL_BUILD_IMAGES.keys())}", "info")
 
@@ -770,6 +796,7 @@ class DockerComposeDeployer:
                 self._emit(f"[{self._target_host}] Dockerfile not found: {df_path} — skipping {name}", "warn")
                 continue
 
+            tag = image_tags[name]
             image_tag = f"{name}:{tag}"
 
             # --- Skip build when the versioned image already exists -----
@@ -844,17 +871,19 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] Local deployment — images already available", "info")
             return True
 
-        # Resolve version tag — consistent with _step_build_local_images
+        # Resolve version tags — consistent with _step_build_local_images
         repo_root = self.profile.get("target", {}).get("repo_root")
         if not repo_root:
             repo_root = str(Path(__file__).resolve().parent.parent.parent.parent)
-        code_version = self._read_version_from_repo(Path(repo_root))
-        tag = (
-            self.profile.get("target", {}).get("crm_version")
-            or code_version
-            or "latest"
-        )
-        images_to_transfer = [f"{name}:{tag}" for name in LOCAL_BUILD_IMAGES]
+        repo_path = Path(repo_root)
+        profile_version = self.profile.get("target", {}).get("crm_version")
+
+        images_to_transfer = []
+        for name in LOCAL_BUILD_IMAGES:
+            component = IMAGE_COMPONENT_MAP.get(name)
+            comp_ver = self._read_version_from_repo(repo_path, component) if component else None
+            tag = profile_version or comp_ver or self._read_version_from_repo(repo_path) or "latest"
+            images_to_transfer.append(f"{name}:{tag}")
         self._emit(
             f"[{self._target_host}] Transferring {len(images_to_transfer)} image(s) "
             f"to remote target: {', '.join(images_to_transfer)}",

@@ -23,8 +23,9 @@ interface VersionInfo {
   patch: number;
   lastUpdate: string;
   components?: {
-    api?: { version: string; build: string; lastDeployed: string };
-    frontend?: { version: string; build: string; lastDeployed: string };
+    api?: { version: string; lastUpdate?: string; build?: string; lastDeployed?: string };
+    frontend?: { version: string; lastUpdate?: string; build?: string; lastDeployed?: string };
+    cdt?: { version: string; lastUpdate?: string };
     database?: { version: string; schema: string; zipCodes: number; countries: number };
   };
   git?: { branch: string; commit: string };
@@ -141,7 +142,7 @@ function Footer() {
         <div className="footer-left">
           <span className="company-name">{branding.companyName || 'CRM System'}</span>
           <span className="separator">|</span>
-          <span className="version" title={versionInfo ? `API: ${versionInfo.components?.api?.build || 'N/A'} | Frontend: ${versionInfo.components?.frontend?.build || 'N/A'} | DB: ${versionInfo.components?.database?.zipCodes || 0} ZIPs` : ''}>
+          <span className="version" title={versionInfo ? `API: v${versionInfo.components?.api?.version || buildInfo.version} | Frontend: v${versionInfo.components?.frontend?.version || buildInfo.version} | DB: ${versionInfo.components?.database?.zipCodes || 0} ZIPs` : ''}>
             v{buildInfo.version}
           </span>
           {versionInfo?.git?.commit && (
@@ -178,7 +179,7 @@ function Footer() {
               </>
             )}
             <span className={`status-dot ${getStatusClass(apiStatus.status)}`}>{getStatusText(apiStatus.status)}</span>
-            <span className="status-text" title={versionInfo?.components?.api?.build ? `Build: ${versionInfo.components.api.build}` : ''}>
+            <span className="status-text" title={versionInfo?.components?.api?.version ? `API v${versionInfo.components.api.version}` : ''}>
               API
             </span>
             <span className={`status-dot ${getStatusClass(dbStatus.status)}`}>{getStatusText(dbStatus.status)}</span>

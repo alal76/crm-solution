@@ -7,7 +7,7 @@
  * See the LICENSE file in the root directory for full terms.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Box,
@@ -79,9 +79,34 @@ const AboutPage: React.FC = () => {
   const logoUrl = getLogoUrl();
   const [tabValue, setTabValue] = useState(0);
 
-  const version = '0.0.24';
-  const releaseDate = 'January 2026';
+  const [version, setVersion] = useState('0.614.58');
+  const [apiVersion, setApiVersion] = useState('');
+  const [frontendVersion, setFrontendVersion] = useState('');
+  const releaseDate = 'March 2026';
   const author = 'Abhishek Lal';
+
+  // Fetch version info from version.json
+  useEffect(() => {
+    const fetchVersion = async () => {
+      try {
+        const response = await fetch('/version.json');
+        if (response.ok) {
+          const data = await response.json();
+          const solutionVer = `${data.major}.${data.minor}.${data.patch}`;
+          setVersion(solutionVer);
+          if (data.components?.api?.version) {
+            setApiVersion(data.components.api.version);
+          }
+          if (data.components?.frontend?.version) {
+            setFrontendVersion(data.components.frontend.version);
+          }
+        }
+      } catch {
+        // keep default version
+      }
+    };
+    fetchVersion();
+  }, []);
 
   const features = [
     { name: 'Customer Management', description: 'Complete customer lifecycle management' },
@@ -222,8 +247,20 @@ const AboutPage: React.FC = () => {
                   <List dense>
                     <ListItem>
                       <ListItemIcon><CodeIcon /></ListItemIcon>
-                      <ListItemText primary="Version" secondary={version} />
+                      <ListItemText primary="Solution Version" secondary={`v${version}`} />
                     </ListItem>
+                    {apiVersion && (
+                      <ListItem>
+                        <ListItemIcon><StorageIcon /></ListItemIcon>
+                        <ListItemText primary="API Version" secondary={`v${apiVersion}`} />
+                      </ListItem>
+                    )}
+                    {frontendVersion && (
+                      <ListItem>
+                        <ListItemIcon><WebIcon /></ListItemIcon>
+                        <ListItemText primary="Frontend Version" secondary={`v${frontendVersion}`} />
+                      </ListItem>
+                    )}
                     <ListItem>
                       <ListItemIcon><CalendarIcon /></ListItemIcon>
                       <ListItemText primary="Release Date" secondary={releaseDate} />

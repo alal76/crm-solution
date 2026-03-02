@@ -1614,6 +1614,138 @@ class TestVersionAwareBuild:
 
 
 # ===========================================================================
+# Component-level Versioning Tests
+# ===========================================================================
+
+
+class TestComponentVersioning:
+    """Tests for per-component version reading from version.json."""
+
+    def test_read_api_component_version(self, tmp_path):
+        """Reads component-specific API version from version.json."""
+        from deployers.docker_compose import DockerComposeDeployer
+        vf = tmp_path / "version.json"
+        vf.write_text(json.dumps({
+            "major": 0, "minor": 614, "patch": 58,
+            "components": {
+                "api": {"version": "0.614.60", "lastUpdate": "2026-03-02"},
+                "frontend": {"version": "0.614.59", "lastUpdate": "2026-03-01"},
+            }
+        }))
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path, "api") == "0.614.60"
+
+    def test_read_frontend_component_version(self, tmp_path):
+        """Reads component-specific frontend version from version.json."""
+        from deployers.docker_compose import DockerComposeDeployer
+        vf = tmp_path / "version.json"
+        vf.write_text(json.dumps({
+            "major": 0, "minor": 614, "patch": 58,
+            "components": {
+                "api": {"version": "0.614.60", "lastUpdate": "2026-03-02"},
+                "frontend": {"version": "0.614.59", "lastUpdate": "2026-03-01"},
+            }
+        }))
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path, "frontend") == "0.614.59"
+
+    def test_component_falls_back_to_solution_version(self, tmp_path):
+        """Falls back to solution version when component key is missing."""
+        from deployers.docker_compose import DockerComposeDeployer
+        vf = tmp_path / "version.json"
+        vf.write_text(json.dumps({"major": 0, "minor": 614, "patch": 58}))
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path, "api") == "0.614.58"
+
+    def test_component_none_returns_solution_version(self, tmp_path):
+        """component=None returns the solution-level version."""
+        from deployers.docker_compose import DockerComposeDeployer
+        vf = tmp_path / "version.json"
+        vf.write_text(json.dumps({
+            "major": 0, "minor": 614, "patch": 58,
+            "components": {
+                "api": {"version": "0.614.60", "lastUpdate": "2026-03-02"},
+            }
+        }))
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path, None) == "0.614.58"
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path) == "0.614.58"
+
+    def test_component_empty_version_falls_back(self, tmp_path):
+        """Falls back when component exists but version is empty."""
+        from deployers.docker_compose import DockerComposeDeployer
+        vf = tmp_path / "version.json"
+        vf.write_text(json.dumps({
+            "major": 0, "minor": 614, "patch": 58,
+            "components": {"api": {"lastUpdate": "2026-03-02"}}
+        }))
+        assert DockerComposeDeployer._read_version_from_repo(tmp_path, "api") == "0.614.58"
+
+    def test_image_component_map_exists(self):
+        """IMAGE_COMPONENT_MAP maps image names to component keys."""
+        from deployers.docker_compose import IMAGE_COMPONENT_MAP, LOCAL_BUILD_IMAGES
+        for name in LOCAL_BUILD_IMAGES:
+            assert name in IMAGE_COMPONENT_MAP, f"{name} missing from IMAGE_COMPONENT_MAP"
+
+    def test_build_step_uses_per_component_tags(self, tmp_path):
+        """Build step tags each image with its component-specific version."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+
+        vf = tmp_path / "version.json"
+        vf.write_text(json.dumps({
+            "major": 0, "minor": 614, "patch": 58,
+            "components": {
+                "api": {"version": "0.614.60", "lastUpdate": "2026-03-02"},
+                "frontend": {"version": "0.614.59", "lastUpdate": "2026-03-01"},
+            }
+        }))
+        docker_dir = tmp_path / "docker"
+        docker_dir.mkdir()
+        (docker_dir / "Dockerfile.backend").write_text("FROM scratch")
+        (docker_dir / "Dockerfile.frontend").write_text("FROM scratch")
+
+        profile = {
+            "target": {"host": "10.0.0.1", "repo_root": str(tmp_path)},
+            "image_registry": {"build_locally": True},
+        }
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        result = d._step_build_local_images()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        all_text = " ".join(messages)
+        assert "crm-api" in all_text and "0.614.60" in all_text, f"Expected crm-api:0.614.60 in: {messages}"
+        assert "crm-frontend" in all_text and "0.614.59" in all_text, f"Expected crm-frontend:0.614.59 in: {messages}"
+
+    def test_transfer_step_uses_per_component_tags(self, tmp_path):
+        """Transfer step assembles image tags with per-component versions."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+
+        vf = tmp_path / "version.json"
+        vf.write_text(json.dumps({
+            "major": 0, "minor": 614, "patch": 58,
+            "components": {
+                "api": {"version": "0.614.60", "lastUpdate": "2026-03-02"},
+                "frontend": {"version": "0.614.59", "lastUpdate": "2026-03-01"},
+            }
+        }))
+        profile = {
+            "target": {"host": "10.0.0.1", "repo_root": str(tmp_path)},
+            "image_registry": {"build_locally": True},
+        }
+        q = queue.Queue()
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        result = d._step_transfer_images()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        all_text = " ".join(messages)
+        assert "crm-api:0.614.60" in all_text, f"Expected crm-api:0.614.60 in: {messages}"
+        assert "crm-frontend:0.614.59" in all_text, f"Expected crm-frontend:0.614.59 in: {messages}"
+
+
+# ===========================================================================
 # Password reuse / secret recovery
 # ===========================================================================
 

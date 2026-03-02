@@ -77,6 +77,28 @@ print(f\"{v['major']}.{v['minor']}.{v['patch']}\")
     fi
 }
 
+# Get component-specific version from version.json (api, frontend, cdt)
+get_component_version() {
+    local component="$1"
+    local script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    local version_file="$script_dir/version.json"
+    if [[ -f "$version_file" ]] && command -v python3 &>/dev/null; then
+        python3 -c "
+import json, sys
+with open('$version_file') as f:
+    v = json.load(f)
+comp = v.get('components', {}).get('$component', {})
+ver = comp.get('version')
+if ver:
+    print(ver)
+else:
+    print(f\"{v['major']}.{v['minor']}.{v['patch']}\")
+" 2>/dev/null || get_crm_version
+    else
+        get_crm_version
+    fi
+}
+
 # Test SSH connectivity
 test_ssh_connection() {
     log_info "Testing SSH connectivity to $SSH_USER@$TARGET_SERVER..."
@@ -113,13 +135,17 @@ build_images() {
     
     SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     
-    # Read version from version.json
+    # Read per-component versions from version.json
     CRM_VERSION=$(get_crm_version)
-    log_info "Code version: $CRM_VERSION"
+    API_VERSION=$(get_component_version "api")
+    FE_VERSION=$(get_component_version "frontend")
+    log_info "Solution version:  $CRM_VERSION"
+    log_info "API version:       $API_VERSION"
+    log_info "Frontend version:  $FE_VERSION"
     
     # Build Backend API image
-    local api_tag="crm-api:${CRM_VERSION}"
-    if [[ "$CRM_VERSION" != "latest" ]] && docker images -q "$api_tag" 2>/dev/null | grep -q .; then
+    local api_tag="crm-api:${API_VERSION}"
+    if [[ "$API_VERSION" != "latest" ]] && docker images -q "$api_tag" 2>/dev/null | grep -q .; then
         log_success "Image $api_tag already exists — skipping build"
     elif [[ -f "$SCRIPT_DIR/docker/Dockerfile.backend" ]]; then
         log_info "Building backend API image ($api_tag)..."
@@ -141,8 +167,8 @@ build_images() {
     fi
     
     # Build Frontend image
-    local fe_tag="crm-frontend:${CRM_VERSION}"
-    if [[ "$CRM_VERSION" != "latest" ]] && docker images -q "$fe_tag" 2>/dev/null | grep -q .; then
+    local fe_tag="crm-frontend:${FE_VERSION}"
+    if [[ "$FE_VERSION" != "latest" ]] && docker images -q "$fe_tag" 2>/dev/null | grep -q .; then
         log_success "Image $fe_tag already exists — skipping build"
     elif [[ -f "$SCRIPT_DIR/docker/Dockerfile.frontend" ]]; then
         log_info "Building frontend image ($fe_tag)..."
@@ -171,9 +197,8 @@ save_images() {
     TEMP_DIR="/tmp/crm-deployment-$$"
     mkdir -p "$TEMP_DIR"
     
-    CRM_VERSION=$(get_crm_version)
-    local api_tag="crm-api:${CRM_VERSION}"
-    local fe_tag="crm-frontend:${CRM_VERSION}"
+    local api_tag="crm-api:$(get_component_version api)"
+    local fe_tag="crm-frontend:$(get_component_version frontend)"
     
     log_info "Saving $api_tag image..." >&2
     docker save "$api_tag" -o "$TEMP_DIR/crm-api.tar" || {
