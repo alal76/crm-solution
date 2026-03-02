@@ -450,7 +450,7 @@ public class OrderServiceTests : IDisposable
 
         // Assert
         _mockEventDispatcher.Verify(
-            d => d.DispatchEntityEvent(
+            d => d.DispatchEntityEventAsync(
                 "Order",
                 It.IsAny<int>(),
                 WorkflowTriggerType.OnCreate,
@@ -458,7 +458,8 @@ public class OrderServiceTests : IDisposable
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
-                It.IsAny<string?>()),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -572,7 +573,7 @@ public class OrderServiceTests : IDisposable
 
         // Assert
         _mockEventDispatcher.Verify(
-            d => d.DispatchEntityEvent(
+            d => d.DispatchEntityEventAsync(
                 "Order",
                 order.Id,
                 WorkflowTriggerType.OnDelete,
@@ -580,7 +581,8 @@ public class OrderServiceTests : IDisposable
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>(),
-                It.IsAny<string?>()),
+                It.IsAny<string?>(),
+                It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
