@@ -152,6 +152,7 @@ __pycache__/
 *.pyo
 *.egg-info/
 .pytest_cache/
+test-reports/
 
 # Copilot/AI helper scripts (commit message writers, temp file generators)
 write_commit_msg.py

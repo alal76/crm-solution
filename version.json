@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 80,
+  "patch": 81,
   "lastUpdate": "2026-03-04",
-  "description": "fix(tests): v0.614.80 - Fix two test failure categories: (1) BuiltInSearchProvider.GetHighlights now uses Regex.Replace to preserve original field casing in <mark> tags instead of lowercased query string; (2) Add SKIP_MASTER_DATA_SEEDING guard in Program.cs seeder and ApiTestFactory env var to prevent 100k ZipCode seed hanging WebApplicationFactory startup — reduces 130 controller test timeouts from 10+ min to <20s",
+  "description": "feat(cdt): v0.614.81 - Add pytest-html styled test report: custom CSS with gradient header, Module/Category columns, colour-coded badges; conftest.py centralises sys.path, auto-tags markers, injects CDT version metadata; pytest.ini with strict markers; 496 tests passing",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
