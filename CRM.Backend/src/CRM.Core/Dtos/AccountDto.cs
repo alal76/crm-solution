@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace CRM.Core.Dtos;
 
@@ -256,8 +257,18 @@ public class CreateAccountDto
     public int? YearFounded { get; set; }
 
     // Contact Information
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    [StringLength(200, ErrorMessage = "Email cannot exceed 200 characters")]
     public string Email { get; set; } = string.Empty;
+    
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    [StringLength(200)]
     public string? SecondaryEmail { get; set; }
+    
+    [Required(ErrorMessage = "Phone is required")]
+    [Phone(ErrorMessage = "Invalid phone format")]
+    [StringLength(50, ErrorMessage = "Phone cannot exceed 50 characters")]
     public string Phone { get; set; } = string.Empty;
     public string? MobilePhone { get; set; }
     public string? FaxNumber { get; set; }

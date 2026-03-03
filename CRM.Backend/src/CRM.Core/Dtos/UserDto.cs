@@ -4,6 +4,8 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.ComponentModel.DataAnnotations;
+
 namespace CRM.Core.Dtos;
 
 /// <summary>
@@ -97,26 +99,35 @@ public class CreateUserRequest
     /// <summary>
     /// Optional username (if not provided, email is used as username)
     /// </summary>
+    [StringLength(100, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 100 characters")]
     public string? Username { get; set; }
 
     /// <summary>
     /// User's email address (required, used as username if Username not provided)
     /// </summary>
+    [Required(ErrorMessage = "Email is required")]
+    [EmailAddress(ErrorMessage = "Invalid email format")]
+    [StringLength(200, ErrorMessage = "Email cannot exceed 200 characters")]
     public string Email { get; set; } = string.Empty;
 
     /// <summary>
     /// User's first name (required)
     /// </summary>
+    [Required(ErrorMessage = "First name is required")]
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "First name must be between 1 and 100 characters")]
     public string FirstName { get; set; } = string.Empty;
 
     /// <summary>
     /// User's last name (required)
     /// </summary>
+    [Required(ErrorMessage = "Last name is required")]
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "Last name must be between 1 and 100 characters")]
     public string LastName { get; set; } = string.Empty;
 
     /// <summary>
     /// User's password (optional - if not provided, user will be prompted to set password on first login)
     /// </summary>
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Password must be at least 8 characters")]
     public string? Password { get; set; }
 
     private int _roleId = 2;
