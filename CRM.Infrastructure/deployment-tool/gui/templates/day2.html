@@ -119,6 +119,7 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-secrets"><i class="bi bi-shield-lock"></i> Secrets</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-postinstall"><i class="bi bi-database-gear"></i> Post-Install</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-testrunner"><i class="bi bi-clipboard-check"></i> Test Runner</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-components"><i class="bi bi-puzzle"></i> Components</button></li>
     </ul>
 
     <div class="tab-content">
@@ -522,6 +523,43 @@
                             </div>
                             <div id="tr-history-table"><div class="text-muted small">No test runs yet.</div></div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ Components / Pluggable Architecture Tab ══════════════════════════ -->
+        <div class="tab-pane fade" id="tab-components">
+            <div class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-puzzle me-1"></i><strong>Pluggable Architecture — Provider Management</strong></span>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="loadComponents()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                        <button class="btn btn-sm btn-success" onclick="applyComponents()"><i class="bi bi-check2-circle"></i> Apply to Deployment</button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="comp-loading" class="text-center text-muted p-4">Loading components…</div>
+                    <div id="comp-grid" style="display:none"></div>
+                </div>
+            </div>
+            <!-- Change-provider panel (shown when user picks "Change") -->
+            <div id="comp-change-panel" class="card border-primary mb-3" style="display:none">
+                <div class="card-header bg-primary bg-opacity-10 d-flex justify-content-between">
+                    <span class="fw-semibold text-primary" id="comp-change-title"><i class="bi bi-sliders me-1"></i>Change Provider</span>
+                    <button class="btn-close" onclick="hideChangePanel()"></button>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" for="comp-new-provider">Provider</label>
+                            <select class="form-select" id="comp-new-provider"></select>
+                        </div>
+                        <div class="col-12" id="comp-cfg-fields"></div>
+                    </div>
+                    <div class="mt-3 d-flex gap-2">
+                        <button class="btn btn-primary" onclick="saveComponentSelection()"><i class="bi bi-save me-1"></i>Save to Profile</button>
+                        <button class="btn btn-outline-secondary" onclick="hideChangePanel()">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -1331,6 +1369,7 @@ document.querySelectorAll('#day2Tabs button[data-bs-toggle="tab"]').forEach(btn 
         else if (t === '#tab-rollback') loadSnapshots();
         else if (t === '#tab-postinstall') loadPostInstallStatus();
         else if (t === '#tab-testrunner') loadTestHistory();
+        else if (t === '#tab-components') loadComponents();
     });
 });
 
@@ -1360,6 +1399,183 @@ async function day2SaveDbPassword() {
         document.getElementById('d2DbPassword').value = '';
         document.getElementById('d2DbPasswordConfirm').value = '';
     } catch (e) { show('Error: ' + e.message, 'danger'); }
+}
+
+// ── Components / Pluggable Architecture ────────────────────────────────────
+const _COMP_PROVIDERS = {
+    search:       ['builtin','meilisearch','algolia','typesense'],
+    chat:         ['builtin','chatwoot','intercom','rocketchat'],
+    notification: ['builtin','novu','twilio','sendgrid'],
+    analytics:    ['builtin','superset','metabase','powerbi'],
+    signature:    ['builtin','docuseal','docusign'],
+    ai:           ['ollama','openai','azure_openai','anthropic','gemini','openrouter'],
+    integration:  ['builtin','n8n','zapier','make','workato'],
+};
+const _COMP_LABELS = {
+    search:'Search',chat:'Chat',notification:'Notifications',
+    analytics:'Analytics',signature:'E-Signatures',ai:'AI / LLM',integration:'Integrations'
+};
+const _COMP_CFG_FIELDS = {
+    meilisearch:  [{k:'url',l:'URL',t:'text',ph:'http://crm-meilisearch:7700'},{k:'apiKey',l:'Master API Key',t:'password'}],
+    algolia:      [{k:'appId',l:'App ID',t:'text'},{k:'apiKey',l:'Search API Key',t:'password'},{k:'adminApiKey',l:'Admin API Key',t:'password'}],
+    typesense:    [{k:'url',l:'URL',t:'text',ph:'http://localhost:8108'},{k:'apiKey',l:'API Key',t:'password'}],
+    chatwoot:     [{k:'baseUrl',l:'Base URL',t:'text',ph:'http://crm-chatwoot:3000'},{k:'apiKey',l:'API Token',t:'password'},{k:'accountId',l:'Account ID',t:'text',ph:'1'},{k:'inboxId',l:'Inbox ID',t:'text',ph:'1'}],
+    intercom:     [{k:'appId',l:'App ID',t:'text'},{k:'apiKey',l:'API Key',t:'password'}],
+    rocketchat:   [{k:'url',l:'URL',t:'text',ph:'http://crm-rocketchat:3000'},{k:'adminUser',l:'Admin User',t:'text'},{k:'adminPassword',l:'Admin Password',t:'password'}],
+    novu:         [{k:'apiKey',l:'API Key',t:'password'},{k:'applicationId',l:'App ID',t:'text'},{k:'baseUrl',l:'Self-hosted URL',t:'text',ph:'http://crm-novu:3000'}],
+    twilio:       [{k:'accountSid',l:'Account SID',t:'text'},{k:'authToken',l:'Auth Token',t:'password'},{k:'fromNumber',l:'From Number',t:'text',ph:'+15551234567'}],
+    sendgrid:     [{k:'apiKey',l:'API Key',t:'password'},{k:'fromEmail',l:'From Email',t:'email',ph:'noreply@example.com'}],
+    superset:     [{k:'url',l:'URL',t:'text',ph:'http://crm-superset:8088'},{k:'username',l:'Username',t:'text',ph:'admin'},{k:'password',l:'Password',t:'password'}],
+    metabase:     [{k:'url',l:'URL',t:'text',ph:'http://crm-metabase:3000'},{k:'username',l:'Username',t:'text'},{k:'password',l:'Password',t:'password'}],
+    powerbi:      [{k:'tenantId',l:'Tenant ID',t:'text'},{k:'clientId',l:'Client ID',t:'text'},{k:'clientSecret',l:'Client Secret',t:'password'},{k:'workspaceId',l:'Workspace ID',t:'text'}],
+    docuseal:     [{k:'url',l:'URL',t:'text',ph:'http://crm-docuseal:3000'},{k:'apiKey',l:'API Key',t:'password'},{k:'webhookSecret',l:'Webhook Secret',t:'password'}],
+    docusign:     [{k:'accountId',l:'Account ID',t:'text'},{k:'integrationKey',l:'Integration Key',t:'text'},{k:'baseUrl',l:'Base URL',t:'text',ph:'https://demo.docusign.net/restapi'}],
+    ollama:       [{k:'url',l:'URL',t:'text',ph:'http://crm-ollama:11434'},{k:'model',l:'Model',t:'text',ph:'llama3.1:8b'},{k:'embeddingModel',l:'Embedding Model',t:'text',ph:'nomic-embed-text'}],
+    openai:       [{k:'apiKey',l:'API Key',t:'password'},{k:'model',l:'Model',t:'text',ph:'gpt-4o'}],
+    azure_openai: [{k:'endpoint',l:'Endpoint',t:'text',ph:'https://xxx.openai.azure.com/'},{k:'apiKey',l:'API Key',t:'password'},{k:'deploymentName',l:'Deployment',t:'text',ph:'gpt-4o'}],
+    anthropic:    [{k:'apiKey',l:'API Key',t:'password'},{k:'model',l:'Model',t:'text',ph:'claude-3-5-sonnet-20241022'}],
+    gemini:       [{k:'apiKey',l:'API Key',t:'password'},{k:'model',l:'Model',t:'text',ph:'gemini-1.5-pro'}],
+    openrouter:   [{k:'apiKey',l:'API Key',t:'password'},{k:'model',l:'Default Model',t:'text',ph:'anthropic/claude-3.5-sonnet'}],
+    n8n:          [{k:'baseUrl',l:'Base URL',t:'text',ph:'http://crm-n8n:5678'},{k:'apiKey',l:'API Key',t:'password'},{k:'webhookBaseUrl',l:'Webhook URL',t:'text',ph:'http://crm-n8n:5678/webhook'}],
+    zapier:       [{k:'webhookUrl',l:'Catch Hook URL',t:'text',ph:'https://hooks.zapier.com/hooks/catch/...'}],
+    make:         [{k:'webhookUrl',l:'Webhook URL',t:'text',ph:'https://hook.eu1.make.com/...'},{k:'apiKey',l:'API Token',t:'password'}],
+    workato:      [{k:'webhookUrl',l:'Webhook URL',t:'text',ph:'https://www.workato.com/webhooks/...'},{k:'apiToken',l:'API Token',t:'password'}],
+};
+
+let _compData = {};  // cached status response
+let _changeCat = ''; // which category is being edited
+
+async function loadComponents() {
+    const loading = document.getElementById('comp-loading');
+    const grid = document.getElementById('comp-grid');
+    loading.style.display = 'block';
+    grid.style.display = 'none';
+    try {
+        const r = await fetch('/api/day2/components/status' + _profileQS());
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        _compData = d.components || {};
+        grid.innerHTML = _renderCompGrid(_compData);
+        grid.style.display = 'block';
+        loading.style.display = 'none';
+    } catch(e) {
+        loading.innerHTML = `<div class="text-danger p-3"><i class="bi bi-exclamation-triangle me-1"></i>${e.message}</div>`;
+    }
+}
+
+function _renderCompGrid(data) {
+    const statusBadge = s => {
+        if (!s) return '<span class="badge bg-secondary">N/A</span>';
+        const cls = {running:'success',stopped:'warning',missing:'danger'}[s] || 'secondary';
+        return `<span class="badge bg-${cls}">${s}</span>`;
+    };
+    const providerBadge = p => `<span class="badge rounded-pill" style="background:#667eea;font-size:.7rem">${p}</span>`;
+    let rows = '';
+    for (const [cat, info] of Object.entries(data)) {
+        const label = _COMP_LABELS[cat] || cat;
+        const isBuiltin = info.is_builtin;
+        rows += `
+        <tr>
+            <td class="fw-semibold align-middle">${label}</td>
+            <td class="align-middle">${providerBadge(info.selected)}</td>
+            <td class="align-middle">${isBuiltin ? '<span class="text-muted small">Built-in</span>' : statusBadge(info.container_status)}</td>
+            <td class="align-middle">
+                ${isBuiltin
+                    ? '<span class="badge bg-primary bg-opacity-25 text-primary">Active (Built-in)</span>'
+                    : '<span class="badge bg-success bg-opacity-25 text-success">Enabled</span>'}
+            </td>
+            <td class="align-middle text-end">
+                <button class="btn btn-sm btn-outline-primary" onclick="showChangePanel('${cat}')"><i class="bi bi-pencil me-1"></i>Change</button>
+            </td>
+        </tr>`;
+    }
+    return `<table class="table table-hover mb-0">
+        <thead class="table-light"><tr>
+            <th>Category</th><th>Provider</th><th>Container</th><th>Status</th><th class="text-end">Actions</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function showChangePanel(cat) {
+    _changeCat = cat;
+    const panel = document.getElementById('comp-change-panel');
+    const title = document.getElementById('comp-change-title');
+    const sel   = document.getElementById('comp-new-provider');
+    const fields= document.getElementById('comp-cfg-fields');
+    title.innerHTML = `<i class="bi bi-sliders me-1"></i>Change ${_COMP_LABELS[cat] || cat} Provider`;
+    const providers = _COMP_PROVIDERS[cat] || [];
+    const current   = (_compData[cat] || {}).selected || 'builtin';
+    sel.innerHTML = providers.map(p =>
+        `<option value="${p}" ${p===current?'selected':''}>${p}</option>`).join('');
+    sel.onchange = () => _renderCompCfgFields(cat, sel.value);
+    _renderCompCfgFields(cat, current);
+    panel.style.display = 'block';
+    panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function _renderCompCfgFields(cat, provider) {
+    const fields = _COMP_CFG_FIELDS[provider] || [];
+    const savedCfg = ((_compData[cat] || {}).config) || {};
+    const container = document.getElementById('comp-cfg-fields');
+    if (!fields.length) { container.innerHTML = ''; return; }
+    let html = '<div class="row g-2">';
+    for (const f of fields) {
+        const val = (savedCfg[f.k] || '').replace(/"/g,'&quot;');
+        const inputType = f.t === 'password' ? 'password' : (f.t === 'email' ? 'email' : 'text');
+        const eyeBtn = f.t === 'password'
+            ? `<button type="button" class="btn btn-outline-secondary btn-sm" tabindex="-1"
+                   onclick="this.previousElementSibling.type=(this.previousElementSibling.type==='password'?'text':'password')"><i class="bi bi-eye"></i></button>` : '';
+        const wrap = f.t === 'password' ? '<div class="input-group input-group-sm">' : '';
+        const wrapEnd = f.t === 'password' ? `${eyeBtn}</div>` : '';
+        html += `<div class="col-md-6"><label class="form-label small mb-1" for="comp-field-${f.k}">${f.l}</label>
+            ${wrap}<input type="${inputType}" class="form-control form-control-sm" id="comp-field-${f.k}"
+                placeholder="${f.ph||''}" value="${val}"
+                data-field-key="${f.k}">${wrapEnd}</div>`;
+    }
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function hideChangePanel() {
+    document.getElementById('comp-change-panel').style.display = 'none';
+    _changeCat = '';
+}
+
+async function saveComponentSelection() {
+    const cat = _changeCat;
+    if (!cat) return;
+    const provider = document.getElementById('comp-new-provider').value;
+    const cfg = {};
+    document.querySelectorAll('#comp-cfg-fields [data-field-key]').forEach(el => {
+        if (el.value) cfg[el.dataset.fieldKey] = el.value;
+    });
+    try {
+        const r = await fetch('/api/day2/components/configure', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ profile_name: _selectedProfile, category: cat, provider, config: cfg }),
+        });
+        const d = await r.json();
+        if (!r.ok || d.error) { alert('Error: ' + (d.error || 'Save failed')); return; }
+        showToast?.('Provider saved: ' + provider, 'success');
+        hideChangePanel();
+        loadComponents();
+    } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function applyComponents() {
+    if (!confirm('Apply current provider selections to the running deployment? This will update .env and restart crm-api.')) return;
+    try {
+        const r = await fetch('/api/day2/components/apply', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ profile_name: _selectedProfile }),
+        });
+        const d = await r.json();
+        if (!r.ok || d.error) { alert('Error: ' + (d.error || 'Apply failed')); return; }
+        showToast?.('Provider configuration applied! crm-api restarting…', 'success');
+    } catch(e) { alert('Error: ' + e.message); }
 }
 
 // ── Bootstrap — load profile selector first, then data ────────────────────

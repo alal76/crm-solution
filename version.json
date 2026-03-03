@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 82,
+  "patch": 83,
   "lastUpdate": "2026-03-04",
-  "description": "feat(seed): v0.614.82 - Make sample data seeding idempotent with structured logging: remove 409 guard from SampleDataController, add SeedAllSampleDataWithLogAsync returning per-step results (seeded/skipped/failed with timing); CDT day2.html renders rich step-by-step log panel with summary badges, table, and database statistics",
+  "description": "feat(cdt): v0.614.83 - Profile-aware pluggable architecture setup in CDT — wizard provider credential forms (17 providers: Meilisearch/Algolia/Typesense/Chatwoot/Intercom/RocketChat/Novu/Twilio/SendGrid/Superset/Metabase/PowerBI/DocuSeal/DocuSign/Ollama/OpenAI/AzureOpenAI/Anthropic/Gemini/OpenRouter/n8n/Zapier/Make/Workato); renderProviderConfigForm JS; provider_configs saved in profile; integration provider in review summary; Day-2 Components tab with enable/disable provider management + apply to deployment",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
@@ -16,11 +16,12 @@
       "lastUpdate": "2026-03-02"
     },
     "cdt": {
-      "version": "0.614.64",
-      "lastUpdate": "2026-03-02"
+      "version": "0.614.83",
+      "lastUpdate": "2026-03-04"
     }
   },
   "features": [
+    "v0.614.83: FEAT(cdt): Profile-aware pluggable architecture setup — wizard shows credential config forms per provider (URL/API key/token); 7 new provider cards added (Typesense, RocketChat, Metabase, Gemini, OpenRouter, Workato); provider_configs field saved in profile; integration provider shown in review summary; profile restore re-renders config panels; Day-2 new Components tab with provider grid, container health badges, one-click Change panel, Save-to-Profile + Apply-to-Deployment; 3 backend endpoints (status/configure/apply) with feature-flag and .env generation",
     "v0.614.64: FEAT(cdt): CDT deploy logging enhancements — [LEVEL] prefix badges (INFO/ERROR/WARN/OK/CMD) with color coding, [host] tags on log lines, 0.1s throttle; build server selection (local/remote with SSH); profile artifact storage (save_artifacts/load_artifacts/get_artifact + REST endpoints); AES-256-GCM profile encryption (encrypt_data/decrypt_data); encrypted profile push to deployment target; 327 CDT tests",
     "v0.614.63: FIX(ci-cd): Fix CI/CD backend test failures from Sonar async refactoring — LeadService.DeleteAsync/UpdateAsync now use await DispatchEntityEventAsync; test Verify calls updated in 3 test files (7 total) to match async method signature with CancellationToken",
     "v0.614.62: FIX(frontend): Fix frontend compilation — add ES2021 to tsconfig lib for replaceAll support; add type annotations for implicit-any in ChangeHistoryTimeline, RelatedIncidentsWidget, WorkflowSimulator, errorHandler",

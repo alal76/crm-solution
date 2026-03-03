@@ -529,6 +529,8 @@
         .pv2-card-icon  { font-size:1.4rem; }
         .pv2-card-title { font-size:.85rem; font-weight:700; color:#222; }
         .pv2-card-desc  { font-size:.72rem; color:#555; margin-bottom:6px; line-height:1.3; flex:1; }
+        .pv2-provider-cfg { transition: opacity .2s; }
+        .pv2-provider-cfg:empty { display:none; }
 
 
         /* ── Persistent Sidebar (Decision Stack) ───────────────────── */
@@ -5025,6 +5027,7 @@
                         ai: config.ai_provider || 'ollama',
                         integration: config.integration_provider || 'builtin',
                     },
+                    provider_configs: config.provider_configs || {},
                     wizard_config: config,  // full config for restore
                     wizard_step: currentStep,
                 };
@@ -5164,6 +5167,7 @@
                     <span class="review-k">Analytics</span>    <span class="review-v">${badge(pv('analytics'))}</span>
                     <span class="review-k">Signatures</span>   <span class="review-v">${badge(pv('signature'))}</span>
                     <span class="review-k">AI / LLM</span>     <span class="review-v">${badge(pv('ai'))}</span>
+                    <span class="review-k">Integrations</span> <span class="review-v">${badge(pv('integration'))}</span>
                 </div>
             </div>
             <div class="review-section">
@@ -7629,6 +7633,24 @@ async function applySelectedProfile() {
             if (prov.signature) config.signature_provider = prov.signature;
             if (prov.ai) config.ai_provider = prov.ai;
             if (prov.integration) config.integration_provider = prov.integration;
+            // Restore provider credentials/configs
+            if (p.provider_configs && typeof p.provider_configs === 'object') {
+                config.provider_configs = p.provider_configs;
+            }
+            // Re-render provider config forms for any non-builtin selection
+            ['search','chat','notification','analytics','signature','ai','integration'].forEach(type => {
+                const sel = config[type + '_provider'];
+                if (sel) {
+                    const grid = document.getElementById(type + 'ProviderGrid');
+                    if (grid) {
+                        grid.querySelectorAll('.pv2-card, .provider-option').forEach(el => el.classList.remove('selected'));
+                        const btn = Array.from(grid.querySelectorAll('.pv2-card, .provider-option'))
+                            .find(b => (b.getAttribute('onclick') || '').includes(`'${sel}'`));
+                        if (btn) btn.classList.add('selected');
+                    }
+                    renderProviderConfigForm(type, sel);
+                }
+            });
         }
 
         // Refresh UI to reflect loaded config
