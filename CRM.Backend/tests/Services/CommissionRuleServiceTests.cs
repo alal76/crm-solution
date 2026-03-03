@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
+using CRM.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;

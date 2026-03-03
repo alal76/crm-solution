@@ -10,6 +10,7 @@ using CRM.Infrastructure.AI.SK.Configuration;
 using CRM.Infrastructure.AI.SK.Connectors;
 using CRM.Infrastructure.AI.SK.Services;
 using CRM.Infrastructure.Data;
+using CRM.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;

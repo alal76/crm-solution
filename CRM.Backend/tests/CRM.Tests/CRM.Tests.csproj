@@ -37,10 +37,11 @@
 
   <!-- SK test files re-enabled after source fixes -->
 
-  <!-- Test Logging Infrastructure and Examples -->
+  <!-- Test Logging Infrastructure, Examples, and Shared Helpers -->
   <ItemGroup>
     <Compile Include="..\Infrastructure\**\*.cs" Link="Infrastructure\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\Examples\**\*.cs" Link="Examples\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\Helpers\ServiceTestFixtureBase.cs" Link="Helpers\ServiceTestFixtureBase.cs" />
   </ItemGroup>
 
   <ItemGroup>

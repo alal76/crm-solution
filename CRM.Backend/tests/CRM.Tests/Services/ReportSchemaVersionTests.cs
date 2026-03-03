@@ -8,6 +8,7 @@ using CRM.Core.Dtos.Reports;
 using CRM.Core.Enums;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
+using CRM.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
