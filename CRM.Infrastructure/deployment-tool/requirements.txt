@@ -22,3 +22,8 @@ flask-socketio>=5.3
 cryptography>=42.0
 jinja2>=3.1
 requests>=2.31
+
+# --- Testing --------------------------------------------------------------
+pytest>=9.0
+pytest-html>=4.1
+pytest-metadata>=3.1
