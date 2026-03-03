@@ -75,8 +75,23 @@ public class SampleDataSeederService
 #pragma warning disable CS0618
             if (settings.SampleDataSeeded)
             {
-                _logger.LogInformation("Sample data already seeded — skipping.");
-                return;
+                // Verify the flag isn't stale (left by a previous partial/failed seed)
+                var accountCount = await dbContext.Accounts.CountAsync();
+                var leadCount    = await dbContext.Leads.CountAsync();
+                var oppCount     = await dbContext.Opportunities.CountAsync();
+
+                if (accountCount >= 50 && leadCount >= 50 && oppCount >= 50)
+                {
+                    _logger.LogInformation("Sample data already seeded — skipping.");
+                    return;
+                }
+
+                // Stale flag: data is incomplete — reset and re-seed
+                _logger.LogWarning(
+                    "SampleDataSeeded=true but data is incomplete (accounts={A}, leads={L}, opps={O}). " +
+                    "Resetting flag and re-seeding.", accountCount, leadCount, oppCount);
+                settings.SampleDataSeeded = false;
+                await dbContext.SaveChangesAsync();
             }
 #pragma warning restore CS0618
 
@@ -114,8 +129,23 @@ public class SampleDataSeederService
         var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
         var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
 #pragma warning disable CS0618 // SampleDataSeeded is obsolete but deliberately used by seeder
-        return settings?.SampleDataSeeded ?? false;
+        if (!(settings?.SampleDataSeeded ?? false))
+            return false;
 #pragma warning restore CS0618
+
+        // Flag says seeded — verify minimum data counts to guard against stale flags
+        // left over from a previous failed/partial seed run.
+        var accountCount = await dbContext.Accounts.CountAsync();
+        var leadCount    = await dbContext.Leads.CountAsync();
+        var oppCount     = await dbContext.Opportunities.CountAsync();
+
+        const int MinAccounts     = 50;
+        const int MinLeads        = 50;
+        const int MinOpportunities = 50;
+
+        return accountCount >= MinAccounts
+            && leadCount    >= MinLeads
+            && oppCount     >= MinOpportunities;
     }
 
     /// <summary>

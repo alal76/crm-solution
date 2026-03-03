@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 78,
+  "patch": 79,
   "lastUpdate": "2026-03-03",
-  "description": "fix(seed): v0.614.78 - SampleDataSeeder is now fully idempotent: early-exit when SampleDataSeeded=true, account guard >=1, unique emails with index suffix; controller returns 409 Conflict instead of 500 on duplicate/already-seeded; DbSeed syncs admin password hash from ADMIN_PASSWORD env on every startup",
+  "description": "fix(seed): v0.614.79 - IsSampleDataSeededAsync validates actual data counts (50 accounts/leads/opps min) not just the flag; SeedAllSampleDataAsync auto-resets stale SampleDataSeeded flag and re-seeds when data is incomplete after a previous partial seed",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
