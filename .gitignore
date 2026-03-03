@@ -130,6 +130,7 @@ config/infrastructure.env
 .copilot/
 .chatgpt-cache/
 .claude-cache/
+.claude/
 
 # Backup files from editors
 *.swp
