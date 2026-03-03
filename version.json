@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 86,
-  "lastUpdate": "2026-03-04",
-  "description": "feat(testing): v0.614.86 — Comprehensive test implementation via 4 Opus 4.6 subagents — 647 test methods across 18 files (13 new, 5 enhanced); Phase 1 (Validators) 100% complete (151 tests); Phase 2 (DTOs) 50% complete (261 tests); Phase 4 (Service edge cases) 62.5% complete (235 tests); added DataAnnotations to 4 source DTOs; projected coverage 20.29% → 47.5% (+27.2%); all tests read actual code signatures",
+  "patch": 87,
+  "lastUpdate": "2026-03-03",
+  "description": "docs: v0.614.87 — Comprehensive developer documentation suite via 6 Opus 4.6 research subagents — 7 new guides covering 1M+ LOC: Backend Guide (762K LOC, 1,412 files), Frontend Guide (216K LOC, 612 files), Testing Guide (622 test files, 8K+ tests), CDT Guide (35K LOC, 96 endpoints), Docker Guide (infrastructure & orchestration), Developer Onboarding (complete team guide); Enhanced README with documentation index",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
