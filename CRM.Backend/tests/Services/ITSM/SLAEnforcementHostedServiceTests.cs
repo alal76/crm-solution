@@ -13,6 +13,7 @@ using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
 using CRM.Infrastructure.Services.ITSM;
+using CRM.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
