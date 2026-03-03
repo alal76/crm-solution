@@ -600,7 +600,7 @@ jobs:
           /d:sonar.typescript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
           /d:sonar.links.homepage="https://github.com/alal76/crm-solution" \
           /d:sonar.links.ci="https://github.com/alal76/crm-solution/actions" \
-          /d:sonar.exclusions="e2e-tests/**,scripts/**,docker/**,azure/**,kubernetes/**,CRM.Infrastructure/**,crm-script-runner/**,database/**,.github/**,DEPLOY.sh,deploy-to-dev-server.sh,deploy.sh,build.sh,start-dev.sh,nginx-frontend.conf,**/node_modules/**,**/obj/**,**/bin/**,**/dist/**,**/build/**,**/coverage/**,**/Migrations/**,**/publish/**,**/*.min.js,**/*.generated.cs,CRM.Backend/src/CRM.DatabaseSeeder/**,CRM.Backend/tests/**,**/appsettings.Development.json,**/appsettings.Testing.json,**/appsettings.Production.json,**/appsettings.Performance.json,**/Services/**/appsettings.json,**/appsettings.local.json" \
+          /d:sonar.exclusions="e2e-tests/**,scripts/**,docker/**,azure/**,kubernetes/**,CRM.Infrastructure/**,crm-script-runner/**,database/**,.github/**,DEPLOY.sh,deploy-to-dev-server.sh,deploy.sh,build.sh,start-dev.sh,nginx-frontend.conf,**/node_modules/**,**/obj/**,**/bin/**,**/dist/**,**/build/**,**/coverage/**,**/Migrations/**,**/publish/**,**/*.min.js,**/*.generated.cs,CRM.Backend/src/CRM.DatabaseSeeder/**,CRM.Backend/tests/**,**/appsettings.Development.json,**/appsettings.Testing.json,**/appsettings.Production.json,**/appsettings.Performance.json,**/Services/**/appsettings.json,**/appsettings.local.json,CRM.Backend/src/CRM.Api/appsettings.json" \
           /d:sonar.sources="CRM.Backend/src,CRM.Frontend/src"
 
         dotnet restore CRM.Backend/CRM.sln
