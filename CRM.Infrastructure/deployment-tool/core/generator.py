@@ -294,23 +294,18 @@ class ConfigGenerator:
         ctx: dict = {}
         self._flatten_profile_sections(profile, ctx)
 
-        # Auto-fill missing required secrets — passwords MUST be entered
-        # by the user or recovered from an existing deployment.  Only tokens
-        # and cryptographic keys are auto-generated.
+        # Auto-fill missing secrets.  db_password and db_root_password are
+        # generated when not supplied so that first-time local deployments
+        # work without the user having to manually enter passwords.
+        # Credential-mismatch protection for re-deployments (where an existing
+        # MariaDB volume is present) is enforced at the deploy-route level
+        # BEFORE this method is called.
         if not ctx.get("db_password"):
-            raise ValueError(
-                "Database password is required. Enter it in the Secrets "
-                "& Authentication step or ensure it is recovered from the "
-                "existing deployment."
-            )
+            ctx["db_password"] = self.generate_password(24)
         if not ctx.get("jwt_secret"):
             ctx["jwt_secret"] = self.generate_token(32)
         if not ctx.get("db_root_password"):
-            raise ValueError(
-                "Database root password is required. Enter it in the "
-                "Secrets & Authentication step or ensure it is recovered "
-                "from the existing deployment."
-            )
+            ctx["db_root_password"] = self.generate_password(24)
 
         # Default image registry — empty means local images (no registry prefix)
         ctx.setdefault("image_registry", "")

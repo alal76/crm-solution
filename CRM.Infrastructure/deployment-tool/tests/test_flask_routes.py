@@ -3473,29 +3473,29 @@ class TestBuildServerConfig:
 class TestPasswordRequiredValidation:
     """Verify that _build_context rejects missing passwords."""
 
-    def test_missing_db_password_raises_value_error(self):
-        """_build_context should raise ValueError when db_password is missing."""
+    def test_missing_db_password_auto_generates(self):
+        """_build_context should auto-generate db_password for first-time deploys."""
         from core.generator import ConfigGenerator
         gen = ConfigGenerator()
         profile = {
             "database": {"db_root_password": "roottest", "db_host": "localhost"},
             "security": {"jwt_secret": "x" * 64},
         }
-        import pytest
-        with pytest.raises(ValueError, match="Database password is required"):
-            gen._build_context(profile)
+        ctx = gen._build_context(profile)
+        assert ctx.get("db_password"), "db_password should be auto-generated"
+        assert len(ctx["db_password"]) >= 16, "auto-generated password should be strong"
 
-    def test_missing_db_root_password_raises_value_error(self):
-        """_build_context should raise ValueError when db_root_password is missing."""
+    def test_missing_db_root_password_auto_generates(self):
+        """_build_context should auto-generate db_root_password for first-time deploys."""
         from core.generator import ConfigGenerator
         gen = ConfigGenerator()
         profile = {
             "database": {"db_password": "test", "db_host": "localhost"},
             "security": {"jwt_secret": "x" * 64},
         }
-        import pytest
-        with pytest.raises(ValueError, match="Database root password is required"):
-            gen._build_context(profile)
+        ctx = gen._build_context(profile)
+        assert ctx.get("db_root_password"), "db_root_password should be auto-generated"
+        assert len(ctx["db_root_password"]) >= 16, "auto-generated password should be strong"
 
     def test_jwt_secret_still_auto_generated(self):
         """JWT secret should still auto-generate when missing — it's a token, not a password."""

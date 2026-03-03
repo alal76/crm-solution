@@ -88,36 +88,41 @@ def test_generate_token_default_length():
     assert len(tok) == 64  # default 32 bytes = 64 hex chars
 
 
-def test_build_context_auto_fills_password():
+def test_build_context_preserves_preset_db_password():
+    """Verify that an explicitly set db_password in the profile is kept as-is (not auto-generated)."""
     from core.generator import ConfigGenerator
 
     g = ConfigGenerator()
-    # db_password and db_root_password are now required — an empty password
-    # should raise ValueError instead of silently auto-filling.
     profile = _sample_profile()
+    # _sample_profile already contains _TEST_DB_PASSWORD — confirm it survives context-building
     ctx = g._build_context(profile)
-    assert ctx.get("db_password"), "db_password should be present"
-    assert len(ctx["db_password"]) > 0
+    assert ctx.get("db_password") == _TEST_DB_PASSWORD, (
+        "preset db_password should be preserved, not auto-generated"
+    )
 
 
-def test_build_context_raises_on_missing_db_password():
+def test_build_context_auto_generates_missing_db_password():
     from core.generator import ConfigGenerator
 
     g = ConfigGenerator()
     profile = _sample_profile()
     profile["database"]["db_password"] = ""
-    with pytest.raises(ValueError, match="Database password is required"):
-        g._build_context(profile)
+    ctx = g._build_context(profile)
+    # Should auto-generate a strong password for first-time deploys
+    assert ctx.get("db_password"), "db_password should be auto-generated"
+    assert len(ctx["db_password"]) >= 16
 
 
-def test_build_context_raises_on_missing_db_root_password():
+def test_build_context_auto_generates_missing_db_root_password():
     from core.generator import ConfigGenerator
 
     g = ConfigGenerator()
     profile = _sample_profile()
     profile["database"]["db_root_password"] = ""
-    with pytest.raises(ValueError, match="Database root password is required"):
-        g._build_context(profile)
+    ctx = g._build_context(profile)
+    # Should auto-generate a strong password for first-time deploys
+    assert ctx.get("db_root_password"), "db_root_password should be auto-generated"
+    assert len(ctx["db_root_password"]) >= 16
 
 
 def test_build_context_auto_fills_jwt_secret():
