@@ -69,12 +69,55 @@ public class SampleDataController : CrmControllerBase
     /// </summary>
     [HttpPost("seed")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> SeedSampleData()
     {
-                _logger.LogInformation("Starting sample data seeding...");
-        await _seederService.SeedAllSampleDataAsync();
-        var stats = await _seederService.GetSampleDataStatsAsync();
+        _logger.LogInformation("Starting sample data seeding...");
 
+        // Quick pre-check: return 409 if already seeded without running the seeder
+        var alreadySeeded = await _seederService.IsSampleDataSeededAsync();
+        if (alreadySeeded)
+        {
+            var existingStats = await _seederService.GetSampleDataStatsAsync();
+            return Conflict(new
+            {
+                message = "Sample data is already seeded. Use the Clear & Re-seed option to reset.",
+                success = false,
+                alreadySeeded = true,
+                statistics = new
+                {
+                    products = existingStats.ProductCount,
+                    serviceRequestCategories = existingStats.ServiceRequestCategoryCount,
+                    serviceRequestSubcategories = existingStats.ServiceRequestSubcategoryCount,
+                    serviceRequestTypes = existingStats.ServiceRequestTypeCount,
+                    accounts = existingStats.AccountCount,
+                    contacts = existingStats.ContactCount,
+                    leads = existingStats.LeadCount,
+                    opportunities = existingStats.OpportunityCount,
+                    sampleUsers = existingStats.SampleUserCount
+                }
+            });
+        }
+
+        try
+        {
+            await _seederService.SeedAllSampleDataAsync();
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+            when (ex.InnerException?.Message.Contains("Duplicate entry", StringComparison.OrdinalIgnoreCase) == true
+               || ex.InnerException?.Message.Contains("UNIQUE constraint", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            _logger.LogError(ex, "Sample data seeding failed due to duplicate key — data may be partially seeded.");
+            return Conflict(new
+            {
+                message = "Seeding failed: some records already exist in the database (duplicate key). " +
+                          "Clear sample data first, then re-seed.",
+                success = false,
+                error = ex.InnerException?.Message
+            });
+        }
+
+        var stats = await _seederService.GetSampleDataStatsAsync();
         return Ok(new
         {
             message = "Sample data seeded successfully",

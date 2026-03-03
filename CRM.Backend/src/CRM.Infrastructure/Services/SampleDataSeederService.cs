@@ -72,6 +72,14 @@ public class SampleDataSeederService
                 await dbContext.SaveChangesAsync();
             }
 
+#pragma warning disable CS0618
+            if (settings.SampleDataSeeded)
+            {
+                _logger.LogInformation("Sample data already seeded — skipping.");
+                return;
+            }
+#pragma warning restore CS0618
+
             // Seed in order to maintain relationships
             await SeedSampleUsersToContextAsync(dbContext);
             await SeedProductsToContextAsync(dbContext);
@@ -1363,9 +1371,9 @@ public class SampleDataSeederService
         _logger.LogInformation("Seeding sample accounts...");
 
         var existingAccounts = await context.Accounts.CountAsync();
-        if (existingAccounts >= 50)
+        if (existingAccounts >= 1)
         {
-            _logger.LogInformation("Accounts already exist. Skipping...");
+            _logger.LogInformation("Accounts already exist ({Count}). Skipping...", existingAccounts);
             return;
         }
 
@@ -1382,7 +1390,7 @@ public class SampleDataSeederService
             {
                 Category = AccountCategory.Organization,
                 Company = $"{prefix} {suffix}",
-                Email = $"info@{prefix.ToLower()}{suffix.ToLower()}.com",
+                Email = $"info@{prefix.ToLower()}{suffix.ToLower()}{i}.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
                 Industry = industries[_random.Next(industries.Length)],
                 AccountType = (AccountType)_random.Next(1, 5),
@@ -1406,7 +1414,7 @@ public class SampleDataSeederService
                 Category = AccountCategory.Individual,
                 FirstName = firstName,
                 LastName = lastName,
-                Email = $"{firstName.ToLower()}.{lastName.ToLower()}@email.com",
+                Email = $"{firstName.ToLower()}.{lastName.ToLower()}{i + 70}@email.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
                 Territory = States[cityIndex],  // Use Territory field for state-like info
                 Region = "USA",

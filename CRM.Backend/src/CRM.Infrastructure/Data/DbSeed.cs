@@ -147,10 +147,22 @@ public class DbSeed
             context.Users.Add(adminUser);
             await context.SaveChangesAsync();
         }
-        else if (adminUser.PrimaryGroupId != sysAdminGroup.Id)
+        else
         {
-            // Ensure existing admin user has SysAdmin as primary group
-            adminUser.PrimaryGroupId = sysAdminGroup.Id;
+            // Always sync the password hash from the ADMIN_PASSWORD env var on startup.
+            // This ensures that re-deployments with a new password take effect without
+            // manual DB intervention.
+            if (!BCrypt.Net.BCrypt.Verify(adminPassword, adminUser.PasswordHash))
+            {
+                adminUser.PasswordHash = HashPassword(adminPassword);
+                adminUser.UpdatedAt = DateTime.UtcNow;
+            }
+
+            if (adminUser.PrimaryGroupId != sysAdminGroup.Id)
+            {
+                adminUser.PrimaryGroupId = sysAdminGroup.Id;
+            }
+
             await context.SaveChangesAsync();
         }
 
