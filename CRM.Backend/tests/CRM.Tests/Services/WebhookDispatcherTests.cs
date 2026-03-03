@@ -23,26 +23,19 @@ namespace CRM.Tests.Services;
 /// operations are handled by WebhookManagementService which is tested here.
 /// Covers: CRUD, delivery tracking, retry, toggle, test dispatch.
 /// </summary>
-public class WebhookDispatcherTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<WebhookManagementService>> _mockLogger;
-    private readonly WebhookManagementService _service;
+public class WebhookDispatcherTests : ServiceTestFixtureBase<WebhookManagementService>
+{    private readonly WebhookManagementService _service;
 
     private readonly List<WebhookSubscription> _subscriptions;
     private readonly List<WebhookDelivery> _deliveries;
 
     public WebhookDispatcherTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<WebhookManagementService>>();
-
-        _subscriptions = new List<WebhookSubscription>();
+    {        _subscriptions = new List<WebhookSubscription>();
         _deliveries = new List<WebhookDelivery>();
 
         SetupMockDbSets();
 
-        _service = new WebhookManagementService(_mockContext.Object, _mockLogger.Object);
+        _service = new WebhookManagementService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupMockDbSets()
@@ -50,9 +43,9 @@ public class WebhookDispatcherTests
         var mockSubs = MockDbSetFactory.CreateMockDbSet(_subscriptions);
         var mockDeliveries = MockDbSetFactory.CreateMockDbSet(_deliveries);
 
-        _mockContext.Setup(c => c.WebhookSubscriptions).Returns(mockSubs.Object);
-        _mockContext.Setup(c => c.WebhookDeliveries).Returns(mockDeliveries.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.WebhookSubscriptions).Returns(mockSubs.Object);
+        MockContext.Setup(c => c.WebhookDeliveries).Returns(mockDeliveries.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private void RefreshMockDbSets()
@@ -60,8 +53,8 @@ public class WebhookDispatcherTests
         var mockSubs = MockDbSetFactory.CreateMockDbSet(_subscriptions);
         var mockDeliveries = MockDbSetFactory.CreateMockDbSet(_deliveries);
 
-        _mockContext.Setup(c => c.WebhookSubscriptions).Returns(mockSubs.Object);
-        _mockContext.Setup(c => c.WebhookDeliveries).Returns(mockDeliveries.Object);
+        MockContext.Setup(c => c.WebhookSubscriptions).Returns(mockSubs.Object);
+        MockContext.Setup(c => c.WebhookDeliveries).Returns(mockDeliveries.Object);
     }
 
     // ========================================================================
@@ -78,14 +71,14 @@ public class WebhookDispatcherTests
     public void Constructor_ShouldThrow_WhenContextIsNull()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new WebhookManagementService(null!, _mockLogger.Object));
+            new WebhookManagementService(null!, MockLogger.Object));
     }
 
     [Fact]
     public void Constructor_ShouldThrow_WhenLoggerIsNull()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new WebhookManagementService(_mockContext.Object, null!));
+            new WebhookManagementService(MockContext.Object, null!));
     }
 
     // ========================================================================
@@ -206,7 +199,7 @@ public class WebhookDispatcherTests
         result.Should().NotBeNull();
         result.Url.Should().Be("https://endpoint.example.com/webhook");
         result.IsActive.Should().BeTrue();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -309,7 +302,7 @@ public class WebhookDispatcherTests
         result.Should().NotBeNull();
         result.Url.Should().Be("https://new.example.com/hook");
         result.IsActive.Should().BeFalse();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -339,7 +332,7 @@ public class WebhookDispatcherTests
         // Assert
         result.Should().BeTrue();
         _subscriptions[0].IsDeleted.Should().BeTrue();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -369,7 +362,7 @@ public class WebhookDispatcherTests
         // Assert — DispatchAsync_ShouldRetryOnTransientFailure & state tracking
         result.Should().NotBeNull();
         _subscriptions[0].IsActive.Should().BeFalse();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -424,7 +417,7 @@ public class WebhookDispatcherTests
         // Verify delivery was tracked
         _deliveries.Should().HaveCount(1);
         _deliveries[0].EventType.Should().Be("test.ping");
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -486,7 +479,7 @@ public class WebhookDispatcherTests
         result.Should().NotBeNull();
         result.Id.Should().Be(1);
         result.AttemptNumber.Should().BeGreaterThan(0);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]

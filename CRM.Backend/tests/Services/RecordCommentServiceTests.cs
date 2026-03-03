@@ -16,17 +16,11 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class RecordCommentServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<RecordCommentService>> _mockLogger;
-    private readonly RecordCommentService _service;
+public class RecordCommentServiceTests : ServiceTestFixtureBase<RecordCommentService>
+{    private readonly RecordCommentService _service;
 
     public RecordCommentServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<RecordCommentService>>();
-        _service = new RecordCommentService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new RecordCommentService(MockContext.Object, MockLogger.Object);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
@@ -39,9 +33,9 @@ public class RecordCommentServiceTests
         var mockComments = MockDbSetFactory.CreateMockDbSet(comments);
         var mockUsers = MockDbSetFactory.CreateMockDbSet(users);
 
-        _mockContext.Setup(c => c.RecordComments).Returns(mockComments.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUsers.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.RecordComments).Returns(mockComments.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUsers.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private static RecordComment CreateComment(
@@ -189,9 +183,9 @@ public class RecordCommentServiceTests
 
         var mockComments = MockDbSetFactory.CreateMockDbSet(comments);
         var mockUsers = MockDbSetFactory.CreateMockDbSet(new List<User> { user });
-        _mockContext.Setup(c => c.RecordComments).Returns(mockComments.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUsers.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.RecordComments).Returns(mockComments.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUsers.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Simulate add by capturing what is added
         RecordComment? captured = null;
@@ -228,9 +222,9 @@ public class RecordCommentServiceTests
 
         var mockComments = MockDbSetFactory.CreateMockDbSet(comments);
         var mockUsers = MockDbSetFactory.CreateMockDbSet(new List<User> { user });
-        _mockContext.Setup(c => c.RecordComments).Returns(mockComments.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUsers.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.RecordComments).Returns(mockComments.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUsers.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         int? capturedParentId = -1;
         mockComments.Setup(m => m.Add(It.IsAny<RecordComment>()))

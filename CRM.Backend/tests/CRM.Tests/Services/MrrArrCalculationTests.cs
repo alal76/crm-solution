@@ -19,11 +19,8 @@ namespace CRM.Tests.Services;
 /// Unit tests for MRR (Monthly Recurring Revenue) and ARR (Annual Recurring Revenue) calculations.
 /// TODO-SALES006-043: Tests for calculation precision, aggregation, and edge cases.
 /// </summary>
-public class MrrArrCalculationTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<SubscriptionService>> _mockLogger;
-    private readonly SubscriptionService _service;
+public class MrrArrCalculationTests : ServiceTestFixtureBase<SubscriptionService>
+{    private readonly SubscriptionService _service;
 
     private readonly List<Subscription> _subscriptions;
     private readonly List<Invoice> _invoices;
@@ -32,11 +29,7 @@ public class MrrArrCalculationTests
     private readonly List<Order> _orders;
 
     public MrrArrCalculationTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<SubscriptionService>>();
-
-        _subscriptions = new List<Subscription>();
+    {        _subscriptions = new List<Subscription>();
         _invoices = new List<Invoice>();
         _usages = new List<SubscriptionUsage>();
         _usageLimits = new List<SubscriptionUsageLimit>();
@@ -44,7 +37,7 @@ public class MrrArrCalculationTests
 
         SetupMockContext();
 
-        _service = new SubscriptionService(_mockContext.Object, _mockLogger.Object);
+        _service = new SubscriptionService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupMockContext()
@@ -63,12 +56,12 @@ public class MrrArrCalculationTests
                 return ValueTask.FromResult(_subscriptions.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
-        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubscriptions.Object);
-        _mockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
-        _mockContext.Setup(c => c.SubscriptionUsages).Returns(mockUsages.Object);
-        _mockContext.Setup(c => c.SubscriptionUsageLimits).Returns(mockUsageLimits.Object);
-        _mockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Subscriptions).Returns(mockSubscriptions.Object);
+        MockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
+        MockContext.Setup(c => c.SubscriptionUsages).Returns(mockUsages.Object);
+        MockContext.Setup(c => c.SubscriptionUsageLimits).Returns(mockUsageLimits.Object);
+        MockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private Subscription CreateSubscription(int id, decimal mrr, SubscriptionStatus status = SubscriptionStatus.Active)

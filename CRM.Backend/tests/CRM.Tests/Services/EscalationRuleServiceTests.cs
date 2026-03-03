@@ -26,26 +26,21 @@ namespace CRM.Tests.Services;
 /// DbContext.Set&lt;T&gt;() which is not directly on the ICrmDbContext interface and would
 /// require an in-memory database setup.
 /// </summary>
-public class EscalationRuleServiceTests
+public class EscalationRuleServiceTests : ServiceTestFixtureBase<EscalationRuleAdminService>
 {
     private readonly Mock<IRepository<EscalationRule>> _mockRuleRepo;
     private readonly Mock<IRepository<ServiceRequest>> _mockSrRepo;
-    private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<EscalationRuleAdminService>> _mockLogger;
-    private readonly EscalationRuleAdminService _service;
+    private readonly Mock<ICrmDbContext> _mockDbContext;    private readonly EscalationRuleAdminService _service;
 
     public EscalationRuleServiceTests()
     {
         _mockRuleRepo = new Mock<IRepository<EscalationRule>>();
         _mockSrRepo = new Mock<IRepository<ServiceRequest>>();
-        _mockDbContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<EscalationRuleAdminService>>();
-
-        _service = new EscalationRuleAdminService(
+        _mockDbContext = new Mock<ICrmDbContext>();        _service = new EscalationRuleAdminService(
             _mockRuleRepo.Object,
             _mockSrRepo.Object,
             _mockDbContext.Object,
-            _mockLogger.Object);
+            MockLogger.Object);
     }
 
     // ========================================================================

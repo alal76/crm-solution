@@ -19,34 +19,27 @@ namespace CRM.Tests.Services;
 /// Unit tests for LeadQualificationService (TODO-CRM002-08).
 /// Covers BANT scoring, MEDDIC scoring, qualification levels, and edge cases.
 /// </summary>
-public class LeadQualificationServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<LeadQualificationService>> _mockLogger;
-    private readonly LeadQualificationService _service;
+public class LeadQualificationServiceTests : ServiceTestFixtureBase<LeadQualificationService>
+{    private readonly LeadQualificationService _service;
     private readonly List<Lead> _leads;
 
     public LeadQualificationServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<LeadQualificationService>>();
-
-        _leads = new List<Lead>();
+    {        _leads = new List<Lead>();
         Refresh();
 
-        _mockContext
+        MockContext
             .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
         _service = new LeadQualificationService(
-            _mockContext.Object,
-            _mockLogger.Object);
+            MockContext.Object,
+            MockLogger.Object);
     }
 
     private void Refresh()
     {
         var mockLeads = MockDbSetFactory.CreateMockDbSet(_leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockLeads.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockLeads.Object);
     }
 
     // ─── ScoreWithBANTAsync ───────────────────────────────────────────────────

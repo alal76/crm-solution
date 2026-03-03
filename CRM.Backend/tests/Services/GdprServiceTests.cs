@@ -40,20 +40,14 @@ namespace CRM.Tests.Services;
 /// Unit tests for GdprService (BACK-014).
 /// Tests GDPR access logging and personal data export.
 /// </summary>
-public class GdprServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<GdprService>> _mockLogger;
-    private readonly GdprService _service;
+public class GdprServiceTests : ServiceTestFixtureBase<GdprService>
+{    private readonly GdprService _service;
 
     public GdprServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<GdprService>>();
-        _service = new GdprService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new GdprService(MockContext.Object, MockLogger.Object);
 
         // Default SaveChanges succeeds.
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
     }
 
@@ -66,7 +60,7 @@ public class GdprServiceTests
     {
         // Arrange
         var mockLogsSet = MockDbSetFactory.CreateMockDbSet(new List<GdprAccessLog>());
-        _mockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogsSet.Object);
+        MockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogsSet.Object);
 
         // Act
         await _service.LogAccessAsync(
@@ -78,7 +72,7 @@ public class GdprServiceTests
             notes: "User requested export");
 
         // Assert
-        _mockContext.Verify(
+        MockContext.Verify(
             c => c.SaveChangesAsync(It.IsAny<CancellationToken>()),
             Times.Once);
     }
@@ -91,7 +85,7 @@ public class GdprServiceTests
         var mockLogsSet = MockDbSetFactory.CreateMockDbSet(capturedLogs);
         mockLogsSet.Setup(s => s.Add(It.IsAny<GdprAccessLog>()))
             .Callback<GdprAccessLog>(capturedLogs.Add);
-        _mockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogsSet.Object);
+        MockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogsSet.Object);
 
         // Act
         await _service.LogAccessAsync(
@@ -115,7 +109,7 @@ public class GdprServiceTests
         var mockLogsSet = MockDbSetFactory.CreateMockDbSet(capturedLogs);
         mockLogsSet.Setup(s => s.Add(It.IsAny<GdprAccessLog>()))
             .Callback<GdprAccessLog>(capturedLogs.Add);
-        _mockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogsSet.Object);
+        MockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogsSet.Object);
 
         await _service.LogAccessAsync(1, "Contact", 1, "Export", "127.0.0.1");
 
@@ -132,10 +126,10 @@ public class GdprServiceTests
     {
         // Arrange — no contact in DB; we just want a valid export object back.
         var mockContacts = MockDbSetFactory.CreateMockDbSet(new List<Contact>());
-        _mockContext.Setup(c => c.Contacts).Returns(mockContacts.Object);
+        MockContext.Setup(c => c.Contacts).Returns(mockContacts.Object);
 
         var mockLogs = MockDbSetFactory.CreateMockDbSet(new List<GdprAccessLog>());
-        _mockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
+        MockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
 
         // Act
         var export = await _service.ExportPersonalDataAsync("contact", 99);
@@ -160,10 +154,10 @@ public class GdprServiceTests
             PhonePrimary = "555-0199",
         };
         var mockContacts = MockDbSetFactory.CreateMockDbSet(new List<Contact> { contact });
-        _mockContext.Setup(c => c.Contacts).Returns(mockContacts.Object);
+        MockContext.Setup(c => c.Contacts).Returns(mockContacts.Object);
 
         var mockLogs = MockDbSetFactory.CreateMockDbSet(new List<GdprAccessLog>());
-        _mockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
+        MockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
 
         // Act
         var export = await _service.ExportPersonalDataAsync("contact", 42);
@@ -178,7 +172,7 @@ public class GdprServiceTests
     {
         // Arrange — unknown type; service logs warning and returns skeleton export.
         var mockLogs = MockDbSetFactory.CreateMockDbSet(new List<GdprAccessLog>());
-        _mockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
+        MockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
 
         // Act
         var export = await _service.ExportPersonalDataAsync("widget", 1);
@@ -196,7 +190,7 @@ public class GdprServiceTests
     public async Task GetAccessLogsAsync_ShouldReturnEmpty_WhenNoLogsExistForSubject()
     {
         var mockLogs = MockDbSetFactory.CreateMockDbSet(new List<GdprAccessLog>());
-        _mockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
+        MockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
 
         var result = await _service.GetAccessLogsAsync("contact", 99);
 
@@ -227,7 +221,7 @@ public class GdprServiceTests
             CreatedAt = DateTime.UtcNow.AddHours(-2),
         };
         var mockLogs = MockDbSetFactory.CreateMockDbSet(new List<GdprAccessLog> { log, otherLog });
-        _mockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
+        MockContext.Setup(c => c.GdprAccessLogs).Returns(mockLogs.Object);
 
         var result = await _service.GetAccessLogsAsync("contact", 7);
 

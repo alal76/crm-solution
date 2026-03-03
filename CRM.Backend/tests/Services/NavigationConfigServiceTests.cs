@@ -18,7 +18,7 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class NavigationConfigServiceTests
+public class NavigationConfigServiceTests : ServiceTestFixtureBase<NavigationConfigService>
 {
     private readonly Mock<IFeatureManager> _featureManager = new();
     private readonly IConfiguration _configuration;

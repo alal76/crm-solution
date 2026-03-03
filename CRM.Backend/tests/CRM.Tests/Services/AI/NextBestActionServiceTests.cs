@@ -23,24 +23,18 @@ namespace CRM.Tests.Services.AI;
 /// Unit tests for NextBestActionService (TODO-AI-04).
 /// Covers: account not found → empty; no opportunities → CreateOpportunity; long no contact → ScheduleCall.
 /// </summary>
-public class NextBestActionServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<NextBestActionService>> _mockLogger;
-    private readonly NextBestActionService _sut;
+public class NextBestActionServiceTests : ServiceTestFixtureBase<NextBestActionService>
+{    private readonly NextBestActionService _sut;
 
     public NextBestActionServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<NextBestActionService>>();
-        _sut = new NextBestActionService(_mockContext.Object, _mockLogger.Object);
+    {        _sut = new NextBestActionService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public async Task GetRecommendationsAsync_ShouldReturnEmpty_WhenAccountNotFound()
     {
         // Arrange
-        _mockContext.Setup(c => c.Accounts)
+        MockContext.Setup(c => c.Accounts)
             .Returns(MockDbSetFactory.CreateMockDbSet(new List<Account>()).Object);
 
         // Act
@@ -62,10 +56,10 @@ public class NextBestActionServiceTests
         var opportunities = new List<Opportunity>();
         var tickets = new List<ServiceRequest>();
 
-        _mockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
-        _mockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
-        _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opportunities).Object);
-        _mockContext.Setup(c => c.ServiceRequests).Returns(MockDbSetFactory.CreateMockDbSet(tickets).Object);
+        MockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
+        MockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opportunities).Object);
+        MockContext.Setup(c => c.ServiceRequests).Returns(MockDbSetFactory.CreateMockDbSet(tickets).Object);
 
         // Act
         var result = (await _sut.GetRecommendationsAsync(1)).ToList();
@@ -91,10 +85,10 @@ public class NextBestActionServiceTests
         };
         var tickets = new List<ServiceRequest>();
 
-        _mockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
-        _mockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
-        _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opportunities).Object);
-        _mockContext.Setup(c => c.ServiceRequests).Returns(MockDbSetFactory.CreateMockDbSet(tickets).Object);
+        MockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
+        MockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opportunities).Object);
+        MockContext.Setup(c => c.ServiceRequests).Returns(MockDbSetFactory.CreateMockDbSet(tickets).Object);
 
         // Act
         var result = (await _sut.GetRecommendationsAsync(2)).ToList();

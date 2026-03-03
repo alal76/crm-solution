@@ -20,22 +20,17 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class FeatureFlagManagementServiceTests
+public class FeatureFlagManagementServiceTests : ServiceTestFixtureBase<FeatureFlagManagementService>
 {
     private readonly Mock<ICrmDbContext> _mockDbContext;
     private readonly Mock<IFeatureManager> _mockFeatureManager;
-    private readonly Mock<IConfiguration> _mockConfiguration;
-    private readonly Mock<ILogger<FeatureFlagManagementService>> _mockLogger;
-    private readonly FeatureFlagManagementService _service;
+    private readonly Mock<IConfiguration> _mockConfiguration;    private readonly FeatureFlagManagementService _service;
 
     public FeatureFlagManagementServiceTests()
     {
         _mockDbContext = new Mock<ICrmDbContext>();
         _mockFeatureManager = new Mock<IFeatureManager>();
-        _mockConfiguration = new Mock<IConfiguration>();
-        _mockLogger = new Mock<ILogger<FeatureFlagManagementService>>();
-
-        // Setup mock configuration to return proper values for GetValue extension methods
+        _mockConfiguration = new Mock<IConfiguration>();        // Setup mock configuration to return proper values for GetValue extension methods
         // Return null for rollout percentages/targeting so defaults are used
         // Return "BuiltIn" only for provider type sections (Providers:{category}:Type)
         _mockConfiguration.Setup(c => c.GetSection(It.Is<string>(k => k.StartsWith("Providers:") && k.EndsWith(":Type"))))
@@ -59,7 +54,7 @@ public class FeatureFlagManagementServiceTests
             _mockDbContext.Object,
             _mockFeatureManager.Object,
             _mockConfiguration.Object,
-            _mockLogger.Object);
+            MockLogger.Object);
     }
 
     [Fact]
@@ -228,15 +223,15 @@ public class FeatureFlagManagementServiceTests
 public class UserInterfaceServiceTests
 {
     private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<UserInterfaceService>> _mockLogger;
+    private readonly Mock<ILogger<UserInterfaceService>> MockLogger;
     private readonly UserInterfaceService _service;
 
     public UserInterfaceServiceTests()
     {
         _mockDbContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<UserInterfaceService>>();
+        MockLogger = new Mock<ILogger<UserInterfaceService>>();
 
-        _service = new UserInterfaceService(_mockDbContext.Object, _mockLogger.Object);
+        _service = new UserInterfaceService(_mockDbContext.Object, MockLogger.Object);
     }
 
     [Fact]
@@ -347,19 +342,19 @@ public class UserInterfaceServiceTests
 public class PerformanceOptimizationServiceTests
 {
     private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<PerformanceOptimizationService>> _mockLogger;
+    private readonly Mock<ILogger<PerformanceOptimizationService>> MockLogger;
     private readonly Mock<IDistributedCache> _mockCache;
     private readonly PerformanceOptimizationService _service;
 
     public PerformanceOptimizationServiceTests()
     {
         _mockDbContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<PerformanceOptimizationService>>();
+        MockLogger = new Mock<ILogger<PerformanceOptimizationService>>();
         _mockCache = new Mock<IDistributedCache>();
 
         _service = new PerformanceOptimizationService(
             _mockDbContext.Object,
-            _mockLogger.Object,
+            MockLogger.Object,
             _mockCache.Object);
     }
 

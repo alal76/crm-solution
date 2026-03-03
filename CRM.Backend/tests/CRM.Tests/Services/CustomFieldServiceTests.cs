@@ -23,16 +23,9 @@ namespace CRM.Tests.Services;
 /// Unit tests for CustomFieldValidationService.
 /// Verifies required, regex, and dropdown validation rules.
 /// </summary>
-public class CustomFieldServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CustomFieldValidationService>> _mockLogger;
-
-    public CustomFieldServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CustomFieldValidationService>>();
-    }
+public class CustomFieldServiceTests : ServiceTestFixtureBase<CustomFieldValidationService>
+{    public CustomFieldServiceTests()
+    {    }
 
     /// <summary>
     /// Helper: serialises an anonymous definition into the format stored by the service.
@@ -43,9 +36,9 @@ public class CustomFieldServiceTests
     private CustomFieldValidationService BuildService(IEnumerable<CustomField> customFields)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(new List<CustomField>(customFields));
-        _mockContext.Setup(c => c.CustomFields).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        return new CustomFieldValidationService(_mockContext.Object, _mockLogger.Object);
+        MockContext.Setup(c => c.CustomFields).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        return new CustomFieldValidationService(MockContext.Object, MockLogger.Object);
     }
 
     // ─────────────────────────────────────────────────────────────────────

@@ -20,7 +20,7 @@ namespace CRM.SystemModule.Tests.Controllers;
 /// Unit tests for Users controller functionality.
 /// Tests user API endpoints behavior at the service level.
 /// </summary>
-public class UsersControllerTests
+public class UsersControllerTests : ServiceTestFixtureBase<UserService>
 {
     private readonly Mock<ICrmDbContext> _dbContextMock;
     private readonly Mock<ILogger<UserService>> _loggerMock;

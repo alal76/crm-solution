@@ -16,17 +16,11 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class ContractServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<ContractService>> _mockLogger;
-    private readonly ContractService _service;
+public class ContractServiceTests : ServiceTestFixtureBase<ContractService>
+{    private readonly ContractService _service;
 
     public ContractServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ContractService>>();
-        _service = new ContractService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new ContractService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupDbSets(
@@ -42,15 +36,15 @@ public class ContractServiceTests
         mockContracts.Setup(m => m.Add(It.IsAny<Contract>())).Callback<Contract>(e => contracts.Add(e));
         mockContracts.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
             .Returns<object[], CancellationToken>((keys, _) => mockContracts.Object.FindAsync(keys));
-        _mockContext.Setup(c => c.Contracts).Returns(mockContracts.Object);
+        MockContext.Setup(c => c.Contracts).Returns(mockContracts.Object);
 
         var mockQuotes = MockDbSetFactory.CreateMockDbSet(quotes);
-        _mockContext.Setup(c => c.Quotes).Returns(mockQuotes.Object);
+        MockContext.Setup(c => c.Quotes).Returns(mockQuotes.Object);
 
         var mockOrders = MockDbSetFactory.CreateMockDbSet(orders);
-        _mockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
+        MockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
 
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private static Contract CreateTestContract(

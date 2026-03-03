@@ -18,7 +18,7 @@ namespace CRM.SystemModule.Tests.Controllers;
 /// Unit tests for RBAC controller functionality.
 /// Tests role and permission API endpoints behavior at the service level.
 /// </summary>
-public class RolesControllerTests
+public class RolesControllerTests : ServiceTestFixtureBase<RBACService>
 {
     private readonly Mock<ICrmDbContext> _dbContextMock;
     private readonly Mock<IPermissionCacheService> _cacheMock;

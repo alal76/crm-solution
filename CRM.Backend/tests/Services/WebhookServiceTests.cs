@@ -28,19 +28,13 @@ namespace CRM.Tests.Services;
 /// Comprehensive unit tests for WebhookService (30+ tests)
 /// Covers webhook creation, delivery, testing, and verification
 /// </summary>
-public class WebhookServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<WebhookService>> _mockLogger;
-    private readonly Mock<IConfiguration> _mockConfiguration;
+public class WebhookServiceTests : ServiceTestFixtureBase<WebhookService>
+{    private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly WebhookService _webhookService;
 
     public WebhookServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<WebhookService>>();
-        _mockConfiguration = new Mock<IConfiguration>();
-        _webhookService = new WebhookService(_mockContext.Object, _mockLogger.Object, _mockConfiguration.Object);
+    {        _mockConfiguration = new Mock<IConfiguration>();
+        _webhookService = new WebhookService(MockContext.Object, MockLogger.Object, _mockConfiguration.Object);
     }
 
     #region Webhook Ingestion Tests
@@ -61,7 +55,7 @@ public class WebhookServiceTests
         // Mock Accounts DbSet (async-compatible) - no matching account
         var accountList = new List<Account>();
         var mockAccountDbSet = MockDbSetFactory.CreateMockDbSet(accountList);
-        _mockContext.Setup(x => x.Accounts).Returns(mockAccountDbSet.Object);
+        MockContext.Setup(x => x.Accounts).Returns(mockAccountDbSet.Object);
 
         // Mock Contacts DbSet (async-compatible)
         var contactList = new List<CRM.Core.Models.Contact> {
@@ -73,19 +67,19 @@ public class WebhookServiceTests
             }
         };
         var mockContactDbSet = MockDbSetFactory.CreateMockDbSet(contactList);
-        _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+        MockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
 
         // Mock Leads DbSet (async-compatible) - for lead creation
         var leadList = new List<Lead>();
         var mockLeadDbSet = MockDbSetFactory.CreateMockDbSet(leadList);
-        _mockContext.Setup(x => x.Leads).Returns(mockLeadDbSet.Object);
+        MockContext.Setup(x => x.Leads).Returns(mockLeadDbSet.Object);
 
         // Mock Interactions DbSet (async-compatible)
         var interactionList = new List<Interaction>();
         var mockInteractionDbSet = MockDbSetFactory.CreateMockDbSet(interactionList);
-        _mockContext.Setup(x => x.Interactions).Returns(mockInteractionDbSet.Object);
+        MockContext.Setup(x => x.Interactions).Returns(mockInteractionDbSet.Object);
 
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
         // Act
@@ -112,7 +106,7 @@ public class WebhookServiceTests
         // Mock Accounts DbSet (async-compatible) - no matching account
         var accountList = new List<Account>();
         var mockAccountDbSet = MockDbSetFactory.CreateMockDbSet(accountList);
-        _mockContext.Setup(x => x.Accounts).Returns(mockAccountDbSet.Object);
+        MockContext.Setup(x => x.Accounts).Returns(mockAccountDbSet.Object);
 
         // Mock Contacts DbSet (async-compatible)
         var contactList = new List<CRM.Core.Models.Contact> {
@@ -124,19 +118,19 @@ public class WebhookServiceTests
             }
         };
         var mockContactDbSet = MockDbSetFactory.CreateMockDbSet(contactList);
-        _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+        MockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
 
         // Mock CommunicationMessages DbSet (async-compatible)
         var messageList = new List<CommunicationMessage>();
         var mockMessageDbSet = MockDbSetFactory.CreateMockDbSet(messageList);
-        _mockContext.Setup(x => x.CommunicationMessages).Returns(mockMessageDbSet.Object);
+        MockContext.Setup(x => x.CommunicationMessages).Returns(mockMessageDbSet.Object);
 
         // Mock Interactions DbSet (async-compatible)
         var interactionList = new List<Interaction>();
         var mockInteractionDbSet = MockDbSetFactory.CreateMockDbSet(interactionList);
-        _mockContext.Setup(x => x.Interactions).Returns(mockInteractionDbSet.Object);
+        MockContext.Setup(x => x.Interactions).Returns(mockInteractionDbSet.Object);
 
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
         // Act
@@ -160,7 +154,7 @@ public class WebhookServiceTests
             }]
         }";
 
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
         // Act
@@ -185,7 +179,7 @@ public class WebhookServiceTests
             }]
         }";
 
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
         // Act
@@ -285,8 +279,8 @@ public class WebhookServiceTests
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Expression).Returns(contactList.Expression);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.ElementType).Returns(contactList.ElementType);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.GetEnumerator()).Returns(contactList.GetEnumerator());
-        _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act & Assert
         var result = await _webhookService.ProcessWebFormAsync(submission);
@@ -311,8 +305,8 @@ public class WebhookServiceTests
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Expression).Returns(contactList.Expression);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.ElementType).Returns(contactList.ElementType);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.GetEnumerator()).Returns(contactList.GetEnumerator());
-        _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act & Assert
         var result = await _webhookService.ProcessInboundEmailAsync(email);
@@ -389,8 +383,8 @@ public class WebhookServiceTests
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Expression).Returns(contactList.Expression);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.ElementType).Returns(contactList.ElementType);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.GetEnumerator()).Returns(contactList.GetEnumerator());
-        _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var submission1 = new WebFormSubmission { Email = "duplicate@example.com" };
         var submission2 = new WebFormSubmission { Email = "duplicate@example.com" };
@@ -429,8 +423,8 @@ public class WebhookServiceTests
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Expression).Returns(contactList.Expression);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.ElementType).Returns(contactList.ElementType);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.GetEnumerator()).Returns(contactList.GetEnumerator());
-        _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _webhookService.ProcessInboundEmailAsync(email);
@@ -456,8 +450,8 @@ public class WebhookServiceTests
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Expression).Returns(contactList.Expression);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.ElementType).Returns(contactList.ElementType);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.GetEnumerator()).Returns(contactList.GetEnumerator());
-        _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var submission = new WebFormSubmission
         {
@@ -483,8 +477,8 @@ public class WebhookServiceTests
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Expression).Returns(contactList.Expression);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.ElementType).Returns(contactList.ElementType);
         mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.GetEnumerator()).Returns(contactList.GetEnumerator());
-        _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var submission = new WebFormSubmission
         {

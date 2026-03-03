@@ -22,20 +22,15 @@ namespace CRM.Tests.Services;
 /// Unit tests for BiometricAuthService (BACK-003).
 /// Verifies registration options, user validation, and credential exclusion.
 /// </summary>
-public class BiometricAuthServiceTests
+public class BiometricAuthServiceTests : ServiceTestFixtureBase<BiometricAuthService>
 {
     private readonly Mock<ICrmDbContext> _mockDb;
-    private readonly Mock<IWebAuthnService> _mockWebAuthn;
-    private readonly Mock<ILogger<BiometricAuthService>> _mockLogger;
-    private readonly WebAuthnOptions _webAuthnOptions;
+    private readonly Mock<IWebAuthnService> _mockWebAuthn;    private readonly WebAuthnOptions _webAuthnOptions;
 
     public BiometricAuthServiceTests()
     {
         _mockDb = new Mock<ICrmDbContext>();
-        _mockWebAuthn = new Mock<IWebAuthnService>();
-        _mockLogger = new Mock<ILogger<BiometricAuthService>>();
-
-        _webAuthnOptions = new WebAuthnOptions
+        _mockWebAuthn = new Mock<IWebAuthnService>();        _webAuthnOptions = new WebAuthnOptions
         {
             RelyingPartyId = "localhost",
             RelyingPartyName = "CRM Solution",
@@ -52,7 +47,7 @@ public class BiometricAuthServiceTests
             _mockDb.Object,
             _mockWebAuthn.Object,
             Options.Create(_webAuthnOptions),
-            _mockLogger.Object);
+            MockLogger.Object);
     }
 
     // ─── Constructor ──────────────────────────────────────────────────────────

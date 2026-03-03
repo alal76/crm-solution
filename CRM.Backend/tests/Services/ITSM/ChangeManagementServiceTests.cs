@@ -19,23 +19,14 @@ using Xunit;
 
 namespace CRM.Tests.ITSMServices.ChangeManagement;
 
-public class ChangeManagementServiceTests
+public class ChangeManagementServiceTests : ServiceTestFixtureBase<ChangeManagementService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ICMDBService> _mockCmdbService;
-    private readonly Mock<ILogger<ChangeManagementService>> _mockLogger;
-    private readonly IChangeManagementService _service;
+    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly Mock<ICMDBService> _mockCmdbService;    private readonly IChangeManagementService _service;
 
     public ChangeManagementServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockCmdbService = new Mock<ICMDBService>();
-        _mockLogger = new Mock<ILogger<ChangeManagementService>>();
-
-        _mockResolver.Setup(r => r.ResolveContext()).Returns(_mockContext.Object);
-        _service = new ChangeManagementService(_mockResolver.Object, _mockCmdbService.Object, _mockLogger.Object);
+        _mockResolver = new Mock<IDbContextResolver>();        _mockCmdbService = new Mock<ICMDBService>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
+        _service = new ChangeManagementService(_mockResolver.Object, _mockCmdbService.Object, MockLogger.Object);
     }
 
     // ========================================================================
@@ -49,9 +40,9 @@ public class ChangeManagementServiceTests
         var changes = new List<Change>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(changes);
         mockSet.Setup(m => m.Add(It.IsAny<Change>())).Callback<Change>(e => changes.Add(e));
-        _mockContext.Setup(c => c.Changes).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Changes).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateChangeDto
         {
@@ -83,9 +74,9 @@ public class ChangeManagementServiceTests
         var changes = new List<Change>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(changes);
         mockSet.Setup(m => m.Add(It.IsAny<Change>())).Callback<Change>(e => changes.Add(e));
-        _mockContext.Setup(c => c.Changes).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Changes).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateChangeDto
         {
@@ -121,8 +112,8 @@ public class ChangeManagementServiceTests
                 CreatedAt = DateTime.UtcNow, IsDeleted = false
             }
         };
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(changes).Object);
-        _mockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(changes).Object);
+        MockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
 
         // Act
         var result = await _service.GetChangeByIdAsync(1);
@@ -136,8 +127,8 @@ public class ChangeManagementServiceTests
     public async Task GetChangeByIdAsync_ShouldReturnNull_WhenNotFound()
     {
         // Arrange
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change>()).Object);
-        _mockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change>()).Object);
+        MockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
 
         // Act
         var result = await _service.GetChangeByIdAsync(999);
@@ -160,8 +151,8 @@ public class ChangeManagementServiceTests
             new() { ChangeId = 2, Number = "CHG0002", ShortDescription = "C2", State = ChangeState.Closed, Type = ChangeType.Emergency, Risk = ChangeRisk.High, Impact = ChangeImpact.High, RequestorId = 1, CreatedAt = DateTime.UtcNow },
             new() { ChangeId = 3, Number = "CHG0003", ShortDescription = "C3", State = ChangeState.New, Type = ChangeType.Standard, Risk = ChangeRisk.Low, Impact = ChangeImpact.Low, RequestorId = 2, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(changes).Object);
-        _mockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(changes).Object);
+        MockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
 
         var filter = new ChangeFilterDto { State = ChangeState.New, PageNumber = 1, PageSize = 20 };
 
@@ -192,9 +183,9 @@ public class ChangeManagementServiceTests
             RequestorId = 1,
             CreatedAt = DateTime.UtcNow
         };
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
-        _mockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
+        MockContext.Setup(c => c.ChangeImpactedCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeImpactedCI>()).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateChangeDto
         {
@@ -233,8 +224,8 @@ public class ChangeManagementServiceTests
             RequestorId = 1,
             CreatedAt = DateTime.UtcNow
         };
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.SubmitForApprovalAsync(1, modifiedById: 1);
@@ -264,9 +255,9 @@ public class ChangeManagementServiceTests
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvals);
         mockApprovalSet.Setup(m => m.Add(It.IsAny<ChangeApproval>())).Callback<ChangeApproval>(e => approvals.Add(e));
 
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
-        _mockContext.Setup(c => c.ChangeApprovals).Returns(mockApprovalSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
+        MockContext.Setup(c => c.ChangeApprovals).Returns(mockApprovalSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.ApproveChangeAsync(1, approverId: 5, comments: "Looks good");
@@ -292,9 +283,9 @@ public class ChangeManagementServiceTests
             RequestorId = 1,
             CreatedAt = DateTime.UtcNow
         };
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
-        _mockContext.Setup(c => c.ChangeApprovals).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeApproval>()).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
+        MockContext.Setup(c => c.ChangeApprovals).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeApproval>()).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.RejectChangeAsync(1, approverId: 5, comments: "Too risky");
@@ -324,9 +315,9 @@ public class ChangeManagementServiceTests
             RequestorId = 1,
             CreatedAt = DateTime.UtcNow
         };
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
-        _mockContext.Setup(c => c.ChangeBlackouts).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeBlackout>()).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
+        MockContext.Setup(c => c.ChangeBlackouts).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeBlackout>()).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var start = DateTime.UtcNow.AddDays(3);
         var end = start.AddHours(2);
@@ -354,8 +345,8 @@ public class ChangeManagementServiceTests
                 CreatedAt = DateTime.UtcNow
             }
         };
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(changes).Object);
-        _mockContext.Setup(c => c.ChangeBlackouts).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeBlackout>()).Object);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(changes).Object);
+        MockContext.Setup(c => c.ChangeBlackouts).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeBlackout>()).Object);
 
         // Act
         var result = await _service.CheckConflictsAsync(1);
@@ -389,9 +380,9 @@ public class ChangeManagementServiceTests
         var mockImpactSet = MockDbSetFactory.CreateMockDbSet(impactedCIs);
         mockImpactSet.Setup(m => m.Add(It.IsAny<ChangeImpactedCI>())).Callback<ChangeImpactedCI>(e => impactedCIs.Add(e));
 
-        _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
-        _mockContext.Setup(c => c.ChangeImpactedCIs).Returns(mockImpactSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
+        MockContext.Setup(c => c.ChangeImpactedCIs).Returns(mockImpactSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.AddImpactedCIAsync(1, ciId: 10, createdById: 1);
@@ -413,7 +404,7 @@ public class ChangeManagementServiceTests
             new() { BlackoutId = 1, Name = "Holiday freeze", StartDate = DateTime.UtcNow.AddDays(10), EndDate = DateTime.UtcNow.AddDays(17), CreatedAt = DateTime.UtcNow },
             new() { BlackoutId = 2, Name = "Code freeze", StartDate = DateTime.UtcNow.AddDays(30), EndDate = DateTime.UtcNow.AddDays(35), CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ChangeBlackouts).Returns(MockDbSetFactory.CreateMockDbSet(blackouts).Object);
+        MockContext.Setup(c => c.ChangeBlackouts).Returns(MockDbSetFactory.CreateMockDbSet(blackouts).Object);
 
         // Act
         var result = await _service.GetBlackoutPeriodsAsync(DateTime.UtcNow, DateTime.UtcNow.AddDays(20));
@@ -430,8 +421,8 @@ public class ChangeManagementServiceTests
         var blackouts = new List<ChangeBlackout>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(blackouts);
         mockSet.Setup(m => m.Add(It.IsAny<ChangeBlackout>())).Callback<ChangeBlackout>(e => blackouts.Add(e));
-        _mockContext.Setup(c => c.ChangeBlackouts).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ChangeBlackouts).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var info = new CreateBlackoutPeriodInfo
         {

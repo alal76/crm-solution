@@ -19,11 +19,8 @@ namespace CRM.Tests.Services;
 /// Unit tests for subscription proration calculations.
 /// TODO-SALES006-041: 20+ unit tests for mid-cycle upgrades, downgrades, daily/monthly proration, edge cases.
 /// </summary>
-public class SubscriptionProrationTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<SubscriptionService>> _mockLogger;
-    private readonly SubscriptionService _service;
+public class SubscriptionProrationTests : ServiceTestFixtureBase<SubscriptionService>
+{    private readonly SubscriptionService _service;
 
     private readonly List<Subscription> _subscriptions;
     private readonly List<Invoice> _invoices;
@@ -33,11 +30,7 @@ public class SubscriptionProrationTests
     private readonly List<Product> _products;
 
     public SubscriptionProrationTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<SubscriptionService>>();
-
-        _subscriptions = new List<Subscription>();
+    {        _subscriptions = new List<Subscription>();
         _invoices = new List<Invoice>();
         _usages = new List<SubscriptionUsage>();
         _usageLimits = new List<SubscriptionUsageLimit>();
@@ -46,7 +39,7 @@ public class SubscriptionProrationTests
 
         SetupMockContext();
 
-        _service = new SubscriptionService(_mockContext.Object, _mockLogger.Object);
+        _service = new SubscriptionService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupMockContext()
@@ -74,13 +67,13 @@ public class SubscriptionProrationTests
                 return ValueTask.FromResult(_products.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
-        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubscriptions.Object);
-        _mockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
-        _mockContext.Setup(c => c.SubscriptionUsages).Returns(mockUsages.Object);
-        _mockContext.Setup(c => c.SubscriptionUsageLimits).Returns(mockUsageLimits.Object);
-        _mockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
-        _mockContext.Setup(c => c.Products).Returns(mockProducts.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Subscriptions).Returns(mockSubscriptions.Object);
+        MockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
+        MockContext.Setup(c => c.SubscriptionUsages).Returns(mockUsages.Object);
+        MockContext.Setup(c => c.SubscriptionUsageLimits).Returns(mockUsageLimits.Object);
+        MockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
+        MockContext.Setup(c => c.Products).Returns(mockProducts.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private Subscription CreateTestSubscription(decimal mrr = 100m, BillingPeriod period = BillingPeriod.Monthly)

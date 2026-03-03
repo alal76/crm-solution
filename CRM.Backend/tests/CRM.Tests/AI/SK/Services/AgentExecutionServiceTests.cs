@@ -26,7 +26,7 @@ namespace CRM.Tests.AI.SK.Services;
 /// Unit tests for <see cref="AgentExecutionService"/>.
 /// Validates conversation management, rating, and constructor guards.
 /// </summary>
-public class AgentExecutionServiceTests
+public class AgentExecutionServiceTests : ServiceTestFixtureBase<AgentExecutionService>
 {
     #region Fields & Setup
 

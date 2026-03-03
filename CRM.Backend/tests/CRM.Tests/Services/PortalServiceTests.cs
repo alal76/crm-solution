@@ -22,26 +22,19 @@ namespace CRM.Tests.Services;
 /// Covers GetMyTickets, CreateTicket, Profile management, CancelTicket and Attachments.
 /// PORTAL-038, PORTAL-039 (portal service portion), PORTAL-041, PORTAL-042, PORTAL-043
 /// </summary>
-public class PortalServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<PortalService>> _mockLogger;
-    private readonly PortalService _service;
+public class PortalServiceTests : ServiceTestFixtureBase<PortalService>
+{    private readonly PortalService _service;
 
     private readonly List<PortalUser> _portalUsers;
     private readonly List<ServiceRequest> _serviceRequests;
 
     public PortalServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<PortalService>>();
-
-        _portalUsers = new List<PortalUser>();
+    {        _portalUsers = new List<PortalUser>();
         _serviceRequests = new List<ServiceRequest>();
 
         SetupMockDbSets();
 
-        _service = new PortalService(_mockContext.Object, _mockLogger.Object);
+        _service = new PortalService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupMockDbSets()
@@ -49,9 +42,9 @@ public class PortalServiceTests
         var mockPortalUsers = MockDbSetFactory.CreateMockDbSet(_portalUsers);
         var mockServiceRequests = MockDbSetFactory.CreateMockDbSet(_serviceRequests);
 
-        _mockContext.Setup(c => c.PortalUsers).Returns(mockPortalUsers.Object);
-        _mockContext.Setup(c => c.ServiceRequests).Returns(mockServiceRequests.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.PortalUsers).Returns(mockPortalUsers.Object);
+        MockContext.Setup(c => c.ServiceRequests).Returns(mockServiceRequests.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     // ── PORTAL-038: GetMyTicketsAsync ─────────────────────────────────────────

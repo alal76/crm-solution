@@ -15,25 +15,21 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class NoteServiceTests
+public class NoteServiceTests : ServiceTestFixtureBase<NoteService>
 {
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<NoteService>> _mockLogger;
     private readonly NoteService _service;
 
     public NoteServiceTests()
     {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<NoteService>>();
-        _service = new NoteService(_mockContext.Object, _mockLogger.Object);
+        _service = new NoteService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupNotes(List<Note>? notes = null)
     {
         notes ??= new List<Note>();
         var mockNotes = MockDbSetFactory.CreateMockDbSet(notes);
-        _mockContext.Setup(c => c.Notes).Returns(mockNotes.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Notes).Returns(mockNotes.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private static Note CreateNote(int id, int? accountId = null, bool pinned = false, bool deleted = false)

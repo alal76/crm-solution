@@ -20,11 +20,8 @@ namespace CRM.Tests.Services;
 /// <summary>
 /// Unit tests for FieldMasterDataService - links field configurations to master data sources
 /// </summary>
-public class FieldMasterDataServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<FieldMasterDataService>> _mockLogger;
-    private readonly FieldMasterDataService _service;
+public class FieldMasterDataServiceTests : ServiceTestFixtureBase<FieldMasterDataService>
+{    private readonly FieldMasterDataService _service;
 
     // Mock DbSets
     private readonly List<FieldMasterDataLink> _links;
@@ -36,11 +33,7 @@ public class FieldMasterDataServiceTests
     private readonly List<Account> _accounts;
 
     public FieldMasterDataServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<FieldMasterDataService>>();
-
-        // Initialize test data
+    {        // Initialize test data
         _links = new List<FieldMasterDataLink>();
         _fieldConfigs = new List<ModuleFieldConfiguration>();
         _categories = new List<LookupCategory>();
@@ -51,7 +44,7 @@ public class FieldMasterDataServiceTests
 
         SetupMockDbSets();
 
-        _service = new FieldMasterDataService(_mockContext.Object, _mockLogger.Object);
+        _service = new FieldMasterDataService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupMockDbSets()
@@ -64,7 +57,7 @@ public class FieldMasterDataServiceTests
         mockLinksSet.As<IQueryable<FieldMasterDataLink>>().Setup(m => m.GetEnumerator()).Returns(() => linksQueryable.GetEnumerator());
         mockLinksSet.As<IAsyncEnumerable<FieldMasterDataLink>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(new TestAsyncEnumerator<FieldMasterDataLink>(linksQueryable.GetEnumerator()));
         mockLinksSet.Setup(d => d.Add(It.IsAny<FieldMasterDataLink>())).Callback<FieldMasterDataLink>(link => _links.Add(link));
-        _mockContext.Setup(c => c.FieldMasterDataLinks).Returns(mockLinksSet.Object);
+        MockContext.Setup(c => c.FieldMasterDataLinks).Returns(mockLinksSet.Object);
 
         // Setup field configs
         var configsQueryable = _fieldConfigs.AsQueryable();
@@ -74,7 +67,7 @@ public class FieldMasterDataServiceTests
         mockConfigsSet.As<IQueryable<ModuleFieldConfiguration>>().Setup(m => m.ElementType).Returns(configsQueryable.ElementType);
         mockConfigsSet.As<IQueryable<ModuleFieldConfiguration>>().Setup(m => m.GetEnumerator()).Returns(() => configsQueryable.GetEnumerator());
         mockConfigsSet.As<IAsyncEnumerable<ModuleFieldConfiguration>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(new TestAsyncEnumerator<ModuleFieldConfiguration>(configsQueryable.GetEnumerator()));
-        _mockContext.Setup(c => c.ModuleFieldConfigurations).Returns(mockConfigsSet.Object);
+        MockContext.Setup(c => c.ModuleFieldConfigurations).Returns(mockConfigsSet.Object);
 
         // Setup lookup categories
         var categoriesQueryable = _categories.AsQueryable();
@@ -84,7 +77,7 @@ public class FieldMasterDataServiceTests
         mockCategoriesSet.As<IQueryable<LookupCategory>>().Setup(m => m.ElementType).Returns(categoriesQueryable.ElementType);
         mockCategoriesSet.As<IQueryable<LookupCategory>>().Setup(m => m.GetEnumerator()).Returns(() => categoriesQueryable.GetEnumerator());
         mockCategoriesSet.As<IAsyncEnumerable<LookupCategory>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(new TestAsyncEnumerator<LookupCategory>(categoriesQueryable.GetEnumerator()));
-        _mockContext.Setup(c => c.LookupCategories).Returns(mockCategoriesSet.Object);
+        MockContext.Setup(c => c.LookupCategories).Returns(mockCategoriesSet.Object);
 
         // Setup lookup items
         var itemsQueryable = _lookupItems.AsQueryable();
@@ -94,7 +87,7 @@ public class FieldMasterDataServiceTests
         mockItemsSet.As<IQueryable<LookupItem>>().Setup(m => m.ElementType).Returns(itemsQueryable.ElementType);
         mockItemsSet.As<IQueryable<LookupItem>>().Setup(m => m.GetEnumerator()).Returns(() => itemsQueryable.GetEnumerator());
         mockItemsSet.As<IAsyncEnumerable<LookupItem>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(new TestAsyncEnumerator<LookupItem>(itemsQueryable.GetEnumerator()));
-        _mockContext.Setup(c => c.LookupItems).Returns(mockItemsSet.Object);
+        MockContext.Setup(c => c.LookupItems).Returns(mockItemsSet.Object);
 
         // Setup zip codes
         var zipQueryable = _zipCodes.AsQueryable();
@@ -104,7 +97,7 @@ public class FieldMasterDataServiceTests
         mockZipSet.As<IQueryable<ZipCode>>().Setup(m => m.ElementType).Returns(zipQueryable.ElementType);
         mockZipSet.As<IQueryable<ZipCode>>().Setup(m => m.GetEnumerator()).Returns(() => zipQueryable.GetEnumerator());
         mockZipSet.As<IAsyncEnumerable<ZipCode>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(new TestAsyncEnumerator<ZipCode>(zipQueryable.GetEnumerator()));
-        _mockContext.Setup(c => c.ZipCodes).Returns(mockZipSet.Object);
+        MockContext.Setup(c => c.ZipCodes).Returns(mockZipSet.Object);
 
         // Setup products
         var productsQueryable = _products.AsQueryable();
@@ -114,7 +107,7 @@ public class FieldMasterDataServiceTests
         mockProductsSet.As<IQueryable<Product>>().Setup(m => m.ElementType).Returns(productsQueryable.ElementType);
         mockProductsSet.As<IQueryable<Product>>().Setup(m => m.GetEnumerator()).Returns(() => productsQueryable.GetEnumerator());
         mockProductsSet.As<IAsyncEnumerable<Product>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(new TestAsyncEnumerator<Product>(productsQueryable.GetEnumerator()));
-        _mockContext.Setup(c => c.Products).Returns(mockProductsSet.Object);
+        MockContext.Setup(c => c.Products).Returns(mockProductsSet.Object);
 
         // Setup accounts
         var accountsQueryable = _accounts.AsQueryable();
@@ -124,9 +117,9 @@ public class FieldMasterDataServiceTests
         mockAccountsSet.As<IQueryable<Account>>().Setup(m => m.ElementType).Returns(accountsQueryable.ElementType);
         mockAccountsSet.As<IQueryable<Account>>().Setup(m => m.GetEnumerator()).Returns(() => accountsQueryable.GetEnumerator());
         mockAccountsSet.As<IAsyncEnumerable<Account>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(new TestAsyncEnumerator<Account>(accountsQueryable.GetEnumerator()));
-        _mockContext.Setup(c => c.Accounts).Returns(mockAccountsSet.Object);
+        MockContext.Setup(c => c.Accounts).Returns(mockAccountsSet.Object);
 
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     #region GetLinksForFieldAsync Tests
@@ -312,7 +305,7 @@ public class FieldMasterDataServiceTests
         result.Should().NotBeNull();
         result.SourceName.Should().Be("Industries");
         result.AllowFreeText.Should().BeTrue();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -366,7 +359,7 @@ public class FieldMasterDataServiceTests
 
         // Assert
         result.SourceName.Should().Be("NewSource");
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -396,7 +389,7 @@ public class FieldMasterDataServiceTests
         // Assert
         result.Should().BeTrue();
         link.IsDeleted.Should().BeTrue();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

@@ -19,11 +19,8 @@ namespace CRM.Tests.Services;
 /// <summary>
 /// Unit tests for SubscriptionService.
 /// </summary>
-public class SubscriptionServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<SubscriptionService>> _mockLogger;
-    private readonly SubscriptionService _service;
+public class SubscriptionServiceTests : ServiceTestFixtureBase<SubscriptionService>
+{    private readonly SubscriptionService _service;
 
     private readonly List<Subscription> _subscriptions;
     private readonly List<Invoice> _invoices;
@@ -32,11 +29,7 @@ public class SubscriptionServiceTests
     private readonly List<Order> _orders;
 
     public SubscriptionServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<SubscriptionService>>();
-
-        _subscriptions = new List<Subscription>();
+    {        _subscriptions = new List<Subscription>();
         _invoices = new List<Invoice>();
         _usages = new List<SubscriptionUsage>();
         _usageLimits = new List<SubscriptionUsageLimit>();
@@ -58,14 +51,14 @@ public class SubscriptionServiceTests
                 return ValueTask.FromResult(_subscriptions.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
-        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubscriptions.Object);
-        _mockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
-        _mockContext.Setup(c => c.SubscriptionUsages).Returns(mockUsages.Object);
-        _mockContext.Setup(c => c.SubscriptionUsageLimits).Returns(mockUsageLimits.Object);
-        _mockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Subscriptions).Returns(mockSubscriptions.Object);
+        MockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
+        MockContext.Setup(c => c.SubscriptionUsages).Returns(mockUsages.Object);
+        MockContext.Setup(c => c.SubscriptionUsageLimits).Returns(mockUsageLimits.Object);
+        MockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        _service = new SubscriptionService(_mockContext.Object, _mockLogger.Object);
+        _service = new SubscriptionService(MockContext.Object, MockLogger.Object);
     }
 
     // ========================================================================
@@ -667,7 +660,7 @@ public class SubscriptionServiceTests
         });
 
         // Make SaveChangesAsync throw DbUpdateConcurrencyException
-        _mockContext
+        MockContext
             .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new DbUpdateConcurrencyException("Simulated concurrency conflict"));
 
@@ -700,7 +693,7 @@ public class SubscriptionServiceTests
             IsDeleted = false
         });
 
-        _mockContext
+        MockContext
             .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(new DbUpdateConcurrencyException("Conflict"));
 
@@ -735,7 +728,7 @@ public class SubscriptionServiceTests
         });
 
         var dbException = new DbUpdateConcurrencyException("Root concurrency cause");
-        _mockContext
+        MockContext
             .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ThrowsAsync(dbException);
 

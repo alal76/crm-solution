@@ -14,21 +14,17 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class CommissionRuleServiceTests
+public class CommissionRuleServiceTests : ServiceTestFixtureBase<CommissionRuleService>
 {
     private readonly Mock<IRepository<CommissionRule>> _mockRuleRepository;
     private readonly Mock<IRepository<CommissionHistory>> _mockHistoryRepository;
-    private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<CommissionRuleService>> _mockLogger;
-    private readonly CommissionRuleService _service;
+    private readonly Mock<ICrmDbContext> _mockDbContext;    private readonly CommissionRuleService _service;
 
     public CommissionRuleServiceTests()
     {
         _mockRuleRepository = new Mock<IRepository<CommissionRule>>();
         _mockHistoryRepository = new Mock<IRepository<CommissionHistory>>();
-        _mockDbContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CommissionRuleService>>();
-        _service = new CommissionRuleService(_mockRuleRepository.Object, _mockHistoryRepository.Object, _mockDbContext.Object, _mockLogger.Object);
+        _mockDbContext = new Mock<ICrmDbContext>();        _service = new CommissionRuleService(_mockRuleRepository.Object, _mockHistoryRepository.Object, _mockDbContext.Object, MockLogger.Object);
     }
 
     [Fact]
@@ -130,7 +126,7 @@ public class DiscountRuleServiceTests
     private readonly Mock<IRepository<DiscountRule>> _mockRuleRepository;
     private readonly Mock<IRepository<DiscountHistory>> _mockHistoryRepository;
     private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<DiscountRuleService>> _mockLogger;
+    private readonly Mock<ILogger<DiscountRuleService>> MockLogger;
     private readonly DiscountRuleService _service;
 
     public DiscountRuleServiceTests()
@@ -138,8 +134,8 @@ public class DiscountRuleServiceTests
         _mockRuleRepository = new Mock<IRepository<DiscountRule>>();
         _mockHistoryRepository = new Mock<IRepository<DiscountHistory>>();
         _mockDbContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<DiscountRuleService>>();
-        _service = new DiscountRuleService(_mockRuleRepository.Object, _mockHistoryRepository.Object, _mockDbContext.Object, _mockLogger.Object);
+        MockLogger = new Mock<ILogger<DiscountRuleService>>();
+        _service = new DiscountRuleService(_mockRuleRepository.Object, _mockHistoryRepository.Object, _mockDbContext.Object, MockLogger.Object);
     }
 
     [Fact]

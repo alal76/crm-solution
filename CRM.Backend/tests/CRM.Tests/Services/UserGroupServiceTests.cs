@@ -20,24 +20,18 @@ namespace CRM.Tests.Services;
 /// Unit tests for UserGroupService — covering ValidateAndNormalizeGroupPermissionsAsync
 /// (TODO-SYS012-002) and audit-log integration on update (TODO-SYS012-003).
 /// </summary>
-public class UserGroupServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<UserGroupService>> _mockLogger;
-    private readonly Mock<IAuditLogService> _mockAuditLog;
+public class UserGroupServiceTests : ServiceTestFixtureBase<UserGroupService>
+{    private readonly Mock<IAuditLogService> _mockAuditLog;
     private readonly List<UserGroup> _groups;
 
     public UserGroupServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<UserGroupService>>();
-        _mockAuditLog = new Mock<IAuditLogService>();
+    {        _mockAuditLog = new Mock<IAuditLogService>();
         _groups = new List<UserGroup>();
 
-        _mockContext
+        MockContext
             .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
-        _mockContext
+        MockContext
             .Setup(c => c.SaveChangesAsync())
             .ReturnsAsync(1);
     }
@@ -46,10 +40,10 @@ public class UserGroupServiceTests
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(_groups);
         mockSet.Setup(s => s.Update(It.IsAny<UserGroup>()));
-        _mockContext.Setup(c => c.UserGroups).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserGroups).Returns(mockSet.Object);
         return new UserGroupService(
-            _mockContext.Object,
-            _mockLogger.Object,
+            MockContext.Object,
+            MockLogger.Object,
             withAuditLog ? _mockAuditLog.Object : null);
     }
 

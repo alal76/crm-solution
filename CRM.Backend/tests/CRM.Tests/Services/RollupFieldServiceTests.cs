@@ -21,22 +21,15 @@ namespace CRM.Tests.Services;
 /// Unit tests for RollupFieldService.
 /// Verifies SUM, COUNT aggregations and definition registration.
 /// </summary>
-public class RollupFieldServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<RollupFieldService>> _mockLogger;
-
-    public RollupFieldServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<RollupFieldService>>();
-    }
+public class RollupFieldServiceTests : ServiceTestFixtureBase<RollupFieldService>
+{    public RollupFieldServiceTests()
+    {    }
 
     private RollupFieldService BuildService(IEnumerable<Opportunity> opportunities)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(new List<Opportunity>(opportunities));
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
-        return new RollupFieldService(_mockContext.Object, _mockLogger.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        return new RollupFieldService(MockContext.Object, MockLogger.Object);
     }
 
     // ─────────────────────────────────────────────────────────────────────

@@ -36,17 +36,11 @@ namespace CRM.Tests.Services;
 /// <summary>
 /// Unit tests for LeadAlertService (BACK-012).
 /// </summary>
-public class LeadAlertServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<LeadAlertService>> _mockLogger;
-    private readonly LeadAlertService _service;
+public class LeadAlertServiceTests : ServiceTestFixtureBase<LeadAlertService>
+{    private readonly LeadAlertService _service;
 
     public LeadAlertServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<LeadAlertService>>();
-        _service = new LeadAlertService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new LeadAlertService(MockContext.Object, MockLogger.Object);
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -56,7 +50,7 @@ public class LeadAlertServiceTests
     private void SetupLeads(List<Lead> leads)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
     }
 
     private static Lead BuildLead(

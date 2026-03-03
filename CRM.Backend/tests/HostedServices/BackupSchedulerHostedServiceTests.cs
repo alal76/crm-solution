@@ -20,22 +20,18 @@ namespace CRM.Tests.HostedServices;
 /// Unit tests for BackupSchedulerHostedService background service.
 /// Tests scheduled backup execution, schedule processing, and error handling.
 /// </summary>
-public class BackupSchedulerHostedServiceTests
+public class BackupSchedulerHostedServiceTests : ServiceTestFixtureBase<BackupSchedulerHostedService>
 {
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<IServiceScope> _mockScope;
-    private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
-    private readonly Mock<ILogger<BackupSchedulerHostedService>> _mockLogger;
-    private readonly Mock<ICrmDbContext> _mockDbContext;
+    private readonly Mock<IServiceScopeFactory> _mockScopeFactory;    private readonly Mock<ICrmDbContext> _mockDbContext;
     private readonly Mock<IDatabaseBackupService> _mockBackupService;
 
     public BackupSchedulerHostedServiceTests()
     {
         _mockServiceProvider = new Mock<IServiceProvider>();
         _mockScope = new Mock<IServiceScope>();
-        _mockScopeFactory = new Mock<IServiceScopeFactory>();
-        _mockLogger = new Mock<ILogger<BackupSchedulerHostedService>>();
-        _mockDbContext = new Mock<ICrmDbContext>();
+        _mockScopeFactory = new Mock<IServiceScopeFactory>();        _mockDbContext = new Mock<ICrmDbContext>();
         _mockBackupService = new Mock<IDatabaseBackupService>();
 
         SetupServiceProvider();
@@ -59,7 +55,7 @@ public class BackupSchedulerHostedServiceTests
     public void Constructor_WithValidDependencies_ShouldCreateInstance()
     {
         // Act
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
 
         // Assert
         service.Should().NotBeNull();
@@ -69,7 +65,7 @@ public class BackupSchedulerHostedServiceTests
     public void Constructor_WithNullServiceProvider_ShouldThrowArgumentNullException()
     {
         // Act
-        Action act = () => new BackupSchedulerHostedService(null!, _mockLogger.Object);
+        Action act = () => new BackupSchedulerHostedService(null!, MockLogger.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -95,7 +91,7 @@ public class BackupSchedulerHostedServiceTests
     public async Task ExecuteAsync_WhenStarted_ShouldLogStartMessage()
     {
         // Arrange
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -104,7 +100,7 @@ public class BackupSchedulerHostedServiceTests
         cts.Cancel();
 
         // Assert
-        _mockLogger.Verify(
+        MockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
@@ -118,7 +114,7 @@ public class BackupSchedulerHostedServiceTests
     public async Task ExecuteAsync_WhenCancelled_ShouldLogStopMessage()
     {
         // Arrange
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -128,7 +124,7 @@ public class BackupSchedulerHostedServiceTests
         await service.StopAsync(CancellationToken.None);
 
         // Assert
-        _mockLogger.Verify(
+        MockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
@@ -142,7 +138,7 @@ public class BackupSchedulerHostedServiceTests
     public async Task ExecuteAsync_WhenCancelled_ShouldStopGracefully()
     {
         // Arrange
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -166,7 +162,7 @@ public class BackupSchedulerHostedServiceTests
         var schedules = new List<BackupSchedule>().AsQueryable();
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -194,7 +190,7 @@ public class BackupSchedulerHostedServiceTests
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
         _mockBackupService.Setup(x => x.RunScheduledBackupAsync(1)).Returns(Task.CompletedTask);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -221,7 +217,7 @@ public class BackupSchedulerHostedServiceTests
         var schedules = new List<BackupSchedule> { disabledSchedule }.AsQueryable();
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -248,7 +244,7 @@ public class BackupSchedulerHostedServiceTests
         var schedules = new List<BackupSchedule> { deletedSchedule }.AsQueryable();
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -275,7 +271,7 @@ public class BackupSchedulerHostedServiceTests
         var schedules = new List<BackupSchedule> { futureSchedule }.AsQueryable();
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -302,7 +298,7 @@ public class BackupSchedulerHostedServiceTests
         var schedules = new List<BackupSchedule> { schedule }.AsQueryable();
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -335,7 +331,7 @@ public class BackupSchedulerHostedServiceTests
         _mockBackupService.Setup(x => x.RunScheduledBackupAsync(1))
             .ThrowsAsync(new InvalidOperationException("Backup failed"));
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -344,7 +340,7 @@ public class BackupSchedulerHostedServiceTests
         cts.Cancel();
 
         // Assert
-        _mockLogger.Verify(
+        MockLogger.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -361,7 +357,7 @@ public class BackupSchedulerHostedServiceTests
         _mockServiceProvider.Setup(x => x.GetService(typeof(ICrmDbContext)))
             .Throws(new InvalidOperationException("DB context unavailable"));
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -370,7 +366,7 @@ public class BackupSchedulerHostedServiceTests
         cts.Cancel();
 
         // Assert
-        _mockLogger.Verify(
+        MockLogger.Verify(
             x => x.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
@@ -394,7 +390,7 @@ public class BackupSchedulerHostedServiceTests
                 return Task.CompletedTask;
             });
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -414,7 +410,7 @@ public class BackupSchedulerHostedServiceTests
     public async Task StartAsync_ShouldReturnCompletedTask()
     {
         // Arrange
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
 
         // Act
         var task = service.StartAsync(CancellationToken.None);
@@ -428,7 +424,7 @@ public class BackupSchedulerHostedServiceTests
     public async Task StopAsync_ShouldStopBackgroundExecution()
     {
         // Arrange
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -444,7 +440,7 @@ public class BackupSchedulerHostedServiceTests
     public async Task StopAsync_WhenCalledBeforeStart_ShouldNotThrow()
     {
         // Arrange
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
 
         // Act
         Func<Task> act = async () => await service.StopAsync(CancellationToken.None);
@@ -464,7 +460,7 @@ public class BackupSchedulerHostedServiceTests
         var schedules = new List<BackupSchedule>().AsQueryable();
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -493,7 +489,7 @@ public class BackupSchedulerHostedServiceTests
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
         _mockBackupService.Setup(x => x.RunScheduledBackupAsync(It.IsAny<int>())).Returns(Task.CompletedTask);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -516,7 +512,7 @@ public class BackupSchedulerHostedServiceTests
         }.AsQueryable();
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
@@ -549,7 +545,7 @@ public class BackupSchedulerHostedServiceTests
         _mockDbContext.Setup(x => x.BackupSchedules).Returns(CreateMockDbSet(schedules).Object);
         _mockBackupService.Setup(x => x.RunScheduledBackupAsync(1)).Returns(Task.CompletedTask);
 
-        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new BackupSchedulerHostedService(_mockServiceProvider.Object, MockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act

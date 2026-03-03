@@ -44,28 +44,24 @@ namespace CRM.Tests.Services;
 /// Verifies that the service returns correct aggregated data when
 /// working with empty and non-empty escalation log data.
 /// </summary>
-public class EscalationAnalyticsServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly EscalationAnalyticsService _service;
+public class EscalationAnalyticsServiceTests : ServiceTestFixtureBase<EscalationAnalyticsService>
+{    private readonly EscalationAnalyticsService _service;
 
     public EscalationAnalyticsServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        var logger = new Mock<ILogger<EscalationAnalyticsService>>().Object;
-        _service = new EscalationAnalyticsService(_mockContext.Object, logger);
+    {        var logger = new Mock<ILogger<EscalationAnalyticsService>>().Object;
+        _service = new EscalationAnalyticsService(MockContext.Object, logger);
     }
 
     private void SetupEscalationLogs(List<EscalationLog> logs)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(logs);
-        _mockContext.Setup(c => c.Set<EscalationLog>()).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Set<EscalationLog>()).Returns(mockSet.Object);
     }
 
     private void SetupServiceRequests(List<ServiceRequest> requests)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(requests);
-        _mockContext.Setup(c => c.ServiceRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ServiceRequests).Returns(mockSet.Object);
     }
 
     private static readonly DateTime From = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);

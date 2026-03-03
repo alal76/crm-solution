@@ -37,11 +37,8 @@ namespace CRM.Tests.Services;
 /// - Verifies database context interactions
 /// - Tests error handling and validation
 /// </summary>
-public class AddressServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<AddressService>> _mockLogger;
-    private readonly AddressService _service;
+public class AddressServiceTests : ServiceTestFixtureBase<AddressService>
+{    private readonly AddressService _service;
 
     // Test data
     private readonly Account _testAccount;
@@ -49,10 +46,7 @@ public class AddressServiceTests
     private readonly Address _testAddress2;
 
     public AddressServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<AddressService>>();
-        _service = new AddressService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new AddressService(MockContext.Object, MockLogger.Object);
 
         // Setup test data
         _testAccount = new Account
@@ -128,7 +122,7 @@ public class AddressServiceTests
         result.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         result.IsDeleted.Should().BeFalse();
 
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -271,7 +265,7 @@ public class AddressServiceTests
         result.City.Should().Be("Boston");
         result.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
 
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -353,7 +347,7 @@ public class AddressServiceTests
 
         // Assert
         result.Should().BeTrue();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -625,7 +619,7 @@ public class AddressServiceTests
 
         // Assert
         result.Should().BeTrue();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -662,7 +656,7 @@ public class AddressServiceTests
 
         // Assert
         result.Should().BeTrue();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -690,8 +684,8 @@ public class AddressServiceTests
         var accountSet = CreateMockDbSet(accounts, a => a.Id);
         var addressSet = CreateMockDbSet(addresses, a => a.Id);
 
-        _mockContext.Setup(c => c.Accounts).Returns(accountSet.Object);
-        _mockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
+        MockContext.Setup(c => c.Accounts).Returns(accountSet.Object);
+        MockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
     }
 
     private void SetupMockDbContextForUpdate(List<Account> accounts, List<Address> addresses, List<EntityAddressLink> links)
@@ -700,9 +694,9 @@ public class AddressServiceTests
         var addressSet = CreateMockDbSet(addresses, a => a.Id);
         var linkSet = CreateMockDbSet(links, l => l.Id);
 
-        _mockContext.Setup(c => c.Accounts).Returns(accountSet.Object);
-        _mockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
-        _mockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
+        MockContext.Setup(c => c.Accounts).Returns(accountSet.Object);
+        MockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
+        MockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
     }
 
     private void SetupMockDbContextForDelete(List<Account> accounts, List<Address> addresses, List<EntityAddressLink> links)
@@ -711,9 +705,9 @@ public class AddressServiceTests
         var addressSet = CreateMockDbSet(addresses, a => a.Id);
         var linkSet = CreateMockDbSet(links, l => l.Id);
 
-        _mockContext.Setup(c => c.Accounts).Returns(accountSet.Object);
-        _mockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
-        _mockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
+        MockContext.Setup(c => c.Accounts).Returns(accountSet.Object);
+        MockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
+        MockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
     }
 
     private void SetupMockDbContextForGetAddresses(List<Address> addresses, List<EntityAddressLink> links)
@@ -721,14 +715,14 @@ public class AddressServiceTests
         var addressSet = CreateMockDbSet(addresses, a => a.Id);
         var linkSet = CreateMockDbSet(links, l => l.Id);
 
-        _mockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
-        _mockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
+        MockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
+        MockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
     }
 
     private void SetupMockQueryable(List<Address> addresses)
     {
         var addressSet = CreateMockDbSet(addresses, a => a.Id);
-        _mockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
+        MockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
     }
 
     private void SetupMockDbContextForPrimaryAddress(List<Address> addresses, List<EntityAddressLink> links)
@@ -736,8 +730,8 @@ public class AddressServiceTests
         var addressSet = CreateMockDbSet(addresses, a => a.Id);
         var linkSet = CreateMockDbSet(links, l => l.Id);
 
-        _mockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
-        _mockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
+        MockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
+        MockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
     }
 
     private void SetupMockDbContextForSetPrimary(List<Account> accounts, List<Address> addresses, List<EntityAddressLink> links)
@@ -746,9 +740,9 @@ public class AddressServiceTests
         var addressSet = CreateMockDbSet(addresses, a => a.Id);
         var linkSet = CreateMockDbSet(links, l => l.Id);
 
-        _mockContext.Setup(c => c.Accounts).Returns(accountSet.Object);
-        _mockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
-        _mockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
+        MockContext.Setup(c => c.Accounts).Returns(accountSet.Object);
+        MockContext.Setup(c => c.Addresses).Returns(addressSet.Object);
+        MockContext.Setup(c => c.EntityAddressLinks).Returns(linkSet.Object);
     }
 
     private Mock<DbSet<T>> CreateMockDbSet<T, TKey>(List<T> items, Func<T, TKey> keySelector)

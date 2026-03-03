@@ -20,7 +20,7 @@ namespace CRM.SystemModule.Tests.Services;
 /// Unit tests for AdminDashboardService.
 /// Tests dashboard functionality for admin users.
 /// </summary>
-public class AdminDashboardServiceTests
+public class AdminDashboardServiceTests : ServiceTestFixtureBase<AdminDashboardService>
 {
     private readonly Mock<ICrmDbContext> _dbContextMock;
     private readonly Mock<IProviderHealthService> _providerHealthServiceMock;

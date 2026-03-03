@@ -17,17 +17,11 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class SatisfactionServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<SatisfactionService>> _mockLogger;
-    private readonly SatisfactionService _service;
+public class SatisfactionServiceTests : ServiceTestFixtureBase<SatisfactionService>
+{    private readonly SatisfactionService _service;
 
     public SatisfactionServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<SatisfactionService>>();
-        _service = new SatisfactionService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new SatisfactionService(MockContext.Object, MockLogger.Object);
     }
 
     // ── Test Helpers ──────────────────────────────────────────────────────────
@@ -36,15 +30,15 @@ public class SatisfactionServiceTests
     {
         surveys ??= new List<SatisfactionSurvey>();
         var mockSurveys = MockDbSetFactory.CreateMockDbSet(surveys);
-        _mockContext.Setup(c => c.SatisfactionSurveys).Returns(mockSurveys.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SatisfactionSurveys).Returns(mockSurveys.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private void SetupResponses(List<SatisfactionResponse>? responses = null)
     {
         responses ??= new List<SatisfactionResponse>();
         var mockResponses = MockDbSetFactory.CreateMockDbSet(responses);
-        _mockContext.Setup(c => c.SatisfactionResponses).Returns(mockResponses.Object);
+        MockContext.Setup(c => c.SatisfactionResponses).Returns(mockResponses.Object);
     }
 
     private static SatisfactionSurvey MakeSurvey(
@@ -126,10 +120,10 @@ public class SatisfactionServiceTests
                 s.Id = 99;
                 captured = s;
             });
-        _mockContext.Setup(c => c.SatisfactionSurveys).Returns(mockSurveys.Object);
-        _mockContext.Setup(c => c.SatisfactionResponses)
+        MockContext.Setup(c => c.SatisfactionSurveys).Returns(mockSurveys.Object);
+        MockContext.Setup(c => c.SatisfactionResponses)
             .Returns(MockDbSetFactory.CreateMockDbSet(new List<SatisfactionResponse>()).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateSatisfactionSurveyDto
         {

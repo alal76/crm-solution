@@ -23,25 +23,18 @@ namespace CRM.Tests.Services.AI;
 /// Unit tests for MeetingSummaryService (TODO-AI-08).
 /// Covers: interaction not found → null; notes present → heuristic summary; AI port used when injected.
 /// </summary>
-public class MeetingSummaryServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<MeetingSummaryService>> _mockLogger;
-
-    public MeetingSummaryServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<MeetingSummaryService>>();
-    }
+public class MeetingSummaryServiceTests : ServiceTestFixtureBase<MeetingSummaryService>
+{    public MeetingSummaryServiceTests()
+    {    }
 
     [Fact]
     public async Task GenerateSummaryAsync_ShouldReturnNull_WhenInteractionNotFound()
     {
         // Arrange
-        _mockContext.Setup(c => c.Interactions)
+        MockContext.Setup(c => c.Interactions)
             .Returns(MockDbSetFactory.CreateMockDbSet(new List<Interaction>()).Object);
 
-        var sut = new MeetingSummaryService(_mockContext.Object, _mockLogger.Object);
+        var sut = new MeetingSummaryService(MockContext.Object, MockLogger.Object);
 
         // Act
         var result = await sut.GenerateSummaryAsync(999);
@@ -66,10 +59,10 @@ public class MeetingSummaryServiceTests
                 Attendees = "alice@co.com, bob@co.com"
             }
         };
-        _mockContext.Setup(c => c.Interactions)
+        MockContext.Setup(c => c.Interactions)
             .Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
 
-        var sut = new MeetingSummaryService(_mockContext.Object, _mockLogger.Object); // no AI port
+        var sut = new MeetingSummaryService(MockContext.Object, MockLogger.Object); // no AI port
 
         // Act
         var result = await sut.GenerateSummaryAsync(1);
@@ -96,7 +89,7 @@ public class MeetingSummaryServiceTests
                 Description = "Shows product features"
             }
         };
-        _mockContext.Setup(c => c.Interactions)
+        MockContext.Setup(c => c.Interactions)
             .Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
 
         var mockAiPort = new Mock<CRM.Core.Ports.Output.Providers.IAIPort>();
@@ -104,7 +97,7 @@ public class MeetingSummaryServiceTests
             .Setup(a => a.SummarizeAsync(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("AI-generated summary of the demo call");
 
-        var sut = new MeetingSummaryService(_mockContext.Object, _mockLogger.Object, mockAiPort.Object);
+        var sut = new MeetingSummaryService(MockContext.Object, MockLogger.Object, mockAiPort.Object);
 
         // Act
         var result = await sut.GenerateSummaryAsync(2);

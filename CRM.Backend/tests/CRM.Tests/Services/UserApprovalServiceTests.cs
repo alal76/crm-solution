@@ -15,17 +15,11 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class UserApprovalServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<UserApprovalService>> _mockLogger;
-    private readonly UserApprovalService _service;
+public class UserApprovalServiceTests : ServiceTestFixtureBase<UserApprovalService>
+{    private readonly UserApprovalService _service;
 
     public UserApprovalServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<UserApprovalService>>();
-        _service = new UserApprovalService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new UserApprovalService(MockContext.Object, MockLogger.Object);
     }
 
     // ── GetApprovalRequestsAsync ─────────────────────────────────────
@@ -45,7 +39,7 @@ public class UserApprovalServiceTests
             new() { Id = 2, Email = "b@test.com", FirstName = "Bob", LastName = "B", Status = 1, RequestedAt = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc) }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
 
         // AsQueryable().Include() is incompatible with mock DbSet — service logs error and re-throws
         await Assert.ThrowsAnyAsync<Exception>(() => _service.GetApprovalRequestsAsync());
@@ -61,7 +55,7 @@ public class UserApprovalServiceTests
             new() { Id = 3, Email = "c@test.com", FirstName = "Carol", LastName = "C", Status = 0, RequestedAt = new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc) }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
 
         // AsQueryable().Include() is incompatible with mock DbSet — service logs error and re-throws
         await Assert.ThrowsAnyAsync<Exception>(() => _service.GetApprovalRequestsAsync(status: 0));
@@ -72,7 +66,7 @@ public class UserApprovalServiceTests
     {
         var data = new List<UserApprovalRequest>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
 
         // AsQueryable().Include() is incompatible with mock DbSet — service logs error and re-throws
         await Assert.ThrowsAnyAsync<Exception>(() => _service.GetApprovalRequestsAsync());
@@ -88,7 +82,7 @@ public class UserApprovalServiceTests
             new() { Id = 10, Email = "found@test.com", FirstName = "Found", LastName = "User", Status = 0, RequestedAt = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc) }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
 
         var result = await _service.GetApprovalRequestByIdAsync(10);
 
@@ -103,7 +97,7 @@ public class UserApprovalServiceTests
     {
         var data = new List<UserApprovalRequest>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
 
         var result = await _service.GetApprovalRequestByIdAsync(999);
 
@@ -117,8 +111,8 @@ public class UserApprovalServiceTests
     {
         var data = new List<UserApprovalRequest>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         await _service.CreateApprovalRequestAsync("new@test.com", "New", "Person", "Acme", "555-1234");
 
@@ -140,7 +134,7 @@ public class UserApprovalServiceTests
             new() { Id = 1, Email = "dup@test.com", FirstName = "Dup", LastName = "User", Status = (int)ApprovalStatus.Pending, RequestedAt = DateTime.UtcNow }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.CreateApprovalRequestAsync("dup@test.com", "Dup2", "User2"));
@@ -156,8 +150,8 @@ public class UserApprovalServiceTests
             new() { Id = 1, Email = "dup@test.com", FirstName = "Dup", LastName = "User", Status = (int)ApprovalStatus.Rejected, RequestedAt = DateTime.UtcNow }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         await _service.CreateApprovalRequestAsync("dup@test.com", "New", "Request");
 
@@ -183,9 +177,9 @@ public class UserApprovalServiceTests
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvalData);
         var mockUserSet = MockDbSetFactory.CreateMockDbSet(userData);
 
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var request = new ApproveUserRequest { ApprovalRequestId = 1, AssignedRole = "Sales" };
         var result = await _service.ApproveUserAsync(1, reviewedByUserId: 100, request);
@@ -222,9 +216,9 @@ public class UserApprovalServiceTests
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvalData);
         var mockUserSet = MockDbSetFactory.CreateMockDbSet(userData);
 
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var request = new ApproveUserRequest { ApprovalRequestId = 2, AssignedRole = "Support" };
         var result = await _service.ApproveUserAsync(2, reviewedByUserId: 100, request);
@@ -244,7 +238,7 @@ public class UserApprovalServiceTests
     {
         var approvalData = new List<UserApprovalRequest>();
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvalData);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
 
         var request = new ApproveUserRequest { ApprovalRequestId = 999 };
 
@@ -265,7 +259,7 @@ public class UserApprovalServiceTests
             }
         };
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvalData);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
 
         var request = new ApproveUserRequest { ApprovalRequestId = 5 };
 
@@ -301,9 +295,9 @@ public class UserApprovalServiceTests
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvalData);
         var mockUserSet = MockDbSetFactory.CreateMockDbSet(userData);
 
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var request = new ApproveUserRequest { ApprovalRequestId = 1, AssignedRole = assignedRole };
         var result = await _service.ApproveUserAsync(1, reviewedByUserId: 100, request);
@@ -328,9 +322,9 @@ public class UserApprovalServiceTests
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvalData);
         var mockUserSet = MockDbSetFactory.CreateMockDbSet(userData);
 
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var request = new ApproveUserRequest { ApprovalRequestId = 1 };
         var result = await _service.ApproveUserAsync(1, reviewedByUserId: 1, request);
@@ -356,9 +350,9 @@ public class UserApprovalServiceTests
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvalData);
         var mockUserSet = MockDbSetFactory.CreateMockDbSet(userData);
 
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var request = new ApproveUserRequest { ApprovalRequestId = 1, DepartmentId = 42, UserProfileId = 7 };
         var result = await _service.ApproveUserAsync(1, reviewedByUserId: 1, request);
@@ -384,8 +378,8 @@ public class UserApprovalServiceTests
             }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         await _service.RejectUserAsync(1, reviewedByUserId: 100, "Not qualified");
 
@@ -400,7 +394,7 @@ public class UserApprovalServiceTests
     {
         var data = new List<UserApprovalRequest>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
 
         await Assert.ThrowsAsync<KeyNotFoundException>(
             () => _service.RejectUserAsync(999, reviewedByUserId: 1, "Reason"));
@@ -419,7 +413,7 @@ public class UserApprovalServiceTests
             }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(data);
-        _mockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
+        MockContext.Setup(c => c.UserApprovalRequests).Returns(mockSet.Object);
 
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.RejectUserAsync(1, reviewedByUserId: 1, "Reason"));

@@ -22,25 +22,19 @@ namespace CRM.Tests.Services;
 /// Unit tests for UserService.
 /// Tests all CRUD operations, password management, and profile operations.
 /// </summary>
-public class UserServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<UserService>> _mockLogger;
-    private readonly UserService _service;
+public class UserServiceTests : ServiceTestFixtureBase<UserService>
+{    private readonly UserService _service;
     private readonly List<User> _users;
 
     public UserServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<UserService>>();
-        _users = new List<User>();
-        _service = new UserService(_mockContext.Object, _mockLogger.Object);
+    {        _users = new List<User>();
+        _service = new UserService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupMockDbSet()
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(_users);
-        _mockContext.Setup(c => c.Users).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Users).Returns(mockSet.Object);
     }
 
     #region GetUserByIdAsync Tests
@@ -180,7 +174,7 @@ public class UserServiceTests
     {
         // Arrange
         SetupMockDbSet();
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.CreateUserAsync("newuser@example.com", "New", "User", "Password@123");
@@ -225,7 +219,7 @@ public class UserServiceTests
     {
         // Arrange
         SetupMockDbSet();
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.CreateUserWithoutPasswordAsync("newuser@example.com", "New", "User");
@@ -257,7 +251,7 @@ public class UserServiceTests
         };
         _users.Add(user);
         SetupMockDbSet();
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var updateDto = new UserDto
         {
@@ -309,8 +303,8 @@ public class UserServiceTests
                    removalCalled = true;
                    _users.Remove(e);
                });
-        _mockContext.Setup(c => c.Users).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Users).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         await _service.DeleteUserAsync(1);
@@ -405,7 +399,7 @@ public class UserServiceTests
         };
         _users.Add(user);
         SetupMockDbSet();
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         await _service.ChangePasswordAsync(1, currentPassword, newPassword);

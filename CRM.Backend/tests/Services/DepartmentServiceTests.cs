@@ -15,25 +15,19 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class DepartmentServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<DepartmentService>> _mockLogger;
-    private readonly DepartmentService _service;
+public class DepartmentServiceTests : ServiceTestFixtureBase<DepartmentService>
+{    private readonly DepartmentService _service;
 
     public DepartmentServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<DepartmentService>>();
-        _service = new DepartmentService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new DepartmentService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupDepartments(List<Department>? departments = null)
     {
         departments ??= new List<Department>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(departments);
-        _mockContext.Setup(c => c.Departments).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Departments).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private static Department CreateDepartment(int id, string name, bool isActive = true, int? parentId = null, bool isDeleted = false)

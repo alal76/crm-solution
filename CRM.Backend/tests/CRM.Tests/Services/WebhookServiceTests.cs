@@ -23,11 +23,9 @@ namespace CRM.Tests.Services;
 /// Covers web form processing, inbound email processing, webhook verification,
 /// social media webhooks, and error handling.
 /// </summary>
-public class WebhookServiceTests
+public class WebhookServiceTests : ServiceTestFixtureBase<WebhookService>
 {
-    private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<WebhookService>> _mockLogger;
-    private readonly Mock<IConfiguration> _mockConfiguration;
+    private readonly Mock<ICrmDbContext> _mockDbContext;    private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly WebhookService _service;
 
     private readonly List<Account> _accounts;
@@ -38,9 +36,7 @@ public class WebhookServiceTests
 
     public WebhookServiceTests()
     {
-        _mockDbContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<WebhookService>>();
-        _mockConfiguration = new Mock<IConfiguration>();
+        _mockDbContext = new Mock<ICrmDbContext>();        _mockConfiguration = new Mock<IConfiguration>();
 
         _accounts = new List<Account>();
         _contacts = new List<CRM.Core.Models.Contact>();
@@ -52,7 +48,7 @@ public class WebhookServiceTests
 
         _service = new WebhookService(
             _mockDbContext.Object,
-            _mockLogger.Object,
+            MockLogger.Object,
             _mockConfiguration.Object);
     }
 
@@ -86,7 +82,7 @@ public class WebhookServiceTests
     public void Constructor_ShouldThrow_WhenDbContextIsNull()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new WebhookService(null!, _mockLogger.Object, _mockConfiguration.Object));
+            new WebhookService(null!, MockLogger.Object, _mockConfiguration.Object));
     }
 
     [Fact]
@@ -100,7 +96,7 @@ public class WebhookServiceTests
     public void Constructor_ShouldThrow_WhenConfigurationIsNull()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new WebhookService(_mockDbContext.Object, _mockLogger.Object, null!));
+            new WebhookService(_mockDbContext.Object, MockLogger.Object, null!));
     }
 
     // ========================================================================

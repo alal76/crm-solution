@@ -19,30 +19,23 @@ using SvcDashboardWidget = CRM.Infrastructure.Services.DashboardWidget;
 
 namespace CRM.Tests.Services;
 
-public class DashboardBuilderServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<DashboardBuilderService>> _mockLogger;
-    private readonly DashboardBuilderService _service;
+public class DashboardBuilderServiceTests : ServiceTestFixtureBase<DashboardBuilderService>
+{    private readonly DashboardBuilderService _service;
 
     public DashboardBuilderServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<DashboardBuilderService>>();
-
-        // Set up in-memory backing stores for Dashboard CRUD
+    {        // Set up in-memory backing stores for Dashboard CRUD
         var dashboards = new List<Dashboard>();
         var widgets = new List<CRM.Core.Entities.DashboardWidget>();
         var mockDashboards = MockDbSetFactory.CreateMockDbSet(dashboards);
         var mockWidgets = MockDbSetFactory.CreateMockDbSet(widgets);
 
-        _mockContext.Setup(c => c.Dashboards).Returns(mockDashboards.Object);
-        _mockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgets.Object);
+        MockContext.Setup(c => c.Dashboards).Returns(mockDashboards.Object);
+        MockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgets.Object);
 
         // Simulate EF Core auto-increment on SaveChanges
         var nextDashboardId = 1;
         var nextWidgetId = 1;
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .Returns(() =>
             {
                 foreach (var d in dashboards.Where(d => d.Id == 0))
@@ -61,8 +54,8 @@ public class DashboardBuilderServiceTests
             });
 
         _service = new DashboardBuilderService(
-            _mockContext.Object,
-            _mockLogger.Object);
+            MockContext.Object,
+            MockLogger.Object);
     }
 
     private CustomDashboard MakeDashboard(int userId, string name, string? description = null)
@@ -341,7 +334,7 @@ public class DashboardBuilderServiceTests
         };
         var mockWidgetsSet = MockDbSetFactory.CreateMockDbSet(
             new List<CRM.Core.Entities.DashboardWidget> { widgetEntity });
-        _mockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgetsSet.Object);
+        MockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgetsSet.Object);
 
         var opps = new List<Opportunity>
         {
@@ -349,7 +342,7 @@ public class DashboardBuilderServiceTests
             new() { Id = 2, Name = "Opp B", Stage = OpportunityStage.Negotiation, Amount = 20000, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var result = await _service.GetWidgetDataAsync("100");
@@ -379,7 +372,7 @@ public class DashboardBuilderServiceTests
         };
         var mockWidgetsSet = MockDbSetFactory.CreateMockDbSet(
             new List<CRM.Core.Entities.DashboardWidget> { widgetEntity });
-        _mockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgetsSet.Object);
+        MockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgetsSet.Object);
 
         var leads = new List<Lead>
         {
@@ -387,7 +380,7 @@ public class DashboardBuilderServiceTests
             new() { Id = 2, FirstName = "C", LastName = "D", Email = "c@d.com", Status = LeadLifecycleStatus.Qualified, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
         var result = await _service.GetWidgetDataAsync("200");

@@ -32,17 +32,11 @@ namespace CRM.Tests.Services;
 /// Status transitions: Pending → Approved/Rejected, Approved → Received, Received → Refunded → Completed,
 /// any → Cancelled, as well as soft delete and statistics generation.
 /// </summary>
-public class OrderReturnServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<OrderReturnService>> _mockLogger;
-    private readonly OrderReturnService _service;
+public class OrderReturnServiceTests : ServiceTestFixtureBase<OrderReturnService>
+{    private readonly OrderReturnService _service;
 
     public OrderReturnServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<OrderReturnService>>();
-        _service = new OrderReturnService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new OrderReturnService(MockContext.Object, MockLogger.Object);
     }
 
     // ────────────────────────────────────────────────────────────────────────
@@ -63,12 +57,12 @@ public class OrderReturnServiceTests
         mockReturns.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
             .Returns<object[], CancellationToken>((keys, _) =>
                 new ValueTask<OrderReturn?>(orderReturns.FirstOrDefault(r => r.Id == Convert.ToInt32(keys[0]))));
-        _mockContext.Setup(c => c.OrderReturns).Returns(mockReturns.Object);
+        MockContext.Setup(c => c.OrderReturns).Returns(mockReturns.Object);
 
         var mockOrders = MockDbSetFactory.CreateMockDbSet(orders);
-        _mockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
+        MockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
 
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private static OrderReturn CreateTestReturn(
@@ -239,7 +233,7 @@ public class OrderReturnServiceTests
         result.Status.Should().Be(OrderReturnStatus.Pending);
         result.RefundAmount.Should().Be(250m);
         result.InitiatedById.Should().Be(1);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -276,7 +270,7 @@ public class OrderReturnServiceTests
         result.Status.Should().Be(OrderReturnStatus.Approved);
         result.ProcessedById.Should().Be(5);
         result.ApprovedAt.Should().NotBeNull();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -326,7 +320,7 @@ public class OrderReturnServiceTests
         result.Status.Should().Be(OrderReturnStatus.Rejected);
         result.ProcessedById.Should().Be(3);
         result.Notes.Should().Contain("Policy violation");
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -360,7 +354,7 @@ public class OrderReturnServiceTests
         result.Status.Should().Be(OrderReturnStatus.Received);
         result.ReceivedAt.Should().NotBeNull();
         result.ReturnTrackingNumber.Should().Be("TRACK123");
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -394,7 +388,7 @@ public class OrderReturnServiceTests
         result.Status.Should().Be(OrderReturnStatus.Refunded);
         result.RefundedAt.Should().NotBeNull();
         result.RefundTransactionId.Should().Be("TXN-ABC123");
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -427,7 +421,7 @@ public class OrderReturnServiceTests
         // Assert
         result.Status.Should().Be(OrderReturnStatus.Completed);
         result.CompletedAt.Should().NotBeNull();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -460,7 +454,7 @@ public class OrderReturnServiceTests
         // Assert
         result.Status.Should().Be(OrderReturnStatus.Cancelled);
         result.Notes.Should().Contain("Customer changed mind");
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -494,7 +488,7 @@ public class OrderReturnServiceTests
         // Assert
         result.Should().BeTrue();
         orderReturn.IsDeleted.Should().BeTrue();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -610,7 +604,7 @@ public class OrderReturnServiceTests
         result.Notes.Should().Be("Updated notes");
         result.RefundAmount.Should().Be(200m);
         result.RestockingFee.Should().Be(10m);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

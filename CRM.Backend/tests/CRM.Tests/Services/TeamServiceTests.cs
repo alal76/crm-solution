@@ -18,11 +18,8 @@ namespace CRM.Tests.Services;
 /// <summary>
 /// Unit tests for TeamService.
 /// </summary>
-public class TeamServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<TeamService>> _mockLogger;
-    private readonly TeamService _service;
+public class TeamServiceTests : ServiceTestFixtureBase<TeamService>
+{    private readonly TeamService _service;
 
     private readonly List<Team> _teams;
     private readonly List<TeamMember> _teamMembers;
@@ -32,11 +29,7 @@ public class TeamServiceTests
     private readonly List<User> _users;
 
     public TeamServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<TeamService>>();
-
-        _teams = new List<Team>();
+    {        _teams = new List<Team>();
         _teamMembers = new List<TeamMember>();
         _territories = new List<AccountTerritory>();
         _accounts = new List<Account>();
@@ -60,15 +53,15 @@ public class TeamServiceTests
                 return ValueTask.FromResult(_teams.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
-        _mockContext.Setup(c => c.Teams).Returns(mockTeams.Object);
-        _mockContext.Setup(c => c.TeamMembers).Returns(mockTeamMembers.Object);
-        _mockContext.Setup(c => c.AccountTerritories).Returns(mockTerritories.Object);
-        _mockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockOpportunities.Object);
-        _mockContext.Setup(c => c.Users).Returns(mockUsers.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Teams).Returns(mockTeams.Object);
+        MockContext.Setup(c => c.TeamMembers).Returns(mockTeamMembers.Object);
+        MockContext.Setup(c => c.AccountTerritories).Returns(mockTerritories.Object);
+        MockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockOpportunities.Object);
+        MockContext.Setup(c => c.Users).Returns(mockUsers.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        _service = new TeamService(_mockContext.Object, _mockLogger.Object);
+        _service = new TeamService(MockContext.Object, MockLogger.Object);
     }
 
     // ========================================================================

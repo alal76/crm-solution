@@ -23,26 +23,21 @@ namespace CRM.Tests.Services;
 /// Unit tests for SLAPolicyAdminService.
 /// Covers CRUD operations, policy assignment, applicable policies, and error handling.
 /// </summary>
-public class SLAPolicyAdminServiceTests
+public class SLAPolicyAdminServiceTests : ServiceTestFixtureBase<SLAPolicyAdminService>
 {
-    private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<SLAPolicyAdminService>> _mockLogger;
-    private readonly SLAPolicyAdminService _service;
+    private readonly Mock<ICrmDbContext> _mockDbContext;    private readonly SLAPolicyAdminService _service;
 
     private readonly List<SLAPolicy> _policies;
     private readonly List<ServiceRequest> _serviceRequests;
 
     public SLAPolicyAdminServiceTests()
     {
-        _mockDbContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<SLAPolicyAdminService>>();
-
-        _policies = new List<SLAPolicy>();
+        _mockDbContext = new Mock<ICrmDbContext>();        _policies = new List<SLAPolicy>();
         _serviceRequests = new List<ServiceRequest>();
 
         SetupMockDbSets();
 
-        _service = new SLAPolicyAdminService(_mockDbContext.Object, _mockLogger.Object);
+        _service = new SLAPolicyAdminService(_mockDbContext.Object, MockLogger.Object);
     }
 
     private void SetupMockDbSets()

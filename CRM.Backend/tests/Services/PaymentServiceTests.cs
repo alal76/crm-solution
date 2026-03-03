@@ -16,17 +16,11 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class PaymentServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<PaymentService>> _mockLogger;
-    private readonly PaymentService _service;
+public class PaymentServiceTests : ServiceTestFixtureBase<PaymentService>
+{    private readonly PaymentService _service;
 
     public PaymentServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<PaymentService>>();
-        _service = new PaymentService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new PaymentService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupDbSets(
@@ -40,14 +34,14 @@ public class PaymentServiceTests
         mockPayments.Setup(m => m.Add(It.IsAny<Payment>())).Callback<Payment>(e => payments.Add(e));
         mockPayments.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
             .Returns<object[], CancellationToken>((keys, _) => mockPayments.Object.FindAsync(keys));
-        _mockContext.Setup(c => c.Payments).Returns(mockPayments.Object);
+        MockContext.Setup(c => c.Payments).Returns(mockPayments.Object);
 
         var mockInvoices = MockDbSetFactory.CreateMockDbSet(invoices);
         mockInvoices.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
             .Returns<object[], CancellationToken>((keys, _) => mockInvoices.Object.FindAsync(keys));
-        _mockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
+        MockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
 
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private static Payment CreateTestPayment(
@@ -576,7 +570,7 @@ public class PaymentServiceTests
     public void Constructor_ShouldThrowArgumentNullException_WhenContextIsNull()
     {
         // Act
-        var act = () => new PaymentService(null!, _mockLogger.Object);
+        var act = () => new PaymentService(null!, MockLogger.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("context");
@@ -586,7 +580,7 @@ public class PaymentServiceTests
     public void Constructor_ShouldThrowArgumentNullException_WhenLoggerIsNull()
     {
         // Act
-        var act = () => new PaymentService(_mockContext.Object, null!);
+        var act = () => new PaymentService(MockContext.Object, null!);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");

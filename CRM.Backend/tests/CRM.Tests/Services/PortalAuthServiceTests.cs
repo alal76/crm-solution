@@ -23,21 +23,15 @@ namespace CRM.Tests.Services;
 /// Covers Login, Register, ForgotPassword, ResetPassword, VerifyEmail.
 /// PORTAL-040
 /// </summary>
-public class PortalAuthServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<PortalAuthService>> _mockLogger;
-    private readonly Mock<IConfiguration> _mockConfiguration;
+public class PortalAuthServiceTests : ServiceTestFixtureBase<PortalAuthService>
+{    private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly PortalAuthService _service;
 
     private readonly List<PortalUser> _portalUsers;
     private readonly List<PortalConfig> _portalConfigs;
 
     public PortalAuthServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<PortalAuthService>>();
-        _mockConfiguration = new Mock<IConfiguration>();
+    {        _mockConfiguration = new Mock<IConfiguration>();
 
         // JWT settings — secret must be >= 32 characters for HMAC-SHA256
         _mockConfiguration.Setup(c => c["Jwt:Secret"])
@@ -52,8 +46,8 @@ public class PortalAuthServiceTests
         SetupMockDbSets();
 
         _service = new PortalAuthService(
-            _mockContext.Object,
-            _mockLogger.Object,
+            MockContext.Object,
+            MockLogger.Object,
             _mockConfiguration.Object);
     }
 
@@ -62,9 +56,9 @@ public class PortalAuthServiceTests
         var mockPortalUsers = MockDbSetFactory.CreateMockDbSet(_portalUsers);
         var mockPortalConfigs = MockDbSetFactory.CreateMockDbSet(_portalConfigs);
 
-        _mockContext.Setup(c => c.PortalUsers).Returns(mockPortalUsers.Object);
-        _mockContext.Setup(c => c.PortalConfigs).Returns(mockPortalConfigs.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.PortalUsers).Returns(mockPortalUsers.Object);
+        MockContext.Setup(c => c.PortalConfigs).Returns(mockPortalConfigs.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     // ── PORTAL-040: Login ─────────────────────────────────────────────────────

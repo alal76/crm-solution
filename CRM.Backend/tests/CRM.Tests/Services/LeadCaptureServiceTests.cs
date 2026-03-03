@@ -18,25 +18,20 @@ namespace CRM.Tests.Services;
 /// Unit tests for LeadCaptureService (BACK-006).
 /// Covers token generation, validation, revocation, and lead capture from form submissions.
 /// </summary>
-public class LeadCaptureServiceTests
+public class LeadCaptureServiceTests : ServiceTestFixtureBase<LeadCaptureService>
 {
     private readonly Mock<ICrmDbContext> _mockDb;
-    private readonly Mock<ILeadService> _mockLeadService;
-    private readonly Mock<ILogger<LeadCaptureService>> _mockLogger;
-
-    public LeadCaptureServiceTests()
+    private readonly Mock<ILeadService> _mockLeadService;    public LeadCaptureServiceTests()
     {
         _mockDb = new Mock<ICrmDbContext>();
-        _mockLeadService = new Mock<ILeadService>();
-        _mockLogger = new Mock<ILogger<LeadCaptureService>>();
-    }
+        _mockLeadService = new Mock<ILeadService>();    }
 
     private LeadCaptureService CreateService()
     {
         return new LeadCaptureService(
             _mockDb.Object,
             _mockLeadService.Object,
-            _mockLogger.Object);
+            MockLogger.Object);
     }
 
     // ─── Constructor ──────────────────────────────────────────────────────────

@@ -17,29 +17,20 @@ using Xunit;
 
 namespace CRM.Tests.Services.AI;
 
-public class AILeadScoringServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<IFeatureManager> _mockFeatureManager;
-    private readonly Mock<IServiceProvider> _mockServiceProvider;
-    private readonly Mock<ILogger<AILeadScoringService>> _mockLogger;
-    private readonly AILeadScoringService _service;
+public class AILeadScoringServiceTests : ServiceTestFixtureBase<AILeadScoringService>
+{    private readonly Mock<IFeatureManager> _mockFeatureManager;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;    private readonly AILeadScoringService _service;
 
     public AILeadScoringServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockFeatureManager = new Mock<IFeatureManager>();
-        _mockServiceProvider = new Mock<IServiceProvider>();
-        _mockLogger = new Mock<ILogger<AILeadScoringService>>();
-
-        _mockFeatureManager.Setup(f => f.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+    {        _mockFeatureManager = new Mock<IFeatureManager>();
+        _mockServiceProvider = new Mock<IServiceProvider>();        _mockFeatureManager.Setup(f => f.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
         _mockServiceProvider.Setup(sp => sp.GetService(typeof(IFeatureManager))).Returns(_mockFeatureManager.Object);
 
         _service = new AILeadScoringService(
-            _mockContext.Object,
+            MockContext.Object,
             _mockServiceProvider.Object,
             _mockFeatureManager.Object,
-            _mockLogger.Object);
+            MockLogger.Object);
     }
 
     // ========================================================================
@@ -52,7 +43,7 @@ public class AILeadScoringServiceTests
         // Arrange
         var leads = new List<Lead>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreLeadAsync(999);
@@ -70,7 +61,7 @@ public class AILeadScoringServiceTests
             CreateLead(1, "John", "Doe", "john@example.com", "Acme Corp")
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreLeadAsync(1);
@@ -95,7 +86,7 @@ public class AILeadScoringServiceTests
 
         var leads = new List<Lead> { incompleteLead, completeLead };
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
         var incompleteScore = await _service.ScoreLeadAsync(1);
@@ -145,7 +136,7 @@ public class AILeadScoringServiceTests
         leads[2].IsDeleted = true;
 
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreAllLeadsAsync();
@@ -164,7 +155,7 @@ public class AILeadScoringServiceTests
         // Arrange
         var leads = new List<Lead>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreAllLeadsAsync();
@@ -220,7 +211,7 @@ public class AILeadScoringServiceTests
 
         var leads = new List<Lead> { referralLead, manualLead };
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
         var refScore = await _service.ScoreLeadAsync(1);
@@ -248,7 +239,7 @@ public class AILeadScoringServiceTests
 
         var leads = new List<Lead> { recentLead, oldLead };
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
         var recentScore = await _service.ScoreLeadAsync(1);

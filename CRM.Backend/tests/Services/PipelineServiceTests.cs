@@ -15,24 +15,18 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class PipelineServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<PipelineService>> _mockLogger;
-    private readonly PipelineService _service;
+public class PipelineServiceTests : ServiceTestFixtureBase<PipelineService>
+{    private readonly PipelineService _service;
 
     public PipelineServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<PipelineService>>();
-        _service = new PipelineService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new PipelineService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupOpportunities(List<Opportunity>? opportunities = null)
     {
         opportunities ??= new List<Opportunity>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(opportunities);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
     }
 
     private static Opportunity CreateOpportunity(int id, OpportunityStage stage, decimal amount, bool isDeleted = false)

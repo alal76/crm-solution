@@ -23,24 +23,18 @@ namespace CRM.Tests.Services.AI;
 /// Unit tests for DealRiskService (TODO-AI-09).
 /// Covers: opportunity not found → null; overdue close date → elevated risk; recent activity → lower risk.
 /// </summary>
-public class DealRiskServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<DealRiskService>> _mockLogger;
-    private readonly DealRiskService _sut;
+public class DealRiskServiceTests : ServiceTestFixtureBase<DealRiskService>
+{    private readonly DealRiskService _sut;
 
     public DealRiskServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<DealRiskService>>();
-        _sut = new DealRiskService(_mockContext.Object, _mockLogger.Object);
+    {        _sut = new DealRiskService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public async Task CalculateRiskAsync_ShouldReturnNull_WhenOpportunityNotFound()
     {
         // Arrange
-        _mockContext.Setup(c => c.Opportunities)
+        MockContext.Setup(c => c.Opportunities)
             .Returns(MockDbSetFactory.CreateMockDbSet(new List<Opportunity>()).Object);
 
         // Act
@@ -68,9 +62,9 @@ public class DealRiskServiceTests
         };
         var interactions = new List<Interaction>(); // no activity
 
-        _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
-        _mockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
-        _mockContext.Setup(c => c.Contacts).Returns(MockDbSetFactory.CreateMockDbSet(new List<Contact>()).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
+        MockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
+        MockContext.Setup(c => c.Contacts).Returns(MockDbSetFactory.CreateMockDbSet(new List<Contact>()).Object);
 
         // Act
         var result = await _sut.CalculateRiskAsync(1);
@@ -112,9 +106,9 @@ public class DealRiskServiceTests
             }
         };
 
-        _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
-        _mockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
-        _mockContext.Setup(c => c.Contacts).Returns(MockDbSetFactory.CreateMockDbSet(new List<Contact>()).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
+        MockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
+        MockContext.Setup(c => c.Contacts).Returns(MockDbSetFactory.CreateMockDbSet(new List<Contact>()).Object);
 
         // Act
         var result = await _sut.CalculateRiskAsync(2);

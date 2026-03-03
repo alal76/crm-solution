@@ -23,24 +23,18 @@ namespace CRM.Tests.Services.AI;
 /// Unit tests for RevenueForecastService (TODO-AI-10).
 /// Covers: empty db → zero forecast; ClosedWon this month → in ClosedRevenue; pipeline weighted correctly.
 /// </summary>
-public class RevenueForecastServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<RevenueForecastService>> _mockLogger;
-    private readonly RevenueForecastService _sut;
+public class RevenueForecastServiceTests : ServiceTestFixtureBase<RevenueForecastService>
+{    private readonly RevenueForecastService _sut;
 
     public RevenueForecastServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<RevenueForecastService>>();
-        _sut = new RevenueForecastService(_mockContext.Object, _mockLogger.Object);
+    {        _sut = new RevenueForecastService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public async Task ForecastRevenueAsync_ShouldReturnZeroForecast_WhenNoPipelineExists()
     {
         // Arrange
-        _mockContext.Setup(c => c.Opportunities)
+        MockContext.Setup(c => c.Opportunities)
             .Returns(MockDbSetFactory.CreateMockDbSet(new List<Opportunity>()).Object);
 
         // Act
@@ -70,7 +64,7 @@ public class RevenueForecastServiceTests
                 ExpectedCloseDate = thisMonthClose
             }
         };
-        _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
 
         // Act
         var result = await _sut.ForecastRevenueAsync(6);
@@ -100,7 +94,7 @@ public class RevenueForecastServiceTests
                 ExpectedCloseDate = closeDate
             }
         };
-        _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
 
         // Act
         var result = await _sut.ForecastRevenueAsync(6);

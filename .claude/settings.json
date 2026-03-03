@@ -6,7 +6,9 @@
       "Bash(# Check the OpportunitiesPage for local interface grep -n \"\"interface Opportunity\\\\|import.*Opportunity\\\\|local.*interface\"\" \"\"/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Frontend/src/pages/OpportunitiesPage.tsx\"\")",
       "Bash(# Check the ServiceRequestDto for SlaStatus field -- note this was a gap in the spec grep -n \"\"SlaStatus\\\\|slaStatus\"\" \"\"/Users/alal/Code/Git CRM Solution/crm-solution/CRM.Backend/src/CRM.Core/Dtos/ServiceRequestDto.cs\"\")",
       "Read(//dev/**)",
-      "Read(//Users/alal/Code/Git CRM Solution/crm-solution/**)"
+      "Read(//Users/alal/Code/Git CRM Solution/crm-solution/**)",
+      "Bash(SONAR_TOKEN=30fe98bdc9956333208317cf5271e9d76fdb7388 python3 scripts/sonar_bulk_acknowledge.py --dry-run)",
+      "Bash(SONAR_TOKEN=30fe98bdc9956333208317cf5271e9d76fdb7388 python3 scripts/sonar_bulk_acknowledge.py)"
     ]
   }
 }

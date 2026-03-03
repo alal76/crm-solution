@@ -19,11 +19,8 @@ namespace CRM.Tests.Services;
 /// <summary>
 /// Unit tests for EmailTemplateService.
 /// </summary>
-public class EmailTemplateServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<EmailTemplateService>> _mockLogger;
-    private readonly EmailTemplateService _service;
+public class EmailTemplateServiceTests : ServiceTestFixtureBase<EmailTemplateService>
+{    private readonly EmailTemplateService _service;
 
     private readonly List<EmailTemplate> _templates;
     private readonly List<EmailTemplateVersion> _versions;
@@ -32,11 +29,7 @@ public class EmailTemplateServiceTests
     private readonly List<Opportunity> _opportunities;
 
     public EmailTemplateServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<EmailTemplateService>>();
-
-        _templates = new List<EmailTemplate>();
+    {        _templates = new List<EmailTemplate>();
         _versions = new List<EmailTemplateVersion>();
         _accounts = new List<Account>();
         _contacts = new List<ContactModel>();
@@ -58,14 +51,14 @@ public class EmailTemplateServiceTests
                 return ValueTask.FromResult(_templates.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
-        _mockContext.Setup(c => c.EmailTemplates).Returns(mockTemplates.Object);
-        _mockContext.Setup(c => c.EmailTemplateVersions).Returns(mockVersions.Object);
-        _mockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
-        _mockContext.Setup(c => c.Contacts).Returns(mockContacts.Object);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockOpportunities.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.EmailTemplates).Returns(mockTemplates.Object);
+        MockContext.Setup(c => c.EmailTemplateVersions).Returns(mockVersions.Object);
+        MockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
+        MockContext.Setup(c => c.Contacts).Returns(mockContacts.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockOpportunities.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        _service = new EmailTemplateService(_mockContext.Object, _mockLogger.Object);
+        _service = new EmailTemplateService(MockContext.Object, MockLogger.Object);
     }
 
     // ========================================================================

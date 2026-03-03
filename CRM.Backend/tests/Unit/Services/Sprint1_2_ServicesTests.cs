@@ -20,31 +20,25 @@ namespace CRM.Backend.Tests.Services;
 /// Unit tests for CommissionPlanService.
 /// Tests CRUD operations, tier management, and plan assignment.
 /// </summary>
-public class CommissionPlanServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CommissionPlanService>> _mockLogger;
-    private readonly CommissionPlanService _service;
+public class CommissionPlanServiceTests : ServiceTestFixtureBase<CommissionPlanService>
+{    private readonly CommissionPlanService _service;
 
     public CommissionPlanServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CommissionPlanService>>();
-        _service = new CommissionPlanService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new CommissionPlanService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new CommissionPlanService(null, _mockLogger.Object));
+        Assert.Throws<ArgumentNullException>(() => new CommissionPlanService(null, MockLogger.Object));
     }
 
     [Fact]
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => new CommissionPlanService(_mockContext.Object, null));
+        Assert.Throws<ArgumentNullException>(() => new CommissionPlanService(MockContext.Object, null));
     }
 
     [Fact]
@@ -70,8 +64,8 @@ public class CommissionPlanServiceTests
         };
 
         var planDbSet = new Mock<DbSet<CommissionPlan>>();
-        _mockContext.Setup(c => c.CommissionPlans).Returns(planDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.CommissionPlans).Returns(planDbSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.CreateAsync(dto);
@@ -111,8 +105,8 @@ public class CommissionPlanServiceTests
         planDbSet.Setup(d => d.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<CommissionPlan, bool>>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(plan);
 
-        _mockContext.Setup(c => c.CommissionPlans).Returns(planDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.CommissionPlans).Returns(planDbSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.ActivateAsync(planId);
@@ -133,8 +127,8 @@ public class CommissionPlanServiceTests
         planDbSet.Setup(d => d.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<CommissionPlan, bool>>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(plan);
 
-        _mockContext.Setup(c => c.CommissionPlans).Returns(planDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.CommissionPlans).Returns(planDbSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.DeactivateAsync(planId);
@@ -150,28 +144,24 @@ public class CommissionPlanServiceTests
 /// Tests commission calculations with tiers and accelerators.
 /// </summary>
 public class CommissionCalculationServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CommissionCalculationService>> _mockLogger;
+{    private readonly Mock<ILogger<CommissionCalculationService>> MockLogger;
     private readonly CommissionCalculationService _service;
 
     public CommissionCalculationServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CommissionCalculationService>>();
-        _service = new CommissionCalculationService(_mockContext.Object, _mockLogger.Object);
+    {        MockLogger = new Mock<ILogger<CommissionCalculationService>>();
+        _service = new CommissionCalculationService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new CommissionCalculationService(null, _mockLogger.Object));
+        Assert.Throws<ArgumentNullException>(() => new CommissionCalculationService(null, MockLogger.Object));
     }
 
     [Fact]
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new CommissionCalculationService(_mockContext.Object, null));
+        Assert.Throws<ArgumentNullException>(() => new CommissionCalculationService(MockContext.Object, null));
     }
 }
 
@@ -180,22 +170,18 @@ public class CommissionCalculationServiceTests
 /// Tests approval workflows and audit trails.
 /// </summary>
 public class CommissionApprovalServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CommissionApprovalService>> _mockLogger;
+{    private readonly Mock<ILogger<CommissionApprovalService>> MockLogger;
     private readonly CommissionApprovalService _service;
 
     public CommissionApprovalServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CommissionApprovalService>>();
-        _service = new CommissionApprovalService(_mockContext.Object, _mockLogger.Object);
+    {        MockLogger = new Mock<ILogger<CommissionApprovalService>>();
+        _service = new CommissionApprovalService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new CommissionApprovalService(null, _mockLogger.Object));
+        Assert.Throws<ArgumentNullException>(() => new CommissionApprovalService(null, MockLogger.Object));
     }
 
     [Fact]
@@ -212,9 +198,9 @@ public class CommissionApprovalServiceTests
         commissionDbSet.Setup(d => d.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<Commission, bool>>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(commission);
 
-        _mockContext.Setup(c => c.Commissions).Returns(commissionDbSet.Object);
-        _mockContext.Setup(c => c.CommissionApprovalAudits).Returns(auditDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Commissions).Returns(commissionDbSet.Object);
+        MockContext.Setup(c => c.CommissionApprovalAudits).Returns(auditDbSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.ApproveAsync(commissionId, approverId);
@@ -231,22 +217,18 @@ public class CommissionApprovalServiceTests
 /// Tests payout operations and reconciliation.
 /// </summary>
 public class CommissionPayoutServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CommissionPayoutService>> _mockLogger;
+{    private readonly Mock<ILogger<CommissionPayoutService>> MockLogger;
     private readonly CommissionPayoutService _service;
 
     public CommissionPayoutServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CommissionPayoutService>>();
-        _service = new CommissionPayoutService(_mockContext.Object, _mockLogger.Object);
+    {        MockLogger = new Mock<ILogger<CommissionPayoutService>>();
+        _service = new CommissionPayoutService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new CommissionPayoutService(null, _mockLogger.Object));
+        Assert.Throws<ArgumentNullException>(() => new CommissionPayoutService(null, MockLogger.Object));
     }
 
     [Fact]
@@ -261,8 +243,8 @@ public class CommissionPayoutServiceTests
         commissionDbSet.Setup(d => d.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<Commission, bool>>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(commission);
 
-        _mockContext.Setup(c => c.Commissions).Returns(commissionDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Commissions).Returns(commissionDbSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.MarkPaidAsync(commissionId, paidDate);
@@ -285,8 +267,8 @@ public class CommissionPayoutServiceTests
         commissionDbSet.Setup(d => d.FirstOrDefaultAsync(It.IsAny<System.Linq.Expressions.Expression<System.Func<Commission, bool>>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(commission);
 
-        _mockContext.Setup(c => c.Commissions).Returns(commissionDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Commissions).Returns(commissionDbSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.ClawbackAsync(commissionId, reason);
@@ -303,22 +285,18 @@ public class CommissionPayoutServiceTests
 /// Tests recipient management and filtering.
 /// </summary>
 public class CampaignRecipientServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CampaignRecipientService>> _mockLogger;
+{    private readonly Mock<ILogger<CampaignRecipientService>> MockLogger;
     private readonly CampaignRecipientService _service;
 
     public CampaignRecipientServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CampaignRecipientService>>();
-        _service = new CampaignRecipientService(_mockContext.Object, _mockLogger.Object);
+    {        MockLogger = new Mock<ILogger<CampaignRecipientService>>();
+        _service = new CampaignRecipientService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new CampaignRecipientService(null, _mockLogger.Object));
+        Assert.Throws<ArgumentNullException>(() => new CampaignRecipientService(null, MockLogger.Object));
     }
 }
 
@@ -327,22 +305,18 @@ public class CampaignRecipientServiceTests
 /// Tests metrics calculations and analytics.
 /// </summary>
 public class CampaignMetricsServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CampaignMetricsService>> _mockLogger;
+{    private readonly Mock<ILogger<CampaignMetricsService>> MockLogger;
     private readonly CampaignMetricsService _service;
 
     public CampaignMetricsServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CampaignMetricsService>>();
-        _service = new CampaignMetricsService(_mockContext.Object, _mockLogger.Object);
+    {        MockLogger = new Mock<ILogger<CampaignMetricsService>>();
+        _service = new CampaignMetricsService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new CampaignMetricsService(null, _mockLogger.Object));
+        Assert.Throws<ArgumentNullException>(() => new CampaignMetricsService(null, MockLogger.Object));
     }
 }
 
@@ -351,22 +325,18 @@ public class CampaignMetricsServiceTests
 /// Tests sequence CRUD, step management, and enrollments.
 /// </summary>
 public class EmailSequenceManagementServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<EmailSequenceManagementService>> _mockLogger;
+{    private readonly Mock<ILogger<EmailSequenceManagementService>> MockLogger;
     private readonly EmailSequenceManagementService _service;
 
     public EmailSequenceManagementServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<EmailSequenceManagementService>>();
-        _service = new EmailSequenceManagementService(_mockContext.Object, _mockLogger.Object);
+    {        MockLogger = new Mock<ILogger<EmailSequenceManagementService>>();
+        _service = new EmailSequenceManagementService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new EmailSequenceManagementService(null, _mockLogger.Object));
+        Assert.Throws<ArgumentNullException>(() => new EmailSequenceManagementService(null, MockLogger.Object));
     }
 
     [Fact]
@@ -380,8 +350,8 @@ public class EmailSequenceManagementServiceTests
         };
 
         var sequenceDbSet = new Mock<DbSet<EmailSequence>>();
-        _mockContext.Setup(c => c.EmailSequences).Returns(sequenceDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.EmailSequences).Returns(sequenceDbSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.CreateAsync(dto);
@@ -406,22 +376,18 @@ public class EmailSequenceManagementServiceTests
 /// Tests webhook CRUD and delivery tracking.
 /// </summary>
 public class WebhookManagementServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<WebhookManagementService>> _mockLogger;
+{    private readonly Mock<ILogger<WebhookManagementService>> MockLogger;
     private readonly WebhookManagementService _service;
 
     public WebhookManagementServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<WebhookManagementService>>();
-        _service = new WebhookManagementService(_mockContext.Object, _mockLogger.Object);
+    {        MockLogger = new Mock<ILogger<WebhookManagementService>>();
+        _service = new WebhookManagementService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new WebhookManagementService(null, _mockLogger.Object));
+        Assert.Throws<ArgumentNullException>(() => new WebhookManagementService(null, MockLogger.Object));
     }
 
     [Fact]
@@ -435,8 +401,8 @@ public class WebhookManagementServiceTests
         };
 
         var webhookDbSet = new Mock<DbSet<Webhook>>();
-        _mockContext.Setup(c => c.Webhooks).Returns(webhookDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Webhooks).Returns(webhookDbSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.CreateAsync(dto);
@@ -461,35 +427,31 @@ public class WebhookManagementServiceTests
 /// Tests webhook dispatch and queue processing.
 /// </summary>
 public class WebhookDispatcherServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<WebhookDispatcherService>> _mockLogger;
+{    private readonly Mock<ILogger<WebhookDispatcherService>> MockLogger;
     private readonly Mock<HttpClient> _mockHttpClient;
     private readonly WebhookDispatcherService _service;
 
     public WebhookDispatcherServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<WebhookDispatcherService>>();
+    {        MockLogger = new Mock<ILogger<WebhookDispatcherService>>();
         _mockHttpClient = new Mock<HttpClient>();
-        _service = new WebhookDispatcherService(_mockContext.Object, _mockLogger.Object, _mockHttpClient.Object);
+        _service = new WebhookDispatcherService(MockContext.Object, MockLogger.Object, _mockHttpClient.Object);
     }
 
     [Fact]
     public void Constructor_WithNullContext_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new WebhookDispatcherService(null, _mockLogger.Object, _mockHttpClient.Object));
+        Assert.Throws<ArgumentNullException>(() => new WebhookDispatcherService(null, MockLogger.Object, _mockHttpClient.Object));
     }
 
     [Fact]
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new WebhookDispatcherService(_mockContext.Object, null, _mockHttpClient.Object));
+        Assert.Throws<ArgumentNullException>(() => new WebhookDispatcherService(MockContext.Object, null, _mockHttpClient.Object));
     }
 
     [Fact]
     public void Constructor_WithNullHttpClient_ThrowsArgumentNullException()
     {
-        Assert.Throws<ArgumentNullException>(() => new WebhookDispatcherService(_mockContext.Object, _mockLogger.Object, null));
+        Assert.Throws<ArgumentNullException>(() => new WebhookDispatcherService(MockContext.Object, MockLogger.Object, null));
     }
 }

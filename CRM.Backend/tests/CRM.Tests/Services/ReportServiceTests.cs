@@ -22,18 +22,12 @@ using ReportDefinitionEntity = CRM.Core.Entities.Reports.ReportDefinition;
 
 namespace CRM.Tests.Services;
 
-public class ReportServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<ReportService>> _mockLogger;
-    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
+public class ReportServiceTests : ServiceTestFixtureBase<ReportService>
+{    private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly ReportService _service;
 
     public ReportServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ReportService>>();
-        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
+    {        _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
 
         var httpContext = new DefaultHttpContext
         {
@@ -44,7 +38,7 @@ public class ReportServiceTests
         };
 
         _mockHttpContextAccessor.Setup(a => a.HttpContext).Returns(httpContext);
-        _service = new ReportService(_mockContext.Object, _mockLogger.Object, _mockHttpContextAccessor.Object);
+        _service = new ReportService(MockContext.Object, MockLogger.Object, _mockHttpContextAccessor.Object);
     }
 
     private void SetupDbSets(
@@ -57,16 +51,16 @@ public class ReportServiceTests
         accounts ??= new List<Account>();
 
         var mockReportDefinitions = MockDbSetFactory.CreateMockDbSet(reportDefinitions);
-        _mockContext.Setup(c => c.ReportDefinitions).Returns(mockReportDefinitions.Object);
+        MockContext.Setup(c => c.ReportDefinitions).Returns(mockReportDefinitions.Object);
 
         var mockReportExecutions = MockDbSetFactory.CreateMockDbSet(reportExecutions);
         mockReportExecutions.Setup(m => m.Add(It.IsAny<ReportExecution>())).Callback<ReportExecution>(e => reportExecutions.Add(e));
-        _mockContext.Setup(c => c.ReportExecutions).Returns(mockReportExecutions.Object);
+        MockContext.Setup(c => c.ReportExecutions).Returns(mockReportExecutions.Object);
 
         var mockAccounts = MockDbSetFactory.CreateMockDbSet(accounts);
-        _mockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
+        MockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
 
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     [Fact]

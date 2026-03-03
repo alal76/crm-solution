@@ -20,20 +20,15 @@ namespace CRM.Tests.Services;
 /// Covers entity type listing, export (JSON/CSV), import (JSON/CSV),
 /// template generation, and error handling.
 /// </summary>
-public class ImportExportServiceTests
+public class ImportExportServiceTests : ServiceTestFixtureBase<ImportExportService>
 {
-    private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<ImportExportService>> _mockLogger;
-    private readonly ImportExportService _service;
+    private readonly Mock<ICrmDbContext> _mockDbContext;    private readonly ImportExportService _service;
 
     public ImportExportServiceTests()
     {
-        _mockDbContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ImportExportService>>();
+        _mockDbContext = new Mock<ICrmDbContext>();        SetupEmptyDbSets();
 
-        SetupEmptyDbSets();
-
-        _service = new ImportExportService(_mockDbContext.Object, _mockLogger.Object);
+        _service = new ImportExportService(_mockDbContext.Object, MockLogger.Object);
     }
 
     private void SetupEmptyDbSets()
@@ -62,7 +57,7 @@ public class ImportExportServiceTests
     public void Constructor_ShouldThrow_WhenDbContextIsNull()
     {
         Assert.Throws<ArgumentNullException>(() =>
-            new ImportExportService(null!, _mockLogger.Object));
+            new ImportExportService(null!, MockLogger.Object));
     }
 
     [Fact]

@@ -17,22 +17,16 @@ using ReportEntity = CRM.Core.Entities.Reports.ReportDefinition;
 
 namespace CRM.Tests.Services;
 
-public class ReportBuilderServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<ReportBuilderService>> _mockLogger;
-    private readonly ReportBuilderService _service;
+public class ReportBuilderServiceTests : ServiceTestFixtureBase<ReportBuilderService>
+{    private readonly ReportBuilderService _service;
     private readonly List<ReportEntity> _reportEntities;
 
     public ReportBuilderServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ReportBuilderService>>();
-        _reportEntities = new List<ReportEntity>();
+    {        _reportEntities = new List<ReportEntity>();
 
         var reportSet = MockDbSetFactory.CreateMockDbSet(_reportEntities);
-        _mockContext.Setup(c => c.ReportDefinitions).Returns(reportSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).Callback(() =>
+        MockContext.Setup(c => c.ReportDefinitions).Returns(reportSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).Callback(() =>
         {
             var nextId = _reportEntities.Count == 0 ? 1 : _reportEntities.Max(r => r.Id) + 1;
             foreach (var entity in _reportEntities.Where(r => r.Id == 0))
@@ -42,8 +36,8 @@ public class ReportBuilderServiceTests
         }).ReturnsAsync(1);
 
         _service = new ReportBuilderService(
-            _mockContext.Object,
-            _mockLogger.Object);
+            MockContext.Object,
+            MockLogger.Object);
     }
 
     // ========================================================================
@@ -198,7 +192,7 @@ var accounts = new List<Account>
                 new() { Id = 2, Company = "Beta Inc", Email = "beta@test.com", Industry = "Finance", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
             };
             var mockSet = MockDbSetFactory.CreateMockDbSet(accounts);
-            _mockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
+            MockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {
@@ -227,7 +221,7 @@ var accounts = new List<Account>
             new() { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@test.com", Status = LeadLifecycleStatus.New, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {
@@ -254,7 +248,7 @@ var accounts = new List<Account>
             new() { Id = 1, Name = "Big Deal", Stage = OpportunityStage.Proposal, Amount = 50000, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {
@@ -296,7 +290,7 @@ var accounts = new List<Account>
             IsDeleted = false
         }).ToList();
         var mockSet = MockDbSetFactory.CreateMockDbSet(leads);
-        _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {
@@ -327,7 +321,7 @@ var accounts = new List<Account>
             new() { Id = 1, Company = "Acme Corp", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(accounts);
-        _mockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {
@@ -367,7 +361,7 @@ var accounts = new List<Account>
             new() { Id = 1, Company = "Acme, Inc.", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(accounts);
-        _mockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {

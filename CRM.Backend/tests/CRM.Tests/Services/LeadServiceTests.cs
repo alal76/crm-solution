@@ -23,23 +23,15 @@ namespace CRM.Tests.Services;
 /// Unit tests for LeadService.
 /// Covers CRUD operations, conversion, status filtering, search, and owner assignment.
 /// </summary>
-public class LeadServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<IEntityEventDispatcher> _mockEventDispatcher;
-    private readonly Mock<ILogger<LeadService>> _mockLogger;
-    private readonly Mock<IDuplicateDetectionService> _mockDuplicateDetection;
+public class LeadServiceTests : ServiceTestFixtureBase<LeadService>
+{    private readonly Mock<IEntityEventDispatcher> _mockEventDispatcher;    private readonly Mock<IDuplicateDetectionService> _mockDuplicateDetection;
     private readonly LeadService _service;
 
     private readonly List<Lead> _leads;
     private readonly List<Opportunity> _opportunities;
 
     public LeadServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockEventDispatcher = new Mock<IEntityEventDispatcher>();
-        _mockLogger = new Mock<ILogger<LeadService>>();
-        _mockDuplicateDetection = new Mock<IDuplicateDetectionService>();
+    {        _mockEventDispatcher = new Mock<IEntityEventDispatcher>();        _mockDuplicateDetection = new Mock<IDuplicateDetectionService>();
 
         _leads = new List<Lead>();
         _opportunities = new List<Opportunity>();
@@ -47,9 +39,9 @@ public class LeadServiceTests
         SetupMockDbSets();
 
         _service = new LeadService(
-            _mockContext.Object,
+            MockContext.Object,
             _mockEventDispatcher.Object,
-            _mockLogger.Object,
+            MockLogger.Object,
             _mockDuplicateDetection.Object);
     }
 
@@ -58,9 +50,9 @@ public class LeadServiceTests
         var mockLeads = MockDbSetFactory.CreateMockDbSet(_leads);
         var mockOpportunities = MockDbSetFactory.CreateMockDbSet(_opportunities);
 
-        _mockContext.Setup(c => c.Set<Lead>()).Returns(mockLeads.Object);
-        _mockContext.Setup(c => c.Set<Opportunity>()).Returns(mockOpportunities.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Set<Lead>()).Returns(mockLeads.Object);
+        MockContext.Setup(c => c.Set<Opportunity>()).Returns(mockOpportunities.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // DuplicateDetection won't find duplicates by default
         _mockDuplicateDetection
@@ -216,7 +208,7 @@ public class LeadServiceTests
         _leads.Should().HaveCount(1);
         lead.Status.Should().Be(LeadLifecycleStatus.New);
         lead.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -533,8 +525,8 @@ public class LeadServiceTests
     {
         var mockLeads = MockDbSetFactory.CreateMockDbSet(_leads);
         var mockOpportunities = MockDbSetFactory.CreateMockDbSet(_opportunities);
-        _mockContext.Setup(c => c.Set<Lead>()).Returns(mockLeads.Object);
-        _mockContext.Setup(c => c.Set<Opportunity>()).Returns(mockOpportunities.Object);
+        MockContext.Setup(c => c.Set<Lead>()).Returns(mockLeads.Object);
+        MockContext.Setup(c => c.Set<Opportunity>()).Returns(mockOpportunities.Object);
     }
 
     // ========================================================================

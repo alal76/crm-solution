@@ -20,7 +20,7 @@ namespace CRM.Tests.Services;
 /// Unit tests for ReportService.MigrateReportQueryAsync (TODO-AI005-FE-002).
 /// Validates V1→V2 schema migration of report query payloads.
 /// </summary>
-public class ReportSchemaVersionTests
+public class ReportSchemaVersionTests : ServiceTestFixtureBase<ReportService>
 {
     private readonly ReportService _service;
 

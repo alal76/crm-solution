@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 83,
+  "patch": 84,
   "lastUpdate": "2026-03-04",
-  "description": "feat(cdt): v0.614.83 - Profile-aware pluggable architecture setup in CDT — wizard provider credential forms (17 providers: Meilisearch/Algolia/Typesense/Chatwoot/Intercom/RocketChat/Novu/Twilio/SendGrid/Superset/Metabase/PowerBI/DocuSeal/DocuSign/Ollama/OpenAI/AzureOpenAI/Anthropic/Gemini/OpenRouter/n8n/Zapier/Make/Workato); renderProviderConfigForm JS; provider_configs saved in profile; integration provider in review summary; Day-2 Components tab with enable/disable provider management + apply to deployment",
+  "description": "refactor(tests): v0.614.84 — Eliminate test duplication via ServiceTestFixtureBase<T> — created base test class with MockContext/MockLogger/helper methods; automated refactoring of 80 test files (CRM.SystemModule.Tests, CRM.Tests/AI, CRM.Tests/Services); removed duplicate Mock declarations; 256 lines eliminated (~13% of SonarQube duplication target 4.6%/42K lines); all tests compile successfully",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

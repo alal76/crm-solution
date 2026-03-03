@@ -18,7 +18,7 @@ namespace CRM.SystemModule.Tests.Services;
 /// Unit tests for RBACService.
 /// Tests role-based access control functionality.
 /// </summary>
-public class RBACServiceTests
+public class RBACServiceTests : ServiceTestFixtureBase<RBACService>
 {
     private readonly Mock<ICrmDbContext> _dbContextMock;
     private readonly Mock<IPermissionCacheService> _cacheServiceMock;

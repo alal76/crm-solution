@@ -19,21 +19,14 @@ using Xunit;
 
 namespace CRM.Tests.ITSMServices.Catalog;
 
-public class ServiceCatalogServiceTests
+public class ServiceCatalogServiceTests : ServiceTestFixtureBase<ServiceCatalogService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<ServiceCatalogService>> _mockLogger;
-    private readonly IServiceCatalogService _service;
+    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly IServiceCatalogService _service;
 
     public ServiceCatalogServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ServiceCatalogService>>();
-
-        _mockResolver.Setup(r => r.ResolveContext()).Returns(_mockContext.Object);
-        _service = new ServiceCatalogService(_mockResolver.Object, _mockLogger.Object);
+        _mockResolver = new Mock<IDbContextResolver>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
+        _service = new ServiceCatalogService(_mockResolver.Object, MockLogger.Object);
     }
 
     // ========================================================================
@@ -50,7 +43,7 @@ public class ServiceCatalogServiceTests
             new() { CatalogItemId = 2, Name = "Software Install", ShortDescription = "Request software", IsActive = true, IsFeatured = true, CreatedAt = DateTime.UtcNow },
             new() { CatalogItemId = 3, Name = "Inactive Item", ShortDescription = "Old item", IsActive = false, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
 
         // Act
         var result = await _service.GetCatalogItemsAsync(null, null);
@@ -68,7 +61,7 @@ public class ServiceCatalogServiceTests
             new() { CatalogItemId = 1, Name = "Regular Item", IsActive = true, IsFeatured = false, CreatedAt = DateTime.UtcNow },
             new() { CatalogItemId = 2, Name = "Featured Item", IsActive = true, IsFeatured = true, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
 
         // Act
         var result = await _service.GetCatalogItemsAsync(null, true);
@@ -90,7 +83,7 @@ public class ServiceCatalogServiceTests
         {
             new() { CatalogItemId = 1, Name = "VPN Access", ShortDescription = "Request VPN", LongDescription = "Full VPN access request process", IsActive = true, Price = 0, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
 
         // Act
         var result = await _service.GetCatalogItemByIdAsync(1);
@@ -104,7 +97,7 @@ public class ServiceCatalogServiceTests
     public async Task GetCatalogItemByIdAsync_ShouldReturnNull_WhenNotFound()
     {
         // Arrange
-        _mockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(new List<CatalogItem>()).Object);
+        MockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(new List<CatalogItem>()).Object);
 
         // Act
         var result = await _service.GetCatalogItemByIdAsync(999);
@@ -129,9 +122,9 @@ public class ServiceCatalogServiceTests
         var mockRequestSet = MockDbSetFactory.CreateMockDbSet(requests);
         mockRequestSet.Setup(m => m.Add(It.IsAny<CatalogRequest>())).Callback<CatalogRequest>(e => requests.Add(e));
 
-        _mockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
-        _mockContext.Setup(c => c.CatalogRequests).Returns(mockRequestSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CatalogRequests).Returns(mockRequestSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateCatalogRequestDto
         {
@@ -158,9 +151,9 @@ public class ServiceCatalogServiceTests
         var mockRequestSet = MockDbSetFactory.CreateMockDbSet(requests);
         mockRequestSet.Setup(m => m.Add(It.IsAny<CatalogRequest>())).Callback<CatalogRequest>(e => requests.Add(e));
 
-        _mockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
-        _mockContext.Setup(c => c.CatalogRequests).Returns(mockRequestSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CatalogRequests).Returns(mockRequestSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateCatalogRequestDto { CatalogItemId = 1 };
 
@@ -185,7 +178,7 @@ public class ServiceCatalogServiceTests
             new() { RequestId = 2, CatalogItemId = 2, RequestedById = 20, RequestedForId = 20, State = CatalogRequestState.Approved, CreatedAt = DateTime.UtcNow },
             new() { RequestId = 3, CatalogItemId = 1, RequestedById = 10, RequestedForId = 10, State = CatalogRequestState.Completed, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.CatalogRequests).Returns(MockDbSetFactory.CreateMockDbSet(requests).Object);
+        MockContext.Setup(c => c.CatalogRequests).Returns(MockDbSetFactory.CreateMockDbSet(requests).Object);
 
         // Act
         var result = await _service.GetMyRequestsAsync(userId: 10);
@@ -210,7 +203,7 @@ public class ServiceCatalogServiceTests
             new() { CatalogItemId = 2, Name = "Software Install", ShortDescription = "Request software install", IsActive = true, CreatedAt = DateTime.UtcNow },
             new() { CatalogItemId = 3, Name = "Monitor Request", ShortDescription = "Request a monitor", IsActive = true, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CatalogItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
 
         // Act
         var result = await _service.SearchCatalogAsync("laptop");
@@ -232,7 +225,7 @@ public class ServiceCatalogServiceTests
         {
             new() { RequestId = 1, CatalogItemId = 1, RequestedById = 10, RequestedForId = 10, State = CatalogRequestState.InProgress, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.CatalogRequests).Returns(MockDbSetFactory.CreateMockDbSet(requests).Object);
+        MockContext.Setup(c => c.CatalogRequests).Returns(MockDbSetFactory.CreateMockDbSet(requests).Object);
 
         // Act
         var result = await _service.GetRequestByIdAsync(1);
@@ -255,8 +248,8 @@ public class ServiceCatalogServiceTests
         {
             new() { RequestId = 1, CatalogItemId = 1, RequestedById = 10, RequestedForId = 10, State = CatalogRequestState.Requested, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.CatalogRequests).Returns(MockDbSetFactory.CreateMockDbSet(requests).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.CatalogRequests).Returns(MockDbSetFactory.CreateMockDbSet(requests).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.CancelRequestAsync(1, userId: 10);
@@ -269,7 +262,7 @@ public class ServiceCatalogServiceTests
     public async Task CancelRequestAsync_ShouldReturnFalse_WhenRequestNotFound()
     {
         // Arrange
-        _mockContext.Setup(c => c.CatalogRequests).Returns(MockDbSetFactory.CreateMockDbSet(new List<CatalogRequest>()).Object);
+        MockContext.Setup(c => c.CatalogRequests).Returns(MockDbSetFactory.CreateMockDbSet(new List<CatalogRequest>()).Object);
 
         // Act
         var result = await _service.CancelRequestAsync(999, userId: 10);
@@ -291,7 +284,7 @@ public class ServiceCatalogServiceTests
             new() { CategoryId = 1, Name = "Hardware", Description = "Hardware requests", DisplayOrder = 1, IsActive = true, IsDeleted = false, CreatedAt = DateTime.UtcNow },
             new() { CategoryId = 2, Name = "Software", Description = "Software requests", DisplayOrder = 2, IsActive = true, IsDeleted = false, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.CatalogCategories).Returns(MockDbSetFactory.CreateMockDbSet(categories).Object);
+        MockContext.Setup(c => c.CatalogCategories).Returns(MockDbSetFactory.CreateMockDbSet(categories).Object);
 
         // Act
         var result = await _service.GetCategoriesAsync();

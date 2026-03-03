@@ -15,25 +15,19 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class ConversationServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<ConversationService>> _mockLogger;
-    private readonly ConversationService _service;
+public class ConversationServiceTests : ServiceTestFixtureBase<ConversationService>
+{    private readonly ConversationService _service;
 
     public ConversationServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ConversationService>>();
-        _service = new ConversationService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new ConversationService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupConversations(List<Conversation>? conversations = null)
     {
         conversations ??= new List<Conversation>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(conversations);
-        _mockContext.Setup(c => c.Conversations).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Conversations).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private static Conversation CreateConversation(int id, int? accountId = null, ConversationStatus status = ConversationStatus.Open, bool deleted = false)

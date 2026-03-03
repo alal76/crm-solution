@@ -16,20 +16,13 @@ using Xunit;
 
 namespace CRM.Tests.Services.AI;
 
-public class AIOpportunityScoringServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<AIOpportunityScoringService>> _mockLogger;
-    private readonly AIOpportunityScoringService _service;
+public class AIOpportunityScoringServiceTests : ServiceTestFixtureBase<AIOpportunityScoringService>
+{    private readonly AIOpportunityScoringService _service;
 
     public AIOpportunityScoringServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<AIOpportunityScoringService>>();
-
-        _service = new AIOpportunityScoringService(
-            _mockContext.Object,
-            _mockLogger.Object);
+    {        _service = new AIOpportunityScoringService(
+            MockContext.Object,
+            MockLogger.Object);
     }
 
     // ========================================================================
@@ -42,7 +35,7 @@ public class AIOpportunityScoringServiceTests
         // Arrange
         var opps = new List<Opportunity>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreOpportunityAsync(999);
@@ -58,7 +51,7 @@ public class AIOpportunityScoringServiceTests
         var opp = CreateOpportunity(1, "Big Deal", OpportunityStage.Proposal, 50000m);
         var opps = new List<Opportunity> { opp };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreOpportunityAsync(1);
@@ -87,7 +80,7 @@ public class AIOpportunityScoringServiceTests
         var opp = CreateOpportunity(1, "Deal", stage, 50000m);
         var opps = new List<Opportunity> { opp };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreOpportunityAsync(1);
@@ -107,7 +100,7 @@ public class AIOpportunityScoringServiceTests
         var negotiationOpp = CreateOpportunity(2, "Late Deal", OpportunityStage.Negotiation, 50000m);
         var opps = new List<Opportunity> { discoveryOpp, negotiationOpp };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var earlyResult = await _service.ScoreOpportunityAsync(1);
@@ -128,7 +121,7 @@ public class AIOpportunityScoringServiceTests
         var opp = CreateOpportunity(1, "Deal", OpportunityStage.Proposal, 50000m);
         var opps = new List<Opportunity> { opp };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreOpportunityAsync(1);
@@ -145,7 +138,7 @@ public class AIOpportunityScoringServiceTests
         opp.ExpectedCloseDate = DateTime.UtcNow.AddDays(30);
         var opps = new List<Opportunity> { opp };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreOpportunityAsync(1);
@@ -170,7 +163,7 @@ public class AIOpportunityScoringServiceTests
             CreateOpportunity(3, "Lost Deal", OpportunityStage.ClosedLost, 20000m)
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var results = await _service.ScoreAllOpenAsync();
@@ -191,7 +184,7 @@ public class AIOpportunityScoringServiceTests
         };
         opps[1].IsDeleted = true;
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var results = await _service.ScoreAllOpenAsync();
@@ -216,7 +209,7 @@ public class AIOpportunityScoringServiceTests
             CreateOpportunity(3, "Lost C", OpportunityStage.ClosedLost, 15000m)
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var rates = await _service.GetHistoricalWinRatesAsync();
@@ -235,7 +228,7 @@ public class AIOpportunityScoringServiceTests
             CreateOpportunity(1, "Open", OpportunityStage.Proposal, 10000m)
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var rates = await _service.GetHistoricalWinRatesAsync();
@@ -257,7 +250,7 @@ public class AIOpportunityScoringServiceTests
         opp.Probability = 50;
         var opps = new List<Opportunity> { opp };
         var mockSet = MockDbSetFactory.CreateMockDbSet(opps);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
         var result = await _service.ScoreOpportunityAsync(1);

@@ -19,7 +19,7 @@ namespace CRM.SystemModule.Tests.Services;
 /// Unit tests for UserGroupService.
 /// Tests user group management functionality.
 /// </summary>
-public class UserGroupServiceTests
+public class UserGroupServiceTests : ServiceTestFixtureBase<UserGroupService>
 {
     private readonly Mock<ICrmDbContext> _dbContextMock;
     private readonly Mock<ILogger<UserGroupService>> _loggerMock;

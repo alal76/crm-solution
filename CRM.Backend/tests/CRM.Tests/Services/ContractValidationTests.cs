@@ -19,22 +19,15 @@ namespace CRM.Tests.Services;
 /// Unit tests for Contract validation logic in ContractService.
 /// Tests EndDate > StartDate and TotalValue >= 0 validations.
 /// </summary>
-public class ContractValidationTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<ContractService>> _mockLogger;
-    private readonly ContractService _service;
+public class ContractValidationTests : ServiceTestFixtureBase<ContractService>
+{    private readonly ContractService _service;
 
     private readonly List<Contract> _contracts;
     private readonly List<Quote> _quotes;
     private readonly List<Order> _orders;
 
     public ContractValidationTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ContractService>>();
-
-        _contracts = new List<Contract>();
+    {        _contracts = new List<Contract>();
         _quotes = new List<Quote>();
         _orders = new List<Order>();
 
@@ -52,12 +45,12 @@ public class ContractValidationTests
                 return ValueTask.FromResult(_contracts.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
-        _mockContext.Setup(c => c.Contracts).Returns(mockContracts.Object);
-        _mockContext.Setup(c => c.Quotes).Returns(mockQuotes.Object);
-        _mockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Contracts).Returns(mockContracts.Object);
+        MockContext.Setup(c => c.Quotes).Returns(mockQuotes.Object);
+        MockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        _service = new ContractService(_mockContext.Object, _mockLogger.Object);
+        _service = new ContractService(MockContext.Object, MockLogger.Object);
     }
 
     // ========================================================================

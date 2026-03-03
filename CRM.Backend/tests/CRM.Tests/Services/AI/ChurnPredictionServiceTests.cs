@@ -23,17 +23,11 @@ namespace CRM.Tests.Services.AI;
 /// Unit tests for ChurnPredictionService (TODO-AI-03).
 /// Covers: account not found → null; stale account → high risk; active account → low risk.
 /// </summary>
-public class ChurnPredictionServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<ChurnPredictionService>> _mockLogger;
-    private readonly ChurnPredictionService _sut;
+public class ChurnPredictionServiceTests : ServiceTestFixtureBase<ChurnPredictionService>
+{    private readonly ChurnPredictionService _sut;
 
     public ChurnPredictionServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ChurnPredictionService>>();
-        _sut = new ChurnPredictionService(_mockContext.Object, _mockLogger.Object);
+    {        _sut = new ChurnPredictionService(MockContext.Object, MockLogger.Object);
     }
 
     [Fact]
@@ -41,7 +35,7 @@ public class ChurnPredictionServiceTests
     {
         // Arrange
         var accounts = new List<Account>();
-        _mockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
+        MockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
 
         // Act
         var result = await _sut.PredictChurnAsync(999);
@@ -73,10 +67,10 @@ public class ChurnPredictionServiceTests
         // No open opportunities
         var opportunities = new List<Opportunity>();
 
-        _mockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
-        _mockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
-        _mockContext.Setup(c => c.ServiceRequests).Returns(MockDbSetFactory.CreateMockDbSet(tickets).Object);
-        _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opportunities).Object);
+        MockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
+        MockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
+        MockContext.Setup(c => c.ServiceRequests).Returns(MockDbSetFactory.CreateMockDbSet(tickets).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opportunities).Object);
 
         // Act
         var result = await _sut.PredictChurnAsync(1);
@@ -106,10 +100,10 @@ public class ChurnPredictionServiceTests
             new Opportunity { Id = 5, AccountId = 2, IsDeleted = false, Stage = OpportunityStage.Proposal, Probability = 60 }
         };
 
-        _mockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
-        _mockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
-        _mockContext.Setup(c => c.ServiceRequests).Returns(MockDbSetFactory.CreateMockDbSet(tickets).Object);
-        _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opportunities).Object);
+        MockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(accounts).Object);
+        MockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
+        MockContext.Setup(c => c.ServiceRequests).Returns(MockDbSetFactory.CreateMockDbSet(tickets).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opportunities).Object);
 
         // Act
         var result = await _sut.PredictChurnAsync(2);

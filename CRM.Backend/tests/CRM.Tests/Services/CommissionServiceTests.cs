@@ -18,11 +18,8 @@ namespace CRM.Tests.Services;
 /// <summary>
 /// Unit tests for CommissionService.
 /// </summary>
-public class CommissionServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CommissionService>> _mockLogger;
-    private readonly CommissionService _service;
+public class CommissionServiceTests : ServiceTestFixtureBase<CommissionService>
+{    private readonly CommissionService _service;
 
     private readonly List<Commission> _commissions;
     private readonly List<CommissionPlan> _plans;
@@ -33,11 +30,7 @@ public class CommissionServiceTests
     private readonly List<Order> _orders;
 
     public CommissionServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CommissionService>>();
-
-        _commissions = new List<Commission>();
+    {        _commissions = new List<Commission>();
         _plans = new List<CommissionPlan>();
         _tiers = new List<CommissionTier>();
         _assignments = new List<CommissionPlanAssignment>();
@@ -79,16 +72,16 @@ public class CommissionServiceTests
                 return ValueTask.FromResult(_tiers.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
-        _mockContext.Setup(c => c.Commissions).Returns(mockCommissions.Object);
-        _mockContext.Setup(c => c.CommissionPlans).Returns(mockPlans.Object);
-        _mockContext.Setup(c => c.CommissionTiers).Returns(mockTiers.Object);
-        _mockContext.Setup(c => c.CommissionPlanAssignments).Returns(mockAssignments.Object);
-        _mockContext.Setup(c => c.CommissionStatements).Returns(mockStatements.Object);
-        _mockContext.Setup(c => c.Opportunities).Returns(mockOpportunities.Object);
-        _mockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.Commissions).Returns(mockCommissions.Object);
+        MockContext.Setup(c => c.CommissionPlans).Returns(mockPlans.Object);
+        MockContext.Setup(c => c.CommissionTiers).Returns(mockTiers.Object);
+        MockContext.Setup(c => c.CommissionPlanAssignments).Returns(mockAssignments.Object);
+        MockContext.Setup(c => c.CommissionStatements).Returns(mockStatements.Object);
+        MockContext.Setup(c => c.Opportunities).Returns(mockOpportunities.Object);
+        MockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        _service = new CommissionService(_mockContext.Object, _mockLogger.Object);
+        _service = new CommissionService(MockContext.Object, MockLogger.Object);
     }
 
     // ========================================================================

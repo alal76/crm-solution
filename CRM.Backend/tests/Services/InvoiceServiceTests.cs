@@ -16,17 +16,11 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class InvoiceServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<InvoiceService>> _mockLogger;
-    private readonly InvoiceService _service;
+public class InvoiceServiceTests : ServiceTestFixtureBase<InvoiceService>
+{    private readonly InvoiceService _service;
 
     public InvoiceServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<InvoiceService>>();
-        _service = new InvoiceService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new InvoiceService(MockContext.Object, MockLogger.Object);
     }
 
     private void SetupDbSets(
@@ -46,25 +40,25 @@ public class InvoiceServiceTests
         mockInvoices.Setup(m => m.Add(It.IsAny<Invoice>())).Callback<Invoice>(e => invoices.Add(e));
         mockInvoices.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
             .Returns<object[], CancellationToken>((keys, _) => mockInvoices.Object.FindAsync(keys));
-        _mockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
+        MockContext.Setup(c => c.Invoices).Returns(mockInvoices.Object);
 
         var mockPayments = MockDbSetFactory.CreateMockDbSet(payments);
         mockPayments.Setup(m => m.Add(It.IsAny<Payment>())).Callback<Payment>(e => payments.Add(e));
-        _mockContext.Setup(c => c.Payments).Returns(mockPayments.Object);
+        MockContext.Setup(c => c.Payments).Returns(mockPayments.Object);
 
         var mockLineItems = MockDbSetFactory.CreateMockDbSet(lineItems);
         mockLineItems.Setup(m => m.Add(It.IsAny<InvoiceLineItem>())).Callback<InvoiceLineItem>(e => lineItems.Add(e));
         mockLineItems.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
             .Returns<object[], CancellationToken>((keys, _) => mockLineItems.Object.FindAsync(keys));
-        _mockContext.Setup(c => c.InvoiceLineItems).Returns(mockLineItems.Object);
+        MockContext.Setup(c => c.InvoiceLineItems).Returns(mockLineItems.Object);
 
         var mockOrders = MockDbSetFactory.CreateMockDbSet(orders);
-        _mockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
+        MockContext.Setup(c => c.Orders).Returns(mockOrders.Object);
 
         var mockQuotes = MockDbSetFactory.CreateMockDbSet(quotes);
-        _mockContext.Setup(c => c.Quotes).Returns(mockQuotes.Object);
+        MockContext.Setup(c => c.Quotes).Returns(mockQuotes.Object);
 
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private static Invoice CreateTestInvoice(int id = 1, InvoiceStatus status = InvoiceStatus.Draft, decimal totalAmount = 1000m, decimal amountPaid = 0m, int accountId = 10)
@@ -218,7 +212,7 @@ public class InvoiceServiceTests
         result.Should().NotBeNull();
         result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         result.InvoiceNumber.Should().NotBeNullOrEmpty();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     // ========================================================================
@@ -632,7 +626,7 @@ public class InvoiceServiceTests
     public void Constructor_ShouldThrowArgumentNullException_WhenContextIsNull()
     {
         // Act
-        var act = () => new InvoiceService(null!, _mockLogger.Object);
+        var act = () => new InvoiceService(null!, MockLogger.Object);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("context");
@@ -642,7 +636,7 @@ public class InvoiceServiceTests
     public void Constructor_ShouldThrowArgumentNullException_WhenLoggerIsNull()
     {
         // Act
-        var act = () => new InvoiceService(_mockContext.Object, null!);
+        var act = () => new InvoiceService(MockContext.Object, null!);
 
         // Assert
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");

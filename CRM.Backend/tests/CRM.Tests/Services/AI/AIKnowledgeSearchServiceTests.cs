@@ -19,24 +19,15 @@ using Xunit;
 
 namespace CRM.Tests.Services.AI;
 
-public class AIKnowledgeSearchServiceTests
+public class AIKnowledgeSearchServiceTests : ServiceTestFixtureBase<AIKnowledgeSearchService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<IFeatureManager> _mockFeatureManager;
-    private readonly Mock<IServiceProvider> _mockServiceProvider;
-    private readonly Mock<ILogger<AIKnowledgeSearchService>> _mockLogger;
-    private readonly AIKnowledgeSearchService _service;
+    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly Mock<IFeatureManager> _mockFeatureManager;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;    private readonly AIKnowledgeSearchService _service;
 
     public AIKnowledgeSearchServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockFeatureManager = new Mock<IFeatureManager>();
-        _mockServiceProvider = new Mock<IServiceProvider>();
-        _mockLogger = new Mock<ILogger<AIKnowledgeSearchService>>();
-
-        _mockResolver.Setup(r => r.ResolveContext()).Returns(_mockContext.Object);
+        _mockResolver = new Mock<IDbContextResolver>();        _mockFeatureManager = new Mock<IFeatureManager>();
+        _mockServiceProvider = new Mock<IServiceProvider>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
 
         // Default: AI not available (feature flag off)
         _mockFeatureManager.Setup(f => f.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
@@ -47,7 +38,7 @@ public class AIKnowledgeSearchServiceTests
             _mockServiceProvider.Object,
             _mockResolver.Object,
             _mockFeatureManager.Object,
-            _mockLogger.Object);
+            MockLogger.Object);
     }
 
     // ========================================================================
@@ -65,7 +56,7 @@ public class AIKnowledgeSearchServiceTests
             CreateArticle(3, "Printer Setup", "How to add a network printer")
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // Act
         var results = await _service.SemanticSearchAsync("password", 10);
@@ -85,7 +76,7 @@ public class AIKnowledgeSearchServiceTests
             CreateArticle(1, "Password Reset Guide", "How to reset your password")
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // Act
         var results = await _service.SemanticSearchAsync("kubernetes deployment", 10);
@@ -104,7 +95,7 @@ public class AIKnowledgeSearchServiceTests
             CreateArticle(2, "Draft VPN Article", "VPN draft", PublishingState.Draft)
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // Act
         var results = await _service.SemanticSearchAsync("VPN", 10);
@@ -125,7 +116,7 @@ public class AIKnowledgeSearchServiceTests
             CreateArticle(3, "Network Issue 3", "network problem three")
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // Act
         var results = await _service.SemanticSearchAsync("network", 2);
@@ -147,7 +138,7 @@ public class AIKnowledgeSearchServiceTests
             CreateArticle(1, "Test Article", "Test body content")
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // Act
         var ex = await Record.ExceptionAsync(() => _service.IndexArticleAsync(1));
@@ -162,7 +153,7 @@ public class AIKnowledgeSearchServiceTests
         // Arrange
         var articles = new List<KnowledgeArticle>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // Act
         var ex = await Record.ExceptionAsync(() => _service.IndexArticleAsync(999));
@@ -186,7 +177,7 @@ public class AIKnowledgeSearchServiceTests
             CreateArticle(3, "Draft Article", "Body C", PublishingState.Draft)
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // Act
         var ex = await Record.ExceptionAsync(() => _service.ReindexAllAsync());
@@ -204,7 +195,7 @@ public class AIKnowledgeSearchServiceTests
             CreateArticle(1, "Draft", "Body", PublishingState.Draft)
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // Act
         var ex = await Record.ExceptionAsync(() => _service.ReindexAllAsync());
@@ -234,7 +225,7 @@ public class AIKnowledgeSearchServiceTests
             CreateArticle(1, "Server Troubleshooting", "How to debug server issues")
         };
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
 
         // First index the article
         await _service.ReindexAllAsync();

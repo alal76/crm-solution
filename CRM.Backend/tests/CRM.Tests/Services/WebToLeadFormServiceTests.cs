@@ -19,38 +19,29 @@ namespace CRM.Tests.Services;
 /// Unit tests for WebToLeadFormService (TODO-CRM002-04).
 /// Covers CRUD operations, embed key generation, and lead submission processing.
 /// </summary>
-public class WebToLeadFormServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILeadService> _mockLeadService;
-    private readonly Mock<ILogger<WebToLeadFormService>> _mockLogger;
-    private readonly WebToLeadFormService _service;
+public class WebToLeadFormServiceTests : ServiceTestFixtureBase<WebToLeadFormService>
+{    private readonly Mock<ILeadService> _mockLeadService;    private readonly WebToLeadFormService _service;
     private readonly List<WebToLeadForm> _forms;
 
     public WebToLeadFormServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLeadService = new Mock<ILeadService>();
-        _mockLogger = new Mock<ILogger<WebToLeadFormService>>();
-
-        _forms = new List<WebToLeadForm>();
+    {        _mockLeadService = new Mock<ILeadService>();        _forms = new List<WebToLeadForm>();
 
         var mockForms = MockDbSetFactory.CreateMockDbSet(_forms);
-        _mockContext.Setup(c => c.WebToLeadForms).Returns(mockForms.Object);
-        _mockContext
+        MockContext.Setup(c => c.WebToLeadForms).Returns(mockForms.Object);
+        MockContext
             .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
         _service = new WebToLeadFormService(
-            _mockContext.Object,
+            MockContext.Object,
             _mockLeadService.Object,
-            _mockLogger.Object);
+            MockLogger.Object);
     }
 
     private void Refresh()
     {
         var mockForms = MockDbSetFactory.CreateMockDbSet(_forms);
-        _mockContext.Setup(c => c.WebToLeadForms).Returns(mockForms.Object);
+        MockContext.Setup(c => c.WebToLeadForms).Returns(mockForms.Object);
     }
 
     // ─── Constructor ──────────────────────────────────────────────────────────
@@ -124,7 +115,7 @@ public class WebToLeadFormServiceTests
         // Assert
         result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
         result.EmbedKey.Should().NotBeNullOrEmpty();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     // ─── DeleteAsync ──────────────────────────────────────────────────────────

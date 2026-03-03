@@ -19,21 +19,14 @@ using Xunit;
 
 namespace CRM.Tests.ITSMServices.Knowledge;
 
-public class KnowledgeManagementServiceTests
+public class KnowledgeManagementServiceTests : ServiceTestFixtureBase<KnowledgeManagementService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<KnowledgeManagementService>> _mockLogger;
-    private readonly IKnowledgeManagementService _service;
+    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly IKnowledgeManagementService _service;
 
     public KnowledgeManagementServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<KnowledgeManagementService>>();
-
-        _mockResolver.Setup(r => r.ResolveContext()).Returns(_mockContext.Object);
-        _service = new KnowledgeManagementService(_mockResolver.Object, _mockLogger.Object);
+        _mockResolver = new Mock<IDbContextResolver>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
+        _service = new KnowledgeManagementService(_mockResolver.Object, MockLogger.Object);
     }
 
     // ========================================================================
@@ -47,8 +40,8 @@ public class KnowledgeManagementServiceTests
         var articles = new List<KnowledgeArticle>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         mockSet.Setup(m => m.Add(It.IsAny<KnowledgeArticle>())).Callback<KnowledgeArticle>(e => articles.Add(e));
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateKnowledgeArticleDto
         {
@@ -75,8 +68,8 @@ public class KnowledgeManagementServiceTests
         var articles = new List<KnowledgeArticle>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(articles);
         mockSet.Setup(m => m.Add(It.IsAny<KnowledgeArticle>())).Callback<KnowledgeArticle>(e => articles.Add(e));
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateKnowledgeArticleDto
         {
@@ -110,8 +103,8 @@ public class KnowledgeManagementServiceTests
                 ViewCount = 42, CreatedAt = DateTime.UtcNow, IsDeleted = false
             }
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.GetArticleByIdAsync(1);
@@ -126,7 +119,7 @@ public class KnowledgeManagementServiceTests
     public async Task GetArticleByIdAsync_ShouldReturnNull_WhenNotFound()
     {
         // Arrange
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>()).Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>()).Object);
 
         // Act
         var result = await _service.GetArticleByIdAsync(999);
@@ -149,7 +142,7 @@ public class KnowledgeManagementServiceTests
             new() { ArticleId = 2, Number = "KB0002", Title = "Email setup guide", ArticleBody = "Steps...", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow },
             new() { ArticleId = 3, Number = "KB0003", Title = "VPN FAQ", ArticleBody = "Common...", ArticleType = ArticleType.FAQ, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
         var results = await _service.SearchArticlesAsync("VPN", pageNumber: 1, pageSize: 20);
@@ -178,8 +171,8 @@ public class KnowledgeManagementServiceTests
             AuthorId = 1,
             CreatedAt = DateTime.UtcNow
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateKnowledgeArticleDto
         {
@@ -215,8 +208,8 @@ public class KnowledgeManagementServiceTests
             AuthorId = 1,
             CreatedAt = DateTime.UtcNow
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.PublishArticleAsync(1, publishedById: 3);
@@ -241,8 +234,8 @@ public class KnowledgeManagementServiceTests
             AuthorId = 1,
             CreatedAt = DateTime.UtcNow
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.RetireArticleAsync(1, modifiedById: 2);
@@ -277,9 +270,9 @@ public class KnowledgeManagementServiceTests
         var mockFeedbackSet = MockDbSetFactory.CreateMockDbSet(feedbacks);
         mockFeedbackSet.Setup(m => m.Add(It.IsAny<ArticleFeedback>())).Callback<ArticleFeedback>(e => feedbacks.Add(e));
 
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
-        _mockContext.Setup(c => c.ITSMArticleFeedback).Returns(mockFeedbackSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
+        MockContext.Setup(c => c.ITSMArticleFeedback).Returns(mockFeedbackSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.SubmitFeedbackAsync(1, userId: 10, isHelpful: true, comment: "Very helpful!");
@@ -302,7 +295,7 @@ public class KnowledgeManagementServiceTests
             new() { ArticleId = 2, Number = "KB0002", Title = "Less popular", ArticleBody = "B", ArticleType = ArticleType.FAQ, PublishingState = PublishingState.Published, AuthorId = 1, ViewCount = 10, CreatedAt = DateTime.UtcNow },
             new() { ArticleId = 3, Number = "KB0003", Title = "Most popular", ArticleBody = "C", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, ViewCount = 500, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
         var result = await _service.GetPopularArticlesAsync(count: 2);
@@ -323,7 +316,7 @@ public class KnowledgeManagementServiceTests
             new() { ArticleId = 2, Number = "KB0002", Title = "New article", ArticleBody = "B", ArticleType = ArticleType.FAQ, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow.AddDays(-1) },
             new() { ArticleId = 3, Number = "KB0003", Title = "Newest article", ArticleBody = "C", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
         var result = await _service.GetRecentArticlesAsync(count: 2);
@@ -347,7 +340,7 @@ public class KnowledgeManagementServiceTests
             new() { ArticleId = 1, Number = "KB0001", Title = "Password reset guide", ArticleBody = "How to reset your password", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow },
             new() { ArticleId = 2, Number = "KB0002", Title = "Network connectivity", ArticleBody = "VPN setup", ArticleType = ArticleType.Troubleshooting, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
         var result = await _service.GetSuggestedArticlesAsync("I can't reset my password");
@@ -369,7 +362,7 @@ public class KnowledgeManagementServiceTests
             new() { ArticleId = 1, Number = "KB0001", Title = "A", ArticleBody = "A", ArticleType = ArticleType.HowTo, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow },
             new() { ArticleId = 2, Number = "KB0002", Title = "B", ArticleBody = "B", ArticleType = ArticleType.FAQ, PublishingState = PublishingState.Published, AuthorId = 1, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(articles).Object);
 
         // Act
         var result = await _service.GetCategoriesAsync();

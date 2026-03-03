@@ -19,21 +19,14 @@ using Xunit;
 
 namespace CRM.Tests.Services.ITSM;
 
-public class CMDBServiceTests
+public class CMDBServiceTests : ServiceTestFixtureBase<CMDBService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<CMDBService>> _mockLogger;
-    private readonly ICMDBService _service;
+    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly ICMDBService _service;
 
     public CMDBServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<CMDBService>>();
-
-        _mockResolver.Setup(r => r.ResolveContext()).Returns(_mockContext.Object);
-        _service = new CMDBService(_mockResolver.Object, _mockLogger.Object);
+        _mockResolver = new Mock<IDbContextResolver>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
+        _service = new CMDBService(_mockResolver.Object, MockLogger.Object);
     }
 
     // ========================================================================
@@ -47,8 +40,8 @@ public class CMDBServiceTests
         var items = new List<ConfigurationItem>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(items);
         mockSet.Setup(m => m.Add(It.IsAny<ConfigurationItem>())).Callback<ConfigurationItem>(e => items.Add(e));
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateCIDto
         {
@@ -75,8 +68,8 @@ public class CMDBServiceTests
         var items = new List<ConfigurationItem>();
         var mockSet = MockDbSetFactory.CreateMockDbSet(items);
         mockSet.Setup(m => m.Add(It.IsAny<ConfigurationItem>())).Callback<ConfigurationItem>(e => items.Add(e));
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(mockSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(mockSet.Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateCIDto
         {
@@ -109,7 +102,7 @@ public class CMDBServiceTests
                 CreatedAt = DateTime.UtcNow, IsDeleted = false
             }
         };
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
 
         // Act
         var result = await _service.GetCIByIdAsync(1);
@@ -123,7 +116,7 @@ public class CMDBServiceTests
     public async Task GetCIByIdAsync_ShouldReturnNull_WhenNotFound()
     {
         // Arrange
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(new List<ConfigurationItem>()).Object);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(new List<ConfigurationItem>()).Object);
 
         // Act
         var result = await _service.GetCIByIdAsync(999);
@@ -145,7 +138,7 @@ public class CMDBServiceTests
                 CreatedAt = DateTime.UtcNow, IsDeleted = true
             }
         };
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
 
         // Act
         var result = await _service.GetCIByIdAsync(1);
@@ -168,7 +161,7 @@ public class CMDBServiceTests
             new() { CIId = 2, CIName = "Database Server 01", CINumber = "CI0002", CIType = CIType.Server, CreatedAt = DateTime.UtcNow },
             new() { CIId = 3, CIName = "Office Laptop 01", CINumber = "CI0003", CIType = CIType.WorkStation, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
 
         // Act
         var results = await _service.SearchCIsAsync("Server", type: null, pageNumber: 1, pageSize: 20);
@@ -188,7 +181,7 @@ public class CMDBServiceTests
             new() { CIId = 2, CIName = "Laptop 1", CINumber = "CI0002", CIType = CIType.WorkStation, CreatedAt = DateTime.UtcNow },
             new() { CIId = 3, CIName = "Server 2", CINumber = "CI0003", CIType = CIType.Server, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
 
         // Act
         var results = await _service.SearchCIsAsync("", type: CIType.Server, pageNumber: 1, pageSize: 20);
@@ -214,8 +207,8 @@ public class CMDBServiceTests
             OperationalStatus = OperationalStatus.Operational,
             CreatedAt = DateTime.UtcNow
         };
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(new List<ConfigurationItem> { ci }).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(new List<ConfigurationItem> { ci }).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         var dto = new CreateCIDto
         {
@@ -246,9 +239,9 @@ public class CMDBServiceTests
             new() { CIId = 1, CIName = "Parent Server", CINumber = "CI0001", CIType = CIType.Server, CreatedAt = DateTime.UtcNow },
             new() { CIId = 2, CIName = "Child App", CINumber = "CI0002", CIType = CIType.Application, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
-        _mockContext.Setup(c => c.CIRelationships).Returns(MockDbSetFactory.CreateMockDbSet(new List<CIRelationship>()).Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CIRelationships).Returns(MockDbSetFactory.CreateMockDbSet(new List<CIRelationship>()).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         var result = await _service.CreateRelationshipAsync(1, 2, RelationshipType.RunsOn, createdById: 1);
@@ -270,8 +263,8 @@ public class CMDBServiceTests
             new() { CIId = 1, CIName = "Server", CINumber = "CI0001", CIType = CIType.Server, CreatedAt = DateTime.UtcNow },
             new() { CIId = 2, CIName = "App", CINumber = "CI0002", CIType = CIType.Application, CreatedAt = DateTime.UtcNow }
         };
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
-        _mockContext.Setup(c => c.CIRelationships).Returns(MockDbSetFactory.CreateMockDbSet(new List<CIRelationship>()).Object);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CIRelationships).Returns(MockDbSetFactory.CreateMockDbSet(new List<CIRelationship>()).Object);
 
         // Act
         var result = await _service.GetRelatedCIsAsync(1);
@@ -297,10 +290,10 @@ public class CMDBServiceTests
                 CreatedAt = DateTime.UtcNow
             }
         };
-        _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
-        _mockContext.Setup(c => c.CIRelationships).Returns(MockDbSetFactory.CreateMockDbSet(new List<CIRelationship>()).Object);
-        _mockContext.Setup(c => c.ServiceCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ServiceCI>()).Object);
-        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident>()).Object);
+        MockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(items).Object);
+        MockContext.Setup(c => c.CIRelationships).Returns(MockDbSetFactory.CreateMockDbSet(new List<CIRelationship>()).Object);
+        MockContext.Setup(c => c.ServiceCIs).Returns(MockDbSetFactory.CreateMockDbSet(new List<ServiceCI>()).Object);
+        MockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident>()).Object);
 
         // Act
         var result = await _service.GetImpactAnalysisAsync(1);

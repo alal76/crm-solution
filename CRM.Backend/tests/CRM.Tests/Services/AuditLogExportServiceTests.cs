@@ -22,24 +22,18 @@ namespace CRM.Tests.Services;
 /// Unit tests for AuditLogExportService.
 /// TODO-SYS006-008
 /// </summary>
-public class AuditLogExportServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<AuditLogExportService>> _mockLogger;
-    private readonly List<AuditLog> _auditLogs;
+public class AuditLogExportServiceTests : ServiceTestFixtureBase<AuditLogExportService>
+{    private readonly List<AuditLog> _auditLogs;
 
     public AuditLogExportServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<AuditLogExportService>>();
-        _auditLogs = new List<AuditLog>();
+    {        _auditLogs = new List<AuditLog>();
     }
 
     private AuditLogExportService CreateService()
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(_auditLogs);
-        _mockContext.Setup(c => c.AuditLogs).Returns(mockSet.Object);
-        return new AuditLogExportService(_mockContext.Object, _mockLogger.Object);
+        MockContext.Setup(c => c.AuditLogs).Returns(mockSet.Object);
+        return new AuditLogExportService(MockContext.Object, MockLogger.Object);
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

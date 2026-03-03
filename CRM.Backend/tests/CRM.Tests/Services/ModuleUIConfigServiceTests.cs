@@ -22,17 +22,11 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class ModuleUIConfigServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<ModuleUIConfigService>> _mockLogger;
-    private readonly ModuleUIConfigService _service;
+public class ModuleUIConfigServiceTests : ServiceTestFixtureBase<ModuleUIConfigService>
+{    private readonly ModuleUIConfigService _service;
 
     public ModuleUIConfigServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<ModuleUIConfigService>>();
-        _service = new ModuleUIConfigService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new ModuleUIConfigService(MockContext.Object, MockLogger.Object);
     }
 
     // ───────────────────────────────────────────────────
@@ -85,18 +79,18 @@ public class ModuleUIConfigServiceTests
     private void SetupModuleConfigs(List<ModuleUIConfig> configs)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(configs);
-        _mockContext.Setup(c => c.ModuleUIConfigs).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ModuleUIConfigs).Returns(mockSet.Object);
     }
 
     private void SetupFieldConfigs(List<ModuleFieldConfiguration> fields)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(fields);
-        _mockContext.Setup(c => c.ModuleFieldConfigurations).Returns(mockSet.Object);
+        MockContext.Setup(c => c.ModuleFieldConfigurations).Returns(mockSet.Object);
     }
 
     private void SetupSaveChanges()
     {
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
     }
 
@@ -258,7 +252,7 @@ public class ModuleUIConfigServiceTests
         result.IconName.Should().Be("Star");
         result.DisplayOrder.Should().Be(5);
         configs.Should().HaveCount(1);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -301,7 +295,7 @@ public class ModuleUIConfigServiceTests
         result!.DisplayName.Should().Be("Accounts");
         result.IconName.Should().Be("Business");
         result.IsEnabled.Should().BeFalse();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -377,7 +371,7 @@ public class ModuleUIConfigServiceTests
         var customers = configs.First(c => c.ModuleName == "Customers");
         customers.IsEnabled.Should().BeFalse();
         customers.DisplayOrder.Should().Be(10);
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     // ───────────────────────────────────────────────────
@@ -530,7 +524,7 @@ public class ModuleUIConfigServiceTests
         // LinkedEntitiesConfig should be reset to defaults from DefaultModuleConfigs
         config.LinkedEntitiesConfig.Should().NotBeNull();
         // The field removal happens via RemoveRange on the matching fields
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.AtLeastOnce);
     }
 
     [Fact]
@@ -559,7 +553,7 @@ public class ModuleUIConfigServiceTests
 
         // NOTE: Service uses AddRange which doesn't mutate the mock backing list,
         // so we verify behaviour via SaveChangesAsync being called (meaning modules were created).
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -589,7 +583,7 @@ public class ModuleUIConfigServiceTests
         await _service.InitializeDefaultConfigsAsync();
 
         // Should NOT create new entries since all 14 defaults already exist
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
     // ───────────────────────────────────────────────────
@@ -607,7 +601,7 @@ public class ModuleUIConfigServiceTests
 
         result.Should().NotBeNull();
         result!.IsEnabled.Should().BeFalse();
-        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

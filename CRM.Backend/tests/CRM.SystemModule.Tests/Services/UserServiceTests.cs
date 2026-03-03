@@ -19,7 +19,7 @@ namespace CRM.SystemModule.Tests.Services;
 /// Unit tests for UserService.
 /// Tests basic CRUD operations for users.
 /// </summary>
-public class UserServiceTests
+public class UserServiceTests : ServiceTestFixtureBase<UserService>
 {
     private readonly Mock<ICrmDbContext> _dbContextMock;
     private readonly Mock<ILogger<UserService>> _loggerMock;

@@ -22,42 +22,34 @@ using Xunit;
 
 namespace CRM.Tests.Services;
 
-public class PreferencesServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly IMemoryCache _cache;
-    private readonly Mock<ILogger<PreferencesService>> _mockLogger;
-    private readonly PreferencesService _service;
+public class PreferencesServiceTests : ServiceTestFixtureBase<PreferencesService>
+{    private readonly IMemoryCache _cache;    private readonly PreferencesService _service;
 
     public PreferencesServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _cache = new MemoryCache(new MemoryCacheOptions());
-        _mockLogger = new Mock<ILogger<PreferencesService>>();
-        _service = new PreferencesService(_mockContext.Object, _cache, _mockLogger.Object);
+    {        _cache = new MemoryCache(new MemoryCacheOptions());        _service = new PreferencesService(MockContext.Object, _cache, MockLogger.Object);
     }
 
     private void SetupSaveChanges()
     {
-        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private void SetupAccounts(List<Account> accounts)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(accounts);
-        _mockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
     }
 
     private void SetupContacts(List<Contact> contacts)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(contacts);
-        _mockContext.Setup(c => c.Contacts).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Contacts).Returns(mockSet.Object);
     }
 
     private void SetupPreferences(List<Preferences> preferences)
     {
         var mockSet = MockDbSetFactory.CreateMockDbSet(preferences);
-        _mockContext.Setup(c => c.Preferences).Returns(mockSet.Object);
+        MockContext.Setup(c => c.Preferences).Returns(mockSet.Object);
     }
 
     [Fact]

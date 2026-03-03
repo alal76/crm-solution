@@ -26,20 +26,16 @@ namespace CRM.Tests.Services.ITSM;
 /// Unit tests for SLAEnforcementHostedService.
 /// Tests the background service that monitors and enforces SLA agreements.
 /// </summary>
-public class SLAEnforcementHostedServiceTests
+public class SLAEnforcementHostedServiceTests : ServiceTestFixtureBase<SLAEnforcementHostedService>
 {
-    private readonly Mock<IServiceProvider> _mockServiceProvider;
-    private readonly Mock<ILogger<SLAEnforcementHostedService>> _mockLogger;
-    private readonly Mock<ICrmDbContext> _mockDbContext;
+    private readonly Mock<IServiceProvider> _mockServiceProvider;    private readonly Mock<ICrmDbContext> _mockDbContext;
     private readonly Mock<IEscalationRuleService> _mockEscalationRuleService;
     private readonly Mock<IServiceScope> _mockScope;
     private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
 
     public SLAEnforcementHostedServiceTests()
     {
-        _mockServiceProvider = new Mock<IServiceProvider>();
-        _mockLogger = new Mock<ILogger<SLAEnforcementHostedService>>();
-        _mockDbContext = new Mock<ICrmDbContext>();
+        _mockServiceProvider = new Mock<IServiceProvider>();        _mockDbContext = new Mock<ICrmDbContext>();
         _mockEscalationRuleService = new Mock<IEscalationRuleService>();
         _mockScope = new Mock<IServiceScope>();
         _mockScopeFactory = new Mock<IServiceScopeFactory>();
@@ -66,7 +62,7 @@ public class SLAEnforcementHostedServiceTests
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Act
-        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, MockLogger.Object);
 
         // Assert
         service.Should().NotBeNull();
@@ -76,7 +72,7 @@ public class SLAEnforcementHostedServiceTests
     public void Constructor_WithNullServiceProvider_DoesNotThrow()
     {
         // Act
-        Action act = () => new SLAEnforcementHostedService(null!, _mockLogger.Object);
+        Action act = () => new SLAEnforcementHostedService(null!, MockLogger.Object);
 
         // Assert - The service may not validate null in constructor
         act.Should().NotThrow();
@@ -100,7 +96,7 @@ public class SLAEnforcementHostedServiceTests
     public async Task StartAsync_CompletesSuccessfully()
     {
         // Arrange
-        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, MockLogger.Object);
 
         // Act
         Func<Task> act = async () => await service.StartAsync(CancellationToken.None);
@@ -113,7 +109,7 @@ public class SLAEnforcementHostedServiceTests
     public async Task StopAsync_CompletesSuccessfully()
     {
         // Arrange
-        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, MockLogger.Object);
         await service.StartAsync(CancellationToken.None);
 
         // Act
@@ -127,7 +123,7 @@ public class SLAEnforcementHostedServiceTests
     public async Task Service_CanBeStartedAndStopped()
     {
         // Arrange
-        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, MockLogger.Object);
 
         // Act & Assert - no exception means success
         await service.StartAsync(CancellationToken.None);
@@ -144,7 +140,7 @@ public class SLAEnforcementHostedServiceTests
     public async Task ExecuteAsync_StopsWhenCancellationRequested()
     {
         // Arrange
-        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, MockLogger.Object);
         using var cts = new CancellationTokenSource();
 
         // Act
@@ -165,7 +161,7 @@ public class SLAEnforcementHostedServiceTests
     public async Task ExecuteAsync_CreatesNewServiceScope()
     {
         // Arrange
-        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, MockLogger.Object);
         using var cts = new CancellationTokenSource();
 
         // Act
@@ -189,7 +185,7 @@ public class SLAEnforcementHostedServiceTests
     public async Task ExecuteAsync_LogsStartMessage()
     {
         // Arrange
-        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, MockLogger.Object);
 
         // Setup mock to handle GetService calls - use callback to return appropriate service
         var scopeServiceProvider = new Mock<IServiceProvider>();
@@ -218,7 +214,7 @@ public class SLAEnforcementHostedServiceTests
                 return null;
             });
 
-        var serviceWithProperMocks = new SLAEnforcementHostedService(mockServiceProvider.Object, _mockLogger.Object);
+        var serviceWithProperMocks = new SLAEnforcementHostedService(mockServiceProvider.Object, MockLogger.Object);
         using var cts = new CancellationTokenSource();
 
         // Act - Start the service and let it run for a bit to ensure the "started" message is logged
@@ -228,7 +224,7 @@ public class SLAEnforcementHostedServiceTests
         await serviceWithProperMocks.StopAsync(CancellationToken.None);
 
         // Assert - verify that a log was made containing "started"
-        _mockLogger.Verify(
+        MockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),

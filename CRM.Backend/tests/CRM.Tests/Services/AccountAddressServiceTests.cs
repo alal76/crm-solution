@@ -27,19 +27,13 @@ namespace CRM.Tests.Services;
 /// NOTE: DISABLED - Tests require refactoring after address normalization. The service interface changed to work with EntityAddressLink polymorphic pattern.
 /// </summary>
 #if DISABLED_DUE_TO_ADDRESS_NORMALIZATION
-public class AccountAddressServiceTests
-{
-    private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<ILogger<AccountAddressService>> _mockLogger;
-    private readonly AccountAddressService _service;
+public class AccountAddressServiceTests : ServiceTestFixtureBase<AccountAddressService>
+{    private readonly AccountAddressService _service;
     private readonly List<Account> _accounts;
     private readonly List<Address> _addresses;
 
     public AccountAddressServiceTests()
-    {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockLogger = new Mock<ILogger<AccountAddressService>>();
-        _service = new AccountAddressService(_mockContext.Object, _mockLogger.Object);
+    {        _service = new AccountAddressService(MockContext.Object, MockLogger.Object);
         
         // Setup test data
         _accounts = new List<Account>
@@ -306,7 +300,7 @@ public class AccountAddressServiceTests
         // Assert
         Assert.NotNull(result);
         // Verify primary flag would be set in actual implementation
-        _mockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -406,7 +400,7 @@ public class AccountAddressServiceTests
 
         // Assert
         Assert.True(result);
-        _mockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        MockContext.Verify(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -459,9 +453,9 @@ public class AccountAddressServiceTests
         var mockEntityAddressLinkSet = entityAddressLinks.AsQueryable().BuildMockDbSet();
         var mockAddressSet = addresses.AsQueryable().BuildMockDbSet();
 
-        _mockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
-        _mockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
+        MockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private void SetupMockDbSetForAdd(List<Address> addresses, List<EntityAddressLink> entityAddressLinks, List<Address> allAddresses)
@@ -470,9 +464,9 @@ public class AccountAddressServiceTests
         var mockEntityAddressLinkSet = entityAddressLinks.AsQueryable().BuildMockDbSet();
         var mockAllAddressesSet = allAddresses.AsQueryable().BuildMockDbSet();
 
-        _mockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
-        _mockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
+        MockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private void SetupMockDbSetForUpdate(List<Address> addresses, List<EntityAddressLink> entityAddressLinks)
@@ -480,9 +474,9 @@ public class AccountAddressServiceTests
         var mockAddressSet = addresses.AsQueryable().BuildMockDbSet();
         var mockEntityAddressLinkSet = entityAddressLinks.AsQueryable().BuildMockDbSet();
 
-        _mockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
-        _mockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
+        MockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private void SetupMockDbSetForDelete(List<Address> addresses, List<EntityAddressLink> entityAddressLinks)
@@ -490,9 +484,9 @@ public class AccountAddressServiceTests
         var mockAddressSet = addresses.AsQueryable().BuildMockDbSet();
         var mockEntityAddressLinkSet = entityAddressLinks.AsQueryable().BuildMockDbSet();
 
-        _mockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
-        _mockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
+        MockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     private void SetupMockDbSetForUpdatePrimary(List<EntityAddressLink> entityAddressLinks, List<Address> addresses)
@@ -500,9 +494,9 @@ public class AccountAddressServiceTests
         var mockEntityAddressLinkSet = entityAddressLinks.AsQueryable().BuildMockDbSet();
         var mockAddressSet = addresses.AsQueryable().BuildMockDbSet();
 
-        _mockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
-        _mockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        MockContext.Setup(x => x.EntityAddressLinks).Returns(mockEntityAddressLinkSet.Object);
+        MockContext.Setup(x => x.Addresses).Returns(mockAddressSet.Object);
+        MockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }
 
     #endregion
