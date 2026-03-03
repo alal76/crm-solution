@@ -41,7 +41,22 @@ public class PricingRulesController : CrmControllerBase
                 var rules = await _service.GetActiveRulesAsync(cancellationToken);
         return Ok(rules);
     }
+    // ─── GET /api/pricingrules/{id} ────────────────────────────────────────
 
+    /// <summary>Returns a single pricing rule by ID.</summary>
+    [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(PricingRule), 200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
+    {
+        var rule = await _service.GetByIdAsync(id, cancellationToken);
+        if (rule == null)
+        {
+            return NotFound(new { error = $"Pricing rule {id} not found" });
+        }
+
+        return Ok(rule);
+    }
     // ─── POST /api/pricingrules ──────────────────────────────────────────────
 
     /// <summary>Creates a new pricing rule.</summary>
@@ -58,7 +73,7 @@ public class PricingRulesController : CrmControllerBase
         }
 
                 var created = await _service.CreateRuleAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetActiveRules), new { id = created.Id }, created);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     // ─── PUT /api/pricingrules/{id} ──────────────────────────────────────────

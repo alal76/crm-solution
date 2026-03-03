@@ -109,7 +109,7 @@ public class CreatePaymentDto
     public int AccountId { get; set; }
 
     [Required(ErrorMessage = "Amount is required")]
-    [Range(0.01, 999999999.99, ErrorMessage = "Amount must be between 0.01 and 999999999.99")]
+    [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Amount must be between 0.01 and 999999999.99")]
     public decimal Amount { get; set; }
     
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
@@ -159,7 +159,7 @@ public class PaymentFilterDto
 public class ProcessPaymentDto
 {
     [Required(ErrorMessage = "Amount is required")]
-    [Range(0.01, 999999999.99, ErrorMessage = "Amount must be between 0.01 and 999999999.99")]
+    [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Amount must be between 0.01 and 999999999.99")]
     public decimal Amount { get; set; }
     
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
@@ -191,7 +191,7 @@ public class ProcessPaymentRequestDto : ProcessPaymentDto
 /// </summary>
 public class RefundPaymentRequestDto
 {
-    [Range(0.01, 999999999.99, ErrorMessage = "Refund amount must be between 0.01 and 999999999.99")]
+    [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Refund amount must be between 0.01 and 999999999.99")]
     public decimal? RefundAmount { get; set; }
     
     [Required(ErrorMessage = "Reason is required")]

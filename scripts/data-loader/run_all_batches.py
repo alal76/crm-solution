@@ -36,20 +36,29 @@ from loader_utils import (
 
 # ── Batch registry (order matters — later batches depend on entities from earlier batches)
 BATCHES = [
-    (1,  "batch_01_system",          "System, Users, Roles, Settings"),
-    (2,  "batch_02_crm_core",        "Accounts, Contacts, Contact Info"),
-    (3,  "batch_03_leads_products",   "Leads, Products, PriceBooks"),
-    (4,  "batch_04_sales",            "Opportunities, Quotes, Orders, Invoices"),
-    (5,  "batch_05_activities",       "Interactions, Tasks, Notes"),
-    (6,  "batch_06_marketing",        "Campaigns, Templates, Sequences"),
-    (7,  "batch_07_itsm",             "Service Desk, Incidents, Changes, KB"),
-    (8,  "batch_08_commissions",      "Commissions, Territories, Teams"),
-    (9,  "batch_09_workflows",        "Workflows, Approvals, Triggers"),
-    (10, "batch_10_ai_analytics",     "AI Agents, Analytics, Reports, Webhooks"),
-    (11, "batch_11_infrastructure",   "Monitoring, Config, MasterData"),
-    (12, "batch_12_misc",             "Files, Tags, CustomFields, Misc"),
-    (13, "batch_13_integration",      "Integration-Dependent Endpoints (probe & skip)"),
-    (14, "batch_14_rules_workflows",  "Rules, Rulesets & Full Workflow E2E"),
+    (1,  "batch_01_system",              "System, Users, Roles, Settings"),
+    (2,  "batch_02_crm_core",            "Accounts, Contacts, Contact Info"),
+    (3,  "batch_03_leads_products",      "Leads, Products, PriceBooks"),
+    (4,  "batch_04_sales",               "Opportunities, Quotes, Orders, Invoices"),
+    (5,  "batch_05_activities",          "Interactions, Tasks, Notes"),
+    (6,  "batch_06_marketing",           "Campaigns, Templates, Sequences"),
+    (7,  "batch_07_itsm",                "Service Desk, Incidents, Changes, KB"),
+    (8,  "batch_08_commissions",         "Commissions, Territories, Teams"),
+    (9,  "batch_09_workflows",           "Workflows, Approvals, Triggers, Rule Engine"),
+    (10, "batch_10_ai_analytics",        "AI Agents, SK Plugins, Analytics, Reports"),
+    (11, "batch_11_infrastructure",      "Monitoring, Config, MasterData"),
+    (12, "batch_12_misc",                "Files, Tags, CustomFields, Misc"),
+    (13, "batch_13_integration",         "Integration-Dependent Endpoints (probe & skip)"),
+    (14, "batch_14_rules_workflows",     "Rules, Rulesets & Full Workflow E2E"),
+    # ── New extended batches ──────────────────────────────────────────────────────
+    (15, "batch_15_service_desk_config", "SR Categories, Types, SLAs, Queues, AutoAssign, Escalation"),
+    (16, "batch_16_master_catalog_data", "Lead Sources, Currencies, Competitors, Master Data, Lookups"),
+    (17, "batch_17_subscriptions_billing","Subscription Lifecycle, Billing, Usage, Revenue, Dunning"),
+    (18, "batch_18_financial_extended",  "Credit Memos, Order Returns, Pricing Rules, Tax, Payment Methods"),
+    (19, "batch_19_portals_engagement",  "Portal, Partner Portal, Web-to-Lead, Landing Pages, Events, Segments"),
+    (20, "batch_20_comms_notifications", "Conversations, Communications, Comments, Notifications, GDPR"),
+    (21, "batch_21_crm_config",          "Pipelines, Forecast, Quote Templates, ProductCat, PriceBooks, Tags"),
+    (22, "batch_22_admin_ops",           "Roles, API Keys, Webhooks, Imports, Exports, Admin Config, Alerts"),
 ]
 
 

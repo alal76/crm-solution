@@ -31,51 +31,51 @@ public class SubscriptionMetricsDto
     public string? AccountName { get; set; }
 
     /// <summary>Monthly Recurring Revenue (decimal[18,4])</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal MRR { get; set; }
 
     /// <summary>Annual Recurring Revenue (decimal[18,4])</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal ARR { get; set; }
 
     /// <summary>Churn rate (percentage, 0-100)</summary>
-    [Range(0, 100)]
+    [Range(typeof(decimal), "0", "100")]
     public decimal ChurnRate { get; set; }
 
     /// <summary>Net revenue retention (percentage, 0-200)</summary>
-    [Range(0, 200)]
+    [Range(typeof(decimal), "0", "200")]
     public decimal NRR { get; set; }
 
     /// <summary>Gross revenue retention (percentage, 0-100)</summary>
-    [Range(0, 100)]
+    [Range(typeof(decimal), "0", "100")]
     public decimal GRR { get; set; }
 
     /// <summary>Customer acquisition cost (decimal[18,4])</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal CAC { get; set; }
 
     /// <summary>Customer lifetime value (decimal[18,4])</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal CLV { get; set; }
 
     /// <summary>Expansion revenue (decimal[18,4]) - new revenue from existing customers</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal ExpansionRevenue { get; set; }
 
     /// <summary>Contraction/downgrade revenue (decimal[18,4])</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal ContractionRevenue { get; set; }
 
     /// <summary>Average Contract Value (decimal[18,4])</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal ACV { get; set; }
 
     /// <summary>Payment processing fees (decimal[18,4])</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal PaymentFees { get; set; }
 
     /// <summary>Refund amount during period (decimal[18,4])</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal RefundAmount { get; set; }
 
     /// <summary>Billing cycle period (Monthly, Quarterly, Annual)</summary>
@@ -121,23 +121,23 @@ public class CreateSubscriptionMetricsDto
     public int SubscriptionId { get; set; }
 
     /// <summary>Monthly Recurring Revenue</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal MRR { get; set; }
 
     /// <summary>Annual Recurring Revenue</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal ARR { get; set; }
 
     /// <summary>Churn rate percentage</summary>
-    [Range(0, 100)]
+    [Range(typeof(decimal), "0", "100")]
     public decimal ChurnRate { get; set; }
 
     /// <summary>Net revenue retention</summary>
-    [Range(0, 200)]
+    [Range(typeof(decimal), "0", "200")]
     public decimal NRR { get; set; }
 
     /// <summary>Gross revenue retention</summary>
-    [Range(0, 100)]
+    [Range(typeof(decimal), "0", "100")]
     public decimal GRR { get; set; }
 
     /// <summary>Measurement date</summary>
@@ -160,15 +160,15 @@ public class CreateSubscriptionMetricsDto
 public class UpdateSubscriptionMetricsDto
 {
     /// <summary>Updated MRR</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal? MRR { get; set; }
 
     /// <summary>Updated ARR</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal? ARR { get; set; }
 
     /// <summary>Updated churn rate</summary>
-    [Range(0, 100)]
+    [Range(typeof(decimal), "0", "100")]
     public decimal? ChurnRate { get; set; }
 
     /// <summary>Notes</summary>

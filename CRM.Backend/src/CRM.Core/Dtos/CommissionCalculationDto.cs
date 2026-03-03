@@ -25,30 +25,30 @@ public class CommissionCalculationDto
     public string? RuleName { get; set; }
 
     /// <summary>Base deal/opportunity amount (decimal[18,4])</summary>
-    [Range(0, 999999999.99999, ErrorMessage = "Deal amount must be between 0 and 999999999.9999")]
+    [Range(typeof(decimal), "0", "999999999.99999", ErrorMessage = "Deal amount must be between 0 and 999999999.9999")]
     public decimal DealAmount { get; set; }
 
     /// <summary>Calculated commission amount (decimal[18,4])</summary>
-    [Range(0, 999999999.99999, ErrorMessage = "Commission must be between 0 and 999999999.9999")]
+    [Range(typeof(decimal), "0", "999999999.99999", ErrorMessage = "Commission must be between 0 and 999999999.9999")]
     public decimal Commission { get; set; }
 
     /// <summary>Commission tier applied (Bronze, Silver, Gold, Platinum, etc.)</summary>
     public string? Tier { get; set; }
 
     /// <summary>Commission rate percentage applied (e.g., 5.0 for 5%)</summary>
-    [Range(0, 100, ErrorMessage = "Commission rate must be between 0 and 100")]
+    [Range(typeof(decimal), "0", "100", ErrorMessage = "Commission rate must be between 0 and 100")]
     public decimal CommissionRate { get; set; }
 
     /// <summary>Cap limit applied (if any)</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal? AppliedCap { get; set; }
 
     /// <summary>Claw-back amount (if applicable)</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal? ClawbackAmount { get; set; }
 
     /// <summary>Net commission after adjustments</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal NetCommission { get; set; }
 
     /// <summary>Sales user receiving commission</summary>
@@ -95,7 +95,7 @@ public class CreateCommissionCalculationDto
 
     /// <summary>Base deal amount</summary>
     [Required]
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal DealAmount { get; set; }
 
     /// <summary>Sales user receiving commission</summary>
@@ -126,11 +126,11 @@ public class CreateCommissionCalculationDto
 public class UpdateCommissionCalculationDto
 {
     /// <summary>Adjusted deal amount</summary>
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal? DealAmount { get; set; }
 
     /// <summary>Manual adjustment amount</summary>
-    [Range(-999999999.99999, 999999999.99999)]
+    [Range(typeof(decimal), "-999999999.99999", "999999999.99999")]
     public decimal? AdjustmentAmount { get; set; }
 
     /// <summary>New status</summary>
@@ -240,7 +240,7 @@ public class CommissionCalculationValidationDto
     public int RuleId { get; set; }
 
     [Required]
-    [Range(0, 999999999.99999)]
+    [Range(typeof(decimal), "0", "999999999.99999")]
     public decimal DealAmount { get; set; }
 
     [Required]

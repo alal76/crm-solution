@@ -450,17 +450,18 @@ namespace CRM.Tests.Dtos
         [InlineData(50.00, true)]
         [InlineData(999999999.99, true)]
         [InlineData(1000000000.00, false)]
-        public void RefundPaymentRequestDto_RefundAmount_WithVariousValues_ValidatesCorrectly(decimal? amount, bool shouldBeValid)
+        public void RefundPaymentRequestDto_RefundAmount_WithVariousValues_ValidatesCorrectly(object? amount, bool shouldBeValid)
         {
             // Arrange
             var request = CreateValidRefundRequest();
-            if (amount.HasValue && amount.Value == 0)
+            decimal? decimalAmount = amount == null ? (decimal?)null : Convert.ToDecimal(amount);
+            if (decimalAmount.HasValue && decimalAmount.Value == 0)
             {
                 request.RefundAmount = 0m;
             }
             else
             {
-                request.RefundAmount = amount;
+                request.RefundAmount = decimalAmount;
             }
 
             // Act
@@ -481,11 +482,11 @@ namespace CRM.Tests.Dtos
         [Theory]
         [InlineData(-100.00, false)]
         [InlineData(-0.01, false)]
-        public void RefundPaymentRequestDto_RefundAmount_NegativeValue_ValidationFails(decimal amount, bool shouldBeValid)
+        public void RefundPaymentRequestDto_RefundAmount_NegativeValue_ValidationFails(double amount, bool shouldBeValid)
         {
             // Arrange
             var request = CreateValidRefundRequest();
-            request.RefundAmount = amount;
+            request.RefundAmount = Convert.ToDecimal(amount);
 
             // Act
             var results = ValidateModel(request);

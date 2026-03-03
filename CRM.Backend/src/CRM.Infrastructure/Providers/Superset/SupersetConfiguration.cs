@@ -105,7 +105,8 @@ public class SupersetConfiguration
             return (false, "Superset Password is required");
         }
 
-        if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out _))
+        if (!Uri.TryCreate(BaseUrl, UriKind.Absolute, out var parsedUri) ||
+            (parsedUri.Scheme != Uri.UriSchemeHttp && parsedUri.Scheme != Uri.UriSchemeHttps))
         {
             return (false, $"Superset BaseUrl '{BaseUrl}' is not a valid URL");
         }

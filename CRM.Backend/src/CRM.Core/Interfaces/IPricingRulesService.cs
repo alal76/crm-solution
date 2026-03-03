@@ -50,6 +50,14 @@ public interface IPricingRulesService
     Task<List<PricingRule>> GetActiveRulesAsync(CancellationToken ct = default);
 
     /// <summary>
+    /// Returns a single pricing rule by ID.
+    /// </summary>
+    /// <param name="id">Rule ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Pricing rule or null if not found</returns>
+    Task<PricingRule?> GetByIdAsync(int id, CancellationToken ct = default);
+
+    /// <summary>
     /// Creates a new pricing rule.
     /// </summary>
     /// <param name="dto">Rule creation data</param>

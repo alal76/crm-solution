@@ -515,22 +515,22 @@ namespace CRM.Tests.Validators
             // Arrange
             var items = new List<(string Id, int Order)>
             {
-                ("valid1", 10),
-                ("invalid1", -5),
-                ("valid2", 0),
-                ("invalid2", -1),
-                ("valid3", 100)
+                ("good-a", 10),
+                ("bad-x", -5),
+                ("good-b", 0),
+                ("bad-y", -1),
+                ("good-c", 100)
             };
 
             // Act & Assert
             var exception = Assert.Throws<ArgumentException>(() => 
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, "Order"));
 
-            Assert.Contains("invalid1", exception.Message);
-            Assert.Contains("invalid2", exception.Message);
-            Assert.DoesNotContain("valid1", exception.Message);
-            Assert.DoesNotContain("valid2", exception.Message);
-            Assert.DoesNotContain("valid3", exception.Message);
+            Assert.Contains("bad-x", exception.Message);
+            Assert.Contains("bad-y", exception.Message);
+            Assert.DoesNotContain("good-a", exception.Message);
+            Assert.DoesNotContain("good-b", exception.Message);
+            Assert.DoesNotContain("good-c", exception.Message);
         }
     }
 }

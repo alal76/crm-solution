@@ -270,9 +270,19 @@ public class CreateAccountDto
     [Phone(ErrorMessage = "Invalid phone format")]
     [StringLength(50, ErrorMessage = "Phone cannot exceed 50 characters")]
     public string Phone { get; set; } = string.Empty;
+
+    [Phone(ErrorMessage = "Invalid phone format")]
+    [StringLength(50, ErrorMessage = "Mobile phone cannot exceed 50 characters")]
     public string? MobilePhone { get; set; }
+
+    [Phone(ErrorMessage = "Invalid fax number format")]
+    [StringLength(50, ErrorMessage = "Fax number cannot exceed 50 characters")]
     public string? FaxNumber { get; set; }
+
     public string? JobTitle { get; set; }
+
+    [Url(ErrorMessage = "Website must be a valid URL")]
+    [StringLength(500, ErrorMessage = "Website URL cannot exceed 500 characters")]
     public string? Website { get; set; }
 
     // Address

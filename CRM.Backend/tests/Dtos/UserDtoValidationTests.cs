@@ -88,7 +88,7 @@ namespace CRM.Tests.Dtos
         {
             // Arrange
             var request = CreateValidUserRequest();
-            request.Email = new string('a', 180) + "@example.com"; // Over 200 chars
+            request.Email = new string('a', 191) + "@example.com"; // 191+12=203 chars, over [StringLength(200)]
 
             // Act
             var results = ValidateModel(request);
@@ -242,7 +242,7 @@ namespace CRM.Tests.Dtos
 
         [Theory]
         [InlineData(null, true)] // Optional
-        [InlineData("", true)] // Optional
+        [InlineData("", false)] // Empty string fails [StringLength(100, MinimumLength=3)]
         [InlineData("ab", false)] // Too short (min 3)
         [InlineData("abc", true)]
         [InlineData("johndoe", true)]
@@ -318,8 +318,8 @@ namespace CRM.Tests.Dtos
         #region CreateUserRequest - Password Tests
 
         [Theory]
-        [InlineData(null, true)] // Optional
-        [InlineData("", true)] // Optional
+        [InlineData(null, true)] // Optional nullable
+        [InlineData("", false)] // Empty string fails [StringLength(100, MinimumLength=8)]
         [InlineData("short", false)] // Too short (min 8)
         [InlineData("Pass123!", true)]
         [InlineData("SecurePassword123!", true)]

@@ -790,19 +790,17 @@ public class PaymentServiceTests : ServiceTestFixtureBase<PaymentService>
     }
 
     /// <summary>
-    /// Test: MarkAsFailedAsync with non-existent payment should return null
+    /// Test: MarkAsFailedAsync with non-existent payment should throw InvalidOperationException
     /// </summary>
     [Fact]
-    public async Task MarkAsFailedAsync_WithNonExistentPayment_ReturnsNull()
+    public async Task MarkAsFailedAsync_WithNonExistentPayment_ThrowsInvalidOperationException()
     {
         // Arrange
         SetupDbSets(payments: new List<Payment>());
 
-        // Act
-        var result = await _service.MarkAsFailedAsync(999, "Failure reason");
-
-        // Assert
-        result.Should().BeNull();
+        // Act & Assert - service throws when payment not found
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.MarkAsFailedAsync(999, "Failure reason"));
     }
 
     #endregion

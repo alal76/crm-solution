@@ -261,15 +261,24 @@ builder.Services.AddRateLimiter(options =>
         await context.HttpContext.Response.WriteAsync(quotaMessage, token);
     };
 
-    if (!rateLimitingEnabled)
-    {
-        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(_ =>
-            RateLimitPartition.GetNoLimiter("rate-limiting-disabled"));
-        return;
-    }
-
+    // Always register the real limiter — actual enable/disable is controlled at
+    // runtime via ISystemControlsService (admin toggle endpoint).
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
+        // Runtime override check — allows admin to toggle without restart
+        var sysControls = context.RequestServices
+            .GetService<CRM.Core.Interfaces.ISystemControlsService>();
+        if (sysControls != null && !sysControls.GetRateLimitingStatus().Enabled)
+        {
+            return RateLimitPartition.GetNoLimiter("runtime-toggle-disabled");
+        }
+
+        // Startup disabled — honour original appsettings value
+        if (!rateLimitingEnabled)
+        {
+            return RateLimitPartition.GetNoLimiter("rate-limiting-disabled");
+        }
+
         var requestPath = context.Request.Path.Value ?? string.Empty;
         var endpointRule = endpointRules.FirstOrDefault(rule =>
             requestPath.Contains(rule.Endpoint, StringComparison.OrdinalIgnoreCase));
@@ -522,6 +531,9 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IGeoLocationService, CRM.Infrastr
 
 // Rate Limiting Service (TODO-SYS005-002)
 builder.Services.AddScoped<CRM.Core.Interfaces.IRateLimitingService, CRM.Infrastructure.Services.RateLimitingService>();
+
+// System Controls: runtime rate-limit toggle + JWT rotation (singleton for in-memory state)
+builder.Services.AddSingleton<CRM.Core.Interfaces.ISystemControlsService, CRM.Infrastructure.Services.SystemControlsService>();
 
 // System Module Services (TODO-SYS005-001, TODO-SYS006-004)
 builder.Services.AddScoped<CRM.Core.Interfaces.IBusinessHoursConfigService, CRM.Infrastructure.Services.BusinessHoursConfigService>();

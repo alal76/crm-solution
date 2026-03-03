@@ -244,9 +244,9 @@ def _lead_routing_rules(api: ApiClient, log: RunLogger, ts: int,
             api.post(f"/api/leadrouting/leads/{lead_ids[1]}/route/{routing_rule_ids[0]}", {})
         if len(lead_ids) >= 3:
             api.post(f"/api/leadrouting/leads/{lead_ids[2]}/evaluate", {})
-        # Batch route
+        # Batch route — controller expects IEnumerable<int>, so send bare array (not wrapped object)
         if len(lead_ids) >= 2:
-            api.post("/api/leadrouting/leads/batch-route", {"leadIds": lead_ids[:3]})
+            api.post("/api/leadrouting/leads/batch-route", lead_ids[:3])
         # History
         api.get(f"/api/leadrouting/leads/{lead_ids[0]}/history")
 
@@ -524,8 +524,15 @@ def _pricing_rules(api: ApiClient, log: RunLogger, ts: int, product_ids: list) -
             api.put(f"/api/pricingrules/{eid}", {**payload, "id": eid, "priority": p["priority"] + 1})
 
     api.get("/api/pricingrules")
+    # GET /api/pricingrules/{id} — verify individual rule retrieval
     if pr_ids:
-        api.get(f"/api/pricingrules/{pr_ids[0]}")
+        status, body, err = api.get(f"/api/pricingrules/{pr_ids[0]}")
+        if status == 405:
+            print(f"    [WARN] GET /api/pricingrules/{{id}} not implemented (405) — skipping by-ID verify")
+        elif status and status >= 400:
+            print(f"    [WARN] GET /api/pricingrules/{pr_ids[0]} returned {status}: {err}")
+        else:
+            print(f"    [OK]   GET /api/pricingrules/{pr_ids[0]} → {status}")
 
     # Calculate pricing
     calc_payload: dict = {

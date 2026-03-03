@@ -132,6 +132,14 @@ public class PricingRulesService : IPricingRulesService
     }
 
     /// <inheritdoc/>
+    public async Task<PricingRule?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        return await _dbContext.PricingRules
+            .Where(r => r.Id == id && !r.IsDeleted)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    /// <inheritdoc/>
     public async Task<PricingRule> CreateRuleAsync(CreatePricingRuleDto dto, CancellationToken ct = default)
     {
         var rule = MapFromCreateDto(dto);

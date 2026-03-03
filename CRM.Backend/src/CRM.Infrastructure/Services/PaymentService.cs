@@ -268,6 +268,16 @@ public class PaymentService : IPaymentService
             };
         }
 
+        if (amount <= 0)
+        {
+            return new PaymentResult
+            {
+                Success = false,
+                ErrorCode = "INVALID_AMOUNT",
+                ErrorMessage = "Refund amount must be greater than zero"
+            };
+        }
+
         if (amount > payment.Amount - payment.RefundedAmount)
         {
             return new PaymentResult

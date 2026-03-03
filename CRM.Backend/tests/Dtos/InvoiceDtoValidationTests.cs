@@ -124,11 +124,11 @@ namespace CRM.Tests.Dtos
         [InlineData(-10.0)]  // Negative discount (surcharge?)
         [InlineData(0)]      // No discount
         [InlineData(10.0)]   // Valid discount
-        public void CreateInvoiceDto_DiscountAmount_VariousValues_CurrentlyNoValidation(decimal discount)
+        public void CreateInvoiceDto_DiscountAmount_VariousValues_CurrentlyNoValidation(object discountRaw)
         {
             // Arrange
             var invoice = CreateValidInvoice();
-            invoice.DiscountAmount = discount;
+            invoice.DiscountAmount = Convert.ToDecimal(discountRaw);
 
             // Act
             var results = ValidateModel(invoice);
@@ -336,9 +336,10 @@ namespace CRM.Tests.Dtos
         [InlineData(-10.0)]
         [InlineData(0)]
         [InlineData(10.0)]
-        public void UpdateInvoiceDto_DiscountAmount_VariousValues_CurrentlyNoValidation(decimal? discount)
+        public void UpdateInvoiceDto_DiscountAmount_VariousValues_CurrentlyNoValidation(object? discountRaw)
         {
             // Arrange
+            decimal? discount = discountRaw == null ? (decimal?)null : Convert.ToDecimal(discountRaw);
             var update = new UpdateInvoiceDto
             {
                 DiscountAmount = discount

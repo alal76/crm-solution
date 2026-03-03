@@ -103,7 +103,7 @@ namespace CRM.Tests.Dtos
         {
             // Arrange
             var account = CreateValidAccount();
-            account.Email = new string('a', 180) + "@example.com"; // Over 200 chars
+            account.Email = new string('a', 196) + "@b.co"; // 196+5 = 201 chars, over [StringLength(200)]
 
             // Act
             var results = ValidateModel(account);
@@ -134,7 +134,7 @@ namespace CRM.Tests.Dtos
 
         [Theory]
         [InlineData(null, true)] // Optional
-        [InlineData("", true)]
+        [InlineData("", false)] // [EmailAddress] rejects empty strings
         [InlineData("invalid@", false)]
         [InlineData("@example.com", false)]
         [InlineData("secondary@example.com", true)]
@@ -165,7 +165,7 @@ namespace CRM.Tests.Dtos
         {
             // Arrange
             var account = CreateValidAccount();
-            account.SecondaryEmail = new string('b', 180) + "@example.com"; // Over 200 chars
+            account.SecondaryEmail = new string('b', 191) + "@example.com"; // 191+12=203 chars, over [StringLength(200)]
 
             // Act
             var results = ValidateModel(account);
@@ -186,7 +186,7 @@ namespace CRM.Tests.Dtos
         [InlineData("555-123-4567", true)]
         [InlineData("5551234567", true)]
         [InlineData("+44 20 7123 4567", true)]
-        [InlineData("1-800-FLOWERS", true)] // Phone validation in .NET is lenient
+        [InlineData("1-800-FLOWERS", false)] // .NET [Phone] rejects alphabetic characters
         public void CreateAccountDto_Phone_WithVariousFormats_ValidatesCorrectly(string? phone, bool shouldBeValid)
         {
             // Arrange
@@ -243,7 +243,7 @@ namespace CRM.Tests.Dtos
 
         [Theory]
         [InlineData(null, true)] // Optional
-        [InlineData("", true)]
+        [InlineData("", false)] // Empty string fails [Phone] attribute in .NET
         [InlineData("+1-555-987-6543", true)]
         [InlineData("555-987-6543", true)]
         public void CreateAccountDto_MobilePhone_WithVariousFormats_ValidatesCorrectly(string? phone, bool shouldBeValid)
@@ -280,8 +280,8 @@ namespace CRM.Tests.Dtos
 
         [Theory]
         [InlineData(null, true)] // Optional
-        [InlineData("", true)]
-        [InlineData("+1-555-FAX-1234", true)]
+        [InlineData("", false)] // Empty string fails [Phone] attribute in .NET
+        [InlineData("+1-555-FAX-1234", false)] // Letters in fax number fail [Phone]
         [InlineData("555-321-4567", true)]
         public void CreateAccountDto_FaxNumber_WithVariousFormats_ValidatesCorrectly(string? fax, bool shouldBeValid)
         {
@@ -317,12 +317,12 @@ namespace CRM.Tests.Dtos
 
         [Theory]
         [InlineData(null, true)] // Optional
-        [InlineData("", true)]
+        [InlineData("", false)] // Empty string fails [Url] attribute in .NET
         [InlineData("not-a-url", false)]
         [InlineData("http://example.com", true)]
         [InlineData("https://www.example.com", true)]
         [InlineData("https://www.company.com/about", true)]
-        [InlineData("ftp://files.company.com", true)]
+        [InlineData("ftp://files.company.com", false)] // [Url] only allows http:// and https://
         public void CreateAccountDto_Website_WithVariousFormats_ValidatesCorrectly(string? url, bool shouldBeValid)
         {
             // Arrange

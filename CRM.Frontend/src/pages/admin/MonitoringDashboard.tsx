@@ -32,6 +32,18 @@ import {
   Tabs,
   Tab,
   Skeleton,
+  Switch,
+  FormControlLabel,
+  Stack,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  ButtonGroup,
 } from '@mui/material';
 import {
   OpenInNew as OpenInNewIcon,
@@ -57,6 +69,16 @@ import {
   Lock as LockIcon,
   Link as LinkIcon,
   SmartToy as AIIcon,
+  Security as SecurityIcon,
+  VpnKey as VpnKeyIcon,
+  Sync as SyncIcon,
+  PlayArrow as PlayArrowIcon,
+  Science as ScienceIcon,
+  ExpandMore as ExpandMoreIcon,
+  Block as BlockIcon,
+  CheckCircleOutline as PassIcon,
+  CancelOutlined as FailIcon,
+  SkipNext as SkipIcon,
 } from '@mui/icons-material';
 
 // Configuration for monitoring tools
@@ -251,6 +273,29 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+// ── CDT batch descriptors ─────────────────────────────────────────────────
+interface CdtCheck { label: string; method: string; path: string; body?: object; expectedStatus?: number; }
+interface CdtBatch { id: string; label: string; description: string; checks: CdtCheck[]; }
+interface CdtCheckResult { label: string; path: string; status: 'pass' | 'fail' | 'skip'; httpStatus?: number; durationMs?: number; error?: string; }
+interface CdtBatchResult { id: string; label: string; passed: number; failed: number; skipped: number; durationMs: number; results: CdtCheckResult[]; }
+
+const CDT_BATCHES: CdtBatch[] = [
+  { id: 'b01', label: 'Batch 01 — System & Users',          description: 'Core system health, users, departments',                  checks: [{label:'Health liveness',method:'GET',path:'/health/live'},{label:'List users',method:'GET',path:'/api/users'},{label:'List departments',method:'GET',path:'/api/departments'},{label:'System settings',method:'GET',path:'/api/settings/system'}] },
+  { id: 'b02', label: 'Batch 02 — Accounts & Contacts',     description: 'Account (customer) and contact listings',                 checks: [{label:'List accounts',method:'GET',path:'/api/accounts'},{label:'List contacts',method:'GET',path:'/api/contacts'},{label:'Account search',method:'GET',path:'/api/accounts?page=1&pageSize=5'}] },
+  { id: 'b03', label: 'Batch 03 — Leads & Products',        description: 'Sales leads and product catalog',                         checks: [{label:'List leads',method:'GET',path:'/api/leads'},{label:'List products',method:'GET',path:'/api/products'},{label:'Active products',method:'GET',path:'/api/products?isActive=true'}] },
+  { id: 'b04', label: 'Batch 04 — Opportunities & Orders',  description: 'Pipeline, quotes, orders, invoices',                     checks: [{label:'List opportunities',method:'GET',path:'/api/opportunities'},{label:'List quotes',method:'GET',path:'/api/quotes'},{label:'List orders',method:'GET',path:'/api/orders'},{label:'List invoices',method:'GET',path:'/api/invoices'}] },
+  { id: 'b05', label: 'Batch 05 — Interactions & Tasks',    description: 'Activity tracking, tasks, notes',                        checks: [{label:'List interactions',method:'GET',path:'/api/interactions'},{label:'List tasks',method:'GET',path:'/api/tasks'},{label:'List notes',method:'GET',path:'/api/notes'}] },
+  { id: 'b06', label: 'Batch 06 — Campaigns & Email',       description: 'Marketing campaigns and email templates',                 checks: [{label:'List campaigns',method:'GET',path:'/api/campaigns'},{label:'Email templates',method:'GET',path:'/api/emailtemplates'},{label:'Email sequences',method:'GET',path:'/api/emailsequences'}] },
+  { id: 'b07', label: 'Batch 07 — Service Desk (ITSM)',     description: 'Tickets, knowledge base, SLA policies',                  checks: [{label:'List service requests',method:'GET',path:'/api/servicerequests'},{label:'Knowledge articles',method:'GET',path:'/api/knowledgearticles'},{label:'SLA policies',method:'GET',path:'/api/slapolicies'}] },
+  { id: 'b08', label: 'Batch 08 — Commissions & Territories', description: 'Commission plans and territory management',             checks: [{label:'Commission plans',method:'GET',path:'/api/commissionplans'},{label:'Territories',method:'GET',path:'/api/territories'},{label:'Commission records',method:'GET',path:'/api/commissions'}] },
+  { id: 'b09', label: 'Batch 09 — Workflows & Escalations', description: 'Workflow definitions and escalation rules',               checks: [{label:'Workflow definitions',method:'GET',path:'/api/workflowdefinitions'},{label:'Escalation rules',method:'GET',path:'/api/escalationrules'},{label:'Workflow categories',method:'GET',path:'/api/servicerequestcategories'}] },
+  { id: 'b10', label: 'Batch 10 — AI Agents & Webhooks',   description: 'AI agent registry and webhook endpoints',                 checks: [{label:'List agents',method:'GET',path:'/api/agents'},{label:'Webhooks',method:'GET',path:'/api/webhooks'},{label:'Agent analytics',method:'GET',path:'/api/agents/analytics/usage'}] },
+  { id: 'b11', label: 'Batch 11 — Monitoring & Features',  description: 'Provider health and feature flags',                       checks: [{label:'Provider health',method:'GET',path:'/api/health/providers'},{label:'Feature flags',method:'GET',path:'/api/admin/features'},{label:'System controls',method:'GET',path:'/api/system-controls/rate-limiting'}] },
+  { id: 'b12', label: 'Batch 12 — Files & Tags',           description: 'Document storage and tagging system',                     checks: [{label:'Files list',method:'GET',path:'/api/files'},{label:'Tags list',method:'GET',path:'/api/tags'},{label:'Audit logs',method:'GET',path:'/api/audit-logs'}] },
+  { id: 'b13', label: 'Batch 13 — Subscriptions & Payments', description: 'Subscription and payment records',                      checks: [{label:'Subscriptions',method:'GET',path:'/api/subscriptions'},{label:'Payments',method:'GET',path:'/api/payments'},{label:'Contracts',method:'GET',path:'/api/contracts'}] },
+  { id: 'b14', label: 'Batch 14 — Rules & Routing',        description: 'Assignment rules, pricing rules, lead routing',            checks: [{label:'Assignment rules',method:'GET',path:'/api/assignmentrules'},{label:'Pricing rules',method:'GET',path:'/api/pricingrules'},{label:'Lead routing rules',method:'GET',path:'/api/leadrouting/rules'},{label:'Rule sets',method:'GET',path:'/api/rulesets'}] },
+];
+
 const MonitoringDashboard: React.FC = () => {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
@@ -264,6 +309,19 @@ const MonitoringDashboard: React.FC = () => {
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [tabValue, setTabValue] = useState(0);
   const [showEmbeddedView, setShowEmbeddedView] = useState<'none' | 'uptimeKuma' | 'portainer' | 'superset'>('none');
+
+  // ── Dev Tools & Controls state ───────────────────────────────────────────
+  const [rateLimitEnabled, setRateLimitEnabled] = useState<boolean | null>(null);
+  const [rateLimitLoading, setRateLimitLoading] = useState(false);
+  const [rateLimitLastChanged, setRateLimitLastChanged] = useState<string | null>(null);
+  const [jwtInfo, setJwtInfo] = useState<{fingerprint?: string; lastRotatedAt?: string | null; lastRotatedBy?: string | null} | null>(null);
+  const [jwtRotating, setJwtRotating] = useState(false);
+  const [jwtRotateResult, setJwtRotateResult] = useState<{success: boolean; message: string} | null>(null);
+  const [jwtConfirmOpen, setJwtConfirmOpen] = useState(false);
+  const [cdtRunning, setCdtRunning] = useState(false);
+  const [cdtResults, setCdtResults] = useState<CdtBatchResult[]>([]);
+  const [cdtProgress, setCdtProgress] = useState(0);
+  const [cdtExpanded, setCdtExpanded] = useState<string | false>(false);
 
   // Determine base URL for monitoring tools
   const getBaseUrl = () => {
@@ -488,9 +546,136 @@ const MonitoringDashboard: React.FC = () => {
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    if (newValue === 4) {
+      // Lazy-load controls status when tab is first opened
+      if (rateLimitEnabled === null) fetchRateLimitStatus();
+      if (!jwtInfo) fetchJwtInfo();
+    }
   };
 
-  // Count services by status
+  // ── Dev Tools helpers ────────────────────────────────────────────────────
+  const authHeader = () => ({ 'Authorization': `Bearer ${localStorage.getItem('accessToken') ?? ''}`, 'Content-Type': 'application/json' });
+
+  const fetchRateLimitStatus = async () => {
+    try {
+      const res = await fetch('/api/system-controls/rate-limiting', { headers: authHeader() });
+      if (res.ok) {
+        const data = await res.json();
+        setRateLimitEnabled(data.isEnabled ?? data.enabled ?? false);
+        setRateLimitLastChanged(data.lastChangedAt ?? null);
+      }
+    } catch { /* network error – leave null */ }
+  };
+
+  const toggleRateLimit = async (enable: boolean) => {
+    setRateLimitLoading(true);
+    try {
+      const action = enable ? 'enable' : 'disable';
+      const res = await fetch(`/api/system-controls/rate-limiting/${action}`, { method: 'POST', headers: authHeader() });
+      if (res.ok) {
+        const data = await res.json();
+        setRateLimitEnabled(data.isEnabled ?? enable);
+        setRateLimitLastChanged(data.changedAt ?? new Date().toISOString());
+      }
+    } finally {
+      setRateLimitLoading(false);
+    }
+  };
+
+  const fetchJwtInfo = async () => {
+    try {
+      const res = await fetch('/api/system-controls/jwt-rotation', { headers: authHeader() });
+      if (res.ok) { const d = await res.json(); setJwtInfo(d); }
+    } catch { /* ignore */ }
+  };
+
+  const rotateJwtSecret = async () => {
+    setJwtRotating(true);
+    setJwtRotateResult(null);
+    try {
+      const res = await fetch('/api/system-controls/jwt-rotation/rotate', { method: 'POST', headers: authHeader() });
+      const d = await res.json();
+      if (res.ok) {
+        setJwtRotateResult({ success: true, message: d.message ?? 'Secret rotated successfully. All existing tokens are now invalid.' });
+        setJwtInfo(prev => ({ ...prev, fingerprint: d.newFingerprint, lastRotatedAt: new Date().toISOString(), lastRotatedBy: 'admin' }));
+      } else {
+        setJwtRotateResult({ success: false, message: d.error ?? d.message ?? 'Rotation failed.' });
+      }
+    } catch (e: any) {
+      setJwtRotateResult({ success: false, message: e.message });
+    } finally {
+      setJwtRotating(false);
+    }
+  };
+
+  const runCdt = async () => {
+    setCdtRunning(true);
+    setCdtResults([]);
+    setCdtProgress(0);
+    const batchResults: CdtBatchResult[] = [];
+    for (let bi = 0; bi < CDT_BATCHES.length; bi++) {
+      const batch = CDT_BATCHES[bi];
+      const bStart = Date.now();
+      const checkResults: CdtCheckResult[] = [];
+      for (const check of batch.checks) {
+        const cStart = Date.now();
+        try {
+          const res = await fetch(check.path, { method: check.method, headers: authHeader(), ...(check.body ? { body: JSON.stringify(check.body) } : {}) });
+          const expected = check.expectedStatus ?? 200;
+          checkResults.push({ label: check.label, path: check.path, status: res.status === expected || res.status < 400 ? 'pass' : 'fail', httpStatus: res.status, durationMs: Date.now() - cStart });
+        } catch (e: any) {
+          checkResults.push({ label: check.label, path: check.path, status: 'fail', error: e.message, durationMs: Date.now() - cStart });
+        }
+      }
+      batchResults.push({ id: batch.id, label: batch.label, passed: checkResults.filter(r => r.status === 'pass').length, failed: checkResults.filter(r => r.status === 'fail').length, skipped: checkResults.filter(r => r.status === 'skip').length, durationMs: Date.now() - bStart, results: checkResults });
+      setCdtResults([...batchResults]);
+      setCdtProgress(Math.round(((bi + 1) / CDT_BATCHES.length) * 100));
+    }
+    setCdtRunning(false);
+  };
+
+  const downloadCdtReport = () => {
+    const totalPass = cdtResults.reduce((s, b) => s + b.passed, 0);
+    const totalFail = cdtResults.reduce((s, b) => s + b.failed, 0);
+    const totalChecks = totalPass + totalFail;
+    const scoreColor = totalFail === 0 ? '#22c55e' : totalFail < 3 ? '#f59e0b' : '#ef4444';
+    const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>CRM CDT Report</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f172a;color:#e2e8f0;padding:32px}
+h1{font-size:28px;font-weight:700;margin-bottom:4px}.subtitle{color:#94a3b8;margin-bottom:24px;font-size:14px}
+.summary{display:flex;gap:16px;margin-bottom:32px}.stat{background:#1e293b;border-radius:12px;padding:20px 28px;flex:1;text-align:center}
+.stat .val{font-size:36px;font-weight:800;color:${scoreColor}}.stat .lbl{color:#64748b;font-size:12px;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.batch{background:#1e293b;border-radius:12px;margin-bottom:12px;overflow:hidden}.bh{display:flex;align-items:center;padding:16px 20px;gap:12px;cursor:default}
+.bh .name{flex:1;font-weight:600;font-size:15px}.badges{display:flex;gap:8px;font-size:12px;font-weight:600}
+.badge{padding:4px 10px;border-radius:20px}.pass{background:#14532d;color:#86efac}.fail{background:#450a0a;color:#fca5a5}.skip{background:#1e3a5f;color:#93c5fd}
+.checks{padding:0 20px 16px}.check{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1e293b;font-size:13px}
+.check:last-child{border:none}.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot.pass{background:#22c55e}.dot.fail{background:#ef4444}.dot.skip{background:#3b82f6}
+.check .path{color:#64748b;font-size:11px;font-family:monospace;margin-left:auto}.status-badge{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:600}
+footer{text-align:center;color:#334155;margin-top:32px;font-size:12px}
+</style></head><body>
+<h1>🧪 Comprehensive CRUD Tests Report</h1>
+<p class="subtitle">Generated ${new Date().toLocaleString()} &nbsp;·&nbsp; CRM Solution CDT</p>
+<div class="summary">
+  <div class="stat"><div class="val">${totalPass}/${totalChecks}</div><div class="lbl">Checks Passed</div></div>
+  <div class="stat"><div class="val" style="color:${totalFail>0?'#ef4444':'#22c55e'}">${totalFail}</div><div class="lbl">Failures</div></div>
+  <div class="stat"><div class="val">${cdtResults.length}</div><div class="lbl">Batches Run</div></div>
+  <div class="stat"><div class="val">${Math.round(cdtResults.reduce((s,b)=>s+b.durationMs,0)/1000*10)/10}s</div><div class="lbl">Total Time</div></div>
+</div>
+${cdtResults.map(b => `<div class="batch">
+<div class="bh"><span class="name">${b.label}</span>
+<div class="badges"><span class="badge pass">✓ ${b.passed}</span>${b.failed>0?`<span class="badge fail">✗ ${b.failed}</span>`:''}<span style="color:#64748b;font-size:12px">${(b.durationMs/1000).toFixed(2)}s</span></div></div>
+<div class="checks">${b.results.map(r=>`<div class="check"><div class="dot ${r.status}"></div><span>${r.label}</span>${r.httpStatus?`<span class="status-badge ${r.status}">${r.httpStatus}</span>`:''}${r.error?`<span style="color:#f87171;font-size:11px">${r.error}</span>`:''}<span class="path">${r.path}</span></div>`).join('')}</div>
+</div>`).join('')}
+<footer>CRM Solution · Comprehensive CRUD Tests · ${new Date().toISOString()}</footer>
+</body></html>`;
+    const blob = new Blob([html], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `cdt-report-${new Date().toISOString().replace(/[:.]/g, '-')}.html`;
+    a.click();
+  };
+
+
   const healthySvc = services.filter(s => s.status === 'healthy').length;
   const totalSvc = services.length;
 
@@ -623,6 +808,7 @@ const MonitoringDashboard: React.FC = () => {
           <Tab label="External Resources" />
           <Tab label="Quick Links" />
           <Tab label="Embedded View" />
+          <Tab label="Dev Tools & Controls" icon={<SecurityIcon />} iconPosition="start" />
         </Tabs>
       </Box>
 
@@ -1279,6 +1465,285 @@ const MonitoringDashboard: React.FC = () => {
           </Paper>
         )}
       </TabPanel>
+
+      {/* ── Tab 4: Dev Tools & Controls ──────────────────────────────────── */}
+      <TabPanel value={tabValue} index={4}>
+
+        {/* ── Row 1: Rate Limiting + JWT Rotation ─────────────────────── */}
+        <Grid container spacing={3} sx={{ mb: 3 }}>
+
+          {/* Rate Limiting Card */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: '100%', border: `1px solid ${rateLimitEnabled === false ? '#ef4444' : '#22c55e'}33` }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                  <BlockIcon sx={{ color: rateLimitEnabled === false ? 'error.main' : 'success.main', fontSize: 28 }} />
+                  <Typography variant="h6" fontWeight={700}>Rate Limiting</Typography>
+                  {rateLimitEnabled === null ? (
+                    <Chip label="Loading…" size="small" />
+                  ) : (
+                    <Chip
+                      label={rateLimitEnabled ? 'ENABLED' : 'DISABLED'}
+                      color={rateLimitEnabled ? 'success' : 'error'}
+                      size="small"
+                      variant="filled"
+                    />
+                  )}
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Toggle API-level rate limiting at runtime without restarting the service.
+                  Disabling is useful for bulk data loads and CDT test runs.
+                </Typography>
+                {rateLimitLastChanged && (
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                    Last changed: {new Date(rateLimitLastChanged).toLocaleString()}
+                  </Typography>
+                )}
+                <Divider sx={{ my: 1.5 }} />
+                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={rateLimitEnabled ?? false}
+                        onChange={(e) => toggleRateLimit(e.target.checked)}
+                        disabled={rateLimitLoading || rateLimitEnabled === null}
+                        color="success"
+                      />
+                    }
+                    label={rateLimitEnabled ? 'Rate limiting ON' : 'Rate limiting OFF'}
+                  />
+                  {rateLimitLoading && <CircularProgress size={18} />}
+                  <Box sx={{ flex: 1 }} />
+                  <Tooltip title="Refresh status from server">
+                    <IconButton size="small" onClick={fetchRateLimitStatus}>
+                      <SyncIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+              </CardContent>
+              <CardActions sx={{ px: 2, pb: 2 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="error"
+                  startIcon={<BlockIcon />}
+                  disabled={rateLimitLoading || rateLimitEnabled === false}
+                  onClick={() => toggleRateLimit(false)}
+                >
+                  Disable for Testing
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="success"
+                  disabled={rateLimitLoading || rateLimitEnabled === true}
+                  onClick={() => toggleRateLimit(true)}
+                >
+                  Re-enable
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
+
+          {/* JWT / Revolving Secrets Card */}
+          <Grid item xs={12} md={6}>
+            <Card sx={{ height: '100%', border: '1px solid #6366f133' }}>
+              <CardContent>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                  <VpnKeyIcon sx={{ color: 'primary.main', fontSize: 28 }} />
+                  <Typography variant="h6" fontWeight={700}>Revolving JWT Secrets</Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Rotate the signing secret used for all JWT access tokens.  
+                  <strong> This immediately invalidates every active session.</strong>  
+                  Use only when a security incident is suspected.
+                </Typography>
+
+                {jwtInfo ? (
+                  <Box sx={{ background: 'action.hover', borderRadius: 1, px: 1.5, py: 1, fontFamily: 'monospace', fontSize: 13 }}>
+                    {jwtInfo.fingerprint && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary">Current fingerprint:</Typography>
+                        <Typography variant="caption" fontFamily="monospace">{jwtInfo.fingerprint}</Typography>
+                      </Box>
+                    )}
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="caption" color="text.secondary">Last rotated:</Typography>
+                      <Typography variant="caption">{jwtInfo.lastRotatedAt ? new Date(jwtInfo.lastRotatedAt).toLocaleString() : 'Never'}</Typography>
+                    </Box>
+                    {jwtInfo.lastRotatedBy && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="caption" color="text.secondary">Rotated by:</Typography>
+                        <Typography variant="caption">{jwtInfo.lastRotatedBy}</Typography>
+                      </Box>
+                    )}
+                  </Box>
+                ) : (
+                  <Skeleton variant="rounded" height={60} />
+                )}
+
+                {jwtRotateResult && (
+                  <Alert severity={jwtRotateResult.success ? 'success' : 'error'} sx={{ mt: 2, py: 0.5 }}>
+                    {jwtRotateResult.message}
+                  </Alert>
+                )}
+              </CardContent>
+              <CardActions sx={{ px: 2, pb: 2 }}>
+                <Tooltip title="All live sessions will be terminated">
+                  <span>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="warning"
+                      startIcon={jwtRotating ? <CircularProgress size={14} color="inherit" /> : <SyncIcon />}
+                      disabled={jwtRotating}
+                      onClick={() => setJwtConfirmOpen(true)}
+                    >
+                      {jwtRotating ? 'Rotating…' : 'Rotate JWT Secret'}
+                    </Button>
+                  </span>
+                </Tooltip>
+                <Button size="small" variant="text" onClick={fetchJwtInfo}>Refresh Info</Button>
+              </CardActions>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* ── Row 2: Comprehensive CRUD Tests ──────────────────────────── */}
+        <Card sx={{ border: '1px solid #6366f133' }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+              <ScienceIcon sx={{ color: 'secondary.main', fontSize: 28 }} />
+              <Typography variant="h6" fontWeight={700}>Comprehensive CRUD Tests (CDT)</Typography>
+              {cdtResults.length > 0 && (
+                <Chip
+                  label={`${cdtResults.reduce((s, b) => s + b.passed, 0)}/${cdtResults.reduce((s, b) => s + b.passed + b.failed, 0)} passed`}
+                  color={cdtResults.some(b => b.failed > 0) ? 'warning' : 'success'}
+                  size="small"
+                />
+              )}
+            </Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Runs {CDT_BATCHES.length} endpoint batches covering all CRM modules.
+              Results include per-check HTTP status, latency, and a downloadable HTML report.
+            </Typography>
+
+            {/* Progress bar */}
+            {(cdtRunning || cdtProgress > 0) && (
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                  <Typography variant="caption">{cdtRunning ? `Running batch ${cdtResults.length}/${CDT_BATCHES.length}…` : 'Complete'}</Typography>
+                  <Typography variant="caption">{cdtProgress}%</Typography>
+                </Box>
+                <LinearProgress variant="determinate" value={cdtProgress} color={cdtRunning ? 'secondary' : 'success'} />
+              </Box>
+            )}
+
+            {/* Batch accordion results */}
+            {cdtResults.map((batch) => (
+              <Accordion
+                key={batch.id}
+                expanded={cdtExpanded === batch.id}
+                onChange={(_, exp) => setCdtExpanded(exp ? batch.id : false)}
+                sx={{ background: 'transparent', boxShadow: 'none', border: '1px solid', borderColor: batch.failed > 0 ? 'error.main' : 'success.main', borderRadius: '8px !important', mb: 1, '&:before': { display: 'none' } }}
+              >
+                <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: 44, '& .MuiAccordionSummary-content': { my: 0.5, alignItems: 'center', gap: 1 } }}>
+                  {batch.failed > 0 ? <FailIcon color="error" fontSize="small" /> : <PassIcon color="success" fontSize="small" />}
+                  <Typography variant="body2" fontWeight={600} sx={{ flex: 1 }}>{batch.label}</Typography>
+                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mr: 1 }}>
+                    <Chip label={`✓ ${batch.passed}`} size="small" color="success" variant="outlined" sx={{ height: 20, fontSize: 11 }} />
+                    {batch.failed > 0 && <Chip label={`✗ ${batch.failed}`} size="small" color="error" variant="outlined" sx={{ height: 20, fontSize: 11 }} />}
+                    <Typography variant="caption" color="text.secondary">{(batch.durationMs / 1000).toFixed(2)}s</Typography>
+                  </Stack>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0 }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 700, fontSize: 11 }}>Check</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: 11 }}>Endpoint</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: 11 }}>HTTP</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: 11 }}>ms</TableCell>
+                        <TableCell sx={{ fontWeight: 700, fontSize: 11 }}>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {batch.results.map((r, i) => (
+                        <TableRow key={i} sx={{ background: r.status === 'fail' ? '#ef44440a' : undefined }}>
+                          <TableCell sx={{ fontSize: 12 }}>{r.label}</TableCell>
+                          <TableCell sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary' }}>{r.path}</TableCell>
+                          <TableCell sx={{ fontSize: 12 }}>{r.httpStatus ?? '—'}</TableCell>
+                          <TableCell sx={{ fontSize: 12 }}>{r.durationMs}</TableCell>
+                          <TableCell>
+                            {r.status === 'pass'
+                              ? <Chip label="PASS" size="small" color="success" sx={{ height: 18, fontSize: 10 }} />
+                              : r.status === 'skip'
+                                ? <Chip label="SKIP" size="small" color="default" sx={{ height: 18, fontSize: 10 }} />
+                                : <Tooltip title={r.error ?? ''}><Chip label="FAIL" size="small" color="error" sx={{ height: 18, fontSize: 10 }} /></Tooltip>
+                            }
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </AccordionDetails>
+              </Accordion>
+            ))}
+          </CardContent>
+          <CardActions sx={{ px: 2, pb: 2, gap: 1 }}>
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={cdtRunning ? <CircularProgress size={16} color="inherit" /> : <PlayArrowIcon />}
+              disabled={cdtRunning}
+              onClick={runCdt}
+            >
+              {cdtRunning ? 'Running CDT…' : 'Run All Batches'}
+            </Button>
+            {cdtResults.length > 0 && (
+              <Button variant="outlined" onClick={downloadCdtReport}>
+                Download HTML Report
+              </Button>
+            )}
+            {cdtResults.length > 0 && (
+              <Button variant="text" color="inherit" onClick={() => { setCdtResults([]); setCdtProgress(0); }}>
+                Clear
+              </Button>
+            )}
+            {rateLimitEnabled !== false && (
+              <Alert severity="warning" sx={{ py: 0, px: 1.5, fontSize: 12, flex: 1 }}>
+                Rate limiting is <strong>ON</strong> — disable it above for accurate CDT results.
+              </Alert>
+            )}
+          </CardActions>
+        </Card>
+
+      </TabPanel>
+
+      {/* JWT Rotation Confirm Dialog */}
+      <Dialog open={jwtConfirmOpen} onClose={() => setJwtConfirmOpen(false)}>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <VpnKeyIcon color="warning" /> Rotate JWT Secret
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This will immediately invalidate <strong>all active sessions</strong> including yours.
+            Every logged-in user will be forced to re-authenticate.
+            <br /><br />
+            Only proceed if a security incident has been confirmed or you are performing a scheduled rotation.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setJwtConfirmOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="warning"
+            onClick={() => { setJwtConfirmOpen(false); rotateJwtSecret(); }}
+          >
+            Confirm Rotation
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Setup Instructions */}
       <Box sx={{ mt: 4 }}>
