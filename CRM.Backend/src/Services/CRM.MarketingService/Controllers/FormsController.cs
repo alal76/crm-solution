@@ -760,7 +760,7 @@ public class FormsController : ControllerBase
             var submission = new FormSubmission
             {
                 FormDefinitionId = form.Id,
-                SubmissionNumber = $"SUB-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}",
+                SubmissionNumber = $"SUB-{DateTime.UtcNow:yyyyMMddHHmmss}-{Random.Shared.Next(1000, 9999)}", // NOSONAR - S2245: non-security RNG for form submission number suffix
                 SubmittedAt = DateTime.UtcNow,
                 Status = SubmissionStatus.New,
                 FormData = System.Text.Json.JsonSerializer.Serialize(formData),

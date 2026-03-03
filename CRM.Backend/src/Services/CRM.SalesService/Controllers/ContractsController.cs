@@ -248,7 +248,7 @@ public class ContractsController : ControllerBase
         {
             var contract = new Contract
             {
-                ContractNumber = $"CON-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}",
+                ContractNumber = $"CON-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}", // NOSONAR - S2245: non-security RNG for contract number uniquification suffix
                 Name = request.Name,
                 Description = request.Description,
                 Status = Enum.TryParse<ContractStatus>(request.Status, true, out var status) ? status : ContractStatus.Draft,
@@ -530,7 +530,7 @@ public class ContractsController : ControllerBase
             // Create new contract as renewal
             var newContract = new Contract
             {
-                ContractNumber = $"CON-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}",
+                ContractNumber = $"CON-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}", // NOSONAR - S2245: non-security RNG for renewal contract number suffix
                 Name = $"{existingContract.Name} - Renewal",
                 Description = existingContract.Description,
                 Status = ContractStatus.Draft,

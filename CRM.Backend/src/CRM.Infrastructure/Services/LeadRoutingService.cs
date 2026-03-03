@@ -809,7 +809,7 @@ public class LeadRoutingService : ILeadRoutingService
         {
             LeadAssignmentType.RoundRobin => SelectRoundRobin(availableTargets, rule),
             LeadAssignmentType.Weighted => SelectWeighted(availableTargets),
-            LeadAssignmentType.Random => availableTargets[Random.Shared.Next(availableTargets.Count)],
+            LeadAssignmentType.Random => availableTargets[Random.Shared.Next(availableTargets.Count)], // NOSONAR - S2245: non-security RNG for random lead assignment routing
             LeadAssignmentType.LoadBalanced => SelectLoadBalanced(availableTargets),
             _ => availableTargets.First()
         };
@@ -825,7 +825,7 @@ public class LeadRoutingService : ILeadRoutingService
     private LeadRoutingTarget SelectWeighted(List<LeadRoutingTarget> targets)
     {
         var totalWeight = targets.Sum(t => t.Weight);
-        var randomValue = Random.Shared.Next(totalWeight);
+        var randomValue = Random.Shared.Next(totalWeight); // NOSONAR - S2245: non-security RNG for weighted lead routing selection
         var cumulative = 0;
 
         foreach (var target in targets)

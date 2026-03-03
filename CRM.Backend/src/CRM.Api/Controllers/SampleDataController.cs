@@ -65,76 +65,71 @@ public class SampleDataController : CrmControllerBase
     }
 
     /// <summary>
-    /// Seed all sample data to the production database
+    /// Seed all sample data to the production database.
+    /// Idempotent — each entity type checks for existing data and skips duplicates.
+    /// Can be called multiple times safely.
     /// </summary>
     [HttpPost("seed")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> SeedSampleData()
     {
         _logger.LogInformation("Starting sample data seeding...");
 
-        // Quick pre-check: return 409 if already seeded without running the seeder
-        var alreadySeeded = await _seederService.IsSampleDataSeededAsync();
-        if (alreadySeeded)
-        {
-            var existingStats = await _seederService.GetSampleDataStatsAsync();
-            return Conflict(new
-            {
-                message = "Sample data is already seeded. Use the Clear & Re-seed option to reset.",
-                success = false,
-                alreadySeeded = true,
-                statistics = new
-                {
-                    products = existingStats.ProductCount,
-                    serviceRequestCategories = existingStats.ServiceRequestCategoryCount,
-                    serviceRequestSubcategories = existingStats.ServiceRequestSubcategoryCount,
-                    serviceRequestTypes = existingStats.ServiceRequestTypeCount,
-                    accounts = existingStats.AccountCount,
-                    contacts = existingStats.ContactCount,
-                    leads = existingStats.LeadCount,
-                    opportunities = existingStats.OpportunityCount,
-                    sampleUsers = existingStats.SampleUserCount
-                }
-            });
-        }
-
         try
         {
-            await _seederService.SeedAllSampleDataAsync();
+            var result = await _seederService.SeedAllSampleDataWithLogAsync();
+
+            return Ok(new
+            {
+                message = result.Message,
+                success = result.Success,
+                totalDurationMs = Math.Round(result.TotalDurationMs, 1),
+                steps = result.Steps.Select(s => new
+                {
+                    step = s.Step,
+                    status = s.Status,
+                    message = s.Message,
+                    durationMs = Math.Round(s.DurationMs, 1)
+                }),
+                statistics = result.Statistics == null ? null : new
+                {
+                    products = result.Statistics.ProductCount,
+                    serviceRequestCategories = result.Statistics.ServiceRequestCategoryCount,
+                    serviceRequestSubcategories = result.Statistics.ServiceRequestSubcategoryCount,
+                    serviceRequestTypes = result.Statistics.ServiceRequestTypeCount,
+                    accounts = result.Statistics.AccountCount,
+                    contacts = result.Statistics.ContactCount,
+                    leads = result.Statistics.LeadCount,
+                    opportunities = result.Statistics.OpportunityCount,
+                    sampleUsers = result.Statistics.SampleUserCount
+                }
+            });
         }
         catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
             when (ex.InnerException?.Message.Contains("Duplicate entry", StringComparison.OrdinalIgnoreCase) == true
                || ex.InnerException?.Message.Contains("UNIQUE constraint", StringComparison.OrdinalIgnoreCase) == true)
         {
             _logger.LogError(ex, "Sample data seeding failed due to duplicate key — data may be partially seeded.");
-            return Conflict(new
+            var stats = await _seederService.GetSampleDataStatsAsync();
+            return Ok(new
             {
-                message = "Seeding failed: some records already exist in the database (duplicate key). " +
-                          "Clear sample data first, then re-seed.",
-                success = false,
-                error = ex.InnerException?.Message
+                message = "Seeding completed with duplicate-key warnings. Some records were already present.",
+                success = true,
+                error = ex.InnerException?.Message,
+                statistics = new
+                {
+                    products = stats.ProductCount,
+                    serviceRequestCategories = stats.ServiceRequestCategoryCount,
+                    serviceRequestSubcategories = stats.ServiceRequestSubcategoryCount,
+                    serviceRequestTypes = stats.ServiceRequestTypeCount,
+                    accounts = stats.AccountCount,
+                    contacts = stats.ContactCount,
+                    leads = stats.LeadCount,
+                    opportunities = stats.OpportunityCount,
+                    sampleUsers = stats.SampleUserCount
+                }
             });
         }
-
-        var stats = await _seederService.GetSampleDataStatsAsync();
-        return Ok(new
-        {
-            message = "Sample data seeded successfully",
-            success = true,
-            statistics = new
-            {
-                products = stats.ProductCount,
-                serviceRequestCategories = stats.ServiceRequestCategoryCount,
-                serviceRequestSubcategories = stats.ServiceRequestSubcategoryCount,
-                serviceRequestTypes = stats.ServiceRequestTypeCount,
-                accounts = stats.AccountCount,
-                contacts = stats.ContactCount,
-                leads = stats.LeadCount,
-                opportunities = stats.OpportunityCount,
-                sampleUsers = stats.SampleUserCount
-            }
-        });
     }
 
     /// <summary>

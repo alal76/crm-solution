@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 81,
+  "patch": 82,
   "lastUpdate": "2026-03-04",
-  "description": "feat(cdt): v0.614.81 - Add pytest-html styled test report: custom CSS with gradient header, Module/Category columns, colour-coded badges; conftest.py centralises sys.path, auto-tags markers, injects CDT version metadata; pytest.ini with strict markers; 496 tests passing",
+  "description": "feat(seed): v0.614.82 - Make sample data seeding idempotent with structured logging: remove 409 guard from SampleDataController, add SeedAllSampleDataWithLogAsync returning per-step results (seeded/skipped/failed with timing); CDT day2.html renders rich step-by-step log panel with summary badges, table, and database statistics",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

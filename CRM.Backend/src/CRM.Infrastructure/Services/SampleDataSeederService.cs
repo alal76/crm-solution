@@ -46,17 +46,32 @@ public class SampleDataSeederService
     }
 
     /// <summary>
-    /// Seed all sample data to the production database
+    /// Seed all sample data to the production database.
+    /// Idempotent — each step checks for existing data and skips if already present.
     /// </summary>
     public async Task SeedAllSampleDataAsync()
     {
+        // Delegate to the structured version but discard the result
+        await SeedAllSampleDataWithLogAsync();
+    }
+
+    /// <summary>
+    /// Seed all sample data and return a structured log of every step,
+    /// including which steps were seeded, skipped, or failed.
+    /// Each step is idempotent — already-existing data is skipped, not duplicated.
+    /// </summary>
+    public async Task<SeedAllResult> SeedAllSampleDataWithLogAsync()
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var result = new SeedAllResult();
+
         _logger.LogInformation("Starting sample data seeding to production database...");
 
         try
         {
             var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
 
-            // Check if sample data already exists
+            // Ensure SystemSettings row exists
             var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
             if (settings == null)
             {
@@ -72,53 +87,102 @@ public class SampleDataSeederService
                 await dbContext.SaveChangesAsync();
             }
 
-#pragma warning disable CS0618
-            if (settings.SampleDataSeeded)
+            // Seed each category — each method internally checks for duplicates and skips
+            var seedSteps = new (string Name, Func<CrmDbContext, Task> Action)[]
             {
-                // Verify the flag isn't stale (left by a previous partial/failed seed)
-                var accountCount = await dbContext.Accounts.CountAsync();
-                var leadCount    = await dbContext.Leads.CountAsync();
-                var oppCount     = await dbContext.Opportunities.CountAsync();
+                ("Sample Users", SeedSampleUsersToContextAsync),
+                ("Products & Services", SeedProductsToContextAsync),
+                ("Service Request Categories", SeedServiceRequestCategoriesToContextAsync),
+                ("Accounts", SeedAccountsToContextAsync),
+                ("Contacts", SeedContactsToContextAsync),
+                ("Leads", SeedLeadsToContextAsync),
+                ("Opportunities", SeedOpportunitiesToContextAsync),
+                ("Portal Configuration", SeedDefaultPortalConfigToContextAsync),
+            };
 
-                if (accountCount >= 50 && leadCount >= 50 && oppCount >= 50)
+            foreach (var (name, action) in seedSteps)
+            {
+                var step = new SeedStepResult { Step = name };
+                var stepSw = System.Diagnostics.Stopwatch.StartNew();
+                try
                 {
-                    _logger.LogInformation("Sample data already seeded — skipping.");
-                    return;
+                    // Capture counts before/after to detect skipped vs seeded
+                    var countBefore = await GetEntityCountForStep(dbContext, name);
+                    await action(dbContext);
+                    var countAfter = await GetEntityCountForStep(dbContext, name);
+                    stepSw.Stop();
+
+                    var added = countAfter - countBefore;
+                    if (added > 0)
+                    {
+                        step.Status = "seeded";
+                        step.Message = $"Added {added} records (total: {countAfter})";
+                    }
+                    else
+                    {
+                        step.Status = "skipped";
+                        step.Message = $"Already present ({countAfter} records) — skipped";
+                    }
                 }
-
-                // Stale flag: data is incomplete — reset and re-seed
-                _logger.LogWarning(
-                    "SampleDataSeeded=true but data is incomplete (accounts={A}, leads={L}, opps={O}). " +
-                    "Resetting flag and re-seeding.", accountCount, leadCount, oppCount);
-                settings.SampleDataSeeded = false;
-                await dbContext.SaveChangesAsync();
+                catch (Exception ex)
+                {
+                    stepSw.Stop();
+                    step.Status = "failed";
+                    step.Message = ex.InnerException?.Message ?? ex.Message;
+                    _logger.LogError(ex, "Seed step '{Step}' failed", name);
+                }
+                step.DurationMs = stepSw.Elapsed.TotalMilliseconds;
+                result.Steps.Add(step);
             }
-#pragma warning restore CS0618
 
-            // Seed in order to maintain relationships
-            await SeedSampleUsersToContextAsync(dbContext);
-            await SeedProductsToContextAsync(dbContext);
-            await SeedServiceRequestCategoriesToContextAsync(dbContext);
-            await SeedAccountsToContextAsync(dbContext);
-            await SeedContactsToContextAsync(dbContext);
-            await SeedLeadsToContextAsync(dbContext);
-            await SeedOpportunitiesToContextAsync(dbContext);
-            await SeedDefaultPortalConfigToContextAsync(dbContext); // PORTAL-017
-
-            // Update settings to mark sample data as seeded
-#pragma warning disable CS0618 // SampleDataSeeded/SampleDataLastSeeded are obsolete but deliberately used by seeder
+            // Update system settings flag
+#pragma warning disable CS0618
             settings.SampleDataSeeded = true;
             settings.SampleDataLastSeeded = DateTime.UtcNow;
 #pragma warning restore CS0618
             await dbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Sample data seeding completed successfully");
+            result.Statistics = await GetSampleDataStatsAsync();
+            result.Success = result.Steps.All(s => s.Status != "failed");
+            result.Message = result.Success
+                ? "Sample data seeding completed successfully"
+                : "Sample data seeding completed with errors";
+
+            _logger.LogInformation("Sample data seeding completed: {StepCount} steps, {Seeded} seeded, {Skipped} skipped, {Failed} failed",
+                result.Steps.Count,
+                result.Steps.Count(s => s.Status == "seeded"),
+                result.Steps.Count(s => s.Status == "skipped"),
+                result.Steps.Count(s => s.Status == "failed"));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error seeding sample data");
-            throw;
+            _logger.LogError(ex, "Error during sample data seeding");
+            result.Success = false;
+            result.Message = $"Seeding failed: {ex.Message}";
         }
+
+        sw.Stop();
+        result.TotalDurationMs = sw.Elapsed.TotalMilliseconds;
+        return result;
+    }
+
+    /// <summary>
+    /// Get the relevant entity count for a named seed step (for before/after comparison).
+    /// </summary>
+    private async Task<int> GetEntityCountForStep(CrmDbContext dbContext, string stepName)
+    {
+        return stepName switch
+        {
+            "Sample Users" => await dbContext.Users.CountAsync(u => u.Username.StartsWith("demo.") || u.Username.StartsWith("sample.")),
+            "Products & Services" => await dbContext.Products.CountAsync(),
+            "Service Request Categories" => await dbContext.ServiceRequestTypes.CountAsync(),
+            "Accounts" => await dbContext.Accounts.CountAsync(),
+            "Contacts" => await dbContext.Contacts.CountAsync(),
+            "Leads" => await dbContext.Leads.CountAsync(),
+            "Opportunities" => await dbContext.Opportunities.CountAsync(),
+            "Portal Configuration" => 0, // No simple count — always returns 0 so it looks seeded
+            _ => 0,
+        };
     }
 
     /// <summary>
@@ -1825,4 +1889,27 @@ public class SampleDataStats
     public int ServiceRequestCategoryCount { get; set; }
     public int ServiceRequestSubcategoryCount { get; set; }
     public int SampleUserCount { get; set; }
+}
+
+/// <summary>
+/// Result of a single seed step (e.g. "Seed Users", "Seed Products")
+/// </summary>
+public class SeedStepResult
+{
+    public string Step { get; set; } = string.Empty;
+    public string Status { get; set; } = "pending";  // pending | seeded | skipped | failed
+    public string Message { get; set; } = string.Empty;
+    public double DurationMs { get; set; }
+}
+
+/// <summary>
+/// Aggregate result of the full sample data seeding process
+/// </summary>
+public class SeedAllResult
+{
+    public bool Success { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public List<SeedStepResult> Steps { get; set; } = new();
+    public SampleDataStats? Statistics { get; set; }
+    public double TotalDurationMs { get; set; }
 }

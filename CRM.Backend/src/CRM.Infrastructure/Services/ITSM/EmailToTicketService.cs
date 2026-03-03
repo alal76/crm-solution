@@ -114,7 +114,7 @@ public class EmailToTicketService : IEmailToTicketService
 
             // Create incident (simulated - would use IncidentService in production)
             var incidentNumber = $"INC-{DateTime.UtcNow:yyyyMMddHHmmss}";
-            var incidentId = Random.Shared.Next(10000, 99999);
+            var incidentId = Random.Shared.Next(10000, 99999); // NOSONAR - S2245: non-security RNG for simulated incident ID in email-to-ticket
 
             _logger.LogInformation("Created incident {IncidentNumber} from email", incidentNumber);
 
@@ -156,7 +156,7 @@ public class EmailToTicketService : IEmailToTicketService
             }
 
             // Add comment to incident (simulated)
-            var commentId = Random.Shared.Next(1000, 9999);
+            var commentId = Random.Shared.Next(1000, 9999); // NOSONAR - S2245: non-security RNG for simulated comment ID
 
             _logger.LogInformation("Added comment {CommentId} to incident {IncidentId}", commentId, incidentId);
 

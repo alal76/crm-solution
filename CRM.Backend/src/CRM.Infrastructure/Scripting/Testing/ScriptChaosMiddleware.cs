@@ -71,9 +71,9 @@ public class ScriptChaosMiddleware : ICompiledScriptEngine
 
     private async Task InjectChaosDelay(CancellationToken cancellationToken)
     {
-        if (_options.LatencyInjectionRate > 0 && Random.Shared.NextDouble() < _options.LatencyInjectionRate)
+        if (_options.LatencyInjectionRate > 0 && Random.Shared.NextDouble() < _options.LatencyInjectionRate) // NOSONAR - S2245: non-security RNG for chaos latency injection simulation
         {
-            var delayMs = Random.Shared.Next(_options.MinLatencyMs, _options.MaxLatencyMs);
+            var delayMs = Random.Shared.Next(_options.MinLatencyMs, _options.MaxLatencyMs); // NOSONAR - S2245: non-security RNG for chaos delay range
             _logger.LogDebug("[CHAOS] Injecting {Delay}ms latency", delayMs);
             await Task.Delay(delayMs, cancellationToken);
         }
@@ -81,7 +81,7 @@ public class ScriptChaosMiddleware : ICompiledScriptEngine
 
     private bool ShouldFail()
     {
-        var shouldFail = _options.FailureRate > 0 && Random.Shared.NextDouble() < _options.FailureRate;
+        var shouldFail = _options.FailureRate > 0 && Random.Shared.NextDouble() < _options.FailureRate; // NOSONAR - S2245: non-security RNG for chaos failure rate simulation
         if (shouldFail) _logger.LogWarning("[CHAOS] Injecting random failure");
         return shouldFail;
     }

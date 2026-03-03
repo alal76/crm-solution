@@ -42,7 +42,7 @@ public class WebhookRetryPolicy : IWebhookRetryPolicy
 
         // Exponential backoff: 30s, 60s, 120s, 240s, 480s (capped at 1hr)
         var delay = BaseDelaySeconds * Math.Pow(BackoffMultiplier, attemptNumber - 1);
-        var jitter = Random.Shared.Next(0, (int)(delay * 0.1)); // 10% jitter
+        var jitter = Random.Shared.Next(0, (int)(delay * 0.1)); // 10% jitter // NOSONAR - S2245: non-security RNG for exponential backoff jitter
         var totalSeconds = Math.Min(delay + jitter, MaxDelaySeconds);
 
         return TimeSpan.FromSeconds(totalSeconds);

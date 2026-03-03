@@ -897,7 +897,8 @@ public class BuiltInSearchProvider : ISearchPort
                     System.Text.RegularExpressions.Regex.Escape(query),
                     m => $"<mark>{m.Value}</mark>",
                     System.Text.RegularExpressions.RegexOptions.IgnoreCase
-                    | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+                    | System.Text.RegularExpressions.RegexOptions.CultureInvariant,
+                    TimeSpan.FromSeconds(1));
                 highlights[$"field_{i}"] = highlightedText;
             }
         }

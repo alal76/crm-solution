@@ -84,7 +84,7 @@ public class Contract : BaseEntity
     #region Identification
 
     /// <summary>Contract number (auto-generated)</summary>
-    public string ContractNumber { get; set; } = $"CON-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}";
+    public string ContractNumber { get; set; } = $"CON-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}"; // NOSONAR - S2245: non-security RNG for default contract number suffix
 
     /// <summary>Contract name/title</summary>
     public string Name { get; set; } = string.Empty;

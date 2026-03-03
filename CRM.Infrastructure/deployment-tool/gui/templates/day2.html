@@ -1051,15 +1051,85 @@ async function postInstallAction(action, label) {
     try {
         const r = await fetch(`/api/day2/postinstall/${action}${_profileQS()}`, { method: 'POST', headers: {'Content-Type': 'application/json'} });
         const d = await r.json();
-        if (d.success) {
-            resultEl.innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle"></i> ${label} completed successfully.${d.data?.message ? ' ' + d.data.message : ''}</div>`;
+        const apiData = d.data || {};
+
+        // If the response contains step-by-step log (seed endpoints), render rich log
+        if (apiData.steps && Array.isArray(apiData.steps)) {
+            resultEl.innerHTML = _renderSeedLog(label, d.success, apiData);
+        } else if (d.success) {
+            resultEl.innerHTML = `<div class="alert alert-success"><i class="bi bi-check-circle"></i> ${label} completed successfully.${apiData.message ? ' ' + apiData.message : ''}</div>`;
         } else {
-            resultEl.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> ${label} failed (HTTP ${d.status_code}).${d.data?.error ? ' ' + d.data.error : ''}<pre class="mt-2 mb-0 small">${JSON.stringify(d.data, null, 2)}</pre></div>`;
+            resultEl.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> ${label} failed (HTTP ${d.status_code}).${apiData.error ? ' ' + apiData.error : ''}<pre class="mt-2 mb-0 small">${JSON.stringify(apiData, null, 2)}</pre></div>`;
         }
         loadPostInstallStatus();
     } catch(e) {
         resultEl.innerHTML = `<div class="alert alert-danger"><i class="bi bi-x-circle"></i> Request failed: ${e.message}</div>`;
     }
+}
+
+/**
+ * Render a rich step-by-step log panel for seed operations.
+ * @param {string} label - Operation label
+ * @param {boolean} success - Overall success
+ * @param {object} data - API response data with steps[], statistics, totalDurationMs
+ */
+function _renderSeedLog(label, success, data) {
+    const steps = data.steps || [];
+    const stats = data.statistics || {};
+    const totalMs = data.totalDurationMs ? (data.totalDurationMs / 1000).toFixed(1) : '?';
+    const seeded  = steps.filter(s => s.status === 'seeded').length;
+    const skipped = steps.filter(s => s.status === 'skipped').length;
+    const failed  = steps.filter(s => s.status === 'failed').length;
+
+    const alertClass = failed > 0 ? 'warning' : 'success';
+    const icon = failed > 0 ? 'exclamation-triangle' : 'check-circle';
+
+    // Header
+    let html = `<div class="card border-${alertClass} shadow-sm">`;
+    html += `<div class="card-header bg-${alertClass} bg-opacity-10 d-flex justify-content-between align-items-center">`;
+    html += `<span><i class="bi bi-${icon} me-2"></i><strong>${label}</strong> — ${data.message || 'Done'}</span>`;
+    html += `<span class="badge bg-secondary">${totalMs}s</span>`;
+    html += `</div>`;
+
+    // Summary badges
+    html += `<div class="card-body pb-2">`;
+    html += `<div class="d-flex gap-2 mb-3 flex-wrap">`;
+    if (seeded > 0)  html += `<span class="badge bg-success"><i class="bi bi-plus-circle me-1"></i>${seeded} seeded</span>`;
+    if (skipped > 0) html += `<span class="badge bg-info text-dark"><i class="bi bi-skip-forward me-1"></i>${skipped} skipped</span>`;
+    if (failed > 0)  html += `<span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>${failed} failed</span>`;
+    html += `<span class="badge bg-light text-dark border">${steps.length} steps total</span>`;
+    html += `</div>`;
+
+    // Step-by-step table
+    html += `<table class="table table-sm table-bordered mb-3" style="font-size:0.88em">`;
+    html += `<thead class="table-light"><tr><th style="width:30px">#</th><th>Step</th><th style="width:80px">Status</th><th>Details</th><th style="width:70px">Time</th></tr></thead><tbody>`;
+    steps.forEach((s, i) => {
+        const statusBadge = {
+            seeded:  '<span class="badge bg-success">Seeded</span>',
+            skipped: '<span class="badge bg-info text-dark">Skipped</span>',
+            failed:  '<span class="badge bg-danger">Failed</span>',
+            pending: '<span class="badge bg-secondary">Pending</span>',
+        }[s.status] || `<span class="badge bg-secondary">${s.status}</span>`;
+        const rowClass = s.status === 'failed' ? ' class="table-danger"' : s.status === 'skipped' ? ' class="table-light"' : '';
+        const dur = s.durationMs ? (s.durationMs / 1000).toFixed(2) + 's' : '—';
+        html += `<tr${rowClass}><td class="text-center text-muted">${i + 1}</td><td><strong>${s.step}</strong></td><td class="text-center">${statusBadge}</td><td class="text-muted">${s.message || ''}</td><td class="text-end text-muted">${dur}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+
+    // Statistics panel
+    const statEntries = Object.entries(stats).filter(([,v]) => typeof v === 'number' && v > 0);
+    if (statEntries.length > 0) {
+        html += `<div class="border rounded p-2 bg-light mb-2"><strong class="small text-muted d-block mb-1"><i class="bi bi-bar-chart me-1"></i>Current Database Counts</strong>`;
+        html += `<div class="d-flex flex-wrap gap-2">`;
+        statEntries.forEach(([key, val]) => {
+            const name = key.replace(/([A-Z])/g, ' $1').replace(/^./, c => c.toUpperCase()).trim();
+            html += `<span class="badge bg-white text-dark border">${name}: <strong>${val}</strong></span>`;
+        });
+        html += `</div></div>`;
+    }
+
+    html += `</div></div>`;
+    return html;
 }
 
 function postInstallActionConfirm(action, label, msg) {

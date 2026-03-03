@@ -325,7 +325,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
     /// <inheritdoc />
     public Task<IncidentCreationResultDto> CreateIncidentFromChatAsync(string sessionId, int? userId)
     {
-        var incidentId = Random.Shared.Next(10000, 99999);
+        var incidentId = Random.Shared.Next(10000, 99999); // NOSONAR - S2245: non-security RNG for mock incident ID in chatbot service
         var result = new IncidentCreationResultDto
         {
             Success = true,
