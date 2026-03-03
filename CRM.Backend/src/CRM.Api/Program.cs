@@ -1321,6 +1321,17 @@ using (var scope = app.Services.CreateScope())
         }
 
         // Seed master data (ZipCodes, ColorPalettes) if not already populated
+        // Skip in test environments to avoid seeding 100k+ ZipCodes into InMemory DB.
+        var skipMasterDataSeeding = string.Equals(
+            Environment.GetEnvironmentVariable("SKIP_MASTER_DATA_SEEDING"),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
+        if (skipMasterDataSeeding)
+        {
+            Log.Information("SKIP_MASTER_DATA_SEEDING=true — skipping master data seeding");
+        }
+        else
+        {
         try
         {
             var masterDataSeeder = scope.ServiceProvider.GetRequiredService<IMasterDataSeederService>();
@@ -1333,6 +1344,7 @@ using (var scope = app.Services.CreateScope())
         {
             Log.Error(masterDataEx, "Failed to seed master data");
             throw;
+        }
         }
 
         // Seed module field configurations (optional, non-blocking)

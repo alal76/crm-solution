@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 79,
-  "lastUpdate": "2026-03-03",
-  "description": "fix(seed): v0.614.79 - IsSampleDataSeededAsync validates actual data counts (50 accounts/leads/opps min) not just the flag; SeedAllSampleDataAsync auto-resets stale SampleDataSeeded flag and re-seeds when data is incomplete after a previous partial seed",
+  "patch": 80,
+  "lastUpdate": "2026-03-04",
+  "description": "fix(tests): v0.614.80 - Fix two test failure categories: (1) BuiltInSearchProvider.GetHighlights now uses Regex.Replace to preserve original field casing in <mark> tags instead of lowercased query string; (2) Add SKIP_MASTER_DATA_SEEDING guard in Program.cs seeder and ApiTestFactory env var to prevent 100k ZipCode seed hanging WebApplicationFactory startup — reduces 130 controller test timeouts from 10+ min to <20s",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

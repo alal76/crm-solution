@@ -890,11 +890,14 @@ public class BuiltInSearchProvider : ISearchPort
             var lowerField = field.ToLowerInvariant();
             if (lowerField.Contains(lowerQuery))
             {
-                // Simple highlight: wrap matched text with <em> tags
-                var highlightedText = field.Replace(
-                    query,
-                    $"<mark>{query}</mark>",
-                    StringComparison.OrdinalIgnoreCase);
+                // Wrap each match with <mark> tags, preserving the original casing
+                // from the field (not the query) so highlights look natural.
+                var highlightedText = System.Text.RegularExpressions.Regex.Replace(
+                    field,
+                    System.Text.RegularExpressions.Regex.Escape(query),
+                    m => $"<mark>{m.Value}</mark>",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase
+                    | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
                 highlights[$"field_{i}"] = highlightedText;
             }
         }

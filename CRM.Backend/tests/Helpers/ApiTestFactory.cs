@@ -34,6 +34,8 @@ public class ApiTestFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("FeatureManagement__UseExternalSignatures", "false");
         Environment.SetEnvironmentVariable("FeatureManagement__UseExternalAI", "false");
         Environment.SetEnvironmentVariable("FeatureManagement__UseExternalIntegrations", "false");
+        // Skip expensive startup seeding (100k ZipCodes etc.) that hangs WebApplicationFactory
+        Environment.SetEnvironmentVariable("SKIP_MASTER_DATA_SEEDING", "true");
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
