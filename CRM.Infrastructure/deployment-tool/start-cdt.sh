@@ -359,7 +359,7 @@ main() {
   log_info "CDT wizard available at: http://localhost:${PORT}"
   log_info "Day-2 operations at:     http://localhost:${PORT}/day2"
   log_info "Press Ctrl+C to stop"
-  exec "$VENV_DIR/bin/python" "$SCRIPT_DIR/gui/app.py" --port "$PORT"
+  exec "$VENV_DIR/bin/python" "$SCRIPT_DIR/gui/app.py" --port "$PORT" --no-debug
 }
 
 main "$@"

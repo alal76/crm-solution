@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 84,
+  "patch": 85,
   "lastUpdate": "2026-03-04",
-  "description": "refactor(tests): v0.614.84 — Eliminate test duplication via ServiceTestFixtureBase<T> — created base test class with MockContext/MockLogger/helper methods; automated refactoring of 80 test files (CRM.SystemModule.Tests, CRM.Tests/AI, CRM.Tests/Services); removed duplicate Mock declarations; 256 lines eliminated (~13% of SonarQube duplication target 4.6%/42K lines); all tests compile successfully",
+  "description": "feat(testing): v0.614.85 — Test coverage analysis & improvement plan — analyzed current 20.29% coverage (1196/5894 lines); identified 1094 classes with 0% coverage; created TEST_COVERAGE_ANALYSIS.md with 4-phase improvement roadmap (target 70%+); added ValidatorTestFixtureBase<T> for validator tests; created generate_validator_tests.py and generate_dto_tests.py automation; added analyze_test_coverage.py report tool; focus areas: Validators (0%/422 lines CRITICAL), DTOs (21.9%), integration tests",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
