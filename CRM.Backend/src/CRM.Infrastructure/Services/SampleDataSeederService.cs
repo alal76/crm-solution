@@ -1371,7 +1371,7 @@ public class SampleDataSeederService
         _logger.LogInformation("Seeding sample accounts...");
 
         var existingAccounts = await context.Accounts.CountAsync();
-        if (existingAccounts >= 1)
+        if (existingAccounts >= 90)
         {
             _logger.LogInformation("Accounts already exist ({Count}). Skipping...", existingAccounts);
             return;
