@@ -153,7 +153,7 @@ namespace CRM.Core.DTOs
 
         public int Quantity { get; set; }
         public decimal? UnitPrice { get; set; }
-        [Range(0, 100)]
+        [Range(0.0, 100.0)]
         public decimal? DiscountPercent { get; set; }
         public decimal? LineTotal { get; set; }
         public decimal? TotalPrice { get; set; } // Alias for LineTotal
@@ -169,7 +169,7 @@ namespace CRM.Core.DTOs
         [Range(1, int.MaxValue)]
         public int Quantity { get; set; }
         public decimal? UnitPrice { get; set; }
-        [Range(0, 100)]
+        [Range(0.0, 100.0)]
         public decimal? DiscountPercent { get; set; }
         public string? Notes { get; set; }
     }
@@ -215,7 +215,7 @@ namespace CRM.Core.DTOs
 
         public int Role { get; set; } // OpportunityTeamRole enum
 
-        [Range(0, 100)]
+        [Range(0.0, 100.0)]
         public decimal SplitPercentage { get; set; }
 
         public bool IsPrimary { get; set; }

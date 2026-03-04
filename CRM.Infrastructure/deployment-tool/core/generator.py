@@ -108,13 +108,18 @@ class ConfigGenerator:
 
     # Maps short provider keys (used in profiles) to long keys (used in templates)
     _PROVIDER_KEY_MAP: dict[str, str] = {
-        "search": "search_provider",
-        "ai": "ai_provider",
-        "chat": "chat_provider",
-        "notification": "notification_provider",
-        "analytics": "analytics_provider",
-        "signature": "signature_provider",
-        "integration": "integration_provider",
+        "search":        "search_provider",
+        "ai":            "ai_provider",
+        "chat":          "chat_provider",
+        "notification":  "notification_provider",
+        "analytics":     "analytics_provider",
+        "signature":     "signature_provider",
+        "integration":   "integration_provider",
+        # Infrastructure / Day-2 categories
+        "monitoring":    "monitoring_provider",
+        "portainer":     "portainer_provider",
+        "storage":       "storage_provider",
+        "reverse_proxy": "reverse_proxy_provider",
     }
 
     @staticmethod
@@ -285,6 +290,38 @@ class ConfigGenerator:
             "image_prefix": "",
             # Remote deploy directory
             "deploy_path": ConfigGenerator._DEFAULT_DEPLOY_PATH,
+            # ── Infrastructure / Day-2 component defaults ──────────────────
+            # On-premises defaults: all OSS self-hosted providers
+            "search_provider":        "meilisearch",
+            "chat_provider":          "chatwoot",
+            "notification_provider":  "novu",
+            "analytics_provider":     "metabase",
+            "signature_provider":     "docuseal",
+            "integration_provider":   "n8n",
+            "ai_provider":            "ollama",
+            "monitoring_provider":    "prometheus_grafana",
+            "portainer_provider":     "portainer_ce",
+            "storage_provider":       "minio",
+            "reverse_proxy_provider": "traefik",
+            # Monitoring / infra component settings
+            "grafana_admin_password": "",
+            "prometheus_enabled":     True,
+            "grafana_enabled":        True,
+            "loki_enabled":           False,
+            "portainer_enabled":      True,
+            "minio_access_key":       "",
+            "minio_secret_key":       "",
+            # Cloud-native monitoring keys (used when monitoring_provider != prometheus_grafana)
+            "datadog_api_key":           "",
+            "azure_appinsights_connection_string": "",
+            "cloudwatch_region":         "",
+            "cloud_monitoring_project":  "",
+            "newrelic_license_key":      "",
+            # Cloud storage keys
+            "azure_storage_account":     "",
+            "azure_storage_key":         "",
+            "aws_s3_bucket":             "",
+            "gcs_bucket":                "",
         }
         for key, default in defaults.items():
             ctx.setdefault(key, default)

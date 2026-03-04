@@ -119,6 +119,7 @@
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-secrets"><i class="bi bi-shield-lock"></i> Secrets</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-postinstall"><i class="bi bi-database-gear"></i> Post-Install</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-testrunner"><i class="bi bi-clipboard-check"></i> Test Runner</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-dataloader"><i class="bi bi-database-fill-up"></i> Data Loader</button></li>
         <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-components"><i class="bi bi-puzzle"></i> Components</button></li>
     </ul>
 
@@ -522,6 +523,98 @@
                                 <button class="btn btn-sm btn-outline-secondary" onclick="loadTestHistory()"><i class="bi bi-arrow-clockwise"></i></button>
                             </div>
                             <div id="tr-history-table"><div class="text-muted small">No test runs yet.</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ Data Loader Tab ═══════════════════════════════════════════════════ -->
+        <div class="tab-pane fade" id="tab-dataloader">
+            <div class="row g-3">
+
+                <!-- Left: Config + Batch Selection -->
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title"><i class="bi bi-sliders"></i> Loader Settings</h5>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold" for="dl-base-url">Target API URL</label>
+                                <input type="text" class="form-control" id="dl-base-url" value="http://192.168.0.9:5000" placeholder="http://192.168.0.9:5000">
+                                <div class="form-text">CRM API base URL. Rate limiting will be disabled automatically if using dev defaults.</div>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="dl-dry-run">
+                                <label class="form-check-label" for="dl-dry-run">Dry run (no API calls)</label>
+                            </div>
+                            <div class="d-flex gap-2 mb-3">
+                                <button class="btn btn-sm btn-outline-secondary" onclick="dlSelectAll(true)">All</button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="dlSelectAll(false)">None</button>
+                                <button class="btn btn-sm btn-outline-info" onclick="dlSelectRange(1,14)">Core</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="dlSelectRange(15,22)">New</button>
+                            </div>
+                            <div id="dl-batch-list" style="max-height:340px;overflow-y:auto;" class="mb-3"></div>
+                            <button class="btn btn-primary w-100 mb-2" onclick="dlStartRun()" id="dl-start-btn">
+                                <i class="bi bi-play-circle"></i> Run Selected Batches
+                            </button>
+                            <button class="btn btn-outline-danger w-100" onclick="dlCancelRun()" id="dl-cancel-btn" style="display:none">
+                                <i class="bi bi-stop-circle"></i> Cancel Run
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- State Snapshot -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="card-title mb-0"><i class="bi bi-diagram-3"></i> Entity State</h6>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="dlLoadState()"><i class="bi bi-arrow-clockwise"></i></button>
+                            </div>
+                            <div id="dl-state-table"><div class="text-muted small">Click refresh to load latest_state.json</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Output terminal + batch results -->
+                <div class="col-md-8">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h5 class="card-title mb-0"><i class="bi bi-terminal"></i> Loader Output</h5>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-secondary" id="dl-status-badge">Idle</span>
+                                    <span class="badge bg-success" id="dl-pass-badge">Pass: 0</span>
+                                    <span class="badge bg-danger" id="dl-fail-badge">Fail: 0</span>
+                                    <span class="badge bg-dark" id="dl-elapsed-badge">0s</span>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="dlClearOutput()"><i class="bi bi-x-circle"></i></button>
+                                </div>
+                            </div>
+                            <div class="progress mb-2" style="height:6px">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" id="dl-progress" style="width:0%"></div>
+                            </div>
+                            <div class="log-output" id="dl-output" style="height:320px;font-size:11px;">Waiting for loader run…</div>
+                        </div>
+                    </div>
+
+                    <!-- Batch results breakdown -->
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="bi bi-bar-chart-line"></i> Batch Results</h6>
+                            <div id="dl-batch-results"><div class="text-muted small">No results yet.</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Run history -->
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <h6 class="card-title mb-0"><i class="bi bi-clock-history"></i> Run History</h6>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="dlLoadHistory()"><i class="bi bi-arrow-clockwise"></i></button>
+                                    <button class="btn btn-sm btn-outline-info" onclick="dlViewLogs()"><i class="bi bi-file-text"></i> View Log File</button>
+                                </div>
+                            </div>
+                            <div id="dl-history-table"><div class="text-muted small">No runs yet.</div></div>
                         </div>
                     </div>
                 </div>
@@ -1577,6 +1670,253 @@ async function applyComponents() {
         showToast?.('Provider configuration applied! crm-api restarting…', 'success');
     } catch(e) { alert('Error: ' + e.message); }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA LOADER
+// ═══════════════════════════════════════════════════════════════════════════
+let _dlCurrentJobId = null;
+ let _dlPollTimer = null;
+let _dlOutputOffset = 0;
+let _dlAllBatches = [];
+
+async function dlInit() {
+    await dlLoadBatches();
+    await dlLoadHistory();
+}
+
+async function dlLoadBatches() {
+    try {
+        const r = await fetch('/api/day2/dataloader/batches');
+        const d = await r.json();
+        _dlAllBatches = d.batches || [];
+        const container = document.getElementById('dl-batch-list');
+        if (!_dlAllBatches.length) {
+            container.innerHTML = '<div class="text-danger small">No batches found on disk.</div>';
+            return;
+        }
+        container.innerHTML = _dlAllBatches.map(b => `
+            <div class="form-check py-1 border-bottom">
+                <input class="form-check-input dl-batch-cb" type="checkbox" id="dlb-${b.num}" value="${b.num}" checked
+                    ${b.exists ? '' : 'disabled'}>
+                <label class="form-check-label small" for="dlb-${b.num}">
+                    <span class="badge bg-secondary me-1">${String(b.num).padStart(2,'0')}</span>
+                    ${b.exists
+                        ? `<span>${b.description}</span>`
+                        : `<span class="text-danger text-decoration-line-through">${b.description} <em>(missing)</em></span>`}
+                </label>
+            </div>`).join('');
+    } catch(e) {
+        console.error('dlLoadBatches:', e);
+    }
+}
+
+function dlSelectAll(checked) {
+    document.querySelectorAll('.dl-batch-cb:not(:disabled)').forEach(cb => cb.checked = checked);
+}
+
+function dlSelectRange(from, to) {
+    document.querySelectorAll('.dl-batch-cb:not(:disabled)').forEach(cb => {
+        const n = parseInt(cb.value);
+        cb.checked = n >= from && n <= to;
+    });
+}
+
+async function dlStartRun() {
+    const baseUrl = document.getElementById('dl-base-url').value.trim() || 'http://192.168.0.9:5000';
+    const dryRun  = document.getElementById('dl-dry-run').checked;
+    const selected = Array.from(document.querySelectorAll('.dl-batch-cb:checked')).map(cb => parseInt(cb.value));
+    if (!selected.length) { alert('Select at least one batch to run.'); return; }
+
+    dlClearOutput();
+    _dlOutputOffset = 0;
+    document.getElementById('dl-start-btn').disabled = true;
+    document.getElementById('dl-cancel-btn').style.display = 'inline-flex';
+    dlSetStatus('starting', 0, 0, 0);
+
+    try {
+        const r = await fetch('/api/day2/dataloader/run', {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ base_url: baseUrl, batches: selected, dry_run: dryRun }),
+        });
+        const d = await r.json();
+        if (!r.ok || d.error) { alert('Launch error: ' + (d.error || JSON.stringify(d))); dlResetButtons(); return; }
+        _dlCurrentJobId = d.job_id;
+        dlAppendOutput(`[DATALOADER] Job ${d.job_id} started`);
+        dlAppendOutput(`[DATALOADER] Batches: ${selected.join(', ')}  |  URL: ${baseUrl}${dryRun ? '  |  DRY RUN' : ''}`);
+        _dlPollTimer = setInterval(dlPoll, 1500);
+    } catch(e) {
+        alert('Error: ' + e.message);
+        dlResetButtons();
+    }
+}
+
+async function dlPoll() {
+    if (!_dlCurrentJobId) return;
+    try {
+        const r = await fetch(`/api/day2/dataloader/status/${_dlCurrentJobId}?since=${_dlOutputOffset}`);
+        if (!r.ok) return;
+        const d = await r.json();
+        // Append new lines
+        (d.output || []).forEach(line => dlAppendOutput(line));
+        _dlOutputOffset = d.output_offset || (_dlOutputOffset + (d.output || []).length);
+        dlSetStatus(d.status, d.total_pass, d.total_fail, d.elapsed);
+        dlRenderBatchResults(d.batch_results || []);
+        if (d.done) {
+            clearInterval(_dlPollTimer);
+            _dlPollTimer = null;
+            dlResetButtons();
+            dlLoadHistory();
+            dlSetStatus(d.status, d.total_pass, d.total_fail, d.elapsed);
+        }
+    } catch(e) { console.error('dlPoll:', e); }
+}
+
+async function dlCancelRun() {
+    if (!_dlCurrentJobId) return;
+    if (!confirm('Cancel the current loader run?')) return;
+    try {
+        const r = await fetch(`/api/day2/dataloader/cancel/${_dlCurrentJobId}`, { method: 'POST' });
+        const d = await r.json();
+        dlAppendOutput('[DATALOADER] ' + (d.message || d.error || 'Cancel sent'));
+    } catch(e) { console.error('dlCancelRun:', e); }
+}
+
+function dlSetStatus(status, pass, fail, elapsed) {
+    const badge = document.getElementById('dl-status-badge');
+    const cls = { completed:'bg-success', failed:'bg-danger', running:'bg-primary',
+                   cancelled:'bg-warning', starting:'bg-info', pending:'bg-secondary' };
+    badge.className = 'badge ' + (cls[status] || 'bg-secondary');
+    badge.textContent = status || 'Idle';
+    document.getElementById('dl-pass-badge').textContent  = 'Pass: ' + (pass  || 0);
+    document.getElementById('dl-fail-badge').textContent  = 'Fail: ' + (fail  || 0);
+    document.getElementById('dl-elapsed-badge').textContent = (elapsed || 0) + 's';
+    const prog = document.getElementById('dl-progress');
+    if (status === 'running' || status === 'starting') {
+        prog.style.width = '100%'; prog.classList.add('progress-bar-animated');
+    } else if (status === 'completed') {
+        prog.style.width = '100%'; prog.classList.remove('progress-bar-animated');
+        prog.classList.remove('bg-danger'); prog.classList.add('bg-success');
+    } else if (status === 'failed' || status === 'cancelled') {
+        prog.style.width = '100%'; prog.classList.remove('progress-bar-animated');
+        prog.classList.add('bg-danger');
+    } else {
+        prog.style.width = '0%';
+    }
+}
+
+function dlRenderBatchResults(results) {
+    const el = document.getElementById('dl-batch-results');
+    if (!results || !results.length) { el.innerHTML = '<div class="text-muted small">No batch results yet.</div>'; return; }
+    el.innerHTML = '<div class="table-responsive"><table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>Batch</th><th>Module</th><th class="text-success">Pass</th><th class="text-danger">Fail</th><th>Status</th></tr></thead><tbody>'
+        + results.map(b => {
+            const meta = _dlAllBatches.find(x => x.num === b.batch) || {};
+            const ok = b.failed === 0;
+            return `<tr class="${ok ? '' : 'table-danger'}">
+                <td><span class="badge bg-secondary">${String(b.batch).padStart(2,'0')}</span></td>
+                <td class="small">${meta.description || meta.module || ''}</td>
+                <td class="text-success fw-bold">${b.passed}</td>
+                <td class="${b.failed ? 'text-danger fw-bold' : 'text-muted'}">${b.failed}</td>
+                <td>${ok ? '<i class="bi bi-check-circle text-success"></i>' : '<i class="bi bi-x-circle text-danger"></i>'}</td></tr>`;
+        }).join('') + '</tbody></table></div>';
+}
+
+function dlAppendOutput(line) {
+    const el = document.getElementById('dl-output');
+    const isBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+    const colorClass = line.startsWith('[ERROR]') || line.includes('FAILED') ? 'text-danger'
+                     : line.startsWith('[WARN]')  ? 'text-warning'
+                     : line.includes('PASS') || line.includes('✓') ? 'text-success'
+                     : line.startsWith('[DATALOADER]') ? 'text-info'
+                     : '';
+    const div = document.createElement('div');
+    if (colorClass) div.className = colorClass;
+    div.textContent = line;
+    if (el.firstChild && el.firstChild.textContent === 'Waiting for loader run…') el.innerHTML = '';
+    el.appendChild(div);
+    if (isBottom) el.scrollTop = el.scrollHeight;
+}
+
+function dlClearOutput() {
+    const el = document.getElementById('dl-output');
+    el.innerHTML = 'Waiting for loader run…';
+    dlRenderBatchResults([]);
+    dlSetStatus('idle', 0, 0, 0);
+}
+
+function dlResetButtons() {
+    document.getElementById('dl-start-btn').disabled = false;
+    document.getElementById('dl-cancel-btn').style.display = 'none';
+}
+
+async function dlLoadHistory() {
+    try {
+        const r = await fetch('/api/day2/dataloader/history');
+        const d = await r.json();
+        const runs = d.runs || [];
+        const el = document.getElementById('dl-history-table');
+        if (!runs.length) { el.innerHTML = '<div class="text-muted small">No runs yet.</div>'; return; }
+        el.innerHTML = '<div class="table-responsive"><table class="table table-sm table-hover mb-0"><thead class="table-light"><tr><th>Job ID</th><th>Batches</th><th>URL</th><th class="text-success">Pass</th><th class="text-danger">Fail</th><th>Time</th><th>Status</th><th></th></tr></thead><tbody>'
+            + runs.map(j => {
+                const batches = j.batch_nums ? j.batch_nums.join(',') : 'all';
+                const ts = j.started_at ? new Date(j.started_at*1000).toLocaleTimeString() : '—';
+                const ok = j.status === 'completed';
+                return `<tr>
+                    <td class="small text-muted">${j.job_id.slice(-20)}</td>
+                    <td class="small">${batches}</td>
+                    <td class="small text-truncate" style="max-width:120px">${j.base_url}</td>
+                    <td class="text-success fw-bold">${j.total_pass}</td>
+                    <td class="${j.total_fail ? 'text-danger fw-bold' : 'text-muted'}">${j.total_fail}</td>
+                    <td class="small">${j.elapsed}s @ ${ts}</td>
+                    <td><span class="badge ${ok ? 'bg-success' : j.status === 'running' ? 'bg-primary' : 'bg-danger'}">${j.status}</span>${j.dry_run ? ' <span class="badge bg-warning text-dark">dry</span>':''}</td>
+                    <td><button class="btn btn-sm btn-outline-secondary py-0" onclick="dlShowJobOutput('${j.job_id}')">Details</button></td>
+                </tr>`;
+            }).join('') + '</tbody></table></div>';
+    } catch(e) { console.error('dlLoadHistory:', e); }
+}
+
+async function dlShowJobOutput(jobId) {
+    try {
+        const r = await fetch(`/api/day2/dataloader/results/${jobId}`);
+        const d = await r.json();
+        dlClearOutput();
+        (d.output || []).forEach(line => dlAppendOutput(line));
+        dlSetStatus(d.status, d.total_pass, d.total_fail, d.elapsed);
+        dlRenderBatchResults(d.batch_results || []);
+        _dlCurrentJobId = null; // viewing historical — don't poll
+    } catch(e) { alert('Error loading job: ' + e.message); }
+}
+
+async function dlLoadState() {
+    try {
+        const r = await fetch('/api/day2/dataloader/state');
+        const d = await r.json();
+        const el = document.getElementById('dl-state-table');
+        if (!d.exists) { el.innerHTML = '<div class="text-muted small">No state file found (run loader first).</div>'; return; }
+        const entities = d.entities || {};
+        const keys = Object.keys(entities);
+        if (!keys.length) { el.innerHTML = '<div class="text-muted small">State file is empty.</div>'; return; }
+        el.innerHTML = '<div class="table-responsive"><table class="table table-sm mb-0"><thead class="table-light"><tr><th>Entity</th><th>Count</th></tr></thead><tbody>'
+            + keys.map(k => `<tr><td class="small">${k}</td><td class="fw-bold">${entities[k]}</td></tr>`).join('') + '</tbody></table></div>';
+    } catch(e) { console.error('dlLoadState:', e); }
+}
+
+async function dlViewLogs() {
+    try {
+        const r = await fetch('/api/day2/dataloader/logs?tail=1000');
+        const d = await r.json();
+        const el = document.getElementById('dl-output');
+        el.innerHTML = '';
+        if (!d.exists) { el.innerHTML = '<div class="text-warning">No log file found.</div>'; return; }
+        (d.lines || []).forEach(line => dlAppendOutput(line));
+        el.scrollTop = el.scrollHeight;
+    } catch(e) { alert('Error loading logs: ' + e.message); }
+}
+
+// Init Data Loader tab when clicked
+document.addEventListener('DOMContentLoaded', () => {
+    const dlTab = document.querySelector('[data-bs-target="#tab-dataloader"]');
+    if (dlTab) dlTab.addEventListener('shown.bs.tab', () => { dlInit(); dlLoadState(); });
+});
 
 // ── Bootstrap — load profile selector first, then data ────────────────────
 (async function init() {

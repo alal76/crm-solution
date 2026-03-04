@@ -583,6 +583,259 @@ AI_PROVIDERS = {
 
 
 # ============================================================================
+# MONITORING PROVIDERS
+# ============================================================================
+
+MONITORING_PROVIDERS = {
+    "prometheus_grafana": ProviderInfo(
+        name="prometheus_grafana",
+        display_name="Prometheus + Grafana + Loki",
+        category="monitoring",
+        strategy="opensource",
+        description="Self-hosted observability stack. Prometheus for metrics, Grafana for dashboards, Loki for logs.",
+        documentation_url="https://grafana.com/docs/",
+        license="Apache 2.0",
+        requires_credentials=[],
+        requires_containers=["prometheus", "grafana", "loki"],
+        estimated_monthly_cost="Free (self-hosted)",
+        setup_complexity="Medium"
+    ),
+    "uptime_kuma": ProviderInfo(
+        name="uptime_kuma",
+        display_name="Uptime Kuma",
+        category="monitoring",
+        strategy="opensource",
+        description="Self-hosted uptime monitoring with a beautiful UI and alerting.",
+        documentation_url="https://github.com/louislam/uptime-kuma",
+        license="MIT",
+        requires_credentials=[],
+        requires_containers=["uptime-kuma"],
+        estimated_monthly_cost="Free (self-hosted)",
+        setup_complexity="Low"
+    ),
+    "datadog": ProviderInfo(
+        name="datadog",
+        display_name="Datadog",
+        category="monitoring",
+        strategy="cloud_saas",
+        description="Full-stack observability platform — APM, metrics, logs, synthetics.",
+        documentation_url="https://docs.datadoghq.com/",
+        license="SaaS",
+        requires_credentials=["datadog_api_key", "datadog_app_key"],
+        requires_containers=[],
+        estimated_monthly_cost="~$15/host/mo",
+        setup_complexity="Low"
+    ),
+    "azure_monitor": ProviderInfo(
+        name="azure_monitor",
+        display_name="Azure Monitor + Application Insights",
+        category="monitoring",
+        strategy="cloud_saas",
+        description="Native Azure observability — logs, metrics, alerts, and Application Insights APM.",
+        documentation_url="https://learn.microsoft.com/azure/azure-monitor/",
+        license="SaaS",
+        requires_credentials=["azure_appinsights_connection_string"],
+        requires_containers=[],
+        estimated_monthly_cost="Usage-based",
+        setup_complexity="Low"
+    ),
+    "cloudwatch": ProviderInfo(
+        name="cloudwatch",
+        display_name="AWS CloudWatch",
+        category="monitoring",
+        strategy="cloud_saas",
+        description="AWS-native monitoring and observability service — metrics, logs, alarms.",
+        documentation_url="https://docs.aws.amazon.com/cloudwatch/",
+        license="SaaS",
+        requires_credentials=["aws_access_key", "aws_secret_key", "aws_region"],
+        requires_containers=[],
+        estimated_monthly_cost="Usage-based",
+        setup_complexity="Low"
+    ),
+    "cloud_monitoring": ProviderInfo(
+        name="cloud_monitoring",
+        display_name="Google Cloud Monitoring (Stackdriver)",
+        category="monitoring",
+        strategy="cloud_saas",
+        description="GCP-native monitoring, logging, and alerting via Cloud Monitoring and Logging APIs.",
+        documentation_url="https://cloud.google.com/monitoring/docs",
+        license="SaaS",
+        requires_credentials=["gcp_project_id", "google_credentials_json"],
+        requires_containers=[],
+        estimated_monthly_cost="Usage-based",
+        setup_complexity="Low"
+    ),
+    "newrelic": ProviderInfo(
+        name="newrelic",
+        display_name="New Relic",
+        category="monitoring",
+        strategy="cloud_saas",
+        description="Full-stack observability platform with APM, infrastructure, browser, and synthetics.",
+        documentation_url="https://docs.newrelic.com/",
+        license="SaaS",
+        requires_credentials=["newrelic_license_key"],
+        requires_containers=[],
+        estimated_monthly_cost="Free tier + usage",
+        setup_complexity="Low"
+    ),
+}
+
+
+# ============================================================================
+# PORTAINER / CONTAINER MANAGEMENT PROVIDERS
+# ============================================================================
+
+PORTAINER_PROVIDERS = {
+    "portainer_ce": ProviderInfo(
+        name="portainer_ce",
+        display_name="Portainer Community Edition",
+        category="portainer",
+        strategy="opensource",
+        description="Self-hosted Docker / Kubernetes management UI. Visualise, manage, and troubleshoot containers.",
+        documentation_url="https://docs.portainer.io/",
+        license="zlib",
+        requires_credentials=[],
+        requires_containers=["portainer"],
+        estimated_monthly_cost="Free",
+        setup_complexity="Low"
+    ),
+    "portainer_be": ProviderInfo(
+        name="portainer_be",
+        display_name="Portainer Business Edition",
+        category="portainer",
+        strategy="cloud_saas",
+        description="Commercial Portainer with RBAC, LDAP/AD, and multi-cluster features.",
+        documentation_url="https://docs.portainer.io/",
+        license="Commercial",
+        requires_credentials=["portainer_license_key"],
+        requires_containers=["portainer"],
+        estimated_monthly_cost="Contact vendor",
+        setup_complexity="Low"
+    ),
+    "kubernetes_dashboard": ProviderInfo(
+        name="kubernetes_dashboard",
+        display_name="Kubernetes Dashboard",
+        category="portainer",
+        strategy="opensource",
+        description="Official Kubernetes web UI for managing cluster resources.",
+        documentation_url="https://kubernetes.io/docs/tasks/access-application-cluster/web-ui-dashboard/",
+        license="Apache 2.0",
+        requires_credentials=[],
+        requires_containers=[],
+        estimated_monthly_cost="Free",
+        setup_complexity="Medium"
+    ),
+}
+
+
+# ============================================================================
+# STORAGE PROVIDERS
+# ============================================================================
+
+STORAGE_PROVIDERS = {
+    "minio": ProviderInfo(
+        name="minio",
+        display_name="MinIO",
+        category="storage",
+        strategy="opensource",
+        description="High-performance, S3-compatible object storage. Self-hosted.",
+        documentation_url="https://min.io/docs/minio/",
+        license="AGPL-3.0",
+        requires_credentials=["minio_access_key", "minio_secret_key"],
+        requires_containers=["minio"],
+        estimated_monthly_cost="Free (self-hosted)",
+        setup_complexity="Low"
+    ),
+    "azure_blob": ProviderInfo(
+        name="azure_blob",
+        display_name="Azure Blob Storage",
+        category="storage",
+        strategy="cloud_saas",
+        description="Massively scalable object storage for unstructured data on Azure.",
+        documentation_url="https://learn.microsoft.com/azure/storage/blobs/",
+        license="SaaS",
+        requires_credentials=["azure_storage_account", "azure_storage_key"],
+        requires_containers=[],
+        estimated_monthly_cost="~$0.018/GB/mo",
+        setup_complexity="Low"
+    ),
+    "aws_s3": ProviderInfo(
+        name="aws_s3",
+        display_name="Amazon S3",
+        category="storage",
+        strategy="cloud_saas",
+        description="Scalable object storage on AWS. Industry standard S3 API.",
+        documentation_url="https://docs.aws.amazon.com/s3/",
+        license="SaaS",
+        requires_credentials=["aws_access_key", "aws_secret_key", "aws_region", "s3_bucket_name"],
+        requires_containers=[],
+        estimated_monthly_cost="~$0.023/GB/mo",
+        setup_complexity="Low"
+    ),
+    "gcs": ProviderInfo(
+        name="gcs",
+        display_name="Google Cloud Storage",
+        category="storage",
+        strategy="cloud_saas",
+        description="Unified object storage on GCP for any amount of data.",
+        documentation_url="https://cloud.google.com/storage/docs",
+        license="SaaS",
+        requires_credentials=["gcp_project_id", "google_credentials_json", "gcs_bucket_name"],
+        requires_containers=[],
+        estimated_monthly_cost="~$0.020/GB/mo",
+        setup_complexity="Low"
+    ),
+}
+
+
+# ============================================================================
+# REVERSE PROXY PROVIDERS
+# ============================================================================
+
+REVERSE_PROXY_PROVIDERS = {
+    "traefik": ProviderInfo(
+        name="traefik",
+        display_name="Traefik",
+        category="reverse_proxy",
+        strategy="opensource",
+        description="Cloud-native reverse proxy and load balancer with automatic SSL via Let's Encrypt.",
+        documentation_url="https://doc.traefik.io/traefik/",
+        license="MIT",
+        requires_credentials=[],
+        requires_containers=["traefik"],
+        estimated_monthly_cost="Free (self-hosted)",
+        setup_complexity="Low"
+    ),
+    "nginx": ProviderInfo(
+        name="nginx",
+        display_name="Nginx",
+        category="reverse_proxy",
+        strategy="opensource",
+        description="High-performance web server, reverse proxy, and load balancer.",
+        documentation_url="https://nginx.org/en/docs/",
+        license="BSD-like",
+        requires_credentials=[],
+        requires_containers=["nginx"],
+        estimated_monthly_cost="Free (self-hosted)",
+        setup_complexity="Low"
+    ),
+    "caddy": ProviderInfo(
+        name="caddy",
+        display_name="Caddy",
+        category="reverse_proxy",
+        strategy="opensource",
+        description="Modern web server with automatic HTTPS and easy Caddyfile configuration.",
+        documentation_url="https://caddyserver.com/docs/",
+        license="Apache 2.0",
+        requires_credentials=[],
+        requires_containers=["caddy"],
+        estimated_monthly_cost="Free (self-hosted)",
+        setup_complexity="Low"
+    ),
+}
+
+
+# ============================================================================
 # ALL PROVIDERS
 # ============================================================================
 
@@ -593,7 +846,11 @@ ALL_PROVIDERS = {
     "analytics": ANALYTICS_PROVIDERS,
     "signature": SIGNATURE_PROVIDERS,
     "integration": INTEGRATION_PROVIDERS,
-    "ai": AI_PROVIDERS
+    "ai": AI_PROVIDERS,
+    "monitoring": MONITORING_PROVIDERS,
+    "portainer": PORTAINER_PROVIDERS,
+    "storage": STORAGE_PROVIDERS,
+    "reverse_proxy": REVERSE_PROXY_PROVIDERS,
 }
 
 
@@ -754,10 +1011,184 @@ CONTAINER_CONFIGS = {
         depends_on=["metabase-postgres"],
         cpu="0.5",
         memory="1Gi"
-    )
+    ),
+    # ── Infrastructure / Monitoring containers ──────────────────
+    "portainer": ContainerConfig(
+        name="portainer",
+        image="portainer/portainer-ce",
+        tag="latest",
+        ports=[{"container": 9443, "host": 9443}, {"container": 9000, "host": 9000}],
+        volumes=["portainer_data:/data", "/var/run/docker.sock:/var/run/docker.sock"],
+        cpu="0.25",
+        memory="256Mi",
+        health_check={"endpoint": "/api/status", "port": 9000}
+    ),
+    "prometheus": ContainerConfig(
+        name="prometheus",
+        image="prom/prometheus",
+        tag="latest",
+        ports=[{"container": 9090, "host": 9090}],
+        volumes=["prometheus_data:/prometheus", "./prometheus.yml:/etc/prometheus/prometheus.yml:ro"],
+        cpu="0.5",
+        memory="512Mi",
+        health_check={"endpoint": "/-/healthy", "port": 9090}
+    ),
+    "grafana": ContainerConfig(
+        name="grafana",
+        image="grafana/grafana",
+        tag="latest",
+        ports=[{"container": 3000, "host": 3010}],
+        environment={
+            "GF_SECURITY_ADMIN_PASSWORD": "${GRAFANA_ADMIN_PASSWORD}",
+            "GF_USERS_ALLOW_SIGN_UP": "false"
+        },
+        volumes=["grafana_data:/var/lib/grafana"],
+        depends_on=["prometheus"],
+        cpu="0.5",
+        memory="512Mi",
+        health_check={"endpoint": "/api/health", "port": 3010}
+    ),
+    "loki": ContainerConfig(
+        name="loki",
+        image="grafana/loki",
+        tag="latest",
+        ports=[{"container": 3100, "host": 3100}],
+        volumes=["loki_data:/loki"],
+        cpu="0.5",
+        memory="512Mi"
+    ),
+    "uptime-kuma": ContainerConfig(
+        name="uptime-kuma",
+        image="louislam/uptime-kuma",
+        tag="1",
+        ports=[{"container": 3001, "host": 3001}],
+        volumes=["uptime-kuma_data:/app/data"],
+        cpu="0.25",
+        memory="256Mi",
+        health_check={"endpoint": "/", "port": 3001}
+    ),
+    "traefik": ContainerConfig(
+        name="traefik",
+        image="traefik",
+        tag="v3.0",
+        ports=[
+            {"container": 80, "host": 80},
+            {"container": 443, "host": 443},
+            {"container": 8080, "host": 8080}
+        ],
+        volumes=[
+            "/var/run/docker.sock:/var/run/docker.sock:ro",
+            "traefik_certs:/letsencrypt"
+        ],
+        cpu="0.25",
+        memory="128Mi",
+        health_check={"endpoint": "/ping", "port": 8080}
+    ),
+    "minio": ContainerConfig(
+        name="minio",
+        image="minio/minio",
+        tag="latest",
+        ports=[
+            {"container": 9002, "host": 9002},
+            {"container": 9003, "host": 9003}
+        ],
+        environment={
+            "MINIO_ROOT_USER": "${MINIO_ACCESS_KEY}",
+            "MINIO_ROOT_PASSWORD": "${MINIO_SECRET_KEY}"
+        },
+        volumes=["minio_data:/data"],
+        cpu="0.5",
+        memory="512Mi",
+        health_check={"endpoint": "/minio/health/live", "port": 9002}
+    ),
 }
 
 
 def get_container_config(container_name: str) -> Optional[ContainerConfig]:
     """Get container configuration by name."""
     return CONTAINER_CONFIGS.get(container_name)
+
+
+# ============================================================================
+# PLATFORM-AWARE PROVIDER DEFAULTS
+# ============================================================================
+
+def get_default_providers(platform: str) -> dict:
+    """Return recommended provider selection based on deployment platform.
+
+    On-premises / Docker Compose → all open-source self-hosted providers.
+    Azure → Azure-native cloud services where available.
+    AWS   → AWS-native services where available.
+    GCP   → GCP-native services where available.
+
+    Args:
+        platform: One of "on_premises", "hybrid", "azure", "aws", "gcp".
+
+    Returns:
+        Dict mapping category name → provider short-key.
+    """
+    _ONPREM = {
+        "search": "meilisearch",
+        "chat": "chatwoot",
+        "notification": "novu",
+        "analytics": "metabase",
+        "signature": "docuseal",
+        "integration": "n8n",
+        "ai": "ollama",
+        "monitoring": "prometheus_grafana",
+        "portainer": "portainer_ce",
+        "storage": "minio",
+        "reverse_proxy": "traefik",
+    }
+
+    _AZURE = {
+        "search": "azure_cognitive_search",
+        "chat": "chatwoot",             # no dominant Azure-native chat SaaS
+        "notification": "sendgrid",
+        "analytics": "powerbi",
+        "signature": "docusign",
+        "integration": "n8n",           # Azure Logic Apps alternative via n8n
+        "ai": "azure_openai",
+        "monitoring": "azure_monitor",
+        "portainer": "portainer_ce",    # still useful for container visibility
+        "storage": "azure_blob",
+        "reverse_proxy": "traefik",
+    }
+
+    _AWS = {
+        "search": "elasticsearch",
+        "chat": "chatwoot",
+        "notification": "sendgrid",
+        "analytics": "metabase",        # QuickSight not in provider catalogue yet
+        "signature": "docusign",
+        "integration": "n8n",
+        "ai": "bedrock",
+        "monitoring": "cloudwatch",
+        "portainer": "portainer_ce",
+        "storage": "aws_s3",
+        "reverse_proxy": "traefik",
+    }
+
+    _GCP = {
+        "search": "elasticsearch",
+        "chat": "chatwoot",
+        "notification": "sendgrid",
+        "analytics": "metabase",
+        "signature": "docusign",
+        "integration": "n8n",
+        "ai": "gemini",
+        "monitoring": "cloud_monitoring",
+        "portainer": "portainer_ce",
+        "storage": "gcs",
+        "reverse_proxy": "traefik",
+    }
+
+    _MAP = {
+        "on_premises": _ONPREM,
+        "hybrid": _ONPREM,
+        "azure": _AZURE,
+        "aws": _AWS,
+        "gcp": _GCP,
+    }
+
+    return dict(_MAP.get(platform, _ONPREM))

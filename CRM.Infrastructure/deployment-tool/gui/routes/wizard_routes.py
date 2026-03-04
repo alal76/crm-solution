@@ -109,6 +109,19 @@ def submit_step(session_id: str, step_id: str):
     if step_id not in session.completed_steps:
         session.completed_steps.append(step_id)
     session.current_step = step_id
+
+    # ── Auto-inject platform-aware provider defaults when target step is set ──
+    # This pre-populates the "providers" step so users see recommendations
+    # immediately. Users may override any selection on the Providers wizard step.
+    if step_id == "target" and "providers" not in session.data:
+        platform = (
+            data.get("platform")
+            or data.get("cloud_provider")
+            or data.get("deployment_target")
+            or "on_premises"
+        )
+        _inject_provider_defaults(session, platform)
+
     _store.save(session)
 
     return jsonify({
@@ -218,3 +231,95 @@ def _dispatch_field_validation(field_id: str, field_type: str, value: str):
     if field_type == "cidr" or field_id.endswith("_cidr"):
         return _validator.validate_cidr(value, field_id)
     return _validator.validate_required(value, field_id)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/wizard/provider-defaults?platform=<platform>
+# Returns the recommended provider set for the given platform.
+# Frontend calls this when the user reaches the "Providers" wizard step so the
+# form can be pre-filled with sensible defaults.
+# ---------------------------------------------------------------------------
+
+@wizard_bp.route("/api/wizard/provider-defaults", methods=["GET"])
+def wizard_provider_defaults():
+    """Return recommended provider defaults for a given platform.
+
+    Query params:
+        platform: on_premises | hybrid | azure | aws | gcp (default: on_premises)
+
+    Returns JSON dict: { "defaults": { category: provider_key, ... }, "platform": ... }
+    """
+    platform = (request.args.get("platform") or "on_premises").strip().lower()
+    try:
+        from models.provider_models import get_default_providers  # noqa: PLC0415
+    except ImportError:
+        try:
+            from provider_models import get_default_providers  # noqa: PLC0415
+        except ImportError:
+            return jsonify({"error": "provider_models not available"}), 500
+
+    defaults = get_default_providers(platform)
+    return jsonify({"platform": platform, "defaults": defaults})
+
+
+# ---------------------------------------------------------------------------
+# GET /api/wizard/session/<session_id>/provider-defaults
+# Returns the platform-aware defaults for the session's chosen platform.
+# ---------------------------------------------------------------------------
+
+@wizard_bp.route("/api/wizard/session/<session_id>/provider-defaults", methods=["GET"])
+def session_provider_defaults(session_id: str):
+    """Return recommended providers for the session's configured platform."""
+    session, err = _session_or_404(session_id)
+    if err:
+        return err
+
+    target = session.data.get("target", {})
+    platform = (
+        target.get("platform")
+        or target.get("cloud_provider")
+        or target.get("deployment_target")
+        or "on_premises"
+    )
+
+    try:
+        from models.provider_models import get_default_providers  # noqa: PLC0415
+    except ImportError:
+        try:
+            from provider_models import get_default_providers  # noqa: PLC0415
+        except ImportError:
+            return jsonify({"error": "provider_models not available"}), 500
+
+    defaults = get_default_providers(platform)
+    # Also return what the session currently has (may have been overridden)
+    current = session.data.get("providers", {})
+    return jsonify({
+        "platform": platform,
+        "defaults": defaults,
+        "current": current,
+        "has_overrides": bool(current),
+    })
+
+
+# ---------------------------------------------------------------------------
+# Helper — inject provider defaults into session.data["providers"]
+# ---------------------------------------------------------------------------
+
+def _inject_provider_defaults(session: WizardSession, platform: str) -> None:
+    """Pre-populate session.data["providers"] with platform-aware defaults.
+
+    Skips injection if the session already has provider data (user override).
+    """
+    try:
+        from models.provider_models import get_default_providers  # noqa: PLC0415
+    except ImportError:
+        try:
+            from provider_models import get_default_providers  # noqa: PLC0415
+        except ImportError:
+            return  # not available — leave providers unset
+
+    defaults = get_default_providers(platform)
+    session.data["providers"] = defaults
+    if "providers" not in session.completed_steps:
+        # Mark as pre-completed so the review step doesn't treat it as missing
+        session.completed_steps.append("providers")

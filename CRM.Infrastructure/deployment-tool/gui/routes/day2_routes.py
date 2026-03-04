@@ -1505,60 +1505,147 @@ def day2_testrunner_history():
 # Pluggable Architecture — Component Management
 # ===========================================================================
 
-# Map each category -> which OSS provider uses which Docker container name
-_COMPONENT_CONTAINERS = {
+# Map each category -> which provider uses which Docker container name(s)
+# Values can be a single container name (str) or a list for multi-container stacks.
+_COMPONENT_CONTAINERS: dict[str, dict[str, object]] = {
+    # ------ Core CRM pluggable providers ------
     "search":       {"meilisearch": "crm-meilisearch"},
     "chat":         {"chatwoot": "crm-chatwoot", "rocketchat": "crm-rocketchat"},
     "notification": {"novu": "crm-novu"},
-    "analytics":    {"superset": "crm-superset"},
+    "analytics":    {"superset": "crm-superset", "metabase": "crm-metabase"},
     "signature":    {"docuseal": "crm-docuseal"},
     "ai":           {"ollama": "crm-ollama"},
     "integration":  {"n8n": "crm-n8n"},
+    # ------ Infrastructure / Day-2 components ------
+    "monitoring": {
+        "prometheus_grafana": ["crm-prometheus", "crm-grafana", "crm-loki"],
+        "uptime_kuma": "crm-uptime-kuma",
+    },
+    "portainer": {
+        "portainer_ce": "crm-portainer",
+        "portainer_be": "crm-portainer",
+    },
+    "storage": {
+        "minio": "crm-minio",
+    },
+    "reverse_proxy": {
+        "traefik": "crm-traefik",
+        "nginx": "crm-nginx",
+        "caddy": "crm-caddy",
+    },
 }
 
 # Feature-flag env-var name per category
-_CATEGORY_FEATURE_FLAGS = {
-    "search":       "FeatureManagement__UseExternalSearch",
-    "chat":         "FeatureManagement__UseExternalChat",
-    "notification": "FeatureManagement__UseExternalNotifications",
-    "analytics":    "FeatureManagement__UseExternalAnalytics",
-    "signature":    "FeatureManagement__UseExternalSignatures",
-    "ai":           "FeatureManagement__UseExternalAI",
-    "integration":  "FeatureManagement__UseExternalIntegrations",
+# Infrastructure categories (monitoring/portainer/storage/reverse_proxy) don't
+# have CRM API feature flags — use dedicated infrastructure env-vars instead.
+_CATEGORY_FEATURE_FLAGS: dict[str, str] = {
+    "search":        "FeatureManagement__UseExternalSearch",
+    "chat":          "FeatureManagement__UseExternalChat",
+    "notification":  "FeatureManagement__UseExternalNotifications",
+    "analytics":     "FeatureManagement__UseExternalAnalytics",
+    "signature":     "FeatureManagement__UseExternalSignatures",
+    "ai":            "FeatureManagement__UseExternalAI",
+    "integration":   "FeatureManagement__UseExternalIntegrations",
+    # Infrastructure flags (control which infra stack is deployed)
+    "monitoring":    "Infrastructure__MonitoringProvider",
+    "portainer":     "Infrastructure__PortainerEnabled",
+    "storage":       "Infrastructure__StorageProvider",
+    "reverse_proxy": "Infrastructure__ReverseProxyProvider",
 }
 
 # Env-var key prefix for each specific provider
-_PROVIDER_ENV_PREFIXES = {
-    "meilisearch":  "Providers__Search__Meilisearch__",
-    "algolia":      "Providers__Search__Algolia__",
-    "typesense":    "Providers__Search__Typesense__",
-    "chatwoot":     "Providers__Chat__Chatwoot__",
-    "intercom":     "Providers__Chat__Intercom__",
-    "rocketchat":   "Providers__Chat__RocketChat__",
-    "novu":         "Providers__Notifications__Novu__",
-    "twilio":       "Providers__Notifications__Twilio__",
-    "sendgrid":     "Providers__Notifications__SendGrid__",
-    "superset":     "Providers__Analytics__Superset__",
-    "powerbi":      "Providers__Analytics__PowerBI__",
-    "metabase":     "Providers__Analytics__Metabase__",
-    "docuseal":     "Providers__Signatures__DocuSeal__",
-    "docusign":     "Providers__Signatures__DocuSign__",
-    "ollama":       "Providers__AI__Ollama__",
-    "openai":       "Providers__AI__OpenAI__",
-    "azure_openai": "Providers__AI__AzureOpenAI__",
-    "anthropic":    "Providers__AI__Anthropic__",
-    "gemini":       "Providers__AI__Gemini__",
-    "openrouter":   "Providers__AI__OpenRouter__",
-    "n8n":          "Providers__Integrations__N8n__",
-    "zapier":       "Providers__Integrations__Zapier__",
-    "make":         "Providers__Integrations__Make__",
-    "workato":      "Providers__Integrations__Workato__",
+_PROVIDER_ENV_PREFIXES: dict[str, str] = {
+    # --- Search ---
+    "meilisearch":            "Providers__Search__Meilisearch__",
+    "algolia":                "Providers__Search__Algolia__",
+    "typesense":              "Providers__Search__Typesense__",
+    "elasticsearch":          "Providers__Search__Elasticsearch__",
+    "azure_cognitive_search": "Providers__Search__AzureCognitiveSearch__",
+    # --- Chat ---
+    "chatwoot":               "Providers__Chat__Chatwoot__",
+    "intercom":               "Providers__Chat__Intercom__",
+    "rocketchat":             "Providers__Chat__RocketChat__",
+    "zendesk":                "Providers__Chat__Zendesk__",
+    # --- Notifications ---
+    "novu":                   "Providers__Notifications__Novu__",
+    "twilio":                 "Providers__Notifications__Twilio__",
+    "sendgrid":               "Providers__Notifications__SendGrid__",
+    # --- Analytics ---
+    "superset":               "Providers__Analytics__Superset__",
+    "powerbi":                "Providers__Analytics__PowerBI__",
+    "metabase":               "Providers__Analytics__Metabase__",
+    # --- Signatures ---
+    "docuseal":               "Providers__Signatures__DocuSeal__",
+    "docusign":               "Providers__Signatures__DocuSign__",
+    "adobe_sign":             "Providers__Signatures__AdobeSign__",
+    # --- AI ---
+    "ollama":                 "Providers__AI__Ollama__",
+    "openai":                 "Providers__AI__OpenAI__",
+    "azure_openai":           "Providers__AI__AzureOpenAI__",
+    "anthropic":              "Providers__AI__Anthropic__",
+    "gemini":                 "Providers__AI__Gemini__",
+    "openrouter":             "Providers__AI__OpenRouter__",
+    "bedrock":                "Providers__AI__Bedrock__",
+    # --- Integrations ---
+    "n8n":                    "Providers__Integrations__N8n__",
+    "zapier":                 "Providers__Integrations__Zapier__",
+    "make":                   "Providers__Integrations__Make__",
+    "workato":                "Providers__Integrations__Workato__",
+    # --- Monitoring ---
+    "prometheus_grafana":     "Infrastructure__Monitoring__PrometheusGrafana__",
+    "uptime_kuma":            "Infrastructure__Monitoring__UptimeKuma__",
+    "datadog":                "Infrastructure__Monitoring__Datadog__",
+    "azure_monitor":          "Infrastructure__Monitoring__AzureMonitor__",
+    "cloudwatch":             "Infrastructure__Monitoring__CloudWatch__",
+    "cloud_monitoring":       "Infrastructure__Monitoring__CloudMonitoring__",
+    "newrelic":               "Infrastructure__Monitoring__NewRelic__",
+    # --- Portainer ---
+    "portainer_ce":           "Infrastructure__Portainer__",
+    "portainer_be":           "Infrastructure__Portainer__",
+    # --- Storage ---
+    "minio":                  "Infrastructure__Storage__MinIO__",
+    "azure_blob":             "Infrastructure__Storage__AzureBlob__",
+    "aws_s3":                 "Infrastructure__Storage__S3__",
+    "gcs":                    "Infrastructure__Storage__GCS__",
+    # --- Reverse Proxy ---
+    "traefik":                "Infrastructure__ReverseProxy__Traefik__",
+    "nginx":                  "Infrastructure__ReverseProxy__Nginx__",
+    "caddy":                  "Infrastructure__ReverseProxy__Caddy__",
 }
 
-_CATEGORY_DISPLAY = {
-    "search": "Search", "chat": "Chat", "notification": "Notifications",
-    "analytics": "Analytics", "signature": "Signatures", "ai": "AI",
-    "integration": "Integrations",
+# Human-readable display names per category
+_CATEGORY_DISPLAY: dict[str, str] = {
+    # CRM pluggable providers
+    "search":        "Search",
+    "chat":          "Chat",
+    "notification":  "Notifications",
+    "analytics":     "Analytics",
+    "signature":     "Signatures",
+    "ai":            "AI/LLM",
+    "integration":   "Integrations",
+    # Infrastructure components
+    "monitoring":    "Monitoring",
+    "portainer":     "Container Management (Portainer)",
+    "storage":       "Object Storage",
+    "reverse_proxy": "Reverse Proxy",
+}
+
+# Categories that are infrastructure-level (not CRM feature-flags; use infra flags)
+_INFRA_CATEGORIES = frozenset({"monitoring", "portainer", "storage", "reverse_proxy"})
+
+# Default provider for each category in new/empty profiles
+_CATEGORY_DEFAULTS: dict[str, str] = {
+    "search":        "meilisearch",
+    "chat":          "chatwoot",
+    "notification":  "novu",
+    "analytics":     "metabase",
+    "signature":     "docuseal",
+    "ai":            "ollama",
+    "integration":   "n8n",
+    "monitoring":    "prometheus_grafana",
+    "portainer":     "portainer_ce",
+    "storage":       "minio",
+    "reverse_proxy": "traefik",
 }
 
 
@@ -1582,24 +1669,30 @@ def day2_components_status():
     profile_name = request.args.get("profile") or ""
     profile, pname = _resolve_profile(profile_name)
 
-    providers = profile.get("providers", {
-        "search": "builtin", "chat": "builtin", "notification": "builtin",
-        "analytics": "builtin", "signature": "builtin", "ai": "ollama", "integration": "builtin",
-    })
+    providers = profile.get("providers", {})
     provider_configs = profile.get("provider_configs", {})
 
     result = {}
     for cat in _CATEGORY_DISPLAY:
-        selected = providers.get(cat, "builtin") or "builtin"
+        selected = providers.get(cat) or _CATEGORY_DEFAULTS.get(cat, "builtin")
         container_map = _COMPONENT_CONTAINERS.get(cat, {})
-        cname = container_map.get(selected)
-        cstatus = _container_status(cname) if cname else None
+        raw_cname = container_map.get(selected)
+        # raw_cname can be str or list for multi-container stacks
+        if isinstance(raw_cname, list):
+            cnames = raw_cname
+        elif raw_cname:
+            cnames = [raw_cname]
+        else:
+            cnames = []
+
+        container_statuses = {n: _container_status(n) for n in cnames}
         is_builtin = selected in ("builtin", "")
         result[cat] = {
             "selected": selected,
             "is_builtin": is_builtin,
-            "container_name": cname,
-            "container_status": cstatus,
+            "is_infra": cat in _INFRA_CATEGORIES,
+            "container_names": cnames,
+            "container_statuses": container_statuses,
             "config": provider_configs.get(cat, {}),
             "feature_flag": _CATEGORY_FEATURE_FLAGS.get(cat, ""),
             "enabled": not is_builtin,
@@ -1647,8 +1740,19 @@ def day2_components_configure():
 
 @day2_bp.route("/api/day2/components/apply", methods=["POST"])
 def day2_components_apply():
-    # Apply profile provider selections to the running CRM API.
-    # Writes .env.providers and restarts crm-api via docker compose.
+    """Apply profile provider selections to the running CRM stack.
+
+    Steps performed:
+    1. Build and write ``.env.providers`` from the profile's provider selections.
+    2. For each **non-builtin** provider whose container is known, ensure it is
+       started (``docker start <container>``).  For multi-container stacks
+       (e.g. prometheus_grafana) every container in the list is started.
+    3. Restart ``crm-api`` so it picks up the new feature-flag env-vars.
+
+    Infrastructure categories (monitoring, portainer, storage, reverse_proxy) do
+    not trigger a crm-api restart — their containers are started/stopped but the
+    CRM API doesn't need to reload.
+    """
     body = request.get_json(force=True) or {}
     profile_name = body.get("profile_name") or request.args.get("profile") or ""
     profile, pname = _resolve_profile(profile_name)
@@ -1656,6 +1760,7 @@ def day2_components_apply():
     providers = profile.get("providers", {})
     provider_configs = profile.get("provider_configs", {})
 
+    # ── 1. Build .env.providers ─────────────────────────────────────────────
     env_lines = [
         "# Auto-generated by CRM CDT - Pluggable Architecture Provider Configuration",
         "# DO NOT EDIT MANUALLY - use the CDT Day-2 Components tab",
@@ -1663,27 +1768,35 @@ def day2_components_apply():
     ]
 
     for cat, display in _CATEGORY_DISPLAY.items():
-        selected = providers.get(cat, "builtin") or "builtin"
+        selected = providers.get(cat) or _CATEGORY_DEFAULTS.get(cat, "builtin")
         is_builtin = selected in ("builtin", "")
         flag_key = _CATEGORY_FEATURE_FLAGS.get(cat, "")
 
         env_lines.append(f"# {display} provider: {selected}")
-        if flag_key:
-            val = "false" if is_builtin else "true"
-            env_lines.append(f"{flag_key}={val}")
 
-        if not is_builtin:
-            # Provider type key - TitleCase, underscores stripped
-            type_val = selected.replace("_", "")
-            type_val = type_val[0].upper() + type_val[1:]
-            env_lines.append(f"Providers__{display}__Type={type_val}")
+        if cat in _INFRA_CATEGORIES:
+            # Infrastructure categories use a value env-var, not a bool flag
+            if flag_key:
+                env_lines.append(f"{flag_key}={selected}")
+        else:
+            # CRM feature flags
+            if flag_key:
+                val = "false" if is_builtin else "true"
+                env_lines.append(f"{flag_key}={val}")
 
-            cfg = provider_configs.get(cat, {})
-            prefix = _PROVIDER_ENV_PREFIXES.get(selected, f"Providers__{display}__{type_val}__")
-            for k, v in cfg.items():
-                if v:
-                    env_key = prefix + k[0].upper() + k[1:]
-                    env_lines.append(f"{env_key}={v}")
+            if not is_builtin:
+                # Provider type key (TitleCase, underscores stripped)
+                type_val = selected.replace("_", "")
+                type_val = type_val[0].upper() + type_val[1:]
+                env_lines.append(f"Providers__{display}__Type={type_val}")
+
+                cfg = provider_configs.get(cat, {})
+                prefix = _PROVIDER_ENV_PREFIXES.get(selected, f"Providers__{display}__{type_val}__")
+                for k, v in cfg.items():
+                    if v:
+                        env_key = prefix + k[0].upper() + k[1:]
+                        env_lines.append(f"{env_key}={v}")
+
         env_lines.append("")
 
     deploy_dir = (
@@ -1698,9 +1811,48 @@ def day2_components_apply():
     except Exception as exc:
         return jsonify({"success": False, "error": f"Cannot write provider env file: {exc}"}), 500
 
+    # ── 2. Start provider containers ────────────────────────────────────────
+    container_actions: list[dict] = []
+
+    for cat, cat_providers in _COMPONENT_CONTAINERS.items():
+        selected = providers.get(cat) or _CATEGORY_DEFAULTS.get(cat, "builtin")
+        if selected in ("builtin", ""):
+            continue  # using built-in — no external container to manage
+
+        raw = cat_providers.get(selected)
+        if not raw:
+            continue
+
+        cnames = raw if isinstance(raw, list) else [raw]
+        for cname in cnames:
+            try:
+                r = subprocess.run(
+                    ["docker", "start", cname],
+                    capture_output=True, text=True, timeout=30,
+                )
+                status = "started" if r.returncode == 0 else "start_failed"
+                output = (r.stdout + r.stderr).strip()
+            except subprocess.TimeoutExpired:
+                status = "timeout"
+                output = f"docker start {cname} timed out"
+            except Exception as exc:
+                status = "error"
+                output = str(exc)
+
+            container_actions.append({
+                "category": cat,
+                "provider": selected,
+                "container": cname,
+                "action": "start",
+                "status": status,
+                "output": output,
+            })
+
+    # ── 3. Restart crm-api (for CRM feature-flag categories only) ───────────
     compose_file = Path(deploy_dir) / "docker-compose.yml"
     restart_output = ""
     restart_ok = True
+
     if compose_file.exists():
         try:
             r = subprocess.run(
@@ -1718,18 +1870,20 @@ def day2_components_apply():
             restart_ok = False
     else:
         restart_output = (
-            "docker-compose.yml not found in deploy dir - "
-            "env file written but no restart performed."
+            "docker-compose.yml not found in deploy dir — "
+            "env file written and provider containers started, but crm-api restart skipped."
         )
 
     msg = (
-        "Provider configuration applied and crm-api restarted." if restart_ok
-        else f"Env file written but restart failed: {restart_output}"
+        "Provider configuration applied, containers started, and crm-api restarted." if restart_ok
+        else f"Env file written and containers started, but crm-api restart failed: {restart_output}"
     )
+
     return jsonify({
         "success": restart_ok,
         "env_file": str(env_providers_path),
         "env_content": "\n".join(env_lines),
+        "container_actions": container_actions,
         "restart_output": restart_output,
         "message": msg,
     })

@@ -162,6 +162,12 @@ try:
 except Exception as _e:
     print(f"[CDT] registry_bp not registered: {_e}")
 
+try:
+    from gui.routes.data_loader_routes import dataloader_bp
+    app.register_blueprint(dataloader_bp)
+except Exception as _e:
+    print(f"[CDT] dataloader_bp not registered: {_e}")
+
 
 @app.route('/health', methods=['GET'])
 def health_check():

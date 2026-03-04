@@ -225,34 +225,56 @@ class ModuleSelection:
 
 @dataclass
 class ProviderSelection:
-    """Provider selection for each capability."""
-    # Search Provider
-    search_strategy: ProviderStrategy = ProviderStrategy.BUILTIN
-    search_provider: str = "builtin"  # builtin, meilisearch, algolia, elasticsearch
-    
-    # Chat Provider
-    chat_strategy: ProviderStrategy = ProviderStrategy.BUILTIN
-    chat_provider: str = "builtin"  # builtin, chatwoot, intercom, zendesk
-    
-    # Notification Provider
-    notification_strategy: ProviderStrategy = ProviderStrategy.BUILTIN
-    notification_provider: str = "builtin"  # builtin, novu, twilio, sendgrid
-    
-    # Analytics Provider
-    analytics_strategy: ProviderStrategy = ProviderStrategy.BUILTIN
-    analytics_provider: str = "builtin"  # builtin, superset, metabase, powerbi
-    
-    # E-Signature Provider
-    signature_strategy: ProviderStrategy = ProviderStrategy.BUILTIN
-    signature_provider: str = "builtin"  # builtin, docuseal, docusign, adobe_sign
-    
-    # Integration Provider
-    integration_strategy: ProviderStrategy = ProviderStrategy.BUILTIN
-    integration_provider: str = "builtin"  # builtin, n8n, zapier, make
-    
-    # AI/LLM Provider
-    ai_strategy: ProviderStrategy = ProviderStrategy.BUILTIN
-    ai_provider: str = "ollama"  # ollama, openai, azure_openai, anthropic, openrouter, bedrock
+    """Provider selection for each capability.
+
+    **Default deployment model:**
+    - Non-cloud (on_premises / hybrid): all open-source self-hosted providers.
+    - Cloud deployments: use cloud-native recommended providers (set via
+      ``get_default_providers(platform)`` from ``models.provider_models``).
+    """
+    # Search Provider — default: Meilisearch (OSS)
+    search_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    search_provider: str = "meilisearch"  # builtin, meilisearch, algolia, elasticsearch, azure_cognitive_search
+
+    # Chat Provider — default: Chatwoot (OSS)
+    chat_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    chat_provider: str = "chatwoot"  # builtin, chatwoot, intercom, zendesk, rocketchat
+
+    # Notification Provider — default: Novu (OSS)
+    notification_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    notification_provider: str = "novu"  # builtin, novu, twilio, sendgrid
+
+    # Analytics Provider — default: Metabase (OSS)
+    analytics_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    analytics_provider: str = "metabase"  # builtin, superset, metabase, powerbi
+
+    # E-Signature Provider — default: DocuSeal (OSS)
+    signature_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    signature_provider: str = "docuseal"  # builtin, docuseal, docusign, adobe_sign
+
+    # Integration Provider — default: n8n (OSS)
+    integration_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    integration_provider: str = "n8n"  # builtin, n8n, zapier, make, workato
+
+    # AI/LLM Provider — default: Ollama (OSS local LLM)
+    ai_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    ai_provider: str = "ollama"  # ollama, openai, azure_openai, anthropic, openrouter, bedrock, gemini
+
+    # Monitoring — default: Prometheus + Grafana + Loki (OSS)
+    monitoring_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    monitoring_provider: str = "prometheus_grafana"  # prometheus_grafana, uptime_kuma, datadog, azure_monitor, cloudwatch, cloud_monitoring, newrelic
+
+    # Container Management — default: Portainer CE (OSS)
+    portainer_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    portainer_provider: str = "portainer_ce"  # portainer_ce, portainer_be, kubernetes_dashboard
+
+    # Object Storage — default: MinIO (OSS)
+    storage_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    storage_provider: str = "minio"  # minio, azure_blob, aws_s3, gcs
+
+    # Reverse Proxy — default: Traefik (OSS)
+    reverse_proxy_strategy: ProviderStrategy = ProviderStrategy.OPENSOURCE
+    reverse_proxy_provider: str = "traefik"  # traefik, nginx, caddy
 
 
 @dataclass
@@ -344,13 +366,35 @@ class GitConfiguration:
 
 @dataclass
 class MonitoringConfig:
-    """Monitoring and logging configuration."""
-    application_insights_enabled: bool = True
+    """Monitoring and logging configuration.
+
+    ``provider`` mirrors ``ProviderSelection.monitoring_provider`` and drives
+    which monitoring stack is deployed.  The boolean flags below are retained
+    for backwards compatibility and are auto-derived from the provider when not
+    explicitly set.
+    """
+    # Provider key — matches ALL_PROVIDERS["monitoring"] keys.
+    # Default: "prometheus_grafana" (OSS self-hosted stack).
+    provider: str = "prometheus_grafana"
+
+    # Convenience flags (kept for backward-compat)
+    prometheus_enabled: bool = True
+    grafana_enabled: bool = True
+    loki_enabled: bool = False
+    uptime_kuma_enabled: bool = False
+
+    # Cloud-native / SaaS monitoring
+    application_insights_enabled: bool = False
     application_insights_key: Optional[str] = None
-    log_analytics_enabled: bool = True
+    log_analytics_enabled: bool = False
+    log_analytics_workspace_id: Optional[str] = None
+    datadog_api_key: Optional[str] = None
+    cloudwatch_region: Optional[str] = None
+    cloud_monitoring_project: Optional[str] = None
+    newrelic_license_key: Optional[str] = None
+
+    # Common settings
     log_retention_days: int = 30
-    prometheus_enabled: bool = False
-    grafana_enabled: bool = False
     alert_email: Optional[str] = None
 
 
@@ -484,8 +528,12 @@ class DeploymentConfig:
             data['modules'] = ModuleSelection(**data['modules'])
         
         if 'providers' in data and isinstance(data['providers'], dict):
-            for key in ['search_strategy', 'chat_strategy', 'notification_strategy', 
-                       'analytics_strategy', 'signature_strategy', 'integration_strategy', 'ai_strategy']:
+            for key in [
+                'search_strategy', 'chat_strategy', 'notification_strategy',
+                'analytics_strategy', 'signature_strategy', 'integration_strategy',
+                'ai_strategy', 'monitoring_strategy', 'portainer_strategy',
+                'storage_strategy', 'reverse_proxy_strategy',
+            ]:
                 if key in data['providers']:
                     data['providers'][key] = ProviderStrategy(data['providers'][key])
             data['providers'] = ProviderSelection(**data['providers'])
@@ -522,3 +570,73 @@ class DeploymentState:
     rollback_stack: List[Dict[str, Any]] = field(default_factory=list)
     validation_results: List[Dict[str, Any]] = field(default_factory=list)
     log_file: Optional[str] = None
+
+
+# ============================================================================
+# PLATFORM-AWARE PROVIDER SELECTION BUILDER
+# ============================================================================
+
+def build_provider_selection_for_platform(platform: str) -> "ProviderSelection":
+    """Return a ``ProviderSelection`` pre-populated with the recommended providers
+    for the given deployment platform.
+
+    On-premises / hybrid → all OSS self-hosted providers.
+    Azure / AWS / GCP    → cloud-native services where available.
+
+    Args:
+        platform: One of "on_premises", "hybrid", "azure", "aws", "gcp".
+
+    Returns:
+        A fully populated ``ProviderSelection`` instance.
+    """
+    try:
+        from models.provider_models import get_default_providers  # noqa: PLC0415
+    except ImportError:
+        try:
+            from provider_models import get_default_providers  # noqa: PLC0415
+        except ImportError:
+            return ProviderSelection()  # fallback to OSS defaults already set
+
+    defaults = get_default_providers(platform)
+
+    # Determine strategy based on whether the platform is a cloud target
+    _CLOUD_PLATFORMS = {"azure", "aws", "gcp"}
+    cloud = platform in _CLOUD_PLATFORMS
+
+    def _strategy(provider_key: str) -> ProviderStrategy:
+        """Infer strategy from provider key."""
+        if provider_key in ("builtin", ""):
+            return ProviderStrategy.BUILTIN
+        if cloud and provider_key not in (
+            "meilisearch", "chatwoot", "novu", "metabase", "docuseal",
+            "n8n", "ollama", "portainer_ce", "portainer_be", "minio",
+            "traefik", "nginx", "caddy", "prometheus_grafana", "uptime_kuma",
+            "elasticsearch",
+        ):
+            return ProviderStrategy.CLOUD_SAAS
+        return ProviderStrategy.OPENSOURCE
+
+    return ProviderSelection(
+        search_provider=defaults.get("search", "meilisearch"),
+        search_strategy=_strategy(defaults.get("search", "meilisearch")),
+        chat_provider=defaults.get("chat", "chatwoot"),
+        chat_strategy=_strategy(defaults.get("chat", "chatwoot")),
+        notification_provider=defaults.get("notification", "novu"),
+        notification_strategy=_strategy(defaults.get("notification", "novu")),
+        analytics_provider=defaults.get("analytics", "metabase"),
+        analytics_strategy=_strategy(defaults.get("analytics", "metabase")),
+        signature_provider=defaults.get("signature", "docuseal"),
+        signature_strategy=_strategy(defaults.get("signature", "docuseal")),
+        integration_provider=defaults.get("integration", "n8n"),
+        integration_strategy=_strategy(defaults.get("integration", "n8n")),
+        ai_provider=defaults.get("ai", "ollama"),
+        ai_strategy=_strategy(defaults.get("ai", "ollama")),
+        monitoring_provider=defaults.get("monitoring", "prometheus_grafana"),
+        monitoring_strategy=_strategy(defaults.get("monitoring", "prometheus_grafana")),
+        portainer_provider=defaults.get("portainer", "portainer_ce"),
+        portainer_strategy=_strategy(defaults.get("portainer", "portainer_ce")),
+        storage_provider=defaults.get("storage", "minio"),
+        storage_strategy=_strategy(defaults.get("storage", "minio")),
+        reverse_proxy_provider=defaults.get("reverse_proxy", "traefik"),
+        reverse_proxy_strategy=_strategy(defaults.get("reverse_proxy", "traefik")),
+    )
