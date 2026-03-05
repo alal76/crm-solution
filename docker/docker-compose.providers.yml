@@ -318,7 +318,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://docuseal:${DOCUSEAL_DB_PASSWORD:-changeme}@docuseal-postgres:5432/docuseal # NOSONAR - password via env var DOCUSEAL_DB_PASSWORD
       - SECRET_KEY_BASE=${DOCUSEAL_SECRET_KEY:-replace-with-secure-secret-key-64-chars-minimum}
-      - HOST=${DOCUSEAL_HOST:-localhost:3001}
+      - HOST=${DOCUSEAL_HOST:-localhost:3004}
       # Webhook configuration
       - WEBHOOK_URL=${DOCUSEAL_WEBHOOK_URL:-}
       - WEBHOOK_SECRET=${DOCUSEAL_WEBHOOK_SECRET:-}
@@ -334,7 +334,7 @@ services:
     volumes:
       - docuseal-data:/data
     ports:
-      - "${DOCUSEAL_PORT:-3001}:3000"
+      - "${DOCUSEAL_PORT:-3004}:3000"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:3000/ || exit 1"]
       interval: 30s

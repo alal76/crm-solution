@@ -123,7 +123,7 @@ test.describe('BVT - Build Verification Tests', () => {
           firstName: 'BVT',
           lastName: 'Contact',
           emailPrimary: `bvt-contact-${Date.now()}@example.com`,
-          phonePrimary: '555-CNT1'
+          phonePrimary: '555-2681'
         }
       });
       expect(response.ok()).toBeTruthy();
@@ -211,7 +211,7 @@ test.describe('BVT - Build Verification Tests', () => {
           lastName: 'Customer',
           company: 'Opp Corp',
           email: `opp-cust-${Date.now()}@example.com`,
-          phone: '555-OPP1'
+          phone: '555-6771'
         }
       });
       if (response.ok()) {
@@ -268,7 +268,7 @@ test.describe('BVT - Build Verification Tests', () => {
           lastName: 'Customer',
           company: 'SR Corp',
           email: `sr-cust-${Date.now()}@example.com`,
-          phone: '555-SR01'
+          phone: '555-7702'
         }
       });
       if (response.ok()) {
@@ -425,7 +425,7 @@ test.describe('BVT - Build Verification Tests', () => {
           lastName: 'Customer',
           company: 'Quote Corp',
           email: `quote-cust-${Date.now()}@example.com`,
-          phone: '555-QT01'
+          phone: '555-7801'
         }
       });
       if (response.ok()) {

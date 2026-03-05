@@ -233,12 +233,27 @@ class ComponentDetector:
     # ------------------------------------------------------------------
 
     def detect_docker_containers(self, _host: str = "localhost") -> List[ComponentStatus]:
-        """Parse `docker ps` output to find running crm-* containers."""
+        """Parse `docker ps` output to find running crm-* containers.
+
+        When *_host* is a non-localhost hostname/IP, the docker ps command is
+        forwarded over SSH so that the CDT can detect containers on the remote
+        deployment target rather than on the machine running the CDT.
+        """
         results: List[ComponentStatus] = []
         try:
             fmt = '{"name":"{{.Names}}","status":"{{.Status}}","image":"{{.Image}}"}'
-            cmd = ["docker", "ps", "--format", fmt]
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+            remote = _host and _host not in ("localhost", "127.0.0.1", "::1")
+            if remote:
+                # Run over SSH — requires SSH key-based auth to be available.
+                # The CDT container is started with -v ~/.ssh:/root/.ssh:ro
+                # which makes the host's SSH keys available inside the container.
+                cmd = ["ssh", "-o", "StrictHostKeyChecking=no",
+                       "-o", "ConnectTimeout=10",
+                       f"root@{_host}",
+                       f"docker ps --format '{fmt}'"]
+            else:
+                cmd = ["docker", "ps", "--format", fmt]
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
             if proc.returncode != 0:
                 return results
 

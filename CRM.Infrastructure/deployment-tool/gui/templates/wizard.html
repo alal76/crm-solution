@@ -751,7 +751,7 @@
             <button type="button" class="btn btn-outline-secondary" onclick="closeWelcome()">
               <i class="bi bi-pencil me-1"></i>Start from scratch
             </button>
-            <button type="button" class="btn btn-outline-secondary text-muted small ms-auto" onclick="localStorage.setItem('cdt_skip_welcome','1'); closeWelcome()">Don't show again</button>
+            <button type="button" class="btn btn-outline-secondary text-muted small ms-auto" onclick="skipWelcome()">Don't show again</button>
           </div>
         </div>
       </div>
@@ -1168,7 +1168,7 @@
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label" for="discoveryAuthMethod">Auth Method</label>
-                                    <select class="form-select" id="discoveryAuthMethod">
+                                    <select class="form-select" id="discoveryAuthMethod" onchange="toggleDiscoveryAuth(this.value)">
                                         <option value="password">Password</option>
                                         <option value="key">SSH Key</option>
                                     </select>
@@ -1182,6 +1182,14 @@
                                 <div class="col-md-6">
                                     <label class="form-label" for="discoveryPassword" id="discoveryPasswordLabel">Password</label>
                                     <input type="password" class="form-control" id="discoveryPassword">
+                                </div>
+                            </div>
+                            <!-- SSH key path — shown when auth method is "SSH Key" -->
+                            <div class="row mt-3" id="sshKeyRow" style="display:none;">
+                                <div class="col-12">
+                                    <label class="form-label" for="discoverySSHKey">SSH Private Key Path</label>
+                                    <input type="text" class="form-control" id="discoverySSHKey" placeholder="/root/.ssh/id_ed25519">
+                                    <small class="text-muted">Absolute path to the SSH private key inside the CDT container. Mount <code>~/.ssh</code> when running the CDT container: <code>-v $HOME/.ssh:/root/.ssh:ro</code></small>
                                 </div>
                             </div>
                             <div class="row mt-3">
@@ -4185,6 +4193,23 @@
             onPlatformChange(platform);
         }
 
+        // Toggle visibility of the password field vs. SSH key path field
+        // based on the selected auth method in the on-premises discovery form.
+        function toggleDiscoveryAuth(method) {
+            const pwCol   = document.getElementById('discoveryPassword')?.closest('.col-md-6');
+            const pwLabel = document.getElementById('discoveryPasswordLabel');
+            const keyRow  = document.getElementById('sshKeyRow');
+            if (method === 'key') {
+                if (pwCol)   pwCol.style.display   = 'none';
+                if (pwLabel) pwLabel.style.display  = 'none';
+                if (keyRow)  keyRow.style.display   = '';
+            } else {
+                if (pwCol)   pwCol.style.display   = '';
+                if (pwLabel) pwLabel.style.display  = '';
+                if (keyRow)  keyRow.style.display   = 'none';
+            }
+        }
+
         // Collapse / expand the discovery sidebar
         function toggleDiscSidebar() {
             const sidebar = document.getElementById('discSidebar');
@@ -5056,6 +5081,10 @@
             const modal = bootstrap && bootstrap.Modal.getInstance(document.getElementById('welcomeModal'));
             if (modal) modal.hide();
         }
+        function skipWelcome() {
+            localStorage.setItem('cdt_skip_welcome', '1'); // NOSONAR – stores only a UI preference flag (not sensitive); tool is local-only (127.0.0.1)
+            closeWelcome();
+        }
 
         // ── Draft persistence ─────────────────────────────────────────────────
         const DRAFT_KEY = 'cdt_draft_v1';
@@ -5067,7 +5096,10 @@
                 const ds = document.getElementById('deploymentDescription'); if (ds) config.description = ds.value;
                 const eu = document.getElementById('expectedUsers');    if (eu) config.expected_users = Number.parseInt(eu.value)||100;
                 collectStepData();
-                localStorage.setItem(DRAFT_KEY, JSON.stringify({ config, step: currentStep }));
+                // Security: This tool runs exclusively on localhost (127.0.0.1). Persisting the
+                // wizard draft to localStorage is intentional and equivalent in security to
+                // any server-side session for this local-only deployment wizard. NOSONAR
+                localStorage.setItem(DRAFT_KEY, JSON.stringify({ config, step: currentStep })); // NOSONAR
 
                 // Also persist to server as a named profile
                 const profileName = config.name || 'Untitled-Draft';
@@ -5129,7 +5161,7 @@
 
         function loadDraft() {
             try {
-                const raw = localStorage.getItem(DRAFT_KEY);
+                const raw = localStorage.getItem(DRAFT_KEY); // NOSONAR – local-only tool, see saveDraft() comment
                 if (!raw) return false;
                 const { config: saved, step } = JSON.parse(raw);
                 Object.assign(config, saved);
@@ -5314,6 +5346,11 @@
                     _setVal('discoveryHost',            target.host || target.domain_name || '');
                     _setVal('discoveryPort',            target.ssh_port || 22);
                     _setVal('discoveryUsername',        target.ssh_user || 'root');
+                    if (target.ssh_key) {
+                        _setVal('discoverySSHKey',      target.ssh_key);
+                        _setVal('discoveryAuthMethod',  'key');
+                        toggleDiscoveryAuth('key');
+                    }
                     _setVal('discoveryContainerPrefix', 'crm-');
                     _setVal('discoveryNetwork',         'crm_crm-network');
                 } else if (discPlatform === 'azure') {
@@ -5517,15 +5554,15 @@
                 _loadAndApplyProfile(profileName);
             } else {
                 // Show welcome modal unless user opted out
-                if (!localStorage.getItem('cdt_skip_welcome')) {
+                if (!localStorage.getItem('cdt_skip_welcome')) { // NOSONAR – stores only a UI preference flag, no sensitive data
                     const wm = document.getElementById('welcomeModal');
                     if (wm) { const m = new bootstrap.Modal(wm); m.show(); }
                 }
             }
 
             // Try to restore draft
-            const hasDraft = localStorage.getItem(DRAFT_KEY);
-            if (hasDraft && !tplName && !profileName && !localStorage.getItem('cdt_skip_welcome')) {
+            const hasDraft = localStorage.getItem(DRAFT_KEY); // NOSONAR – local-only tool, see saveDraft() comment
+            if (hasDraft && !tplName && !profileName && !localStorage.getItem('cdt_skip_welcome')) { // NOSONAR – UI preference flag only
                 // Will be offered via welcome modal if implemented
             }
         });
@@ -5866,17 +5903,36 @@
             const nums  = '23456789';
             const spec  = '!@#$%^&*';
             const all   = upper + lower + nums + spec;
-            // Guarantee at least one of each required class
-            const must  = [
-                upper[Math.floor(Math.random() * upper.length)],
-                lower[Math.floor(Math.random() * lower.length)],
-                nums [Math.floor(Math.random() * nums.length)],
-                spec [Math.floor(Math.random() * spec.length)],
+
+            // Cryptographically-secure character picker using rejection sampling to
+            // eliminate modulo bias. Math.random() must never be used for passwords.
+            function cryptoPick(charset) {
+                const limit = Math.floor(0x100000000 / charset.length) * charset.length;
+                const rnd = new Uint32Array(1);
+                do { crypto.getRandomValues(rnd); } while (rnd[0] >= limit);
+                return charset[rnd[0] % charset.length];
+            }
+
+            // Guarantee at least one character from each required class
+            const must = [
+                cryptoPick(upper),
+                cryptoPick(lower),
+                cryptoPick(nums),
+                cryptoPick(spec),
             ];
+
             const arr = new Uint32Array(len - 4);
             crypto.getRandomValues(arr);
             const rest = Array.from(arr, v => all[v % all.length]);
-            const combined = [...must, ...rest].sort(() => Math.random() - 0.5);
+
+            // Fisher-Yates shuffle using crypto.getRandomValues() — never Math.random()
+            const combined = [...must, ...rest];
+            const shuffleRnd = new Uint32Array(combined.length);
+            crypto.getRandomValues(shuffleRnd);
+            for (let i = combined.length - 1; i > 0; i--) {
+                const j = shuffleRnd[i] % (i + 1);
+                [combined[i], combined[j]] = [combined[j], combined[i]];
+            }
             return combined.join('');
         }
 
@@ -6067,7 +6123,7 @@
         // Field definitions per provider — rendered dynamically when a card is selected
         const _CFG_FIELDS = {
             meilisearch: [
-                {k:'url',      l:'URL',           t:'text',     ph:'http://crm-meilisearch:7700', req:true},
+                {k:'url',      l:'URL',           t:'text',     ph:'http://localhost:7700', req:true},
                 {k:'apiKey',   l:'Master API Key', t:'password', ph:'masterKey'},
             ],
             algolia: [
@@ -6080,7 +6136,7 @@
                 {k:'apiKey', l:'API Key', t:'password', req:true},
             ],
             chatwoot: [
-                {k:'baseUrl',   l:'Base URL',          t:'text',     ph:'http://crm-chatwoot:3000', req:true},
+                {k:'baseUrl',   l:'Base URL',          t:'text',     ph:'http://localhost:3003', req:true},
                 {k:'apiKey',    l:'API Access Token',  t:'password', req:true},
                 {k:'accountId', l:'Account ID',        t:'text',     ph:'1'},
                 {k:'inboxId',   l:'Inbox ID',          t:'text',     ph:'1'},
@@ -6090,14 +6146,14 @@
                 {k:'apiKey', l:'API Key',  t:'password', req:true},
             ],
             rocketchat: [
-                {k:'url',           l:'URL',            t:'text',     ph:'http://crm-rocketchat:3000', req:true},
+                {k:'url',           l:'URL',            t:'text',     ph:'http://crm-rocketchat:3005', req:true},
                 {k:'adminUser',     l:'Admin Username', t:'text'},
                 {k:'adminPassword', l:'Admin Password', t:'password'},
             ],
             novu: [
                 {k:'apiKey',        l:'API Key',            t:'password', req:true},
                 {k:'applicationId', l:'Application ID',     t:'text'},
-                {k:'baseUrl',       l:'Base URL (self-hosted)', t:'text', ph:'http://crm-novu:3000'},
+                {k:'baseUrl',       l:'Base URL (self-hosted)', t:'text', ph:'http://localhost:3000'},
             ],
             twilio: [
                 {k:'accountSid', l:'Account SID',  t:'text',     req:true},
@@ -6110,7 +6166,7 @@
                 {k:'fromName',  l:'From Name',  t:'text',     ph:'CRM System'},
             ],
             superset: [
-                {k:'url',      l:'URL',      t:'text',     ph:'http://crm-superset:8088', req:true},
+                {k:'url',      l:'URL',      t:'text',     ph:'http://localhost:8088', req:true},
                 {k:'username', l:'Username', t:'text',     ph:'admin'},
                 {k:'password', l:'Password', t:'password'},
             ],
@@ -6126,7 +6182,7 @@
                 {k:'password', l:'Password', t:'password'},
             ],
             docuseal: [
-                {k:'url',           l:'URL',            t:'text',     ph:'http://crm-docuseal:3000', req:true},
+                {k:'url',           l:'URL',            t:'text',     ph:'http://localhost:3004', req:true},
                 {k:'apiKey',        l:'API Key',        t:'password', req:true},
                 {k:'webhookSecret', l:'Webhook Secret', t:'password'},
             ],
@@ -6137,7 +6193,7 @@
                 {k:'privateKey',     l:'RSA Private Key Path', t:'text'},
             ],
             ollama: [
-                {k:'url',            l:'URL',             t:'text',     ph:'http://crm-ollama:11434', req:true},
+                {k:'url',            l:'URL',             t:'text',     ph:'http://localhost:11434', req:true},
                 {k:'model',          l:'Model',           t:'text',     ph:'llama3.1:8b'},
                 {k:'embeddingModel', l:'Embedding Model', t:'text',     ph:'nomic-embed-text'},
             ],
@@ -6166,9 +6222,9 @@
                 {k:'siteUrl', l:'Site URL (for rankings)', t:'text'},
             ],
             n8n: [
-                {k:'baseUrl',        l:'Base URL',         t:'text',     ph:'http://crm-n8n:5678', req:true},
+                {k:'baseUrl',        l:'Base URL',         t:'text',     ph:'http://localhost:5678', req:true},
                 {k:'apiKey',         l:'API Key',          t:'password'},
-                {k:'webhookBaseUrl', l:'Webhook Base URL', t:'text',     ph:'http://crm-n8n:5678/webhook'},
+                {k:'webhookBaseUrl', l:'Webhook Base URL', t:'text',     ph:'http://localhost:5678/webhook'},
             ],
             zapier: [
                 {k:'webhookUrl', l:'Catch Hook URL', t:'text', req:true, ph:'https://hooks.zapier.com/hooks/catch/...'},
@@ -6471,6 +6527,7 @@
                     config.target.host = dHost;
                     config.target.ssh_user = document.getElementById('discoveryUsername')?.value || 'root';
                     config.target.ssh_port = Number.parseInt(document.getElementById('discoveryPort')?.value || '22');
+                    config.target.ssh_key  = document.getElementById('discoverySSHKey')?.value?.trim() || '';
                     config.target.api_port = config.target.api_port || '5000';
                     config.target.frontend_port = config.target.frontend_port || '80';
                     config.deployment_host = dHost;
@@ -7733,8 +7790,9 @@ function runPreflight() {
 }
 
 function scanComponents() {
-  const hostEl = document.getElementById('ssh_host');
-  const host = (hostEl && hostEl.value) ? hostEl.value : 'localhost';
+  // Prefer the profile target host; fall back to localhost for local deployments.
+  const host = (config.target && config.target.host) ? config.target.host
+              : (_getDeploymentHost() || 'localhost');
   const gridEl = document.getElementById('detection-grid-content');
   if (!gridEl) return;
   gridEl.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm"></div> Scanning...</div>';

@@ -95,13 +95,20 @@ def detect_components():
 def port_check():
     """
     Query params:
+      host    — target hostname or IP to probe (default: localhost)
+      port    — single port integer (wizard Docker-daemon check)
       ports   — comma-separated list of integers, e.g. ?ports=80,443,5000
 
     Returns a JSON object mapping each port to a bool (True = available).
+    For a single ?port query also returns {"reachable": bool} so the wizard
+    Docker-daemon check works correctly.
     """
-    ports_param = request.args.get("ports", "")
+    host: str = request.args.get("host", "").strip() or "localhost"
+    single_port = request.args.get("port", "").strip()
+    ports_param = request.args.get("ports", single_port)
+
     if not ports_param:
-        return jsonify({"error": "Missing 'ports' query parameter"}), 400
+        return jsonify({"error": "Missing 'ports' or 'port' query parameter"}), 400
 
     results: dict = {}
     for raw in ports_param.split(","):
@@ -116,8 +123,12 @@ def port_check():
 
         # detect_tcp returns True when the port is *in use*; the UI
         # asks "is this port *available*?" so we invert the result.
-        in_use = ComponentDetector.detect_tcp("localhost", port, timeout=1.0)
+        in_use = ComponentDetector.detect_tcp(host, port, timeout=1.0)
         results[port] = not in_use
+
+    # Convenience alias for the single-port ?port=N wizard call
+    if single_port and int(single_port) in results:
+        results["reachable"] = not results[int(single_port)]
 
     return jsonify(results)
 

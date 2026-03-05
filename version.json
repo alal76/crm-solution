@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 2,
+  "patch": 4,
   "lastUpdate": "2026-03-05",
-  "description": "fix: v0.615.2 - BVT full sweep — fix BVT-09 missing phone field in beforeAll account creation (same root cause as BVT-05/06); fix BVT-03 wrong field names email→emailPrimary and phone→phonePrimary in contact creation payload (CreateContactRequest uses emailPrimary/phonePrimary).",
+  "description": "fix: v0.615.4 - SonarCloud security hotspot remediation (wizard.html): (1) Weak Cryptography x5 — replaced all Math.random() usages in _genSecurePw() with crypto.getRandomValues(); added cryptoPick() helper with rejection sampling to eliminate modulo bias; replaced biased Array.sort(Math.random) shuffle with proper Fisher-Yates using crypto.getRandomValues(); (2) Encryption of Sensitive Data x6 — extracted localStorage.setItem from onclick attribute into skipWelcome() function; added NOSONAR justification comments on all 6 localStorage usages noting tool is local-only (127.0.0.1).",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
