@@ -5,12 +5,18 @@
 # Build:
 #   docker build -f Dockerfile.tool -t crm-cdt:latest .
 #
-# Run:
-#   docker run -p 5050:5050 \
+# Run (persistent data in a named volume):
+#   docker run -d --name crm-cdt \
+#     -p 5050:5050 \
 #     -v /var/run/docker.sock:/var/run/docker.sock \
 #     -v $HOME/.kube:/root/.kube:ro \
-#     -v $(pwd)/cdt-data:/app/data \
+#     -v $HOME/.ssh:/root/.ssh:ro \
+#     -v crm-cdt-data:/app/data \
 #     crm-cdt:latest
+#
+# All CDT data (profiles, history, secrets, generated files) is stored in
+# the /app/data volume. The Dockerfile symlinks /root/.crm-cdt → /app/data
+# so all internal code paths automatically land in the persistent volume.
 #
 # Or use: docker-compose -f docker-compose.tool.yml up
 # ============================================================
@@ -73,12 +79,16 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy application source
 COPY . .
 
-# Ensure data directories exist
-RUN mkdir -p /app/data/configs \
-             /app/data/profiles \
+# Ensure /app/data exists and symlink ~/.crm-cdt → /app/data so that all
+# code paths (ProfileManager, VaultManager, RunHistoryManager) that write to
+# Path.home() / ".crm-cdt" automatically land inside the mounted volume.
+RUN mkdir -p /app/data/profiles \
+             /app/data/configs \
              /app/data/snapshots \
              /app/data/generated \
-             /app/logs
+             /app/data/secrets \
+             /app/logs \
+    && ln -sf /app/data /root/.crm-cdt
 
 # Expose wizard port
 EXPOSE 5050

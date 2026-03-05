@@ -4,15 +4,48 @@
 {% set _api_image = ('crm-api:' ~ (crm_version | default('latest'))) if build_locally else ((image_registry ~ '/' ~ image_org ~ '/crm-api:' ~ (crm_version | default('latest'))) if (image_registry and image_org) else ('crm-api:' ~ (crm_version | default('latest')))) %}
 {% set _fe_image  = ('crm-frontend:' ~ (crm_version | default('latest'))) if build_locally else ((image_registry ~ '/' ~ image_org ~ '/crm-frontend:' ~ (crm_version | default('latest'))) if (image_registry and image_org) else ('crm-frontend:' ~ (crm_version | default('latest')))) %}
 
+# ───────────────────────────────────────────────────────────────────────────
+# DB Auth Method : {{ db_auth_method }} (SPEC-INF-001)
+# Secret Store   : {{ secret_store }}
+# ───────────────────────────────────────────────────────────────────────────
+{% if db_auth_method == 'docker_secret' %}
+# Docker Secrets setup — run before first 'docker stack deploy':
+#   printf 'STRONG_PASSWORD' | docker secret create crm_db_password -
+#   printf 'ROOT_PASSWORD'   | docker secret create crm_db_root_password -
+#   printf 'JWT_SECRET'      | docker secret create crm_jwt_secret -
+{% endif %}
+
 services:
   crm-api:
     image: {{ _api_image }}
     container_name: crm-api
     restart: unless-stopped
+{% if db_auth_method == 'docker_secret' %}
+    # Docker-secret mode: entrypoint wrapper reads passwords from /run/secrets/
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        export DB_PASSWORD=$$(cat /run/secrets/crm_db_password)
+        export JWT_SECRET=$$(cat /run/secrets/crm_jwt_secret 2>/dev/null || echo "$${JWT_SECRET}")
+        export ConnectionStrings__DefaultConnection="Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};Password=$$DB_PASSWORD;"
+        exec dotnet CRM.Api.dll
+    secrets:
+      - crm_db_password
+      - crm_jwt_secret
+{% endif %}
     environment:
       - "ASPNETCORE_ENVIRONMENT=Production"
       - "ASPNETCORE_URLS=http://+:5000"
+{% if db_auth_method == 'password' %}
       - "ConnectionStrings__DefaultConnection=Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};Password={{ docker_escape(db_password) }};"
+{% elif db_auth_method == 'ssl_cert' %}
+      - "ConnectionStrings__DefaultConnection=Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};SslMode=VerifyFull;SslCert={{ db_ssl_cert_path }};SslKey={{ db_ssl_key_path }};SslCa={{ db_ssl_ca_path }};"
+{% elif db_auth_method == 'docker_secret' %}
+      # Connection string built by entrypoint wrapper from secret file above
+{% else %}
+      # Connection string managed externally — set via kubernetes or cloud secret store
+{% endif %}
       - "Jwt__Secret={{ docker_escape(jwt_secret) }}"
       - "Jwt__Issuer=CRM.Api"
       - "Jwt__Audience=CRM.Client"
@@ -87,9 +120,24 @@ services:
         condition: service_started
     networks:
       - crm-network
-{% if ssl_enabled %}
     volumes:
+{% if ssl_enabled %}
       - ssl_certs:/etc/ssl/crm:ro
+{% endif %}
+{% if db_auth_method == 'ssl_cert' %}
+      # Mount DB client TLS certificates (required for mTLS auth)
+      - type: bind
+        source: ./ssl/db-client.crt
+        target: {{ db_ssl_cert_path }}
+        read_only: true
+      - type: bind
+        source: ./ssl/db-client.key
+        target: {{ db_ssl_key_path }}
+        read_only: true
+      - type: bind
+        source: ./ssl/db-ca.crt
+        target: {{ db_ssl_ca_path }}
+        read_only: true
 {% endif %}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
@@ -121,13 +169,49 @@ services:
     image: mariadb:{{ db_version | default('10.11') }}
     container_name: crm-mariadb
     restart: unless-stopped
+{% if db_auth_method == 'docker_secret' %}
+    # Docker-secret mode: root & user passwords read from secret files
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        export MYSQL_ROOT_PASSWORD=$$(cat /run/secrets/crm_db_root_password)
+        export MYSQL_PASSWORD=$$(cat /run/secrets/crm_db_password)
+        exec /usr/local/bin/docker-entrypoint.sh mariadbd
+    secrets:
+      - crm_db_root_password
+      - crm_db_password
+{% endif %}
     environment:
-      - "MYSQL_ROOT_PASSWORD={{ docker_escape(db_root_password | default(generate_password(24))) }}"
+{% if db_auth_method == 'password' %}
+      - "MYSQL_ROOT_PASSWORD={{ docker_escape(db_root_password) }}"
+      - "MYSQL_PASSWORD={{ docker_escape(db_password) }}"
+{% elif db_auth_method != 'docker_secret' %}
+      # Passwords managed externally — set via orchestrator secrets
+{% endif %}
       - "MYSQL_DATABASE={{ db_name | default('crm_db') }}"
       - "MYSQL_USER={{ db_user | default('crm_user') }}"
-      - "MYSQL_PASSWORD={{ docker_escape(db_password) }}"
+{% if db_auth_method == 'ssl_cert' %}
+      # Enable SSL on MariaDB — mount certs at /etc/mysql/certs/
+      - "MARIADB_TLS_VERSION=TLSv1.3"
+{% endif %}
     volumes:
       - mariadb_data:/var/lib/mysql
+{% if db_auth_method == 'ssl_cert' %}
+      # Mount DB server TLS certs for SSL connections
+      - type: bind
+        source: ./ssl/db-server.crt
+        target: /etc/mysql/certs/server.crt
+        read_only: true
+      - type: bind
+        source: ./ssl/db-server.key
+        target: /etc/mysql/certs/server.key
+        read_only: true
+      - type: bind
+        source: ./ssl/db-ca.crt
+        target: /etc/mysql/certs/ca.crt
+        read_only: true
+{% endif %}
     networks:
       - crm-network
     healthcheck:
@@ -589,4 +673,24 @@ volumes:
 {% if providers.get('integration_provider') == 'n8n' %}
   n8n_data:
   n8n_postgres_data:
+{% endif %}
+
+{% if db_auth_method == 'docker_secret' %}
+# ── Docker Secrets (SPEC-INF-001 AUTH-DOCKER-SECRET) ─────────────────────────
+# Secrets below must be created BEFORE deploying with `docker stack deploy`.
+# Commands:
+#   printf 'STRONG_DB_PASSWORD'   | docker secret create crm_db_password -
+#   printf 'STRONG_ROOT_PASSWORD' | docker secret create crm_db_root_password -
+#   printf 'STRONG_JWT_SECRET'    | docker secret create crm_jwt_secret -
+# To rotate a secret:
+#   docker secret rm crm_db_password
+#   printf 'NEW_STRONG_PASSWORD'  | docker secret create crm_db_password -
+#   docker service update --force crm_crm-api
+secrets:
+  crm_db_password:
+    external: true
+  crm_db_root_password:
+    external: true
+  crm_jwt_secret:
+    external: true
 {% endif %}

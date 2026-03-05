@@ -384,8 +384,28 @@ const LoginPage: React.FC = () => {
         await googleLogin(response.credential);
         navigate('/');
       } catch (err: unknown) {
-        const error = err as { response?: { data?: { message?: string } } };
-        setError(error.response?.data?.message || 'Google login failed');
+        const error = err as {
+          response?: { data?: { message?: string }; status?: number };
+          request?: unknown;
+          message?: string;
+          code?: string;
+        };
+        const status = error.response?.status;
+        const serverMsg = error.response?.data?.message;
+        let errorMessage: string;
+        if (!error.response && error.request) {
+          errorMessage = 'Cannot reach the CRM API to complete Google sign-in. Check that the backend service is running.';
+        } else if (status === 401 || status === 403) {
+          errorMessage = serverMsg || 'Google account not authorised for this CRM. Contact your administrator.';
+        } else if (status === 502) {
+          errorMessage = 'Bad Gateway (502): The API is not reachable. Please try again shortly.';
+        } else if (status === 500) {
+          errorMessage = `Server error (500) during Google sign-in${serverMsg ? ': ' + serverMsg : ''}. Please try again.`;
+        } else {
+          errorMessage = serverMsg || error.message || 'Google sign-in failed. Please try again.';
+        }
+        setError(errorMessage);
+        debugError('[LoginPage] Google login error', { status, errorMessage, code: error.code, error });
       } finally {
         setLoading(false);
         googleLoginInProgress.current = false;
@@ -475,22 +495,52 @@ const LoginPage: React.FC = () => {
         
         navigate('/');
       } catch (err: unknown) {
-        const error = err as { 
+        const error = err as {
           response?: { data?: { message?: string; error?: string }; status?: number };
+          request?: unknown;
           message?: string;
+          code?: string;
         };
-        let errorMessage = 'Login failed. Please check your credentials.';
-        if (error.response?.status === 401) {
-          errorMessage = 'Invalid email or password';
-        } else if (error.response?.data?.message) {
-          errorMessage = error.response.data.message;
-        } else if (error.response?.data?.error) {
-          errorMessage = error.response.data.error;
-        } else if (error.message) {
-          errorMessage = error.message;
+        const status = error.response?.status;
+        const serverMsg = error.response?.data?.message || error.response?.data?.error;
+        let errorMessage: string;
+
+        if (!error.response && error.request) {
+          // Request made but no response — API unreachable
+          if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+            errorMessage = 'Connection timed out. The API server is not responding — please check that the backend service is running.';
+          } else {
+            errorMessage = 'Cannot reach the CRM API server. The service may be down or unreachable — verify the API container is running and the network is accessible.';
+          }
+        } else if (!error.response) {
+          // Network error before request was sent
+          errorMessage = `Network error: ${error.message || 'Unknown network failure'}. Check your connection and that the CRM API is reachable.`;
+        } else if (status === 400) {
+          errorMessage = serverMsg || 'Invalid login request. Please check your email and password format.';
+        } else if (status === 401) {
+          errorMessage = serverMsg || 'Invalid email or password. Please try again.';
+        } else if (status === 403) {
+          errorMessage = serverMsg || 'Your account does not have permission to log in. Contact your administrator.';
+        } else if (status === 423) {
+          errorMessage = serverMsg || 'Your account is locked due to too many failed attempts. Please wait or contact your administrator.';
+        } else if (status === 429) {
+          errorMessage = 'Too many login attempts. Please wait a moment before trying again.';
+        } else if (status === 500) {
+          errorMessage = `Internal server error (500). The API encountered an unexpected error${serverMsg ? ': ' + serverMsg : ' — this may indicate a database connectivity issue'}. Please try again or contact support.`;
+        } else if (status === 502) {
+          errorMessage = 'Bad Gateway (502): The API gateway could not reach the backend service. The API container may be down, restarting, or misconfigured. Check that crm-api is running.';
+        } else if (status === 503) {
+          errorMessage = 'Service Unavailable (503): The CRM API is temporarily unavailable — it may be starting up or overloaded. Please wait a moment and retry.';
+        } else if (status === 504) {
+          errorMessage = 'Gateway Timeout (504): The API did not respond in time. The database or a dependent service may be slow or unresponsive.';
+        } else if (status) {
+          errorMessage = `Login failed with status ${status}${serverMsg ? ': ' + serverMsg : ''}. Please try again or contact support.`;
+        } else {
+          errorMessage = error.message || 'An unexpected error occurred. Please try again.';
         }
+
         setError(errorMessage);
-        debugError('[LoginPage] Login error', { errorMessage, error });
+        debugError('[LoginPage] Login error', { status, errorMessage, code: error.code, serverMsg, error });
       } finally {
         setLoading(false);
         loginInProgress.current = false;
@@ -522,18 +572,36 @@ const LoginPage: React.FC = () => {
         
         navigate('/');
       } catch (err: unknown) {
-        const error = err as { 
+        const error = err as {
           response?: { data?: { message?: string }; status?: number };
+          request?: unknown;
           message?: string;
+          code?: string;
         };
-        
-        let errorMessage = 'Invalid verification code. Please try again.';
-        
-        if (error.response?.data?.message) {
-          errorMessage = error.response.data.message;
+        const status = error.response?.status;
+        const serverMsg = error.response?.data?.message;
+        let errorMessage: string;
+
+        if (!error.response && error.request) {
+          errorMessage = 'Cannot reach the CRM API to verify the code. Check that the backend service is running.';
+        } else if (status === 400 || status === 401) {
+          errorMessage = serverMsg || 'Invalid or expired verification code. Please try again.';
+        } else if (status === 429) {
+          errorMessage = 'Too many verification attempts. Please wait before retrying.';
+        } else if (status === 500) {
+          errorMessage = `Server error (500) during 2FA verification${serverMsg ? ': ' + serverMsg : ''}. Please try again.`;
+        } else if (status === 502) {
+          errorMessage = 'Bad Gateway (502): Cannot reach the authentication service. Please try again shortly.';
+        } else if (status === 503 || status === 504) {
+          errorMessage = `Service temporarily unavailable (${status}). Please wait a moment and retry.`;
+        } else if (status) {
+          errorMessage = serverMsg || `Verification failed (${status}). Please try again.`;
+        } else {
+          errorMessage = serverMsg || 'Invalid verification code. Please try again.';
         }
-        
+
         setError(errorMessage);
+        debugError('[LoginPage] 2FA verification error', { status, errorMessage, code: error.code, error });
       } finally {
         setLoading(false);
       }

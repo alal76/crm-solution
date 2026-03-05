@@ -273,26 +273,87 @@ class WizardValidator:
         self._merge(result, self.validate_required(data.get("provider"), "provider", "Deployment provider"))
         return result
 
+    def _validate_db_password_required(self, data: dict, auth_method: str) -> ValidationResult:
+        """Validate password only when auth method requires a static credential."""
+        result = ValidationResult(valid=True)
+        if auth_method not in ("password", "docker_secret"):
+            return result
+        db_password = data.get("db_password", "")
+        if not db_password or not db_password.strip():
+            result.add_error(
+                "db_password",
+                f"Database password is required when auth method is '{auth_method}'.",
+                "Enter a password or switch to a password-free auth method "
+                "(iam_aws / iam_azure / iam_gcp / ssl_cert / vault_dynamic).",
+            )
+        return result
+
+    def _validate_db_auth_method_fields(self, data: dict, auth_method: str) -> ValidationResult:
+        """Validate auth-method-specific required fields per SPEC-INF-001."""
+        result = ValidationResult(valid=True)
+        if auth_method == "iam_aws":
+            arn = data.get("db_iam_role_arn", "")
+            if not arn or not arn.strip():
+                result.add_warning(
+                    "db_iam_role_arn is empty — ensure the EKS/ECS task role has "
+                    "rds-db:connect IAM permission for the RDS resource ARN."
+                )
+        elif auth_method == "iam_gcp":
+            instance = data.get("db_cloud_sql_instance", "")
+            if not instance or not instance.strip():
+                result.add_error(
+                    "db_cloud_sql_instance",
+                    "Cloud SQL instance connection name is required for GCP Workload Identity auth.",
+                    "Format: PROJECT:REGION:INSTANCE — e.g. my-project:us-central1:crm-db",
+                )
+        elif auth_method == "ssl_cert":
+            self._merge(result, self._validate_ssl_cert_fields(data))
+        elif auth_method == "vault_dynamic":
+            vault_addr = data.get("vault_address", "")
+            if not vault_addr or not vault_addr.strip():
+                result.add_error(
+                    "vault_address",
+                    "Vault address is required for dynamic credential auth.",
+                    "Enter the Vault server URL accessible from within the cluster.",
+                )
+        return result
+
+    def _validate_ssl_cert_fields(self, data: dict) -> ValidationResult:
+        """Validate the three SSL cert paths required for mTLS auth."""
+        result = ValidationResult(valid=True)
+        for field_id, label in (
+            ("db_ssl_cert_path", "Client certificate path"),
+            ("db_ssl_key_path", "Client key path"),
+            ("db_ssl_ca_path", "CA certificate path"),
+        ):
+            val = data.get(field_id, "")
+            if not val or not val.strip():
+                result.add_error(
+                    field_id,
+                    f"{label} is required for mTLS client certificate auth.",
+                    "Provide the container path to the mounted certificate file.",
+                )
+        return result
+
     def _validate_database(self, data: dict) -> ValidationResult:
         result = ValidationResult(valid=True)
-        db_name = data.get("db_name", "")
-        db_user = data.get("db_user", "")
-        db_host = data.get("db_host", "")
-        db_port = data.get("db_port")
+        auth_method = data.get("db_auth_method", "password")
 
-        self._merge(result, self.validate_required(db_name, "db_name", "Database name"))
-        if db_name:
-            self._merge(result, self.validate_min_length(db_name, "db_name", 3, "Database name"))
+        self._merge(result, self.validate_required(data.get("db_name", ""), "db_name", "Database name"))
+        if data.get("db_name"):
+            self._merge(result, self.validate_min_length(data["db_name"], "db_name", 3, "Database name"))
 
-        self._merge(result, self.validate_required(db_user, "db_user", "Database user"))
-        if db_user:
-            self._merge(result, self.validate_min_length(db_user, "db_user", 3, "Database user"))
+        self._merge(result, self.validate_required(data.get("db_user", ""), "db_user", "Database user"))
+        if data.get("db_user"):
+            self._merge(result, self.validate_min_length(data["db_user"], "db_user", 3, "Database user"))
 
-        self._merge(result, self.validate_required(db_host, "db_host", "Database host"))
+        self._merge(result, self.validate_required(data.get("db_host", ""), "db_host", "Database host"))
 
-        if db_port is not None:
-            self._merge(result, self.validate_port(db_port, "db_port"))
+        if data.get("db_port") is not None:
+            self._merge(result, self.validate_port(data["db_port"], "db_port"))
 
+        self._merge(result, self._validate_db_password_required(data, auth_method))
+        self._merge(result, self._validate_db_auth_method_fields(data, auth_method))
         return result
 
     def _validate_security(self, data: dict) -> ValidationResult:

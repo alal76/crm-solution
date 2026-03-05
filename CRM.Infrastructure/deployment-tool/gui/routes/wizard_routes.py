@@ -53,8 +53,7 @@ def _percent_complete(session: WizardSession) -> int:
 
 @wizard_bp.route("/api/wizard/session", methods=["POST"])
 def create_session():
-    session = WizardSession(session_id=str(uuid.uuid4()))
-    _store.save(session)
+    session = _store.create()
     return jsonify({
         "session_id": session.session_id,
         "current_step": session.current_step,
@@ -122,7 +121,7 @@ def submit_step(session_id: str, step_id: str):
         )
         _inject_provider_defaults(session, platform)
 
-    _store.save(session)
+    _store.update(session)
 
     return jsonify({
         "valid": True,

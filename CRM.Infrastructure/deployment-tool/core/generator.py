@@ -239,6 +239,54 @@ class ConfigGenerator:
         ctx["profile_name"] = meta.get("profile_name", "crm")
         ctx["crm_version"] = meta.get("crm_version", "latest")
 
+    # -----------------------------------------------------------------------
+    # Auth-method smart defaulting (SPEC-INF-001)
+    # -----------------------------------------------------------------------
+
+    # Maps (provider, container_runtime, environment_type) → (db_auth_method, secret_store)
+    # First matching rule wins; falls back to (password, env_file).
+    _AUTH_RULES: list[tuple[dict, str, str]] = [
+        # Cloud-managed IAM — no static passwords ever
+        ({"provider": "aws"},                                        "iam_aws",      "aws_secrets_manager"),
+        ({"provider": "azure"},                                      "iam_azure",    "azure_key_vault"),
+        ({"provider": "gcp"},                                        "iam_gcp",      "gcp_secret_manager"),
+        # Cloud variants that select a specific runtime
+        ({"provider": "rds_mysql"},                                  "iam_aws",      "aws_secrets_manager"),
+        ({"provider": "azure_mysql"},                                "iam_azure",    "azure_key_vault"),
+        ({"provider": "cloud_sql"},                                  "iam_gcp",      "gcp_secret_manager"),
+        # On-prem Kubernetes — Vault dynamic creds (most secure)
+        ({"container_runtime": "kubernetes", "environment_type": "production"},
+         "vault_dynamic", "vault"),
+        # On-prem Kubernetes — staging
+        ({"container_runtime": "kubernetes", "environment_type": "staging"},
+         "k8s_secret",    "k8s_secret"),
+        # ECS Fargate (AWS-flavoured Docker runtime) — IAM task role
+        ({"container_runtime": "ecs_fargate"},                       "iam_aws",      "aws_secrets_manager"),
+        # Azure Container Apps
+        ({"container_runtime": "aca"},                               "iam_azure",    "azure_key_vault"),
+        # GCP Cloud Run
+        ({"container_runtime": "cloud_run"},                         "iam_gcp",      "gcp_secret_manager"),
+        # On-prem Docker Compose production
+        ({"container_runtime": "docker_compose", "environment_type": "production"},
+         "docker_secret", "docker_secret"),
+        # On-prem Docker Compose staging
+        ({"container_runtime": "docker_compose", "environment_type": "staging"},
+         "docker_secret", "docker_secret"),
+    ]
+
+    @classmethod
+    def _resolve_auth_model(cls, ctx: dict) -> tuple[str, str]:
+        """Return (db_auth_method, secret_store) from SPEC-INF-001 rules.
+
+        Iterates _AUTH_RULES in order; a rule matches when ALL its keys
+        match the corresponding ctx values.  Falls back to (password, env_file)
+        for development / unknown contexts.
+        """
+        for conditions, auth_method, secret_store in cls._AUTH_RULES:
+            if all(ctx.get(k) == v for k, v in conditions.items()):
+                return auth_method, secret_store
+        return "password", "env_file"
+
     def _apply_optional_defaults(self, ctx: dict) -> None:
         """Apply optional template variable defaults so StrictUndefined never raises."""
         defaults = {
@@ -322,6 +370,21 @@ class ConfigGenerator:
             "azure_storage_key":         "",
             "aws_s3_bucket":             "",
             "gcs_bucket":                "",
+            # ── SPEC-INF-001: Connectivity Security Model defaults ──────────
+            "db_auth_method":            "password",
+            "secret_store":              "env_file",
+            "db_ssl_cert_path":          "/certs/client.crt",
+            "db_ssl_key_path":           "/certs/client.key",
+            "db_ssl_ca_path":            "/certs/ca.crt",
+            "db_iam_role_arn":           "",
+            "db_managed_identity_client_id": "",
+            "db_cloud_sql_instance":     "",
+            "vault_address":             "http://vault.vault-system.svc.cluster.local:8200",
+            "vault_role":                "crm-api",
+            "vault_kv_path":             "secret/data/crm",
+            "aws_secret_prefix":         "/crm/prod/",
+            "azure_kv_url":              "",
+            "gcp_project_id":            "",
         }
         for key, default in defaults.items():
             ctx.setdefault(key, default)
@@ -331,23 +394,44 @@ class ConfigGenerator:
         ctx: dict = {}
         self._flatten_profile_sections(profile, ctx)
 
-        # Auto-fill missing required secrets — passwords MUST be entered
-        # by the user or recovered from an existing deployment.  Only tokens
-        # and cryptographic keys are auto-generated.
-        if not ctx.get("db_password"):
-            raise ValueError(
-                "Database password is required. Enter it in the Secrets "
-                "& Authentication step or ensure it is recovered from the "
-                "existing deployment."
-            )
+        # ── DB auth method + secret store — auto-selection (SPEC-INF-001) ──────
+        # Run early so validation below can inspect db_auth_method.
+        if not ctx.get("db_auth_method"):
+            auth_method, secret_store = self._resolve_auth_model(ctx)
+            ctx["db_auth_method"] = auth_method
+            ctx.setdefault("secret_store", secret_store)
+        else:
+            if not ctx.get("secret_store"):
+                _, secret_store = self._resolve_auth_model(ctx)
+                ctx.setdefault("secret_store", secret_store)
+
+        db_auth = ctx["db_auth_method"]
+        _password_required = db_auth in ("password", "docker_secret")
+        _managed_db = ctx.get("db_deployment") in ("cloud_managed", "existing")
+
+        # Auto-fill missing required secrets — passwords MUST be entered by the
+        # user for password/docker_secret modes; for IAM / cert / Vault modes
+        # a static password is neither needed nor desirable.
+        if _password_required:
+            if not ctx.get("db_password"):
+                raise ValueError(
+                    f"Database password is required when db_auth_method='{db_auth}'. "
+                    "Enter it in the Database step or choose a password-free auth method "
+                    "(iam_aws / iam_azure / iam_gcp / ssl_cert / vault_dynamic)."
+                )
+            if not _managed_db and not ctx.get("db_root_password"):
+                raise ValueError(
+                    "Database root password is required when deploying a new container with "
+                    f"db_auth_method='{db_auth}'. Enter it in the Database step."
+                )
+        else:
+            # For non-password auth methods generate a placeholder that will never
+            # be used — templates suppress it, but StrictUndefined still needs a value.
+            ctx.setdefault("db_password", "")
+            ctx.setdefault("db_root_password", "")
+
         if not ctx.get("jwt_secret"):
             ctx["jwt_secret"] = self.generate_token(32)
-        if not ctx.get("db_root_password"):
-            raise ValueError(
-                "Database root password is required. Enter it in the "
-                "Secrets & Authentication step or ensure it is recovered "
-                "from the existing deployment."
-            )
 
         # Default image registry — empty means local images (no registry prefix)
         ctx.setdefault("image_registry", "")
@@ -387,8 +471,33 @@ class ConfigGenerator:
             if provider_val and provider_val != "builtin" and not ctx.get(pw_key):
                 ctx[pw_key] = self.generate_password(20)
 
-        # SSL defaults
-        ctx.setdefault("ssl_enabled", False)
+# ── DB auth method + secret store — SPEC-INF-001 auto-selection ──────
+            if not ctx.get("db_auth_method"):
+                auth_method, secret_store = self._resolve_auth_model(ctx)
+                ctx.setdefault("db_auth_method", auth_method)
+                ctx.setdefault("secret_store", secret_store)
+            else:
+                # db_auth_method explicitly set — still auto-fill secret_store if missing
+                if not ctx.get("secret_store"):
+                    _, secret_store = self._resolve_auth_model(ctx)
+                    ctx.setdefault("secret_store", secret_store)
+
+            # ── SSL defaults ───────────────────────────────────────────────────────
+            ctx.setdefault("ssl_enabled", False)
+            ctx.setdefault("db_ssl_cert_path", "/certs/client.crt")
+            ctx.setdefault("db_ssl_key_path", "/certs/client.key")
+            ctx.setdefault("db_ssl_ca_path", "/certs/ca.crt")
+
+            # ── Cloud-specific connectivity defaults ───────────────────────────────
+            ctx.setdefault("db_iam_role_arn", "")
+            ctx.setdefault("db_managed_identity_client_id", "")
+            ctx.setdefault("db_cloud_sql_instance", "")
+            ctx.setdefault("vault_address", "http://vault.vault-system.svc.cluster.local:8200")
+            ctx.setdefault("vault_role", "crm-api")
+            ctx.setdefault("vault_kv_path", "secret/data/crm")
+            ctx.setdefault("aws_secret_prefix", "/crm/prod/")
+            ctx.setdefault("azure_kv_url", "")
+            ctx.setdefault("gcp_project_id", "")
 
         self._apply_optional_defaults(ctx)
         return ctx

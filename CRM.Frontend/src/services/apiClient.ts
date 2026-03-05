@@ -60,12 +60,44 @@ apiClient.interceptors.response.use(
   },
   (error) => {
     if (error.response) {
-      debugError('API Response Error:', {
-        status: error.response.status,
-        url: error.config?.url,
-        data: error.response.data,
+      const status: number = error.response.status;
+      const url: string = error.config?.url ?? 'unknown';
+      const serverMsg: string =
+        error.response.data?.message ||
+        error.response.data?.error ||
+        error.response.data?.title ||
+        '';
+
+      const statusLabels: Record<number, string> = {
+        400: 'Bad Request',
+        401: 'Unauthorised',
+        403: 'Forbidden',
+        404: 'Not Found',
+        422: 'Unprocessable Entity',
+        423: 'Account Locked',
+        429: 'Rate Limited',
+        500: 'Internal Server Error (possible DB or service failure)',
+        502: 'Bad Gateway — API gateway cannot reach the backend/API container',
+        503: 'Service Unavailable — backend may be starting up or overloaded',
+        504: 'Gateway Timeout — backend or database did not respond in time',
+      };
+      const label = statusLabels[status] || `HTTP ${status}`;
+
+      debugError(`API Error [${status} ${label}] ${url}`, {
+        status,
+        url,
+        serverMessage: serverMsg || '(none)',
+        responseData: error.response.data,
       });
-      
+
+      if (status === 502 || status === 503 || status === 504) {
+        console.error(
+          `[CRM API] ${label} on ${url}. ` +
+          'Possible causes: crm-api container is down, the reverse proxy cannot route to it, ' +
+          'or the database is unavailable. Check Docker/K8s logs for crm-api and crm-mariadb.'
+        );
+      }
+
       if (error.response.status === 401) {
         debugLog('Unauthorized - clearing tokens');
         localStorage.removeItem('accessToken');
@@ -87,12 +119,25 @@ apiClient.interceptors.response.use(
         }
       }
     } else if (error.request) {
-      debugError('API No Response:', {
-        url: error.config?.url,
-        message: error.message,
-      });
+      const url: string = error.config?.url ?? 'unknown';
+      const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+      debugError(
+        isTimeout
+          ? `API Timeout — no response from ${url} within ${error.config?.timeout ?? 10000}ms`
+          : `API No Response — request to ${url} got no reply (service may be down or unreachable)`,
+        {
+          url,
+          code: error.code,
+          message: error.message,
+          hint: 'Check that crm-api container is running. For 502/no-response: verify the API service port, Docker network, and that crm-mariadb is healthy.',
+        }
+      );
+      console.error(
+        `[CRM API] Cannot reach ${url}. ` +
+        'Ensure the crm-api service is running (docker ps | grep crm-api) and accessible on the expected port.'
+      );
     } else {
-      debugError('API Error:', error.message);
+      debugError('API Request Setup Error:', { message: error.message, code: error.code });
     }
     
     return Promise.reject(error);

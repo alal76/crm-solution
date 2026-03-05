@@ -248,6 +248,81 @@ steps:
             label: "Separate containers per component"
           - value: use_existing
             label: "Use existing databases (map manually)"
+      - id: db_auth_method
+        type: select
+        label: "Database Authentication Method"
+        required: true
+        default: password
+        help_text: "How the API authenticates to the database. The CDT auto-recommends the best method for your chosen platform (see SPEC-INF-001). Override only if you have a specific requirement."
+        options:
+          - value: password
+            label: "Username + Password (env var / .env file)"
+          - value: docker_secret
+            label: "Docker Secret (Compose/Swarm — password never in files)"
+          - value: k8s_secret
+            label: "Kubernetes Secret (ESO-managed — recommended for K8s)"
+          - value: ssl_cert
+            label: "mTLS Client Certificate (no password)"
+          - value: iam_aws
+            label: "AWS RDS IAM Authentication (no static password)"
+          - value: iam_azure
+            label: "Azure Managed Identity (no static password)"
+          - value: iam_gcp
+            label: "GCP Workload Identity + Cloud SQL Auth Proxy"
+          - value: vault_dynamic
+            label: "HashiCorp Vault Dynamic Credentials (auto-rotating)"
+      - id: db_iam_role_arn
+        type: text
+        label: "IAM Role ARN (AWS RDS IAM)"
+        required: false
+        conditional: "db_auth_method == iam_aws"
+        help_text: "ARN of the IAM role/user granted rds-db:connect. E.g. arn:aws:iam::123456789:role/crm-api-role"
+      - id: db_managed_identity_client_id
+        type: text
+        label: "Managed Identity Client ID (Azure)"
+        required: false
+        conditional: "db_auth_method == iam_azure"
+        help_text: "Client ID of the User-Assigned Managed Identity configured on the AKS node pool or Container App"
+      - id: db_cloud_sql_instance
+        type: text
+        label: "Cloud SQL Instance Connection Name"
+        required: false
+        conditional: "db_auth_method == iam_gcp"
+        help_text: "Format: PROJECT:REGION:INSTANCE — e.g. my-project:us-central1:crm-db"
+      - id: db_ssl_cert_path
+        type: text
+        label: "Client Certificate Path"
+        required: false
+        conditional: "db_auth_method == ssl_cert"
+        help_text: "Path to client TLS certificate file (.crt) mounted into the container"
+        default: "/certs/client.crt"
+      - id: db_ssl_key_path
+        type: text
+        label: "Client Key Path"
+        required: false
+        conditional: "db_auth_method == ssl_cert"
+        help_text: "Path to client TLS key file (.key) mounted into the container"
+        default: "/certs/client.key"
+      - id: db_ssl_ca_path
+        type: text
+        label: "CA Certificate Path"
+        required: false
+        conditional: "db_auth_method in [ssl_cert, iam_aws]"
+        help_text: "Path to CA certificate — required for VerifyFull SSL mode"
+        default: "/certs/ca.crt"
+      - id: vault_address
+        type: text
+        label: "Vault Address"
+        required: false
+        conditional: "db_auth_method == vault_dynamic"
+        help_text: "HashiCorp Vault server URL — e.g. http://vault.vault-system.svc.cluster.local:8200"
+      - id: vault_role
+        type: text
+        label: "Vault K8s Auth Role"
+        required: false
+        conditional: "db_auth_method == vault_dynamic"
+        help_text: "Vault Kubernetes auth role bound to the crm-api service account"
+        default: "crm-api"
       - id: ha_enabled
         type: toggle
         label: "High Availability"
@@ -294,6 +369,53 @@ steps:
     template: security.html
     description: "Configure secrets, authentication, and hardening"
     fields:
+      - id: secret_store
+        type: select
+        label: "Provider Secret Store"
+        required: true
+        default: env_file
+        help_text: "Where API keys, provider passwords, and JWT secrets are stored. CDT auto-recommends based on your platform — see SPEC-INF-001."
+        options:
+          - value: env_file
+            label: "Environment File (.env) — development only"
+          - value: docker_secret
+            label: "Docker Secrets (Compose/Swarm) — on-prem production"
+          - value: k8s_secret
+            label: "Kubernetes Secrets (ESO-managed) — Kubernetes"
+          - value: vault
+            label: "HashiCorp Vault KV — on-prem K8s"
+          - value: aws_secrets_manager
+            label: "AWS Secrets Manager"
+          - value: azure_key_vault
+            label: "Azure Key Vault"
+          - value: gcp_secret_manager
+            label: "GCP Secret Manager"
+      - id: vault_kv_path
+        type: text
+        label: "Vault KV Path Prefix"
+        required: false
+        conditional: "secret_store == vault"
+        help_text: "KV v2 path prefix for CRM secrets — e.g. secret/data/crm/prod"
+        default: "secret/data/crm"
+      - id: aws_secret_prefix
+        type: text
+        label: "AWS Secrets Manager Path Prefix"
+        required: false
+        conditional: "secret_store == aws_secrets_manager"
+        help_text: "Prefix for secret names — e.g. /crm/prod/"
+        default: "/crm/prod/"
+      - id: azure_kv_url
+        type: text
+        label: "Azure Key Vault URL"
+        required: false
+        conditional: "secret_store == azure_key_vault"
+        help_text: "URL of the Azure Key Vault — e.g. https://kv-crm-prod.vault.azure.net"
+      - id: gcp_project_id
+        type: text
+        label: "GCP Project ID"
+        required: false
+        conditional: "secret_store == gcp_secret_manager"
+        help_text: "GCP project containing Secret Manager secrets"
       - id: jwt_secret
         type: password
         label: "JWT Signing Secret"

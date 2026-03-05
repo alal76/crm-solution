@@ -3985,6 +3985,14 @@
             }
         }
 
+        /** Return a URL query-param string targeting the active profile, e.g. "?profile=my-server".
+         *  Used by Day-2 endpoints so they monitor the right environment instead of localhost.
+         */
+        function _profileParam() {
+            const name = config.name || '';
+            return name ? `?profile=${encodeURIComponent(name)}` : '';
+        }
+
         /** Derive the deployment host from various config fields. */
         function _getDeploymentHost() {
             if (config.platform === 'on_premises') {
@@ -5507,6 +5515,9 @@
                 if (!resp.ok) { console.warn('[CDT] Profile not found:', name); return; }
                 const data = await resp.json();
                 applyTemplateToWizard(data, name, false);
+                // Activate the profile server-side so Day-2 endpoints target the right host.
+                fetch(`/api/profiles/${encodeURIComponent(name)}/activate`, { method: 'POST' })
+                    .catch(() => {});
             } catch (e) {
                 console.error('[CDT] Failed to load profile:', e);
             }
@@ -8049,6 +8060,14 @@ async function applySelectedProfile() {
 
         document.getElementById('step-profile-browser').style.display = 'none';
         if (showToast) { showToast('Profile loaded — wizard fields updated', 'success'); }
+
+        // Tell the server which profile is now active so Day-2 endpoints (networks,
+        // images, containers) monitor the right environment without needing an
+        // explicit ?profile= param as a fallback.
+        if (_selectedProfileName) {
+            fetch(`/api/profiles/${encodeURIComponent(_selectedProfileName)}/activate`, { method: 'POST' })
+                .catch(() => { /* non-critical — profile param in Day-2 calls is the primary mechanism */ });
+        }
     } catch(e) { showErrorPopup('Profile Load Error', 'Failed to load profile', e.message); }
 }
 function closeProfileBrowser() {
@@ -8405,7 +8424,8 @@ async function day2Action(action) {
     }
     const epMap = {upgrade:'/api/day2/upgrade', rollback:'/api/day2/rollback', scale:'/api/day2/scale', rotate_secrets:'/api/day2/rotate-secret'};
     try {
-        const resp = await fetch(epMap[action]||`/api/day2/${action}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const pp = _profileParam(); const ep = (epMap[action]||`/api/day2/${action}`) + pp;
+        const resp = await fetch(ep, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
         if (!resp.ok) {
             let errMsg = 'HTTP ' + resp.status;
             try { const errData = await resp.json(); errMsg = errData.error || errData.message || errMsg; } catch(_e) {}
@@ -8432,7 +8452,7 @@ async function day2Action(action) {
 async function loadDay2Containers() {
     const el = document.getElementById('d2ContainerList');
     try {
-        const resp = await fetch('/api/day2/status/all');
+        const resp = await fetch('/api/day2/status/all' + _profileParam());
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         const containers = data.containers || [];
@@ -8453,7 +8473,7 @@ async function loadDay2Networks() {
     const el = document.getElementById('d2NetworkList');
     el.innerHTML = '<div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Loading networks…</div>';
     try {
-        const resp = await fetch('/api/day2/networks');
+        const resp = await fetch('/api/day2/networks' + _profileParam());
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         const networks = data.networks || [];
@@ -8474,7 +8494,7 @@ async function loadDay2Images() {
     const el = document.getElementById('d2ImageList');
     el.innerHTML = '<div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Loading images…</div>';
     try {
-        const resp = await fetch('/api/day2/images');
+        const resp = await fetch('/api/day2/images' + _profileParam());
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         const images = data.images || [];
@@ -8495,7 +8515,7 @@ async function loadDay2ImageHistory() {
     const el = document.getElementById('d2ImageHistory');
     el.innerHTML = '<div class="text-muted small"><i class="bi bi-hourglass-split me-1"></i>Loading image history…</div>';
     try {
-        const resp = await fetch('/api/day2/images/history');
+        const resp = await fetch('/api/day2/images/history' + _profileParam());
         if (!resp.ok) throw new Error('HTTP ' + resp.status);
         const data = await resp.json();
         const images = data.images || [];

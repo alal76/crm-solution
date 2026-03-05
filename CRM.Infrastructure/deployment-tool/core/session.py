@@ -179,6 +179,10 @@ class SessionStore:
         """Store (or overwrite) *session* in the store."""
         self._sessions[session.session_id] = session
 
+    def delete(self, session_id: str) -> None:
+        """Remove the session for *session_id* (no-op if not found)."""
+        self._sessions.pop(session_id, None)
+
     def cleanup_expired(self, max_age_hours: int = 24) -> int:
         """Remove sessions older than *max_age_hours*.
 

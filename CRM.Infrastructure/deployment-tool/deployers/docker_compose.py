@@ -205,6 +205,7 @@ class DockerComposeDeployer:
         self._is_remote = self._target_host not in (
             "localhost", "127.0.0.1", "0.0.0.0", "", "NO_HOST_CONFIGURED"
         )
+        self._is_local = not self._is_remote
         # Remote working directory on the target server
         self._remote_deploy_dir = target.get(
             "remote_deploy_dir",

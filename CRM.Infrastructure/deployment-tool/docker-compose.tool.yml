@@ -38,11 +38,14 @@ services:
       # Kubeconfig — lets CDT run kubectl against your cluster
       - ${KUBECONFIG:-~/.kube}:/root/.kube:ro
 
-      # Persistent data: saved configs, deployment profiles, snapshots
-      - cdt-configs:/app/data/configs
-      - cdt-profiles:/app/data/profiles
-      - cdt-snapshots:/app/data/snapshots
-      - cdt-generated:/app/data/generated
+      # SSH keys — lets CDT connect to remote servers for on-prem deployments
+      - ${SSH_DIR:-~/.ssh}:/root/.ssh:ro
+
+      # Single persistent data volume covering ALL CDT state:
+      #   profiles, history.db, secrets, generated files, snapshots, configs.
+      # The Dockerfile symlinks /root/.crm-cdt → /app/data so every
+      # code path (ProfileManager, VaultManager, history DB) writes here.
+      - cdt-data:/app/data
 
       # Logs
       - cdt-logs:/app/logs
@@ -59,13 +62,7 @@ services:
       com.crm.version: "0.611.0"
 
 volumes:
-  cdt-configs:
-    name: crm-cdt-configs
-  cdt-profiles:
-    name: crm-cdt-profiles
-  cdt-snapshots:
-    name: crm-cdt-snapshots
-  cdt-generated:
-    name: crm-cdt-generated
+  cdt-data:
+    name: crm-cdt-data
   cdt-logs:
     name: crm-cdt-logs
