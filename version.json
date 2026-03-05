@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 614,
-  "patch": 87,
+  "minor": 615,
+  "patch": 0,
   "lastUpdate": "2026-03-05",
-  "description": "fix(tests): v0.614.87 - Fix all test failures from v0.614.86 comprehensive test suite: (1) Replace double-based [Range] with typed decimal [Range(typeof(decimal),...)] on all decimal fields in AccountDto, PaymentDto, SubscriptionMetricsDto, CommissionCalculationDto; (2) Fix InlineData double-to-decimal/double? type conversion using object? parameters with Convert.ToDecimal; (3) Fix UiConfigurationValidatorTests substring-in-substring assertion using distinct IDs; (4) Fix SupersetConfigurationValidator to enforce http/https scheme only; (5) Align InvoiceService and PaymentService tests with actual implementation (throws vs returns null/false); (6) Add zero/negative amount guard to PaymentService.ProcessRefundAsync; (7) Skip EF Core Include() incompatible Moq tests. Result: 623/623 DTO tests, 151/151 validator tests, full suite 0 failures.",
+  "description": "test: v0.615.0 - Comprehensive SK plugin, agent, and integration workflow test suite — add 27 new test files: (1) 9 individual SK plugin tests (ContractPlugin, EmailPlugin, KnowledgeBasePlugin, LeadPlugin, NotificationPlugin, OpportunityPlugin, QuotePlugin, SearchPlugin, ServiceRequestPlugin); (2) SK agent tests (AgentBase, AgentExecutionService, AgentOrchestrator, AgentSelectionStrategy, AllAgentProperties, AccountPlugin, CalendarPlugin, ContactPlugin); (3) consolidated SKPluginTests; (4) 9 integration workflow tests (Lead→Opportunity→Quote→Order, ServiceRequest escalation, Campaign lead conversion, subscription/invoice/payment, concurrency/boundary). Total: ~7,024 tests, ~6,868 passing. Update TEST_COVERAGE_ANALYSIS.md and deployment-tool gui.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

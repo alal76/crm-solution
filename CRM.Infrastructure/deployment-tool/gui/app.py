@@ -1859,6 +1859,12 @@ if __name__ == "__main__":
     print("=" * 60)
     print()
     if socketio:
-        socketio.run(app, host=args.host, port=args.port, debug=debug_mode)
+        socketio.run(
+            app,
+            host=args.host,
+            port=args.port,
+            debug=debug_mode,
+            allow_unsafe_werkzeug=True,  # Required when running inside Docker / non-dev
+        )
     else:
         app.run(host=args.host, port=args.port, debug=debug_mode)
