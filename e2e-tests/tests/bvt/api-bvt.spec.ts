@@ -122,8 +122,8 @@ test.describe('BVT - Build Verification Tests', () => {
         data: {
           firstName: 'BVT',
           lastName: 'Contact',
-          email: `bvt-contact-${Date.now()}@example.com`,
-          phone: '555-CNT1'
+          emailPrimary: `bvt-contact-${Date.now()}@example.com`,
+          phonePrimary: '555-CNT1'
         }
       });
       expect(response.ok()).toBeTruthy();
@@ -210,7 +210,8 @@ test.describe('BVT - Build Verification Tests', () => {
           firstName: 'Opp',
           lastName: 'Customer',
           company: 'Opp Corp',
-          email: `opp-cust-${Date.now()}@example.com`
+          email: `opp-cust-${Date.now()}@example.com`,
+          phone: '555-OPP1'
         }
       });
       if (response.ok()) {
@@ -266,7 +267,8 @@ test.describe('BVT - Build Verification Tests', () => {
           firstName: 'SR',
           lastName: 'Customer',
           company: 'SR Corp',
-          email: `sr-cust-${Date.now()}@example.com`
+          email: `sr-cust-${Date.now()}@example.com`,
+          phone: '555-SR01'
         }
       });
       if (response.ok()) {
@@ -422,7 +424,8 @@ test.describe('BVT - Build Verification Tests', () => {
           firstName: 'Quote',
           lastName: 'Customer',
           company: 'Quote Corp',
-          email: `quote-cust-${Date.now()}@example.com`
+          email: `quote-cust-${Date.now()}@example.com`,
+          phone: '555-QT01'
         }
       });
       if (response.ok()) {

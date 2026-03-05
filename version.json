@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 0,
+  "patch": 2,
   "lastUpdate": "2026-03-05",
-  "description": "test: v0.615.0 - Comprehensive SK plugin, agent, and integration workflow test suite — add 27 new test files: (1) 9 individual SK plugin tests (ContractPlugin, EmailPlugin, KnowledgeBasePlugin, LeadPlugin, NotificationPlugin, OpportunityPlugin, QuotePlugin, SearchPlugin, ServiceRequestPlugin); (2) SK agent tests (AgentBase, AgentExecutionService, AgentOrchestrator, AgentSelectionStrategy, AllAgentProperties, AccountPlugin, CalendarPlugin, ContactPlugin); (3) consolidated SKPluginTests; (4) 9 integration workflow tests (Lead→Opportunity→Quote→Order, ServiceRequest escalation, Campaign lead conversion, subscription/invoice/payment, concurrency/boundary). Total: ~7,024 tests, ~6,868 passing. Update TEST_COVERAGE_ANALYSIS.md and deployment-tool gui.",
+  "description": "fix: v0.615.2 - BVT full sweep — fix BVT-09 missing phone field in beforeAll account creation (same root cause as BVT-05/06); fix BVT-03 wrong field names email→emailPrimary and phone→phonePrimary in contact creation payload (CreateContactRequest uses emailPrimary/phonePrimary).",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

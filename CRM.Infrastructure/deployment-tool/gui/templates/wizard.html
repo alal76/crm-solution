@@ -543,18 +543,24 @@
             flex: 1;
             min-width: 0;
         }
+        /* Sidebar stays beside the wizard down to 960 px; collapses to full-width below that. */
         .wizard-sidebar-col {
-            width: 340px;
-            min-width: 340px;
+            width: 300px;
+            min-width: 300px;
             flex-shrink: 0;
             position: sticky;
             top: 20px;
             max-height: calc(100vh - 40px);
             overflow-y: auto;
         }
-        @media (max-width: 1100px) {
+        @media (max-width: 960px) {
             .wizard-layout-row { flex-direction: column; }
             .wizard-sidebar-col { width: 100%; min-width: auto; position: static; max-height: none; }
+        }
+        /* Prevent items inside the sidebar from overflowing its fixed width */
+        .wizard-sidebar, .sidebar-prov-item, .spi-val {
+            overflow-wrap: break-word;
+            word-break: break-word;
         }
         .wizard-sidebar {
             background: #fff;
@@ -2617,6 +2623,47 @@
                     </div>
                     <div class="pv2-provider-cfg" id="pv2-cfg-integration"></div>
                 </div>
+
+                <!-- Monitoring & Observability -->
+                <div class="mb-4">
+                    <p class="fw-semibold mb-2"><i class="bi bi-activity me-2 text-danger"></i>Monitoring &amp; Uptime Provider</p>
+                    <div class="pv2-grid" id="monitoringProviderGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('monitoring','builtin')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📊</span><span class="pv2-card-title">Built-in</span></div>
+                            <div class="pv2-card-desc">Health-check endpoints &amp; basic metrics included with the CRM API.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag rec">Recommended</span></div>
+                        </button>
+                        <button type="button" class="pv2-card" onclick="selectProvider('monitoring','uptime_kuma')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🐻</span><span class="pv2-card-title">Uptime Kuma</span></div>
+                            <div class="pv2-card-desc">Self-hosted uptime monitoring with beautiful status pages, alerting &amp; SSL checks.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
+                        </button>
+                        <button type="button" class="pv2-card" onclick="selectProvider('monitoring','grafana')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">📈</span><span class="pv2-card-title">Grafana</span></div>
+                            <div class="pv2-card-desc">OSS observability platform — dashboards, Prometheus scraping, alerting, log aggregation.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
+                        </button>
+                    </div>
+                    <div class="pv2-provider-cfg" id="pv2-cfg-monitoring"></div>
+                </div>
+
+                <!-- Container Management -->
+                <div class="mb-4">
+                    <p class="fw-semibold mb-2"><i class="bi bi-boxes me-2 text-secondary"></i>Container Management UI</p>
+                    <div class="pv2-grid" id="containerMgrGrid">
+                        <button type="button" class="pv2-card selected" onclick="selectProvider('container_mgr','none')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🐚</span><span class="pv2-card-title">CLI Only</span></div>
+                            <div class="pv2-card-desc">Manage containers via SSH / Docker CLI. No additional web UI deployed.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag rec">Default</span></div>
+                        </button>
+                        <button type="button" class="pv2-card" onclick="selectProvider('container_mgr','portainer')">
+                            <div class="pv2-card-top"><span class="pv2-card-icon">🐋</span><span class="pv2-card-title">Portainer CE</span></div>
+                            <div class="pv2-card-desc">Web-based Docker &amp; K8s management UI. Container logs, shell access &amp; stack deployment from the browser.</div>
+                            <div class="pv2-tags"><span class="pv2-tag free">Free</span><span class="pv2-tag selfhost">Self-hosted</span></div>
+                        </button>
+                    </div>
+                    <div class="pv2-provider-cfg" id="pv2-cfg-container_mgr"></div>
+                </div>
             
                 </div>
 
@@ -3808,6 +3855,41 @@
     <!-- /wizard-layout-row -->
     </div>
     <!-- /wizard-container -->
+
+    <!-- Password Validation Modal -->
+    <div class="modal fade" id="pwValidationModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock me-2"></i>Password Setup Required</h5>
+                    <button type="button" class="btn-close" id="pwModalClose" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3" id="pwModalDesc">The following passwords are missing or do not meet the minimum security requirements. Please provide or generate secure values before deploying.</p>
+
+                    <!-- Password complexity rules reminder -->
+                    <div class="alert alert-light border mb-3 py-2 small">
+                        <strong>Requirements:</strong> min 12 characters &nbsp;·&nbsp;
+                        uppercase &amp; lowercase &nbsp;·&nbsp; at least one number &nbsp;·&nbsp; at least one special character (<code>!@#$%^&amp;*</code>)
+                    </div>
+
+                    <div id="pwModalFields"><!-- injected by JS --></div>
+
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="_pwModalGenAll()">
+                            <i class="bi bi-magic me-1"></i>Generate All Secure Passwords
+                        </button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="pwModalCancelBtn">Cancel Deployment</button>
+                    <button type="button" class="btn btn-primary" id="pwModalConfirmBtn">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Confirm &amp; Deploy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Success Modal -->
     <div class="modal fade" id="successModal" tabindex="-1">
@@ -5288,6 +5370,12 @@
             _setVal('deploymentName',        profileName);
             _setVal('deploymentDescription', config.description);
 
+            // ─── 3b. Pre-fill Secrets tab from loaded profile/template ────────
+            // This ensures passwords stored in the profile are visible in the UI
+            // and available to deploy validation even if the user never visits
+            // the Secrets step before clicking Deploy.
+            _populateSecretsFromConfig(sec);
+
             // ─── 4. Show info banner ──────────────────────────────────────────
             _showTemplateBanner(sourceName, meta.description || data.description || '', isTemplate);
 
@@ -5299,6 +5387,38 @@
         function _setVal(id, val) {
             const el = document.getElementById(id);
             if (el && val !== undefined && val !== null) el.value = val;
+        }
+
+        /**
+         * Pre-fill all Secrets-tab form fields from a secrets config object.
+         * Called when loading a profile/template so saved passwords appear in the UI
+         * and are available to the deploy validation without requiring the user to
+         * explicitly visit the Secrets step.
+         * @param {Object} sec - secrets object (e.g. data.secrets or config.secrets)
+         */
+        function _populateSecretsFromConfig(sec) {
+            if (!sec) return;
+            const fieldMap = {
+                secretDbUser:         sec.db_user,
+                secretDbPassword:     sec.db_password,
+                secretDbRootPassword: sec.db_root_password,
+                secretRedisPassword:  sec.redis_password,
+                secretJwtSecret:      sec.jwt_secret,
+                secretAdminUsername:  sec.admin_username,
+                secretAdminEmail:     sec.admin_email,
+                secretAdminPassword:  sec.admin_password,
+                secretMeilisearchKey: sec.meilisearch_master_key,
+                secretSupersetKey:    sec.superset_secret_key,
+                secretChatwootKey:    sec.chatwoot_api_key,
+                secretNovuKey:        sec.novu_api_key,
+                secretDocusealKey:    sec.docuseal_api_key,
+                secretN8nPassword:    sec.n8n_password,
+                secretOpenaiKey:      sec.openai_api_key,
+                secretAnthropicKey:   sec.anthropic_api_key,
+            };
+            for (const [id, val] of Object.entries(fieldMap)) {
+                if (val) _setVal(id, val);
+            }
         }
 
         /** Show an info banner at the top of discovery step indicating which template/profile is loaded. */
@@ -5659,7 +5779,10 @@
                 { key: 'notification_provider', label: 'Notifications', icon: 'bi-bell' },
                 { key: 'analytics_provider',    label: 'Analytics',     icon: 'bi-bar-chart' },
                 { key: 'signature_provider',    label: 'Signatures',    icon: 'bi-pen' },
-                { key: 'ai_provider',           label: 'AI / LLM',     icon: 'bi-cpu' },
+                { key: 'ai_provider',           label: 'AI / LLM',      icon: 'bi-cpu' },
+                { key: 'integration_provider',  label: 'Integrations',  icon: 'bi-gear-wide-connected' },
+                { key: 'monitoring_provider',   label: 'Monitoring',    icon: 'bi-activity' },
+                { key: 'container_mgr',         label: 'Container Mgr', icon: 'bi-boxes' },
             ];
             const nonBuiltinCount = provCategories.filter(c => {
                 const v = config[c.key] || 'builtin';
@@ -5715,6 +5838,186 @@
             updateStepIndicator();
             updateSidebar();
             if (currentStep === 3) updateArchSuggestion();
+            // Re-populate Secrets form fields from config whenever the user
+            // navigates to that step so values loaded from profiles are visible.
+            if (currentStep === 4) _populateSecretsFromConfig(config.secrets);
+        }
+
+        // ── Password strength & validation modal ──────────────────────────────
+
+        /** Score a password: returns { score: 0-4, label, color, issues[] } */
+        function _scorePw(pw) {
+            const issues = [];
+            if (!pw || pw.length < 12) issues.push('At least 12 characters');
+            if (!/[A-Z]/.test(pw))     issues.push('Uppercase letter');
+            if (!/[a-z]/.test(pw))     issues.push('Lowercase letter');
+            if (!/[0-9]/.test(pw))     issues.push('Number (0-9)');
+            if (!/[!@#$%^&*_\-+=]/.test(pw)) issues.push('Special character (!@#$%^&*)');
+            const score = 5 - issues.length;
+            const label = ['Very Weak','Weak','Fair','Good','Strong'][Math.max(0,score)];
+            const color = ['#dc3545','#fd7e14','#ffc107','#20c997','#198754'][Math.max(0,score)];
+            return { score, label, color, issues };
+        }
+
+        /** Generate a cryptographically-random password that passes all rules. */
+        function _genSecurePw(len = 20) {
+            const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+            const lower = 'abcdefghjkmnpqrstuvwxyz';
+            const nums  = '23456789';
+            const spec  = '!@#$%^&*';
+            const all   = upper + lower + nums + spec;
+            // Guarantee at least one of each required class
+            const must  = [
+                upper[Math.floor(Math.random() * upper.length)],
+                lower[Math.floor(Math.random() * lower.length)],
+                nums [Math.floor(Math.random() * nums.length)],
+                spec [Math.floor(Math.random() * spec.length)],
+            ];
+            const arr = new Uint32Array(len - 4);
+            crypto.getRandomValues(arr);
+            const rest = Array.from(arr, v => all[v % all.length]);
+            const combined = [...must, ...rest].sort(() => Math.random() - 0.5);
+            return combined.join('');
+        }
+
+        /** Re-render the strength bar for a given input id. */
+        function _updatePwStrength(inputId) {
+            const pw  = document.getElementById(inputId)?.value || '';
+            const res = _scorePw(pw);
+            const bar = document.getElementById(inputId + '-bar');
+            const lbl = document.getElementById(inputId + '-lbl');
+            if (bar) { bar.style.width = (res.score / 4 * 100) + '%'; bar.style.background = res.color; }
+            if (lbl) {
+                lbl.textContent = pw ? `${res.label}${res.issues.length ? ' – missing: ' + res.issues.join(', ') : ''}` : '';
+                lbl.style.color = res.color;
+            }
+        }
+
+        /** Generate all passwords in the modal and update strength bars. */
+        function _pwModalGenAll() {
+            document.querySelectorAll('.pw-modal-input').forEach(el => {
+                const pw = _genSecurePw();
+                el.value = pw;
+                _updatePwStrength(el.id);
+                if (!config.secrets) config.secrets = {};
+                config.secrets[el.dataset.secretKey] = pw;
+                // Sync back to the Secrets form field
+                const secretFieldEl = document.getElementById(el.dataset.secretField);
+                if (secretFieldEl) secretFieldEl.value = pw;
+            });
+        }
+
+        /**
+         * Show the password-validation modal.
+         * Resolves with true when the user clicks Confirm & Deploy,
+         * resolves with false when they cancel.
+         *
+         * @param {Array<{fieldId,secretKey,label}>} required - List of password entries to validate.
+         */
+        function _showPasswordValidationModal(required) {
+            return new Promise((resolve) => {
+                const fieldsDiv = document.getElementById('pwModalFields');
+                if (!fieldsDiv) { resolve(true); return; }
+
+                // Build a field row for each password that needs attention
+                const toShow = required.filter(r => {
+                    const domVal  = (document.getElementById(r.fieldId)?.value  || '').trim();
+                    const cfgVal  = (config.secrets?.[r.secretKey]              || '').trim();
+                    const current = domVal || cfgVal;
+                    return _scorePw(current).score < 4; // show if not "Good" or better
+                });
+
+                if (toShow.length === 0) { resolve(true); return; }
+
+                let html = '';
+                toShow.forEach(r => {
+                    const existing = (document.getElementById(r.fieldId)?.value || config.secrets?.[r.secretKey] || '').trim();
+                    const genPw = existing || _genSecurePw();
+                    html += `
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">${r.label}</label>
+                        <div class="input-group">
+                            <input type="password"
+                                   class="form-control pw-modal-input"
+                                   id="pwmi-${r.fieldId}"
+                                   data-secret-key="${r.secretKey}"
+                                   data-secret-field="${r.fieldId}"
+                                   value="${genPw}"
+                                   oninput="_updatePwStrength('pwmi-${r.fieldId}')">
+                            <button class="btn btn-outline-secondary" type="button"
+                                    onclick="togglePwdVis('pwmi-${r.fieldId}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" type="button"
+                                    onclick="this.previousElementSibling.previousElementSibling.value=_genSecurePw();_updatePwStrength('pwmi-${r.fieldId}');">
+                                <i class="bi bi-magic"></i>
+                            </button>
+                        </div>
+                        <div class="mt-1" style="height:4px;border-radius:2px;background:#eee;">
+                            <div id="pwmi-${r.fieldId}-bar" style="height:100%;width:0;border-radius:2px;transition:width .3s;"></div>
+                        </div>
+                        <small id="pwmi-${r.fieldId}-lbl" class="form-text"></small>
+                    </div>`;
+                });
+                fieldsDiv.innerHTML = html;
+                // Trigger initial strength render and auto-generate any blanks
+                toShow.forEach(r => {
+                    const inputEl = document.getElementById('pwmi-' + r.fieldId);
+                    if (inputEl && !inputEl.value) inputEl.value = _genSecurePw();
+                    _updatePwStrength('pwmi-' + r.fieldId);
+                });
+
+                // Wire up buttons
+                const modalEl = document.getElementById('pwValidationModal');
+                const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+                const confirmBtn = document.getElementById('pwModalConfirmBtn');
+                const cancelBtn  = document.getElementById('pwModalCancelBtn');
+                const closeBtn   = document.getElementById('pwModalClose');
+
+                const onConfirm = () => {
+                    // Validate ALL modal fields before allowing proceed
+                    let allOk = true;
+                    toShow.forEach(r => {
+                        const inputEl = document.getElementById('pwmi-' + r.fieldId);
+                        const pw      = (inputEl?.value || '').trim();
+                        const result  = _scorePw(pw);
+                        if (result.score < 3) { // require at least "Fair"
+                            inputEl?.classList.add('is-invalid');
+                            allOk = false;
+                        } else {
+                            inputEl?.classList.remove('is-invalid');
+                            // Persist confirmed value back to both config and the Secrets form field
+                            if (!config.secrets) config.secrets = {};
+                            config.secrets[r.secretKey] = pw;
+                            const secretFieldEl = document.getElementById(r.fieldId);
+                            if (secretFieldEl) secretFieldEl.value = pw;
+                        }
+                    });
+                    if (!allOk) {
+                        document.getElementById('pwModalDesc').innerHTML =
+                            '<span class="text-danger fw-bold">Some passwords are still too weak. Please strengthen the highlighted fields.</span>';
+                        return;
+                    }
+                    cleanup();
+                    bsModal.hide();
+                    resolve(true);
+                };
+
+                const onCancel = () => { cleanup(); resolve(false); };
+
+                function cleanup() {
+                    confirmBtn?.removeEventListener('click', onConfirm);
+                    cancelBtn?.removeEventListener('click', onCancel);
+                    closeBtn?.removeEventListener('click', onCancel);
+                }
+
+                confirmBtn?.addEventListener('click', onConfirm);
+                cancelBtn?.addEventListener('click', onCancel);
+                closeBtn?.addEventListener('click', onCancel);
+
+                bsModal.show();
+            });
         }
 
         /** Export current config as downloadable JSON file. */
@@ -6665,24 +6968,50 @@
                 _deploy.passwordStrategy = 'entered';
             }
 
-            // ── Password validation — DB & admin passwords are required ───
-            const missingPw = [];
+            // ── Password validation — show modal if any required password is
+            // missing or too weak; the user can enter/generate values inline.
             if (_deploy.passwordStrategy !== 'fetch_existing') {
-                const dbPw = document.getElementById('secretDbPassword')?.value;
-                const dbRootPw = document.getElementById('secretDbRootPassword')?.value;
-                const adminPw = document.getElementById('secretAdminPassword')?.value;
-                if (!dbPw) missingPw.push('Database Password');
-                if (!dbRootPw) missingPw.push('Database Root Password');
-                if (!adminPw) missingPw.push('Admin Password');
-            }
-            if (missingPw.length > 0) {
-                const list = missingPw.map(p => `<li>${p}</li>`).join('');
-                _deployLog(`<strong>Missing required passwords:</strong><ul>${list}</ul>` +
-                    'Go to the <em>Secrets &amp; Authentication</em> step and enter them.', 'dl-error');
-                _setDeployStatus('failed');
-                document.getElementById('btnDeployNow').style.display = '';
-                document.getElementById('btnReDeployNow').style.display = 'none';
-                return;
+                // Pre-fill config.secrets from any existing form field values so
+                // profiles that were loaded but not re-visited have their passwords.
+                if (!config.secrets) config.secrets = {};
+                const _syncFromField = (fieldId, key) => {
+                    const v = (document.getElementById(fieldId)?.value || '').trim();
+                    if (v) config.secrets[key] = v;
+                    else {
+                        const cv = (config.secrets[key] || '').trim();
+                        if (cv) { const el = document.getElementById(fieldId); if (el) el.value = cv; }
+                    }
+                };
+                _syncFromField('secretDbPassword',     'db_password');
+                _syncFromField('secretDbRootPassword', 'db_root_password');
+                _syncFromField('secretAdminPassword',  'admin_password');
+
+                // Define which passwords are required and their display labels
+                const _requiredPws = [
+                    { fieldId: 'secretDbPassword',     secretKey: 'db_password',      label: 'Database Password' },
+                    { fieldId: 'secretDbRootPassword', secretKey: 'db_root_password',  label: 'Database Root Password' },
+                    { fieldId: 'secretAdminPassword',  secretKey: 'admin_password',    label: 'Admin Password' },
+                ];
+
+                // Check if ANY required password is missing or weak
+                const _needsAttention = _requiredPws.some(r => {
+                    const v = (config.secrets[r.secretKey] || '').trim();
+                    return _scorePw(v).score < 3; // below "Fair"
+                });
+
+                if (_needsAttention) {
+                    const proceed = await _showPasswordValidationModal(_requiredPws);
+                    if (!proceed) {
+                        // User cancelled — reset deploy UI
+                        _setDeployStatus('idle');
+                        document.getElementById('btnDeployNow').style.display = '';
+                        document.getElementById('btnReDeployNow').style.display = 'none';
+                        return;
+                    }
+                }
+
+                // Sync final values back to the form for _collectSecretsData
+                _collectSecretsData();
             }
 
             // Reset UI
