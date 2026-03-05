@@ -35,6 +35,11 @@
     <ProjectReference Include="../../src/CRM.Infrastructure/CRM.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Global using directives for shared test helpers -->
+  <ItemGroup>
+    <Using Include="CRM.SystemModule.Tests.Helpers" />
+  </ItemGroup>
+
   <!-- Test Logging Infrastructure - linked from parent folder -->
   <ItemGroup>
     <Compile Include="..\Infrastructure\**\*.cs" Link="Infrastructure\%(RecursiveDir)%(Filename)%(Extension)" />

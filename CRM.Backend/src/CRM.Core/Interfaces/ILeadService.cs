@@ -24,7 +24,7 @@ public interface ILeadService
     Task<object> GetStatsAsync();
     // Search and assignment helpers
     Task<IEnumerable<LeadSummaryDto>> SearchAsync(string searchTerm);
-    Task<bool> AssignOwnerAsync(int leadId, int ownerId);
+    Task<bool> AssignOwnerAsync(int leadId, int? ownerId);
 
     /// <summary>
     /// Pre-flight duplicate check by email OR (firstName + lastName + company).

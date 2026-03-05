@@ -37,10 +37,16 @@
 
   <!-- SK test files re-enabled after source fixes -->
 
+  <!-- Global using directives for shared test helpers -->
+  <ItemGroup>
+    <Using Include="CRM.Tests.Helpers" />
+  </ItemGroup>
+
   <!-- Test Logging Infrastructure and Examples -->
   <ItemGroup>
     <Compile Include="..\Infrastructure\**\*.cs" Link="Infrastructure\%(RecursiveDir)%(Filename)%(Extension)" />
     <Compile Include="..\Examples\**\*.cs" Link="Examples\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\Helpers\ServiceTestFixtureBase.cs" Link="Helpers\ServiceTestFixtureBase.cs" />
   </ItemGroup>
 
   <ItemGroup>

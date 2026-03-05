@@ -316,7 +316,7 @@ public class LeadService : ILeadService
         return leads;
     }
 
-    public async Task<bool> AssignOwnerAsync(int leadId, int ownerId)
+    public async Task<bool> AssignOwnerAsync(int leadId, int? ownerId)
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted);
         if (lead == null)

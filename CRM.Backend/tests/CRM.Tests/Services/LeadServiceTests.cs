@@ -1070,6 +1070,7 @@ public class LeadServiceTests : ServiceTestFixtureBase<LeadService>
 
         var newLead = new Lead
         {
+            Id = 2, // Pre-set ID since mock SaveChangesAsync doesn't assign DB-generated IDs
             FirstName = "New",
             LastName = "Lead",
             Email = "duplicate@t.com"

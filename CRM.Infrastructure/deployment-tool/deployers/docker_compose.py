@@ -55,12 +55,81 @@ class DeployEvent:
 
 # Container group classification
 CONTAINER_GROUPS = {
-    "app": ["crm-api", "crm-frontend"],
+    # Deployed first — reverse proxy, storage, management plane
+    "infrastructure": [
+        "crm-traefik",
+        "crm-minio",
+        "crm-portainer",
+    ],
+    # Deployed second — observability stack
+    "monitoring": [
+        "crm-prometheus",
+        "crm-grafana",
+        "crm-loki",
+        "crm-uptime-kuma",
+    ],
+    # Deployed third — databases
     "database": ["crm-mariadb", "crm-redis"],
+    # Deployed fourth — pluggable provider services
     "provider": [
         "crm-meilisearch", "crm-ollama", "crm-chatwoot",
         "crm-novu", "crm-superset", "crm-docuseal", "crm-n8n",
     ],
+    # Deployed last — core application
+    "app": ["crm-api", "crm-frontend"],
+}
+
+# Provider profile keys → container names (for selective provider start)
+PROVIDER_CONTAINER_MAP = {
+    "search":       {"meilisearch": "crm-meilisearch"},
+    "ai":           {"ollama": "crm-ollama"},
+    "chat":         {"chatwoot": "crm-chatwoot"},
+    "notification": {"novu": "crm-novu"},
+    "analytics":    {"superset": "crm-superset"},
+    "signature":    {"docuseal": "crm-docuseal"},
+    "integration":  {"n8n": "crm-n8n"},
+}
+
+# Infrastructure container → health check command (run via docker exec)
+INFRA_HEALTH_CHECKS = {
+    "crm-traefik": {
+        "http_path": "/ping",
+        "port": 8080,
+        "description": "Traefik API/health port",
+    },
+    "crm-minio": {
+        "http_path": "/minio/health/live",
+        "port": 9002,
+        "description": "MinIO liveness probe",
+    },
+    "crm-portainer": {
+        "http_path": "/api/system/status",
+        "port": 9000,
+        "description": "Portainer status",
+    },
+    "crm-prometheus": {
+        "http_path": "/-/ready",
+        "port": 9090,
+        "description": "Prometheus readiness",
+    },
+    "crm-grafana": {
+        "http_path": "/api/health",
+        "port": 3010,
+        "description": "Grafana health",
+    },
+    "crm-uptime-kuma": {
+        "http_path": "/",
+        "port": 3001,
+        "description": "Uptime Kuma UI",
+    },
+}
+
+# Provider container → health endpoint for readiness checks
+PROVIDER_HEALTH_CHECKS = {
+    "crm-meilisearch": {"http_path": "/health",    "port": 7700},
+    "crm-ollama":      {"http_path": "/api/tags",  "port": 11434},
+    "crm-n8n":         {"http_path": "/healthz",   "port": 5678},
+    "crm-superset":    {"http_path": "/health",    "port": 8088},
 }
 
 
@@ -69,6 +138,11 @@ def classify_container(name: str) -> str:
     for group, members in CONTAINER_GROUPS.items():
         if name in members:
             return group
+    # Heuristic fallbacks for containers not explicitly listed
+    if name.startswith("crm-traefik") or name.startswith("crm-minio") or name.startswith("crm-portainer"):
+        return "infrastructure"
+    if name in ("crm-prometheus", "crm-grafana", "crm-loki", "crm-uptime-kuma"):
+        return "monitoring"
     return "other"
 
 
@@ -90,7 +164,7 @@ class DockerComposeDeployer:
         self.containers_to_remove = containers_to_remove or []
         self._reused_containers: set = set()  # populated in Step 2
         self._abort = threading.Event()
-        self.total_steps = 15
+        self.total_steps = 18
         self._step_start_time: float = 0.0
 
         # Resolve target server from profile — NO localhost fallback.
@@ -354,21 +428,30 @@ class DockerComposeDeployer:
 
     def deploy(self) -> bool:
         steps = [
-            (1,  "Validating prerequisites",     self._step_validate_prerequisites),
-            (2,  "Checking existing containers",  self._step_handle_existing_containers),
-            (3,  "Building local images",         self._step_build_local_images),
-            (4,  "Transferring images to target",  self._step_transfer_images),
-            (5,  "Pulling images",                self._step_pull_images),
-            (6,  "Creating networks",             self._step_create_networks),
-            (7,  "Starting databases",            self._step_start_databases),
-            (8,  "Waiting for databases",         self._step_wait_databases),
-            (9,  "Running migrations",            self._step_run_migrations),
-            (10, "Starting providers",            self._step_start_providers),
-            (11, "Starting API",                  self._step_start_api),
-            (12, "Health checking API",           self._step_health_check_api),
-            (13, "Starting frontend",             self._step_start_frontend),
-            (14, "Seeding data",                  self._step_configure_seed),
-            (15, "Finishing",                     self._step_finish),
+            # ── Phase 1: Preparation ──────────────────────────────────────────────
+            (1,  "Validating prerequisites",          self._step_validate_prerequisites),
+            (2,  "Checking existing containers",       self._step_handle_existing_containers),
+            (3,  "Building local images",              self._step_build_local_images),
+            (4,  "Transferring images to target",       self._step_transfer_images),
+            (5,  "Pulling images",                     self._step_pull_images),
+            (6,  "Creating networks",                  self._step_create_networks),
+            # ── Phase 2: Infrastructure layer (reverse-proxy, storage, mgmt) ─────
+            (7,  "Starting infrastructure services",   self._step_start_infrastructure),
+            (8,  "Waiting for infrastructure ready",   self._step_wait_infrastructure),
+            # ── Phase 3: Data layer ───────────────────────────────────────────────
+            (9,  "Starting databases",                 self._step_start_databases),
+            (10, "Waiting for databases",              self._step_wait_databases),
+            (11, "Running migrations",                 self._step_run_migrations),
+            # ── Phase 4: Pluggable providers ─────────────────────────────────────
+            (12, "Starting provider services",         self._step_start_providers),
+            (13, "Waiting for providers ready",        self._step_wait_providers),
+            # ── Phase 5: Core application ─────────────────────────────────────────
+            (14, "Starting API",                       self._step_start_api),
+            (15, "Health checking API",                self._step_health_check_api),
+            (16, "Starting frontend",                  self._step_start_frontend),
+            # ── Phase 6: Post-deployment ─────────────────────────────────────────
+            (17, "Seeding data",                       self._step_configure_seed),
+            (18, "Finishing",                          self._step_finish),
         ]
 
         # ── Deployment header ──
@@ -1532,6 +1615,270 @@ class DockerComposeDeployer:
         """Return the provider value from *providers* checking both key formats."""
         return providers.get(short_key) or providers.get(long_key) or ""
 
+    # ── Phase 2 helpers ──────────────────────────────────────────────────────
+
+    def _selected_infra_containers(self) -> list[str]:
+        """Return the list of infrastructure/monitoring containers selected in the profile."""
+        providers = self.profile.get("providers", {})
+        wiz = self.profile.get("wizard_config", {})
+        merged: dict = {**wiz, **providers} if isinstance(wiz, dict) else dict(providers)
+
+        containers: list[str] = []
+
+        # Reverse proxy
+        rp = merged.get("reverse_proxy") or merged.get("reverse_proxy_provider") or ""
+        if rp == "traefik":
+            containers.append("crm-traefik")
+        elif rp in ("nginx", "caddy"):
+            # built-in nginx — no separate container needed
+            pass
+
+        # Object storage
+        store = merged.get("storage") or merged.get("storage_provider") or ""
+        if store == "minio":
+            containers.append("crm-minio")
+
+        # Portainer (management UI)
+        portainer = merged.get("portainer") or merged.get("portainer_provider") or ""
+        if portainer in ("portainer_ce", "portainer_be"):
+            containers.append("crm-portainer")
+
+        # Monitoring stack
+        monitoring = merged.get("monitoring") or merged.get("monitoring_provider") or ""
+        if monitoring == "prometheus_grafana":
+            containers.extend(["crm-prometheus", "crm-grafana"])
+            if merged.get("loki_enabled") or merged.get("monitoring_loki_enabled"):
+                containers.append("crm-loki")
+            if merged.get("uptime_kuma_enabled") or merged.get("monitoring_uptime_kuma_enabled"):
+                containers.append("crm-uptime-kuma")
+        elif monitoring == "uptime_kuma":
+            containers.append("crm-uptime-kuma")
+
+        return containers
+
+    def _step_start_infrastructure(self) -> bool:
+        """Phase 2 — Start reverse proxy, storage, management, and monitoring containers.
+
+        These are deployed *before* databases so that the data layer can
+        be accessed through the reverse proxy right from the start and so
+        that monitoring can observe database startup from the very beginning.
+        Failures here are non-fatal: the core CRM can run without them.
+        """
+        infra_containers = self._selected_infra_containers()
+        if not infra_containers:
+            self._emit(
+                f"[{self._target_host}] No infrastructure/monitoring containers selected — skipping",
+                "info",
+            )
+            return True
+
+        self._emit(
+            f"[{self._target_host}] Infrastructure containers requested: {', '.join(infra_containers)}",
+            "info",
+        )
+        self._ensure_reused_running(infra_containers)
+        to_start = self._services_to_start(infra_containers)
+        if not to_start:
+            self._emit(
+                f"[{self._target_host}] All infrastructure containers reused — verified running",
+                "info",
+            )
+            return True
+
+        self._emit(
+            f"[{self._target_host}] Starting infrastructure services: {', '.join(to_start)}",
+            "info",
+        )
+        rc, _out, err = self._compose_up(to_start, timeout=90)
+        if rc != 0 and not self.dry_run:
+            self._emit(
+                f"[{self._target_host}] ⚠️  Infrastructure services start warning (rc={rc}) — "
+                "continuing (non-fatal)",
+                "warn",
+            )
+            if err:
+                for line in err.strip().splitlines()[-5:]:
+                    self._emit(f"  stderr: {line}", "warn")
+        else:
+            self._emit(
+                f"[{self._target_host}] Infrastructure services started",
+                "info",
+            )
+        return True  # non-fatal
+
+    def _step_wait_infrastructure(self) -> bool:
+        """Phase 2 — Poll infrastructure containers until they respond or timeout.
+
+        Uses HTTP probing where a health endpoint is known; falls back to checking
+        the Docker container state via ``docker inspect``.  Non-fatal: if a container
+        does not become healthy within the timeout we log a warning and continue.
+        """
+        if self.dry_run:
+            self._emit(
+                f"[{self._target_host}] [DRY-RUN] Would wait for infrastructure readiness",
+                "info",
+            )
+            return True
+
+        infra_containers = self._selected_infra_containers()
+        if not infra_containers:
+            return True
+
+        import urllib.request
+
+        max_wait = 60   # seconds per container
+        poll_interval = 5
+
+        for container in infra_containers:
+            if self._abort.is_set():
+                return False
+
+            check = INFRA_HEALTH_CHECKS.get(container)
+            if check:
+                url = f"http://{self._target_host}:{check['port']}{check['http_path']}"
+                self._emit(
+                    f"[{self._target_host}] Waiting for {container} at {url} …",
+                    "info",
+                )
+                deadline = time.time() + max_wait
+                ready = False
+                while time.time() < deadline:
+                    if self._abort.is_set():
+                        return False
+                    try:
+                        urllib.request.urlopen(url, timeout=4)  # noqa: S310
+                        ready = True
+                        break
+                    except Exception:
+                        time.sleep(poll_interval)
+
+                if ready:
+                    self._emit(
+                        f"[{self._target_host}] ✅ {container} is ready",
+                        "info",
+                    )
+                else:
+                    self._emit(
+                        f"[{self._target_host}] ⚠️  {container} did not respond within {max_wait}s "
+                        f"({check['description']}) — continuing",
+                        "warn",
+                    )
+            else:
+                # No HTTP probe — just verify container is running
+                rc, state_out, _ = self._run_on_target(
+                    ["docker", "inspect", "-f", "{{.State.Status}}", container],
+                    timeout=10,
+                )
+                state = state_out.strip() if rc == 0 else "unknown"
+                if state == "running":
+                    self._emit(
+                        f"[{self._target_host}] ✅ {container} is running",
+                        "info",
+                    )
+                else:
+                    self._emit(
+                        f"[{self._target_host}] ⚠️  {container} state is '{state}' — continuing",
+                        "warn",
+                    )
+
+        return True  # non-fatal
+
+    # ── Phase 4 helpers ──────────────────────────────────────────────────────
+
+    def _step_wait_providers(self) -> bool:
+        """Phase 4 — Wait for provider services to become ready before starting the API.
+
+        Providers whose health endpoint is known in ``PROVIDER_HEALTH_CHECKS`` are
+        probed via HTTP.  All others are checked by container state only.
+        This step is non-fatal: providers starting slowly will not block the API
+        (the API has its own retry/fallback behaviour), but we log a clear warning
+        so operators know which providers are lagging.
+        """
+        if self.dry_run:
+            self._emit(
+                f"[{self._target_host}] [DRY-RUN] Would wait for provider readiness",
+                "info",
+            )
+            return True
+
+        providers = self.profile.get("providers", {})
+        wiz = self.profile.get("wizard_config", {})
+        merged: dict = {**wiz, **providers} if isinstance(wiz, dict) else dict(providers)
+
+        # Build the list of provider containers actually selected
+        active_providers: list[str] = []
+        for category, mapping in PROVIDER_CONTAINER_MAP.items():
+            selected = merged.get(category) or merged.get(f"{category}_provider") or ""
+            container = mapping.get(selected)
+            if container:
+                active_providers.append(container)
+
+        if not active_providers:
+            self._emit(
+                f"[{self._target_host}] No external providers selected — skipping provider readiness check",
+                "info",
+            )
+            return True
+
+        import urllib.request
+
+        max_wait = 90   # seconds — providers (Ollama, Chatwoot) can take a while
+        poll_interval = 6
+
+        self._emit(
+            f"[{self._target_host}] Waiting for provider readiness: {', '.join(active_providers)}",
+            "info",
+        )
+
+        for container in active_providers:
+            if self._abort.is_set():
+                return False
+
+            check = PROVIDER_HEALTH_CHECKS.get(container)
+            if check:
+                url = f"http://{self._target_host}:{check['port']}{check['http_path']}"
+                self._emit(
+                    f"[{self._target_host}] Probing {container} at {url} …",
+                    "info",
+                )
+                deadline = time.time() + max_wait
+                ready = False
+                while time.time() < deadline:
+                    if self._abort.is_set():
+                        return False
+                    try:
+                        urllib.request.urlopen(url, timeout=5)  # noqa: S310
+                        ready = True
+                        break
+                    except Exception:
+                        time.sleep(poll_interval)
+
+                if ready:
+                    self._emit(
+                        f"[{self._target_host}] ✅ {container} is ready",
+                        "info",
+                    )
+                else:
+                    self._emit(
+                        f"[{self._target_host}] ⚠️  {container} not ready after {max_wait}s — "
+                        "API will connect when it becomes available",
+                        "warn",
+                    )
+            else:
+                # No HTTP probe — quick container state check
+                rc, state_out, _ = self._run_on_target(
+                    ["docker", "inspect", "-f", "{{.State.Status}}", container],
+                    timeout=10,
+                )
+                state = state_out.strip() if rc == 0 else "unknown"
+                level = "info" if state == "running" else "warn"
+                self._emit(
+                    f"[{self._target_host}] {container} state: {state}",
+                    level,
+                )
+
+        return True  # non-fatal
+
     def _step_start_providers(self) -> bool:  # NOSONAR - provider failures are non-fatal; core CRM runs without them
         providers = self.profile.get("providers", {})
         # Also check wizard_config for flat-key format (search_provider, ai_provider, etc.)
@@ -1566,7 +1913,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] All provider containers are reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting provider services: {', '.join(extras)}", "info")
-        rc, out, err = self._compose_up(extras, timeout=120)
+        rc, _out, err = self._compose_up(extras, timeout=120)
         if rc != 0 and not self.dry_run:
             self._emit(f"[{self._target_host}] Provider start warning (rc={rc})", "warn")
             if err:
