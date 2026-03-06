@@ -21,6 +21,11 @@ try:
 except ImportError:
     _JINJA2_AVAILABLE = False
 
+try:
+    from urllib.parse import quote as _url_quote
+except ImportError:
+    _url_quote = None
+
 
 @dataclass
 class GeneratedFile:
@@ -99,6 +104,11 @@ class ConfigGenerator:
             self._env.globals.update(self._template_globals())
             # Also register docker_escape as a Jinja2 filter for | pipe usage
             self._env.filters["docker_escape"] = self._docker_escape
+            # url_encode_password: URL-encode special chars (e.g. '@' → '%40') in DB passwords
+            # Used by DocuSeal DATABASE_URL to prevent URI parsing failures.
+            self._env.filters["url_encode_password"] = (
+                lambda v: _url_quote(str(v), safe='') if _url_quote else str(v)
+            )
         else:
             self._env = None
 
@@ -297,9 +307,13 @@ class ConfigGenerator:
             "chatwoot_account_id": "1",
             "chatwoot_db_password": "",
             "novu_api_key": "",
+            "novu_app_id": "",
             "novu_jwt_secret": self.generate_token(32),
+            # STORE_ENCRYPTION_KEY must be EXACTLY 32 chars (hex = 16 bytes → 32 hex chars)
+            "novu_encryption_key": self.generate_token(16),
             "superset_secret_key": "",
             "superset_admin_password": "",
+            "superset_admin_username": "admin",
             "superset_db_password": "",
             "docuseal_api_key": "",
             "docuseal_secret_key": "",
@@ -308,6 +322,7 @@ class ConfigGenerator:
             "n8n_username": "admin",
             "n8n_password": "",
             "n8n_db_password": "",
+            "n8n_port": "5678",
             "openai_api_key": "",
             "openai_model": "gpt-4o",
             "anthropic_api_key": "",
@@ -315,7 +330,11 @@ class ConfigGenerator:
             "azure_openai_api_key": "",
             "azure_openai_deployment": "gpt-4o",
             "ollama_model": "llama3.1:8b",
-            "rate_limiting_enabled": "true",
+            "ollama_embedding_model": "nomic-embed-text",
+            # Set ollama_native=True to use a host systemd service instead of Docker container
+            "ollama_native": False,
+            "ollama_host_ip": "",
+            "rate_limiting_enabled": "false",
             "is_development": False,
             "admin_email": "",
             "admin_password": "",
@@ -334,6 +353,7 @@ class ConfigGenerator:
             # Redis defaults (used in appsettings.j2)
             "redis_host": "crm-redis",
             "redis_port": 6379,
+            "redis_instance": "crm_",
             # Image prefix computed in _build_context — provide a safe empty default
             "image_prefix": "",
             # Remote deploy directory
@@ -343,7 +363,7 @@ class ConfigGenerator:
             "search_provider":        "meilisearch",
             "chat_provider":          "chatwoot",
             "notification_provider":  "novu",
-            "analytics_provider":     "metabase",
+            "analytics_provider":     "superset",   # Changed from 'metabase' — superset is deployed
             "signature_provider":     "docuseal",
             "integration_provider":   "n8n",
             "ai_provider":            "ollama",
@@ -351,6 +371,18 @@ class ConfigGenerator:
             "portainer_provider":     "portainer_ce",
             "storage_provider":       "minio",
             "reverse_proxy_provider": "traefik",
+            # Provider version overrides (important for compatibility)
+            "docuseal_version": "1.4.4",   # v1.5.6+ crash with Rails gem incompatibility
+            "chatwoot_db_name": "chatwoot_production",
+            "meilisearch_port": "7700",
+            "docuseal_port": "3004",
+            "chatwoot_port": "3003",
+            "novu_api_port": "3000",
+            "novu_ws_port": "3002",
+            "novu_web_port": "4200",
+            "novu_widget_port": "4701",
+            "chatwoot_inbox_id": "1",
+            "chatwoot_account_id": "1",
             # Monitoring / infra component settings
             "grafana_admin_password": "",
             "prometheus_enabled":     True,

@@ -53,30 +53,38 @@ services:
       - "ADMIN_EMAIL={{ admin_email | default(admin_admin_email | default('admin@crm.local')) }}"
       - "ADMIN_PASSWORD={{ docker_escape(admin_password | default(admin_admin_password | default('Admin@123'))) }}"
       - "ADMIN_USERNAME={{ admin_username | default(admin_admin_username | default('admin')) }}"
-      - "RateLimiting__EnableEndpointRateLimiting={{ rate_limiting_enabled | default('true') }}"
+      - "RateLimiting__EnableEndpointRateLimiting={{ rate_limiting_enabled | default('false') }}"
+      - "DatabaseProvider={{ db_provider | default('mariadb') }}"
+      - "AllowedHosts=*"
+      - "Redis__InstanceName={{ redis_instance | default('crm_') }}"
+      - "Redis__Enabled=true"
 {% if providers.get('search_provider') == 'meilisearch' %}
       - "FeatureManagement__UseExternalSearch=true"
       - "Providers__Search__Type=Meilisearch"
       - "Providers__Search__Meilisearch__Url=http://crm-meilisearch:7700"
       - "Providers__Search__Meilisearch__ApiKey={{ docker_escape(meilisearch_master_key | default('masterKey')) }}"
+      - "Providers__Search__Meilisearch__IndexPrefix=crm_"
 {% endif %}
 {% if providers.get('chat_provider') == 'chatwoot' %}
       - "FeatureManagement__UseExternalChat=true"
       - "Providers__Chat__Type=Chatwoot"
-      - "Providers__Chat__Chatwoot__BaseUrl=http://crm-chatwoot:3000"
+      - "Providers__Chat__Chatwoot__BaseUrl=http://crm-chatwoot-web:3000"
       - "Providers__Chat__Chatwoot__ApiKey={{ docker_escape(chatwoot_api_key | default('')) }}"
       - "Providers__Chat__Chatwoot__AccountId={{ chatwoot_account_id | default('1') }}"
+      - "Providers__Chat__Chatwoot__InboxId={{ chatwoot_inbox_id | default('1') }}"
 {% endif %}
 {% if providers.get('notification_provider') == 'novu' %}
       - "FeatureManagement__UseExternalNotifications=true"
       - "Providers__Notifications__Type=Novu"
       - "Providers__Notifications__Novu__ApiKey={{ docker_escape(novu_api_key | default('')) }}"
-      - "Providers__Notifications__Novu__BaseUrl=http://crm-novu:3000"
+      - "Providers__Notifications__Novu__ApplicationId={{ docker_escape(novu_app_id | default('')) }}"
+      - "Providers__Notifications__Novu__BaseUrl=http://crm-novu-api:3000"
 {% endif %}
 {% if providers.get('analytics_provider') == 'superset' %}
       - "FeatureManagement__UseExternalAnalytics=true"
       - "Providers__Analytics__Type=Superset"
       - "Providers__Analytics__Superset__Url=http://crm-superset:8088"
+      - "Providers__Analytics__Superset__Username=admin"
 {% endif %}
 {% if providers.get('signature_provider') == 'docuseal' %}
       - "FeatureManagement__UseExternalSignatures=true"
@@ -88,13 +96,23 @@ services:
       - "FeatureManagement__UseExternalIntegrations=true"
       - "Providers__Integrations__Type=N8n"
       - "Providers__Integrations__N8n__BaseUrl=http://crm-n8n:5678"
+      - "Providers__Integrations__N8n__WebhookBaseUrl=http://{{ domain_name | default('localhost') }}:{{ n8n_port | default('5678') }}/webhook"
       - "Providers__Integrations__N8n__ApiKey={{ docker_escape(n8n_api_key | default('')) }}"
 {% endif %}
 {% if providers.get('ai_provider') == 'ollama' %}
+{% if ollama_native | default(false) %}
+      - "FeatureManagement__UseExternalAI=true"
+      - "Providers__AI__Type=Ollama"
+      - "Providers__AI__Ollama__Url=http://{{ ollama_host_ip | default(ssh_host | default('localhost')) }}:11434"
+      - "Providers__AI__Ollama__Model={{ ollama_model | default('llama3.1:8b') }}"
+      - "Providers__AI__Ollama__EmbeddingModel={{ ollama_embedding_model | default('nomic-embed-text') }}"
+{% else %}
       - "FeatureManagement__UseExternalAI=true"
       - "Providers__AI__Type=Ollama"
       - "Providers__AI__Ollama__Url=http://crm-ollama:11434"
       - "Providers__AI__Ollama__Model={{ ollama_model | default('llama3.1:8b') }}"
+      - "Providers__AI__Ollama__EmbeddingModel={{ ollama_embedding_model | default('nomic-embed-text') }}"
+{% endif %}
 {% elif providers.get('ai_provider') == 'openai' %}
       - "FeatureManagement__UseExternalAI=true"
       - "Providers__AI__Type=OpenAI"
@@ -240,21 +258,36 @@ services:
     environment:
       - "MEILI_MASTER_KEY={{ docker_escape(meilisearch_master_key | default('masterKey')) }}"
       - "MEILI_ENV={{ 'production' if not is_development else 'development' }}"
+    ports:
+      - "{{ meilisearch_port | default('7700') }}:7700"
     volumes:
       - meilisearch_data:/meili_data
     networks:
       - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 {% endif %}
 
-{% if providers.get('ai_provider') == 'ollama' %}
+{% if providers.get('ai_provider') == 'ollama' and not (ollama_native | default(false)) %}
+  # crm-ollama: Containerized Ollama (use ollama_native=true to use a host systemd service instead)
   crm-ollama:
     image: ollama/ollama:latest
     container_name: crm-ollama
     restart: unless-stopped
     volumes:
       - ollama_data:/root/.ollama
+    ports:
+      - "11434:11434"
     networks:
       - crm-network
+{% endif %}
+{% if providers.get('ai_provider') == 'ollama' and (ollama_native | default(false)) %}
+  # NOTE: Ollama is configured as a NATIVE HOST SERVICE (not containerized).
+  # Ensure Ollama is installed and running: systemctl status ollama
+  # The API URL http://{{ ollama_host_ip | default(ssh_host | default('localhost')) }}:11434 is used directly.
 {% endif %}
 
 {% if providers.get('chat_provider') == 'chatwoot' %}
@@ -264,7 +297,7 @@ services:
     container_name: crm-chatwoot-postgres
     restart: unless-stopped
     environment:
-      - "POSTGRES_DB=chatwoot"
+      - "POSTGRES_DB=chatwoot_production"
       - "POSTGRES_USER=chatwoot"
       - "POSTGRES_PASSWORD={{ docker_escape(chatwoot_db_password | default(generate_password(24))) }}"
     volumes:
@@ -272,7 +305,7 @@ services:
     networks:
       - crm-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U chatwoot -d chatwoot"]
+      test: ["CMD-SHELL", "pg_isready -U chatwoot -d chatwoot_production"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -287,38 +320,55 @@ services:
     networks:
       - crm-network
 
-  crm-chatwoot:
+  crm-chatwoot-web:
     image: chatwoot/chatwoot:v3.13.0
-    container_name: crm-chatwoot
+    container_name: crm-chatwoot-web
     restart: unless-stopped
+    # entrypoint runs DB migrations on first start
+    entrypoint: docker/entrypoints/rails.sh
     environment:
       - "SECRET_KEY_BASE={{ docker_escape(chatwoot_secret_key | default(generate_password(64))) }}"
-      - "FRONTEND_URL=http://{{ domain_name | default('localhost') }}:3003"
+      - "FRONTEND_URL=http://{{ domain_name | default('localhost') }}:{{ chatwoot_port | default('3003') }}"
       - "RAILS_ENV=production"
-      - "DATABASE_URL=postgres://chatwoot:{{ docker_escape(chatwoot_db_password | default(generate_password(24))) }}@crm-chatwoot-postgres:5432/chatwoot"
-      - "REDIS_URL=redis://crm-chatwoot-redis:6379"
       - "RAILS_LOG_TO_STDOUT=true"
+      - "POSTGRES_HOST=crm-chatwoot-postgres"
+      - "POSTGRES_PORT=5432"
+      - "POSTGRES_DATABASE=chatwoot_production"
+      - "POSTGRES_USERNAME=chatwoot"
+      - "POSTGRES_PASSWORD={{ docker_escape(chatwoot_db_password | default(generate_password(24))) }}"
+      - "REDIS_URL=redis://crm-chatwoot-redis:6379"
     depends_on:
       crm-chatwoot-postgres:
         condition: service_healthy
       crm-chatwoot-redis:
         condition: service_started
     ports:
-      - "3003:3000"
+      - "{{ chatwoot_port | default('3003') }}:3000"
     volumes:
       - chatwoot_data:/app/storage
     networks:
       - crm-network
     command: bundle exec rails s -p 3000 -b 0.0.0.0
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
   crm-chatwoot-worker:
     image: chatwoot/chatwoot:v3.13.0
     container_name: crm-chatwoot-worker
     restart: unless-stopped
+    entrypoint: docker/entrypoints/rails.sh
     environment:
       - "SECRET_KEY_BASE={{ docker_escape(chatwoot_secret_key | default(generate_password(64))) }}"
       - "RAILS_ENV=production"
-      - "DATABASE_URL=postgres://chatwoot:{{ docker_escape(chatwoot_db_password | default(generate_password(24))) }}@crm-chatwoot-postgres:5432/chatwoot"
+      - "POSTGRES_HOST=crm-chatwoot-postgres"
+      - "POSTGRES_PORT=5432"
+      - "POSTGRES_DATABASE=chatwoot_production"
+      - "POSTGRES_USERNAME=chatwoot"
+      - "POSTGRES_PASSWORD={{ docker_escape(chatwoot_db_password | default(generate_password(24))) }}"
       - "REDIS_URL=redis://crm-chatwoot-redis:6379"
     depends_on:
       crm-chatwoot-postgres:
@@ -356,37 +406,45 @@ services:
     networks:
       - crm-network
 
-  crm-novu:
-    image: ghcr.io/novuhq/novu/api:0.24.0
-    container_name: crm-novu
-    restart: unless-stopped
-    environment:
+{% set _novu_shared_env %}
       - "NODE_ENV=production"
       - "MONGO_URL=mongodb://crm-novu-mongo:27017/novu"
       - "REDIS_HOST=crm-novu-redis"
       - "REDIS_PORT=6379"
       - "JWT_SECRET={{ docker_escape(novu_jwt_secret | default(generate_token(32))) }}"
-      - "API_ROOT_URL=http://{{ domain_name | default('localhost') }}:3000"
+      - "STORE_ENCRYPTION_KEY={{ (novu_encryption_key | default(generate_token(16)))[:32] }}"
+      - "API_ROOT_URL=http://{{ domain_name | default('localhost') }}:{{ novu_api_port | default('3000') }}"
+      - "DISABLE_USER_REGISTRATION=false"
+{% endset %}
+
+  crm-novu-api:
+    image: ghcr.io/novuhq/novu/api:0.24.0
+    container_name: crm-novu-api
+    restart: unless-stopped
+    environment:
+{{ _novu_shared_env }}
     depends_on:
       crm-novu-mongo:
         condition: service_healthy
       crm-novu-redis:
         condition: service_started
     ports:
-      - "3000:3000"
+      - "{{ novu_api_port | default('3000') }}:3000"
     networks:
       - crm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/v1/health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   crm-novu-worker:
     image: ghcr.io/novuhq/novu/worker:0.24.0
     container_name: crm-novu-worker
     restart: unless-stopped
     environment:
-      - "NODE_ENV=production"
-      - "MONGO_URL=mongodb://crm-novu-mongo:27017/novu"
-      - "REDIS_HOST=crm-novu-redis"
-      - "REDIS_PORT=6379"
-      - "JWT_SECRET={{ docker_escape(novu_jwt_secret | default(generate_token(32))) }}"
+{{ _novu_shared_env }}
     depends_on:
       crm-novu-mongo:
         condition: service_healthy
@@ -400,18 +458,42 @@ services:
     container_name: crm-novu-ws
     restart: unless-stopped
     environment:
-      - "NODE_ENV=production"
-      - "MONGO_URL=mongodb://crm-novu-mongo:27017/novu"
-      - "REDIS_HOST=crm-novu-redis"
-      - "REDIS_PORT=6379"
-      - "JWT_SECRET={{ docker_escape(novu_jwt_secret | default(generate_token(32))) }}"
+{{ _novu_shared_env }}
     depends_on:
       crm-novu-mongo:
         condition: service_healthy
       crm-novu-redis:
         condition: service_started
     ports:
-      - "3002:3002"
+      - "{{ novu_ws_port | default('3002') }}:3002"
+    networks:
+      - crm-network
+
+  crm-novu-web:
+    image: ghcr.io/novuhq/novu/web:0.24.0
+    container_name: crm-novu-web
+    restart: unless-stopped
+    environment:
+      - "REACT_APP_API_URL=http://{{ domain_name | default('localhost') }}:{{ novu_api_port | default('3000') }}"
+      - "REACT_APP_WS_URL=http://{{ domain_name | default('localhost') }}:{{ novu_ws_port | default('3002') }}"
+    depends_on:
+      - crm-novu-api
+    ports:
+      - "{{ novu_web_port | default('4200') }}:4200"
+    networks:
+      - crm-network
+
+  crm-novu-widget:
+    image: ghcr.io/novuhq/novu/widget:0.24.0
+    container_name: crm-novu-widget
+    restart: unless-stopped
+    environment:
+      - "REACT_APP_API_URL=http://{{ domain_name | default('localhost') }}:{{ novu_api_port | default('3000') }}"
+      - "REACT_APP_WS_URL=http://{{ domain_name | default('localhost') }}:{{ novu_ws_port | default('3002') }}"
+    depends_on:
+      - crm-novu-api
+    ports:
+      - "{{ novu_widget_port | default('4701') }}:4701"
     networks:
       - crm-network
 {% endif %}
@@ -569,17 +651,19 @@ services:
       start_period: 20s
 
   crm-docuseal:
-    image: docuseal/docuseal:1.5.7
+    # NOTE: v1.5.6+ crash with 'has_many_inversing=' (Rails gem incompatibility). Use 1.4.4.
+    image: docuseal/docuseal:{{ docuseal_version | default('1.4.4') }}
     container_name: crm-docuseal
     restart: unless-stopped
     environment:
       - "SECRET_KEY_BASE={{ docker_escape(docuseal_secret_key | default(generate_password(64))) }}"
-      - "DATABASE_URL=postgres://docuseal:{{ docker_escape(docuseal_db_password | default(generate_password(24))) }}@crm-docuseal-postgres:5432/docuseal"
+      # IMPORTANT: Any '@' in the DB password MUST be URL-encoded as '%40'
+      - "DATABASE_URL=postgres://docuseal:{{ (docuseal_db_password | default(generate_password(24))) | url_encode_password }}@crm-docuseal-postgres:5432/docuseal"
     depends_on:
       crm-docuseal-postgres:
         condition: service_healthy
     ports:
-      - "3001:3000"
+      - "{{ docuseal_port | default('3004') }}:3000"
     volumes:
       - docuseal_data:/data
     networks:
@@ -649,7 +733,7 @@ volumes:
 {% if providers.get('search_provider') == 'meilisearch' %}
   meilisearch_data:
 {% endif %}
-{% if providers.get('ai_provider') == 'ollama' %}
+{% if providers.get('ai_provider') == 'ollama' and not (ollama_native | default(false)) %}
   ollama_data:
 {% endif %}
 {% if providers.get('chat_provider') == 'chatwoot' %}

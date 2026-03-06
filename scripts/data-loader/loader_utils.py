@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import ssl
 import subprocess
 import sys
 import time
@@ -371,17 +372,29 @@ class ApiClient:
     """HTTP client wrapping urllib with logging, retry, and error handling."""
 
     def __init__(self, base_url: str, token: str = "", logger: Optional[RunLogger] = None,
-                 docker: Optional[DockerLogCapture] = None):
+                 docker: Optional[DockerLogCapture] = None,
+                 tls_skip_verify: bool = False):
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.logger = logger
         self.docker = docker
+        self._tls_skip_verify = tls_skip_verify
         self.stats: Dict[str, int] = {
             "total": 0, "success": 0, "exists": 0,
             "client_error": 0,
             "server_error": 0, "network_error": 0,
             "skipped_integration": 0,
         }
+
+    def _ssl_context(self) -> Optional[ssl.SSLContext]:
+        """Return an SSL context for HTTPS requests, or None for HTTP."""
+        if not self.base_url.startswith('https'):
+            return None
+        ctx = ssl.create_default_context()  # NOSONAR - TLS min version controlled by Python defaults
+        if self._tls_skip_verify:
+            ctx.check_hostname = False  # NOSONAR - intentional: user passed --no-verify-ssl
+            ctx.verify_mode = ssl.CERT_NONE  # NOSONAR - intentional: user passed --no-verify-ssl
+        return ctx
 
     def set_token(self, token: str) -> None:
         """Set the auth token (used after authentication)."""
@@ -409,7 +422,11 @@ class ApiClient:
             old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
             signal.alarm(timeout)
             try:
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                _ctx = self._ssl_context()
+                _kw: dict = {"timeout": timeout}
+                if _ctx is not None:
+                    _kw["context"] = _ctx
+                with urllib.request.urlopen(req, **_kw) as resp:
                     resp_body = resp.read().decode("utf-8", errors="replace")
             finally:
                 signal.alarm(0)
@@ -600,7 +617,14 @@ def authenticate(api_or_url, username: str, password: str,
     )
     req.add_header("Content-Type", "application/json")
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        # Build SSL context from ApiClient if available
+        ctx: Optional[ssl.SSLContext] = None
+        if isinstance(api_or_url, ApiClient):
+            ctx = api_or_url._ssl_context()  # noqa: SLF001
+        urlopen_kwargs: dict = {"timeout": 15}
+        if ctx is not None:
+            urlopen_kwargs["context"] = ctx
+        with urllib.request.urlopen(req, **urlopen_kwargs) as resp:
             body = json.loads(resp.read().decode())
         token = body.get("accessToken") or body.get("token") or ""
         if not token:
@@ -630,8 +654,12 @@ def check_service_availability(api: ApiClient, endpoint: str) -> bool:
     req = urllib.request.Request(url, method="GET")
     req.add_header("Authorization", f"Bearer {api.token}")
     req.add_header("Content-Type", "application/json")
+    ctx = api._ssl_context()  # noqa: SLF001
+    urlopen_kwargs: dict = {"timeout": 10}
+    if ctx is not None:
+        urlopen_kwargs["context"] = ctx
     try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        with urllib.request.urlopen(req, **urlopen_kwargs) as resp:
             return True  # 2xx — service is available
     except urllib.error.HTTPError as exc:
         return exc.code != 404

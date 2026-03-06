@@ -85,6 +85,8 @@ def main() -> None:
                         help="Stop immediately if any batch throws an exception")
     parser.add_argument("--ssh-host", default=None,
                         help="SSH host for docker log capture (e.g., root@192.168.0.9)")
+    parser.add_argument("--no-verify-ssl", action="store_true",
+                        help="Disable TLS certificate verification (for self-signed certs)")
     args = parser.parse_args()
 
     continue_on_error = not args.stop_on_error
@@ -114,7 +116,8 @@ def main() -> None:
         docker = DockerLogCapture(ssh_host=args.ssh_host)
 
     log = RunLogger(log_dir, run_id, docker=docker)
-    api = ApiClient(args.base_url, logger=log, docker=docker)
+    api = ApiClient(args.base_url, logger=log, docker=docker,
+                    tls_skip_verify=args.no_verify_ssl)
 
     print("=" * 72)
     print("  CRM Comprehensive Test Data Loader")

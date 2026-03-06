@@ -13,6 +13,7 @@ API_BASE="${API_BASE:-http://192.168.0.9:5000/api}"
 ADMIN_USER="${ADMIN_USER:-admin@crm.local}"
 ADMIN_PASS="${ADMIN_PASS:-Admin@123}"
 DATA_LEVEL="${1:-demo}"
+NO_VERIFY_SSL="${NO_VERIFY_SSL:-false}"
 
 # Colors
 RED='\033[0;31m'
@@ -68,13 +69,21 @@ case $DATA_LEVEL in
 esac
 
 echo -e "  API: ${API_BASE}"
+if [[ "$NO_VERIFY_SSL" == "true" ]]; then
+    echo -e "  ${YELLOW}⚠️  TLS verification disabled (NO_VERIFY_SSL=true)${NC}"
+fi
 echo ""
 
 # Run the Python script
+SSL_FLAG=""
+if [[ "$NO_VERIFY_SSL" == "true" ]]; then
+    SSL_FLAG="--no-verify-ssl"
+fi
 python3 "$PYTHON_SCRIPT" \
     --api-base="$API_BASE" \
     --username="$ADMIN_USER" \
     --password="$ADMIN_PASS" \
+    ${SSL_FLAG:+"$SSL_FLAG"} \
     "$DATA_LEVEL"
 
 exit_code=$?

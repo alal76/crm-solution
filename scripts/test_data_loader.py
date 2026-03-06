@@ -48,6 +48,7 @@ import argparse
 import json
 import os
 import re
+import ssl
 import subprocess
 import sys
 import textwrap
@@ -467,11 +468,23 @@ class ApiClient:
         token: str,
         logger: RunLogger,
         docker: Optional[DockerLogCapture] = None,
+        tls_skip_verify: bool = False,
     ):
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.logger = logger
         self.docker = docker
+        self._tls_skip_verify = tls_skip_verify
+
+    def _ssl_context(self) -> Optional[ssl.SSLContext]:
+        """Return an SSL context for HTTPS requests, or None for HTTP."""
+        if not self.base_url.startswith('https'):
+            return None
+        ctx = ssl.create_default_context()  # NOSONAR - TLS min version controlled by Python defaults
+        if self._tls_skip_verify:
+            ctx.check_hostname = False  # NOSONAR - intentional: user passed --no-verify-ssl
+            ctx.verify_mode = ssl.CERT_NONE  # NOSONAR - intentional: user passed --no-verify-ssl
+        return ctx
 
     def request(
         self,
@@ -494,7 +507,11 @@ class ApiClient:
         req.add_header("Content-Type", "application/json")
         resp_body: Optional[str] = None
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            _ctx = self._ssl_context()
+            _kw: dict = {"timeout": 30}
+            if _ctx is not None:
+                _kw["context"] = _ctx
+            with urllib.request.urlopen(req, **_kw) as resp:
                 resp_body = resp.read().decode("utf-8", errors="replace")
                 parsed = None
                 if resp_body:
@@ -4055,6 +4072,11 @@ def main() -> int:
         default=120,
         help="Docker log lines to capture on error",
     )
+    parser.add_argument(
+        "--no-verify-ssl",
+        action="store_true",
+        help="Disable TLS certificate verification (for self-signed certs)",
+    )
     args = parser.parse_args()
 
     # Docker log capture
@@ -4079,7 +4101,16 @@ def main() -> int:
             method="POST",
         )
         auth_req.add_header("Content-Type", "application/json")
-        with urllib.request.urlopen(auth_req, timeout=15) as resp:
+        _auth_ctx: Optional[ssl.SSLContext] = None
+        if args.base_url.startswith('https'):
+            _auth_ctx = ssl.create_default_context()  # NOSONAR
+            if args.no_verify_ssl:
+                _auth_ctx.check_hostname = False  # NOSONAR - intentional
+                _auth_ctx.verify_mode = ssl.CERT_NONE  # NOSONAR - intentional
+        _auth_kw: dict = {"timeout": 15}
+        if _auth_ctx is not None:
+            _auth_kw["context"] = _auth_ctx
+        with urllib.request.urlopen(auth_req, **_auth_kw) as resp:
             body = resp.read().decode()
             auth_data = json.loads(body)
         token = auth_data.get("accessToken") or auth_data.get("token") or ""
@@ -4115,7 +4146,8 @@ def main() -> int:
         logger.close()
         return 1
 
-    client = ApiClient(args.base_url, token, logger, docker)
+    client = ApiClient(args.base_url, token, logger, docker,
+                       tls_skip_verify=args.no_verify_ssl)
     data_dir = os.path.abspath(args.data_dir)
 
     # Shared ID maps

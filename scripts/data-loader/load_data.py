@@ -24,6 +24,7 @@ import random
 import sys
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
+import ssl
 import urllib.request
 import urllib.error
 
@@ -39,10 +40,21 @@ DEFAULT_ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Admin@123')  # NOSONA
 class APIClient:
     """Simple HTTP client for CRM API"""
     
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, tls_skip_verify: bool = False):
         self.base_url = base_url.rstrip('/')
         self.token: Optional[str] = None
         self.created_ids: Dict[str, List[int]] = {}
+        self._tls_skip_verify = tls_skip_verify
+
+    def _ssl_context(self) -> Optional[ssl.SSLContext]:
+        """Return an SSL context for HTTPS requests, or None for HTTP."""
+        if not self.base_url.startswith('https'):
+            return None
+        ctx = ssl.create_default_context()  # NOSONAR - TLS min version controlled by Python defaults
+        if self._tls_skip_verify:
+            ctx.check_hostname = False  # NOSONAR - intentional: user passed --no-verify-ssl
+            ctx.verify_mode = ssl.CERT_NONE  # NOSONAR - intentional: user passed --no-verify-ssl
+        return ctx
     
     def _request(self, method: str, endpoint: str, data: Optional[dict] = None) -> dict:
         """Make HTTP request to API"""
@@ -57,7 +69,11 @@ class APIClient:
         request = urllib.request.Request(url, data=body, headers=headers, method=method)
         
         try:
-            with urllib.request.urlopen(request, timeout=30) as response:
+            ctx = self._ssl_context()
+            urlopen_kwargs = {"timeout": 30}
+            if ctx is not None:
+                urlopen_kwargs["context"] = ctx
+            with urllib.request.urlopen(request, **urlopen_kwargs) as response:
                 response_body = response.read().decode('utf-8')
                 return json.loads(response_body) if response_body else {}
         except urllib.error.HTTPError as e:
@@ -1145,6 +1161,8 @@ Data Levels:
                        help=f"Admin password (default: {DEFAULT_ADMIN_PASSWORD})")
     parser.add_argument("--dry-run", action="store_true",
                        help="Show what would be created without making API calls")
+    parser.add_argument("--no-verify-ssl", action="store_true",
+                       help="Disable TLS certificate verification (for self-signed certs)")
     
     args = parser.parse_args()
     
@@ -1161,7 +1179,7 @@ Data Levels:
         return 0
     
     # Initialize API client
-    api = APIClient(args.api_base)
+    api = APIClient(args.api_base, tls_skip_verify=args.no_verify_ssl)
     
     # Authenticate
     print("🔐 Authenticating...")
