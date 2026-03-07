@@ -7117,6 +7117,28 @@
         async function startDeployment() {
             if (_deploy.evtSource) { _deploy.evtSource.close(); }
 
+            // ── Re-capture SSH credentials from the Discovery step ─────
+            // collectStepData() only reads form fields for currentStep,
+            // but by deploy time we're on the Review step.  The Discovery
+            // form fields are still in the DOM (just hidden), so read
+            // them directly to ensure config.target has fresh values.
+            if (!config.target) config.target = {};
+            const _dHost = document.getElementById('discoveryHost')?.value?.trim();
+            if (_dHost) {
+                config.target.host     = _dHost;
+                config.target.ssh_user = document.getElementById('discoveryUsername')?.value || config.target.ssh_user || 'root';
+                config.target.ssh_port = parseInt(document.getElementById('discoveryPort')?.value) || config.target.ssh_port || 22;
+                const _authM = document.getElementById('discoveryAuthMethod')?.value || 'password';
+                if (_authM === 'key') {
+                    config.target.ssh_key      = document.getElementById('discoverySSHKey')?.value?.trim() || config.target.ssh_key || '';
+                    config.target.ssh_password  = document.getElementById('discoveryPassword')?.value || config.target.ssh_password || '';  // passphrase
+                } else {
+                    config.target.ssh_password  = document.getElementById('discoveryPassword')?.value || config.target.ssh_password || '';
+                    config.target.ssh_key       = '';  // password-only auth
+                }
+                config.deployment_host = _dHost;
+            }
+
             // ── Pre-flight: check for existing infrastructure ──────────
             // Send platform & target info so the backend can check remote
             // Docker containers or K8s resources, not just local Docker.

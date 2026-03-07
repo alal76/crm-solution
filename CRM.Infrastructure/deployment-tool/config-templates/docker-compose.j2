@@ -139,6 +139,7 @@ services:
         condition: service_started
     networks:
       - crm-network
+{% if ssl_enabled or db_auth_method == 'ssl_cert' %}
     volumes:
 {% if ssl_enabled %}
       - ssl_certs:/etc/ssl/crm:ro
@@ -157,6 +158,7 @@ services:
         source: ./ssl/db-ca.crt
         target: {{ db_ssl_ca_path }}
         read_only: true
+{% endif %}
 {% endif %}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000/health"]

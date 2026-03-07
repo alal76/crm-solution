@@ -1,7 +1,10 @@
-fix: v0.615.9 - CDT profile save/load and connection test fixes
+fix: v0.615.13 - CDT deployer: 6 remote deploy fixes
 
-- Profile save: ssh_key, ssh_password, secrets now included in saved profile
-- applyTemplateToWizard: platform mapping uses data.platform fallback; config.target populated; SSH password restored to form; on_premises added to platform map
-- _loadAndApplyProfile: merges wizard_config before template apply so all credentials restored
+1. Compose template: wrap crm-api volumes in conditional to avoid empty volumes key when ssl_enabled=false
+2. Shell escaping: use shlex.quote() in _run_on_target() for proper remote SSH command quoting
+3. Smart image pulling: when no registry configured, only pull official images (mariadb, redis)
+4. Pull policy: add --pull never to _compose_up() since pulling handled in Step 5
+5. SSH credential re-capture: startDeployment() re-reads SSH creds from Discovery form
+6. Compose file transfer: _transfer_compose_files() called for remote targets even when build_locally=false
 - applySelectedProfile: populates Discovery form fields and secret fields on load
 - test_connection: SSH/cloud failure returns HTTP 200 with status=failed instead of HTTP 400

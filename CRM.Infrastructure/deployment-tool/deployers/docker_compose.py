@@ -3,6 +3,7 @@
 from __future__ import annotations
 import logging
 import re
+import shlex
 import subprocess
 import queue
 import threading
@@ -265,8 +266,12 @@ class DockerComposeDeployer:
         ``container_name`` already exist (common when a prior compose project
         left orphans), the conflicting containers are forcibly removed and the
         command is retried once.
+
+        Uses ``--pull never`` because image pulling is handled separately in
+        Step 5.  This prevents ``up`` from failing when custom images
+        (crm-api, crm-frontend) are not on Docker Hub.
         """
-        cmd = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d"] + services
+        cmd = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "--pull", "never"] + services
         rc, out, err = self._run_on_target(cmd, timeout=timeout, log_command=True)
         if rc != 0 and "already in use" in (err or ""):
             conflicts = re.findall(
@@ -399,7 +404,7 @@ class DockerComposeDeployer:
         If the target is remote (not localhost), executes via SSH.
         If the target is local, delegates to ``_run()``.
         """
-        cmd_str = " ".join(str(c) for c in cmd)
+        cmd_str = " ".join(shlex.quote(str(c)) for c in cmd)
         if log_command:
             self._emit(f"[{self._target_host}] Running: {cmd_str}", "info")
         if not self._is_remote:
@@ -1131,10 +1136,17 @@ class DockerComposeDeployer:
 
         This step is only needed for remote deployments with build_locally=True.
         For local deployments the images are already in the local Docker daemon.
+
+        Regardless of build_locally, this step always transfers the generated
+        docker-compose.yml and .env to the remote target so subsequent steps
+        (pull, start databases, start app) can find them.
         """
         build_locally = self.profile.get("image_registry", {}).get("build_locally", False)
         if not build_locally:
-            self._emit(f"[{self._target_host}] Using registry images — transfer not needed", "info")
+            self._emit(f"[{self._target_host}] Using registry images — image transfer not needed", "info")
+            # Still transfer compose/env files to the remote target
+            if self._is_remote:
+                self._transfer_compose_files()
             return True
         if not self._is_remote:
             self._emit(f"[{self._target_host}] Local deployment — images already available", "info")
@@ -1239,6 +1251,12 @@ class DockerComposeDeployer:
         )
 
         # Transfer docker-compose.yml and .env to remote
+        self._transfer_compose_files()
+
+        return True
+
+    def _transfer_compose_files(self) -> None:
+        """Transfer docker-compose.yml and .env from the work directory to the remote target."""
         compose_src = self.work_dir / DOCKER_COMPOSE_FILE
         if not compose_src.is_file():
             # Try repo root docker/ dir
@@ -1257,10 +1275,8 @@ class DockerComposeDeployer:
         env_src = self.work_dir / ".env"
         if env_src.is_file():
             remote_env = f"{self._remote_deploy_dir}/.env"
-            self._emit(f"  Transferring .env to remote…", "info")
+            self._emit("  Transferring .env to remote…", "info")
             self._scp_to_target(str(env_src), remote_env)
-
-        return True
 
     def _step_pull_images(self) -> bool:  # NOSONAR - pull failures are non-fatal by design
         build_locally = self.profile.get("image_registry", {}).get("build_locally", False)
@@ -1293,8 +1309,42 @@ class DockerComposeDeployer:
                     self._emit(f"[{self._target_host}] All images built locally — skipping pull", "info")
                     return True
         else:
-            self._emit(f"[{self._target_host}] Pulling all images from registry", "info")
-            pull_cmd = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "pull"]
+            # No local build — check if a registry is configured for custom images.
+            image_registry = self.profile.get("image_registry") or ""
+            image_org = self.profile.get("image_org") or ""
+            has_registry = bool(image_registry and image_org)
+
+            if has_registry:
+                self._emit(f"[{self._target_host}] Pulling all images from registry", "info")
+                pull_cmd = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "pull"]
+            else:
+                # No registry — only pull official/third-party images (databases,
+                # providers), skip custom CRM images that aren't on Docker Hub.
+                rc_cfg, stdout_cfg, _ = self._run_on_target(
+                    ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "config", "--services"]
+                )
+                if rc_cfg == 0 and stdout_cfg.strip():
+                    all_services = stdout_cfg.strip().splitlines()
+                    local_names = set(LOCAL_BUILD_IMAGES.keys())
+                    pullable = [s for s in all_services if s not in local_names]
+                    if pullable:
+                        self._emit(
+                            f"[{self._target_host}] No registry configured — pulling only "
+                            f"official images: {', '.join(pullable)}",
+                            "info",
+                        )
+                        pull_cmd = [
+                            "docker", "compose", "-f", DOCKER_COMPOSE_FILE, "pull",
+                        ] + pullable
+                    else:
+                        self._emit(
+                            f"[{self._target_host}] No registry and no official images to pull — skipping",
+                            "info",
+                        )
+                        return True
+                else:
+                    self._emit(f"[{self._target_host}] Pulling all images from registry", "info")
+                    pull_cmd = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "pull"]
 
         pull_start = time.time()
         rc, out, err = self._run_on_target(pull_cmd, timeout=600, log_command=True)
@@ -1972,6 +2022,13 @@ class DockerComposeDeployer:
             if out:
                 for line in out.strip().splitlines()[-5:]:
                     self._emit(f"  stdout: {line}", "error")
+            # Provide actionable guidance for missing image
+            if "No such image" in (err or "") or "not found" in (err or "").lower():
+                self._emit(
+                    f"[{self._target_host}] Hint: The crm-api image is not available on the target. "
+                    "Enable 'Build Locally' in the wizard, or push images to a registry first.",
+                    "error",
+                )
         else:
             self._emit(f"[{self._target_host}] crm-api container started", "info")
         return rc == 0 or self.dry_run
