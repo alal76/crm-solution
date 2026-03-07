@@ -4,7 +4,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GUI_DIR="$SCRIPT_DIR/gui"
-CDT_PORT=5050
+CDT_PORT=1000
 
 echo ""
 echo "=================================================================="
@@ -60,4 +60,5 @@ echo "=================================================================="
 echo ""
 
 cd "$GUI_DIR"
-python3 app.py
+export CDT_PORT
+python3 app.py --port "$CDT_PORT"

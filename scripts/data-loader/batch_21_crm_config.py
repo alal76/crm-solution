@@ -57,8 +57,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
          ]},
     ]
     pipeline_ids = []
+    pipeline_stages_save = []
     for p in pipelines:
         stages = p.pop("stages", [])
+        pipeline_stages_save.append(stages)
         payload = {**p, "stages": stages}
         eid = api.create_and_track("pipelines", "/api/pipelines", payload)
         if eid:
@@ -70,7 +72,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.put(f"/api/pipelines/{pipeline_ids[0]}",
                 {**{k: v for k, v in pipelines[0].items() if k not in ("stages",)},
                  "description": "Updated enterprise pipeline description",
-                 "stages": pipelines[0]["stages"]})
+                 "stages": pipeline_stages_save[0]})
         # Get stages separately
         api.get("/api/pipeline-stages")
         api.get(f"/api/pipeline-stages?pipelineId={pipeline_ids[0]}")
@@ -261,8 +263,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
          ]},
     ]
     pb_ids = []
+    pb_items_save = []
     for pb in price_books:
         items = pb.pop("items", [])
+        pb_items_save.append(items)
         payload = {**pb, "items": items} if all_product_ids else {**pb, "items": []}
         eid = api.create_and_track("pricebooks", "/api/pricebooks", payload)
         if eid:
@@ -274,7 +278,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.put(f"/api/pricebooks/{pb_ids[0]}",
                 {**{k: v for k, v in price_books[0].items() if k not in ("items",)},
                  "description": "Default pricing — updated Q1 2026",
-                 "items": price_books[0]["items"]})
+                 "items": pb_items_save[0]})
     # Delete test
     del_pb = {"name": f"DELETE-PB-{ts}", "description": "Temp",
               "currency": "USD", "isDefault": False, "isActive": False, "items": []}
@@ -302,8 +306,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
                         "value": ["AU", "JP", "SG", "IN", "KR"]}]},
     ]
     terr_ids = []
+    terr_criteria_save = []
     for t in territories:
         criteria = t.pop("criteria", [])
+        terr_criteria_save.append(criteria)
         payload = {**t, "criteria": criteria}
         eid = api.create_and_track("territories", "/api/territories", payload)
         if eid:
@@ -314,7 +320,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.put(f"/api/territories/{terr_ids[0]}",
                 {**{k: v for k, v in territories[0].items() if k not in ("criteria",)},
                  "description": "Western US, Canada, Mexico",
-                 "criteria": territories[0]["criteria"]})
+                 "criteria": terr_criteria_save[0]})
         # Assign user to territory
         if user_ids:
             api.post(f"/api/territories/{terr_ids[0]}/members/{user_ids[0]}")
@@ -346,8 +352,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
          "isRequired": False, "isActive": True, "sortOrder": 1},
     ]
     cf_ids = []
+    cf_options_save = []
     for cf in custom_fields:
         options = cf.pop("options", None)
+        cf_options_save.append(options)
         payload = {**cf}
         if options:
             payload["options"] = options
@@ -361,7 +369,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.put(f"/api/customfields/{cf_ids[0]}",
                 {**{k: v for k, v in custom_fields[0].items() if k != "options"},
                  "label": "Customer Tier (Updated)",
-                 "options": custom_fields[0]["options"] + ["Diamond"]})
+                 "options": (cf_options_save[0] or []) + ["Diamond"]})
     # Delete test
     del_cf = {"entityType": "Account", "name": f"DELETE_CF_{ts}",
               "label": "Delete Test", "fieldType": "Text",

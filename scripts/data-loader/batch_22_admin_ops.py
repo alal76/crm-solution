@@ -87,8 +87,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
          ]},
     ]
     role_ids = []
+    role_perms_save = []
     for r in roles:
         perms = r.pop("permissions", [])
+        role_perms_save.append(perms)
         payload = {**r, "permissions": perms}
         eid = api.create_and_track("roles", "/api/roles", payload)
         if eid:
@@ -100,7 +102,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.put(f"/api/roles/{role_ids[0]}",
                 {**{k: v for k, v in roles[0].items() if k not in ("permissions",)},
                  "description": "Updated — full CRM access including marketing",
-                 "permissions": roles[0]["permissions"] + ["campaigns:read"]})
+                 "permissions": role_perms_save[0] + ["campaigns:read"]})
         # Assign role to users
         if user_ids:
             for uid in user_ids[:2]:

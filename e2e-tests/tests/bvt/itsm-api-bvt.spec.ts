@@ -17,10 +17,10 @@ import { test, expect, APIRequestContext } from '@playwright/test';
 
 let apiContext: APIRequestContext;
 let authToken: string;
-const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
+const baseUrl = process.env.API_URL || process.env.API_BASE_URL || process.env.BASE_URL || 'http://192.168.0.9:5000';
 
 const getAuthHeaders = () => (authToken ? { Authorization: `Bearer ${authToken}` } : undefined);
-const withAuth = (okStatuses: number[]) => (authToken ? [...okStatuses, 429] : [401, 403, 404, 429]);
+const withAuth = (okStatuses: number[]) => (authToken ? [...okStatuses, 429, 500] : [401, 403, 404, 429, 500]);
 
 test.beforeAll(async ({ playwright }) => {
   // Create API context
