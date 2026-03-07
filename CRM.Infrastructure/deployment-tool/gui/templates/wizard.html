@@ -4892,6 +4892,7 @@
                 config.username         = document.getElementById('discoveryUsername').value.trim() || 'root';
                 config.auth_method      = document.getElementById('discoveryAuthMethod').value;
                 config.password         = document.getElementById('discoveryPassword').value;
+                config.key_path         = document.getElementById('discoverySSHKey')?.value?.trim() || '';
                 config.container_prefix = (document.getElementById('discoveryContainerPrefix').value.trim() || 'crm-');
                 config.network          = document.getElementById('discoveryNetwork').value.trim() || 'crm_crm-network';
             } else if (platform === 'azure') {

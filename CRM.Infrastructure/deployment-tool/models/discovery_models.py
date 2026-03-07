@@ -180,17 +180,30 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
 
     def connect(self, hostname: str, username: str, password: str = None,
                 key_path: str = None, port: int = 22) -> None:
-        """Establish SSH connection."""
+        """Establish SSH connection.
+
+        When *key_path* is provided the key file is used for authentication.
+        If *password* is also set it is treated as the key passphrase.
+        When only *password* is provided, password authentication is used.
+        When neither is provided, paramiko auto-discovers keys in ~/.ssh.
+        """
         try:
             paramiko = self._get_paramiko()
             self.ssh_client = paramiko.SSHClient()
             self.ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-            if key_path:
-                key = paramiko.RSAKey.from_private_key_file(key_path)
-                self.ssh_client.connect(hostname, port=port, username=username, pkey=key)
-            else:
-                self.ssh_client.connect(hostname, port=port, username=username, password=password)
+            _auto = not key_path and not password
+            self.ssh_client.connect(
+                hostname,
+                port=port,
+                username=username,
+                # When key_path set: password is the key passphrase (may be None/empty).
+                # When key_path not set: password is the auth password (may be None).
+                password=password or None,
+                key_filename=key_path or None,
+                look_for_keys=_auto,
+                allow_agent=_auto,
+            )
 
             logger.info(f"SSH connection established to {hostname}")
         except Exception as e:
