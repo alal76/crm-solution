@@ -6932,6 +6932,64 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("CreditMemoLineItems");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.CreditNote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime?>("AppliedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreditNoteNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<int?>("InvoiceId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsApplied")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("IssuedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("CreditNotes");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.CrmTask", b =>
                 {
                     b.Property<int>("Id")
@@ -8284,6 +8342,57 @@ namespace CRM.Infrastructure.Migrations
                         .HasDatabaseName("IX_DunningRecords_SubscriptionId");
 
                     b.ToTable("DunningRecords", (string)null);
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.DunningSchedule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DaysOverdue")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EmailBody")
+                        .IsRequired()
+                        .HasMaxLength(10000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EmailSubject")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<int>("StepOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DunningSchedules");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.DuplicateCandidate", b =>
@@ -19633,6 +19742,9 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int?>("CreditNoteId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -19712,6 +19824,8 @@ namespace CRM.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("CreditNoteId");
 
                     b.HasIndex("InitiatedById");
 
@@ -31091,6 +31205,21 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.CreditNote", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.Invoice", "Invoice")
+                        .WithMany()
+                        .HasForeignKey("InvoiceId");
+
+                    b.HasOne("CRM.Core.Entities.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId");
+
+                    b.Navigation("Invoice");
+
+                    b.Navigation("Order");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.CrmTask", b =>
                 {
                     b.HasOne("CRM.Core.Entities.Account", "Account")
@@ -33611,6 +33740,10 @@ namespace CRM.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("AccountId");
 
+                    b.HasOne("CRM.Core.Entities.CreditNote", "CreditNote")
+                        .WithMany()
+                        .HasForeignKey("CreditNoteId");
+
                     b.HasOne("CRM.Core.Entities.User", "InitiatedBy")
                         .WithMany()
                         .HasForeignKey("InitiatedById");
@@ -33626,6 +33759,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasForeignKey("ProcessedById");
 
                     b.Navigation("Account");
+
+                    b.Navigation("CreditNote");
 
                     b.Navigation("InitiatedBy");
 

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 15,
+  "patch": 16,
   "lastUpdate": "2026-03-08",
-  "description": "fix: v0.615.15 - CDT deploy: connection string escaping (connstr_escape filter), remove & and ; from generated passwords, docker tag :latest after remote load",
+  "description": "refactor: v0.615.16 - Squash 10 EF Core migrations into single InitialCreate (21 files/15MB -> 3 files/3.8MB)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

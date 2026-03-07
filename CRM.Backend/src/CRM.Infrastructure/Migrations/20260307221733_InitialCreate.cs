@@ -45,6 +45,17 @@ namespace CRM.Infrastructure.Migrations
                     TotalConversations = table.Column<int>(type: "int", nullable: false),
                     TotalActions = table.Column<int>(type: "int", nullable: false),
                     AverageRating = table.Column<double>(type: "double", nullable: true),
+                    OnActivateScriptId = table.Column<int>(type: "int", nullable: true),
+                    OnPlanScriptId = table.Column<int>(type: "int", nullable: true),
+                    OnBeforeToolCallScriptId = table.Column<int>(type: "int", nullable: true),
+                    OnAfterToolCallScriptId = table.Column<int>(type: "int", nullable: true),
+                    OnResponseScriptId = table.Column<int>(type: "int", nullable: true),
+                    OnErrorScriptId = table.Column<int>(type: "int", nullable: true),
+                    OnDeactivateScriptId = table.Column<int>(type: "int", nullable: true),
+                    GuardrailScriptId = table.Column<int>(type: "int", nullable: true),
+                    MaxTokensPerCall = table.Column<int>(type: "int", nullable: true),
+                    MaxCallsPerHour = table.Column<int>(type: "int", nullable: true),
+                    MaxCostPerDay = table.Column<decimal>(type: "decimal(65,30)", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -1050,6 +1061,32 @@ namespace CRM.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "DunningSchedules",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DaysOverdue = table.Column<int>(type: "int", nullable: false),
+                    EmailSubject = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EmailBody = table.Column<string>(type: "TEXT", maxLength: 10000, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    StepOrder = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DunningSchedules", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "DuplicateRules",
                 columns: table => new
                 {
@@ -1201,6 +1238,37 @@ namespace CRM.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_EmailTemplateVersions", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "EnumCategories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    DisplayName = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "VARCHAR(1000)", maxLength: 1000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EntityType = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PropertyName = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsSystemManaged = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AllowCustomValues = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    ValidationSchema = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EnumCategories", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -1578,6 +1646,14 @@ namespace CRM.Infrastructure.Migrations
                     Description = table.Column<string>(type: "TEXT", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    EntityType = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PropertyName = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsSystemManaged = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AllowCustomValues = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    ValidationSchema = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -1867,6 +1943,37 @@ namespace CRM.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_PhoneNumbers", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "PortalConfigs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    IsEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AllowSelfRegistration = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    WelcomeMessage = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SupportEmail = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LogoUrl = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PrimaryColor = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AllowedDomains = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PortalTitle = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PortalConfigs", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -2320,6 +2427,38 @@ namespace CRM.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "RevenueSnapshots",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SnapshotDate = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    MRR = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    ARR = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    NewMRR = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    ExpansionMRR = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    ContractionMRR = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    ChurnMRR = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    NetNewMRR = table.Column<decimal>(type: "decimal(18,4)", precision: 18, scale: 4, nullable: false),
+                    CustomerCount = table.Column<int>(type: "int", nullable: false),
+                    NewCustomers = table.Column<int>(type: "int", nullable: false),
+                    ChurnedCustomers = table.Column<int>(type: "int", nullable: false),
+                    Notes = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SnapshotType = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: false, defaultValue: "Monthly")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RevenueSnapshots", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Roles",
                 columns: table => new
                 {
@@ -2431,6 +2570,52 @@ namespace CRM.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_SalesConfigurations", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ScriptPlugins",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Name = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Language = table.Column<int>(type: "int", nullable: false),
+                    Code = table.Column<string>(type: "TEXT", maxLength: 50000, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ParameterSchema = table.Column<string>(type: "TEXT", maxLength: 5000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ReturnValueDescription = table.Column<string>(type: "VARCHAR(1000)", maxLength: 1000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Version = table.Column<int>(type: "int", nullable: false),
+                    SemVersion = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Runtime = table.Column<int>(type: "int", nullable: false),
+                    LifecycleState = table.Column<int>(type: "int", nullable: false),
+                    InputSchemaJson = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OutputSchemaJson = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PermissionsJson = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MemoryLimitMb = table.Column<int>(type: "int", nullable: false),
+                    TimeoutSeconds = table.Column<int>(type: "int", nullable: false),
+                    LastTestedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    LastTestResult = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedBy = table.Column<int>(type: "int", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScriptPlugins", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -2765,6 +2950,44 @@ namespace CRM.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_UserListViewPreferences", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "UtmLinkClicks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UtmSource = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UtmMedium = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UtmCampaign = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UtmContent = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UtmTerm = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OriginalUrl = table.Column<string>(type: "VARCHAR(2048)", maxLength: 2048, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LandingUrl = table.Column<string>(type: "VARCHAR(2048)", maxLength: 2048, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VisitorIp = table.Column<string>(type: "VARCHAR(45)", maxLength: 45, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    VisitorUserAgent = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LeadId = table.Column<int>(type: "int", nullable: true),
+                    TrackingLinkId = table.Column<int>(type: "int", nullable: true),
+                    ClickedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UtmLinkClicks", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -3676,6 +3899,48 @@ namespace CRM.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "EnumValues",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    Key = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Label = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Description = table.Column<string>(type: "VARCHAR(1000)", maxLength: 1000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SortOrder = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsDefault = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsSystemValue = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Color = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Icon = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Metadata = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ValidationRules = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EnumValues", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EnumValues_EnumCategories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "EnumCategories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "FeatureFlagVariants",
                 columns: table => new
                 {
@@ -3721,6 +3986,14 @@ namespace CRM.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     SortOrder = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsDefault = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsSystemValue = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    Color = table.Column<string>(type: "VARCHAR(7)", maxLength: 7, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Icon = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ValidationRules = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
                     IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
@@ -3980,6 +4253,76 @@ namespace CRM.Infrastructure.Migrations
                         name: "FK_RolePermissions_Roles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "Roles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ScriptAuditLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ScriptPluginId = table.Column<int>(type: "int", nullable: false),
+                    EventType = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PerformedBy = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PerformedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    Notes = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PreviousState = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    NewState = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Metadata = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScriptAuditLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScriptAuditLogs_ScriptPlugins_ScriptPluginId",
+                        column: x => x.ScriptPluginId,
+                        principalTable: "ScriptPlugins",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "ScriptVersions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ScriptPluginId = table.Column<int>(type: "int", nullable: false),
+                    Version = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Source = table.Column<string>(type: "TEXT", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ContentHash = table.Column<string>(type: "VARCHAR(64)", maxLength: 64, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LifecycleState = table.Column<int>(type: "int", nullable: false),
+                    ChangeNotes = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ApprovedBy = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ApprovedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsCurrent = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScriptVersions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ScriptVersions_ScriptPlugins_ScriptPluginId",
+                        column: x => x.ScriptPluginId,
+                        principalTable: "ScriptPlugins",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
@@ -4556,6 +4899,51 @@ namespace CRM.Infrastructure.Migrations
                         principalTable: "CommunicationMessages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "EnumTransitions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CategoryId = table.Column<int>(type: "int", nullable: false),
+                    FromValueId = table.Column<int>(type: "int", nullable: true),
+                    ToValueId = table.Column<int>(type: "int", nullable: false),
+                    IsAllowed = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RequiresApproval = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AllowedRoles = table.Column<string>(type: "VARCHAR(1000)", maxLength: 1000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ValidateExpression = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    SortOrder = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EnumTransitions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EnumTransitions_EnumCategories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "EnumCategories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_EnumTransitions_EnumValues_FromValueId",
+                        column: x => x.FromValueId,
+                        principalTable: "EnumValues",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_EnumTransitions_EnumValues_ToValueId",
+                        column: x => x.ToValueId,
+                        principalTable: "EnumValues",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -6372,6 +6760,10 @@ namespace CRM.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Schedule = table.Column<string>(type: "TEXT", maxLength: 5000, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScheduledAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    StartedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    UnsubscribeHeaderEnabled = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Budget = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     ActualCost = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
                     DailyBudget = table.Column<decimal>(type: "decimal(65,30)", nullable: true),
@@ -6864,6 +7256,44 @@ namespace CRM.Infrastructure.Migrations
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "RecordComments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    EntityType = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EntityId = table.Column<int>(type: "int", nullable: false),
+                    Content = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    AuthorId = table.Column<int>(type: "int", nullable: false),
+                    ParentCommentId = table.Column<int>(type: "int", nullable: true),
+                    MentionedUserIds = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RecordComments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RecordComments_RecordComments_ParentCommentId",
+                        column: x => x.ParentCommentId,
+                        principalTable: "RecordComments",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_RecordComments_Users_AuthorId",
+                        column: x => x.AuthorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -8084,6 +8514,42 @@ namespace CRM.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "NurtureEnrollments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SequenceId = table.Column<int>(type: "int", nullable: false),
+                    LeadId = table.Column<int>(type: "int", nullable: true),
+                    ContactId = table.Column<int>(type: "int", nullable: true),
+                    EnrolleeEmail = table.Column<string>(type: "VARCHAR(320)", maxLength: 320, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EnrolleeName = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Trigger = table.Column<int>(type: "int", nullable: false),
+                    CurrentStep = table.Column<int>(type: "int", nullable: false),
+                    NextStepAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsCompleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsUnsubscribed = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CompletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NurtureEnrollments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NurtureEnrollments_EmailSequences_SequenceId",
+                        column: x => x.SequenceId,
+                        principalTable: "EmailSequences",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "ImportErrors",
                 columns: table => new
                 {
@@ -8656,6 +9122,47 @@ namespace CRM.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "CampaignTrackingLinks",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CampaignId = table.Column<int>(type: "int", nullable: false),
+                    OriginalUrl = table.Column<string>(type: "VARCHAR(2048)", maxLength: 2048, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TrackedUrl = table.Column<string>(type: "VARCHAR(2048)", maxLength: 2048, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    LinkAlias = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UtmSource = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UtmMedium = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UtmCampaign = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UtmContent = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    TrackingToken = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ClickCount = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CampaignTrackingLinks", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CampaignTrackingLinks_MarketingCampaigns_CampaignId",
+                        column: x => x.CampaignId,
+                        principalTable: "MarketingCampaigns",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "LeadSourceConfigs",
                 columns: table => new
                 {
@@ -8682,6 +9189,39 @@ namespace CRM.Infrastructure.Migrations
                     table.PrimaryKey("PK_LeadSourceConfigs", x => x.Id);
                     table.ForeignKey(
                         name: "FK_LeadSourceConfigs_MarketingCampaigns_CampaignId",
+                        column: x => x.CampaignId,
+                        principalTable: "MarketingCampaigns",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "UnsubscribeRecords",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Email = table.Column<string>(type: "VARCHAR(320)", maxLength: 320, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Reason = table.Column<int>(type: "int", nullable: false),
+                    ReasonNote = table.Column<string>(type: "VARCHAR(1000)", maxLength: 1000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CampaignId = table.Column<int>(type: "int", nullable: true),
+                    Token = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UnsubscribedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ReceiveProductUpdates = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    ReceiveTransactional = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UnsubscribeRecords", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UnsubscribeRecords_MarketingCampaigns_CampaignId",
                         column: x => x.CampaignId,
                         principalTable: "MarketingCampaigns",
                         principalColumn: "Id");
@@ -9592,6 +10132,47 @@ namespace CRM.Infrastructure.Migrations
                         principalTable: "AgentActions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "CampaignEmailTrackings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CampaignId = table.Column<int>(type: "int", nullable: true),
+                    EnrollmentId = table.Column<int>(type: "int", nullable: true),
+                    RecipientEmail = table.Column<string>(type: "VARCHAR(320)", maxLength: 320, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Event = table.Column<int>(type: "int", nullable: false),
+                    ClickedUrl = table.Column<string>(type: "VARCHAR(2048)", maxLength: 2048, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UserAgent = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IpAddress = table.Column<string>(type: "VARCHAR(45)", maxLength: 45, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    MessageId = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EventAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CampaignEmailTrackings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CampaignEmailTrackings_MarketingCampaigns_CampaignId",
+                        column: x => x.CampaignId,
+                        principalTable: "MarketingCampaigns",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_CampaignEmailTrackings_NurtureEnrollments_EnrollmentId",
+                        column: x => x.EnrollmentId,
+                        principalTable: "NurtureEnrollments",
+                        principalColumn: "Id");
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -12061,6 +12642,7 @@ namespace CRM.Infrastructure.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    StatusId = table.Column<int>(type: "int", nullable: true),
                     Source = table.Column<int>(type: "int", nullable: false),
                     Score = table.Column<int>(type: "int", nullable: false),
                     FitScore = table.Column<int>(type: "int", nullable: false),
@@ -12146,6 +12728,12 @@ namespace CRM.Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
+                        name: "FK_Leads_EnumValues_StatusId",
+                        column: x => x.StatusId,
+                        principalTable: "EnumValues",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
                         name: "FK_Leads_LeadSourceConfigs_LeadSourceConfigId",
                         column: x => x.LeadSourceConfigId,
                         principalTable: "LeadSourceConfigs",
@@ -12175,6 +12763,93 @@ namespace CRM.Infrastructure.Migrations
                         name: "FK_Leads_Users_OwnerId",
                         column: x => x.OwnerId,
                         principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "PortalUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Email = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PasswordHash = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ContactId = table.Column<int>(type: "int", nullable: true),
+                    AccountId = table.Column<int>(type: "int", nullable: true),
+                    IsActive = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    IsEmailVerified = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    EmailVerificationToken = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EmailVerifiedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    PasswordResetToken = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    PasswordResetExpiry = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    LastLoginAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    DisplayName = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PortalUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PortalUsers_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PortalUsers_Contacts_ContactId",
+                        column: x => x.ContactId,
+                        principalTable: "Contacts",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "SatisfactionSurveys",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    EntityType = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    EntityId = table.Column<int>(type: "int", nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    ContactId = table.Column<int>(type: "int", nullable: true),
+                    AccountId = table.Column<int>(type: "int", nullable: true),
+                    SentAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ResponseReceivedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ExpiresAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ExternalToken = table.Column<string>(type: "VARCHAR(100)", maxLength: 100, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Subject = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SatisfactionSurveys", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SatisfactionSurveys_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_SatisfactionSurveys_Contacts_ContactId",
+                        column: x => x.ContactId,
+                        principalTable: "Contacts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                 })
@@ -12462,6 +13137,36 @@ namespace CRM.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "LeadScoreHistories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    LeadId = table.Column<int>(type: "int", nullable: false),
+                    Score = table.Column<int>(type: "int", nullable: false),
+                    PreviousScore = table.Column<int>(type: "int", nullable: false),
+                    Delta = table.Column<int>(type: "int", nullable: false),
+                    Reason = table.Column<string>(type: "VARCHAR(200)", maxLength: 200, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScoreComponentsJson = table.Column<string>(type: "VARCHAR(2000)", maxLength: 2000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ScoredAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ScoredBy = table.Column<string>(type: "VARCHAR(20)", maxLength: 20, nullable: false, defaultValue: "system")
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_LeadScoreHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_LeadScoreHistories_Leads_LeadId",
+                        column: x => x.LeadId,
+                        principalTable: "Leads",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "LeadScores",
                 columns: table => new
                 {
@@ -12540,6 +13245,7 @@ namespace CRM.Infrastructure.Migrations
                     Name = table.Column<string>(type: "VARCHAR(255)", maxLength: 255, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Stage = table.Column<int>(type: "int", nullable: false),
+                    StageId = table.Column<int>(type: "int", nullable: true),
                     Probability = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Currency = table.Column<string>(type: "VARCHAR(3)", maxLength: 3, nullable: false)
@@ -12589,6 +13295,12 @@ namespace CRM.Infrastructure.Migrations
                         name: "FK_Opportunities_Contacts_PrimaryContactId",
                         column: x => x.PrimaryContactId,
                         principalTable: "Contacts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_Opportunities_EnumValues_StageId",
+                        column: x => x.StageId,
+                        principalTable: "EnumValues",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
@@ -12736,6 +13448,39 @@ namespace CRM.Infrastructure.Migrations
                         principalTable: "Leads",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "SatisfactionResponses",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    SurveyId = table.Column<int>(type: "int", nullable: false),
+                    Score = table.Column<int>(type: "int", nullable: false),
+                    Comment = table.Column<string>(type: "VARCHAR(1000)", maxLength: 1000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Sentiment = table.Column<int>(type: "int", nullable: false),
+                    IpAddress = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UserAgent = table.Column<string>(type: "VARCHAR(500)", maxLength: 500, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RespondedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SatisfactionResponses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SatisfactionResponses_SatisfactionSurveys_SurveyId",
+                        column: x => x.SurveyId,
+                        principalTable: "SatisfactionSurveys",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -13541,7 +14286,9 @@ namespace CRM.Infrastructure.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     Channel = table.Column<int>(type: "int", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    StatusId = table.Column<int>(type: "int", nullable: true),
                     Priority = table.Column<int>(type: "int", nullable: false),
+                    PriorityId = table.Column<int>(type: "int", nullable: true),
                     CategoryId = table.Column<int>(type: "int", nullable: true),
                     SubcategoryId = table.Column<int>(type: "int", nullable: true),
                     AccountId = table.Column<int>(type: "int", nullable: true),
@@ -13619,6 +14366,18 @@ namespace CRM.Infrastructure.Migrations
                         name: "FK_ServiceRequests_Contacts_ContactId",
                         column: x => x.ContactId,
                         principalTable: "Contacts",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ServiceRequests_EnumValues_PriorityId",
+                        column: x => x.PriorityId,
+                        principalTable: "EnumValues",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_ServiceRequests_EnumValues_StatusId",
+                        column: x => x.StatusId,
+                        principalTable: "EnumValues",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
@@ -14927,77 +15686,6 @@ namespace CRM.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
-                name: "OrderReturns",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    ReturnNumber = table.Column<string>(type: "TEXT", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    RmaNumber = table.Column<string>(type: "TEXT", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    OrderId = table.Column<int>(type: "int", nullable: false),
-                    AccountId = table.Column<int>(type: "int", nullable: true),
-                    InitiatedById = table.Column<int>(type: "int", nullable: true),
-                    ProcessedById = table.Column<int>(type: "int", nullable: true),
-                    Status = table.Column<int>(type: "int", nullable: false),
-                    Reason = table.Column<int>(type: "int", nullable: false),
-                    ReasonDescription = table.Column<string>(type: "TEXT", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    Notes = table.Column<string>(type: "TEXT", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    OriginalAmount = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    RefundAmount = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    RestockingFee = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    ShippingRefund = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    Currency = table.Column<string>(type: "TEXT", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    RequestedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    ApprovedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    ReceivedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    RefundedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    CompletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    ReturnTrackingNumber = table.Column<string>(type: "TEXT", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    ReturnCarrier = table.Column<string>(type: "TEXT", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    RefundTransactionId = table.Column<string>(type: "TEXT", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    LineItemsJson = table.Column<string>(type: "TEXT", nullable: true)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_OrderReturns", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_OrderReturns_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_OrderReturns_Orders_OrderId",
-                        column: x => x.OrderId,
-                        principalTable: "Orders",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_OrderReturns_Users_InitiatedById",
-                        column: x => x.InitiatedById,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_OrderReturns_Users_ProcessedById",
-                        column: x => x.ProcessedById,
-                        principalTable: "Users",
-                        principalColumn: "Id");
-                })
-                .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateTable(
                 name: "PricingRuleUsages",
                 columns: table => new
                 {
@@ -15932,6 +16620,43 @@ namespace CRM.Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "CreditNotes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    CreditNoteNumber = table.Column<string>(type: "VARCHAR(50)", maxLength: 50, nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OrderId = table.Column<int>(type: "int", nullable: true),
+                    InvoiceId = table.Column<int>(type: "int", nullable: true),
+                    Amount = table.Column<decimal>(type: "decimal(18,4)", nullable: false),
+                    Reason = table.Column<string>(type: "VARCHAR(1000)", maxLength: 1000, nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    IssuedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    IsApplied = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    AppliedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CreditNotes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CreditNotes_Invoices_InvoiceId",
+                        column: x => x.InvoiceId,
+                        principalTable: "Invoices",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_CreditNotes_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "InvoiceLineItems",
                 columns: table => new
                 {
@@ -16283,6 +17008,83 @@ namespace CRM.Infrastructure.Migrations
                     table.ForeignKey(
                         name: "FK_CreditApplications_Users_AppliedById",
                         column: x => x.AppliedById,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "OrderReturns",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    ReturnNumber = table.Column<string>(type: "TEXT", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RmaNumber = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OrderId = table.Column<int>(type: "int", nullable: false),
+                    AccountId = table.Column<int>(type: "int", nullable: true),
+                    InitiatedById = table.Column<int>(type: "int", nullable: true),
+                    ProcessedById = table.Column<int>(type: "int", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Reason = table.Column<int>(type: "int", nullable: false),
+                    ReasonDescription = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    Notes = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    OriginalAmount = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    RefundAmount = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    RestockingFee = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    ShippingRefund = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Currency = table.Column<string>(type: "TEXT", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RequestedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    ApprovedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ReceivedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    RefundedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    CompletedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    ReturnTrackingNumber = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    ReturnCarrier = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    RefundTransactionId = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreditNoteId = table.Column<int>(type: "int", nullable: true),
+                    LineItemsJson = table.Column<string>(type: "TEXT", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    CreatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime(6)", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "tinyint(1)", nullable: false),
+                    RowVersion = table.Column<byte[]>(type: "BINARY(8)", rowVersion: true, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderReturns", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_OrderReturns_Accounts_AccountId",
+                        column: x => x.AccountId,
+                        principalTable: "Accounts",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OrderReturns_CreditNotes_CreditNoteId",
+                        column: x => x.CreditNoteId,
+                        principalTable: "CreditNotes",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OrderReturns_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderReturns_Users_InitiatedById",
+                        column: x => x.InitiatedById,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_OrderReturns_Users_ProcessedById",
+                        column: x => x.ProcessedById,
                         principalTable: "Users",
                         principalColumn: "Id");
                 })
@@ -17029,6 +17831,16 @@ namespace CRM.Infrastructure.Migrations
                 column: "ConvertedAt");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CampaignEmailTracking_CampaignEvent",
+                table: "CampaignEmailTrackings",
+                columns: new[] { "CampaignId", "Event" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CampaignEmailTrackings_EnrollmentId",
+                table: "CampaignEmailTrackings",
+                column: "EnrollmentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CampaignLinkClicks_CampaignId",
                 table: "CampaignLinkClicks",
                 column: "CampaignId");
@@ -17107,6 +17919,16 @@ namespace CRM.Infrastructure.Migrations
                 name: "IX_CampaignTouchpoints_WebVisitorId",
                 table: "CampaignTouchpoints",
                 column: "WebVisitorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CampaignTrackingLinks_CampaignId",
+                table: "CampaignTrackingLinks",
+                column: "CampaignId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CampaignTrackingLinks_Token",
+                table: "CampaignTrackingLinks",
+                column: "TrackingToken");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CampaignWorkflows_CampaignId",
@@ -17678,6 +18500,16 @@ namespace CRM.Infrastructure.Migrations
                 column: "SourceInvoiceId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CreditNotes_InvoiceId",
+                table: "CreditNotes",
+                column: "InvoiceId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CreditNotes_OrderId",
+                table: "CreditNotes",
+                column: "OrderId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CrmTasks_AccountId",
                 table: "CrmTasks",
                 column: "AccountId");
@@ -18170,6 +19002,33 @@ namespace CRM.Infrastructure.Migrations
                 name: "IX_EntityTags_TagId",
                 table: "EntityTags",
                 column: "TagId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EnumCategories_Name",
+                table: "EnumCategories",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EnumTransitions_CategoryId",
+                table: "EnumTransitions",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EnumTransitions_FromValueId",
+                table: "EnumTransitions",
+                column: "FromValueId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EnumTransitions_ToValueId",
+                table: "EnumTransitions",
+                column: "ToValueId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_EnumValues_CategoryId_Key",
+                table: "EnumValues",
+                columns: new[] { "CategoryId", "Key" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_EscalationLogs_EscalatedByUserId",
@@ -18843,9 +19702,24 @@ namespace CRM.Infrastructure.Migrations
                 column: "Status");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Leads_StatusId",
+                table: "Leads",
+                column: "StatusId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Leads_TerritoryId",
                 table: "Leads",
                 column: "TerritoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LeadScoreHistories_LeadId",
+                table: "LeadScoreHistories",
+                column: "LeadId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LeadScoreHistories_ScoredAt",
+                table: "LeadScoreHistories",
+                column: "ScoredAt");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LeadScores_AIModelId",
@@ -18932,6 +19806,11 @@ namespace CRM.Infrastructure.Migrations
                 name: "IX_LoginAttempts_UserId",
                 table: "LoginAttempts",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LookupCategories_EntityType",
+                table: "LookupCategories",
+                column: "EntityType");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LookupItems_LookupCategoryId_SortOrder",
@@ -19045,6 +19924,11 @@ namespace CRM.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_NurtureEnrollments_SeqEmail",
+                table: "NurtureEnrollments",
+                columns: new[] { "SequenceId", "EnrolleeEmail" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OAuthTokens_UserId",
                 table: "OAuthTokens",
                 column: "UserId");
@@ -19083,6 +19967,11 @@ namespace CRM.Infrastructure.Migrations
                 name: "IX_Opportunities_Stage",
                 table: "Opportunities",
                 column: "Stage");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Opportunities_StageId",
+                table: "Opportunities",
+                column: "StageId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OpportunityCompetitors_CompetitorId",
@@ -19168,6 +20057,11 @@ namespace CRM.Infrastructure.Migrations
                 name: "IX_OrderReturns_AccountId",
                 table: "OrderReturns",
                 column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderReturns_CreditNoteId",
+                table: "OrderReturns",
+                column: "CreditNoteId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderReturns_InitiatedById",
@@ -19309,6 +20203,22 @@ namespace CRM.Infrastructure.Migrations
                 name: "IX_PhoneNumbers_Number",
                 table: "PhoneNumbers",
                 column: "Number");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PortalUsers_AccountId",
+                table: "PortalUsers",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PortalUsers_ContactId",
+                table: "PortalUsers",
+                column: "ContactId");
+
+            migrationBuilder.CreateIndex(
+                name: "UX_PortalUsers_Email",
+                table: "PortalUsers",
+                column: "Email",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Predictions_AIModelId",
@@ -19582,6 +20492,21 @@ namespace CRM.Infrastructure.Migrations
                 column: "Status");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RecordComments_AuthorId",
+                table: "RecordComments",
+                column: "AuthorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecordComments_EntityType_EntityId",
+                table: "RecordComments",
+                columns: new[] { "EntityType", "EntityId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RecordComments_ParentCommentId",
+                table: "RecordComments",
+                column: "ParentCommentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RefreshTokens_ExpiresAt",
                 table: "RefreshTokens",
                 column: "ExpiresAt");
@@ -19760,6 +20685,11 @@ namespace CRM.Infrastructure.Migrations
                 column: "ReportDefinitionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RevenueSnapshots_SnapshotDate",
+                table: "RevenueSnapshots",
+                column: "SnapshotDate");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RolePermissions_PermissionId",
                 table: "RolePermissions",
                 column: "PermissionId");
@@ -19843,9 +20773,71 @@ namespace CRM.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_SatisfactionResponses_SurveyId",
+                table: "SatisfactionResponses",
+                column: "SurveyId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SatisfactionSurveys_AccountId",
+                table: "SatisfactionSurveys",
+                column: "AccountId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SatisfactionSurveys_ContactId",
+                table: "SatisfactionSurveys",
+                column: "ContactId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SatisfactionSurveys_EntityType_EntityId",
+                table: "SatisfactionSurveys",
+                columns: new[] { "EntityType", "EntityId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SatisfactionSurveys_ExternalToken",
+                table: "SatisfactionSurveys",
+                column: "ExternalToken",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SavedFilters_UserId",
                 table: "SavedFilters",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScriptAuditLogs_PerformedAt",
+                table: "ScriptAuditLogs",
+                column: "PerformedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScriptAuditLogs_ScriptPluginId",
+                table: "ScriptAuditLogs",
+                column: "ScriptPluginId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScriptPlugins_IsActive",
+                table: "ScriptPlugins",
+                column: "IsActive");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScriptPlugins_Language",
+                table: "ScriptPlugins",
+                column: "Language");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScriptPlugins_LifecycleState",
+                table: "ScriptPlugins",
+                column: "LifecycleState");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScriptVersions_ScriptPluginId",
+                table: "ScriptVersions",
+                column: "ScriptPluginId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ScriptVersions_ScriptPluginId_IsCurrent",
+                table: "ScriptVersions",
+                columns: new[] { "ScriptPluginId", "IsCurrent" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_SearchLogs_SearchedAt",
@@ -19985,6 +20977,11 @@ namespace CRM.Infrastructure.Migrations
                 column: "Priority");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ServiceRequests_PriorityId",
+                table: "ServiceRequests",
+                column: "PriorityId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_ServiceRequests_RelatedOpportunityId",
                 table: "ServiceRequests",
                 column: "RelatedOpportunityId");
@@ -20013,6 +21010,11 @@ namespace CRM.Infrastructure.Migrations
                 name: "IX_ServiceRequests_Status",
                 table: "ServiceRequests",
                 column: "Status");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ServiceRequests_StatusId",
+                table: "ServiceRequests",
+                column: "StatusId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ServiceRequests_SubcategoryId",
@@ -20313,6 +21315,21 @@ namespace CRM.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UnsubscribeRecords_CampaignId",
+                table: "UnsubscribeRecords",
+                column: "CampaignId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UnsubscribeRecords_Email",
+                table: "UnsubscribeRecords",
+                column: "Email");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UnsubscribeRecords_Token",
+                table: "UnsubscribeRecords",
+                column: "Token");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserApprovalRequests_AssignedUserId",
                 table: "UserApprovalRequests",
                 column: "AssignedUserId");
@@ -20443,6 +21460,11 @@ namespace CRM.Infrastructure.Migrations
                 name: "IX_UserSessions_UserId_Active",
                 table: "UserSessions",
                 columns: new[] { "UserId", "IsRevoked", "ExpiresAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UtmLinkClicks_SourceCampaign",
+                table: "UtmLinkClicks",
+                columns: new[] { "UtmSource", "UtmCampaign" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_WebAuthnCredentials_UserId",
@@ -21264,6 +22286,9 @@ namespace CRM.Infrastructure.Migrations
                 name: "CampaignConversions");
 
             migrationBuilder.DropTable(
+                name: "CampaignEmailTrackings");
+
+            migrationBuilder.DropTable(
                 name: "CampaignLinkClicks");
 
             migrationBuilder.DropTable(
@@ -21271,6 +22296,9 @@ namespace CRM.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "CampaignTouchpoints");
+
+            migrationBuilder.DropTable(
+                name: "CampaignTrackingLinks");
 
             migrationBuilder.DropTable(
                 name: "CampaignWorkflows");
@@ -21390,6 +22418,9 @@ namespace CRM.Infrastructure.Migrations
                 name: "DomainEvents");
 
             migrationBuilder.DropTable(
+                name: "DunningSchedules");
+
+            migrationBuilder.DropTable(
                 name: "DuplicateMatchFields");
 
             migrationBuilder.DropTable(
@@ -21433,6 +22464,9 @@ namespace CRM.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "EntityTags");
+
+            migrationBuilder.DropTable(
+                name: "EnumTransitions");
 
             migrationBuilder.DropTable(
                 name: "EscalationLogs");
@@ -21531,6 +22565,9 @@ namespace CRM.Infrastructure.Migrations
                 name: "LeadRoutingTargets");
 
             migrationBuilder.DropTable(
+                name: "LeadScoreHistories");
+
+            migrationBuilder.DropTable(
                 name: "LeadScoreRules");
 
             migrationBuilder.DropTable(
@@ -21591,6 +22628,12 @@ namespace CRM.Infrastructure.Migrations
                 name: "PerformanceMetrics");
 
             migrationBuilder.DropTable(
+                name: "PortalConfigs");
+
+            migrationBuilder.DropTable(
+                name: "PortalUsers");
+
+            migrationBuilder.DropTable(
                 name: "Predictions");
 
             migrationBuilder.DropTable(
@@ -21618,6 +22661,9 @@ namespace CRM.Infrastructure.Migrations
                 name: "ProductBundleRules");
 
             migrationBuilder.DropTable(
+                name: "RecordComments");
+
+            migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
@@ -21636,6 +22682,9 @@ namespace CRM.Infrastructure.Migrations
                 name: "ReportWidgetConfigs");
 
             migrationBuilder.DropTable(
+                name: "RevenueSnapshots");
+
+            migrationBuilder.DropTable(
                 name: "RolePermissions");
 
             migrationBuilder.DropTable(
@@ -21648,7 +22697,16 @@ namespace CRM.Infrastructure.Migrations
                 name: "SalesConfigurations");
 
             migrationBuilder.DropTable(
+                name: "SatisfactionResponses");
+
+            migrationBuilder.DropTable(
                 name: "SavedFilters");
+
+            migrationBuilder.DropTable(
+                name: "ScriptAuditLogs");
+
+            migrationBuilder.DropTable(
+                name: "ScriptVersions");
 
             migrationBuilder.DropTable(
                 name: "SearchLogs");
@@ -21708,6 +22766,9 @@ namespace CRM.Infrastructure.Migrations
                 name: "UIPreferences");
 
             migrationBuilder.DropTable(
+                name: "UnsubscribeRecords");
+
+            migrationBuilder.DropTable(
                 name: "UserApprovalRequests");
 
             migrationBuilder.DropTable(
@@ -21727,6 +22788,9 @@ namespace CRM.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "UserSessions");
+
+            migrationBuilder.DropTable(
+                name: "UtmLinkClicks");
 
             migrationBuilder.DropTable(
                 name: "WebAuthnCredentials");
@@ -21787,6 +22851,9 @@ namespace CRM.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "CalendarIntegrations");
+
+            migrationBuilder.DropTable(
+                name: "NurtureEnrollments");
 
             migrationBuilder.DropTable(
                 name: "CampaignRecipients");
@@ -21891,6 +22958,9 @@ namespace CRM.Infrastructure.Migrations
                 name: "LandingPages");
 
             migrationBuilder.DropTable(
+                name: "CreditNotes");
+
+            migrationBuilder.DropTable(
                 name: "AIModels");
 
             migrationBuilder.DropTable(
@@ -21916,6 +22986,12 @@ namespace CRM.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Permissions");
+
+            migrationBuilder.DropTable(
+                name: "SatisfactionSurveys");
+
+            migrationBuilder.DropTable(
+                name: "ScriptPlugins");
 
             migrationBuilder.DropTable(
                 name: "KnowledgeArticles");
@@ -22132,6 +23208,12 @@ namespace CRM.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Competitors");
+
+            migrationBuilder.DropTable(
+                name: "EnumValues");
+
+            migrationBuilder.DropTable(
+                name: "EnumCategories");
 
             migrationBuilder.DropTable(
                 name: "Products");
