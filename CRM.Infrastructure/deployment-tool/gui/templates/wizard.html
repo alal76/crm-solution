@@ -4208,12 +4208,13 @@
             const pwLabel = document.getElementById('discoveryPasswordLabel');
             const keyRow  = document.getElementById('sshKeyRow');
             if (method === 'key') {
-                if (pwCol)   pwCol.style.display   = 'none';
-                if (pwLabel) pwLabel.style.display  = 'none';
+                // Show both key path AND passphrase field (passphrase is optional for encrypted keys)
+                if (pwCol)   pwCol.style.display   = '';
+                if (pwLabel) { pwLabel.style.display = ''; pwLabel.textContent = 'Key Passphrase (optional)'; }
                 if (keyRow)  keyRow.style.display   = '';
             } else {
                 if (pwCol)   pwCol.style.display   = '';
-                if (pwLabel) pwLabel.style.display  = '';
+                if (pwLabel) { pwLabel.style.display = ''; pwLabel.textContent = 'Password'; }
                 if (keyRow)  keyRow.style.display   = 'none';
             }
         }

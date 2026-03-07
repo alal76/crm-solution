@@ -370,14 +370,15 @@ class DockerComposeDeployer:
             import paramiko  # noqa: delayed import
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            _auto = not bool(self._target_ssh_key) and not bool(self._target_ssh_password)
             ssh.connect(
                 self._target_host,
                 port=int(self._target_ssh_port),
                 username=self._target_ssh_user or "root",
-                password=self._target_ssh_password,
+                password=self._target_ssh_password,  # passphrase when key set; auth-password otherwise
                 key_filename=self._target_ssh_key,
-                look_for_keys=not bool(self._target_ssh_password),
-                allow_agent=not bool(self._target_ssh_password),
+                look_for_keys=_auto,
+                allow_agent=_auto,
                 timeout=15,
             )
             _, stdout_ch, stderr_ch = ssh.exec_command(cmd_str, timeout=timeout)
@@ -423,14 +424,15 @@ class DockerComposeDeployer:
             import paramiko
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            _auto = not bool(self._target_ssh_key) and not bool(self._target_ssh_password)
             ssh.connect(
                 self._target_host,
                 port=int(self._target_ssh_port),
                 username=self._target_ssh_user or "root",
-                password=self._target_ssh_password,
+                password=self._target_ssh_password,  # passphrase when key set; auth-password otherwise
                 key_filename=self._target_ssh_key,
-                look_for_keys=not bool(self._target_ssh_password),
-                allow_agent=not bool(self._target_ssh_password),
+                look_for_keys=_auto,
+                allow_agent=_auto,
                 timeout=15,
             )
             sftp = ssh.open_sftp()
@@ -714,6 +716,8 @@ class DockerComposeDeployer:
         remote_deploy_dir: str = "/opt/crm-deployment",
         ssh_user: str = "root",
         ssh_port: int = 22,
+        ssh_key: Optional[str] = None,
+        ssh_password: Optional[str] = None,
     ) -> dict[str, str]:
         """SSH to *host* and read existing secrets from the deployed ``.env`` file.
 
@@ -737,7 +741,12 @@ class DockerComposeDeployer:
                 import paramiko  # noqa: delayed import
                 ssh = paramiko.SSHClient()
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                ssh.connect(host, port=ssh_port, username=ssh_user, timeout=15)
+                _auto = not bool(ssh_key) and not bool(ssh_password)
+                ssh.connect(
+                    host, port=ssh_port, username=ssh_user,
+                    password=ssh_password, key_filename=ssh_key,
+                    look_for_keys=_auto, allow_agent=_auto, timeout=15,
+                )
                 _, stdout_ch, _ = ssh.exec_command(
                     f"cat {remote_deploy_dir}/.env 2>/dev/null", timeout=15
                 )
@@ -803,6 +812,8 @@ class DockerComposeDeployer:
         ssh_user: str = "root",
         ssh_port: int = 22,
         volume_name: str = "mariadb_data",
+        ssh_key: Optional[str] = None,
+        ssh_password: Optional[str] = None,
     ) -> bool:
         """Check if a MariaDB data volume exists on the remote *host*.
 
@@ -825,7 +836,12 @@ class DockerComposeDeployer:
                 import paramiko  # noqa: delayed import
                 ssh = paramiko.SSHClient()
                 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                ssh.connect(host, port=ssh_port, username=ssh_user, timeout=15)
+                _auto = not bool(ssh_key) and not bool(ssh_password)
+                ssh.connect(
+                    host, port=ssh_port, username=ssh_user,
+                    password=ssh_password, key_filename=ssh_key,
+                    look_for_keys=_auto, allow_agent=_auto, timeout=15,
+                )
                 # Check multiple possible volume name patterns
                 # (compose project prefixes the volume name)
                 cmd = (

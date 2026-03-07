@@ -315,12 +315,16 @@ def start_deploy():
         if deploy_host and deploy_host not in ("NO_HOST_CONFIGURED",):
             ssh_user = target.get("ssh_user", "root")
             ssh_port = int(target.get("ssh_port", 22))
+            ssh_key  = target.get("ssh_key") or None
+            ssh_password = target.get("ssh_password") or None
             try:
                 existing_secrets = DockerComposeDeployer.read_remote_env_secrets(
                     host=deploy_host,
                     remote_deploy_dir=remote_dir,
                     ssh_user=ssh_user,
                     ssh_port=ssh_port,
+                    ssh_key=ssh_key,
+                    ssh_password=ssh_password,
                 )
                 if existing_secrets:
                     logger.info("Recovered %d existing secrets from %s", len(existing_secrets), deploy_host)
@@ -335,6 +339,8 @@ def start_deploy():
                         host=deploy_host,
                         ssh_user=ssh_user,
                         ssh_port=ssh_port,
+                        ssh_key=ssh_key,
+                        ssh_password=ssh_password,
                     )
                     if volume_exists:
                         logger.error(
