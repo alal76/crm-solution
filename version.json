@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 6,
+  "patch": 7,
   "lastUpdate": "2026-03-07",
-  "description": "fix: v0.615.6 - CDT SSH password auth: wizard now saves ssh_password to config.target; deployer passes password to paramiko.ssh.connect() for both command execution and SCP; when password provided look_for_keys/allow_agent are disabled to avoid double-auth attempts.",
+  "description": "fix: v0.615.7 - CDT SSH key passphrase support: wizard shows passphrase field for key auth; deployer look_for_keys/allow_agent logic corrected; static SSH methods (read_remote_env_secrets, check_remote_db_volume_exists) and deploy_routes now propagate ssh_key/ssh_password for consistent auth.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
