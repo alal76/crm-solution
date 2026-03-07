@@ -200,6 +200,9 @@ class DockerComposeDeployer:
         # Populated from the wizard's "SSH Key Path" field (config.target.ssh_key).
         # When blank, paramiko's look_for_keys=True will discover keys in ~/.ssh automatically.
         self._target_ssh_key = target.get("ssh_key", None) or None
+        # SSH password — used when the wizard selects password-based auth.
+        # When blank (key-based auth), paramiko falls back to key discovery.
+        self._target_ssh_password = target.get("ssh_password", None) or None
 
         # Determine if the target is a remote host (not localhost/127.x)
         self._is_remote = self._target_host not in (
@@ -371,9 +374,10 @@ class DockerComposeDeployer:
                 self._target_host,
                 port=int(self._target_ssh_port),
                 username=self._target_ssh_user or "root",
+                password=self._target_ssh_password,
                 key_filename=self._target_ssh_key,
-                look_for_keys=True,
-                allow_agent=True,
+                look_for_keys=not bool(self._target_ssh_password),
+                allow_agent=not bool(self._target_ssh_password),
                 timeout=15,
             )
             _, stdout_ch, stderr_ch = ssh.exec_command(cmd_str, timeout=timeout)
@@ -423,9 +427,10 @@ class DockerComposeDeployer:
                 self._target_host,
                 port=int(self._target_ssh_port),
                 username=self._target_ssh_user or "root",
+                password=self._target_ssh_password,
                 key_filename=self._target_ssh_key,
-                look_for_keys=True,
-                allow_agent=True,
+                look_for_keys=not bool(self._target_ssh_password),
+                allow_agent=not bool(self._target_ssh_password),
                 timeout=15,
             )
             sftp = ssh.open_sftp()

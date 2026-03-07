@@ -6536,9 +6536,10 @@
                 if (dHost) {
                     if (!config.target) config.target = {};
                     config.target.host = dHost;
-                    config.target.ssh_user = document.getElementById('discoveryUsername')?.value || 'root';
-                    config.target.ssh_port = Number.parseInt(document.getElementById('discoveryPort')?.value || '22');
-                    config.target.ssh_key  = document.getElementById('discoverySSHKey')?.value?.trim() || '';
+                    config.target.ssh_user     = document.getElementById('discoveryUsername')?.value || 'root';
+                    config.target.ssh_port     = Number.parseInt(document.getElementById('discoveryPort')?.value || '22');
+                    config.target.ssh_key      = document.getElementById('discoverySSHKey')?.value?.trim() || '';
+                    config.target.ssh_password = document.getElementById('discoveryPassword')?.value || '';
                     config.target.api_port = config.target.api_port || '5000';
                     config.target.frontend_port = config.target.frontend_port || '80';
                     config.deployment_host = dHost;

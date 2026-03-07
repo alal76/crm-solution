@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 5,
+  "patch": 6,
   "lastUpdate": "2026-03-07",
-  "description": "fix: v0.615.5 - Provider health fixes: (1) ChatwootProvider: prevent duplicate api_access_token headers (HTTP 401 bug — factory + constructor both added the header; now checks before adding); (2) NovuProvider: unauthenticated health check before authenticated subscriber call; (3) SupersetProvider: removed CSRF token pre-fetch step; (4) ProviderServiceExtensions: Novu BaseUrl/Url fallback, Superset BaseUrl/Url fallback. All 7 providers now healthy on dev server (192.168.0.9).",
+  "description": "fix: v0.615.6 - CDT SSH password auth: wizard now saves ssh_password to config.target; deployer passes password to paramiko.ssh.connect() for both command execution and SCP; when password provided look_for_keys/allow_agent are disabled to avoid double-auth attempts.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
