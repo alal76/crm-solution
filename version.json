@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 16,
+  "patch": 17,
   "lastUpdate": "2026-03-08",
-  "description": "refactor: v0.615.16 - Squash 10 EF Core migrations into single InitialCreate (21 files/15MB -> 3 files/3.8MB)",
+  "description": "feat: v0.615.17 - Add batch_23_fortune100 with 27 Fortune 100 company accounts and 108 linked contacts (Microsoft, Apple, Amazon, Google, JPMorgan, etc.)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
