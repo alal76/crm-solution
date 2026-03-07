@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 7,
+  "patch": 8,
   "lastUpdate": "2026-03-07",
-  "description": "fix: v0.615.7 - CDT SSH key passphrase support: wizard shows passphrase field for key auth; deployer look_for_keys/allow_agent logic corrected; static SSH methods (read_remote_env_secrets, check_remote_db_volume_exists) and deploy_routes now propagate ssh_key/ssh_password for consistent auth.",
+  "description": "fix: v0.615.8 - CDT SSH connection test 400: collectDiscoveryConfig now sends key_path; discovery_models.connect replaced RSAKey.from_private_key_file with paramiko key_filename to support all key types and passphrases.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
