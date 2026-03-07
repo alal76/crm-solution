@@ -843,6 +843,14 @@ def test_connection():
                 auth_desc = "password"
             else:
                 auth_desc = "agent/auto"
+
+            logger_local = logging.getLogger(__name__)
+            logger_local.info(
+                "SSH test-connection: host=%s user=%s auth_method=%s "
+                "password_set=%s key_path=%s port=%d",
+                hostname, username, auth_method,
+                bool(password), key_path, port,
+            )
             try:
                 client = discovery_manager.clients[platform]()
                 client.connect(hostname, username, password, key_path, port)
