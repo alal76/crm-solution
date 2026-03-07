@@ -826,17 +826,30 @@ def test_connection():
             if not hostname:
                 return jsonify({"status": "failed", "message": "Host/IP address is required for on-premises connection"}), 400
             username = config.get('username', 'root') or 'root'
-            password = config.get('password')
-            key_path = config.get('key_path')
+            auth_method = config.get('auth_method', 'key')
             port = int(config.get('port', 22) or 22)
+
+            # Respect auth_method: only use credentials relevant to the mode
+            if auth_method == 'password':
+                password = config.get('password')
+                key_path = None  # ignore any stale key_path
+            else:  # 'key' mode
+                key_path = config.get('key_path') or None
+                password = config.get('password') or None  # passphrase
             
+            if key_path:
+                auth_desc = f"key ({key_path})"
+            elif password:
+                auth_desc = "password"
+            else:
+                auth_desc = "agent/auto"
             try:
                 client = discovery_manager.clients[platform]()
                 client.connect(hostname, username, password, key_path, port)
                 client.disconnect()
-                return jsonify({"status": "success", "message": f"SSH connection to {hostname} successful"})
+                return jsonify({"status": "success", "message": f"SSH connection to {hostname} successful (auth: {auth_desc})"})
             except Exception as e:
-                return jsonify({"status": "failed", "message": f"SSH connection failed: {str(e)}"})
+                return jsonify({"status": "failed", "message": f"SSH connection failed ({auth_desc}): {str(e)}"})
 
         elif platform in ['azure', 'aws', 'gcp']:
             # Test cloud API connection using explicit credentials from the UI

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 10,
+  "patch": 11,
   "lastUpdate": "2026-03-07",
-  "description": "fix: v0.615.10 - CDT secrets: ADMIN_PASSWORD preserved on redeploy; reinstall detection at Components step fetches existing secrets from remote server and pre-fills wizard; /api/deploy/fetch-secrets endpoint added",
+  "description": "fix: v0.615.11 - CDT SSH auth: respect auth_method field, prevent stale key_path/password cross-contamination between auth modes; clear fields on mode switch; diagnostic auth method in error messages",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

@@ -4207,15 +4207,21 @@
             const pwCol   = document.getElementById('discoveryPassword')?.closest('.col-md-6');
             const pwLabel = document.getElementById('discoveryPasswordLabel');
             const keyRow  = document.getElementById('sshKeyRow');
+            const pwInput = document.getElementById('discoveryPassword');
+            const keyInput = document.getElementById('discoverySSHKey');
             if (method === 'key') {
                 // Show both key path AND passphrase field (passphrase is optional for encrypted keys)
                 if (pwCol)   pwCol.style.display   = '';
                 if (pwLabel) { pwLabel.style.display = ''; pwLabel.textContent = 'Key Passphrase (optional)'; }
                 if (keyRow)  keyRow.style.display   = '';
+                // Clear password value when switching to key mode (it's now passphrase)
+                if (pwInput) pwInput.value = '';
             } else {
                 if (pwCol)   pwCol.style.display   = '';
                 if (pwLabel) { pwLabel.style.display = ''; pwLabel.textContent = 'Password'; }
                 if (keyRow)  keyRow.style.display   = 'none';
+                // Clear SSH key path when switching to password mode
+                if (keyInput) keyInput.value = '';
             }
         }
 
@@ -4891,8 +4897,14 @@
                 config.port             = Number.parseInt(document.getElementById('discoveryPort').value) || 22;
                 config.username         = document.getElementById('discoveryUsername').value.trim() || 'root';
                 config.auth_method      = document.getElementById('discoveryAuthMethod').value;
-                config.password         = document.getElementById('discoveryPassword').value;
-                config.key_path         = document.getElementById('discoverySSHKey')?.value?.trim() || '';
+                // Only send the credentials relevant to the chosen auth method
+                if (config.auth_method === 'key') {
+                    config.key_path     = document.getElementById('discoverySSHKey')?.value?.trim() || '';
+                    config.password     = document.getElementById('discoveryPassword').value || '';  // passphrase
+                } else {
+                    config.password     = document.getElementById('discoveryPassword').value;
+                    config.key_path     = '';  // force empty — password-only auth
+                }
                 config.container_prefix = (document.getElementById('discoveryContainerPrefix').value.trim() || 'crm-');
                 config.network          = document.getElementById('discoveryNetwork').value.trim() || 'crm_crm-network';
             } else if (platform === 'azure') {
