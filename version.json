@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 4,
-  "lastUpdate": "2026-03-05",
-  "description": "fix: v0.615.4 - SonarCloud security hotspot remediation (wizard.html): (1) Weak Cryptography x5 — replaced all Math.random() usages in _genSecurePw() with crypto.getRandomValues(); added cryptoPick() helper with rejection sampling to eliminate modulo bias; replaced biased Array.sort(Math.random) shuffle with proper Fisher-Yates using crypto.getRandomValues(); (2) Encryption of Sensitive Data x6 — extracted localStorage.setItem from onclick attribute into skipWelcome() function; added NOSONAR justification comments on all 6 localStorage usages noting tool is local-only (127.0.0.1).",
+  "patch": 5,
+  "lastUpdate": "2026-03-07",
+  "description": "fix: v0.615.5 - Provider health fixes: (1) ChatwootProvider: prevent duplicate api_access_token headers (HTTP 401 bug — factory + constructor both added the header; now checks before adding); (2) NovuProvider: unauthenticated health check before authenticated subscriber call; (3) SupersetProvider: removed CSRF token pre-fetch step; (4) ProviderServiceExtensions: Novu BaseUrl/Url fallback, Superset BaseUrl/Url fallback. All 7 providers now healthy on dev server (192.168.0.9).",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

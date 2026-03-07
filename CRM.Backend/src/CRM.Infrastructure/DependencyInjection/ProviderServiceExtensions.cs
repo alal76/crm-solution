@@ -263,27 +263,36 @@ public static class ProviderServiceExtensions
 
         // Novu
         var novuConfig = config.GetSection("Novu");
-        if (!string.IsNullOrEmpty(novuConfig["ApiKey"]))
+        // Register when a URL is configured, even without an API key (supports self-hosted without auth).
+        var novuUrl = novuConfig["Url"] ?? novuConfig["BaseUrl"] ?? string.Empty;
+        if (!string.IsNullOrEmpty(novuUrl))
         {
             // Register Novu configuration
             services.Configure<NovuConfiguration>(novuConfig);
 
             // Register HttpClient for Novu provider
-            var novuUrl = novuConfig["Url"] ?? "https://api.novu.co";
-            var novuApiKey = novuConfig["ApiKey"];
+            var novuApiKey = novuConfig["ApiKey"] ?? string.Empty;
             var timeoutSeconds = int.TryParse(novuConfig["TimeoutSeconds"], out var t) ? t : 30;
 
             services.AddHttpClient<NovuProvider>(client =>
             {
                 client.BaseAddress = new Uri(novuUrl.TrimEnd('/') + "/");
-                client.DefaultRequestHeaders.Add("Authorization", $"ApiKey {novuApiKey}");
+                if (!string.IsNullOrEmpty(novuApiKey))
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", $"ApiKey {novuApiKey}");
+                }
+
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
 
             services.AddHttpClient<NovuHealthCheck>(client =>
             {
                 client.BaseAddress = new Uri(novuUrl.TrimEnd('/') + "/");
-                client.DefaultRequestHeaders.Add("Authorization", $"ApiKey {novuApiKey}");
+                if (!string.IsNullOrEmpty(novuApiKey))
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", $"ApiKey {novuApiKey}");
+                }
+
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
         }
@@ -337,13 +346,15 @@ public static class ProviderServiceExtensions
 
         // Superset
         var supersetConfig = config.GetSection("Superset");
-        if (!string.IsNullOrEmpty(supersetConfig["BaseUrl"]))
+        // Accept either "BaseUrl" (canonical) or "Url" (legacy) to support both deployment styles.
+        var supersetBaseUrl = supersetConfig["BaseUrl"] ?? supersetConfig["Url"] ?? string.Empty;
+        if (!string.IsNullOrEmpty(supersetBaseUrl))
         {
             // Register Superset configuration
             services.Configure<SupersetConfiguration>(supersetConfig);
 
             // Register HttpClient for Superset provider
-            var baseUrl = supersetConfig["BaseUrl"]!;
+            var baseUrl = supersetBaseUrl;
             var timeoutSeconds = int.TryParse(supersetConfig["TimeoutSeconds"], out var t) ? t : 30;
 
             services.AddHttpClient<SupersetProvider>(client =>
@@ -481,11 +492,13 @@ public static class ProviderServiceExtensions
 
         // Ollama (local LLM)
         var ollamaConfig = config.GetSection("Ollama");
-        if (!string.IsNullOrEmpty(ollamaConfig["BaseUrl"]))
+        // Accept either "BaseUrl" (canonical) or "Url" (legacy) to support both deployment styles.
+        var ollamaBaseUrl = ollamaConfig["BaseUrl"] ?? ollamaConfig["Url"] ?? string.Empty;
+        if (!string.IsNullOrEmpty(ollamaBaseUrl))
         {
             services.Configure<OllamaConfiguration>(ollamaConfig);
 
-            var baseUrl = ollamaConfig["BaseUrl"]!;
+            var baseUrl = ollamaBaseUrl;
             var timeoutSeconds = int.TryParse(ollamaConfig["TimeoutSeconds"], out var t) ? t : 300;
 
             services.AddHttpClient<OllamaProvider>(client =>

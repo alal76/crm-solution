@@ -86,13 +86,9 @@ public class SupersetProvider : IAnalyticsPort
     {
         _logger.LogDebug("Authenticating with Superset API");
 
-        // Step 1: Get CSRF token
-        var csrfResponse = await _httpClient.GetAsync("api/v1/security/csrf_token/", cancellationToken);
-        csrfResponse.EnsureSuccessStatusCode();
-        var csrfResult = await csrfResponse.Content.ReadFromJsonAsync<SupersetCsrfResponse>(JsonOptions, cancellationToken);
-        _csrfToken = csrfResult?.Result;
-
-        // Step 2: Login with credentials
+        // Superset v3+ requires direct login (CSRF token endpoint itself requires auth).
+        // We authenticate directly with credentials, then fetch a CSRF token afterwards
+        // for state-changing requests if needed.
         var loginRequest = new SupersetLoginRequest
         {
             Username = _config.Username,
@@ -106,11 +102,6 @@ public class SupersetProvider : IAnalyticsPort
             JsonSerializer.Serialize(loginRequest, JsonOptions),
             Encoding.UTF8,
             "application/json");
-
-        if (!string.IsNullOrEmpty(_csrfToken))
-        {
-            request.Headers.Add("X-CSRFToken", _csrfToken);
-        }
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
 

@@ -44,9 +44,13 @@ public class ChatwootProvider : IChatPort
             PropertyNameCaseInsensitive = true
         };
 
-        // Configure HttpClient
+        // Configure HttpClient (only set what the factory hasn't already set to avoid duplicates)
         _httpClient.BaseAddress = new Uri(_config.BaseUrl.TrimEnd('/'));
-        _httpClient.DefaultRequestHeaders.Add("api_access_token", _config.ApiKey);
+        if (!_httpClient.DefaultRequestHeaders.Contains("api_access_token"))
+        {
+            _httpClient.DefaultRequestHeaders.Add("api_access_token", _config.ApiKey);
+        }
+
         _httpClient.Timeout = TimeSpan.FromSeconds(_config.TimeoutSeconds);
     }
 

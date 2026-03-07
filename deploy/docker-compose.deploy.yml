@@ -607,13 +607,18 @@ services:
       - Providers__Chat__Chatwoot__ApiKey=${CHATWOOT_API_KEY:-}
       - Providers__Search__Meilisearch__Url=${MEILISEARCH_URL:-http://meilisearch:7700}
       - Providers__Search__Meilisearch__ApiKey=${MEILISEARCH_API_KEY:-masterKey123} # nosonar - Development default - overridable via environment variables
+      - Providers__Notifications__Novu__Url=${NOVU_URL:-http://novu-api:3000}
       - Providers__Notifications__Novu__ApiKey=${NOVU_API_KEY:-}
-      - Providers__Analytics__Superset__Url=${SUPERSET_URL:-http://superset:8088}
-      - Providers__Signatures__DocuSeal__Url=${DOCUSEAL_URL:-http://docuseal:3001}
+      # Superset: BaseUrl (not Url) to match SupersetConfiguration.BaseUrl property
+      - Providers__Analytics__Superset__BaseUrl=${SUPERSET_URL:-http://superset:8088}
+      - Providers__Analytics__Superset__Username=${SUPERSET_ADMIN_USERNAME:-admin}
+      - Providers__Analytics__Superset__Password=${SUPERSET_ADMIN_PASSWORD:-Admin@123}
+      # DocuSeal: internal container port is 3000 (3001 is the host-side mapping)
+      - Providers__Signatures__DocuSeal__Url=${DOCUSEAL_URL:-http://docuseal:3000}
       - Providers__Integrations__N8n__Url=${N8N_URL:-http://n8n:5678}
-      # AI Provider
+      # AI Provider — Ollama runs on host; BaseUrl (not Url) matches OllamaConfiguration.BaseUrl
       - Providers__AI__Type=Ollama
-      - Providers__AI__Ollama__Url=http://ollama:11434
+      - Providers__AI__Ollama__BaseUrl=${OLLAMA_URL:-http://192.168.0.9:11434}
       - Providers__AI__Ollama__Model=${OLLAMA_MODEL:-qwen2.5:0.5b}
     volumes:
       - api-data:/app/data

@@ -63,15 +63,23 @@ public class NovuProvider : INotificationPort
     /// <inheritdoc />
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
-        if (!_isConfigured)
-        {
-            return false;
-        }
-
         try
         {
-            var response = await _httpClient.GetAsync("v1/subscribers?page=0&limit=1", cancellationToken);
-            return response.IsSuccessStatusCode;
+            // Use the unauthenticated health-check endpoint to verify the service is reachable.
+            var healthResponse = await _httpClient.GetAsync("v1/health-check", cancellationToken);
+            if (!healthResponse.IsSuccessStatusCode)
+            {
+                return false;
+            }
+
+            // If fully configured, also verify authenticated access.
+            if (_isConfigured)
+            {
+                var authResponse = await _httpClient.GetAsync("v1/subscribers?page=0&limit=1", cancellationToken);
+                return authResponse.IsSuccessStatusCode;
+            }
+
+            return true;
         }
         catch (Exception ex)
         {

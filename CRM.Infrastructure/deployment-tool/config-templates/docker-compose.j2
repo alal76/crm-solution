@@ -76,15 +76,16 @@ services:
 {% if providers.get('notification_provider') == 'novu' %}
       - "FeatureManagement__UseExternalNotifications=true"
       - "Providers__Notifications__Type=Novu"
+      - "Providers__Notifications__Novu__Url=http://crm-novu-api:3000"
       - "Providers__Notifications__Novu__ApiKey={{ docker_escape(novu_api_key | default('')) }}"
       - "Providers__Notifications__Novu__ApplicationId={{ docker_escape(novu_app_id | default('')) }}"
-      - "Providers__Notifications__Novu__BaseUrl=http://crm-novu-api:3000"
 {% endif %}
 {% if providers.get('analytics_provider') == 'superset' %}
       - "FeatureManagement__UseExternalAnalytics=true"
       - "Providers__Analytics__Type=Superset"
-      - "Providers__Analytics__Superset__Url=http://crm-superset:8088"
-      - "Providers__Analytics__Superset__Username=admin"
+      - "Providers__Analytics__Superset__BaseUrl=http://crm-superset:8088"
+      - "Providers__Analytics__Superset__Username={{ superset_admin_username | default('admin') }}"
+      - "Providers__Analytics__Superset__Password={{ docker_escape(superset_admin_password | default('Admin@123')) }}"
 {% endif %}
 {% if providers.get('signature_provider') == 'docuseal' %}
       - "FeatureManagement__UseExternalSignatures=true"
@@ -103,13 +104,13 @@ services:
 {% if ollama_native | default(false) %}
       - "FeatureManagement__UseExternalAI=true"
       - "Providers__AI__Type=Ollama"
-      - "Providers__AI__Ollama__Url=http://{{ ollama_host_ip | default(ssh_host | default('localhost')) }}:11434"
+      - "Providers__AI__Ollama__BaseUrl=http://{{ ollama_host_ip | default(ssh_host | default('localhost')) }}:11434"
       - "Providers__AI__Ollama__Model={{ ollama_model | default('llama3.1:8b') }}"
       - "Providers__AI__Ollama__EmbeddingModel={{ ollama_embedding_model | default('nomic-embed-text') }}"
 {% else %}
       - "FeatureManagement__UseExternalAI=true"
       - "Providers__AI__Type=Ollama"
-      - "Providers__AI__Ollama__Url=http://crm-ollama:11434"
+      - "Providers__AI__Ollama__BaseUrl=http://crm-ollama:11434"
       - "Providers__AI__Ollama__Model={{ ollama_model | default('llama3.1:8b') }}"
       - "Providers__AI__Ollama__EmbeddingModel={{ ollama_embedding_model | default('nomic-embed-text') }}"
 {% endif %}
