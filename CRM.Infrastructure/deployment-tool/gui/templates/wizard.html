@@ -1159,7 +1159,7 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <label class="form-label" for="discoveryHost">Host/IP Address</label>
-                                    <input type="text" class="form-control" id="discoveryHost" placeholder="e.g. 192.168.1.100" value="">
+                                    <input type="text" class="form-control" id="discoveryHost" placeholder="e.g. 192.168.1.100" value="" onchange="_reinstallCheckDone=false">
                                     <small class="text-muted">IP address or hostname of the target server</small>
                                 </div>
                                 <div class="col-md-3">
@@ -5836,6 +5836,8 @@
             if (target) target.style.display = '';
             document.querySelectorAll('#componentsTabs .nav-link').forEach(l => l.classList.remove('active'));
             if (btn) btn.classList.add('active');
+            // Trigger reinstall detection when the Secrets tab is opened
+            if (tabName === 'secrets') _fetchRemoteSecrets();
         }
 
         // ── Sidebar: Decision Stack ─────────────────────────────────────────
@@ -6705,6 +6707,67 @@
             return true;
         }
 
+        /**
+         * Fetch existing secrets from a remote server to pre-fill the Secrets
+         * tab for reinstallation.  Silently no-ops if:
+         *   - no target host is set
+         *   - the platform is not on_premises
+         *   - this has already been fetched in the current wizard session
+         *
+         * Sets a flag `_reinstallCheckDone` so it only runs once per session;
+         * call with `force=true` to re-run (e.g. after host change).
+         */
+        let _reinstallCheckDone = false;
+        async function _fetchRemoteSecrets(force = false) {
+            if (_reinstallCheckDone && !force) return;
+            const host = config.target?.host || config.deployment_host
+                || document.getElementById('discoveryHost')?.value || '';
+            if (!host || !['on_premises', 'local_docker', 'on_prem_vm', 'on_prem_bare', ''].includes(config.platform || '')) return;
+
+            _reinstallCheckDone = true;
+            try {
+                const resp = await fetch('/api/deploy/fetch-secrets', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        target: {
+                            host,
+                            ssh_user:  config.target?.ssh_user || 'root',
+                            ssh_port:  config.target?.ssh_port || 22,
+                            ssh_key:   config.target?.ssh_key  || null,
+                            ssh_password: config.target?.ssh_password || null,
+                            remote_deploy_dir: '/opt/crm-deployment',
+                        },
+                    }),
+                });
+                if (!resp.ok) return; // non-critical — silent fail
+                const result = await resp.json();
+                if (result.error && !result.secrets) return;
+
+                // Merge fetched secrets into config and form fields
+                if (result.count > 0) {
+                    config.secrets = Object.assign(config.secrets || {}, result.secrets);
+                    _populateSecretsFromConfig(config.secrets);
+                }
+
+                // Show reinstall banner if existing deployment detected
+                const existing = document.getElementById('reinstallBanner');
+                if (existing) existing.remove();
+                if (result.is_reinstall) {
+                    const msg = result.count > 0
+                        ? `Existing deployment detected on <strong>${host}</strong> — ${result.count} secret(s) loaded from server.`
+                        : `Existing deployment detected on <strong>${host}</strong> — no .env found, enter passwords manually.`;
+                    const banner = document.createElement('div');
+                    banner.id = 'reinstallBanner';
+                    banner.className = 'alert alert-info d-flex align-items-center gap-2 mb-3';
+                    banner.innerHTML = `<i class="bi bi-arrow-repeat fs-5"></i><div>${msg}</div>` +
+                        '<button type="button" class="btn-close ms-auto" onclick="this.parentElement.remove()"></button>';
+                    const secretsPane = document.getElementById('componentTab-secrets');
+                    if (secretsPane) secretsPane.prepend(banner);
+                }
+            } catch (_) { /* non-critical */ }
+        }
+
         function nextStep() {
             collectStepData();
             if (!validateStep()) return;
@@ -6718,6 +6781,10 @@
                 // Apply smart defaults when entering data-entry steps
                 if ([3, 4, 5].includes(currentStep)) {
                     applySmartDefaults();
+                }
+                // Check for existing deployment when reaching the Components step
+                if (currentStep === 4) {
+                    _fetchRemoteSecrets();
                 }
             }
         }

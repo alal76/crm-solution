@@ -651,6 +651,7 @@ class DockerComposeDeployer:
     _PRESERVED_SECRET_KEYS: list[str] = [
         "DB_PASSWORD", "DB_ROOT_PASSWORD", "JWT_SECRET",
         "REDIS_PASSWORD", "MEILI_MASTER_KEY",
+        "ADMIN_PASSWORD",
         "CHATWOOT_API_KEY", "CHATWOOT_SECRET_KEY",
         "NOVU_API_KEY", "NOVU_JWT_SECRET",
         "SUPERSET_SECRET_KEY", "SUPERSET_ADMIN_PASSWORD",
@@ -667,6 +668,7 @@ class DockerComposeDeployer:
         "JWT_SECRET": "jwt_secret",
         "REDIS_PASSWORD": "redis_password",
         "MEILI_MASTER_KEY": "meilisearch_master_key",
+        "ADMIN_PASSWORD": "admin_password",
         "CHATWOOT_API_KEY": "chatwoot_api_key",
         "CHATWOOT_SECRET_KEY": "chatwoot_secret_key",
         "NOVU_API_KEY": "novu_api_key",

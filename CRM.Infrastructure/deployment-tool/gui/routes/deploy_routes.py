@@ -282,6 +282,65 @@ def detect_target_arch():
         })
 
 
+@deploy_bp.route("/api/deploy/fetch-secrets", methods=["POST"])
+def fetch_remote_secrets():
+    """Fetch existing secrets from a remote deployment.
+
+    Called during the Secrets & Registry wizard step so the user sees
+    existing passwords/API-keys pre-filled for reinstallation scenarios.
+
+    Request body::
+
+        { "target": { "host": "...", "ssh_user": "root", "ssh_port": 22,
+                      "ssh_key": "/path/key", "ssh_password": "...",
+                      "remote_deploy_dir": "/opt/crm-deployment" } }
+
+    Response::
+
+        { "secrets": { "db_password": "...", ... },
+          "is_reinstall": true|false,
+          "count": N }
+    """
+    data = request.json or {}
+    target = data.get("target", {})
+    host = target.get("host", "").strip()
+    if not host:
+        return jsonify({"error": "target.host is required"}), 400
+
+    ssh_user = target.get("ssh_user", "root") or "root"
+    ssh_port = int(target.get("ssh_port", 22) or 22)
+    ssh_key = target.get("ssh_key") or None
+    ssh_password = target.get("ssh_password") or None
+    remote_dir = target.get("remote_deploy_dir", "/opt/crm-deployment")
+
+    try:
+        secrets = DockerComposeDeployer.read_remote_env_secrets(
+            host=host,
+            remote_deploy_dir=remote_dir,
+            ssh_user=ssh_user,
+            ssh_port=ssh_port,
+            ssh_key=ssh_key,
+            ssh_password=ssh_password,
+        )
+        # Detect reinstall: either secrets exist (deployment has .env)
+        # or a DB volume exists (MariaDB was previously initialised).
+        is_reinstall = bool(secrets) or DockerComposeDeployer.check_remote_db_volume_exists(
+            host=host,
+            ssh_user=ssh_user,
+            ssh_port=ssh_port,
+            ssh_key=ssh_key,
+            ssh_password=ssh_password,
+        )
+        return jsonify({
+            "secrets": secrets,
+            "is_reinstall": is_reinstall,
+            "count": len(secrets),
+        })
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("fetch_remote_secrets failed for %s: %s", host, exc)
+        return jsonify({"error": str(exc), "secrets": {}, "is_reinstall": False, "count": 0}), 500
+
+
 @deploy_bp.route("/api/deploy", methods=["POST"])
 def start_deploy():
     data = request.json or {}
