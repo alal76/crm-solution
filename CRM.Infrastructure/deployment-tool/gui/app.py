@@ -836,19 +836,18 @@ def test_connection():
                 client.disconnect()
                 return jsonify({"status": "success", "message": f"SSH connection to {hostname} successful"})
             except Exception as e:
-                return jsonify({"status": "failed", "message": f"SSH connection failed: {str(e)}"}), 400
-                
+                return jsonify({"status": "failed", "message": f"SSH connection failed: {str(e)}"})
+
         elif platform in ['azure', 'aws', 'gcp']:
             # Test cloud API connection using explicit credentials from the UI
             try:
                 client = discovery_manager.clients[platform]()
                 result = client.test_connection(config)
-                http_code = 200 if result.get('status') == 'success' else 400
-                return jsonify(result), http_code
+                return jsonify(result)
             except Exception as exc:
-                return jsonify({"status": "failed", "message": f"{platform.title()} connection failed: {str(exc)}"}), 400
-        
-        return jsonify({"status": "unknown", "message": f"Connection test not implemented for {platform}"}), 400
+                return jsonify({"status": "failed", "message": f"{platform.title()} connection failed: {str(exc)}"})
+
+        return jsonify({"status": "unknown", "message": f"Connection test not implemented for {platform}"})
         
     except Exception as e:
         return jsonify({"error": f"Connection test failed: {str(e)}"}), 500

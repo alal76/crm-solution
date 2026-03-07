@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 8,
+  "patch": 9,
   "lastUpdate": "2026-03-07",
-  "description": "fix: v0.615.8 - CDT SSH connection test 400: collectDiscoveryConfig now sends key_path; discovery_models.connect replaced RSAKey.from_private_key_file with paramiko key_filename to support all key types and passphrases.",
+  "description": "fix: v0.615.9 - CDT profile save/load: profiles now store ssh_key, ssh_password, and secrets; loading a profile fully restores host, SSH credentials, and all secret fields in the Discovery step UI; connection test no longer returns HTTP 400 on SSH failure.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

@@ -1,24 +1,7 @@
-feat(testing): v0.614.86 - comprehensive test suite via 4 Opus subagents
+fix: v0.615.9 - CDT profile save/load and connection test fixes
 
-Created 647 test methods across 18 files (~10,572 lines) via 4 parallel Claude Opus 4.6 subagents. All tests read actual source code signatures.
-
-Phase 1 (Validators): 100% complete - 151 tests, 5 files
-- UiConfigurationValidatorTests (32 tests)
-- WorkerControlStateValidatorTests (24 tests)
-- LocalizationValidatorTests (32 tests)
-- ThemeColorValidatorTests (30 tests)
-- SupersetConfigurationValidatorTests (33 tests)
-
-Phase 2 (DTOs): 50% complete - 261 tests, 8 files
-- ContactDtoValidationTests, UserDtoValidationTests, PaymentDtoValidationTests, AccountDtoValidationTests
-- InvoiceDtoValidationTests, CommissionCalculationDtoValidationTests, SubscriptionMetricsDtoValidationTests, ContractDtoValidationTests
-
-Phase 4 (Services): 62.5% complete - 235 tests, 5 files enhanced
-- LeadServiceTests +50, QuoteServiceTests +80 (rewrite), InvoiceServiceTests +45, PaymentServiceTests +40
-- NEW AccountServiceIntegrationTests (20 tests)
-
-Source DTOs Enhanced: Added DataAnnotations to ContactDto, UserDto, PaymentDto, AccountDto (were missing)
-
-Test Fixes: PaymentServiceTests.cs string escaping errors fixed
-
-Coverage Projection: 20.29% → 47.5% (+27.2 percentage points toward 70% target)
+- Profile save: ssh_key, ssh_password, secrets now included in saved profile
+- applyTemplateToWizard: platform mapping uses data.platform fallback; config.target populated; SSH password restored to form; on_premises added to platform map
+- _loadAndApplyProfile: merges wizard_config before template apply so all credentials restored
+- applySelectedProfile: populates Discovery form fields and secret fields on load
+- test_connection: SSH/cloud failure returns HTTP 200 with status=failed instead of HTTP 400

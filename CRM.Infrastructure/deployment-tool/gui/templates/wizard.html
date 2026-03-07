@@ -5124,6 +5124,8 @@
                         host: config.target?.host || config.deployment_host || '',
                         ssh_user: config.target?.ssh_user || '',
                         ssh_port: config.target?.ssh_port || 22,
+                        ssh_key: config.target?.ssh_key || '',
+                        ssh_password: config.target?.ssh_password || '',
                         api_port: config.target?.api_port || '5000',
                         frontend_port: config.target?.frontend_port || '80',
                         environment_type: config.deployment_type || 'development',
@@ -5142,6 +5144,7 @@
                         expose_redis: config.network_expose_redis || false,
                     },
                     ssl: config.ssl || {},
+                    secrets: config.secrets || {},
                     providers: {
                         search: config.search_provider || 'builtin',
                         chat: config.chat_provider || 'builtin',
@@ -5317,6 +5320,7 @@
         // Map template target.provider → discovery platform key
         const _providerToDiscoveryPlatform = {
             'local_docker': 'on_premises', 'on_prem_vm': 'on_premises', 'on_prem_bare': 'on_premises',
+            'on_premises': 'on_premises',
             'azure': 'azure', 'aws': 'aws', 'gcp': 'gcp',
         };
 
@@ -5347,7 +5351,10 @@
             const svcAcc = data.service_accounts || {};
 
             // ─── 1. Auto-select discovery platform and pre-fill fields ────────
-            const discPlatform = _providerToDiscoveryPlatform[target.provider] || '';
+            // Profiles store the platform in data.platform; templates use target.provider
+            const discPlatform = _providerToDiscoveryPlatform[target.provider]
+                || _providerToDiscoveryPlatform[data.platform]
+                || '';
             if (discPlatform) {
                 selectDiscoveryPlatform(discPlatform);
 
@@ -5360,6 +5367,12 @@
                         _setVal('discoverySSHKey',      target.ssh_key);
                         _setVal('discoveryAuthMethod',  'key');
                         toggleDiscoveryAuth('key');
+                        // Passphrase for the key, if any
+                        if (target.ssh_password) _setVal('discoveryPassword', target.ssh_password);
+                    } else if (target.ssh_password) {
+                        _setVal('discoveryPassword',    target.ssh_password);
+                        _setVal('discoveryAuthMethod',  'password');
+                        toggleDiscoveryAuth('password');
                     }
                     _setVal('discoveryContainerPrefix', 'crm-');
                     _setVal('discoveryNetwork',         'crm_crm-network');
@@ -5387,11 +5400,26 @@
             const profileName = meta.profile_name || sourceName || 'crm-deployment';
             config.name        = profileName;
             config.description = meta.description || data.description || '';
-            config.platform    = target.provider || '';
+            config.platform    = target.provider || data.platform || config.platform || '';
             config.ssl         = Object.assign(config.ssl || {}, ssl);
             config.image_registry = Object.assign(config.image_registry || {}, imgReg);
             config.service_accounts = Object.assign(config.service_accounts || {}, svcAcc);
             config.secrets     = Object.assign(config.secrets || {}, sec);
+
+            // Restore target (host + SSH credentials) into config.target so
+            // subsequent deploy steps have the connection details available
+            // without requiring the user to revisit the Discovery step.
+            if (target.host || target.ssh_user) {
+                if (!config.target) config.target = {};
+                if (target.host)         config.target.host         = target.host;
+                if (target.ssh_user)     config.target.ssh_user     = target.ssh_user;
+                if (target.ssh_port)     config.target.ssh_port     = target.ssh_port;
+                if (target.ssh_key)      config.target.ssh_key      = target.ssh_key;
+                if (target.ssh_password) config.target.ssh_password = target.ssh_password;
+                if (target.api_port)     config.target.api_port     = target.api_port;
+                if (target.frontend_port) config.target.frontend_port = target.frontend_port;
+                config.deployment_host = target.host || config.deployment_host;
+            }
 
             // Architecture
             const archMode = _archModeMap[arch.mode] || '';
@@ -5516,6 +5544,12 @@
                 const resp = await fetch('/api/profiles/' + encodeURIComponent(name));
                 if (!resp.ok) { console.warn('[CDT] Profile not found:', name); return; }
                 const data = await resp.json();
+                // If the profile contains the full wizard_config, restore all fields
+                // (including SSH credentials and secrets) before the template apply.
+                if (data.wizard_config && typeof data.wizard_config === 'object') {
+                    Object.assign(config, data.wizard_config);
+                    if (typeof data.wizard_step === 'number') currentStep = data.wizard_step;
+                }
                 applyTemplateToWizard(data, name, false);
                 // Activate the profile server-side so Day-2 endpoints target the right host.
                 fetch(`/api/profiles/${encodeURIComponent(name)}/activate`, { method: 'POST' })
@@ -8060,6 +8094,28 @@ async function applySelectedProfile() {
         const eu = document.getElementById('expectedUsers'); if (eu) eu.value = config.expected_users || 100;
         updateStepIndicator();
         updateSidebar();
+
+        // Populate Discovery step form fields so the host/SSH details are
+        // visible immediately without requiring the user to navigate to step 0.
+        if (config.target?.host) {
+            const dPlatform = _providerToDiscoveryPlatform[config.platform] || 'on_premises';
+            selectDiscoveryPlatform(dPlatform);
+            _setVal('discoveryHost',     config.target.host);
+            _setVal('discoveryUsername', config.target.ssh_user || 'root');
+            _setVal('discoveryPort',     config.target.ssh_port || 22);
+            if (config.target.ssh_key) {
+                _setVal('discoverySSHKey',     config.target.ssh_key);
+                _setVal('discoveryAuthMethod', 'key');
+                toggleDiscoveryAuth('key');
+                if (config.target.ssh_password) _setVal('discoveryPassword', config.target.ssh_password);
+            } else if (config.target.ssh_password) {
+                _setVal('discoveryPassword',   config.target.ssh_password);
+                _setVal('discoveryAuthMethod', 'password');
+                toggleDiscoveryAuth('password');
+            }
+        }
+        // Restore all secrets/passwords to their form fields
+        if (config.secrets) { _populateSecretsFromConfig(config.secrets); }
 
         document.getElementById('step-profile-browser').style.display = 'none';
         if (showToast) { showToast('Profile loaded — wizard fields updated', 'success'); }
