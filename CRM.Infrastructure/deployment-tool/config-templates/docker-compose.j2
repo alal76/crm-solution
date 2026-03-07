@@ -38,7 +38,7 @@ services:
       - "ASPNETCORE_ENVIRONMENT=Production"
       - "ASPNETCORE_URLS=http://+:5000"
 {% if db_auth_method == 'password' %}
-      - "ConnectionStrings__DefaultConnection=Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};Password={{ docker_escape(db_password) }};"
+      - "ConnectionStrings__DefaultConnection=Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};Password={{ connstr_escape(db_password) }};"
 {% elif db_auth_method == 'ssl_cert' %}
       - "ConnectionStrings__DefaultConnection=Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};SslMode=VerifyFull;SslCert={{ db_ssl_cert_path }};SslKey={{ db_ssl_key_path }};SslCa={{ db_ssl_ca_path }};"
 {% elif db_auth_method == 'docker_secret' %}

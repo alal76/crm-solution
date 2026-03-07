@@ -104,6 +104,7 @@ class ConfigGenerator:
             self._env.globals.update(self._template_globals())
             # Also register docker_escape as a Jinja2 filter for | pipe usage
             self._env.filters["docker_escape"] = self._docker_escape
+            self._env.filters["connstr_escape"] = self._connstr_escape
             # url_encode_password: URL-encode special chars (e.g. '@' → '%40') in DB passwords
             # Used by DocuSeal DATABASE_URL to prevent URI parsing failures.
             self._env.filters["url_encode_password"] = (
@@ -170,12 +171,34 @@ class ConfigGenerator:
         value = value.replace("$", "$$")
         return value
 
+    @staticmethod
+    def _connstr_escape(value: str) -> str:
+        """Escape a value for safe embedding inside a MySQL/MariaDB connection
+        string.  Characters like ``;`` and ``&`` are parameter separators in
+        ADO.NET-style connection strings, so passwords containing them must be
+        escaped.  Docker Compose ``$`` escaping is also applied.
+
+        Strategy: replace ``&`` → ``&amp;`` and ``$`` → ``$$`` so the
+        MySqlConnector parser treats them as literal characters, and also
+        escape backslash/quote for Docker YAML.
+        """
+        if not isinstance(value, str):
+            return str(value)
+        value = value.replace("\\", "\\\\")
+        value = value.replace('"', '\\"')
+        value = value.replace("$", "$$")
+        # Semicolons inside a password would be parsed as a connection-string
+        # key separator — there is no standard escape, so replace them.
+        value = value.replace(";", "%3B")
+        return value
+
     def _template_globals(self) -> dict:
         return {
             "now": datetime.now(timezone.utc).isoformat(),
             "generate_password": self.generate_password,
             "generate_token": self.generate_token,
             "docker_escape": self._docker_escape,
+            "connstr_escape": self._connstr_escape,
         }
 
     @staticmethod
@@ -189,7 +212,7 @@ class ConfigGenerator:
         alphabet = string.ascii_letters + string.digits
         if special:
             # Omit $, `, ', ", \ which break Docker Compose / shell interpolation
-            alphabet += "!@#%^&*()-_=+[]{}|;:,.<>?"
+            alphabet += "!@#%^*()-_=+[]{}|:,.<>?"
         return "".join(secrets.choice(alphabet) for _ in range(length))
 
     @staticmethod

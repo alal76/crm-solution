@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 14,
+  "patch": 15,
   "lastUpdate": "2026-03-08",
-  "description": "fix: v0.615.13 - CDT deploy: fix empty volumes in compose template, shell-escape SSH commands (shlex.quote), smart image pulling, --pull never on compose up, SSH credential re-capture in wizard startDeployment, compose file transfer for remote targets",
+  "description": "fix: v0.615.15 - CDT deploy: connection string escaping (connstr_escape filter), remove & and ; from generated passwords, docker tag :latest after remote load",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

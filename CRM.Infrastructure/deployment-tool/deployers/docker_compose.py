@@ -1237,7 +1237,12 @@ class DockerComposeDeployer:
                     return False
                 self._emit(f"  Loaded {image_tag} on remote in {load_elapsed:.1f}s", "info")
 
-                # 4. Clean up remote tar to save disk space
+                # 4. Tag as :latest on remote so compose can find it
+                self._run_remote_ssh(
+                    f"docker tag {image_tag} {name}:latest", timeout=15
+                )
+
+                # 5. Clean up remote tar to save disk space
                 self._run_remote_ssh(f"rm -f {remote_tar}", timeout=15)
 
         finally:
