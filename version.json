@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 11,
+  "patch": 12,
   "lastUpdate": "2026-03-07",
-  "description": "fix: v0.615.11 - CDT SSH auth: respect auth_method field, prevent stale key_path/password cross-contamination between auth modes; clear fields on mode switch; diagnostic auth method in error messages",
+  "description": "fix: v0.615.12 - CDT deploy: fix Step 1 failure on fresh targets by ensuring remote deploy dir exists before cd; pass ssh_password to check_remote_db_volume_exists in error path",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

@@ -429,6 +429,8 @@ def start_deploy():
                     host=deploy_host,
                     ssh_user=ssh_user,
                     ssh_port=ssh_port,
+                    ssh_key=ssh_key,
+                    ssh_password=ssh_password,
                 )
                 if volume_exists:
                     logger.error(

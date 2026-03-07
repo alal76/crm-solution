@@ -404,11 +404,11 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] Running: {cmd_str}", "info")
         if not self._is_remote:
             return self._run(cmd, cwd=Path(cwd) if cwd else None, timeout=timeout)
-        # Remote: wrap in cd + command
+        # Remote: wrap in cd + command (ensure directory exists first)
         if cwd:
-            remote_cmd = f"cd {cwd} && {cmd_str}"
+            remote_cmd = f"mkdir -p {cwd} && cd {cwd} && {cmd_str}"
         else:
-            remote_cmd = f"cd {self._remote_deploy_dir} && {cmd_str}"
+            remote_cmd = f"mkdir -p {self._remote_deploy_dir} && cd {self._remote_deploy_dir} && {cmd_str}"
         return self._run_remote_ssh(remote_cmd, timeout=timeout)
 
     def _scp_to_target(self, local_path: str, remote_path: str) -> bool:
