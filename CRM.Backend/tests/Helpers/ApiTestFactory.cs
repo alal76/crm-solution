@@ -56,9 +56,10 @@ public class ApiTestFactory : WebApplicationFactory<Program>
             services.RemoveAll(typeof(CrmDbContext));
             services.RemoveAll(typeof(ICrmDbContext));
 
+            var dbName = $"crm_bvt_{Guid.NewGuid():N}";
             services.AddDbContext<CrmDbContext>(options =>
             {
-                options.UseInMemoryDatabase("crm_bvt");
+                options.UseInMemoryDatabase(dbName);
             });
             services.AddScoped<ICrmDbContext>(sp => sp.GetRequiredService<CrmDbContext>());
 

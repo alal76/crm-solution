@@ -221,6 +221,125 @@ class ConfigGenerator:
         return secrets.token_hex(length)
 
     # ------------------------------------------------------------------
+    # Secret recovery from previously generated .env
+    # ------------------------------------------------------------------
+
+    # Keys in the .env file that contain secrets/passwords to be recovered.
+    # Maps .env variable name → context key used by the Jinja2 templates.
+    _ENV_SECRET_MAP: dict[str, str] = {
+        "DB_PASSWORD":                  "db_password",
+        "DB_ROOT_PASSWORD":             "db_root_password",
+        "JWT_SECRET":                   "jwt_secret",
+        "ADMIN_PASSWORD":               "admin_password",
+        "REDIS_PASSWORD":               "redis_password",
+        "MEILI_MASTER_KEY":             "meilisearch_master_key",
+        "CHATWOOT_API_KEY":             "chatwoot_api_key",
+        "CHATWOOT_SECRET_KEY":          "chatwoot_secret_key",
+        "CHATWOOT_DB_PASSWORD":         "chatwoot_db_password",
+        "NOVU_API_KEY":                 "novu_api_key",
+        "NOVU_JWT_SECRET":              "novu_jwt_secret",
+        "NOVU_ENCRYPTION_KEY":          "novu_encryption_key",
+        "SUPERSET_SECRET_KEY":          "superset_secret_key",
+        "SUPERSET_ADMIN_PASSWORD":      "superset_admin_password",
+        "SUPERSET_DB_PASSWORD":         "superset_db_password",
+        "DOCUSEAL_API_KEY":             "docuseal_api_key",
+        "DOCUSEAL_SECRET_KEY":          "docuseal_secret_key",
+        "DOCUSEAL_DB_PASSWORD":         "docuseal_db_password",
+        "N8N_API_KEY":                  "n8n_api_key",
+        "N8N_BASIC_AUTH_PASSWORD":      "n8n_password",
+        "N8N_DB_PASSWORD":              "n8n_db_password",
+        "OPENAI_API_KEY":               "openai_api_key",
+        "ANTHROPIC_API_KEY":            "anthropic_api_key",
+    }
+
+    @staticmethod
+    def recover_secrets_from_env(env_path: Path) -> dict[str, str]:
+        """Parse an existing ``.env`` file and extract secret values.
+
+        This allows regenerating configuration files (e.g. after a CDT code
+        fix or provider selection change) without losing previously generated
+        passwords.  Values with Docker Compose ``$$`` escaping are un-escaped
+        back to literal ``$``.
+
+        Parameters
+        ----------
+        env_path:
+            Path to the ``.env`` file to read.
+
+        Returns
+        -------
+        dict
+            Mapping of template context keys → recovered secret values.
+            Only non-empty values are included.
+        """
+        recovered: dict[str, str] = {}
+        if not env_path.is_file():
+            return recovered
+
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            key = key.strip()
+            val = val.strip()
+            # Strip surrounding quotes
+            if len(val) >= 2 and val[0] == val[-1] and val[0] in ('"', "'"):
+                val = val[1:-1]
+            # Un-escape Docker Compose $$ → $
+            val = val.replace("$$", "$")
+            # Un-escape \" → "
+            val = val.replace('\\"', '"')
+
+            ctx_key = ConfigGenerator._ENV_SECRET_MAP.get(key)
+            if ctx_key and val:
+                recovered[ctx_key] = val
+
+        return recovered
+
+    # ------------------------------------------------------------------
+    # Cloud endpoint overrides
+    # ------------------------------------------------------------------
+
+    # Default internal Docker service URLs per provider.
+    # These are used when deploying all components on the same Docker host.
+    _DEFAULT_PROVIDER_ENDPOINTS: dict[str, str] = {
+        "meilisearch_url":  "http://crm-meilisearch:7700",
+        "chatwoot_url":     "http://crm-chatwoot-web:3000",
+        "novu_url":         "http://crm-novu-api:3000",
+        "superset_url":     "http://crm-superset:8088",
+        "docuseal_url":     "http://crm-docuseal:3000",
+        "n8n_url":          "http://crm-n8n:5678",
+        "ollama_url":       "http://crm-ollama:11434",
+        "redis_url":        "crm-redis:6379",
+        "mariadb_url":      "crm-mariadb:3306",
+    }
+
+    @staticmethod
+    def apply_endpoint_overrides(ctx: dict, overrides: dict[str, str]) -> None:
+        """Merge per-component endpoint overrides into the template context.
+
+        For cloud deployments each pluggable component may be at a different
+        endpoint (e.g. a managed Meilisearch SaaS, an Azure-hosted Novu, etc.).
+        Call this method after ``_build_context()`` with a dict of overrides::
+
+            overrides = {
+                "meilisearch_url": "https://ms.example.com",
+                "novu_url":        "https://novu.example.com:3000",
+            }
+            gen.apply_endpoint_overrides(ctx, overrides)
+
+        Unspecified keys keep their Docker-internal defaults.
+        """
+        for key, default in ConfigGenerator._DEFAULT_PROVIDER_ENDPOINTS.items():
+            ctx.setdefault(key, default)
+        for key, value in overrides.items():
+            if key in ConfigGenerator._DEFAULT_PROVIDER_ENDPOINTS and value:
+                ctx[key] = value
+
+    # ------------------------------------------------------------------
     # Context building
     # ------------------------------------------------------------------
 
@@ -257,6 +376,24 @@ class ConfigGenerator:
         providers = profile.get("providers", {})
         if isinstance(providers, dict):
             providers = self._normalize_provider_keys(providers)
+
+        # If the wizard saved provider selections at the top level of the profile
+        # (e.g. "search_provider": "meilisearch") rather than nested under a
+        # "providers" key, collect them into the providers dict so that the
+        # template conditionals like {% if providers.get('search_provider') %}
+        # evaluate correctly.
+        if not providers or not any(
+            k.endswith("_provider") for k in (providers if isinstance(providers, dict) else {})
+        ):
+            _known_provider_keys = set(self._PROVIDER_KEY_MAP.values())
+            _known_provider_keys.update(self._PROVIDER_KEY_MAP.keys())
+            orphaned = {
+                k: v for k, v in profile.items()
+                if k in _known_provider_keys and v and v != "builtin"
+            }
+            if orphaned:
+                providers = self._normalize_provider_keys(orphaned)
+
         ctx["providers"] = providers
         if isinstance(providers, dict):
             ctx.update(providers)
@@ -444,10 +581,32 @@ class ConfigGenerator:
         for key, default in defaults.items():
             ctx.setdefault(key, default)
 
-    def _build_context(self, profile: dict) -> dict:
-        """Flatten a wizard profile dict into a Jinja2 template context."""
+    def _build_context(self, profile: dict, recovered_secrets: dict | None = None,
+                       endpoint_overrides: dict | None = None) -> dict:
+        """Flatten a wizard profile dict into a Jinja2 template context.
+
+        Parameters
+        ----------
+        profile:
+            The wizard profile dict (from deployment-config.json or session).
+        recovered_secrets:
+            Optional dict of secrets recovered from a previously generated
+            ``.env`` file (via :meth:`recover_secrets_from_env`).  These are
+            injected into the context *before* auto-generation so that existing
+            passwords are preserved across regeneration cycles.
+        endpoint_overrides:
+            Optional dict of per-component endpoint URLs for cloud deployments
+            (e.g. ``{"meilisearch_url": "https://ms.cloud.example.com"}``).
+        """
         ctx: dict = {}
         self._flatten_profile_sections(profile, ctx)
+
+        # Inject recovered secrets early — before any auto-generation logic
+        # runs.  This preserves passwords from a previous CDT generation.
+        if recovered_secrets:
+            for key, value in recovered_secrets.items():
+                if value and not ctx.get(key):
+                    ctx[key] = value
 
         # ── DB auth method + secret store — auto-selection (SPEC-INF-001) ──────
         # Run early so validation below can inspect db_auth_method.
@@ -487,6 +646,12 @@ class ConfigGenerator:
 
         if not ctx.get("jwt_secret"):
             ctx["jwt_secret"] = self.generate_token(32)
+
+        # If domain_name was never set (wizard stores 'host' in target section,
+        # not 'domain_name'), fall back to the target host IP/hostname so that
+        # external-facing URLs (Chatwoot, Novu, n8n, etc.) are correct.
+        if ctx.get("domain_name") in (None, "", "localhost") and ctx.get("host"):
+            ctx["domain_name"] = ctx["host"]
 
         # Default image registry — empty means local images (no registry prefix)
         ctx.setdefault("image_registry", "")
@@ -555,6 +720,12 @@ class ConfigGenerator:
             ctx.setdefault("gcp_project_id", "")
 
         self._apply_optional_defaults(ctx)
+
+        # Apply per-component endpoint overrides for cloud deployments.
+        # Must run AFTER defaults so internal Docker URLs are set first,
+        # then cloud endpoints override them selectively.
+        self.apply_endpoint_overrides(ctx, endpoint_overrides or {})
+
         return ctx
 
     # ------------------------------------------------------------------
@@ -579,8 +750,26 @@ class ConfigGenerator:
     # Public API
     # ------------------------------------------------------------------
 
-    def generate(self, profile: dict, output_dir: Optional[Path] = None) -> GenerationResult:
-        """Generate all configuration files for the given wizard profile."""
+    def generate(self, profile: dict, output_dir: Optional[Path] = None,
+                 previous_env: Optional[Path] = None,
+                 endpoint_overrides: Optional[dict] = None) -> GenerationResult:
+        """Generate all configuration files for the given wizard profile.
+
+        Parameters
+        ----------
+        profile:
+            The wizard profile dict.
+        output_dir:
+            Where to write generated files.  Defaults to ``generated/``.
+        previous_env:
+            Path to a previously generated ``.env`` file.  When provided,
+            passwords and secrets are recovered from it so they are preserved
+            across regeneration cycles instead of being randomly regenerated.
+        endpoint_overrides:
+            Per-component endpoint URLs for cloud deployments where each
+            pluggable component may run at a different external URL.  Keys
+            are e.g. ``meilisearch_url``, ``novu_url``, etc.
+        """
 
         # Default output goes to the persistent generated/ directory next to the CDT root
         if output_dir is None:
@@ -590,8 +779,18 @@ class ConfigGenerator:
 
         output_dir.mkdir(parents=True, exist_ok=True)
 
+        # Recover secrets from the previous generation's .env if available.
+        # Also auto-detect: if output_dir already contains a .env, use that
+        # as the default previous_env (allows in-place regeneration).
+        if previous_env is None:
+            candidate = output_dir / ".env"
+            if candidate.is_file():
+                previous_env = candidate
+        recovered = self.recover_secrets_from_env(previous_env) if previous_env else {}
+
         result = GenerationResult(success=True, output_dir=output_dir)
-        context = self._build_context(profile)
+        context = self._build_context(profile, recovered_secrets=recovered,
+                                      endpoint_overrides=endpoint_overrides)
 
         # architecture may be a flat string (e.g. "docker_compose") or a nested dict
         arch = profile.get("architecture", {})

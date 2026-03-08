@@ -12,7 +12,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class StripeWebhookControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class StripeWebhookControllerTests
     {
         private readonly HttpClient _client;
         public StripeWebhookControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();

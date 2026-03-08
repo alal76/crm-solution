@@ -12,7 +12,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class ChatwootWebhookControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class ChatwootWebhookControllerTests
     {
         private readonly HttpClient _client;
         public ChatwootWebhookControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();

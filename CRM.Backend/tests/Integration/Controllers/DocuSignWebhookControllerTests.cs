@@ -12,7 +12,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class DocuSignWebhookControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class DocuSignWebhookControllerTests
     {
         private readonly HttpClient _client;
         public DocuSignWebhookControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();

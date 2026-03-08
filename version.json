@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 17,
+  "patch": 18,
   "lastUpdate": "2026-03-08",
-  "description": "feat: v0.615.17 - Add batch_23_fortune100 with 27 Fortune 100 company accounts and 108 linked contacts (Microsoft, Apple, Amazon, Google, JPMorgan, etc.)",
+  "description": "fix: v0.615.18 - Fix all 139 test failures: SupersetProvider auth mocks (11), integration test parallelism via ICollectionFixture (124), CRUD test payloads (4)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

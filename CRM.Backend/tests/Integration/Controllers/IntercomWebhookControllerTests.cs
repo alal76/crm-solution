@@ -12,7 +12,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class IntercomWebhookControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class IntercomWebhookControllerTests
     {
         private readonly HttpClient _client;
         public IntercomWebhookControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();

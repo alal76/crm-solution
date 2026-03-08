@@ -14,7 +14,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class FileUploadControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class FileUploadControllerTests
     {
         private readonly HttpClient _client;
         public FileUploadControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();

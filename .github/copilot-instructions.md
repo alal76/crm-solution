@@ -1,6 +1,6 @@
 # GitHub Copilot Instructions - CRM Solution
 
-> **Last Updated:** March 1, 2026  
+> **Last Updated:** March 7, 2026  
 > **Current Version:** 0.614.80  
 > **Load this file at the start of every agent session**
 
@@ -1772,6 +1772,186 @@ These files should be updated regularly and never archived:
 - `docs/09-operations/TROUBLESHOOTING_RUNBOOK.md` - Updated on new issue
 - `CHANGELOG.md` / `version.json` - Updated before every commit
 - `README.md` - Updated when dependencies or setup changes
+
+---
+
+## 15. Data Loader & CDT (Comprehensive CRUD Tests)
+
+The CRM solution ships two closely related Python toolsets in `scripts/data-loader/`:
+
+1. **Batch Data Loader** (`run_all_batches.py`) — Populates the database with realistic test/demo data via REST API calls.
+2. **CDT Runner** (`run_cdt.py`) — Executes the same batch modules but intercepts every API call to measure pass/fail status and generate a self-contained HTML report.
+
+### 15.1 Data Loader
+
+#### Purpose & Architecture
+
+The loader authenticates once as admin, then sequentially executes Python batch modules (`batch_01_*.py` … `batch_23_*.py`). Each module calls the CRM REST API using a shared `ApiClient` from `loader_utils.py`. Later batches depend on IDs created by earlier ones, so order matters.
+
+#### Batch Registry (run order)
+
+| # | Module | Coverage |
+|---|--------|----------|
+| 01 | `batch_01_system` | System, Users, Roles, Settings |
+| 02 | `batch_02_crm_core` | Accounts, Contacts, Contact Info |
+| 03 | `batch_03_leads_products` | Leads, Products, PriceBbooks |
+| 04 | `batch_04_sales` | Opportunities, Quotes, Orders, Invoices |
+| 05 | `batch_05_activities` | Interactions, Tasks, Notes |
+| 06 | `batch_06_marketing` | Campaigns, Templates, Sequences |
+| 07 | `batch_07_itsm` | Service Desk, Incidents, Changes, KB |
+| 08 | `batch_08_commissions` | Commissions, Territories, Teams |
+| 09 | `batch_09_workflows` | Workflows, Approvals, Triggers, Rule Engine |
+| 10 | `batch_10_ai_analytics` | AI Agents, SK Plugins, Analytics, Reports |
+| 11 | `batch_11_infrastructure` | Monitoring, Config, MasterData |
+| 12 | `batch_12_misc` | Files, Tags, CustomFields, Misc |
+| 13 | `batch_13_integration` | Integration-Dependent Endpoints (probe & skip) |
+| 14 | `batch_14_rules_workflows` | Rules, Rulesets & Full Workflow E2E |
+| 15 | `batch_15_service_desk_config` | SR Categories, Types, SLAs, Queues, AutoAssign, Escalation |
+| 16 | `batch_16_master_catalog_data` | Lead Sources, Currencies, Competitors, Master Data, Lookups |
+| 17 | `batch_17_subscriptions_billing` | Subscription Lifecycle, Billing, Usage, Revenue, Dunning |
+| 18 | `batch_18_financial_extended` | Credit Memos, Order Returns, Pricing Rules, Tax, Payment Methods |
+| 19 | `batch_19_portals_engagement` | Portal, Partner Portal, Web-to-Lead, Landing Pages, Events, Segments |
+| 20 | `batch_20_comms_notifications` | Conversations, Communications, Comments, Notifications, GDPR |
+| 21 | `batch_21_crm_config` | Pipelines, Forecast, Quote Templates, ProductCat, PriceBooks, Tags |
+| 22 | `batch_22_admin_ops` | Roles, API Keys, Webhooks, Imports, Exports, Admin Config, Alerts |
+| 23 | `batch_23_fortune100` | Fortune 100 Companies — Accounts & Linked Contacts |
+
+#### Usage
+
+```bash
+# Run all batches against dev server (default target: http://192.168.0.9:5000)
+cd scripts/data-loader
+python3 run_all_batches.py
+
+# Run against a different target
+python3 run_all_batches.py --base-url http://localhost:5000
+
+# Run only specific batches
+python3 run_all_batches.py --batches 1,2,3
+
+# Skip specific batches
+python3 run_all_batches.py --skip 8,10
+
+# Stop on first error (default is continue-on-error)
+python3 run_all_batches.py --stop-on-error
+
+# Capture Docker container logs alongside (useful on dev server)
+python3 run_all_batches.py --ssh-host root@192.168.0.9
+
+# Disable TLS verification (self-signed certs)
+python3 run_all_batches.py --no-verify-ssl
+```
+
+#### Key Defaults
+
+| Parameter | Default | Notes |
+|-----------|---------|-------|
+| `--base-url` | `http://192.168.0.9:5000` | Dev server |
+| `--username` | `admin@crm.local` | Admin email |
+| `--password` | `Admin@123` | Admin password |
+| `--continue-on-error` | `true` | Continues to next batch on failure |
+| Log directory | `scripts/data-loader/logs/` | Timestamped run log written here |
+
+#### Each Batch Module Contract
+
+Every batch module must expose a `run(api, log)` function:
+
+```python
+def run(api: ApiClient, log: RunLogger) -> None:
+    """Load data for this batch."""
+    # Use api.post(), api.get(), api.put(), api.patch(), api.delete()
+    # Use log.log(), log.section() for structured logging
+```
+
+The `ApiClient` (`loader_utils.py`) returns `(status_code, data, error_msg)` tuples. A `status_code` of 409 with `"already exists"` in the body is treated as a non-fatal skip (idempotent re-runs are safe). The loader tracks a shared state dictionary (`init_state()`) that batches use to store IDs for cross-batch references.
+
+#### Shared Utilities (`loader_utils.py`)
+
+| Class / Function | Purpose |
+|-----------------|---------|
+| `ApiClient` | HTTP client wrapping `urllib.request`; handles auth header, retries, TLS |
+| `RunLogger` | Writes timestamped log lines to `logs/run-{id}.log` |
+| `DockerLogCapture` | Optional SSH-based Docker log capture for remote dev servers |
+| `init_state(log_dir)` | Initialises shared state dict and returns a `run_id` |
+| `authenticate(api, user, pwd, log)` | Logs in and injects bearer token into `api` |
+| `check_service_availability(api, log)` | Health-check before loading starts |
+| `is_already_exists(body)` | Detects duplicate-entity responses for idempotent re-runs |
+| `ENUMS` dict | Canonical string→int mapping for all CRM enums used in payloads |
+| `slugify`, `email_from_name`, `split_name` | Payload generation helpers |
+
+---
+
+### 15.2 CDT — Comprehensive CRUD Tests (`run_cdt.py`)
+
+#### Purpose
+
+CDT re-uses the same 23 batch modules but wraps the `ApiClient` with a `CdtInterceptor` that records every HTTP call as a `TestResult`. After all batches complete, it generates a self-contained, zero-dependency **HTML report** saved to `scripts/data-loader/logs/cdt-report-{timestamp}.html`.
+
+#### Usage
+
+```bash
+cd scripts/data-loader
+
+# Run CDT against dev server and open HTML report
+python3 run_cdt.py --open
+
+# Run against a specific host
+python3 run_cdt.py --base-url http://192.168.0.9:5000 --open
+
+# Save report to a custom path
+python3 run_cdt.py --output /tmp/my-cdt-report.html
+
+# Custom credentials
+python3 run_cdt.py --email admin@crm.local --password Admin@123
+```
+
+#### Key Options
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--base-url` | `http://localhost:5000` | CRM API base URL |
+| `--email` | `admin@crm.local` | Admin login email |
+| `--password` | `Admin@123` | Admin password |
+| `--open` | `false` | Auto-open HTML report in browser |
+| `--output` | `logs/cdt-report-{ts}.html` | Override report output path |
+
+#### Report Contents
+
+The HTML report includes:
+- **Summary bar** — total passed / failed / skipped, overall pass rate %, elapsed time
+- **Per-batch breakdown** — Batch name, pass count, fail count, skip count, duration
+- **Per-call detail table** — HTTP method, endpoint, status code, response time (ms), pass/fail/skip icon, error or skip reason
+- **Color-coded rows** — green (pass), red (fail), amber (skip)
+
+#### CDT vs Data Loader: When to use which
+
+| Scenario | Tool |
+|----------|------|
+| Seed a fresh environment with data | `run_all_batches.py` |
+| Verify all API endpoints are working after a deployment | `run_cdt.py` |
+| CI/CD endpoint smoke-test with a report artifact | `run_cdt.py` |
+| Load large Fortune-100 dataset only | `run_all_batches.py --batches 23` |
+| Quick ITSM-only data load | `run_all_batches.py --batches 7,15` |
+
+#### Adding New Batch Modules
+
+1. Create `batch_XX_name.py` in `scripts/data-loader/` with a `run(api, log)` function.
+2. Register it in `BATCHES` list in `run_all_batches.py` (keep numeric order).
+3. The batch is automatically picked up by CDT via the same registry.
+4. Verify it is idempotent — 409 / "already exists" responses must be handled gracefully via `is_already_exists()` from `loader_utils`.
+5. Store any created entity IDs into the shared `state` dict (passed via `log.state`) for use by downstream batches.
+
+#### Rate Limiting Note
+
+The data loader and CDT make many rapid API calls. If rate limiting is enabled (production mode), you will see HTTP 429 errors. Disable it for data loading:
+
+```bash
+# Pass rate-limiting-disabled flag to the Docker container
+docker exec crm-api sh -c "export RateLimiting__EnableEndpointRateLimiting=false"
+
+# Or restart the API with it disabled
+RATE_LIMITING_ENABLED=false docker-compose -f docker/docker-compose.yml up -d crm-api
+```
 
 ---
 

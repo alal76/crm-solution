@@ -12,7 +12,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class CreditMemosControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class CreditMemosControllerTests
     {
         private readonly HttpClient _client;
         public CreditMemosControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();

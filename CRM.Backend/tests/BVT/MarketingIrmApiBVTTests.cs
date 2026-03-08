@@ -11,7 +11,8 @@ using Xunit;
 
 namespace CRM.Tests.BVT;
 
-public class MarketingIrmApiBVTTests : IClassFixture<ApiTestFactory>
+[Collection("IntegrationTests")]
+public class MarketingIrmApiBVTTests
 {
     private readonly HttpClient _client;
 

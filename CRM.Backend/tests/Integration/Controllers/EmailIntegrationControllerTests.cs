@@ -14,7 +14,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class EmailIntegrationControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class EmailIntegrationControllerTests
     {
         private readonly HttpClient _client;
         public EmailIntegrationControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();

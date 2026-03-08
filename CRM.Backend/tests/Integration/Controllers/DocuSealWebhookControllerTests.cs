@@ -12,7 +12,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class DocuSealWebhookControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class DocuSealWebhookControllerTests
     {
         private readonly HttpClient _client;
         public DocuSealWebhookControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();

@@ -24,7 +24,7 @@ namespace CRM.Tests.Providers;
 /// MANDATORY: Written after verifying source for:
 ///   Class: SupersetProvider, Namespace: CRM.Infrastructure.Providers.Superset
 ///   Constructor: (HttpClient, IOptions&lt;SupersetConfiguration&gt;, ILogger&lt;SupersetProvider&gt;)
-///   Auth: two-step CSRF + login via REST API.
+///   Auth: single-step direct login via REST API (Superset v3+).
 /// </summary>
 public class SupersetProviderTests
 {
@@ -75,11 +75,10 @@ public class SupersetProviderTests
     };
 
     /// <summary>
-    /// Standard auth sequence: csrf → login.
+    /// Standard auth sequence: single-step direct login (Superset v3+).
     /// </summary>
     private static (HttpStatusCode, string)[] AuthSequence() => new[]
     {
-        (HttpStatusCode.OK, """{"result":"csrf-test-token"}"""),
         (HttpStatusCode.OK, """{"access_token":"test-access-token","refresh_token":"test-refresh"}""")
     };
 
@@ -104,7 +103,6 @@ public class SupersetProviderTests
         var all = new[]
         {
             authSeq[0],
-            authSeq[1],
             (apiStatusCode, apiResponseBody)
         };
         return CreateProvider(config, all);
@@ -157,8 +155,7 @@ public class SupersetProviderTests
     {
         var provider = CreateProvider(responses:
         [
-            (HttpStatusCode.OK, """{"result":"csrf-token"}"""),
-            (HttpStatusCode.Unauthorized, """{"message":"Invalid credentials"}""")
+            (HttpStatusCode.OK, """{"message":"no access token"}""")
         ]);
 
         var result = await provider.IsAvailableAsync();

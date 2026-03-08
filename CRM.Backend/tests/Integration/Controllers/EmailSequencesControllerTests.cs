@@ -14,7 +14,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class EmailSequencesControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class EmailSequencesControllerTests
     {
         private readonly HttpClient _client;
         private const string BaseUrl = "/api/email-sequences";

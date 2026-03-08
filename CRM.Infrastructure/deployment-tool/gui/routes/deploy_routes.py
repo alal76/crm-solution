@@ -455,7 +455,7 @@ def start_deploy():
 
     gen = ConfigGenerator()
     try:
-        result = gen.generate(profile)
+        result = gen.generate(profile)  # auto-recovers secrets from existing .env in output_dir
     except Exception as exc:  # noqa: BLE001
         return jsonify({"error": f"Configuration error: {exc}"}), 400
 

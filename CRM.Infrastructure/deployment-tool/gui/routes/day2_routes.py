@@ -348,7 +348,7 @@ def day2_status():
 
 @day2_bp.route("/api/day2/versions", methods=["GET"])
 def day2_versions():
-    profile = _get_profile()
+    profile, _ = _profile_from_request()
     mgr = UpgradeManager(Path.cwd(), profile)
     return jsonify(mgr.list_available_versions())
 
@@ -359,7 +359,7 @@ def day2_upgrade():
     target_version = data.get("target_version", "latest")
     backup = data.get("backup", True)
     dry_run = data.get("dry_run", False)
-    profile = _get_profile()
+    profile, _ = _profile_from_request()
     job_id = f"upg_{int(time.time())}"
 
     def run():
@@ -383,7 +383,7 @@ def day2_upgrade_status(job_id: str):
 
 @day2_bp.route("/api/day2/snapshots", methods=["GET"])
 def day2_snapshots():
-    profile = _get_profile()
+    profile, _ = _profile_from_request()
     mgr = RollbackManager(Path.cwd(), profile)
     return jsonify(mgr.list_snapshots())
 
@@ -391,7 +391,7 @@ def day2_snapshots():
 @day2_bp.route("/api/day2/rollback", methods=["POST"])
 def day2_rollback():
     snapshot_id = (request.json or {}).get("snapshot_id", "")
-    profile = _get_profile()
+    profile, _ = _profile_from_request()
     mgr = RollbackManager(Path.cwd(), profile)
     result = mgr.restore_snapshot(snapshot_id)
     return jsonify(result.to_dict())
@@ -399,7 +399,7 @@ def day2_rollback():
 
 @day2_bp.route("/api/day2/snapshots/<snapshot_id>", methods=["DELETE"])
 def day2_delete_snapshot(snapshot_id: str):
-    profile = _get_profile()
+    profile, _ = _profile_from_request()
     mgr = RollbackManager(Path.cwd(), profile)
     ok = mgr.delete_snapshot(snapshot_id)
     return jsonify({"deleted": ok})
@@ -410,7 +410,7 @@ def day2_scale():
     data = request.json or {}
     service = data.get("service", "crm-api")
     replicas = int(data.get("replicas", 1))
-    profile = _get_profile()
+    profile, _ = _profile_from_request()
     mgr = ScaleManager(Path.cwd(), profile)
     result = mgr.scale(service, replicas)
     return jsonify(result.to_dict())
@@ -419,7 +419,7 @@ def day2_scale():
 @day2_bp.route("/api/day2/rotate-secret", methods=["POST"])
 def day2_rotate_secret():
     secret_type = (request.json or {}).get("secret_type", "jwt")
-    profile = _get_profile()
+    profile, _ = _profile_from_request()
     rotator = SecretRotator(Path.cwd(), profile)
     if secret_type == "all":
         result = rotator.rotate_all()
@@ -1292,12 +1292,12 @@ def _test_runner_thread(job_id: str, test_type: str, base_url: str, cleanup: boo
 
         # ----- CRUD Loader -----
         if test_type in ("crud_loader", "all"):
-            _log("[CRUD_LOADER] Starting test_data_loader.py …")
-            loader_script = Path(_WORKSPACE_ROOT) / "scripts" / "test_data_loader.py"
+            _log("[CRUD_LOADER] Starting data-loader (run_all_batches.py) …")
+            loader_script = Path(_WORKSPACE_ROOT) / "scripts" / "data-loader" / "run_all_batches.py"
             if not loader_script.exists():
                 _log(f"  [CRUD_LOADER] Script not found: {loader_script}")
                 total_fail += 1
-                results.append({"suite": "crud_loader", "test": "script_exists", "passed": False, "error": "script not found"})
+                results.append({"suite": "crud_loader", "test": "script_exists", "passed": False, "error": "run_all_batches.py not found"})
             else:
                 cmd = [
                     sys.executable, str(loader_script),
@@ -1461,13 +1461,13 @@ def day2_testrunner_cleanup():
     """Run cleanup of test data against the deployed CRM."""
     profile, _ = _profile_from_request()
     base_url = (request.json or {}).get("base_url") or _build_api_base_url(profile)
-    loader_script = Path(_WORKSPACE_ROOT) / "scripts" / "test_data_loader.py"
+    loader_script = Path(_WORKSPACE_ROOT) / "scripts" / "data-loader" / "run_all_batches.py"
     if not loader_script.exists():
         return jsonify({"success": False, "error": f"Script not found: {loader_script}"}), 404
     try:
         result = subprocess.run(
             [sys.executable, str(loader_script), "--base-url", base_url, "--cleanup"],
-            capture_output=True, text=True, timeout=300, cwd=_WORKSPACE_ROOT,
+            capture_output=True, text=True, timeout=300, cwd=str(loader_script.parent),
         )
         return jsonify({
             "success": result.returncode == 0,
@@ -1649,8 +1649,22 @@ _CATEGORY_DEFAULTS: dict[str, str] = {
 }
 
 
-def _container_status(container_name: str) -> str:
-    # Return 'running', 'stopped', 'not_found', or 'unknown'
+def _container_status(container_name: str, profile: dict | None = None) -> str:
+    """Return 'running', 'stopped', 'not_found', or 'unknown'.
+
+    When *profile* is provided the check runs on the profiled host
+    (local or remote via SSH) instead of always checking localhost.
+    """
+    if profile:
+        ok, out, _ = _docker_cmd_profile(
+            profile, "inspect", "--format={{.State.Running}}", container_name,
+            timeout=10,
+        )
+        if not ok:
+            return "not_found"
+        return "running" if out.strip() == "true" else "stopped"
+
+    # Legacy local-only fallback
     try:
         r = subprocess.run(
             ["docker", "inspect", "--format={{.State.Running}}", container_name],
@@ -1685,7 +1699,7 @@ def day2_components_status():
         else:
             cnames = []
 
-        container_statuses = {n: _container_status(n) for n in cnames}
+        container_statuses = {n: _container_status(n, profile) for n in cnames}
         is_builtin = selected in ("builtin", "")
         result[cat] = {
             "selected": selected,
@@ -1826,12 +1840,9 @@ def day2_components_apply():
         cnames = raw if isinstance(raw, list) else [raw]
         for cname in cnames:
             try:
-                r = subprocess.run(
-                    ["docker", "start", cname],
-                    capture_output=True, text=True, timeout=30,
-                )
-                status = "started" if r.returncode == 0 else "start_failed"
-                output = (r.stdout + r.stderr).strip()
+                ok, out, err = _docker_cmd_profile(profile, "start", cname, timeout=30)
+                status = "started" if ok else "start_failed"
+                output = (out or err).strip()
             except subprocess.TimeoutExpired:
                 status = "timeout"
                 output = f"docker start {cname} timed out"
@@ -1855,13 +1866,13 @@ def day2_components_apply():
 
     if compose_file.exists():
         try:
-            r = subprocess.run(
-                ["docker", "compose", "-f", str(compose_file),
-                 "--env-file", str(env_providers_path), "restart", "crm-api"],
-                capture_output=True, text=True, timeout=90,
+            ok, out, err = _docker_cmd_profile(
+                profile, "compose", "-f", str(compose_file),
+                "--env-file", str(env_providers_path), "restart", "crm-api",
+                timeout=90,
             )
-            restart_output = (r.stdout + r.stderr).strip()
-            restart_ok = r.returncode == 0
+            restart_output = (out or err).strip()
+            restart_ok = ok
         except subprocess.TimeoutExpired:
             restart_output = "Restart timed out (90s). Check container status manually."
             restart_ok = False

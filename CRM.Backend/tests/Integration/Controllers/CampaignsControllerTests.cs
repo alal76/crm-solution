@@ -14,7 +14,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class CampaignsControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class CampaignsControllerTests
     {
         private readonly HttpClient _client;
         public CampaignsControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
@@ -22,7 +23,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_Campaigns_Succeeds()
         {
-            var create = new { name = "Test" };
+            var create = new { name = $"Test_{Guid.NewGuid():N}", campaignType = 0 };
             var cRes = await _client.PostAsJsonAsync("/api/campaigns", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();

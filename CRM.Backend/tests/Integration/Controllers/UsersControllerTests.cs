@@ -14,7 +14,8 @@ using Xunit;
 namespace CRM.Backend.Tests.Integration.Controllers
 {
     [Trait("Category", "Integration")]
-    public class UsersControllerTests : IClassFixture<ApiTestFactory>
+    [Collection("IntegrationTests")]
+    public class UsersControllerTests
     {
         private readonly HttpClient _client;
         public UsersControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
@@ -22,28 +23,15 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_Users_Succeeds()
         {
+            var uid = Guid.NewGuid().ToString("N")[..8];
             var create = new
             {
-                Username = "Test",
-                Email = "Test",
+                Username = $"testuser_{uid}",
+                Email = $"testuser_{uid}@example.com",
                 FirstName = "Test",
-                LastName = "Test",
-                Role = "Test",
+                LastName = "User",
                 IsActive = true,
-                IsLocked = true,
-                DepartmentId = 1,
-                DepartmentName = "Test",
-                UserProfileId = 1,
-                UserProfileName = "Test",
-                PrimaryGroupId = 1,
-                PrimaryGroupName = "Test",
-                ContactId = 1,
-                ContactName = "Test",
-                ContactEmail = "Test",
-                LastLoginDate = DateTime.UtcNow,
-                HeaderColor = "Test",
-                PhotoUrl = "Test",
-                Password = "Test",
+                Password = "TestPass@123",
                 RoleId = 1
             };
             var cRes = await _client.PostAsJsonAsync("/api/users", create);

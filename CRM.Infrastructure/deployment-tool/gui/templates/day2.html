@@ -30,6 +30,8 @@
         <a class="navbar-brand" href="/"><i class="bi bi-cloud-arrow-up"></i> CRM CDT</a>
         <span class="navbar-text text-light fw-bold">Monitoring &amp; Post Deployment</span>
         <div class="d-flex gap-2 align-items-center">
+            <!-- Deploy target indicator -->
+            <span class="badge bg-warning text-dark" id="nav-deploy-host" title="Deployment target host" style="font-size:.75rem;display:none;"></span>
             <!-- Profile selector -->
             <select class="form-select form-select-sm bg-dark text-light border-secondary"
                     id="profileSelector" style="width:auto;max-width:200px"
@@ -791,6 +793,14 @@ async function loadStatus() {
         document.getElementById('stack-health-redis').textContent = 'Redis ' + (h.redis ? '✓' : '—');
         const hostBadge = document.getElementById('stack-deploy-host');
         if (hostBadge) hostBadge.textContent = d.deploy_host ? `Host: ${d.deploy_host}` : 'Host: localhost';
+        // Update navbar deploy host badge
+        const navHostBadge = document.getElementById('nav-deploy-host');
+        if (navHostBadge) {
+            const hostLabel = d.deploy_host || 'localhost';
+            navHostBadge.textContent = `\u27A4 ${hostLabel}`;
+            navHostBadge.style.display = 'inline';
+            navHostBadge.title = `Connected to: ${hostLabel}`;
+        }
         if (document.getElementById('upgrade-current-version'))
             document.getElementById('upgrade-current-version').textContent = d.crm_version || 'unknown';
 
@@ -951,6 +961,18 @@ async function loadVersionInfo() {
                 <td><span class="img-tag">${imgs[k].image || '—'}</span></td>
                 <td><small class="text-muted">${imgs[k].status || '—'}</small></td>
             </tr>`).join('')}</tbody></table>`;
+
+        // Pre-populate Data Loader and Test Runner target URLs from profile
+        if (d.deploy_host) {
+            const port = '5000';
+            const profileUrl = `http://${d.deploy_host}:${port}`;
+            const dlUrlField = document.getElementById('dl-base-url');
+            if (dlUrlField && (!dlUrlField.value || dlUrlField.value === 'http://192.168.0.9:5000'))
+                dlUrlField.value = profileUrl;
+            const trUrlField = document.getElementById('tr-base-url');
+            if (trUrlField && !trUrlField.value)
+                trUrlField.value = profileUrl;
+        }
     } catch(e) { console.warn('Version info failed', e); }
 }
 
@@ -1010,7 +1032,7 @@ async function activateProfileInline(name) {
 async function loadHistory() {
     const el = document.getElementById('history-table');
     try {
-        const r = await fetch('/api/day2/run-history?limit=25');
+        const r = await fetch('/api/day2/run-history?limit=25' + (_selectedProfile ? '&profile=' + encodeURIComponent(_selectedProfile) : ''));
         const d = await r.json();
         const runs = d.runs || [];
         if (!runs.length) { el.innerHTML = '<div class="alert alert-info">No deployment history found.</div>'; return; }
@@ -1034,7 +1056,7 @@ async function loadHistory() {
 // ── Upgrade / Rollback / Scale / Secrets ──────────────────────────────────
 async function loadVersions() {
     try {
-        const r = await fetch('/api/day2/versions');
+        const r = await fetch('/api/day2/versions' + _profileQS());
         const versions = await r.json();
         const sel = document.getElementById('upgrade-version-select');
         sel.innerHTML = versions.map(v => `<option value="${v}">${v}</option>`).join('') || '<option value="latest">latest</option>';
@@ -1044,7 +1066,7 @@ async function loadVersions() {
 async function loadSnapshots() {
     const container = document.getElementById('snapshots-table-container');
     try {
-        const r = await fetch('/api/day2/snapshots');
+        const r = await fetch('/api/day2/snapshots' + _profileQS());
         const snaps = await r.json();
         if (!snaps.length) { container.innerHTML = '<div class="alert alert-info">No snapshots found.</div>'; return; }
         container.innerHTML = `<table class="table table-sm table-hover"><thead><tr><th>Snapshot ID</th><th>Version</th><th>Date</th><th>Reason</th><th>Actions</th></tr></thead><tbody>${
@@ -1058,7 +1080,7 @@ async function loadSnapshots() {
 
 function restoreSnapshot(id) {
     showConfirm('Restore Snapshot', `Restore snapshot ${id}? This will replace current deployment.`, async () => {
-        const r = await fetch('/api/day2/rollback', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({snapshot_id: id})});
+        const r = await fetch('/api/day2/rollback' + _profileQS(), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({snapshot_id: id})});
         const d = await r.json();
         alert(d.success ? 'Rollback complete: ' + (d.messages||[]).join(', ') : 'Rollback failed: ' + (d.errors||[]).join(', '));
         loadSnapshots();
@@ -1067,15 +1089,36 @@ function restoreSnapshot(id) {
 
 async function deleteSnapshot(id) {
     showConfirm('Delete Snapshot', `Permanently delete snapshot ${id}?`, async () => {
-        await fetch(`/api/day2/snapshots/${id}`, {method:'DELETE'});
+        await fetch(`/api/day2/snapshots/${id}` + _profileQS(), {method:'DELETE'});
         loadSnapshots();
     });
 }
 
-const SCALE_SERVICES = ['crm-api', 'crm-frontend'];
-function buildScaleList() {
+let _scaleServices = ['crm-api', 'crm-frontend']; // default fallback
+async function buildScaleList() {
     const el = document.getElementById('scale-services-list');
-    el.innerHTML = SCALE_SERVICES.map(svc => `
+    // Try to fetch actual running containers for the current profile
+    try {
+        const r = await fetch('/api/day2/status/all' + _profileQS());
+        if (r.ok) {
+            const d = await r.json();
+            const containers = d.containers || [];
+            if (containers.length > 0) {
+                _scaleServices = containers
+                    .map(c => (c.Names || c.Name || c.name || '').replace(/^\//, ''))
+                    .filter(n => n && n.startsWith('crm-'));
+            }
+            // For K8s, extract deployment names from resources
+            if (d.runtime === 'kubernetes' && d.resources) {
+                const deps = d.resources.filter(r => r.kind === 'Deployment').map(r => r.name);
+                if (deps.length) _scaleServices = deps;
+            }
+        }
+    } catch(e) { console.warn('Could not load containers for scale list, using defaults', e); }
+
+    if (!_scaleServices.length) _scaleServices = ['crm-api', 'crm-frontend'];
+
+    el.innerHTML = _scaleServices.map(svc => `
         <div class="d-flex align-items-center mb-3 gap-3">
             <div class="fw-semibold" style="min-width:140px">${svc}</div>
             <button class="btn btn-sm btn-outline-secondary" onclick="adjustReplica('${svc}', -1)"><i class="bi bi-dash"></i></button>
@@ -1092,7 +1135,7 @@ function adjustReplica(svc, delta) {
 
 async function applyScale(svc) {
     const replicas = Number.parseInt(document.getElementById(`scale-${svc}`).value || 1);
-    const r = await fetch('/api/day2/scale', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({service: svc, replicas})});
+    const r = await fetch('/api/day2/scale' + _profileQS(), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({service: svc, replicas})});
     const d = await r.json();
     alert(d.success ? `Scaled ${svc} to ${replicas}` : 'Scale failed: ' + JSON.stringify(d));
 }
@@ -1100,7 +1143,7 @@ async function applyScale(svc) {
 async function rotateSecret(type) {
     const secretLabels = {jwt: 'JWT Secret', db_pass: 'Database Password', all: 'ALL secrets'};
     showConfirm('Rotate Secret', `Rotate ${secretLabels[type] || type}? This may cause brief downtime.`, async () => {
-        const r = await fetch('/api/day2/rotate-secret', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({secret_type: type})});
+        const r = await fetch('/api/day2/rotate-secret' + _profileQS(), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({secret_type: type})});
         const d = await r.json();
         const resultEl = document.getElementById('rotation-result');
         if (d.success) {
@@ -1120,7 +1163,7 @@ async function startUpgrade() {
     log.textContent = `Starting upgrade to ${version}${dryRun ? ' (DRY RUN)' : ''}...\n`;
     prog.style.width = '10%';
     try {
-        const r = await fetch('/api/day2/upgrade', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({target_version: version, backup, dry_run: dryRun})});
+        const r = await fetch('/api/day2/upgrade' + _profileQS(), {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({target_version: version, backup, dry_run: dryRun})});
         const d = await r.json();
         const jobId = d.job_id;
         log.textContent += `Job started: ${jobId}\n`;
