@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,10 +23,12 @@ namespace CRM.Api.Controllers;
 public class PipelinesController : CrmControllerBase
 {
     private readonly CrmDbContext _context;
+    private readonly IPipelineService _pipelineService;
 
-    public PipelinesController(CrmDbContext context)
+    public PipelinesController(CrmDbContext context, IPipelineService pipelineService)
     {
         _context = context;
+        _pipelineService = pipelineService;
     }
 
     /// <summary>
@@ -77,27 +80,10 @@ public class PipelinesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetPipelineStats(Guid id)
     {
-                var stats = await _context.Opportunities
-            .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
-            .GroupBy(o => o.Stage)
-            .Select(g => new
-            {
-                Stage = g.Key.ToString(),
-                StageOrder = (int)g.Key,
-                Count = g.Count(),
-                TotalValue = g.Sum(o => o.Amount),
-                AverageValue = g.Average(o => o.Amount)
-            })
-            .OrderBy(s => s.StageOrder)
-            .ToListAsync();
-
-        return Ok(new
-        {
-            PipelineId = id,
-            Stats = stats,
-            TotalOpportunities = stats.Sum(s => s.Count),
-            TotalValue = stats.Sum(s => s.TotalValue)
-        });
+        // AP-023: extracted to IPipelineService.GetStatsAsync — fat-controller GroupBy/Select pipeline analysis removed.
+        // var stats = await _context.Opportunities.Where(...).GroupBy(o => o.Stage).Select(g => new {...}).ToListAsync()
+        var result = await _pipelineService.GetStatsAsync(id);
+        return Ok(result);
     }
 
     private static object[] GetDefaultPipelineStages()

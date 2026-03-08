@@ -396,6 +396,8 @@ public interface ICrmDbContext
 
     // KnowledgeBase entities (separate from ITSM variants)
     DbSet<CRM.Core.Entities.KnowledgeBase.KnowledgeArticle> KnowledgeArticles { get; }
+    DbSet<CRM.Core.Entities.KnowledgeBase.KnowledgeCategory> KnowledgeCategories { get; }
+    DbSet<CRM.Core.Entities.KnowledgeBase.ServiceRequestArticle> ServiceRequestArticles { get; }
     DbSet<CRM.Core.Entities.KnowledgeBase.ArticleFeedback> ArticleFeedbacks { get; }
 
     // AI Script Plugins

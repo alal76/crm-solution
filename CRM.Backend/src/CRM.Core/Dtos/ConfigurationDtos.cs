@@ -231,6 +231,35 @@ public class CRMConfigResponseDto
     public string? UpdatedBy { get; set; }
 }
 
+// UX-CONF-013: New DTO for the consolidated /api/admin/config/communications endpoint.
+/// <summary>
+/// Aggregated communications configuration: SMTP + notification channels.
+/// Returned by GET /api/admin/config/communications.
+/// </summary>
+public class CommunicationsConfigDto
+{
+    /// <summary>Outgoing email / SMTP server settings.</summary>
+    public EmailServerConfigDto? EmailServer { get; set; }
+
+    /// <summary>Per-channel enable/disable flags.</summary>
+    public NotificationChannelFlagsDto Channels { get; set; } = new();
+
+    public DateTime LastUpdated { get; set; }
+    public string? UpdatedBy { get; set; }
+}
+
+/// <summary>
+/// Notification channel enable flags (UX-CONF-013).
+/// </summary>
+public class NotificationChannelFlagsDto
+{
+    public bool InApp { get; set; } = true;
+    public bool Email { get; set; } = true;
+    public bool Sms { get; set; }
+    public bool Push { get; set; }
+    public bool SlackWebhook { get; set; }
+}
+
 /// <summary>
 /// DTO for storing/retrieving provider configuration
 /// </summary>

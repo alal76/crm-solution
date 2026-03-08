@@ -66,7 +66,7 @@ import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
-import { BaseEntity } from '../types';
+import { BaseEntity, Account } from '../types'; // PRA-006: Account added
 import { 
   DialogError, 
   DialogSuccess, 
@@ -100,12 +100,13 @@ interface ContactInfoSummary {
   socialCount: number;
 }
 
-interface Customer extends BaseEntity {
-  firstName: string;
-  lastName: string;
-  company: string;
-  displayName?: string;
-}
+// PRA-006: replaced with shared Account type from types/ — see import above
+// interface Customer extends BaseEntity {
+//   firstName: string;
+//   lastName: string;
+//   company: string;
+//   displayName?: string;
+// }
 
 interface Contact extends BaseEntity {
   contactType: string;
@@ -203,7 +204,7 @@ const CONTACT_SEARCHABLE_FIELDS = [
 
 function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [accounts, setAccounts] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]); // PRA-006
   const [contactInfoCache, setContactInfoCache] = useState<Record<number, ContactInfoSummary>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -19,11 +19,16 @@ public class CreateSubscriptionDto
 
     public int? ProductId { get; set; }
 
+    // AP-024: Amount must be a positive decimal value
     [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Amount must be between 0.01 and 999,999,999.99")]
     public decimal Amount { get; set; }
 
+    // AP-024: BillingCycle is required
+    [Required(ErrorMessage = "Billing cycle is required")]
     [StringLength(50, ErrorMessage = "BillingCycle cannot exceed 50 characters")]
     public string BillingCycle { get; set; } = "Monthly";
+    // AP-024: BillingStartDate must be a valid date
+    [DataType(DataType.Date)]
     public DateTime BillingStartDate { get; set; }
     public DateTime? TrialEndDate { get; set; }
     public bool IsAutoRenewal { get; set; } = true;

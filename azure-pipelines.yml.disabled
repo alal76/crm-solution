@@ -1,4 +1,7 @@
 # ==============================================================================
+# PRA-015 ARCHIVE NOTE: Disabled when CI/CD migrated to GitHub Actions (~2025).
+# Active pipelines are in .github/workflows/. Remove .disabled suffix to re-enable Azure DevOps.
+# ==============================================================================
 # ⚠️ LEGACY FILE - NOT ACTIVELY USED
 # ==============================================================================
 # This Azure DevOps pipeline configuration is preserved for historical reference.

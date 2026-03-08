@@ -10,6 +10,7 @@ using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Models;
 using CRM.Core.Ports.Output.Providers;
+using CRM.Infrastructure.Services.Knowledge; // KB-015: KnowledgeIndexDocument
 using Meilisearch;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -34,7 +35,9 @@ public class MeilisearchProvider : ISearchPort
         { typeof(Opportunity), "opportunities" },
         { typeof(Product), "products" },
         { typeof(KnowledgeArticle), "knowledge_articles" },
-        { typeof(Lead), "leads" }
+        { typeof(Lead), "leads" },
+        // KB-015: unified knowledge index document (General KB + ITSM KB with source discriminator)
+        { typeof(KnowledgeIndexDocument), "knowledge_articles" }
     };
 
     public MeilisearchProvider(

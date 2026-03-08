@@ -34,29 +34,31 @@ import agentService from '../services/agentService';
 import { getNewsSocialFeeds, refreshNewsSocialFeeds, getNewsSocialStatus, NewsItem, SocialFeed, NewsSocialStatus } from '../services/newsSocialService';
 import { contactInfoService, LinkedAddressDto } from '../services/contactInfoService';
 import logo from '../assets/logo.png';
+import { Account } from '../types'; // PRA-006: shared Account type replaces local Customer interface
 
-interface Customer {
-  id: number;
-  company: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  industry?: string;
-  website?: string;
-  customerCategory?: number;
-  customerType?: number;
-  lifecycleStage?: number;
-  annualRevenue?: number;
-  employeeCount?: number;
-  accountManagerId?: number;
-  accountManagerName?: string;
-  createdAt?: string;
-  linkedInUrl?: string;
-  twitterHandle?: string;
-  facebookUrl?: string;
-  instagramHandle?: string;
-}
+// PRA-006: replaced with shared Account type from types/ — see import above
+// interface Customer {
+//   id: number;
+//   company: string;
+//   firstName: string;
+//   lastName: string;
+//   email: string;
+//   phone: string;
+//   industry?: string;
+//   website?: string;
+//   customerCategory?: number;
+//   customerType?: number;
+//   lifecycleStage?: number;
+//   annualRevenue?: number;
+//   employeeCount?: number;
+//   accountManagerId?: number;
+//   accountManagerName?: string;
+//   createdAt?: string;
+//   linkedInUrl?: string;
+//   twitterHandle?: string;
+//   facebookUrl?: string;
+//   instagramHandle?: string;
+// }
 
 interface Contact {
   id: number;
@@ -84,9 +86,9 @@ const ACCOUNT_TYPES = ACCOUNT_TYPE_OPTIONS;
 function AccountOverviewPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'all' | 'name' | 'email' | 'id' | 'phone' | 'accountManager'>('all');
-  const [accounts, setAccounts] = useState<Customer[]>([]);
-  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [accounts, setAccounts] = useState<Account[]>([]); // PRA-006
+  const [filteredCustomers, setFilteredCustomers] = useState<Account[]>([]); // PRA-006
+  const [selectedCustomer, setSelectedCustomer] = useState<Account | null>(null); // PRA-006
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [newsItems, setNewsItems] = useState<NewsItem[]>([]);
   const [socialFeeds, setSocialFeeds] = useState<SocialFeed[]>([]);
@@ -125,7 +127,7 @@ function AccountOverviewPage() {
     }
   };
 
-  const handleDraftEmail = async (customer: Customer) => {
+  const handleDraftEmail = async (customer: Account) => { // PRA-006
     setAiLoading('email');
     setAiResult(null);
     try {
@@ -226,7 +228,7 @@ function AccountOverviewPage() {
     setFilteredCustomers(filtered);
   };
 
-  const selectCustomer = async (customer: Customer) => {
+  const selectCustomer = async (customer: Account) => { // PRA-006
     setSelectedCustomer(customer);
     setTabValue(0);
     await fetchCustomerDetails(customer.id);
@@ -319,8 +321,9 @@ function AccountOverviewPage() {
     }
   };
 
-  const getLifecycleStage = (value?: number) => LIFECYCLE_STAGES.find(s => s.value === value);
-  const getCustomerType = (value?: number) => ACCOUNT_TYPES.find(t => t.value === value);
+  // PRA-006: signature widened to number | string to accommodate Account.lifecycleStage typed as string
+  const getLifecycleStage = (value?: number | string) => LIFECYCLE_STAGES.find(s => s.value === Number(value));
+  const getCustomerType = (value?: number | string) => ACCOUNT_TYPES.find(t => t.value === Number(value));
 
   const getSentimentColor = (sentiment?: string) => {
     switch (sentiment) {

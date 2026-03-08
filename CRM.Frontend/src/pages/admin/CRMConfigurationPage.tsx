@@ -14,6 +14,8 @@ import {
   SmartToy as AgentIcon, Memory as WorkerIcon,
 } from '@mui/icons-material';
 import AdminPageHeader from '../../components/admin/AdminPageHeader';
+// UX-CONF-009: Import PortalConfigPage to render as a tab; /admin/portal redirects to /admin/config/crm
+import PortalConfigPage from '../PortalConfigPage';
 import { configurationService } from '../../services/configurationService';
 import type {
   CRMConfigResponseDto, AIProviderConfigDto, IntegrationConfigDto,
@@ -221,11 +223,13 @@ const CRMConfigurationPage: React.FC = () => {
         </Typography>
       )}
 
-      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }} variant="scrollable" scrollButtons="auto">
         <Tab label="AI / LLM Providers" />
         <Tab label="Integrations" />
         <Tab label="Worker Config" />
         <Tab label="AI Agents" />
+        {/* UX-CONF-009: Customer Portal tab — absorbs /admin/portal */}
+        <Tab label="Customer Portal" />
       </Tabs>
 
       {/* ── AI / LLM Providers Tab ────────────────────────────────────────── */}
@@ -502,6 +506,12 @@ const CRMConfigurationPage: React.FC = () => {
             </Stack>
           </CardContent>
         </Card>
+      )}
+
+      {/* ── Customer Portal Tab (UX-CONF-009) ──────────────────────────── */}
+      {tab === 4 && (
+        // UX-CONF-009: PortalConfigPage rendered inline; /admin/portal redirects here
+        <PortalConfigPage />
       )}
 
       <Snackbar open={snack.open} autoHideDuration={4000} onClose={() => setSnack(s => ({ ...s, open: false }))}

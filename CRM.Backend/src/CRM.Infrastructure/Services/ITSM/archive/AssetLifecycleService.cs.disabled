@@ -1,3 +1,9 @@
+// PRA-015 ARCHIVE NOTE:
+// Disabled: ~February-March 2026 during Phase 8 ITSM Gap Remediation.
+// Reason: Superseded by active reimplementation in Services/ITSM/.
+// Archived here as reference for future feature parity review.
+// Check SOLUTION_GAPS_REMEDIATION_PLAN.md Phase 8 before deleting.
+//
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //

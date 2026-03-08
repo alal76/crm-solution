@@ -1,3 +1,8 @@
+// PRA-015 ARCHIVE NOTE:
+// Disabled: ~January 2026 pending Phase 7 (AI/Analytics Enhancements - Low priority).
+// Re-enable alongside DunningManager.cs.disabled for subscription billing automation.
+// See SOLUTION_GAPS_REMEDIATION_PLAN.md Phase 7.
+//
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //

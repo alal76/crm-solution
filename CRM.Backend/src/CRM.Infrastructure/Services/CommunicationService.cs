@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
+using CRM.Core.Exceptions; // AP-035: typed domain exceptions
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
@@ -76,7 +77,7 @@ public class CommunicationService : ICommunicationService
     }
 
     /// <inheritdoc />
-    public async Task<CommunicationChannelDetail> CreateChannelAsync(CommunicationChannelCreateRequest dto)
+    public async Task<CommunicationChannelDetail> CreateChannelAsync(CommunicationChannelCreateRequest dto, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Creating communication channel: {ChannelName}", dto.Name);
 
@@ -131,7 +132,7 @@ public class CommunicationService : ICommunicationService
             };
 
             _dbContext.CommunicationChannels.Add(channel);
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken); // AP-028: propagate cancellation token
 
             _logger.LogInformation("Created communication channel {ChannelId}: {ChannelName}",
                 channel.Id, channel.Name);
@@ -146,7 +147,7 @@ public class CommunicationService : ICommunicationService
     }
 
     /// <inheritdoc />
-    public async Task<CommunicationChannelDetail?> UpdateChannelAsync(int id, CommunicationChannelCreateRequest dto)
+    public async Task<CommunicationChannelDetail?> UpdateChannelAsync(int id, CommunicationChannelCreateRequest dto, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Updating channel {ChannelId}", id);
 
@@ -204,7 +205,7 @@ public class CommunicationService : ICommunicationService
             channel.SocialUsername = dto.SocialUsername ?? channel.SocialUsername;
             channel.PageAccessToken = dto.PageAccessToken ?? channel.PageAccessToken;
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken); // AP-028: propagate cancellation token
 
             _logger.LogInformation("Updated communication channel {ChannelId}", id);
             return MapToDetail(channel);
@@ -217,7 +218,7 @@ public class CommunicationService : ICommunicationService
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteChannelAsync(int id)
+    public async Task<bool> DeleteChannelAsync(int id, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Deleting channel {ChannelId}", id);
 
@@ -234,7 +235,7 @@ public class CommunicationService : ICommunicationService
 
             channel.IsDeleted = true;
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken); // AP-028: propagate cancellation token
 
             _logger.LogInformation("Deleted communication channel {ChannelId}", id);
             return true;
@@ -247,7 +248,7 @@ public class CommunicationService : ICommunicationService
     }
 
     /// <inheritdoc />
-    public async Task<bool> TestChannelAsync(int id)
+    public async Task<bool> TestChannelAsync(int id, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Testing channel {ChannelId}", id);
 
@@ -290,7 +291,7 @@ public class CommunicationService : ICommunicationService
             channel.Status = success ? ChannelStatus.Connected : ChannelStatus.Error;
             channel.LastError = error;
 
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken); // AP-028: propagate cancellation token
 
             return success;
         }
@@ -359,7 +360,7 @@ public class CommunicationService : ICommunicationService
     }
 
     /// <inheritdoc />
-    public async Task<CommunicationMessage> SendMessageAsync(SendMessageRequest request)
+    public async Task<CommunicationMessage> SendMessageAsync(SendMessageRequest request, CancellationToken cancellationToken = default)
     {
         _logger.LogDebug("Sending message via channel {ChannelId} to account {AccountId}",
             request.ChannelId, request.AccountId);
@@ -371,7 +372,7 @@ public class CommunicationService : ICommunicationService
 
             if (channel == null)
             {
-                throw new InvalidOperationException($"Channel {request.ChannelId} not found or not enabled");
+                throw new EntityNotFoundException("CommunicationChannel", request.ChannelId); // AP-035: replaced InvalidOperationException
             }
 
             // Create the message record
@@ -416,7 +417,7 @@ public class CommunicationService : ICommunicationService
             }
 
             _dbContext.CommunicationMessages.Add(message);
-            await _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync(cancellationToken); // AP-028: propagate cancellation token
 
             _logger.LogInformation("Message {MessageId} created with status {Status}",
                 message.Id, message.Status);
@@ -497,7 +498,7 @@ public class CommunicationService : ICommunicationService
         // Validate basic configuration exists
         if (string.IsNullOrEmpty(channel.SmtpServer) || !channel.SmtpPort.HasValue)
         {
-            throw new InvalidOperationException("SMTP server and port are required");
+            throw new ValidationException("SmtpConfiguration", "SMTP server and port are required"); // AP-035: replaced InvalidOperationException
         }
 
         // If INotificationPort is available, perform a real connectivity check
@@ -535,7 +536,7 @@ public class CommunicationService : ICommunicationService
         if (string.IsNullOrEmpty(channel.WhatsAppBusinessAccountId) ||
             string.IsNullOrEmpty(channel.WhatsAppPhoneNumberId))
         {
-            throw new InvalidOperationException("WhatsApp Business Account ID and Phone Number ID are required");
+            throw new ValidationException("WhatsAppConfiguration", "WhatsApp Business Account ID and Phone Number ID are required"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real connectivity test. // NOSONAR
@@ -549,7 +550,7 @@ public class CommunicationService : ICommunicationService
         // Validate Facebook configuration
         if (string.IsNullOrEmpty(channel.PageAccessToken))
         {
-            throw new InvalidOperationException("Facebook Page Access Token is required");
+            throw new ValidationException("FacebookConfiguration", "Facebook Page Access Token is required"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with Facebook Graph API provider for real connectivity test. // NOSONAR
@@ -563,7 +564,7 @@ public class CommunicationService : ICommunicationService
         // Validate Twitter configuration
         if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
         {
-            throw new InvalidOperationException("Twitter API Key and Secret are required");
+            throw new ValidationException("TwitterConfiguration", "Twitter API Key and Secret are required"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with Twitter/X API v2 provider for real connectivity test. // NOSONAR
@@ -576,7 +577,7 @@ public class CommunicationService : ICommunicationService
     {
         if (string.IsNullOrEmpty(request.ToEmail))
         {
-            throw new InvalidOperationException("ToEmail is required for email messages");
+            throw new ValidationException("ToEmail", "ToEmail is required for email messages"); // AP-035: replaced InvalidOperationException
         }
 
         // If INotificationPort is available, send the email through the pluggable provider
@@ -627,7 +628,7 @@ public class CommunicationService : ICommunicationService
     {
         if (string.IsNullOrEmpty(request.ToPhone))
         {
-            throw new InvalidOperationException("ToPhone is required for WhatsApp messages");
+            throw new ValidationException("ToPhone", "ToPhone is required for WhatsApp messages"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real message delivery. // NOSONAR
@@ -641,7 +642,7 @@ public class CommunicationService : ICommunicationService
         // Validate SMS configuration (uses generic ApiKey/ApiSecret fields for Twilio/provider credentials)
         if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
         {
-            throw new InvalidOperationException("SMS API Key (Account SID) and API Secret (Auth Token) are required");
+            throw new ValidationException("SmsConfiguration", "SMS API Key (Account SID) and API Secret (Auth Token) are required"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with INotificationPort.SendSmsAsync for real connectivity test (Twilio, etc.). // NOSONAR
@@ -654,7 +655,7 @@ public class CommunicationService : ICommunicationService
         // Validate LinkedIn configuration
         if (string.IsNullOrEmpty(channel.AccessToken))
         {
-            throw new InvalidOperationException("LinkedIn Access Token is required");
+            throw new ValidationException("LinkedInConfiguration", "LinkedIn Access Token is required"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with LinkedIn Marketing API for real connectivity test. // NOSONAR
@@ -667,7 +668,7 @@ public class CommunicationService : ICommunicationService
     {
         if (string.IsNullOrEmpty(request.ToPhone))
         {
-            throw new InvalidOperationException("ToPhone is required for SMS messages");
+            throw new ValidationException("ToPhone", "ToPhone is required for SMS messages"); // AP-035: replaced InvalidOperationException
         }
 
         // If INotificationPort is available, send the SMS through the pluggable provider
@@ -716,7 +717,7 @@ public class CommunicationService : ICommunicationService
         var recipient = request.ToEmail ?? request.ToPhone;
         if (string.IsNullOrEmpty(recipient))
         {
-            throw new InvalidOperationException("Recipient (ToEmail or ToPhone as handle) is required for Twitter messages");
+            throw new ValidationException("Recipient", "Recipient (ToEmail or ToPhone as handle) is required for Twitter messages"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with Twitter/X API v2 Direct Messages endpoint for real message delivery. // NOSONAR
@@ -731,7 +732,7 @@ public class CommunicationService : ICommunicationService
         var recipient = request.ToEmail ?? request.ToPhone;
         if (string.IsNullOrEmpty(recipient))
         {
-            throw new InvalidOperationException("Recipient (PSID or identifier) is required for Facebook messages");
+            throw new ValidationException("Recipient", "Recipient (PSID or identifier) is required for Facebook messages"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with Facebook Messenger Platform Send API for real message delivery. // NOSONAR
@@ -746,7 +747,7 @@ public class CommunicationService : ICommunicationService
         var recipient = request.ToEmail ?? request.ToPhone;
         if (string.IsNullOrEmpty(recipient))
         {
-            throw new InvalidOperationException("Recipient (LinkedIn member URN) is required for LinkedIn messages");
+            throw new ValidationException("Recipient", "Recipient (LinkedIn member URN) is required for LinkedIn messages"); // AP-035: replaced InvalidOperationException
         }
 
         // TODO: Integrate with LinkedIn Messaging API for real message delivery. // NOSONAR

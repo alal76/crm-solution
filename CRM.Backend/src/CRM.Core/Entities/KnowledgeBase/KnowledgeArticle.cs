@@ -140,6 +140,9 @@ public class KnowledgeArticle : BaseEntity
     /// <summary>Visibility</summary>
     public ArticleVisibility Visibility { get; set; } = ArticleVisibility.Internal;
 
+    /// <summary>Featured article — shown in prominent positions</summary>
+    public bool IsFeatured { get; set; } = false;
+
     /// <summary>Published date</summary>
     public DateTime? PublishedAt { get; set; }
 

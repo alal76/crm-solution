@@ -1,4 +1,4 @@
-#if FALSE // Temporarily disabled - QuoteService doesn't have UpdateStatusAsync method - needs investigation
+// PRA-017: Re-enabled - added UpdateStatusAsync and fixed TotalAmount->Total
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
@@ -72,7 +72,7 @@ namespace CRM.Tests.Services
                 QuoteNumber = $"QT-{id:D4}",
                 Name = $"Quote {id}",
                 Status = status,
-                TotalAmount = totalAmount,
+                Total = totalAmount, // PRA-017: Quote has Total not TotalAmount
                 AccountId = accountId,
                 QuoteDate = DateTime.UtcNow,
                 ExpirationDate = DateTime.UtcNow.AddDays(30),
@@ -227,7 +227,7 @@ namespace CRM.Tests.Services
             {
                 Name = "Test Quote",
                 AccountId = 10,
-                TotalAmount = 500m,
+                Total = 500m, // PRA-017
                 QuoteDate = DateTime.UtcNow
             };
 
@@ -236,7 +236,7 @@ namespace CRM.Tests.Services
 
             // Assert
             result.QuoteNumber.Should().NotBeNullOrEmpty();
-            result.QuoteNumber.Should().StartWith("QT-");
+            result.QuoteNumber.Should().MatchRegex(@"^Q\d{4}-\d{4}$"); // PRA-017: actual format is Q{YY}{MM}-{seq}
         }
 
         [Fact]
@@ -247,7 +247,7 @@ namespace CRM.Tests.Services
             {
                 Name = "Test Quote",
                 AccountId = 10,
-                TotalAmount = 500m
+                Total = 500m // PRA-017
             };
 
             // Act
@@ -334,8 +334,8 @@ namespace CRM.Tests.Services
         [Fact]
         public async Task GetByQuoteNumberAsync_ShouldThrowArgumentException_WhenNumberIsNull()
         {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _service.GetByQuoteNumberAsync(null!));
+            // Act & Assert: ArgumentException.ThrowIfNullOrWhiteSpace throws ArgumentNullException for null
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _service.GetByQuoteNumberAsync(null!)); // PRA-017
         }
 
         [Fact]
@@ -397,14 +397,14 @@ namespace CRM.Tests.Services
             {
                 Name = "Credit Quote",
                 AccountId = 10,
-                TotalAmount = -500m
+                Total = -500m // PRA-017
             };
 
             // Act
             var result = await _service.CreateAsync(quote);
 
             // Assert
-            result.TotalAmount.Should().Be(-500m);
+            result.Total.Should().Be(-500m); // PRA-017
         }
 
         [Fact]
@@ -415,14 +415,14 @@ namespace CRM.Tests.Services
             {
                 Name = "Zero Amount Quote",
                 AccountId = 10,
-                TotalAmount = 0m
+                Total = 0m // PRA-017
             };
 
             // Act
             var result = await _service.CreateAsync(quote);
 
             // Assert
-            result.TotalAmount.Should().Be(0m);
+            result.Total.Should().Be(0m); // PRA-017
         }
 
         [Fact]
@@ -433,14 +433,14 @@ namespace CRM.Tests.Services
             {
                 Name = "Large Deal",
                 AccountId = 10,
-                TotalAmount = 999999999.99m
+                Total = 999999999.99m // PRA-017
             };
 
             // Act
             var result = await _service.CreateAsync(quote);
 
             // Assert
-            result.TotalAmount.Should().Be(999999999.99m);
+            result.Total.Should().Be(999999999.99m); // PRA-017
         }
 
         #endregion
@@ -524,7 +524,7 @@ namespace CRM.Tests.Services
             {
                 Name = "Test Quote",
                 AccountId = 10,
-                TotalAmount = 500m
+                Total = 500m // PRA-017
             };
 
             // Act
@@ -543,7 +543,7 @@ namespace CRM.Tests.Services
             {
                 Name = "Test Quote",
                 AccountId = 10,
-                TotalAmount = 500m,
+                Total = 500m, // PRA-017
                 ValidityDays = 45
             };
 
@@ -693,7 +693,7 @@ namespace CRM.Tests.Services
             {
                 Name = "Quote for O'Brien & Associates (Pty) Ltd.",
                 AccountId = 10,
-                TotalAmount = 500m,
+                Total = 500m, // PRA-017
                 Notes = "Special chars: é, ñ, ü, ä"
             };
 
@@ -714,7 +714,7 @@ namespace CRM.Tests.Services
             {
                 Name = longName,
                 AccountId = 10,
-                TotalAmount = 500m
+                Total = 500m // PRA-017
             };
 
             // Act
@@ -800,7 +800,7 @@ namespace CRM.Tests.Services
             {
                 Name = "Test Quote",
                 AccountId = 10,
-                TotalAmount = 500m,
+                Total = 500m, // PRA-017
                 CurrencyCode = null
             };
 
@@ -819,7 +819,7 @@ namespace CRM.Tests.Services
             {
                 Name = "Test Quote",
                 AccountId = 10,
-                TotalAmount = 500m,
+                Total = 500m, // PRA-017
                 CurrencyCode = "INVALID"
             };
 
@@ -886,4 +886,3 @@ namespace CRM.Tests.Services
         #endregion
     }
 }
-#endif

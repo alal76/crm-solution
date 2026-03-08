@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services.LLM;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -256,6 +257,11 @@ public class LLMService : ILLMService
     private readonly IResilienceService? _resilienceService;
     private readonly ILLMSettingsService? _settingsService;
 
+    // AP-036: Extracted provider implementations
+    private readonly OpenAILLMProvider _openAIProvider;
+    private readonly AnthropicLLMProvider _anthropicProvider;
+    private readonly LocalLLMProvider _localProvider;
+
     public LLMService(
         ILogger<LLMService> logger,
         IOptions<LLMProviderOptions> options,
@@ -269,6 +275,11 @@ public class LLMService : ILLMService
         _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds);
         _resilienceService = resilienceService;
         _settingsService = settingsService;
+
+        // AP-036: Initialise extracted provider objects using same HttpClient + options
+        _openAIProvider = new OpenAILLMProvider(_options, _httpClient, _settingsService, Microsoft.Extensions.Logging.Abstractions.NullLogger<OpenAILLMProvider>.Instance);
+        _anthropicProvider = new AnthropicLLMProvider(_options, _httpClient, _settingsService, Microsoft.Extensions.Logging.Abstractions.NullLogger<AnthropicLLMProvider>.Instance);
+        _localProvider = new LocalLLMProvider(_options, _httpClient, _settingsService, Microsoft.Extensions.Logging.Abstractions.NullLogger<LocalLLMProvider>.Instance);
     }
 
     public bool IsConfigured(string provider)
@@ -559,15 +570,18 @@ public class LLMService : ILLMService
             {
                 var response = provider.ToLower() switch
                 {
-                    "openai" => await CallOpenAIAsync(request, cancellationToken),
+                    // AP-036: Delegated to OpenAILLMProvider (original CallOpenAIAsync preserved below)
+                    "openai" => await _openAIProvider.CallAsync(request, cancellationToken),
                     "azure" or "azureopenai" => await CallAzureOpenAIAsync(request, cancellationToken),
-                    "anthropic" => await CallAnthropicAsync(request, cancellationToken),
+                    // AP-036: Delegated to AnthropicLLMProvider (original CallAnthropicAsync preserved below)
+                    "anthropic" => await _anthropicProvider.CallAsync(request, cancellationToken),
                     "google" or "gemini" or "vertexai" => await CallGoogleCloudAsync(request, cancellationToken),
                     "aws" or "bedrock" => await CallAWSBedrockAsync(request, cancellationToken),
                     "deepseek" => await CallDeepSeekAsync(request, cancellationToken),
                     "groq" => await CallGroqAsync(request, cancellationToken),
                     "allenai" or "huggingface" or "ai2" => await CallAllenAIAsync(request, cancellationToken),
-                    "local" or "ollama" or "lmstudio" or "vllm" => await CallLocalLLMAsync(request, cancellationToken),
+                    // AP-036: Delegated to LocalLLMProvider (original CallLocalLLMAsync preserved below)
+                    "local" or "ollama" or "lmstudio" or "vllm" => await _localProvider.CallAsync(request, cancellationToken),
                     "custom" => await CallCustomEndpointAsync(request, cancellationToken),
                     _ => throw new NotSupportedException($"Provider {provider} is not supported")
                 };

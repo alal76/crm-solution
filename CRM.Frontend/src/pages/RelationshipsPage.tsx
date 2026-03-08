@@ -29,6 +29,7 @@ import relationshipService, {
   InteractionType, InteractionOutcome, HealthImpact, HealthTrend,
   CreateRelationshipTypeRequest, CreateAccountRelationshipRequest, CreateInteractionRequest
 } from '../services/relationshipService';
+import { Account } from '../types'; // PRA-006: shared Account type replaces local Customer interface
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -45,12 +46,13 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-interface Customer {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  company?: string;
-}
+// PRA-006: replaced with shared Account type from types/ — see import above
+// interface Customer {
+//   id: number;
+//   firstName?: string;
+//   lastName?: string;
+//   company?: string;
+// }
 
 function RelationshipGraph({ nodes, edges }: {
   nodes: RelationshipMapVisualization['nodes'];
@@ -231,7 +233,7 @@ function RelationshipsPage() {
   // Data states
   const [relationshipTypes, setRelationshipTypes] = useState<RelationshipType[]>([]);
   const [relationships, setRelationships] = useState<AccountRelationship[]>([]);
-  const [accounts, setAccounts] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]); // PRA-006
   
   // Dialog states
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);

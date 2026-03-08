@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { TabPanel } from '../components/common';
-import { BaseEntity } from '../types';
+import { BaseEntity, Account } from '../types'; // PRA-006: Account added
 import {
   Box,
   Container,
@@ -136,12 +136,13 @@ interface Interaction extends BaseEntity {
   assignedToUser?: { id: number; firstName: string; lastName: string };
 }
 
-interface Customer extends BaseEntity {
-  firstName?: string;
-  lastName?: string;
-  companyName?: string;
-  email?: string;
-}
+// PRA-006: replaced with shared Account type from types/ — see import above
+// interface Customer extends BaseEntity {
+//   firstName?: string;
+//   lastName?: string;
+//   companyName?: string;
+//   email?: string;
+// }
 
 interface Contact extends BaseEntity {
   firstName: string;
@@ -236,7 +237,7 @@ function InteractionsPage() {
   const [createServiceRequestDialogOpen, setCreateServiceRequestDialogOpen] = useState(false);
 
   // Entity lookup state
-  const [accounts, setAccounts] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]); // PRA-006
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
 

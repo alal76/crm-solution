@@ -524,6 +524,71 @@ services:
     networks:
       - crm-network
 
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DEV TOOLS — Local development & testing helpers (non-production only)
+  # These services provide zero-credential alternatives to paid external services.
+  # ═══════════════════════════════════════════════════════════════════════════
+
+  # ─── Mockoon — REST API mock server (simulates social + accounting APIs) ───
+  # Unblocks: COMM-001 (WhatsApp webhook ingestion), COMM-002 (Facebook),
+  #           COMM-003 (Twitter/X), INT-001 (QuickBooks/Xero responses)
+  # Place mock environment JSON files in docker/mockoon/ — they are mounted at /data.
+  # Web UI (configure mocks): http://localhost:3100  (mockoon-desktop only)
+  # API:  http://localhost:3001/  — e.g. http://localhost:3001/whatsapp/webhook
+  # Docs: https://mockoon.com/docs/latest/api-mock/
+  crm-mockoon:
+    image: mockoon/cli:latest
+    container_name: crm-mockoon
+    restart: unless-stopped
+    command: ["start", "--data", "/data/crm-mock-env.json", "--port", "3001"]
+    ports:
+      - "${MOCKOON_PORT:-3001}:3001"
+    volumes:
+      - ./mockoon:/data
+    networks:
+      - crm-network
+    profiles:
+      - dev-tools
+
+  # ─── Mailpit — Local SMTP trap (replaces real SMTP for dev/testing) ──────
+  # Unblocks: FLAG-001 (EnableCustomerPortal), COMM-005 (MailKit email sending)
+  # SMTP:   port 1025 (configure Smtp:Host=crm-mailpit, Smtp:Port=1025, EnableSsl=false)
+  # Web UI: http://localhost:8025 — view all caught emails in a browser
+  # Docs:   https://mailpit.axllent.org/
+  crm-mailpit:
+    image: axllent/mailpit:latest
+    container_name: crm-mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_WEB_PORT:-8025}:8025"   # Web UI
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"  # SMTP (no auth, no TLS required)
+    environment:
+      # Enable a basic /api/v1/messages endpoint for automated test assertions
+      - MP_MAX_MESSAGES=500
+      - MP_WEBROOT=/
+      # Optional: require auth on the web UI (leave empty for no auth in dev)
+      - MP_UI_AUTH=${MAILPIT_UI_AUTH:-}
+    networks:
+      - crm-network
+    profiles:
+      - dev-tools
+
+  # ─── stripe-mock — Offline Stripe API simulator ───────────────────────────
+  # Unblocks: FLAG-006 (Stripe.EnableSubscriptionTracking), payment provider tests
+  # Configure: Stripe:SecretKey=sk_test_anything, Stripe:BaseUrl=http://crm-stripe-mock:12111
+  # Mimics the full Stripe REST API surface with generated test responses.
+  # Docs: https://github.com/stripe/stripe-mock
+  crm-stripe-mock:
+    image: stripe/stripe-mock:latest
+    container_name: crm-stripe-mock
+    restart: unless-stopped
+    ports:
+      - "${STRIPE_MOCK_PORT:-12111}:12111"
+    networks:
+      - crm-network
+    profiles:
+      - dev-tools
+
 networks:
   crm-network:
     external: true

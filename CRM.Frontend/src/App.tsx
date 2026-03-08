@@ -102,6 +102,7 @@ const CampaignAnalyticsPage = lazy(() => import('./pages/marketing/CampaignAnaly
 const ServiceRequestsPage = lazy(() => import('./pages/ServiceRequestsPage'));
 const ServiceRequestSettingsPage = lazy(() => import('./pages/ServiceRequestSettingsPage'));
 const KnowledgeBasePage = lazy(() => import('./pages/KnowledgeBasePage'));
+const KnowledgeCategoryManagementPage = lazy(() => import('./pages/KnowledgeCategoryManagementPage')); // KB-017
 const ServicesPage = lazy(() => import('./pages/ServicesPage'));
 
 // ----------------------------------------------------------------------------
@@ -217,6 +218,8 @@ const WorkflowTemplatesPage = lazy(() => import('./pages/admin/WorkflowTemplates
 const WorkflowTasksPage = lazy(() => import('./pages/WorkflowTasksPage'));
 const TestResultsPage = lazy(() => import('./pages/admin/TestResultsPage'));
 const LLMSettingsPage = lazy(() => import('./pages/admin/LLMSettingsPage'));
+// UX-CONF-005: AdminCommunicationsPage added for consolidated /admin/communications route
+const AdminCommunicationsPage = lazy(() => import('./pages/admin/AdminCommunicationsPage'));
 const ApiDocumentationPage = lazy(() => import('./pages/admin/ApiDocumentationPage'));
 const SystemConfigurationPage = lazy(() => import('./pages/admin/SystemConfigurationPage'));
 const CRMConfigurationPage = lazy(() => import('./pages/admin/CRMConfigurationPage'));
@@ -234,6 +237,7 @@ const ApiUsersPage = lazy(() => import('./pages/admin/ApiUsersPage'));
 const UICustomizationPage = lazy(() => import('./pages/admin/UICustomizationPage'));
 const SessionActivityPage = lazy(() => import('./pages/admin/SessionActivityPage'));
 const BusinessHoursConfigPage = lazy(() => import('./pages/admin/BusinessHoursConfigPage'));
+// UX-CONF-005 / UX-CONF-011: AdminCommunicationsPage (consolidated /admin/communications route)
 
 // Analytics & Reports Pages (main navigation)
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
@@ -873,16 +877,9 @@ function ThemedApp() {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/channel-settings"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <ChannelSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
+              {/* UX-CONF-006: /channel-settings → /admin/communications (Channels tab) */}
+              {/* Original: <Route path="/channel-settings" element={<ProtectedRoute><RoleBasedRoute requiredPage="Settings"><ChannelSettingsPage /></RoleBasedRoute></ProtectedRoute>} /> */}
+              <Route path="/channel-settings" element={<Navigate to="/admin/communications" replace />} />
 
               {/* ITSM Routes */}
               <Route
@@ -1296,8 +1293,10 @@ function ThemedApp() {
                 <Route path="users" element={<UserManagementSettingsPage />} />
                 <Route path="approvals" element={<UserApprovalPage />} />
                 <Route path="groups" element={<GroupManagementPage />} />
-                <Route path="social-login" element={<SocialLoginSettingsPage />} />
-                <Route path="branding" element={<BrandingSettingsPage />} />
+                {/* UX-CONF-011: social-login handled below as redirect to /admin/security */}
+                {/* UX-CONF-010: /admin/branding redirects to /admin/ui-customization (Logo & Identity tab) */}
+                {/* <Route path="branding" element={<BrandingSettingsPage />} /> */}{/* UX-CONF-010: absorbed into UICustomizationPage tabs */}
+                <Route path="branding" element={<Navigate to="/admin/ui-customization" replace />} />{/* UX-CONF-010 */}
                 <Route path="navigation" element={<NavigationSettingsPage />} />
                 <Route path="modules" element={<ModuleFieldSettingsPage />} />
                 <Route path="service-requests" element={<ServiceRequestDefinitionsPage />} />
@@ -1315,12 +1314,19 @@ function ThemedApp() {
                 <Route path="workflows/:workflowId/monitor" element={<WorkflowMonitorPage />} />
                 <Route path="workflows/templates" element={<WorkflowTemplatesPage />} />
                 <Route path="test-results" element={<TestResultsPage />} />
-                <Route path="llm" element={<LLMSettingsPage />} />
+                {/* UX-CONF-011: /admin/llm redirects to /admin/providers (AI tab) — kept for backwards compat */}
+                <Route path="llm" element={<Navigate to="/admin/providers" replace />} />
+                {/* UX-CONF-011: /admin/social-login redirects to /admin/security — kept for backwards compat */}
+                <Route path="social-login" element={<Navigate to="/admin/security" replace />} />
+                {/* UX-CONF-011: new Communications admin page */}
+                <Route path="communications" element={<AdminCommunicationsPage />} />
                 <Route path="database-settings" element={<DatabaseSettingsPage />} />
                 <Route path="duplicate-rules" element={<DuplicateRulesPage />} />
                 <Route path="lead-score-rules" element={<LeadScoreRulesPage />} />
                 <Route path="integrations" element={<IntegrationsSettingsPage />} />
-                <Route path="analytics" element={<AnalyticsSettingsPage />} />
+                {/* UX-CONF-008: /admin/analytics redirects to /admin/providers (Analytics tab) */}
+                <Route path="analytics" element={<Navigate to="/admin/providers" replace />} />{/* UX-CONF-008 */}
+                {/* <Route path="analytics" element={<AnalyticsSettingsPage />} /> */}{/* UX-CONF-008: absorbed into ProvidersPage Analytics tab */}
                 <Route path="settings/sales" element={<SalesConfigPage />} />
                 <Route path="settings/service-desk" element={<ServiceDeskConfigPage />} />
                 <Route path="audit" element={<AuditLoggingPage />} />
@@ -1336,6 +1342,10 @@ function ThemedApp() {
                 <Route path="scripting/plugins" element={<ScriptPluginLibraryPage />} />
                 <Route path="scripting/plugins/new" element={<ScriptPluginEditorPage />} />
                 <Route path="scripting/plugins/:id/edit" element={<ScriptPluginEditorPage />} />
+                {/* UX-CONF-005: Admin communications hub with Email/SMTP, Channels, Notifications, Calendar tabs */}
+                {/* KB-017: Knowledge category management — hierarchical CRUD */}
+                <Route path="knowledge/categories" element={<KnowledgeCategoryManagementPage />} />
+                {/* (Route already registered above by UX-CONF-011) */}
                 <Route path="providers" element={<ProvidersPage />} />
               </Route>
               <Route
@@ -1456,7 +1466,9 @@ function ThemedApp() {
               <Route path="/portal/profile" element={<PortalProfilePage />} />
               <Route path="/portal/knowledge-base" element={<PortalKBPage />} />
               <Route path="/portal/knowledge" element={<Navigate to="/portal/knowledge-base" replace />} />
-              <Route path="/admin/portal" element={<ProtectedRoute><PortalConfigPage /></ProtectedRoute>} />
+              {/* UX-CONF-009: /admin/portal redirects to /admin/config/crm (Customer Portal tab) */}
+              {/* <Route path="/admin/portal" element={<ProtectedRoute><PortalConfigPage /></ProtectedRoute>} /> */}{/* UX-CONF-009: absorbed into CRMConfigurationPage Customer Portal tab */}
+              <Route path="/admin/portal" element={<ProtectedRoute><Navigate to="/admin/config/crm" replace /></ProtectedRoute>} />{/* UX-CONF-009 */}
               <Route path="/survey/:token" element={<SurveyResponsePage />} />
                         </Routes>
                         </Suspense>

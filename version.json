@@ -1,19 +1,19 @@
 {
   "major": 0,
-  "minor": 617,
-  "patch": 0,
-  "lastUpdate": "2026-03-08",
-  "description": "feat: v0.617.0 - AP antipattern remediation wave 2: AP-041-062. Frontend: monitoringService, securitySettingsService, featureManagementService, fileUploadService created; 364 catch(err:any) fixed; StatCard extracted; MonitoringDashboard uses shared TabPanel; hardcoded colors/styles fixed; AP-046-048 TypeScript any violations resolved. Backend: IDistributedStreamPort created (technology-neutral Redis port); IRedisProvider deprecated as [Obsolete] shim. Docs: MASTER_TODO_LIST.md fully updated AP-041 through AP-062.",
+  "minor": 618,
+  "patch": 1,
+  "lastUpdate": "2026-03-09",
+  "description": "feat: v0.618.1 — KB sprint final: KB-015 Meilisearch unified knowledge index (KnowledgeIndexDocument, 9 tests); KB-016 orphan ArticleVersion entity marked [Obsolete]; KB-017 KnowledgeCategoryManagementPage (SimpleTreeView, Formik, /admin/knowledge/categories); AP-059 anemic domain model impact analysis documented (incremental enrichment roadmap for ServiceRequest+Opportunity). Build: 0 errors.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
     "api": {
-      "version": "0.617.0",
-      "lastUpdate": "2026-03-08"
+      "version": "0.618.1",
+      "lastUpdate": "2026-03-09"
     },
     "frontend": {
-      "version": "0.617.0",
-      "lastUpdate": "2026-03-08"
+      "version": "0.618.1",
+      "lastUpdate": "2026-03-09"
     },
     "cdt": {
       "version": "0.614.64",

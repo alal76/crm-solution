@@ -152,7 +152,10 @@ const ReportTemplatesPage: React.FC = () => {
       setLoading(true);
       logger.info(`Downloading template: ${template.name}`);
 
-      // TODO: Replace with actual API call
+      // PRA-019: TODO — wire to report templates API once backend endpoint is implemented.
+      // Proposed: GET /api/reports/templates   → returns ReportTemplate[]
+      //           POST /api/reports/templates/{id}/apply  → applies template config to a new report
+      // No /api/reports/templates endpoint exists on ReportsController yet.
       // await reportService.importTemplate(template.reportConfig);
 
       // For now, redirect to report designer with pre-loaded config

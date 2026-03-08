@@ -9,6 +9,7 @@ import {
   Chip,
   Link,
   Alert,
+  Divider,
 } from '@mui/material';
 import {
   Hub as IntegrationsIcon,
@@ -18,16 +19,27 @@ import {
 } from '@mui/icons-material';
 
 /**
- * IntegrationsSettingsPage - Manage integration platforms like n8n, Zapier, etc.
- * 
- * This page provides access to external integration platforms that connect
- * the CRM with other business applications.
+ * IntegrationsSettingsPage - Manage integration platforms and connected services.
+ *
+ * UX-CONF-007: Expanded with:
+ *   - Business Apps: Meilisearch, Ollama, Chatwoot, Novu, DocuSeal, Apache Superset
+ *   - Stubbed cards: QuickBooks, Mailchimp, Calendly, LinkedIn
+ *
+ * Provider connection status is managed in Admin > Providers (ProvidersPage).
+ * This page provides quick-access launch links and status summaries.
  */
 const IntegrationsSettingsPage: React.FC = () => {
-  // In production, these URLs would come from backend configuration
-  const n8nUrl = process.env.REACT_APP_N8N_URL || 'http://localhost:5678'; // NOSONAR - S5332 - http://localhost:5678 is a default placeholder for local n8n dev instance
+  const hostname = window.location.hostname;
+  // NOSONAR - S5332 - http:// URLs constructed from runtime hostname for local dev integration access
+  const n8nUrl = process.env.REACT_APP_N8N_URL || `http://${hostname}:5678`;
+  const meilisearchUrl = process.env.REACT_APP_MEILISEARCH_URL || `http://${hostname}:7700`;
+  const ollamaUrl = process.env.REACT_APP_OLLAMA_URL || `http://${hostname}:11434`;
+  const chatwootUrl = process.env.REACT_APP_CHATWOOT_URL || `http://${hostname}:3000`;
+  const novuUrl = process.env.REACT_APP_NOVU_URL || `http://${hostname}:3001`;
+  const docusealUrl = process.env.REACT_APP_DOCUSEAL_URL || `http://${hostname}:3002`;
+  const supersetUrl = process.env.REACT_APP_SUPERSET_URL || `http://${hostname}:8088`;
   const zapierUrl = 'https://zapier.com/app/dashboard';
-  
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -36,14 +48,17 @@ const IntegrationsSettingsPage: React.FC = () => {
           Integrations
         </Typography>
       </Box>
-      
+
       <Alert severity="info" sx={{ mb: 3 }}>
-        Manage connections to external automation and integration platforms. 
-        These integrations allow the CRM to communicate with other business applications.
+        Manage connections to external platforms. Provider credentials and feature flags are
+        configured in{' '}
+        <Link href="/admin/providers" underline="hover">Admin › Providers</Link>.
       </Alert>
 
-      <Grid container spacing={3}>
-        {/* n8n Integration */}
+      {/* ── Automation ─────────────────────────────────────────────────────── */}
+      <Typography variant="h6" sx={{ mb: 2, mt: 1 }}>Automation</Typography>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* n8n */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
@@ -53,50 +68,23 @@ const IntegrationsSettingsPage: React.FC = () => {
                   src="https://n8n.io/favicon.ico"
                   alt="n8n"
                   sx={{ width: 32, height: 32, mr: 2 }}
-                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }}
                 />
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                  n8n (Self-Hosted)
-                </Typography>
-                <Chip
-                  icon={<ActiveIcon />}
-                  label="Available"
-                  color="success"
-                  size="small"
-                />
+                <Typography variant="h6" sx={{ flexGrow: 1 }}>n8n (Self-Hosted)</Typography>
+                <Chip icon={<ActiveIcon />} label="Available" color="success" size="small" />
               </Box>
-              
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                n8n is an open-source workflow automation platform. Create workflows 
-                to automate tasks between the CRM and hundreds of other applications.
+                Open-source workflow automation. Connect the CRM to hundreds of apps with visual workflows.
               </Typography>
-              
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<ExternalLinkIcon />}
-                  component={Link}
-                  href={n8nUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open n8n
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<ConfigIcon />}
-                  disabled
-                >
-                  Configure
-                </Button>
+                <Button variant="contained" startIcon={<ExternalLinkIcon />} component={Link} href={n8nUrl} target="_blank" rel="noopener noreferrer">Open n8n</Button>
+                <Button variant="outlined" startIcon={<ConfigIcon />} href="/admin/providers" component={Link}>Configure</Button>
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Zapier Integration */}
+        {/* Zapier */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
@@ -106,78 +94,180 @@ const IntegrationsSettingsPage: React.FC = () => {
                   src="https://zapier.com/favicon.ico"
                   alt="Zapier"
                   sx={{ width: 32, height: 32, mr: 2 }}
-                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
+                  onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }}
                 />
-                <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                  Zapier (Cloud)
-                </Typography>
-                <Chip
-                  label="Optional"
-                  color="default"
-                  size="small"
-                />
+                <Typography variant="h6" sx={{ flexGrow: 1 }}>Zapier (Cloud)</Typography>
+                <Chip label="Optional" color="default" size="small" />
               </Box>
-              
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Zapier is a cloud-based automation platform. Connect the CRM 
-                via webhooks to thousands of apps without writing code.
+                Cloud automation platform. Connect the CRM via webhooks to thousands of apps.
               </Typography>
-              
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button
-                  variant="outlined"
-                  startIcon={<ExternalLinkIcon />}
-                  component={Link}
-                  href={zapierUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Open Zapier
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<ConfigIcon />}
-                  disabled
-                >
-                  Configure Webhooks
-                </Button>
+                <Button variant="outlined" startIcon={<ExternalLinkIcon />} component={Link} href={zapierUrl} target="_blank" rel="noopener noreferrer">Open Zapier</Button>
+                <Button variant="outlined" startIcon={<ConfigIcon />} disabled>Configure Webhooks</Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Divider sx={{ mb: 3 }} />
+
+      {/* ── Business Apps (Self-Hosted Providers) ──────────────────────────── */}
+      {/* UX-CONF-007: Added provider quick-links section */}
+      <Typography variant="h6" sx={{ mb: 2 }}>Business Apps</Typography>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Meilisearch */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>🔍 Meilisearch</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Full-text search engine. Provides instant, typo-tolerant search across all CRM records.
+              </Typography>
+              <Chip label="Search Provider" size="small" color="primary" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={meilisearchUrl} target="_blank" rel="noopener noreferrer">Open</Button>
+                <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
               </Box>
             </CardContent>
           </Card>
         </Grid>
 
-        {/* CRM Webhooks */}
-        <Grid item xs={12}>
+        {/* Ollama */}
+        <Grid item xs={12} sm={6} md={4}>
           <Card>
             <CardContent>
-              <Typography variant="h6" sx={{ mb: 2 }}>
-                CRM Webhook Events
-              </Typography>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>🤖 Ollama</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                The CRM can send webhook notifications to n8n, Zapier, or any 
-                other system when certain events occur:
+                Local LLM inference engine. Run AI models (Llama, Mistral, CodeLlama) privately on your infrastructure.
               </Typography>
-              
-              <Grid container spacing={1}>
-                {[
-                  'account.created', 'account.updated', 'account.deleted',
-                  'contact.created', 'contact.updated', 
-                  'opportunity.created', 'opportunity.stage_changed', 'opportunity.won', 'opportunity.lost',
-                  'lead.created', 'lead.converted',
-                  'invoice.created', 'invoice.paid',
-                  'service_request.created', 'service_request.resolved'
-                ].map((event) => (
-                  <Grid item key={event}>
-                    <Chip label={event} size="small" variant="outlined" />
-                  </Grid>
-                ))}
-              </Grid>
+              <Chip label="AI Provider" size="small" color="secondary" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={ollamaUrl} target="_blank" rel="noopener noreferrer">Open</Button>
+                <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Chatwoot */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>💬 Chatwoot</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Customer messaging platform. Live chat, email, social inbox in one place.
+              </Typography>
+              <Chip label="Chat Provider" size="small" color="info" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={chatwootUrl} target="_blank" rel="noopener noreferrer">Open</Button>
+                <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Novu */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>🔔 Novu</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Multi-channel notification infrastructure. Send in-app, email, SMS, and push notifications.
+              </Typography>
+              <Chip label="Notifications Provider" size="small" color="warning" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={novuUrl} target="_blank" rel="noopener noreferrer">Open</Button>
+                <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* DocuSeal */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>✍️ DocuSeal</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                E-signature workflows. Send contracts and documents for digital signatures.
+              </Typography>
+              <Chip label="Signatures Provider" size="small" color="success" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={docusealUrl} target="_blank" rel="noopener noreferrer">Open</Button>
+                <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Apache Superset */}
+        <Grid item xs={12} sm={6} md={4}>
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={600} gutterBottom>📊 Apache Superset</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                Business intelligence & data visualization. Interactive dashboards and SQL Lab.
+              </Typography>
+              <Chip label="Analytics Provider" size="small" color="primary" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={supersetUrl} target="_blank" rel="noopener noreferrer">Open</Button>
+                <Button variant="outlined" size="small" href="/admin/analytics" component={Link}>Analytics Settings</Button>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
+
+      <Divider sx={{ mb: 3 }} />
+
+      {/* ── Stubbed: Coming Soon ────────────────────────────────────────────── */}
+      {/* UX-CONF-007: Stubbed cards — TODO-UX-CONF-014: implement when connectors are built */}
+      <Typography variant="h6" sx={{ mb: 2 }}>Coming Soon</Typography>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {[
+          { name: 'QuickBooks', icon: '💼', desc: 'Sync invoices and payments with QuickBooks accounting.' },
+          { name: 'Mailchimp', icon: '📧', desc: 'Sync contacts and campaign lists with Mailchimp.' },
+          { name: 'Calendly', icon: '📅', desc: 'Embed scheduling links and sync meetings from Calendly.' },
+          { name: 'LinkedIn', icon: '🔗', desc: 'Enrich contact profiles with LinkedIn data.' },
+        ].map(({ name, icon, desc }) => (
+          <Grid item xs={12} sm={6} md={3} key={name}>
+            <Card sx={{ opacity: 0.7, border: '1px dashed', borderColor: 'divider' }}>
+              <CardContent>
+                <Typography variant="subtitle1" fontWeight={600} gutterBottom>{icon} {name}</Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{desc}</Typography>
+                <Chip label="Coming Soon" size="small" variant="outlined" />
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* ── Webhook events reference ────────────────────────────────────────── */}
+      <Divider sx={{ mb: 3 }} />
+      <Card>
+        <CardContent>
+          <Typography variant="h6" sx={{ mb: 2 }}>CRM Webhook Events</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            The CRM can send webhook notifications to n8n, Zapier, or any other system when these events occur:
+          </Typography>
+          <Grid container spacing={1}>
+            {[
+              'account.created', 'account.updated', 'account.deleted',
+              'contact.created', 'contact.updated',
+              'opportunity.created', 'opportunity.stage_changed', 'opportunity.won', 'opportunity.lost',
+              'lead.created', 'lead.converted',
+              'invoice.created', 'invoice.paid',
+              'service_request.created', 'service_request.resolved',
+            ].map((event) => (
+              <Grid item key={event}>
+                <Chip label={event} size="small" variant="outlined" />
+              </Grid>
+            ))}
+          </Grid>
+        </CardContent>
+      </Card>
     </Box>
   );
 };

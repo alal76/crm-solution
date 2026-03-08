@@ -54,16 +54,26 @@ export const authResponseSchema = z.object({
 
 // =============================================================================
 // Customer/Account Schemas
+// PRA-007: renamed customerSchema → accountSchema; added 5 missing fields
+//          (firstName, lastName, customerCategory, customerType, annualRevenue)
 // =============================================================================
 
-export const customerSchema = z.object({
+export const accountSchema = z.object({ // PRA-007: renamed from customerSchema
   id: z.number().int().positive(),
+  // PRA-007: added firstName + lastName fields
+  firstName: z.string().max(100).nullable().optional(),
+  lastName: z.string().max(100).nullable().optional(),
   company: z.string().min(1).max(200),
   email: z.string().email().nullable().optional(),
   phone: z.string().max(50).nullable().optional(),
   website: z.string().url().nullable().optional(),
   industry: z.string().nullable().optional(),
   lifecycleStage: z.number().int().nonnegative().optional(),
+  // PRA-007: added customerCategory + customerType (numeric enum fields)
+  customerCategory: z.number().int().nonnegative().optional(),
+  customerType: z.number().int().nonnegative().optional(),
+  // PRA-007: added annualRevenue field
+  annualRevenue: z.number().nonnegative().optional(),
   status: z.string().optional(),
   addressLine1: z.string().nullable().optional(),
   addressLine2: z.string().nullable().optional(),
@@ -76,7 +86,11 @@ export const customerSchema = z.object({
   ...timestampSchema.shape,
 });
 
-export const customersResponseSchema = paginatedResponseSchema(customerSchema);
+// PRA-007: alias for backward compatibility
+export const customerSchema = accountSchema;
+
+export const accountsResponseSchema = paginatedResponseSchema(accountSchema); // PRA-007
+export const customersResponseSchema = paginatedResponseSchema(accountSchema); // PRA-007: backward compat alias
 
 // =============================================================================
 // Contact Schemas
@@ -243,7 +257,7 @@ export function validateWithErrors<T extends z.ZodTypeAny>(
 
 export type User = z.infer<typeof userSchema>;
 export type AuthResponse = z.infer<typeof authResponseSchema>;
-export type Customer = z.infer<typeof customerSchema>;
+export type Customer = z.infer<typeof accountSchema>; // PRA-007: inferred from accountSchema (was customerSchema)
 export type Contact = z.infer<typeof contactSchema>;
 export type Lead = z.infer<typeof leadSchema>;
 export type Opportunity = z.infer<typeof opportunitySchema>;

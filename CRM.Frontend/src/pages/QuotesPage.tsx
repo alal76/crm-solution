@@ -16,7 +16,7 @@ import logger from '../services/logger';
 import { DialogError, DialogSuccess, ActionButton, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
-import { BaseEntity } from '../types';
+import { BaseEntity, Account } from '../types'; // PRA-006: Account added
 import logo from '../assets/logo.png';
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
@@ -140,16 +140,17 @@ interface QuoteForm {
   internalNotes: string;
 }
 
-interface Customer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  company?: string;
-}
+// PRA-006: replaced with shared Account type from types/ — see import above
+// interface Customer {
+//   id: number;
+//   firstName: string;
+//   lastName: string;
+//   company?: string;
+// }
 
 function QuotesPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [accounts, setAccounts] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]); // PRA-006
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);

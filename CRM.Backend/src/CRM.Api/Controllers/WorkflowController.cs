@@ -32,6 +32,8 @@ public class WorkflowController : CrmControllerBase
     private readonly IWorkflowService _workflowService;
     private readonly ILLMService _llmService;
     private readonly ILLMSettingsService _llmSettingsService;
+    // PRA-004: Field schema service — replaces the hardcoded GetEntityFieldsInternal() / GetRelatedEntitiesInternal() methods.
+    private readonly IWorkflowFieldSchemaService _fieldSchemaService;
     private const string FieldTypeString = "string";
     private const string FieldTypeNumber = "number";
     private const string FieldTypeBoolean = "boolean";
@@ -41,12 +43,14 @@ public class WorkflowController : CrmControllerBase
         CrmDbContext context,
         IWorkflowService workflowService,
         ILLMService llmService,
-        ILLMSettingsService llmSettingsService)
+        ILLMSettingsService llmSettingsService,
+        IWorkflowFieldSchemaService fieldSchemaService)
     {
         _context = context;
         _workflowService = workflowService;
         _llmService = llmService;
         _llmSettingsService = llmSettingsService;
+        _fieldSchemaService = fieldSchemaService;
     }
 
     private int GetCurrentUserId() // NOSONAR
@@ -887,8 +891,9 @@ public class WorkflowController : CrmControllerBase
             ColorOptions = GetColorOptionsInternal(),
             FallbackActions = GetFallbackActionsInternal(),
             EventTypes = GetEventTypesInternal(),
-            EntityFields = GetEntityFieldsInternal(),
-            RelatedEntities = GetRelatedEntitiesInternal()
+            // PRA-004: Field schemas now served by IWorkflowFieldSchemaService (WorkflowFieldSchemas.cs).
+            EntityFields = _fieldSchemaService.GetAllFieldSchemas(),
+            RelatedEntities = _fieldSchemaService.GetAllRelatedEntitySchemas()
         };
 
         return Ok(config);
@@ -1147,6 +1152,10 @@ public class WorkflowController : CrmControllerBase
         _ => ""
     };
 
+    // PRA-004: SUPERSEDED — schemas have been moved to CRM.Infrastructure.Services.WorkflowFieldSchemas
+    // and are now served via IWorkflowFieldSchemaService injected in the constructor.
+    // This method is kept for reference only and is no longer called.
+    [System.Obsolete("PRA-004: Use IWorkflowFieldSchemaService.GetAllFieldSchemas() instead.")]
     private Dictionary<string, List<EntityFieldConfig>> GetEntityFieldsInternal() => new()
     {
         ["Lead"] = new()
@@ -1239,6 +1248,10 @@ public class WorkflowController : CrmControllerBase
         }
     };
 
+    // PRA-004: SUPERSEDED — schemas have been moved to CRM.Infrastructure.Services.WorkflowFieldSchemas
+    // and are now served via IWorkflowFieldSchemaService injected in the constructor.
+    // This method is kept for reference only and is no longer called.
+    [System.Obsolete("PRA-004: Use IWorkflowFieldSchemaService.GetAllRelatedEntitySchemas() instead.")]
     private Dictionary<string, List<RelatedEntityConfig>> GetRelatedEntitiesInternal() => new()
     {
         ["Lead"] = new()

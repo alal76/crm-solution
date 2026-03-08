@@ -51,12 +51,15 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     private readonly IRepository<ContactInfoLink> _contactInfoLinkRepository;
     private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;
     private readonly IRepository<CRM.Core.Entities.CustomField> _customFieldRepository;
-    private readonly NormalizationService _normalizationService;
+    private readonly INormalizationService _normalizationService; // PRA-016: use interface for testability
     private readonly IEntityEventDispatcher _eventDispatcher;
     private readonly IPreferencesService _preferencesService;
     private readonly IDuplicateDetectionService _duplicateDetection;
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<AccountService> _logger;
+
+    // AP-037: Extracted contact management sub-service
+    private readonly IAccountContactService _accountContactService;
 
     /// <summary>
     /// Initializes a new instance of AccountService with required dependencies.
@@ -75,12 +78,13 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         IRepository<ContactInfoLink> contactInfoLinkRepository,
         IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
         IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
-        NormalizationService normalizationService,
+        INormalizationService normalizationService, // PRA-016: use interface for testability
         IEntityEventDispatcher eventDispatcher,
         IPreferencesService preferencesService,
         IDuplicateDetectionService duplicateDetection,
         ICrmDbContext dbContext,
-        ILogger<AccountService> logger)
+        ILogger<AccountService> logger,
+        IAccountContactService? accountContactService = null)
     {
         _accountRepository = accountRepository;
         _accountContactRepository = accountContactRepository;
@@ -98,6 +102,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         _duplicateDetection = duplicateDetection;
         _dbContext = dbContext;
         _logger = logger;
+        // AP-037: If not injected (e.g., tests), create inline; production DI always provides it
+        _accountContactService = accountContactService ?? new AccountContactService(
+            accountContactRepository,
+            accountRepository,
+            contactsService,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<AccountContactService>.Instance);
     }
 
     /// <summary>
@@ -918,7 +928,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         return dtos;
     }
 
+    // AP-037: Delegated to IAccountContactService. Original implementation preserved below.
     public async Task<AccountContactDto?> LinkContactToAccountAsync(int accountId, LinkContactToAccountDto dto)
+        => await _accountContactService.LinkContactToAccountAsync(accountId, dto);
+
+    // AP-037: Original LinkContactToAccountAsync implementation preserved for reference.
+    private async Task<AccountContactDto?> LinkContactToAccountOriginalAsync(int accountId, LinkContactToAccountDto dto)
     {
         var account = await _accountRepository.GetByIdAsync(accountId);
         if (account == null || account.IsDeleted)
@@ -984,7 +999,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         return MapAccountContactToDto(accountContact, contact);
     }
 
+    // AP-037: Delegated to IAccountContactService. Original implementation preserved below.
     public async Task<bool> UnlinkContactFromAccountAsync(int accountId, int contactId)
+        => await _accountContactService.UnlinkContactFromAccountAsync(accountId, contactId);
+
+    // AP-037: Original UnlinkContactFromAccountAsync implementation preserved for reference.
+    private async Task<bool> UnlinkContactFromAccountOriginalAsync(int accountId, int contactId)
     {
         var links = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && cc.ContactId == contactId && !cc.IsDeleted);
@@ -1013,7 +1033,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         return true;
     }
 
+    // AP-037: Delegated to IAccountContactService. Original implementation preserved below.
     public async Task<AccountContactDto?> UpdateAccountContactAsync(int accountId, int contactId, UpdateAccountContactDto dto)
+        => await _accountContactService.UpdateAccountContactAsync(accountId, contactId, dto);
+
+    // AP-037: Original UpdateAccountContactAsync implementation preserved for reference.
+    private async Task<AccountContactDto?> UpdateAccountContactOriginalAsync(int accountId, int contactId, UpdateAccountContactDto dto)
     {
         var links = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && cc.ContactId == contactId && !cc.IsDeleted);
@@ -1093,7 +1118,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         return MapAccountContactToDto(link, contact);
     }
 
+    // AP-037: Delegated to IAccountContactService. Original implementation preserved below.
     public async Task<IEnumerable<AccountContactDto>> GetAccountContactsAsync(int accountId)
+        => await _accountContactService.GetAccountContactsAsync(accountId);
+
+    // AP-037: Original GetAccountContactsAsync implementation preserved for reference.
+    private async Task<IEnumerable<AccountContactDto>> GetAccountContactsOriginalAsync(int accountId)
     {
         var links = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && !cc.IsDeleted);
@@ -1107,7 +1137,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         return dtos;
     }
 
+    // AP-037: Delegated to IAccountContactService. Original implementation preserved below.
     public async Task<bool> SetPrimaryContactAsync(int accountId, int contactId)
+        => await _accountContactService.SetPrimaryContactAsync(accountId, contactId);
+
+    // AP-037: Original SetPrimaryContactAsync implementation preserved for reference.
+    private async Task<bool> SetPrimaryContactOriginalAsync(int accountId, int contactId)
     {
         var links = await _accountContactRepository.FindAsync(cc =>
             cc.AccountId == accountId && cc.ContactId == contactId && !cc.IsDeleted);
@@ -1142,7 +1177,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
 
     // === Direct Contact Management (One-to-Many via Contact.AccountId) ===
 
+    // AP-037: Delegated to IAccountContactService. Original implementation preserved below.
     public async Task<IEnumerable<object>> GetDirectContactsAsync(int accountId)
+        => await _accountContactService.GetDirectContactsAsync(accountId);
+
+    // AP-037: Original GetDirectContactsAsync implementation preserved for reference.
+    private async Task<IEnumerable<object>> GetDirectContactsOriginalAsync(int accountId)
     {
         var contacts = await _contactsService.GetByAccountIdAsync(accountId);
         return contacts.Select(c => new
@@ -1161,7 +1201,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         }).ToList();
     }
 
+    // AP-037: Delegated to IAccountContactService. Original implementation preserved below.
     public async Task<bool> AssignContactToAccountAsync(int accountId, int contactId)
+        => await _accountContactService.AssignContactToAccountAsync(accountId, contactId);
+
+    // AP-037: Original AssignContactToAccountAsync implementation preserved for reference.
+    private async Task<bool> AssignContactToAccountOriginalAsync(int accountId, int contactId)
     {
         var account = await _accountRepository.GetByIdAsync(accountId);
         if (account == null || account.IsDeleted)
@@ -1180,7 +1225,12 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         return true;
     }
 
+    // AP-037: Delegated to IAccountContactService. Original implementation preserved below.
     public async Task<bool> UnassignContactFromAccountAsync(int accountId, int contactId)
+        => await _accountContactService.UnassignContactFromAccountAsync(accountId, contactId);
+
+    // AP-037: Original UnassignContactFromAccountAsync implementation preserved for reference.
+    private async Task<bool> UnassignContactFromAccountOriginalAsync(int accountId, int contactId)
     {
         var account = await _accountRepository.GetByIdAsync(accountId);
         if (account == null || account.IsDeleted)

@@ -7,6 +7,7 @@
 namespace CRM.Infrastructure.Services;
 
 using CRM.Core.Entities;
+using CRM.Core.Exceptions; // AP-033: typed domain exceptions
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
@@ -78,7 +79,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
 
         if (existing == null)
         {
-            throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrix.Id));
+            throw new EntityNotFoundException("DiscountApprovalMatrix", matrix.Id); // AP-033: replaced InvalidOperationException
         }
 
         existing.Name = matrix.Name;
@@ -120,7 +121,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     public async Task<DiscountApprovalMatrix> ActivateMatrixAsync(int matrixId, CancellationToken cancellationToken = default)
     {
         var matrix = await GetMatrixByIdAsync(matrixId, cancellationToken)
-            ?? throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrixId));
+            ?? throw new EntityNotFoundException("DiscountApprovalMatrix", matrixId); // AP-033: replaced InvalidOperationException
 
         matrix.IsActive = true;
         await _context.SaveChangesAsync(cancellationToken);
@@ -130,7 +131,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     public async Task<DiscountApprovalMatrix> DeactivateMatrixAsync(int matrixId, CancellationToken cancellationToken = default)
     {
         var matrix = await GetMatrixByIdAsync(matrixId, cancellationToken)
-            ?? throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrixId));
+            ?? throw new EntityNotFoundException("DiscountApprovalMatrix", matrixId); // AP-033: replaced InvalidOperationException
 
         matrix.IsActive = false;
         await _context.SaveChangesAsync(cancellationToken);
@@ -184,7 +185,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
 
         if (existing == null)
         {
-            throw new InvalidOperationException($"Level {level.Id} not found");
+            throw new EntityNotFoundException("ApprovalLevel", level.Id); // AP-033: replaced InvalidOperationException
         }
 
         existing.Name = level.Name;
@@ -294,7 +295,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
 
         if (existing == null)
         {
-            throw new InvalidOperationException($"Group {group.Id} not found");
+            throw new EntityNotFoundException("ApprovalGroup", group.Id); // AP-033: replaced InvalidOperationException
         }
 
         existing.Name = group.Name;
@@ -760,16 +761,16 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         CancellationToken cancellationToken = default)
     {
         var request = await GetRequestByIdAsync(requestId, cancellationToken)
-            ?? throw new InvalidOperationException($"Request {requestId} not found");
+            ?? throw new EntityNotFoundException("ApprovalRequest", requestId); // AP-033: replaced InvalidOperationException
 
         if (request.SubmitterId != userId)
         {
-            throw new InvalidOperationException("Only the submitter can recall a request");
+            throw new AuthorizationException("Only the submitter can recall a request"); // AP-033: replaced InvalidOperationException
         }
 
         if (request.Status != DiscountApprovalStatus.Pending)
         {
-            throw new InvalidOperationException("Can only recall pending requests");
+            throw new BusinessRuleException("RecallRequest", "Can only recall pending requests"); // AP-033: replaced InvalidOperationException
         }
 
         request.Status = DiscountApprovalStatus.Recalled;
@@ -792,11 +793,11 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         var step = await _context.ApprovalSteps
             .Include(s => s.ApprovalRequest)
             .FirstOrDefaultAsync(s => s.Id == stepId, cancellationToken)
-            ?? throw new InvalidOperationException(string.Format(StepNotFoundMessage, stepId));
+            ?? throw new EntityNotFoundException("ApprovalStep", stepId); // AP-033: replaced InvalidOperationException
 
         if (step.Status != DiscountApprovalStatus.Pending)
         {
-            throw new InvalidOperationException("Can only reassign pending steps");
+            throw new BusinessRuleException("ReassignStep", "Can only reassign pending steps"); // AP-033: replaced InvalidOperationException
         }
 
         step.AssignedToId = newAssigneeId;
@@ -817,17 +818,17 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .Include(s => s.ApprovalLevel)
             .Include(s => s.ApprovalRequest)
             .FirstOrDefaultAsync(s => s.Id == stepId, cancellationToken)
-            ?? throw new InvalidOperationException(string.Format(StepNotFoundMessage, stepId));
+            ?? throw new EntityNotFoundException("ApprovalStep", stepId); // AP-033: replaced InvalidOperationException
 
         if (step.Status != DiscountApprovalStatus.Pending)
         {
-            throw new InvalidOperationException("Can only escalate pending steps");
+            throw new BusinessRuleException("EscalateStep", "Can only escalate pending steps"); // AP-033: replaced InvalidOperationException
         }
 
         var escalationUserId = step.ApprovalLevel?.EscalationUserId;
         if (!escalationUserId.HasValue)
         {
-            throw new InvalidOperationException("No escalation path defined for this level");
+            throw new BusinessRuleException("EscalateStep", "No escalation path defined for this level"); // AP-033: replaced InvalidOperationException
         }
 
         step.WasEscalated = true;

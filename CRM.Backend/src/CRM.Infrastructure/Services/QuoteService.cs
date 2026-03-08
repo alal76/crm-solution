@@ -224,9 +224,29 @@ public class QuoteService : IQuoteService
         return true;
     }
 
-    /// <inheritdoc />
-    public async Task<bool> SendAsync(int id)
+    /// <inheritdoc /> // PRA-017: added UpdateStatusAsync
+    public async Task<Quote?> UpdateStatusAsync(int id, QuoteStatus newStatus)
     {
+        _logger.LogDebug("Updating status for quote: {QuoteId} to {NewStatus}", id, newStatus);
+
+        var quote = await _context.Quotes
+            .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted);
+
+        if (quote == null)
+        {
+            _logger.LogWarning("Quote not found for status update: {QuoteId}", id);
+            return null;
+        }
+
+        quote.Status = newStatus;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Updated status of quote: {QuoteId} to {NewStatus}", id, newStatus);
+        return quote;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> SendAsync(int id)    {
         _logger.LogDebug("Sending quote: {QuoteId}", id);
 
         var quote = await _context.Quotes

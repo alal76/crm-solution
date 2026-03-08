@@ -13,6 +13,14 @@ namespace CRM.Core.Entities.ITSM;
 /// Represents a version history entry for a knowledge article.
 /// Every time an article is updated, a version snapshot is created.
 /// </summary>
+/// <remarks>
+/// KB-016: This entity is a near-duplicate orphan of <see cref="ArticleVersion"/>.
+/// It is NOT registered as a DbSet, has no EF Core migration, and is not referenced
+/// anywhere in the codebase outside this file.
+/// Use <see cref="ArticleVersion"/> for all article-version operations.
+/// This class is retained (not deleted) for historical reference only.
+/// </remarks>
+[Obsolete("KB-016: Use ArticleVersion instead. This class is an unmapped duplicate and will be removed in a future cleanup pass.", error: false)] // KB-016: orphan entity — never mapped or referenced
 public class KnowledgeArticleVersion
 {
     [Key]

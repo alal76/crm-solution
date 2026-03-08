@@ -26,15 +26,18 @@ public class SubscriptionUsageController : CrmControllerBase
 {
     private const string SubscriptionNotFoundMessage = "Subscription {0} not found";
     private readonly ISubscriptionService _subscriptionService;
+    private readonly ISubscriptionUsageService _usageService;
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<SubscriptionUsageController> _logger;
 
     public SubscriptionUsageController(
         ISubscriptionService subscriptionService,
+        ISubscriptionUsageService usageService,
         ICrmDbContext dbContext,
         ILogger<SubscriptionUsageController> logger)
     {
         _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
+        _usageService = usageService ?? throw new ArgumentNullException(nameof(usageService));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -68,13 +71,9 @@ public class SubscriptionUsageController : CrmControllerBase
             var start = fromDate ?? DateTime.UtcNow.AddMonths(-1);
             var end = toDate ?? DateTime.UtcNow;
 
-            var records = await _dbContext.SubscriptionUsages
-                .Where(u => u.SubscriptionId == subscriptionId
-                    && !u.IsDeleted
-                    && u.UsageDate >= start
-                    && u.UsageDate <= end)
-                .OrderByDescending(u => u.UsageDate)
-                .ToListAsync(cancellationToken);
+            // AP-022: extracted to ISubscriptionUsageService.GetUsageRecordsAsync — fat-controller inline DB query removed.
+            // var records = await _dbContext.SubscriptionUsages.Where(...).OrderByDescending(...).ToListAsync(...)
+            var records = await _usageService.GetUsageRecordsAsync(subscriptionId, start, end, cancellationToken);
 
             var totalCount = records.Count;
             var paginated = records

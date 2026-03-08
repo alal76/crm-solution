@@ -16,6 +16,7 @@
 
 using System.Text.RegularExpressions;
 using CRM.Core.Interfaces.ITSM;
+using CRM.Core.Ports.Input;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services.ITSM;
@@ -26,12 +27,17 @@ namespace CRM.Infrastructure.Services.ITSM;
 public class SelfServiceChatbotService : ISelfServiceChatbotService
 {
     private readonly ILogger<SelfServiceChatbotService> _logger;
+    // KB-013: replaced hardcoded mock articles with real unified KB search
+    private readonly IUnifiedKnowledgeSearchService _knowledgeSearch;
     private readonly Dictionary<string, ChatSessionData> _sessions = new();
     private static readonly Regex IncidentNumberPattern = new(@"INC-?(\d+)", RegexOptions.IgnoreCase | RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
-    public SelfServiceChatbotService(ILogger<SelfServiceChatbotService> logger)
+    public SelfServiceChatbotService(
+        ILogger<SelfServiceChatbotService> logger,
+        IUnifiedKnowledgeSearchService knowledgeSearch)
     {
         _logger = logger;
+        _knowledgeSearch = knowledgeSearch;
     }
 
     /// <inheritdoc />
@@ -61,7 +67,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
     }
 
     /// <inheritdoc />
-    public Task<ChatbotResponseDto> ProcessMessageAsync(ChatbotMessageDto message, int? userId)
+    public async Task<ChatbotResponseDto> ProcessMessageAsync(ChatbotMessageDto message, int? userId) // KB-013: made async to support awaited KB search
     {
         _logger.LogInformation("Processing message in session {SessionId}: {Message}",
             message.SessionId, message.Message.Substring(0, Math.Min(50, message.Message.Length)));
@@ -89,7 +95,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         });
 
         // Process intent and generate response
-        var response = GenerateResponse(message.Message, session);
+        var response = await GenerateResponseAsync(message.Message, session); // KB-013: await async KB search
 
         // Record bot response
         session.Messages.Add(new ChatMessageDto
@@ -101,10 +107,10 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
             Timestamp = DateTime.UtcNow
         });
 
-        return Task.FromResult(response);
+        return response; // KB-013: return directly (GenerateResponseAsync is now async)
     }
 
-    private ChatbotResponseDto GenerateResponse(string userMessage, ChatSessionData session)
+    private async Task<ChatbotResponseDto> GenerateResponseAsync(string userMessage, ChatSessionData session) // KB-013: made async for live KB search
     {
         var lowerMessage = userMessage.ToLower();
         var response = new ChatbotResponseDto { SessionId = session.SessionId };
@@ -131,11 +137,12 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         {
             response.Message = "I can help you with password issues! Here are some options:";
             response.Type = ResponseType.KnowledgeResults;
-            response.KnowledgeResults = new List<KnowledgeSearchResultDto>
+            var pwdResults = await _knowledgeSearch.SearchAsync(userMessage, 5); // KB-013: live KB search replaces hardcoded mock articles
+            response.KnowledgeResults = pwdResults.Select(r => new KnowledgeSearchResultDto
             {
-                new() { ArticleId = 1, Title = "How to Reset Your Password", Summary = "Step-by-step guide to reset your password using the self-service portal.", RelevanceScore = 0.95, Category = "How-To", Views = 1245 },
-                new() { ArticleId = 2, Title = "Unlock Your Account", Summary = "Instructions for unlocking your account after too many failed login attempts.", RelevanceScore = 0.88, Category = "How-To", Views = 876 }
-            };
+                ArticleId = r.Id, Title = r.Title, Summary = r.Summary,
+                RelevanceScore = r.RelevanceScore, Category = r.Category ?? string.Empty, Views = r.ViewCount
+            }).ToList();
             response.Suggestions = new List<ChatSuggestion>
             {
                 new() { Id = "reset_password", Text = "Reset my password now", Icon = "key" },
@@ -148,11 +155,12 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         {
             response.Message = "Here's some information about VPN and remote connectivity:";
             response.Type = ResponseType.KnowledgeResults;
-            response.KnowledgeResults = new List<KnowledgeSearchResultDto>
+            var vpnResults = await _knowledgeSearch.SearchAsync(userMessage, 5); // KB-013: live KB search replaces hardcoded mock articles
+            response.KnowledgeResults = vpnResults.Select(r => new KnowledgeSearchResultDto
             {
-                new() { ArticleId = 3, Title = "VPN Setup Guide", Summary = "Complete guide to setting up VPN on Windows and Mac computers.", RelevanceScore = 0.92, Category = "How-To", Views = 987 },
-                new() { ArticleId = 4, Title = "VPN Troubleshooting", Summary = "Common VPN issues and how to resolve them.", RelevanceScore = 0.85, Category = "Troubleshooting", Views = 654 }
-            };
+                ArticleId = r.Id, Title = r.Title, Summary = r.Summary,
+                RelevanceScore = r.RelevanceScore, Category = r.Category ?? string.Empty, Views = r.ViewCount
+            }).ToList();
             response.Suggestions = new List<ChatSuggestion>
             {
                 new() { Id = "view_article_3", Text = "View setup guide", Icon = "article" },
@@ -165,10 +173,12 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         {
             response.Message = "I understand you're experiencing performance issues. Let me help!";
             response.Type = ResponseType.KnowledgeResults;
-            response.KnowledgeResults = new List<KnowledgeSearchResultDto>
+            var perfResults = await _knowledgeSearch.SearchAsync(userMessage, 5); // KB-013: live KB search replaces hardcoded mock articles
+            response.KnowledgeResults = perfResults.Select(r => new KnowledgeSearchResultDto
             {
-                new() { ArticleId = 5, Title = "Troubleshooting Slow Computer", Summary = "Tips to improve your computer's performance.", RelevanceScore = 0.90, Category = "Troubleshooting", Views = 754 }
-            };
+                ArticleId = r.Id, Title = r.Title, Summary = r.Summary,
+                RelevanceScore = r.RelevanceScore, Category = r.Category ?? string.Empty, Views = r.ViewCount
+            }).ToList();
             response.Suggestions = new List<ChatSuggestion>
             {
                 new() { Id = "view_article_5", Text = "View troubleshooting guide", Icon = "article" },
@@ -311,15 +321,19 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
     }
 
     /// <inheritdoc />
-    public Task<List<KnowledgeSearchResultDto>> SearchKnowledgeAsync(string query)
+    public async Task<List<KnowledgeSearchResultDto>> SearchKnowledgeAsync(string query)
     {
-        // Simulated search results
-        var results = new List<KnowledgeSearchResultDto>
+        // KB-013: replaced hardcoded mock results with live unified KB search
+        var results = await _knowledgeSearch.SearchAsync(query, maxResults: 5);
+        return results.Select(r => new KnowledgeSearchResultDto
         {
-            new() { ArticleId = 1, Title = "How to Reset Your Password", Summary = "Step-by-step guide for password reset.", RelevanceScore = 0.85, Category = "How-To", Views = 1245 },
-            new() { ArticleId = 3, Title = "VPN Setup Guide", Summary = "Complete VPN setup instructions.", RelevanceScore = 0.72, Category = "How-To", Views = 987 }
-        };
-        return Task.FromResult(results);
+            ArticleId = r.Id,
+            Title = r.Title,
+            Summary = r.Summary,
+            RelevanceScore = r.RelevanceScore,
+            Category = r.Category ?? string.Empty,
+            Views = r.ViewCount
+        }).ToList();
     }
 
     /// <inheritdoc />

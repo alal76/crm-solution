@@ -1,3 +1,7 @@
+// PRA-015 ARCHIVE NOTE:
+// Disabled: ~January 2026. Discount rule logic folded into active pricing services.
+// Safe to delete after confirming IDiscountRuleService interface has active implementations.
+//
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //

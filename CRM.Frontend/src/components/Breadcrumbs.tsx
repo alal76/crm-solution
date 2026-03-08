@@ -105,8 +105,14 @@ const BREADCRUMB_LABELS: { [key: string]: { label: string; icon?: React.ReactNod
   '/admin/dashboards': { label: 'Dashboards', icon: <DashboardIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/admin/workflows': { label: 'Workflows', icon: <WorkflowIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/admin/test-results': { label: 'Test Results', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  // UX-CONF-012: /admin/llm now redirects to /admin/providers; keep label for breadcrumb back-compat
   '/admin/llm': { label: 'AI / LLM Settings', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/admin/api-docs': { label: 'API Documentation', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  // UX-CONF-012: New breadcrumb entries for consolidated admin pages
+  '/admin/config/system': { label: 'System Configuration', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/config/crm': { label: 'CRM Configuration', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/communications': { label: 'Communications', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/admin/providers': { label: 'Providers', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/email-templates': { label: 'Email Templates' },
   '/campaign-execution': { label: 'Campaign Execution' },
   '/landing-pages': { label: 'Landing Pages' },
@@ -168,7 +174,6 @@ const SEGMENT_LABELS: Record<string, { label: string; icon?: React.ReactNode }> 
   notes: { label: 'Notes', icon: <NoteIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   workflows: { label: 'Workflows', icon: <WorkflowIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   interactions: { label: 'Interactions' },
-  communications: { label: 'Communications' },
   relationships: { label: 'Relationships' },
   settings: { label: 'Settings', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   itsm: { label: 'ITSM' },
@@ -185,7 +190,13 @@ const SEGMENT_LABELS: Record<string, { label: string; icon?: React.ReactNode }> 
   navigation: { label: 'Navigation', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   modules: { label: 'Modules & Fields', icon: <ModuleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   monitoring: { label: 'Monitoring', icon: <MonitorIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
-  security: { label: 'Security', icon: <SecurityIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  security: { label: 'Security & SSO', icon: <SecurityIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  // UX-CONF-012: Segment labels for new consolidated admin paths
+  config: { label: 'Config', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  system: { label: 'System Configuration', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  crm: { label: 'CRM Configuration', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  communications: { label: 'Communications', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  providers: { label: 'Providers', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
 };
 
 const isDynamicSegment = (segment: string) => {

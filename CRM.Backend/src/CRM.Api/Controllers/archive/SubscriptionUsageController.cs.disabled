@@ -1,3 +1,8 @@
+// PRA-015 ARCHIVE NOTE:
+// Disabled: ~January 2026 during Phase 2 Missing Services Implementation.
+// Reason: Superseded by an active SubscriptionUsageController at Controllers/SubscriptionUsageController.cs.
+// The active version uses ISubscriptionUsageService abstraction (AP-022).
+// Safe to delete once there is confirmed no functionality gap vs the active version.
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //

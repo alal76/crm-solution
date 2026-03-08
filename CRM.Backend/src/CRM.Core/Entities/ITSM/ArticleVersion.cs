@@ -13,6 +13,31 @@ namespace CRM.Core.Entities.ITSM;
 /// Tracks version history of knowledge articles.
 /// Each edit creates a new version for audit and rollback purposes.
 /// </summary>
+/// <remarks>
+/// KB-016: This is the single authoritative entity for article version history.
+/// It is DB-mapped to the <c>ArticleVersions</c> table and used throughout
+/// <c>KnowledgeManagementService</c> and the API controllers.
+/// <para>
+/// A near-duplicate entity <c>KnowledgeArticleVersion</c> (same namespace/file) was found
+/// but is an unmapped orphan — never referenced outside its own definition file.
+/// It has been marked <c>[Obsolete]</c>; do not use it.
+/// </para>
+/// <para>
+/// Field-name mapping between the two (for historical reference):
+/// <list type="table">
+/// <item><term>Content</term><description>Equivalent to KnowledgeArticleVersion.ArticleBody</description></item>
+/// <item><term>ChangedById / ChangedAt</term><description>Equivalent to CreatedById / CreatedAt</description></item>
+/// <item><term>ChangeNote</term><description>Equivalent to KnowledgeArticleVersion.ChangesSummary</description></item>
+/// </list>
+/// </para>
+/// <para>
+/// NOTE — ArticleType gap (KB-016): <c>KnowledgeArticleVersion</c> snapshots the
+/// <c>ArticleType</c> at the time of each version. This <c>ArticleVersion</c> entity does
+/// not store that snapshot; callers should read <c>KnowledgeArticle.ArticleType</c> for
+/// the current type. A future migration can add an <c>ArticleType</c> column here if
+/// point-in-time type tracking is required.
+/// </para>
+/// </remarks>
 public class ArticleVersion
 {
     [Key]
