@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities.ITSM;
 
-namespace CRM.Core.DTOs.ITSM;
+namespace CRM.Core.Dtos.ITSM;
 
 /// <summary>
 /// DTO for knowledge article version history entries.

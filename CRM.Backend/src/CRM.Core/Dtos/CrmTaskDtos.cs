@@ -16,7 +16,7 @@
 
 using System;
 
-namespace CRM.Core.DTOs
+namespace CRM.Core.Dtos
 {
     /// <summary>
     /// Data Transfer Object for CRM Task.

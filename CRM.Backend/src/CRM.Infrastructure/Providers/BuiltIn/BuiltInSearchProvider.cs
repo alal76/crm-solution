@@ -10,7 +10,7 @@ using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
 using CRM.Core.Ports.Output.Providers;
-using CRM.Infrastructure.Data;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -22,14 +22,14 @@ namespace CRM.Infrastructure.Providers.BuiltIn;
 /// </summary>
 public class BuiltInSearchProvider : ISearchPort
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<BuiltInSearchProvider> _logger;
 
     public BuiltInSearchProvider(
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext dbContext,
         ILogger<BuiltInSearchProvider> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -41,7 +41,7 @@ public class BuiltInSearchProvider : ISearchPort
     {
         try
         {
-            var context = _dbContextResolver.ResolveContext();
+            var context = _dbContext;
             return Task.FromResult(context != null);
         }
         catch (Exception ex)
@@ -69,7 +69,7 @@ public class BuiltInSearchProvider : ISearchPort
             };
         }
 
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         // Search across entity types based on filter or all
         var entityTypes = GetSearchableEntityTypes(request.EntityType);
@@ -118,7 +118,7 @@ public class BuiltInSearchProvider : ISearchPort
             };
         }
 
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var entityType = typeof(T).Name;
 
         // Get the appropriate DbSet and search
@@ -185,7 +185,7 @@ public class BuiltInSearchProvider : ISearchPort
             return suggestions;
         }
 
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         // Get account suggestions
         var accountSuggestions = await context.Accounts
@@ -264,7 +264,7 @@ public class BuiltInSearchProvider : ISearchPort
 
         try
         {
-            var context = _dbContextResolver.ResolveContext();
+            var context = _dbContext;
 
             // Simple connectivity check
             var canConnect = await context.Database.CanConnectAsync(cancellationToken);

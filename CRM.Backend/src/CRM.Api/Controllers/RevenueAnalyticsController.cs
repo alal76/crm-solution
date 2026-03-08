@@ -113,4 +113,52 @@ public class RevenueAnalyticsController : CrmControllerBase
         var snapshot = await _revenueService.CalculateCurrentSnapshotAsync(ct);
         return CreatedAtAction(nameof(GetMetrics), new { }, snapshot);
     }
+
+    /// <summary>Returns contraction MRR for the specified period.</summary>
+    [HttpGet("contraction")]
+    [ProducesResponseType(typeof(object), 200)]
+    public async Task<IActionResult> GetContraction(
+        [FromQuery] int months = 6,
+        CancellationToken ct = default)
+    {
+        var movements = await _revenueService.GetMRRMovementsAsync(months, ct);
+        var contraction = movements.Sum(m => m.ContractionMRR);
+        return Ok(new { contraction, months });
+    }
+
+    /// <summary>Returns expansion MRR for the specified period.</summary>
+    [HttpGet("expansion")]
+    [ProducesResponseType(typeof(object), 200)]
+    public async Task<IActionResult> GetExpansion(
+        [FromQuery] int months = 6,
+        CancellationToken ct = default)
+    {
+        var movements = await _revenueService.GetMRRMovementsAsync(months, ct);
+        var expansion = movements.Sum(m => m.ExpansionMRR);
+        return Ok(new { expansion, months });
+    }
+
+    /// <summary>Returns new MRR for the specified period.</summary>
+    [HttpGet("new")]
+    [ProducesResponseType(typeof(object), 200)]
+    public async Task<IActionResult> GetNewRevenue(
+        [FromQuery] int months = 6,
+        CancellationToken ct = default)
+    {
+        var movements = await _revenueService.GetMRRMovementsAsync(months, ct);
+        var newRevenue = movements.Sum(m => m.NewMRR);
+        return Ok(new { newRevenue, months });
+    }
+
+    /// <summary>Returns reactivation MRR for the specified period.</summary>
+    [HttpGet("reactivation")]
+    [ProducesResponseType(typeof(object), 200)]
+    public async Task<IActionResult> GetReactivation(
+        [FromQuery] int months = 6,
+        CancellationToken ct = default)
+    {
+        var movements = await _revenueService.GetMRRMovementsAsync(months, ct);
+        var reactivation = movements.Sum(m => m.NewMRR) - movements.Sum(m => m.ChurnMRR);
+        return Ok(new { reactivation, months });
+    }
 }

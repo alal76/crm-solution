@@ -2,7 +2,7 @@
 """Batch 22: Admin, Ops & Security.
 
 Covers admin/operational entities not covered by earlier batches:
-  - Audit Logs          (/api/auditlogs  — read only)
+  - Audit Logs          (/api/audit-logs  — read only)
   - System Health       (/api/health/*)
   - Feature Plans       (/api/featureplans)
   - Roles & Permissions (/api/roles + /api/permissions)
@@ -12,7 +12,7 @@ Covers admin/operational entities not covered by earlier batches:
   - Export Jobs         (/api/exports)
   - Backup Status       (/api/admin/backups)
   - System Config       (/api/admin/config)
-  - Integrations        (/api/admin/integrations)
+  - Integrations        (/api/admin/providers)
   - Alert Rules         (/api/admin/alerts)
   - Data Retention      (/api/admin/data-retention)
 """
@@ -30,11 +30,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ─── Audit Logs (read-only) ────────────────────────────────────────────
     log.section("AuditLogs (read)")
-    api.get("/api/auditlogs")
-    api.get("/api/auditlogs?entityType=Account")
-    api.get("/api/auditlogs?action=Create")
-    api.get("/api/auditlogs?days=7")
-    api.get("/api/auditlogs/summary")
+    api.get("/api/audit-logs")
+    api.get("/api/audit-logs?entityType=Account")
+    api.get("/api/audit-logs?action=Create")
+    api.get("/api/audit-logs?days=7")
+    api.get("/api/audit-logs/summary")
 
     # ─── System Health ─────────────────────────────────────────────────────
     log.section("System Health (read)")
@@ -225,17 +225,17 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ─── Admin System Config ──────────────────────────────────────────────
     log.section("Admin System Config (read/update)")
     api.get("/api/admin/config")
-    api.get("/api/admin/config/email")
-    api.get("/api/admin/config/security")
-    api.get("/api/admin/config/features")
-    api.get("/api/admin/config/integrations")
+    api.get("/api/admin/config/system")
+    api.get("/api/admin/config/system")
+    api.get("/api/admin/config/system")
+    api.get("/api/admin/config/system")
 
     # ─── Admin Integrations ────────────────────────────────────────────────
-    log.section("Admin Integrations (read)")
-    api.get("/api/admin/integrations")
-    api.get("/api/admin/integrations/status")
+    log.section("Admin Providers (read)")
+    api.get("/api/admin/providers")
+    api.get("/api/admin/providers")
     for integration in ["meilisearch", "redis", "email", "ai"]:
-        api.get(f"/api/admin/integrations/{integration}/status")
+        api.get(f"/api/admin/providers/{integration}")
 
     # ─── Alert Rules ──────────────────────────────────────────────────────
     log.section("Admin Alert Rules CRUD")

@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
 using CRM.Tests.Helpers;
 using FluentAssertions;
@@ -21,12 +20,12 @@ namespace CRM.Tests.ITSMServices.ChangeManagement;
 
 public class ChangeManagementServiceTests : ServiceTestFixtureBase<ChangeManagementService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly Mock<ICMDBService> _mockCmdbService;    private readonly IChangeManagementService _service;
+    private readonly Mock<ICMDBService> _mockCmdbService;    private readonly IChangeManagementService _service;
 
     public ChangeManagementServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();        _mockCmdbService = new Mock<ICMDBService>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
-        _service = new ChangeManagementService(_mockResolver.Object, _mockCmdbService.Object, MockLogger.Object);
+        _mockCmdbService = new Mock<ICMDBService>();
+        _service = new ChangeManagementService(MockContext.Object, _mockCmdbService.Object, MockLogger.Object);
     }
 
     // ========================================================================

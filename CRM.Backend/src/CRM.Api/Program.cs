@@ -490,10 +490,9 @@ if (!string.IsNullOrWhiteSpace(readOnlyConnectionString))
     builder.Services.AddScoped<CrmReadOnlyDbContext>();
 }
 
-// Register ICrmDbContext interface with dynamic resolution
-builder.Services.AddScoped<IDbContextResolver, DynamicDbContextResolver>();
+// Register ICrmDbContext interface directly from CrmDbContext
 builder.Services.AddScoped<ICrmDbContext>(provider =>
-    provider.GetRequiredService<IDbContextResolver>().ResolveContext());
+    provider.GetRequiredService<CrmDbContext>());
 
 // Register Services (backward compatibility)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -695,6 +694,19 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.I
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
+// ITSM Extended Services — CAB, Calendar, Impact, Article Recommendations
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICABWorkflowService, CRM.Infrastructure.Services.ITSM.CABWorkflowService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IChangeCalendarService, CRM.Infrastructure.Services.ITSM.ChangeCalendarService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IChangeImpactService, CRM.Infrastructure.Services.ITSM.ChangeImpactService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IArticleRecommendationService, CRM.Infrastructure.Services.ITSM.ArticleRecommendationService>();
+// ITSM Advanced Services — Assignment, Catalog, Discovery, Impact Analysis, KCS, Asset Lifecycle
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine, CRM.Infrastructure.Services.ITSM.AssignmentRulesEngine>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICatalogApprovalService, CRM.Infrastructure.Services.ITSM.CatalogApprovalService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICatalogFulfillmentService, CRM.Infrastructure.Services.ITSM.CatalogFulfillmentService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IDiscoveryService, CRM.Infrastructure.Services.ITSM.DiscoveryService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService, CRM.Infrastructure.Services.ITSM.ImpactAnalysisService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IKCSWorkflowService, CRM.Infrastructure.Services.ITSM.KCSWorkflowService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IAssetLifecycleService, CRM.Infrastructure.Services.ITSM.AssetLifecycleService>();
 // Slack/Teams notification channels for ITSM — add when external notification provider is configured
 builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.SlackItsmNotificationService>();
 builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.TeamsItsmNotificationService>();
@@ -706,11 +718,11 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationDispatcher,
     CRM.Infrastructure.Services.ITSM.ItsmNotificationDispatcher>();
 Log.Information("ITSM notification channels registered: Slack, Teams (TODO-SD005-010)");
 // SLA Enforcement Background Service - runs continuously to monitor and enforce SLAs
-// builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>(); // DISABLED for System Module isolation
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>();
 // Auto-close resolved items background service (auto-closes incidents, service requests, changes, problems)
-// builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>(); // DISABLED for System Module isolation
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>();
 // Escalation background service (auto-escalates incidents/service requests based on SLA thresholds)
-// builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>(); // DISABLED for System Module isolation
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
@@ -885,7 +897,7 @@ Log.Information("Commission & Contract Enhancement Services registered: Commissi
 
 // Subscription Billing Services (SPEC-SALES-006)
 // Recurring Billing Engine - background job for hourly subscription billing cycles
-// builder.Services.AddScoped<IRecurringBillingEngine, RecurringBillingEngine>(); // DISABLED for System Module isolation
+builder.Services.AddScoped<IRecurringBillingEngine, RecurringBillingEngine>();
 // Dunning Manager - payment failure recovery with 3-retry escalation (TODO-SALES003-012)
 builder.Services.AddScoped<IDunningManager, DunningManager>();
 // Dunning Scheduler - runs every 4 hours, uses IServiceScopeFactory for scoped IDunningManager (TODO-SALES003-012)

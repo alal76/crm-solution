@@ -7,7 +7,7 @@
 
 using System.Text.Json.Serialization;
 
-namespace CRM.Core.DTOs.Analytics;
+namespace CRM.Core.Dtos.Analytics;
 
 /// <summary>
 /// Versioned report query schema definitions.

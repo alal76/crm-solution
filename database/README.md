@@ -36,7 +36,7 @@ database/
 ### Fresh Installation (New Database)
 Use the consolidated baseline schema for fastest deployment:
 ```bash
-mysql -u crm_user -p crm_demodb < schema/000_baseline_schema.sql
+mysql -u crm_user -p crm_db < schema/000_baseline_schema.sql
 ```
 
 ### Existing Database (Incremental Migration)
@@ -49,7 +49,7 @@ Run schema files 001-009 in order for incremental updates:
 
 ### Quick Deploy
 
-Deploy to both production and demo databases:
+Deploy to production database (single database policy):
 
 ```bash
 ./deploy.sh
@@ -70,8 +70,8 @@ Deploy to both production and demo databases:
 # Production database only
 ./deploy.sh --prod-only
 
-# Demo database only
-./deploy.sh --demo-only
+# DEPRECATED: Demo database removed — single database policy
+# ./deploy.sh --demo-only
 ```
 
 ### Environment Variables
@@ -85,7 +85,7 @@ Deploy to both production and demo databases:
 | `DB_USER` | crm_user | Application database user |
 | `DB_USER_PASS` | - | Application user password |
 | `PROD_DB` | crm_db | Production database name |
-| `DEMO_DB` | crm_demodb | Demo database name |
+| `DEMO_DB` | ~~crm_demodb~~ | **DEPRECATED** — single database policy |
 
 ### Kubernetes Deployment
 

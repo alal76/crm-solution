@@ -220,6 +220,77 @@ public class CustomerPortalController : CrmControllerBase
         _logger.LogInformation("Deal registered by partner {UserId} for company '{Company}'", userId, req.CompanyName);
         return Created($"api/portal/deals/{lead.Id}", new { lead.Id, lead.CompanyName, message = "Deal registration submitted for review." });
     }
+
+    // ── Contact lookup ─────────────────────────────────────────────────────
+
+    /// <summary>Gets a contact by ID for the portal.</summary>
+    [HttpGet("contacts/{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetContact(int id, CancellationToken ct = default)
+    {
+        var contact = await _db.Contacts.AsNoTracking()
+            .Where(c => c.Id == id)
+            .Select(c => new { c.Id, c.FirstName, c.LastName, c.EmailPrimary, c.PhonePrimary, c.JobTitle, c.AccountId })
+            .FirstOrDefaultAsync(ct);
+
+        if (contact == null)
+        {
+            return NotFound(new { message = "Contact not found" });
+        }
+        return Ok(contact);
+    }
+
+    // ── Knowledge Base (public browsing) ──────────────────────────────────
+
+    /// <summary>Lists published knowledge base articles.</summary>
+    [HttpGet("knowledge-base")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetKnowledgeBase(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? category = null,
+        CancellationToken ct = default)
+    {
+        pageSize = Math.Min(pageSize, 50);
+        var query = _db.KnowledgeArticles.AsNoTracking()
+            .Where(a => a.Status == ArticleStatus.Published && !a.IsDeleted);
+
+        if (!string.IsNullOrWhiteSpace(category) && int.TryParse(category, out var catId))
+        {
+            query = query.Where(a => a.CategoryId == catId);
+        }
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(a => a.UpdatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(a => new { a.Id, a.Title, a.Category, a.ViewCount, a.CreatedAt, a.UpdatedAt })
+            .ToListAsync(ct);
+
+        return Ok(new { items, totalCount = total, page, pageSize });
+    }
+
+    /// <summary>Returns featured/popular knowledge base articles.</summary>
+    [HttpGet("knowledge-base/featured")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetFeaturedKnowledgeBase(
+        [FromQuery] int count = 5,
+        CancellationToken ct = default)
+    {
+        count = Math.Min(count, 20);
+        var featured = await _db.KnowledgeArticles.AsNoTracking()
+            .Where(a => a.Status == ArticleStatus.Published && !a.IsDeleted)
+            .OrderByDescending(a => a.ViewCount)
+            .Take(count)
+            .Select(a => new { a.Id, a.Title, a.Category, a.ViewCount, a.UpdatedAt })
+            .ToListAsync(ct);
+
+        return Ok(new { items = featured });
+    }
 }
 
 // ── Request DTOs ───────────────────────────────────────────────────────────

@@ -17,11 +17,11 @@ metadata:
   namespace: crm-dev
 data:
   init-demo-db.sql: |
-    -- Create demo database on same server as production
-    CREATE DATABASE IF NOT EXISTS crm_demodb;
-    -- Grant privileges to crm_user on demo database
-    GRANT ALL PRIVILEGES ON crm_demodb.* TO 'crm_user'@'%';
-    FLUSH PRIVILEGES;
+    -- DEPRECATED: Demo database removed — single database policy
+    -- CREATE DATABASE IF NOT EXISTS crm_demodb;
+    -- GRANT ALL PRIVILEGES ON crm_demodb.* TO 'crm_user'@'%';
+    -- FLUSH PRIVILEGES;
+    SELECT 'Demo database creation skipped — single database policy' AS Status;
 ---
 apiVersion: apps/v1
 kind: Deployment

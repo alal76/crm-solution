@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 615,
-  "patch": 18,
+  "patch": 22,
   "lastUpdate": "2026-03-08",
-  "description": "fix: v0.615.18 - Fix all 139 test failures: SupersetProvider auth mocks (11), integration test parallelism via ICollectionFixture (124), CRUD test payloads (4)",
+  "description": "chore: v0.615.22 - Demo database deprecation: commented out crm_demodb across 18 files (init scripts, env files, frontend UI, seed SQL, Gateway route, deployment tool), renamed demo→sample in deployment wizard, added DEMO-001→016 tracking to MASTER_TODO_LIST",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using System.Security.Claims;
 using CRM.Api.Controllers;
-using CRM.Core.DTOs.Workflow;
+using CRM.Core.Dtos.Workflow;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using FluentAssertions;

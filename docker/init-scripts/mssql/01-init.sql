@@ -1,13 +1,13 @@
 -- SQL Server Initialization Script
--- Creates the CRM database and demo database with seed data
+-- Creates the CRM database (single database policy)
 
--- Create demo database
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'crm_demodb')
-BEGIN
-    CREATE DATABASE crm_demodb;
-    PRINT 'Demo database created';
-END
-GO
+-- DEPRECATED: Demo database removed — single database policy (see copilot-instructions.md)
+-- IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'crm_demodb')
+-- BEGIN
+--     CREATE DATABASE crm_demodb;
+--     PRINT 'Demo database created';
+-- END
+-- GO
 
 -- Use main database
 USE crm_db;

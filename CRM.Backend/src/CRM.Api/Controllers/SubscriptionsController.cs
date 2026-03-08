@@ -661,6 +661,46 @@ public class SubscriptionsController : CrmControllerBase
         return Ok(active);
     }
 
+    /// <summary>
+    /// Upgrade a subscription to a higher plan.
+    /// POST /api/subscriptions/{id}/upgrade
+    /// </summary>
+    [HttpPost("{id:int}/upgrade")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<Subscription>> Upgrade(
+        int id,
+        [FromBody] ChangePlanRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        try
+        {
+            var subscription = await _subscriptionService.GetByIdAsync(id, cancellationToken);
+            if (subscription == null)
+            {
+                return NotFound($"Subscription {id} not found.");
+            }
+
+            var result = await _subscriptionService.ChangePlanAsync(
+                id, request.NewPlanId, request.ChangeType, cancellationToken);
+
+            _logger.LogInformation("Subscription {SubscriptionId} upgraded to plan {NewPlanId}", id, request.NewPlanId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error upgrading subscription {SubscriptionId}", id);
+            return HandleServiceException(ex);
+        }
+    }
+
     #endregion
 
     #region Helpers

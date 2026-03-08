@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using System.Net;
 using System.Net.Http.Json;
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using FluentAssertions;
 using Xunit;

@@ -433,5 +433,110 @@ public class AgentAnalyticsController : CrmControllerBase
         });
     }
 
+    /// <summary>
+    /// Gets analytics grouped by individual agent including conversations, actions, and average rating.
+    /// </summary>
+    /// <param name="from">Optional start date filter.</param>
+    /// <param name="to">Optional end date filter.</param>
+    /// <returns>Analytics breakdown by agent.</returns>
+    [HttpGet("by-agent")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByAgent([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+    {
+        var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
+        var toDate = to ?? DateTime.UtcNow;
+
+        var agents = await _dbContext.AIAgents
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var conversations = await _dbContext.AgentConversations
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted && c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var actions = await _dbContext.AgentActions
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var byAgent = agents.Select(agent =>
+        {
+            var agentConversations = conversations.Where(c => c.AgentId == agent.Id).ToList();
+            var agentActions = actions.Where(a => a.AgentId == agent.Id).ToList();
+            var ratedConversations = agentConversations.Where(c => c.UserRating.HasValue).ToList();
+            var avgRating = ratedConversations.Count > 0
+                ? ratedConversations.Average(c => c.UserRating!.Value)
+                : 0.0;
+
+            return new
+            {
+                AgentId = agent.Id,
+                AgentName = agent.Name,
+                DisplayName = agent.DisplayName,
+                TotalConversations = agentConversations.Count,
+                TotalActions = agentActions.Count,
+                RatedConversations = ratedConversations.Count,
+                AverageRating = Math.Round(avgRating, 2)
+            };
+        }).ToList();
+
+        return Ok(new
+        {
+            FromDate = fromDate,
+            ToDate = toDate,
+            Agents = byAgent
+        });
+    }
+
+    /// <summary>
+    /// Gets cost summary breakdown for AI agent operations.
+    /// </summary>
+    /// <param name="from">Optional start date filter.</param>
+    /// <param name="to">Optional end date filter.</param>
+    /// <returns>Cost summary by agent.</returns>
+    [HttpGet("cost-summary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCostSummary([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+    {
+        var fromDate = from ?? DateTime.UtcNow.AddDays(-30);
+        var toDate = to ?? DateTime.UtcNow;
+
+        var agents = await _dbContext.AIAgents
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var actions = await _dbContext.AgentActions
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate)
+            .ToListAsync(HttpContext.RequestAborted);
+
+        var costByAgent = agents.Select(agent =>
+        {
+            var agentActions = actions.Where(a => a.AgentId == agent.Id).ToList();
+            return new
+            {
+                AgentId = agent.Id,
+                AgentName = agent.Name,
+                TotalActions = agentActions.Count,
+                DailyCosts = agentActions
+                    .GroupBy(a => a.CreatedAt.Date)
+                    .Select(g => new DailyCost(g.Key, g.Count()))
+                    .OrderBy(d => d.Date)
+                    .ToList()
+            };
+        }).ToList();
+
+        return Ok(new
+        {
+            FromDate = fromDate,
+            ToDate = toDate,
+            TotalActions = actions.Count,
+            CostByAgent = costByAgent
+        });
+    }
+
     #endregion
 }

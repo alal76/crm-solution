@@ -7,7 +7,6 @@
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.AI;
 using CRM.Tests.Helpers;
 using FluentAssertions;
@@ -21,13 +20,13 @@ namespace CRM.Tests.Services.AI;
 
 public class AIKnowledgeSearchServiceTests : ServiceTestFixtureBase<AIKnowledgeSearchService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly Mock<IFeatureManager> _mockFeatureManager;
+    private readonly Mock<IFeatureManager> _mockFeatureManager;
     private readonly Mock<IServiceProvider> _mockServiceProvider;    private readonly AIKnowledgeSearchService _service;
 
     public AIKnowledgeSearchServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();        _mockFeatureManager = new Mock<IFeatureManager>();
-        _mockServiceProvider = new Mock<IServiceProvider>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
+        _mockFeatureManager = new Mock<IFeatureManager>();
+        _mockServiceProvider = new Mock<IServiceProvider>();
 
         // Default: AI not available (feature flag off)
         _mockFeatureManager.Setup(f => f.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
@@ -36,7 +35,7 @@ public class AIKnowledgeSearchServiceTests : ServiceTestFixtureBase<AIKnowledgeS
 
         _service = new AIKnowledgeSearchService(
             _mockServiceProvider.Object,
-            _mockResolver.Object,
+            MockContext.Object,
             _mockFeatureManager.Object,
             MockLogger.Object);
     }

@@ -1,6 +1,6 @@
 -- Consolidated Contact Information Migration v2
 -- Adapted for existing schema
--- Run on: crm_db and crm_demodb
+-- Run on: crm_db (single database policy — crm_demodb deprecated)
 
 -- ============================================================
 -- 1. Enhance existing Addresses table with new columns

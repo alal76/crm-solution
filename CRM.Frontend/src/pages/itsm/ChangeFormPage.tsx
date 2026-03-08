@@ -7,11 +7,16 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 import apiClient from '../../services/apiClient';
+import { changeFormSchema } from '../../validation/itsmFormSchemas';
+import type { ValidationError } from 'yup';
 
 const ChangeFormPage: React.FC = () => {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     shortDescription: '',
     description: '',
@@ -24,15 +29,34 @@ const ChangeFormPage: React.FC = () => {
     backoutPlan: ''
   });
 
+  const validate = async (): Promise<boolean> => {
+    try {
+      await changeFormSchema.validate(formData, { abortEarly: false });
+      setErrors({});
+      return true;
+    } catch (err) {
+      const validationError = err as ValidationError;
+      const fieldErrors: Record<string, string> = {};
+      validationError.inner.forEach((e) => {
+        if (e.path) fieldErrors[e.path] = e.message;
+      });
+      setErrors(fieldErrors);
+      return false;
+    }
+  };
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setSubmitting(true);
+    setSubmitError(null);
+    const isValid = await validate();
+    if (!isValid) return;
 
+    setSubmitting(true);
     try {
       await apiClient.post('/changes', formData);
       navigate('/itsm/changes');
-    } catch (error) {
-      console.error('Failed to create change', error);
+    } catch (error: any) {
+      setSubmitError(error?.response?.data?.message || 'Failed to create change');
       setSubmitting(false);
     }
   };
@@ -41,6 +65,7 @@ const ChangeFormPage: React.FC = () => {
     <Box sx={{ p: 3, maxWidth: 900, mx: 'auto' }}>
       <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Create Change</Typography>
       <Paper sx={{ p: 3 }}>
+        {submitError && <Alert severity="error" sx={{ mb: 2 }}>{submitError}</Alert>}
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <TextField
@@ -49,6 +74,8 @@ const ChangeFormPage: React.FC = () => {
               value={formData.shortDescription}
               onChange={(e) => setFormData({ ...formData, shortDescription: e.target.value })}
               required
+              error={!!errors.shortDescription}
+              helperText={errors.shortDescription}
             />
             <TextField
               fullWidth
@@ -57,6 +84,8 @@ const ChangeFormPage: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               multiline
               rows={4}
+              error={!!errors.description}
+              helperText={errors.description}
             />
             <Grid container spacing={2}>
               <Grid item xs={12} md={4}>
@@ -108,6 +137,8 @@ const ChangeFormPage: React.FC = () => {
                   value={formData.plannedStartDate}
                   onChange={(e) => setFormData({ ...formData, plannedStartDate: e.target.value })}
                   InputLabelProps={{ shrink: true }}
+                  error={!!errors.plannedStartDate}
+                  helperText={errors.plannedStartDate}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -118,6 +149,8 @@ const ChangeFormPage: React.FC = () => {
                   value={formData.plannedEndDate}
                   onChange={(e) => setFormData({ ...formData, plannedEndDate: e.target.value })}
                   InputLabelProps={{ shrink: true }}
+                  error={!!errors.plannedEndDate}
+                  helperText={errors.plannedEndDate}
                 />
               </Grid>
             </Grid>
@@ -130,6 +163,8 @@ const ChangeFormPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, implementationPlan: e.target.value })}
                   multiline
                   rows={3}
+                  error={!!errors.implementationPlan}
+                  helperText={errors.implementationPlan}
                 />
               </Grid>
               <Grid item xs={12} md={6}>
@@ -140,6 +175,8 @@ const ChangeFormPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, backoutPlan: e.target.value })}
                   multiline
                   rows={3}
+                  error={!!errors.backoutPlan}
+                  helperText={errors.backoutPlan}
                 />
               </Grid>
             </Grid>

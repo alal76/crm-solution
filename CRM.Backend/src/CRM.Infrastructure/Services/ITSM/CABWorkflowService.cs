@@ -4,14 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-#if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
 
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -144,20 +142,20 @@ public class ApprovalLevel
 /// </summary>
 public class CABWorkflowService : ICABWorkflowService
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<CABWorkflowService> _logger;
 
     public CABWorkflowService(
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext dbContext,
         ILogger<CABWorkflowService> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
     public async Task<CABWorkflow> InitializeWorkflowAsync(int changeRequestId, int initiatedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var change = await context.Changes
             .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
@@ -218,7 +216,7 @@ public class CABWorkflowService : ICABWorkflowService
 
     public async Task<bool> SubmitApprovalAsync(int changeRequestId, int approverId, bool isApproved, string? comments = null)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         // Get current pending approval for this approver
         var approval = await context.ChangeApprovals
@@ -308,7 +306,7 @@ public class CABWorkflowService : ICABWorkflowService
 
     public async Task<CABWorkflowStatus?> GetWorkflowStatusAsync(int changeRequestId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var change = await context.Changes
             .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
@@ -369,7 +367,7 @@ public class CABWorkflowService : ICABWorkflowService
 
     public async Task<List<PendingChangeApproval>> GetPendingApprovalsAsync(int approverId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var pendingApprovals = await context.ChangeApprovals
             .Where(a => a.ApproverId == approverId && a.ApprovalStatus == ApprovalStatus.Requested)
@@ -394,7 +392,7 @@ public class CABWorkflowService : ICABWorkflowService
 
     public async Task<bool> RequiresCABReviewAsync(int changeRequestId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var change = await context.Changes
             .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
@@ -413,7 +411,7 @@ public class CABWorkflowService : ICABWorkflowService
 
     public async Task<int> ScheduleCABMeetingAsync(DateTime meetingDate, List<int> changeRequestIds, int scheduledById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         // This would create a CAB meeting record
         // For now, just add notes to each change
@@ -511,6 +509,3 @@ public class CABWorkflowService : ICABWorkflowService
         return Task.FromResult(chain);
     }
 }
-
-
-#endif

@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 // ENUM-TEST-001 to ENUM-TEST-005: Unit tests for EnumManagementService
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;

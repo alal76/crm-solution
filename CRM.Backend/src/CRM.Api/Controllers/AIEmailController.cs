@@ -528,6 +528,86 @@ Respond with JSON:
 
     private static string GetDefaultModelForProvider(LLMSettingsDto settings, string provider)
         => AIServiceHelper.GetDefaultModelForProvider(settings, provider);
+
+    /// <summary>
+    /// Generate an email from a prompt.
+    /// POST /api/ai/email/generate
+    /// </summary>
+    [HttpPost("generate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Generate([FromBody] EmailGenerateRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Prompt))
+        {
+            return BadRequest(new { error = "Prompt is required." });
+        }
+
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        if (settings?.DefaultProvider == null)
+        {
+            return Ok(new { success = false, error = "LLM service is not configured." });
+        }
+
+        var systemPrompt = "You are a professional email writing assistant. Generate a complete email based on the user prompt. Return JSON: { \"subject\": \"...\", \"body\": \"...\", \"tone\": \"...\" }";
+
+        var llmRequest = new LLMRequest
+        {
+            Provider = settings.DefaultProvider,
+            Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
+            Messages = new List<LLMMessage>
+            {
+                new() { Role = SystemRole, Content = systemPrompt },
+                new() { Role = "user", Content = $"Tone: {request.Tone ?? "professional"}\n\nPrompt: {request.Prompt}" }
+            },
+            Temperature = 0.7,
+            MaxTokens = 1500,
+            JsonMode = true
+        };
+
+        var response = await _llmService.ChatAsync(llmRequest);
+        return Ok(new { success = response.Success, content = response.Content, error = response.Error, provider = response.Provider });
+    }
+
+    /// <summary>
+    /// Summarize an email thread.
+    /// POST /api/ai/email/summarize
+    /// </summary>
+    [HttpPost("summarize")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Summarize([FromBody] EmailSummarizeRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.EmailContent))
+        {
+            return BadRequest(new { error = "EmailContent is required." });
+        }
+
+        var settings = await _llmSettingsService.GetSettingsAsync();
+        if (settings?.DefaultProvider == null)
+        {
+            return Ok(new { success = false, error = "LLM service is not configured." });
+        }
+
+        var systemPrompt = "Summarize the following email or email thread concisely. Return JSON: { \"summary\": \"...\", \"keyPoints\": [\"...\"], \"actionItems\": [\"...\"], \"sentiment\": \"...\" }";
+
+        var llmRequest = new LLMRequest
+        {
+            Provider = settings.DefaultProvider,
+            Model = GetDefaultModelForProvider(settings, settings.DefaultProvider),
+            Messages = new List<LLMMessage>
+            {
+                new() { Role = SystemRole, Content = systemPrompt },
+                new() { Role = "user", Content = request.EmailContent }
+            },
+            Temperature = 0.3,
+            MaxTokens = 1000,
+            JsonMode = true
+        };
+
+        var response = await _llmService.ChatAsync(llmRequest);
+        return Ok(new { success = response.Success, content = response.Content, error = response.Error, provider = response.Provider });
+    }
 }
 
 #region Request DTOs
@@ -697,6 +777,17 @@ public class ScoreSet
     public int Tone { get; set; }
     public int Grammar { get; set; }
     public int Overall { get; set; }
+}
+
+public class EmailGenerateRequest
+{
+    public string Prompt { get; set; } = "";
+    public string? Tone { get; set; }
+}
+
+public class EmailSummarizeRequest
+{
+    public string EmailContent { get; set; } = "";
 }
 
 #endregion

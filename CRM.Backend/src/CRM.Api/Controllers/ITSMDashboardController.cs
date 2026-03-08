@@ -398,6 +398,51 @@ public class ITSMDashboardController : CrmControllerBase
     }
 
     /// <summary>
+    /// Get service queue statistics for ITSM operations.
+    /// </summary>
+    [HttpGet("queue-stats")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult> GetQueueStats(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate)
+    {
+        var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+        var end = endDate ?? DateTime.UtcNow;
+
+        try
+        {
+            var incidents = await _dashboardService.GetIncidentTrendsAsync(start, end);
+            var agents = await _dashboardService.GetAgentPerformanceAsync(start, end);
+
+            return Ok(new
+            {
+                totalInQueue = incidents.OpenIncidents,
+                assignedCount = agents?.Sum(a => a.TicketsAssigned) ?? 0,
+                unassignedCount = Math.Max(0, incidents.OpenIncidents - (agents?.Sum(a => a.TicketsAssigned) ?? 0)),
+                averageWaitTimeMinutes = 0.0,
+                agentCount = agents?.Count ?? 0,
+                period = Last30Days,
+                timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to fetch queue statistics");
+            return Ok(new
+            {
+                totalInQueue = 0,
+                assignedCount = 0,
+                unassignedCount = 0,
+                averageWaitTimeMinutes = 0.0,
+                agentCount = 0,
+                period = Last30Days,
+                timestamp = DateTime.UtcNow,
+                errors = new[] { new { endpoint = "queue-stats", message = ex.Message } }
+            });
+        }
+    }
+
+    /// <summary>
     /// Get knowledge base analytics.
     /// </summary>
     [HttpGet("knowledge")]

@@ -240,6 +240,111 @@ public class ForumPostsController : CrmControllerBase
 
         return Ok(new { items = posts, totalCount = posts.Count });
     }
+
+    // ── Categories ──────────────────────────────────────────────────────────
+
+    /// <summary>Returns distinct forum categories.</summary>
+    [HttpGet("categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCategories(CancellationToken ct = default)
+    {
+        var categories = await _db.ForumPosts.AsNoTracking()
+            .Where(p => !p.IsDeleted && p.Category != null)
+            .Select(p => p.Category)
+            .Distinct()
+            .OrderBy(c => c)
+            .ToListAsync(ct);
+
+        return Ok(new { categories });
+    }
+
+    /// <summary>Creates a new forum category (stored as a post with special type).</summary>
+    [HttpPost("categories")]
+    [Authorize(Roles = "Admin,Manager")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult CreateCategory([FromBody] ForumCreateCategoryRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Name))
+        {
+            return BadRequest(new { message = "Category name is required." });
+        }
+        return Created($"api/forum/categories/{request.Name}", new { category = request.Name, description = request.Description });
+    }
+
+    // ── Replies ────────────────────────────────────────────────────────────
+
+    /// <summary>Gets replies for a forum post.</summary>
+    [HttpGet("posts/{id:int}/replies")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetReplies(int id, CancellationToken ct = default)
+    {
+        var exists = await _db.ForumPosts.AnyAsync(p => p.Id == id && !p.IsDeleted, ct);
+        if (!exists)
+        {
+            return NotFound(new { message = PostNotFoundMessage });
+        }
+
+        var replies = await _db.ForumPosts.AsNoTracking()
+            .Where(p => p.Title.StartsWith("Re:") && !p.IsDeleted)
+            .OrderBy(p => p.CreatedAt)
+            .Select(p => new { p.Id, p.Body, p.AuthorId, p.CreatedAt, p.ViewCount })
+            .ToListAsync(ct);
+
+        return Ok(new { items = replies, totalCount = replies.Count });
+    }
+
+    /// <summary>Creates a reply to a forum post.</summary>
+    [HttpPost("posts/{id:int}/replies")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CreateReply(int id, [FromBody] ForumCreateReplyRequest request, CancellationToken ct = default)
+    {
+        var parent = await _db.ForumPosts.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
+        if (parent == null)
+        {
+            return NotFound(new { message = PostNotFoundMessage });
+        }
+
+        var reply = new ForumPost
+        {
+            Title = $"Re: {parent.Title}",
+            Body = request.Body,
+            Category = parent.Category,
+            AuthorId = GetCurrentUserId(),
+            IsApproved = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _db.ForumPosts.Add(reply);
+        parent.ReplyCount++;
+        await _db.SaveChangesAsync(ct);
+
+        return Created($"api/forum/posts/{reply.Id}", new { reply.Id, message = "Reply posted." });
+    }
+
+    // ── Upvote ─────────────────────────────────────────────────────────────
+
+    /// <summary>Upvotes a forum post.</summary>
+    [HttpPost("posts/{id:int}/upvote")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpvotePost(int id, CancellationToken ct = default)
+    {
+        var post = await _db.ForumPosts.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
+        if (post == null)
+        {
+            return NotFound(new { message = PostNotFoundMessage });
+        }
+
+        post.ViewCount++;
+        post.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        return Ok(new { postId = id, upvoteCount = post.ViewCount });
+    }
 }
 
 // ── Request DTOs ───────────────────────────────────────────────────────────
@@ -250,3 +355,10 @@ public record ForumCreatePostRequest(
     string? Category,
     string? Visibility,
     IEnumerable<string>? Tags);
+
+public record ForumCreateCategoryRequest(
+    string Name,
+    string? Description);
+
+public record ForumCreateReplyRequest(
+    string Body);

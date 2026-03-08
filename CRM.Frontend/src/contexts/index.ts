@@ -16,3 +16,7 @@ export type { FontSize } from './FontSizeContext';
 // Recent items tracking context
 export { RecentItemsProvider, useRecentItems, useTrackRecentItem } from './RecentItemsContext';
 export type { RecentItem, RecentItemType } from './RecentItemsContext';
+
+// ITSM module shared state context
+export { ITSMProvider, useITSM } from './ITSMContext';
+export type { ITSMModuleTab, ITSMDashboardMetrics, ITSMFilters } from './ITSMContext';

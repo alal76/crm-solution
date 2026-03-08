@@ -351,8 +351,9 @@ NEW_SEARCH_EXPERIENCE=false
 AI_ASSISTANT=true
 REALTIME_NOTIFICATIONS=true
 ADVANCED_WORKFLOWS=true
-DEMO_AUTO_SEED=true
-DEMO_DB_NAME=crm_demodb
+# DEPRECATED: Demo database removed — single database policy
+# DEMO_AUTO_SEED=true
+# DEMO_DB_NAME=crm_demodb
 
 # Module Field Config Re-seeding (set to true on first deploy or when field defs change)
 FORCE_RESEED_FIELD_CONFIGS=true

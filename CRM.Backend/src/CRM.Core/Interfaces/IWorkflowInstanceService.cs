@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 #pragma warning disable SA1011 // Closing square bracket should be followed by a space
 
-using CRM.Core.DTOs.Workflow;
+using CRM.Core.Dtos.Workflow;
 using CRM.Core.Entities.Workflow;
 
 namespace CRM.Core.Interfaces;

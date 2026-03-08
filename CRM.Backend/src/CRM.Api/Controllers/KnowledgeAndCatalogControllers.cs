@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using System.Linq;
 using System.Security.Claims;
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;

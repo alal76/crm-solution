@@ -670,6 +670,53 @@ namespace CRM.Api.Controllers
             return Ok(config);
         }
 
+        /// <summary>
+        /// Get email configuration.
+        /// </summary>
+        [HttpGet("email")]
+        [ProducesResponseType(200)]
+        public IActionResult GetEmailConfig()
+        {
+            return Ok(new { smtpConfigured = false, provider = "BuiltIn", message = "Email configuration endpoint. Configure via system settings." });
+        }
+
+        /// <summary>
+        /// Get feature flags configuration.
+        /// </summary>
+        [HttpGet("features")]
+        [ProducesResponseType(200)]
+        public IActionResult GetFeaturesConfig()
+        {
+            return Ok(new { message = "Use GET /api/admin/features for feature flag management." });
+        }
+
+        /// <summary>
+        /// Get integration configuration.
+        /// </summary>
+        [HttpGet("integrations")]
+        [ProducesResponseType(200)]
+        public IActionResult GetIntegrationsConfig()
+        {
+            return Ok(new { message = "Use GET /api/health/providers for integration health. Configure via system settings." });
+        }
+
+        /// <summary>
+        /// Get security configuration overview.
+        /// </summary>
+        [HttpGet("security")]
+        [ProducesResponseType(200)]
+        public IActionResult GetSecurityConfig()
+        {
+            return Ok(new
+            {
+                authentication = "JWT",
+                passwordPolicy = new { minLength = 8, requireUppercase = true, requireDigit = true, requireSpecialChar = true },
+                rateLimiting = true,
+                corsEnabled = true,
+                message = "Security configuration overview. Modify via appsettings.json."
+            });
+        }
+
         #endregion
     }
 }

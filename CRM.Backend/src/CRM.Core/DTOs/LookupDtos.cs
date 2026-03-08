@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 
-namespace CRM.Core.DTOs;
+namespace CRM.Core.Dtos;
 
 // ─────────────────────────────────────────────────────────────────
 // LookupCategory DTOs

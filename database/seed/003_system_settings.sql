@@ -45,8 +45,8 @@ INSERT INTO SystemSettings (
   NavOrderConfig,
   -- SSL/HTTPS
   HttpsEnabled, SslCertificatePath, SslPrivateKeyPath, SslCertificateExpiry, SslCertificateSubject, ForceHttpsRedirect,
-  -- Demo Settings
-  UseDemoDatabase, DemoDataSeeded, DemoDataLastSeeded,
+  -- DEPRECATED: Demo database columns removed — single database policy
+  -- UseDemoDatabase, DemoDataSeeded, DemoDataLastSeeded,
   -- Statistics
   StatisticsRefreshEnabled, StatisticsRefreshIntervalMinutes, StatisticsLastRefreshed,
   -- Timestamps
@@ -83,8 +83,8 @@ INSERT INTO SystemSettings (
   '[{"id":"dashboard","order":0,"visible":true},{"id":"customers","order":1,"visible":true},{"id":"customer-overview","order":2,"visible":true},{"id":"contacts","order":3,"visible":true},{"id":"leads","order":4,"visible":true},{"id":"opportunities","order":5,"visible":true},{"id":"products","order":6,"visible":true},{"id":"services","order":7,"visible":true},{"id":"service-requests","order":8,"visible":true},{"id":"campaigns","order":9,"visible":true},{"id":"quotes","order":10,"visible":true},{"id":"tasks","order":11,"visible":true},{"id":"activities","order":12,"visible":true},{"id":"notes","order":13,"visible":true},{"id":"workflows","order":14,"visible":true},{"id":"settings","order":15,"visible":true}]',
   -- SSL/HTTPS
   1, NULL, NULL, NULL, NULL, 0,
-  -- Demo Settings
-  0, 0, NULL,
+  -- DEPRECATED: Demo database values removed — single database policy
+  -- 0, 0, NULL,
   -- Statistics
   1, 60, NULL,
   -- Timestamps

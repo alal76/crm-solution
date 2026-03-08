@@ -10,7 +10,6 @@ using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Core.Validation;
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Validation;
 using Microsoft.AspNetCore.Authorization;
@@ -30,7 +29,6 @@ public class SystemSettingsController : CrmControllerBase
 {
     private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<SystemSettingsController> _logger;
-    private readonly IDbContextResolver? _contextResolver;
     private readonly IDatabaseSyncService? _databaseSyncService;
     private readonly IWebHostEnvironment _environment;
     private readonly IAuditLogService? _auditLogService;
@@ -41,7 +39,6 @@ public class SystemSettingsController : CrmControllerBase
         ILogger<SystemSettingsController> logger,
         IWebHostEnvironment environment,
         IConfiguration configuration,
-        IDbContextResolver? contextResolver = null,
         IDatabaseSyncService? databaseSyncService = null,
         IAuditLogService? auditLogService = null)
     {
@@ -49,7 +46,6 @@ public class SystemSettingsController : CrmControllerBase
         _logger = logger;
         _environment = environment;
         _defaultCertPassword = configuration["SSL_CERT_PASSWORD"] ?? "CHANGE_IN_PRODUCTION"; // NOSONAR - S2068: placeholder requiring override via SSL_CERT_PASSWORD env var in production
-        _contextResolver = contextResolver;
         _databaseSyncService = databaseSyncService;
         _auditLogService = auditLogService;
     }

@@ -392,7 +392,7 @@ public class DocuSignProvider : ISignaturePort
 
             if (expiryDays > 0)
             {
-                envelopeDefinition.Notification = new Notification
+                envelopeDefinition.Notification = new global::DocuSign.eSign.Model.Notification
                 {
                     Expirations = new Expirations
                     {

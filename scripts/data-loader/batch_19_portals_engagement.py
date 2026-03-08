@@ -7,7 +7,7 @@ Covers entities not present in earlier batches:
   - Web-to-Lead Forms      (/api/webtoleadforms)
   - Landing Pages          (/api/landing-pages)
   - UTM Tracking Links     (/api/campaigns/{id}/links)
-  - Campaign Conversions   (/api/campaignconversions)
+  - Campaign Conversions   (/api/campaign-conversions)
   - Event Attendees        (/api/event-attendees  or  /api/events/{id}/attendees)
   - Forum Posts            (/api/forum/posts)
   - Satisfaction Surveys   (/api/satisfaction)
@@ -216,13 +216,13 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("CampaignConversions")
     if campaign_ids and lead_ids:
         for i, cid in enumerate(campaign_ids[:2]):
-            api.post("/api/campaignconversions",
+            api.post("/api/campaign-conversions",
                      {"campaignId": cid,
                       "leadId": lead_ids[i % len(lead_ids)],
                       "conversionType": "Lead",
                       "convertedAt": "2026-02-15T14:30:00Z",
                       "value": 5000.00, "currency": "USD"})
-        api.get(f"/api/campaignconversions?campaignId={campaign_ids[0]}")
+        api.get(f"/api/campaign-conversions?campaignId={campaign_ids[0]}")
 
     # ─── Event Attendees ──────────────────────────────────────────────────
     log.section("EventAttendees CRUD")

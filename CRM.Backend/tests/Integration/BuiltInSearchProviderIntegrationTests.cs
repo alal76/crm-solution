@@ -32,7 +32,6 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
 {
     private readonly CrmDbContext _dbContext;
     private readonly BuiltInSearchProvider _provider;
-    private readonly Mock<IDbContextResolver> _resolverMock;
 
     public BuiltInSearchProviderIntegrationTests()
     {
@@ -48,12 +47,8 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
 
         _dbContext = new CrmDbContext(options, null);
 
-        // Setup the resolver to return our test context
-        _resolverMock = new Mock<IDbContextResolver>();
-        _resolverMock.Setup(r => r.ResolveContext()).Returns(_dbContext);
-
         var logger = new Mock<ILogger<BuiltInSearchProvider>>();
-        _provider = new BuiltInSearchProvider(_resolverMock.Object, logger.Object);
+        _provider = new BuiltInSearchProvider(_dbContext, logger.Object);
     }
 
     public void Dispose()

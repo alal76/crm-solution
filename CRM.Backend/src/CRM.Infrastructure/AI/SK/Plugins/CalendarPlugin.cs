@@ -7,7 +7,7 @@
 #nullable enable
 
 using System.ComponentModel;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.AI.SK.Attributes;

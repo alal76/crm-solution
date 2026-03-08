@@ -120,4 +120,46 @@ public class SatisfactionController : CrmControllerBase
         var score = await _service.GetCSATScoreAsync(from, to, ct);
         return Ok(new { csatScore = score });
     }
+
+    // GET /api/satisfaction/csat/summary
+    [HttpGet("csat/summary")]
+    public async Task<IActionResult> GetCSATSummary(
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        CancellationToken ct = default)
+    {
+        var score = await _service.GetCSATScoreAsync(from, to, ct);
+        var metrics = await _service.GetMetricsAsync(from, to, null, ct);
+        return Ok(new { csatScore = score, totalResponses = metrics?.TotalResponses ?? 0, period = new { from, to } });
+    }
+
+    // GET /api/satisfaction/nps/summary
+    [HttpGet("nps/summary")]
+    public async Task<IActionResult> GetNPSSummary(
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        CancellationToken ct = default)
+    {
+        var score = await _service.GetNPSScoreAsync(from, to, ct);
+        var metrics = await _service.GetMetricsAsync(from, to, null, ct);
+        return Ok(new { npsScore = score, totalResponses = metrics?.TotalResponses ?? 0, period = new { from, to } });
+    }
+
+    // GET /api/satisfaction/nps/trend
+    [HttpGet("nps/trend")]
+    public async Task<IActionResult> GetNPSTrend(
+        [FromQuery] int months = 6,
+        CancellationToken ct = default)
+    {
+        var trends = new List<object>();
+        var now = DateTime.UtcNow;
+        for (int i = months - 1; i >= 0; i--)
+        {
+            var from = new DateTime(now.Year, now.Month, 1).AddMonths(-i);
+            var to = from.AddMonths(1).AddTicks(-1);
+            var score = await _service.GetNPSScoreAsync(from, to, ct);
+            trends.Add(new { month = from.ToString("yyyy-MM"), npsScore = score });
+        }
+        return Ok(new { trends, months });
+    }
 }

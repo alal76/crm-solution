@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
+using CRM.Core.Entities.ITSM;
 
 namespace CRM.Core.Dtos.ITSM;
 
@@ -17,17 +18,26 @@ public class ProblemDto
     /// <summary>Unique identifier</summary>
     public int Id { get; set; }
 
-    /// <summary>Problem number/reference</summary>
+    /// <summary>Problem ID (entity key)</summary>
+    public int ProblemId { get; set; }
+
+    /// <summary>Problem number/reference (display format)</summary>
     public string ProblemNumber { get; set; } = string.Empty;
+
+    /// <summary>Problem number (raw)</summary>
+    public string Number { get; set; } = string.Empty;
 
     /// <summary>Problem title/description</summary>
     public string Title { get; set; } = string.Empty;
 
+    /// <summary>Short description (ITIL field)</summary>
+    public string ShortDescription { get; set; } = string.Empty;
+
     /// <summary>Detailed description</summary>
     public string? Description { get; set; }
 
-    /// <summary>Problem state (New, Under Investigation, Known Error, Resolved, Closed)</summary>
-    public string State { get; set; } = "New";
+    /// <summary>Problem state enum</summary>
+    public ProblemState State { get; set; } = ProblemState.New;
 
     /// <summary>Problem status (Active, On Hold, Closed)</summary>
     public string Status { get; set; } = "Active";
@@ -38,9 +48,8 @@ public class ProblemDto
     /// <summary>Impact level (Low, Medium, High, Critical)</summary>
     public string Impact { get; set; } = "Low";
 
-    /// <summary>Priority calculated from urgency and impact</summary>
-    [Range(1, 5)]
-    public int Priority { get; set; }
+    /// <summary>Priority enum</summary>
+    public ProblemPriority Priority { get; set; }
 
     /// <summary>Number of related incidents</summary>
     [Range(0, int.MaxValue)]
@@ -51,6 +60,24 @@ public class ProblemDto
 
     /// <summary>Known error flag</summary>
     public bool IsKnownError { get; set; }
+
+    /// <summary>Known error flag (ITIL field)</summary>
+    public bool KnownError { get; set; }
+
+    /// <summary>Root cause analysis text</summary>
+    public string? RootCause { get; set; }
+
+    /// <summary>Workaround text (ITIL field)</summary>
+    public string? Workaround { get; set; }
+
+    /// <summary>Solution text</summary>
+    public string? Solution { get; set; }
+
+    /// <summary>Problem investigator user ID</summary>
+    public int? ProblemInvestigatorId { get; set; }
+
+    /// <summary>Problem investigator user name</summary>
+    public string? ProblemInvestigatorName { get; set; }
 
     /// <summary>Change ID for permanent fix</summary>
     public int? RelatedChangeId { get; set; }
@@ -99,13 +126,18 @@ public class ProblemDto
 public class CreateProblemDto
 {
     /// <summary>Problem title</summary>
-    [Required]
     [StringLength(255, MinimumLength = 5)]
     public string Title { get; set; } = string.Empty;
+
+    /// <summary>Short description (ITIL field)</summary>
+    public string ShortDescription { get; set; } = string.Empty;
 
     /// <summary>Description</summary>
     [StringLength(2000)]
     public string? Description { get; set; }
+
+    /// <summary>Priority enum</summary>
+    public ProblemPriority Priority { get; set; } = ProblemPriority.Medium;
 
     /// <summary>Urgency level</summary>
     [StringLength(50)]
@@ -115,12 +147,18 @@ public class CreateProblemDto
     [StringLength(50)]
     public string Impact { get; set; } = "Low";
 
+    /// <summary>Category ID</summary>
+    public int? CategoryId { get; set; }
+
     /// <summary>Assigned to user/group</summary>
     [Range(1, int.MaxValue)]
     public int? AssignedToId { get; set; }
 
     /// <summary>Related incident IDs</summary>
     public List<int> RelatedIncidentIds { get; set; } = new();
+
+    /// <summary>Incident IDs to relate (ITIL field)</summary>
+    public List<int>? IncidentIds { get; set; }
 }
 
 /// <summary>
@@ -132,13 +170,15 @@ public class UpdateProblemDto
     [StringLength(255, MinimumLength = 5)]
     public string? Title { get; set; }
 
+    /// <summary>Short description (ITIL field)</summary>
+    public string? ShortDescription { get; set; }
+
     /// <summary>Updated description</summary>
     [StringLength(2000)]
     public string? Description { get; set; }
 
-    /// <summary>Updated state</summary>
-    [StringLength(50)]
-    public string? State { get; set; }
+    /// <summary>Updated state enum</summary>
+    public ProblemState? State { get; set; }
 
     /// <summary>Updated status</summary>
     [StringLength(50)]
@@ -156,12 +196,33 @@ public class UpdateProblemDto
     [Range(1, int.MaxValue)]
     public int? AssignedToId { get; set; }
 
+    /// <summary>Root cause analysis</summary>
+    public string? RootCause { get; set; }
+
+    /// <summary>Workaround text (ITIL field)</summary>
+    public string? Workaround { get; set; }
+
     /// <summary>Workaround details</summary>
     [StringLength(1000)]
     public string? WorkaroundDescription { get; set; }
 
+    /// <summary>Solution text</summary>
+    public string? Solution { get; set; }
+
     /// <summary>Mark as known error</summary>
     public bool? IsKnownError { get; set; }
+
+    /// <summary>Known error flag (ITIL field)</summary>
+    public bool? KnownError { get; set; }
+
+    /// <summary>Problem investigator user ID</summary>
+    public int? ProblemInvestigatorId { get; set; }
+
+    /// <summary>Closure comments</summary>
+    public string? ClosureComments { get; set; }
+
+    /// <summary>Resolution text</summary>
+    public string? Resolution { get; set; }
 
     /// <summary>Related change ID</summary>
     [Range(1, int.MaxValue)]

@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ApprovalStatus = CRM.Core.Entities.ITSM.ApprovalStatus;
@@ -24,16 +23,16 @@ namespace CRM.Infrastructure.Services.ITSM;
 /// </summary>
 public class ChangeManagementServiceEx : IChangeManagementServiceEx
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<ChangeManagementServiceEx> _logger;
     private const string ChangeNotFoundMessage = "Change {0} not found";
     private const string CabNotFoundMessage = "Change (CAB) {0} not found";
 
     public ChangeManagementServiceEx(
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext dbContext,
         ILogger<ChangeManagementServiceEx> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -44,7 +43,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> CreateChangeAsync(CreateChangeDto dto, int requestorId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var change = new Change
         {
@@ -75,7 +74,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> GetChangeByIdAsync(int changeId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes
             .Include(c => c.Requestor)
             .Include(c => c.AssignedTo)
@@ -93,7 +92,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     public async Task<(IEnumerable<ChangeDto> Items, int TotalCount)> ListChangesAsync(
         ChangeFilterDto filter, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var query = context.Changes
             .Include(c => c.Requestor)
             .Include(c => c.AssignedTo)
@@ -148,7 +147,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> UpdateChangeAsync(int changeId, CreateChangeDto dto, int modifiedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -175,7 +174,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> CancelChangeAsync(int changeId, string reason, int cancelledById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -200,7 +199,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task DeleteChangeAsync(int changeId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -222,7 +221,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> RequestApprovalAsync(int changeId, int requestedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -247,7 +246,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeApprovalDto> ApproveChangeAsync(int changeId, int approverId, string? comments = null, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -284,7 +283,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeApprovalDto> RejectChangeAsync(int changeId, int approverId, string reason, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -319,7 +318,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> ScheduleChangeAsync(int changeId, ScheduleChangeImplementationDto dto, int modifiedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -357,7 +356,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> StartImplementationAsync(int changeId, int modifiedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -382,7 +381,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> CompleteChangeAsync(int changeId, bool successful, string? notes, int completedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -409,7 +408,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> CloseChangeAsync(int changeId, string closureCode, string? postImplementationReview, int closedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -437,7 +436,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<CABDto> CreateCABAsync(CreateCABDto dto, int createdById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { dto.ChangeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -481,7 +480,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     public async Task<CABDto> ScheduleCABMeetingAsync(int cabId, DateTime meetingDate, string? meetingLocation, int modifiedById, CancellationToken cancellationToken = default)
     {
         // cabId == ChangeId
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { cabId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -507,7 +506,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     public async Task<CABMemberDto> RecordCABDecisionAsync(int cabId, int cabMemberId, ApprovalStatus status, string? comments, int decidedById, CancellationToken cancellationToken = default)
     {
         // cabId == ChangeId; cabMemberId == ApproverId
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var approval = await context.ChangeApprovals
             .Include(a => a.Approver)
             .FirstOrDefaultAsync(a => a.ChangeId == cabId &&
@@ -543,7 +542,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> FinalizeCABApprovalAsync(int changeId, int modifiedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -585,7 +584,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     public async Task<CABDto> GetCABAsync(int cabId, CancellationToken cancellationToken = default)
     {
         // cabId == ChangeId
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { cabId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -603,7 +602,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeApprovalDto> RecordApprovalAsync(int changeId, int approverId, ApprovalStatus status, string? comments, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -644,7 +643,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<IEnumerable<ChangeApprovalDto>> GetApprovalsAsync(int changeId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var approvals = await context.ChangeApprovals
             .Include(a => a.Approver)
             .Where(a => a.ChangeId == changeId && !a.IsDeleted)
@@ -661,7 +660,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeImpactDto> AnalyzeChangeImpactAsync(int changeId, int modifiedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -727,7 +726,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeImpactDto> DocumentImpactedServicesAsync(int changeId, List<int> impactedCIIds, int modifiedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -762,7 +761,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeImpactDto> IdentifyRollbackRisksAsync(int changeId, int modifiedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -795,7 +794,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeRollbackPlanDto> CreateRollbackPlanAsync(int changeId, string rollbackSteps, int estimatedTimeMinutes, int createdById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -816,7 +815,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeRollbackPlanDto> GetRollbackPlanAsync(int changeId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -830,7 +829,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> ExecuteRollbackAsync(int changeId, ExecuteRollbackDto dto, int executedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -852,7 +851,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeDto> ValidateRollbackSuccessAsync(int changeId, ValidateRollbackSuccessDto dto, int validatedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -884,7 +883,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<IEnumerable<ChangeImplementationTaskDto>> GetImplementationTasksAsync(int changeId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var tasks = await context.ChangeTasks
             .Include(t => t.AssignedTo)
             .Where(t => t.ChangeId == changeId && !t.IsDeleted)
@@ -897,7 +896,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeImplementationTaskDto> CreateImplementationTaskAsync(int changeId, CreateChangeImplementationTaskDto dto, int createdById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -928,7 +927,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeImplementationTaskDto> CompleteImplementationTaskAsync(int taskId, int completedById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var task = await context.ChangeTasks
             .Include(t => t.AssignedTo)
             .FirstOrDefaultAsync(t => t.TaskId == taskId && !t.IsDeleted, cancellationToken);
@@ -949,7 +948,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<(int TotalTasks, int CompletedTasks, double ProgressPercent)> GetImplementationProgressAsync(int changeId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var allTasks = await context.ChangeTasks
             .Where(t => t.ChangeId == changeId && !t.IsDeleted)
             .ToListAsync(cancellationToken);
@@ -968,7 +967,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeConflictCheckDto> CheckConflictsAsync(int changeId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -1041,7 +1040,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<bool> DetectBlackoutConflictsAsync(int changeId, DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         return await context.ChangeBlackouts
             .AnyAsync(b => !b.IsDeleted &&
                            ((b.StartDate <= startDate && b.EndDate >= startDate) ||
@@ -1057,7 +1056,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<IEnumerable<ChangeBlackoutDto>> GetBlackoutPeriodsAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var blackouts = await context.ChangeBlackouts
             .Where(b => !b.IsDeleted &&
                         ((b.StartDate >= startDate && b.StartDate <= endDate) ||
@@ -1081,7 +1080,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeBlackoutDto> CreateBlackoutPeriodAsync(CreateChangeBlackoutDto dto, int createdById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var blackout = new ChangeBlackout
         {
@@ -1120,7 +1119,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeCommentDto> AddCommentAsync(int changeId, CreateChangeCommentDto dto, int createdById, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
@@ -1156,7 +1155,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<IEnumerable<ChangeCommentDto>> GetCommentsAsync(int changeId, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var comments = await context.ChangeComments
             .Include(c => c.CreatedBy)
             .Where(c => c.ChangeId == changeId && !c.IsDeleted)
@@ -1182,7 +1181,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
     /// <inheritdoc/>
     public async Task<ChangeMetricsDto> GetChangeMetricsAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var query = context.Changes.Where(c => !c.IsDeleted);
 

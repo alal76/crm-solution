@@ -175,6 +175,56 @@ public class GdprController : CrmControllerBase
     // In-memory store for export requests (TODO: move to Redis/DB for production)
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, GdprExportResult>
         ExportRequestStore = new();
+
+    /// <summary>
+    /// List all GDPR data requests (exports, erasures).
+    /// GET /api/gdpr/requests
+    /// </summary>
+    [HttpGet("requests")]
+    [ProducesResponseType(typeof(IEnumerable<GdprExportResult>), StatusCodes.Status200OK)]
+    public IActionResult GetRequests([FromQuery] string? status = null)
+    {
+        var requests = ExportRequestStore.Values.AsEnumerable();
+        if (!string.IsNullOrEmpty(status))
+        {
+            requests = requests.Where(r => r.Status.Equals(status, StringComparison.OrdinalIgnoreCase));
+        }
+        return Ok(requests.OrderByDescending(r => r.RequestedAt));
+    }
+
+    /// <summary>
+    /// Create a new GDPR data request.
+    /// POST /api/gdpr/requests
+    /// </summary>
+    [HttpPost("requests")]
+    [ProducesResponseType(typeof(GdprExportRequestResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult CreateRequest([FromBody] GdprExportRequestDto request)
+    {
+        if (string.IsNullOrEmpty(request.SubjectType) || request.SubjectId <= 0)
+        {
+            return BadRequest(new { error = "SubjectType and SubjectId are required." });
+        }
+
+        var requestId = Guid.NewGuid().ToString("N")[..12];
+        var result = new GdprExportResult
+        {
+            RequestId = requestId,
+            Status = "pending",
+            SubjectType = request.SubjectType,
+            SubjectId = request.SubjectId,
+            RequestedAt = DateTime.UtcNow
+        };
+        ExportRequestStore[requestId] = result;
+
+        return Created($"api/gdpr/requests/{requestId}", new GdprExportRequestResponse
+        {
+            RequestId = requestId,
+            Status = "pending",
+            Message = $"GDPR request created for {request.SubjectType}/{request.SubjectId}",
+            ExpiresAt = DateTime.UtcNow.AddHours(72)
+        });
+    }
 }
 
 // ─── DTOs for GDPR Export Workflow (TODO-SYS006-005) ─────────────────────────

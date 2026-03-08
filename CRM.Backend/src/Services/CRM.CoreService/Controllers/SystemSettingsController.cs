@@ -6,7 +6,6 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +24,6 @@ public class SystemSettingsController : ControllerBase
 {
     private readonly ISystemSettingsService _settingsService;
     private readonly ILogger<SystemSettingsController> _logger;
-    private readonly IDbContextResolver? _contextResolver;
     private readonly IDatabaseSyncService? _databaseSyncService;
     private readonly IWebHostEnvironment _environment;
 
@@ -33,13 +31,11 @@ public class SystemSettingsController : ControllerBase
         ISystemSettingsService settingsService,
         ILogger<SystemSettingsController> logger,
         IWebHostEnvironment environment,
-        IDbContextResolver? contextResolver = null,
         IDatabaseSyncService? databaseSyncService = null)
     {
         _settingsService = settingsService;
         _logger = logger;
         _environment = environment;
-        _contextResolver = contextResolver;
         _databaseSyncService = databaseSyncService;
     }
 

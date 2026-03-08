@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-#if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
@@ -12,7 +11,6 @@
 using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -65,8 +63,7 @@ public class EscalationHostedService : BackgroundService
     private async Task ProcessEscalationsAsync(CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
-        var dbContextResolver = scope.ServiceProvider.GetRequiredService<IDbContextResolver>();
-        var context = dbContextResolver.ResolveContext();
+        var context = scope.ServiceProvider.GetRequiredService<ICrmDbContext>();
 
         var now = DateTime.UtcNow;
         var escalationsProcessed = 0;
@@ -520,6 +517,3 @@ public class EscalationHostedService : BackgroundService
         public int ThresholdMinutes { get; set; }
     }
 }
-
-
-#endif

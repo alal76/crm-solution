@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
 using CRM.Tests.Helpers;
 using FluentAssertions;
@@ -21,12 +20,11 @@ namespace CRM.Tests.ITSMServices.Catalog;
 
 public class ServiceCatalogServiceTests : ServiceTestFixtureBase<ServiceCatalogService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly IServiceCatalogService _service;
+    private readonly IServiceCatalogService _service;
 
     public ServiceCatalogServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
-        _service = new ServiceCatalogService(_mockResolver.Object, MockLogger.Object);
+        _service = new ServiceCatalogService(MockContext.Object, MockLogger.Object);
     }
 
     // ========================================================================

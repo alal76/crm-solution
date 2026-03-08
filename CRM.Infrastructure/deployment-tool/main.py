@@ -749,7 +749,7 @@ class DeploymentConfig:
     
     # Seed Data
     seed_master_data: bool = True
-    seed_demo_data: bool = False
+    seed_sample_data: bool = False  # Renamed from seed_demo_data (demo database deprecated)
     seed_zip_codes: bool = False
     
     # Testing
@@ -7825,16 +7825,16 @@ class DeploymentTool:
         cb.pack(anchor=tk.W, pady=3)
         cb.state(['selected', 'disabled'])
         
-        # Demo data
-        demo_frame = ttk.LabelFrame(tab, text="Demo Data (Optional)", padding="15")
-        demo_frame.pack(fill=tk.X, pady=(0, 15))
+        # Sample data (seeds into main crm_db — demo database deprecated)
+        sample_frame = ttk.LabelFrame(tab, text="Sample Data (Optional)", padding="15")
+        sample_frame.pack(fill=tk.X, pady=(0, 15))
         
-        self.seed_demo_var = tk.BooleanVar(value=self.config.seed_demo_data)
-        ttk.Checkbutton(demo_frame, text="Demo Customers & Contacts", 
+        self.seed_demo_var = tk.BooleanVar(value=self.config.seed_sample_data)
+        ttk.Checkbutton(sample_frame, text="Sample Customers & Contacts", 
                         variable=self.seed_demo_var).pack(anchor=tk.W, pady=3)
         
         self.seed_workflows_var = tk.BooleanVar(value=False)
-        ttk.Checkbutton(demo_frame, text="Sample Workflows", 
+        ttk.Checkbutton(sample_frame, text="Sample Workflows", 
                         variable=self.seed_workflows_var).pack(anchor=tk.W, pady=3)
         
         # Reference data
@@ -8074,7 +8074,7 @@ class DeploymentTool:
             admin_last_name=self.admin_lname_var.get(),
             jwt_secret=self.jwt_secret_var.get(),
             seed_master_data=True,
-            seed_demo_data=self.seed_demo_var.get(),
+            seed_sample_data=self.seed_demo_var.get(),
             seed_zip_codes=self.seed_zip_var.get(),
             run_bvt_tests=self.run_bvt_var.get(),
             run_smoke_tests=self.run_smoke_var.get(),

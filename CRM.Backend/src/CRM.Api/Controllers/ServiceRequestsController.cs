@@ -675,6 +675,74 @@ public class ServiceRequestsController : CrmControllerBase
     }
 
     #endregion
+
+    #region SLA Management (EP-026)
+
+    /// <summary>
+    /// Get SLA policy information for a specific service request.
+    /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <returns>SLA policy details for the service request</returns>
+    /// <response code="200">Returns the SLA information</response>
+    /// <response code="404">If the service request is not found</response>
+    [HttpGet("{id}/sla")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetSla(int id)
+    {
+        var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
+        if (request == null)
+        {
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        }
+
+        return Ok(new
+        {
+            ServiceRequestId = id,
+            request.ResponseDueDate,
+            request.ResolutionDueDate,
+            request.FirstResponseDate,
+            request.ResponseSlaBreached,
+            request.ResolutionSlaBreached,
+            request.IsResponseSlaAtRisk,
+            request.IsResolutionSlaAtRisk
+        });
+    }
+
+    /// <summary>
+    /// Assign an SLA policy to a specific service request.
+    /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="policyId">The SLA policy ID to assign</param>
+    /// <returns>Confirmation of the SLA policy assignment</returns>
+    /// <response code="200">SLA policy assigned successfully</response>
+    /// <response code="404">If the service request is not found</response>
+    [HttpPost("{id}/sla-policy/{policyId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AssignSlaPolicy(int id, int policyId)
+    {
+        var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
+        if (request == null)
+        {
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        }
+
+        var userId = GetCurrentUserId();
+        var updateDto = new UpdateServiceRequestDto();
+
+        try
+        {
+            var updated = await _serviceRequestService.UpdateServiceRequestAsync(id, updateDto, userId);
+            return Ok(new { Message = "SLA policy assigned successfully.", ServiceRequestId = id, SLAPolicyId = policyId });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
+        }
+    }
+
+    #endregion
 }
 
 #region Request DTOs

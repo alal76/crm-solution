@@ -295,8 +295,8 @@ function FeatureManagementTab() {
         emailEnabled: features.communicationModules.email.enabled,
         whatsAppEnabled: features.communicationModules.whatsapp.enabled,
         socialMediaEnabled: features.communicationModules.socialMedia.enabled,
-        // DEPRECATED: Demo database feature removed - always false
-        useDemoDatabase: features.systemSettings?.useDemoDatabase ?? false,
+        // DEPRECATED: Demo database feature removed — single database policy
+        // useDemoDatabase: features.systemSettings?.useDemoDatabase ?? false,
         activeDatabaseProvider: features.activeDatabaseProvider,
       };
 
@@ -507,45 +507,7 @@ function FeatureManagementTab() {
                 </CardContent>
               </Card>
             </Grid>
-            {/* Demo Database card - only show if demoDatabase exists (deprecated feature) */}
-            {databaseStatus.demoDatabase && (
-              <Grid item xs={12} md={6}>
-                <Card variant={databaseStatus.demoDatabase.isActive ? 'elevation' : 'outlined'}>
-                  <CardHeader
-                    title={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <DemoIcon fontSize="small" />
-                        Demo Database (Deprecated)
-                        {databaseStatus.demoDatabase.isActive && (
-                          <Chip label="ACTIVE" color="info" size="small" />
-                        )}
-                      </Box>
-                    }
-                    subheader={databaseStatus.demoDatabase.name}
-                  />
-                  <CardContent>
-                    <TableContainer>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Module</TableCell>
-                            <TableCell align="right">Field Configs</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {Object.entries(databaseStatus.demoDatabase.modules).map(([module, count]) => (
-                            <TableRow key={module}>
-                              <TableCell>{module}</TableCell>
-                              <TableCell align="right">{count}</TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </CardContent>
-                </Card>
-              </Grid>
-            )}
+            {/* DEPRECATED: Demo Database card removed — single database policy (March 2026) */}
           </Grid>
         )}
       </Paper>

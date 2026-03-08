@@ -562,6 +562,23 @@ public class MasterDataController : CrmControllerBase
         return Ok(countries);
     }
 
+    /// <summary>
+    /// Get list of industries (from Account CompanyIndustry values).
+    /// </summary>
+    [HttpGet("industries")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetIndustries()
+    {
+        var industries = await _dbContext.Accounts
+            .Where(a => a.Industry != null && !a.IsDeleted)
+            .Select(a => a.Industry)
+            .Distinct()
+            .OrderBy(i => i)
+            .ToListAsync();
+
+        return Ok(industries);
+    }
+
     #endregion
 
     #region Branding & Company Profile

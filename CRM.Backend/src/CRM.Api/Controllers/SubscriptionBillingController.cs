@@ -509,6 +509,43 @@ public class SubscriptionBillingController : CrmControllerBase
     #region Credits
 
     /// <summary>
+    /// Get upcoming billing information for a subscription.
+    /// GET /api/subscriptions/{subscriptionId}/billing/upcoming
+    /// </summary>
+    [HttpGet("upcoming")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUpcoming(
+        int subscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+            {
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
+            }
+
+            var invoices = await _dbContext.Invoices.AsNoTracking()
+                .Where(i => i.SubscriptionId == subscriptionId && i.Status != InvoiceStatus.Paid)
+                .OrderBy(i => i.DueDate)
+                .ToListAsync(cancellationToken);
+            return Ok(new
+            {
+                subscriptionId,
+                nextBillingDate = subscription.NextBillingDate,
+                upcomingInvoices = invoices.Select(MapToInvoiceDto)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving upcoming billing for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    /// <summary>
     /// Apply a credit memo to a subscription invoice.
     /// POST /api/subscriptions/{subscriptionId}/billing/apply-credit
     /// </summary>

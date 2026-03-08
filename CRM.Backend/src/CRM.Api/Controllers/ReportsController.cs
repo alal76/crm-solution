@@ -5,7 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Security.Claims;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Dtos.Reports;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;

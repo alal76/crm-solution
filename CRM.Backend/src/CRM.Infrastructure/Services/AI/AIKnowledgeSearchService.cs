@@ -9,7 +9,6 @@ using CRM.Core.Entities.ITSM;
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -78,7 +77,7 @@ public class SemanticSearchResult
 public class AIKnowledgeSearchService : IAIKnowledgeSearchService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly IFeatureManager _featureManager;
     private readonly ILogger<AIKnowledgeSearchService> _logger;
 
@@ -93,12 +92,12 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
     /// </summary>
     public AIKnowledgeSearchService(
         IServiceProvider serviceProvider,
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext dbContext,
         IFeatureManager featureManager,
         ILogger<AIKnowledgeSearchService> logger)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        _dbContextResolver = dbContextResolver ?? throw new ArgumentNullException(nameof(dbContextResolver));
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -139,7 +138,7 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
             return;
         }
 
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var article = await context.ITSMKnowledgeArticles
             .FirstOrDefaultAsync(a => a.ArticleId == articleId && !a.IsDeleted, ct);
 
@@ -182,7 +181,7 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
             return;
         }
 
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var articles = await context.ITSMKnowledgeArticles
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
             .ToListAsync(ct);
@@ -324,7 +323,7 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
 
     private async Task<IEnumerable<SemanticSearchResult>> KeywordSearchAsync(string query, int maxResults, CancellationToken ct)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var articles = await context.ITSMKnowledgeArticles
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)

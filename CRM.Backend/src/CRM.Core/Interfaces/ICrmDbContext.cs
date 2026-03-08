@@ -430,6 +430,19 @@ public interface ICrmDbContext
     // BACK-010: Dunning Schedules
     DbSet<DunningSchedule> DunningSchedules { get; }
 
+    // EP-001–015: New controller entities
+    DbSet<Notification> Notifications { get; }
+    DbSet<NotificationTemplate> NotificationTemplates { get; }
+    DbSet<SavedView> SavedViews { get; }
+    DbSet<ApiKey> ApiKeys { get; }
+    DbSet<TaxRate> TaxRates { get; }
+    DbSet<QuoteTemplate> QuoteTemplates { get; }
+    DbSet<AutomationRule> AutomationRules { get; }
+    DbSet<CustomerSegment> CustomerSegments { get; }
+    DbSet<Event> Events { get; }
+    DbSet<WorkflowAction> WorkflowActions { get; }
+    DbSet<FeaturePlan> FeaturePlans { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

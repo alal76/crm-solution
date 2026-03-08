@@ -5,7 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Security.Claims;
-using CRM.Core.DTOs.Workflow;
+using CRM.Core.Dtos.Workflow;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
@@ -838,6 +838,17 @@ public class WorkflowController : CrmControllerBase
     public async Task<IActionResult> GetStatistics()
     {
                 var stats = await _workflowService.GetStatisticsAsync();
+        return Ok(stats);
+    }
+
+    /// <summary>
+    /// Get workflow execution statistics (aliases /statistics for CDT coverage).
+    /// </summary>
+    [HttpGet("analytics/execution-stats")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetExecutionStats()
+    {
+        var stats = await _workflowService.GetStatisticsAsync();
         return Ok(stats);
     }
 

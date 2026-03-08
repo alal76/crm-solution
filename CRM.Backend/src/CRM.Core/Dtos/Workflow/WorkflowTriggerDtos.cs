@@ -7,7 +7,7 @@
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities.Workflow;
 
-namespace CRM.Core.DTOs.Workflow;
+namespace CRM.Core.Dtos.Workflow;
 
 /// <summary>
 /// DTO for workflow trigger data.

@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers;
@@ -24,11 +25,13 @@ public class ConversationsController : CrmControllerBase
 {
     private const string ConversationNotFoundMessage = "Conversation {0} not found";
     private readonly IConversationService _service;
+    private readonly ICrmDbContext _context;
     private readonly ILogger<ConversationsController> _logger;
 
-    public ConversationsController(IConversationService service, ILogger<ConversationsController> logger)
+    public ConversationsController(IConversationService service, ICrmDbContext context, ILogger<ConversationsController> logger)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -257,6 +260,88 @@ public class ConversationsController : CrmControllerBase
 
     #endregion
 
+    #region Messages & Resolution
+
+    /// <summary>Gets messages for a conversation.</summary>
+    [HttpGet("{id:int}/messages")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> GetMessages(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var conversation = await _service.GetByIdAsync(id, cancellationToken);
+            if (conversation == null)
+                return NotFound(string.Format(ConversationNotFoundMessage, id));
+            var messages = await _context.CommunicationMessages
+                .Where(m => m.ConversationId == conversation.ConversationId && !m.IsDeleted)
+                .OrderBy(m => m.CreatedAt)
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+            return Ok(messages);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving messages for conversation {ConversationId}", id);
+            return Problem("An error occurred while retrieving messages.");
+        }
+    }
+
+    /// <summary>Adds a message to a conversation.</summary>
+    [HttpPost("{id:int}/messages")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> AddMessage(int id, [FromBody] AddMessageRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var conversation = await _service.GetByIdAsync(id, cancellationToken);
+            if (conversation == null)
+                return NotFound(string.Format(ConversationNotFoundMessage, id));
+            var message = new CommunicationMessage
+            {
+                ConversationId = conversation.ConversationId,
+                Body = request.Content,
+                Direction = request.SenderType == "Inbound" ? MessageDirection.Inbound : MessageDirection.Outbound,
+                Status = MessageStatus.Sent,
+                AccountId = conversation.AccountId,
+                ContactId = conversation.ContactId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.CommunicationMessages.Add(message);
+            await _context.SaveChangesAsync(cancellationToken);
+            return CreatedAtAction(nameof(GetMessages), new { id }, message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding message to conversation {ConversationId}", id);
+            return Problem("An error occurred while adding the message.");
+        }
+    }
+
+    /// <summary>Resolves a conversation.</summary>
+    [HttpPost("{id:int}/resolve")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> Resolve(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var resolved = await _service.UpdateStatusAsync(id, ConversationStatus.Resolved, cancellationToken);
+            if (!resolved)
+                return NotFound(string.Format(ConversationNotFoundMessage, id));
+            return Ok(new { message = "Conversation resolved successfully." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resolving conversation {ConversationId}", id);
+            return Problem("An error occurred while resolving the conversation.");
+        }
+    }
+
+    #endregion
+
     #region Request DTOs
 
     public class UpdateStatusRequest
@@ -269,6 +354,13 @@ public class ConversationsController : CrmControllerBase
     {
         [Required]
         public int UserId { get; set; }
+    }
+
+    public class AddMessageRequest
+    {
+        [Required]
+        public string Content { get; set; } = string.Empty;
+        public string SenderType { get; set; } = "Agent";
     }
 
     #endregion

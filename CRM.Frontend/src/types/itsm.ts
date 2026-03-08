@@ -12,26 +12,35 @@ import { BaseEntity } from './common';
 // ============================================================================
 
 export enum IncidentStatus {
-  New = 'new',
-  Active = 'active',
-  OnHold = 'on_hold',
-  Pending = 'pending',
-  Resolved = 'resolved',
-  Closed = 'closed',
-  Reopened = 'reopened'
+  New = 0,
+  InProgress = 1,
+  OnHold = 2,
+  Resolved = 3,
+  Closed = 4,
+  Cancelled = 5,
+  Reopened = 6,
 }
 
 export enum IncidentPriority {
-  Low = 4,
-  Medium = 3,
-  High = 2,
-  Critical = 1
+  Critical = 0,
+  High = 1,
+  Medium = 2,
+  Low = 3,
+  Planning = 4,
+}
+
+export enum IncidentCategory {
+  Hardware = 0,
+  Software = 1,
+  Network = 2,
+  Telecom = 3,
+  Other = 4,
 }
 
 export enum IncidentUrgency {
-  Low = 3,
+  High = 1,
   Medium = 2,
-  High = 1
+  Low = 3,
 }
 
 export interface Incident extends BaseEntity {
@@ -115,11 +124,31 @@ export interface UpdateIncidentDto {
 // ============================================================================
 
 export enum ProblemStatus {
-  Identified = 'identified',
-  Investigating = 'investigating',
-  KnownError = 'known_error',
-  Resolved = 'resolved',
-  Closed = 'closed'
+  Draft = 0,
+  Open = 1,
+  InProgress = 2,
+  OnHold = 3,
+  Resolved = 4,
+  Closed = 5,
+  Cancelled = 6,
+}
+
+export enum ProblemPriority {
+  Critical = 0,
+  High = 1,
+  Medium = 2,
+  Low = 3,
+  Planning = 4,
+}
+
+export enum ProblemCategory {
+  Hardware = 0,
+  Software = 1,
+  Network = 2,
+  Database = 3,
+  Application = 4,
+  Infrastructure = 5,
+  Other = 6,
 }
 
 export interface Problem extends BaseEntity {

@@ -7,7 +7,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using Xunit;
 
 namespace CRM.Tests.Unit.Core;

@@ -16,7 +16,8 @@ DB_ROOT_PASS="${DB_ROOT_PASS:-RootPass@Dev2024}"
 DB_USER="${DB_USER:-crm_user}"
 DB_USER_PASS="${DB_USER_PASS:-CrmPass@Dev2024}"
 PROD_DB="${PROD_DB:-crm_db}"
-DEMO_DB="${DEMO_DB:-crm_demodb}"
+# DEPRECATED: Demo database removed — single database policy
+# DEMO_DB="${DEMO_DB:-crm_demodb}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCHEMA_DIR="$SCRIPT_DIR/schema"
@@ -155,7 +156,8 @@ main() {
     echo "Configuration:"
     echo "  Host: $DB_HOST:$DB_PORT"
     echo "  Production DB: $PROD_DB"
-    echo "  Demo DB: $DEMO_DB"
+    # DEPRECATED: Demo database removed — single database policy
+    # echo "  Demo DB: $DEMO_DB"
     echo "  DB User: $DB_USER"
     
     # Check connection
@@ -177,14 +179,14 @@ main() {
     deploy_seed_data "$PROD_DB"
     deploy_master_data "$PROD_DB"
     
+    # DEPRECATED: Demo database deployment removed — single database policy
     # Deploy to Demo Database
-    print_header "Deploying to Demo Database: $DEMO_DB"
-    
-    create_database "$DEMO_DB"
-    grant_permissions "$DEMO_DB"
-    deploy_schema "$DEMO_DB"
-    deploy_seed_data "$DEMO_DB"
-    deploy_master_data "$DEMO_DB"
+    # print_header "Deploying to Demo Database: $DEMO_DB"
+    # create_database "$DEMO_DB"
+    # grant_permissions "$DEMO_DB"
+    # deploy_schema "$DEMO_DB"
+    # deploy_seed_data "$DEMO_DB"
+    # deploy_master_data "$DEMO_DB"
     
     # Verify deployment
     print_header "Verifying Deployment"
@@ -194,10 +196,11 @@ main() {
     local prod_count=$(mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_ROOT_USER" -p"$DB_ROOT_PASS" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$PROD_DB';" 2>/dev/null)
     echo "    Total tables: $prod_count"
     
-    echo ""
-    echo "  Demo Database Tables:"
-    local demo_count=$(mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_ROOT_USER" -p"$DB_ROOT_PASS" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$DEMO_DB';" 2>/dev/null)
-    echo "    Total tables: $demo_count"
+    # DEPRECATED: Demo database verification removed — single database policy
+    # echo ""
+    # echo "  Demo Database Tables:"
+    # local demo_count=$(mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_ROOT_USER" -p"$DB_ROOT_PASS" -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$DEMO_DB';" 2>/dev/null)
+    # echo "    Total tables: $demo_count"
     
     print_header "Deployment Complete!"
     

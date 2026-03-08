@@ -412,6 +412,56 @@ Respond with valid JSON:
 
     private static string GetDefaultModelForProvider(LLMSettingsDto settings, string provider)
         => AIServiceHelper.GetDefaultModelForProvider(settings, provider);
+
+    /// <summary>
+    /// Get batch lead scores.
+    /// GET /api/ai/leads/batch-scores
+    /// </summary>
+    [HttpGet("batch-scores")]
+    [ProducesResponseType(typeof(BatchScoreResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBatchScores(
+        [FromQuery] string? leadIds = null,
+        [FromQuery] int limit = 50,
+        CancellationToken cancellationToken = default)
+    {
+        IEnumerable<int> ids;
+        if (!string.IsNullOrWhiteSpace(leadIds))
+        {
+            ids = leadIds.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => int.TryParse(s.Trim(), out var v) ? v : 0)
+                .Where(v => v > 0);
+        }
+        else
+        {
+            ids = await _context.Leads.AsNoTracking()
+                .Where(l => !l.IsDeleted)
+                .OrderByDescending(l => l.UpdatedAt)
+                .Take(limit)
+                .Select(l => l.Id)
+                .ToListAsync(cancellationToken);
+        }
+
+        var scores = new List<LeadScoreDto>();
+        foreach (var leadId in ids)
+        {
+            var latestScore = await _context.LeadScores.AsNoTracking()
+                .Where(s => s.LeadId == leadId)
+                .OrderByDescending(s => s.ScoredAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (latestScore != null)
+            {
+                scores.Add(MapToDto(latestScore));
+            }
+        }
+
+        return Ok(new BatchScoreResponse
+        {
+            Success = true,
+            ScoredCount = scores.Count,
+            Scores = scores
+        });
+    }
 }
 
 #region Request/Response DTOs

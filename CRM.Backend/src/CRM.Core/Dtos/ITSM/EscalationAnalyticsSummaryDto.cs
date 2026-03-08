@@ -5,7 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
-namespace CRM.Core.DTOs.ITSM;
+namespace CRM.Core.Dtos.ITSM;
 
 /// <summary>
 /// Consolidated 30-day escalation analytics summary.

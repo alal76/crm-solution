@@ -1033,4 +1033,124 @@ public class DashboardController : CrmControllerBase
     }
 
     #endregion
+
+    #region Domain Metric Endpoints (EP-022)
+
+    /// <summary>
+    /// Get financial metrics including revenue, invoices, and payments.
+    /// </summary>
+    [HttpGet("financial-metrics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetFinancialMetrics(CancellationToken cancellationToken = default)
+    {
+        var totalRevenue = await _context.Invoices
+            .Where(i => !i.IsDeleted)
+            .SumAsync(i => i.TotalAmount, cancellationToken);
+
+        var totalPayments = await _context.Payments
+            .Where(p => !p.IsDeleted)
+            .SumAsync(p => p.Amount, cancellationToken);
+
+        var invoiceCount = await _context.Invoices.CountAsync(i => !i.IsDeleted, cancellationToken);
+        var orderCount = await _context.Orders.CountAsync(o => !o.IsDeleted, cancellationToken);
+        var subscriptionCount = await _context.Subscriptions.CountAsync(s => !s.IsDeleted, cancellationToken);
+
+        return Ok(new
+        {
+            TotalRevenue = totalRevenue,
+            TotalPayments = totalPayments,
+            OutstandingAmount = totalRevenue - totalPayments,
+            InvoiceCount = invoiceCount,
+            OrderCount = orderCount,
+            ActiveSubscriptions = subscriptionCount,
+            Timestamp = DateTime.UtcNow
+        });
+    }
+
+    /// <summary>
+    /// Get ITSM metrics including service requests, incidents, and SLA compliance.
+    /// </summary>
+    [HttpGet("itsm-metrics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetItsmMetrics(CancellationToken cancellationToken = default)
+    {
+        var serviceRequestCount = await _context.ServiceRequests.CountAsync(sr => !sr.IsDeleted, cancellationToken);
+        var openServiceRequests = await _context.ServiceRequests
+            .CountAsync(sr => !sr.IsDeleted && sr.Status != ServiceRequestStatus.Closed && sr.Status != ServiceRequestStatus.Resolved, cancellationToken);
+        var incidentCount = await _context.Incidents.CountAsync(cancellationToken);
+        var problemCount = await _context.Problems.CountAsync(cancellationToken);
+        var changeCount = await _context.Changes.CountAsync(cancellationToken);
+
+        return Ok(new
+        {
+            TotalServiceRequests = serviceRequestCount,
+            OpenServiceRequests = openServiceRequests,
+            TotalIncidents = incidentCount,
+            TotalProblems = problemCount,
+            TotalChanges = changeCount,
+            Timestamp = DateTime.UtcNow
+        });
+    }
+
+    /// <summary>
+    /// Get marketing metrics including campaigns, leads, and conversions.
+    /// </summary>
+    [HttpGet("marketing-metrics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMarketingMetrics(CancellationToken cancellationToken = default)
+    {
+        var campaignCount = await _context.MarketingCampaigns.CountAsync(c => !c.IsDeleted, cancellationToken);
+        var leadCount = await _context.Leads.CountAsync(l => !l.IsDeleted, cancellationToken);
+        var conversionCount = await _context.CampaignConversions.CountAsync(cancellationToken);
+        var recipientCount = await _context.CampaignRecipients.CountAsync(cancellationToken);
+        var templateCount = await _context.EmailTemplates.CountAsync(t => !t.IsDeleted, cancellationToken);
+
+        return Ok(new
+        {
+            TotalCampaigns = campaignCount,
+            TotalLeads = leadCount,
+            TotalConversions = conversionCount,
+            TotalRecipients = recipientCount,
+            EmailTemplates = templateCount,
+            Timestamp = DateTime.UtcNow
+        });
+    }
+
+    /// <summary>
+    /// Get sales metrics including opportunities, quotes, and win rates.
+    /// </summary>
+    [HttpGet("sales-metrics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSalesMetrics(CancellationToken cancellationToken = default)
+    {
+        var opportunityCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted, cancellationToken);
+        var wonCount = await _context.Opportunities
+            .CountAsync(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon, cancellationToken);
+        var lostCount = await _context.Opportunities
+            .CountAsync(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedLost, cancellationToken);
+        var pipelineValue = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost)
+            .SumAsync(o => o.Amount, cancellationToken);
+        var wonValue = await _context.Opportunities
+            .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon)
+            .SumAsync(o => o.Amount, cancellationToken);
+        var quoteCount = await _context.Quotes.CountAsync(q => !q.IsDeleted, cancellationToken);
+
+        var closedTotal = wonCount + lostCount;
+        var winRate = closedTotal > 0 ? Math.Round((double)wonCount / closedTotal * 100, 1) : 0;
+
+        return Ok(new
+        {
+            TotalOpportunities = opportunityCount,
+            WonDeals = wonCount,
+            LostDeals = lostCount,
+            PipelineValue = pipelineValue,
+            WonValue = wonValue,
+            WinRate = winRate,
+            TotalQuotes = quoteCount,
+            Timestamp = DateTime.UtcNow
+        });
+    }
+
+    #endregion
 }

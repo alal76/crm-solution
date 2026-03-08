@@ -17,7 +17,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.Extensions.Logging;

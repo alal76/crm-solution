@@ -8,7 +8,7 @@
 // TODO-CRM003-08: Unit tests for opportunity team member entity and split commission DTOs.
 
 using System.ComponentModel.DataAnnotations;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using FluentAssertions;
 using Xunit;

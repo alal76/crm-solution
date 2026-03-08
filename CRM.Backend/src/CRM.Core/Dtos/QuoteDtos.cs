@@ -18,7 +18,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace CRM.Core.DTOs
+namespace CRM.Core.Dtos
 {
     /// <summary>
     /// Data Transfer Object representing a sales quote.

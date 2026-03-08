@@ -8,7 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Tests.Helpers;
 using Xunit;
 

@@ -6,7 +6,6 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -78,7 +77,7 @@ public class Holiday
 /// </summary>
 public class BusinessHoursCalculator : IBusinessHoursCalculator
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<BusinessHoursCalculator> _logger;
 
     // Default schedule: Mon-Fri, 9 AM - 5 PM UTC
@@ -99,9 +98,9 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
         }
     };
 
-    public BusinessHoursCalculator(IDbContextResolver dbContextResolver, ILogger<BusinessHoursCalculator> logger)
+    public BusinessHoursCalculator(ICrmDbContext dbContext, ILogger<BusinessHoursCalculator> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
@@ -315,7 +314,7 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
 
         try
         {
-            var context = _dbContextResolver.ResolveContext();
+            var context = _dbContext;
 
             // Load custom schedule from database
             var dbSchedule = await context.BusinessHoursSchedules

@@ -4,14 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-#if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
 
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using EntityCICriticality = CRM.Core.Entities.ITSM.CICriticality;
@@ -190,20 +188,20 @@ public enum NotificationPriority
 /// </summary>
 public class ChangeImpactService : IChangeImpactService
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<ChangeImpactService> _logger;
 
     public ChangeImpactService(
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext dbContext,
         ILogger<ChangeImpactService> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
     public async Task<ChangeImpactAnalysis> AnalyzeChangeImpactAsync(int changeRequestId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var change = await context.Changes
             .Include(c => c.ImpactedCIs!)
@@ -283,7 +281,7 @@ public class ChangeImpactService : IChangeImpactService
 
     public async Task<List<ImpactedCI>> GetImpactedCIsAsync(List<int> primaryCIIds, int maxDepth = 3)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var impactedCIs = new List<ImpactedCI>();
         var processedIds = new HashSet<int>();
 
@@ -378,7 +376,7 @@ public class ChangeImpactService : IChangeImpactService
 
     public async Task<List<ImpactedService>> GetImpactedServicesAsync(int changeRequestId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         // Get the change and its CIs
         var change = await context.Changes
@@ -412,7 +410,7 @@ public class ChangeImpactService : IChangeImpactService
 
     public async Task<RiskAssessmentResult> CalculateRiskScoreAsync(int changeRequestId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var change = await context.Changes
             .Include(c => c.ImpactedCIs!)
@@ -516,7 +514,7 @@ public class ChangeImpactService : IChangeImpactService
 
     public async Task<List<ImpactNotification>> GetImpactNotificationsAsync(int changeRequestId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var notifications = new List<ImpactNotification>();
 
         var change = await context.Changes
@@ -620,6 +618,3 @@ public class ChangeImpactService : IChangeImpactService
         return string.Join(". ", parts) + ".";
     }
 }
-
-
-#endif

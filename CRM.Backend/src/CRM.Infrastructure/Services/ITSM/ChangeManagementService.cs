@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,23 +15,23 @@ namespace CRM.Infrastructure.Services.ITSM;
 
 public class ChangeManagementService : IChangeManagementService
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ICMDBService _cmdbService;
     private readonly ILogger<ChangeManagementService> _logger;
 
     public ChangeManagementService(
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext dbContext,
         ICMDBService cmdbService,
         ILogger<ChangeManagementService> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _cmdbService = cmdbService;
         _logger = logger;
     }
 
     public async Task<ChangeDto> CreateChangeAsync(CreateChangeDto dto, int createdById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var change = new Change
         {
@@ -60,7 +59,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<ChangeDto?> GetChangeByIdAsync(int changeId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes
             .Include(c => c.Requestor)
             .Include(c => c.AssignedTo)
@@ -71,7 +70,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<(IEnumerable<ChangeDto> Items, int TotalCount)> GetChangesAsync(ChangeFilterDto filter)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var query = context.Changes
             .Include(c => c.Requestor)
             .Include(c => c.AssignedTo)
@@ -128,7 +127,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<bool> SubmitForApprovalAsync(int changeId, int modifiedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || change.IsDeleted)
@@ -152,7 +151,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<bool> ApproveChangeAsync(int changeId, int approverId, string? comments)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var approval = new ChangeApproval
         {
@@ -181,7 +180,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<bool> ScheduleChangeAsync(int changeId, DateTime plannedStart, DateTime plannedEnd, int modifiedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || change.IsDeleted)
@@ -209,7 +208,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<bool> CheckConflictsAsync(int changeId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || !change.PlannedStartDate.HasValue || !change.PlannedEndDate.HasValue)
@@ -242,7 +241,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<bool> AddImpactedCIAsync(int changeId, int ciId, int createdById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var existing = await context.ChangeImpactedCIs
             .AnyAsync(ci => ci.ChangeId == changeId && ci.CIId == ciId);
@@ -265,7 +264,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<IEnumerable<ConfigurationItemDto>> GetImpactedCIsAsync(int changeId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var ciIds = await context.ChangeImpactedCIs
             .Where(ci => ci.ChangeId == changeId)
             .Select(ci => ci.CIId)
@@ -291,7 +290,7 @@ public class ChangeManagementService : IChangeManagementService
 
     private async Task<IEnumerable<string>> CheckBlackoutConflictsAsync(DateTime startDate, DateTime endDate)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var blackouts = await context.ChangeBlackouts
             .Where(b => !b.IsDeleted &&
                        ((b.StartDate <= startDate && b.EndDate >= startDate) ||
@@ -337,7 +336,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<ChangeDto> UpdateChangeAsync(int changeId, CreateChangeDto dto, int modifiedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || change.IsDeleted)
@@ -362,7 +361,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<bool> RejectChangeAsync(int changeId, int approverId, string? comments)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var change = await context.Changes.FindAsync(changeId);
 
         if (change == null || change.IsDeleted)
@@ -388,7 +387,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<IEnumerable<BlackoutPeriodInfo>> GetBlackoutPeriodsAsync(DateTime startDate, DateTime endDate)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var blackouts = await context.ChangeBlackouts
             .Where(b => !b.IsDeleted &&
                        ((b.StartDate >= startDate && b.StartDate <= endDate) ||
@@ -410,7 +409,7 @@ public class ChangeManagementService : IChangeManagementService
 
     public async Task<BlackoutPeriodInfo> CreateBlackoutPeriodAsync(CreateBlackoutPeriodInfo dto, int createdById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var blackout = new ChangeBlackout
         {
