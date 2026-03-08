@@ -582,8 +582,7 @@ builder.Services.AddScoped<IBrandingConfigService, BrandingConfigService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
-// TEMPORARILY DISABLED - causes model building errors
-// builder.Services.AddHostedService<BackupSchedulerHostedService>();
+builder.Services.AddHostedService<BackupSchedulerHostedService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
 builder.Services.AddScoped<IPreferencesService, PreferencesService>();
@@ -729,8 +728,7 @@ builder.Services.AddScoped<ModuleUIConfigService>();
 builder.Services.AddScoped<SampleDataSeederService>();
 // Database Sync BVT Service - runs on startup to ensure db consistency
 builder.Services.AddSingleton<IDatabaseSyncService, DatabaseSyncService>();
-// TEMPORARILY DISABLED - causes model building errors
-// builder.Services.AddHostedService<DatabaseSyncHostedService>();
+builder.Services.AddHostedService<DatabaseSyncHostedService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();
@@ -1080,10 +1078,9 @@ builder.Services.AddHostedService<CalendarSyncHostedService>();
 builder.Services.AddHostedService<DuplicateReviewWorkerService>();
 
 // Email Sync Service - IMAP/OAuth sync for unified inbox (G5)
-// TEMPORARILY DISABLED - causes model building errors
-// builder.Services.Configure<EmailSyncOptions>(builder.Configuration.GetSection(EmailSyncOptions.SectionName));
-// builder.Services.AddScoped<IEmailSyncService, EmailSyncService>();
-// builder.Services.AddHostedService<EmailSyncHostedService>();
+builder.Services.Configure<EmailSyncOptions>(builder.Configuration.GetSection(EmailSyncOptions.SectionName));
+builder.Services.AddScoped<IEmailSyncService, EmailSyncService>();
+builder.Services.AddHostedService<EmailSyncHostedService>();
 
 // Landing Page Service - Visual landing page builder (G6)
 builder.Services.AddScoped<ILandingPageService, LandingPageService>();

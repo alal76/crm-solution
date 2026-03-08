@@ -146,18 +146,16 @@ public class SubscriptionAnalyticsController : CrmControllerBase
         [FromQuery] int monthsBack = 12,
         CancellationToken cancellationToken = default)
     {
-                // TODO: Implement full cohort analysis (MRR by cohort) using historical subscription data. // NOSONAR
-        // Cohort analysis requires querying subscriptions by their start month and tracking their MRR over time.
-        // This is a stub that returns computed monthly MRR as a single-cohort approximation.
         var cohorts = new List<CohortItem>();
         for (var i = monthsBack - 1; i >= 0; i--)
         {
-            var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
             var targetDate = DateTime.UtcNow.AddMonths(-i);
+            var cohortMrr = await _metricsAggregator.GetCohortMRRAsync(
+                targetDate.Year, targetDate.Month, cancellationToken);
             cohorts.Add(new CohortItem
             {
                 CohortMonth = targetDate.ToString("yyyy-MM"),
-                MRR = mrr,
+                MRR = cohortMrr,
                 SubscriptionCount = await _metricsAggregator.GetCohortSubscriptionCountAsync(
                     targetDate.Year, targetDate.Month, cancellationToken)
             });
@@ -180,28 +178,25 @@ public class SubscriptionAnalyticsController : CrmControllerBase
     public async Task<ActionResult<RevenueBreakdownResponse>> GetRevenueBreakdown(
         CancellationToken cancellationToken = default)
     {
-                var companyMetrics = await _metricsAggregator.CalculateCompanyMetricsAsync(null, cancellationToken);
+        var companyMetrics = await _metricsAggregator.CalculateCompanyMetricsAsync(null, cancellationToken);
         var mrr = await _metricsAggregator.CalculateMRRAsync(cancellationToken);
         var arr = await _metricsAggregator.CalculateARRAsync(cancellationToken);
 
-        // TODO: Break down MRR by billing cycle (Weekly/Monthly/Quarterly/Yearly) and product // NOSONAR
-        // when detailed subscription product data is included in the aggregator.
+        var breakdownItems = await _metricsAggregator.GetRevenueBreakdownByBillingCycleAsync(cancellationToken);
+
         return Ok(new RevenueBreakdownResponse
         {
             TotalMRR = mrr,
             TotalARR = arr,
             ActiveSubscriptions = companyMetrics.ActiveSubscriptions,
-            // Placeholder — full breakdown requires grouping by ProductId/BillingCycle
-            BreakdownItems = new List<RevenueBreakdownItem>
+            BreakdownItems = breakdownItems.Select(b => new RevenueBreakdownItem
             {
-                new()
-                {
-                    Label = "All Active Subscriptions",
-                    MRR = mrr,
-                    ARR = arr,
-                    SubscriptionCount = companyMetrics.ActiveSubscriptions
-                }
-            },
+                Label = b.BillingCycle,
+                MRR = b.MRR,
+                ARR = b.ARR,
+                SubscriptionCount = b.SubscriptionCount,
+                Percentage = b.Percentage
+            }).ToList(),
             CalculatedAt = DateTime.UtcNow
         });
     }
