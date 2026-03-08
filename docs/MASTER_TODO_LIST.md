@@ -1,1510 +1,306 @@
 # CRM Solution — Master TODO List
 
-> **Last Updated:** March 8, 2026  
-> **Version:** 0.616.0  
-> **Status:** 18 blocked + 48 antipattern + 17 KB architecture + 17 pre-release audit = **100 pending** — ITSM, XMOD, EP, DEMO, Wave 9 all complete; AP-001–014 thread-safety resolved  
-> **Historical Completion:** 749+ items completed (includes Wave 9 + AP thread-safety wave)
-
-**Pre-Release Audit (March 8, 2026):** Comprehensive pre-release audit identified 20 remediation items (PRA-001→020) across obsolete property cleanup, Customer→Account migration debt (96% complete — cosmetic frontend gaps only), disabled test suites, pluggable component frontend gaps (NewSearchExperience/AIAssistant at 80%), orphaned jobs, and hardcoded schemas. 5 P1 items for pre-GA, 7 P2 post-GA, 8 P3 tech debt. 3 items cross-reference existing FLAG/COMM trackers. See [docs/prerelease_audit.md](prerelease_audit.md).
-
-**CDT 404 Audit (March 8, 2026):** Comprehensive data loader run identified 301 HTTP 404 responses across 199 unique endpoints. Cross-referenced against actual backend controllers: ~30 are loader route mismatches (fix in Python), 15 controllers genuinely missing (~30 endpoints), 35 controllers need additional methods (~84 endpoints). Added EP-001 through EP-069 to track remediation.
-
-**Cross-Module Debt Audit (March 8, 2026):** Extended ITSM gap patterns to all modules. Found 13 non-ITSM files with DTO namespace drift (DTOs vs Dtos), 3 additional duplicate entities, 4 non-ITSM IDbContextResolver usages, 9 non-ITSM `.disabled` files, and 1 DI registration gap (IRecurringBillingEngine). Added XMOD-001 through XMOD-019.
-
-**Antipattern Audit (March 8, 2026):** Comprehensive cross-solution audit identified 62 antipattern items across backend, frontend, and architecture layers. Critical: 12 thread-unsafe static state instances, 8 sync-over-async factory calls. High: 50+ direct fetch calls bypassing service layer (FE), 50+ `any` type violations (FE), 4 fat controllers, missing input validation. Added AP-001 through AP-062 to track remediation.
-
-**Knowledge Base Architecture Decision (March 8, 2026):** Audit revealed TWO separate KB systems — ITSM KB (fully implemented, 18 endpoints) and General KB (entity defined but dead code — no service, controller, or DTOs, frontend 404s). Decision: Keep separate with a Unified Search Facade (ADR-005). Added KB-001 through KB-017 to track 5-phase implementation. See SPEC-SD-002 v2.0 and ADR-005.
-
-**ITSM Deep Review (March 8, 2026):** Comprehensive audit identified 52 gap items across architecture cleanup, disabled service enablement, frontend gaps, test hardening, and missing specs. All prior batches (Batch 2, Batch 3, SCRIPTING, BACK, MKT) remain complete. Build: 0 errors. Tests: 4,818+ passing. ITSM-specific: 656 tests passing, 0 failures.**
+> **Last Updated:** March 8, 2026 (restructured)
+> **Version:** 0.617.0
+> **Active Backlog:** 90 items — 4 P0 critical + 14 P1 pre-GA + 72 P2/P3 post-GA
+> **Build:** ✅ 0 errors (backend + frontend) | **Tests:** ✅ 4,818+ passing, 22 skipped
 
 ---
 
-## Deployment Status (March 2, 2026)
+## Section 1 — Completed Work (Historical Archive)
 
-| Item | Status |
-|------|--------|
-| Dev server (192.168.0.9) | ✅ Deployed — crm-api + crm-frontend running |
-| BVT suite | ✅ 118/118 passing |
-| DB schema drift (Leads) | ✅ Fixed — 12 missing columns added |
-| Dockerfile.backend | ✅ Fixed — CRM.Tests.Unit.csproj added |
-| E2E BVT phone validation | ✅ Fixed — `555-BVT1/2` → `555-1234/5678` |
-| E2E termLengthMonths | ✅ Fixed — added to opportunity creation test |
-| Rate limiting | ✅ Disabled on dev server for testing |
-| Mobile Safari e2e failures | ⚠️ Known macOS WebKit networking limitation (not a solution bug) |
+All items below are fully implemented, tested, and committed.
 
----
-
-## Batch 3 — Configurable Enums Feature (ACTIVE)
-
-**Spec Reference:** [SPEC-GEN-002-ConfigurableEnums.md](11-specifications/SPEC-GEN-002-ConfigurableEnums.md)
-
-**Goal:** Convert all hard-coded C# enums (LeadStatus, OpportunityStage, ServiceRequestStatus, etc.) to database-driven configuration manageable from Admin UI. Enable runtime customization of status values, colors, metadata, and transitions without code deployment.
-
-### Phase 1: Database & Backend Foundation
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ENUM-DB-001 | P0 | Create migration script `SYS-008-ConfigurableEnums.sql` — enhance LookupCategories (EntityType, PropertyName, IsSystemManaged) + LookupItems (IsDefault, IsSystemValue, Color, Icon, ValidationRules) | ✅ Completed (2026-02-28) |
-| ENUM-DB-002 | P0 | Create `EnumTransitions` table (Id, CategoryId, FromValueId, ToValueId, IsAllowed, RequiresApproval, AllowedRoles, ValidatExpression) | ✅ Completed (2026-02-28) |
-| ENUM-DB-003 | P0 | Update existing LookupCategories with entity mapping (LeadStatus→Lead.Status, OpportunityStage→Opportunity.Stage, etc.) | ✅ Completed (2026-02-28) |
-| ENUM-DB-004 | P0 | Parse and migrate colors from existing Meta JSON to new Color column | ✅ Completed (2026-02-28) |
-| ENUM-DB-005 | P0 | Mark system values (IsSystemValue=1 for critical statuses) | ✅ Completed (2026-02-28) |
-| ENUM-DB-006 | P0 | Set default values (IsDefault=1 for NEW statuses) | ✅ Completed (2026-02-28) |
-| ENUM-BE-001 | P0 | Create `EnumCategory.cs` entity (enhanced LookupCategory with EntityType, PropertyName, IsSystemManaged, AllowCustomValues, ValidationSchema) | ✅ Completed (2026-02-28) |
-| ENUM-BE-002 | P0 | Create `EnumValue.cs` entity (enhanced LookupItem with IsDefault, IsSystemValue, Color, Icon, Metadata, ValidationRules) | ✅ Completed (2026-02-28) |
-| ENUM-BE-003 | P0 | Create `EnumTransition.cs` entity (CategoryId, FromValueId, ToValueId, IsAllowed, RequiresApproval, AllowedRoles) | ✅ Completed (2026-02-28) |
-| ENUM-BE-004 | P0 | Add `DbSet<EnumTransition>` to `CrmDbContext` + `OnModelCreating` configurations | ✅ Completed (2026-02-28) |
-| ENUM-BE-005 | P0 | Create `IEnumManagementService` interface with 20+ methods (CRUD categories/values/transitions, validation, migration) | ✅ Completed (2026-02-28) |
-| ENUM-BE-006 | P0 | Implement `EnumManagementService` with MemoryCache for enum value caching (1-hour TTL) | ✅ Completed (2026-02-28) |
-| ENUM-BE-007 | P0 | Implement `GetValuesByCategoryNameAsync` with cache-first strategy | ✅ Completed (2026-02-28) |
-| ENUM-BE-008 | P0 | Implement `IsTransitionAllowedAsync` for status transition validation | ✅ Completed (2026-02-28) |
-| ENUM-BE-009 | P0 | Implement `ValidateValueAsync` for incoming value validation | ✅ Completed (2026-02-28) |
-| ENUM-BE-010 | P0 | Create `EnumDtos.cs` — 10+ DTOs (EnumCategoryDto, EnumValueDto, CreateEnumValueDto, UpdateEnumValueDto, EnumTransitionDto, EnumValidationResult) | ✅ Completed (2026-02-28) |
-| ENUM-BE-011 | P0 | Create `EnumManagementController` with 12+ endpoints (GET categories, GET values, POST/PUT/DELETE values, reorder, transitions, validate) | ✅ Completed (2026-02-28) |
-| ENUM-BE-012 | P0 | Register `IEnumManagementService` in `Program.cs` DI | ✅ Completed (2026-02-28) |
-| ENUM-BE-013 | P0 | Apply migration to `crm_db` (MariaDB) and verify schema changes | ✅ Completed (2026-02-28) |
-
-### Phase 2: Entity Migration (Priority Entities)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ENUM-MIG-001 | P0 | Add `StatusId INT NULL` column to `Leads` table | ✅ Completed (2026-02-28) |
-| ENUM-MIG-002 | P0 | Migrate Lead.Status enum values (0–5) to StatusId lookup references | ✅ Completed (2026-02-28) |
-| ENUM-MIG-003 | P0 | Update `Lead.cs` entity — change `Status` from `LeadLifecycleStatus` enum to `int? StatusId` + `EnumValue? StatusValue` navigation + `[NotMapped] string Status` computed property | ✅ Completed (2026-02-28) |
-| ENUM-MIG-004 | P0 | Add FK constraint `FK_Leads_Status` (Leads.StatusId → LookupItems.Id) | ✅ Completed (2026-02-28) |
-| ENUM-MIG-005 | P0 | Update `LeadService` to use `StatusId` instead of `Status` enum | ✅ Completed (2026-02-28) |
-| ENUM-MIG-006 | P0 | Add `StageId INT NULL` column to `Opportunities` table | ✅ Completed (2026-02-28) |
-| ENUM-MIG-007 | P0 | Migrate Opportunity.Stage enum values (0–5) to StageId lookup references | ✅ Completed (2026-02-28) |
-| ENUM-MIG-008 | P0 | Update `Opportunity.cs` entity — change `Stage` from `OpportunityStage` enum to `int? StageId` + computed property | ✅ Completed (2026-02-28) |
-| ENUM-MIG-009 | P0 | Add FK constraint `FK_Opportunities_Stage` | ✅ Completed (2026-02-28) |
-| ENUM-MIG-010 | P0 | Update `OpportunityService` to use `StageId` instead of `Stage` enum | ✅ Completed (2026-02-28) |
-| ENUM-MIG-011 | P0 | Add `StatusId INT NULL, PriorityId INT NULL` columns to `ServiceRequests` table | ✅ Completed (2026-02-28) |
-| ENUM-MIG-012 | P0 | Migrate ServiceRequest.Status/Priority enum values to lookup references | ✅ Completed (2026-02-28) |
-| ENUM-MIG-013 | P0 | Update `ServiceRequest.cs` entity — change `Status` and `Priority` from enums to nullable FKs + computed properties | ✅ Completed (2026-02-28) |
-| ENUM-MIG-014 | P0 | Add FK constraints for ServiceRequest status/priority | ✅ Completed (2026-02-28) |
-| ENUM-MIG-015 | P0 | Update `ServiceRequestService` to use `StatusId`/`PriorityId` | ✅ Completed (2026-02-28) |
-| ENUM-MIG-016 | P0 | Run data integrity verification queries (count migrated records, check for NULLs) | ✅ Completed (2026-02-28) |
-
-### Phase 3: Frontend Implementation
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ENUM-FE-001 | P0 | Create `src/types/enums.ts` — TypeScript interfaces (EnumCategory, EnumValue, EnumMetadata, EnumTransition) | ✅ Completed |
-| ENUM-FE-002 | P0 | Create `src/services/enumService.ts` — CRUD service with axios calls to EnumManagementController (20+ methods) | ✅ Completed |
-| ENUM-FE-003 | P0 | Create `src/services/enumCacheService.ts` — client-side enum cache with auto-refresh, localStorage persistence | ✅ Completed |
-| ENUM-FE-004 | P0 | Create `src/pages/admin/EnumManagementPage.tsx` — list all configurable enum categories (data grid with counts) | ✅ Completed |
-| ENUM-FE-005 | P0 | Create `src/pages/admin/EnumEditorPage.tsx` — edit enum values for selected category (table + CRUD dialogs) | ✅ Completed |
-| ENUM-FE-006 | P0 | Create `src/components/admin/enums/EnumCategoryGrid.tsx` — sortable grid of enum categories with usage stats | ✅ Completed |
-| ENUM-FE-007 | P0 | Create `src/components/admin/enums/EnumValueTable.tsx` — drag-drop sortable table with inline edit | ✅ Completed |
-| ENUM-FE-008 | P0 | Create `src/components/admin/enums/EnumValueForm.tsx` — dialog for creating/editing enum values (key, label, color, metadata) | ✅ Completed |
-| ENUM-FE-009 | P0 | Create `src/components/admin/enums/EnumMetadataEditor.tsx` — JSON editor for enum metadata (probability, slaHours, validationRules) | ✅ Completed |
-| ENUM-FE-010 | P0 | Create `src/components/admin/enums/EnumColorPicker.tsx` — color picker with Material Design preset palette | ✅ Completed |
-| ENUM-FE-011 | P1 | Create `src/components/admin/enums/EnumIconPicker.tsx` — Material-UI icon selector with search | ✅ Completed |
-| ENUM-FE-012 | P1 | Create `src/components/admin/enums/EnumTransitionMatrix.tsx` — visual matrix showing allowed status transitions | ✅ Completed |
-| ENUM-FE-013 | P1 | Create `src/components/admin/enums/EnumUsageAnalytics.tsx` — bar chart showing usage frequency per enum value | ✅ Completed |
-| ENUM-FE-014 | P0 | Add navigation link: Admin → Master Data → Enum Management (`/admin/master-data/enums`) | ✅ Completed |
-| ENUM-FE-015 | P0 | Update `LeadForm.tsx` to fetch status values from enumService instead of hard-coded enum | ✅ Completed |
-| ENUM-FE-016 | P0 | Update `OpportunityForm.tsx` to fetch stage values from enumService | ✅ Completed |
-| ENUM-FE-017 | P0 | Update `ServiceRequestForm.tsx` to fetch status/priority values from enumService | ✅ Completed |
-| ENUM-FE-018 | P0 | Implement cache invalidation on enum value create/update/delete (trigger re-fetch in all forms) | ✅ Completed |
-
-### Phase 4: Testing & Validation
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ENUM-TEST-001 | P0 | Backend unit test: `EnumManagementServiceTests.GetValuesByCategoryName_ReturnsActiveValues_OrderedBySortOrder` | ✅ Completed |
-| ENUM-TEST-002 | P0 | Backend unit test: `EnumManagementServiceTests.CreateValue_WithDuplicateKey_ThrowsValidationException` | ✅ Completed |
-| ENUM-TEST-003 | P0 | Backend unit test: `EnumManagementServiceTests.DeleteValue_WhenInUse_ThrowsInvalidOperationException` | ✅ Completed |
-| ENUM-TEST-004 | P0 | Backend unit test: `EnumManagementServiceTests.IsTransitionAllowed_WhenExplicitRuleExists_ReturnsRuleValue` | ✅ Completed |
-| ENUM-TEST-005 | P0 | Backend unit test: `EnumManagementServiceTests.ReorderValues_UpdatesSortOrders_InCorrectSequence` | ✅ Completed |
-| ENUM-TEST-006 | P0 | Integration test: `EnumManagementIntegrationTests.GET_api_enummanagement_LeadStatus_values_ReturnsEnumValues` | ✅ Completed (skipped — requires live DB) |
-| ENUM-TEST-007 | P0 | Integration test: `EnumManagementIntegrationTests.POST_api_enummanagement_categories_1_values_CreatesNewValue` | ✅ Completed (skipped — requires live DB) |
-| ENUM-TEST-008 | P0 | Frontend test: `EnumManagementPage.test.tsx` — renders enum categories grid | ✅ Completed (7 tests pass) |
-| ENUM-TEST-009 | P0 | Frontend test: `EnumEditorPage.test.tsx` — creates new enum value | ✅ Completed (8 tests pass) |
-| ENUM-TEST-010 | P1 | E2E test: `TC-ENUM-001: Admin can add new lead status` (Playwright) | ✅ Completed |
-| ENUM-TEST-011 | P1 | E2E test: `TC-ENUM-002: Admin can reorder enum values via drag-drop` (Playwright) | ✅ Completed |
-| ENUM-TEST-012 | P1 | E2E test: `TC-ENUM-003: Admin cannot delete enum value in use` (Playwright) | ✅ Completed (TC-ENUM-003 skipped; requires test data) |
-| ENUM-TEST-013 | P0 | Performance test: Verify enum cache effectiveness (<10ms p99 lookup) | ✅ Completed (documented in EnumManagementService.cs summary) |
-| ENUM-TEST-014 | P0 | Data integrity test: Run verification queries on migrated enum data (zero NULL StatusIds) | ✅ Completed (SYS-009-EnumMigration-verification.sql updated) |
+| Track | Items | Completed | Notes |
+|-------|-------|-----------|-------|
+| Wave 1–8 ITSM/Demo/Marketing | 550+ | Pre-March 2026 | ITSM foundation, demo deprecation, marketing module |
+| Batch 3 — Configurable Enums | 67 | Feb 28, 2026 | ENUM-DB, ENUM-BE, ENUM-MIG, ENUM-FE, ENUM-TEST (67 items) |
+| Batch 2 — New Features | 55 | Feb 28, 2026 | COLLAB (10), CSAT (9), REVENUE (8), PORTAL (43), AISCORING (9), E2E (7) |
+| Scripting SCRIPT-001→024 | 24 | Feb 26, 2026 | IScriptEngine, JintEngine, PythonStub, SK integration, Monaco IDE |
+| Scripting Architecture SARCH-001→094 | 94 | Feb 28, 2026 | Roslyn+TS engines, Tool Bridge, Workflow WDL, Agent hooks, OTel |
+| Backend Extensions BACK-001→006 | 6 | Feb 28, 2026 | Okta SSO, OIDC, WebAuthn, Competitor tracking, Territories, Web-to-Lead |
+| ITSM Deep Review ITSM-001→052 | 52 | March 8, 2026 | Namespace fix, entity dedup, 20 disabled services enabled, specs created |
+| Cross-Module Debt XMOD-001→019 | 19 | March 8, 2026 | DTO namespace drift fixed, IDbContextResolver refactored, disabled files archived |
+| CDT 404 Remediation EP-001→069 | 69 | March 8, 2026 | 15 new controllers, 35 controller extensions, 10 loader path fixes |
+| Demo DB Deprecation DEMO-001→016 | 16 | March 8, 2026 | Single-DB policy enforced across all deployment artifacts |
+| AP Thread-Safety AP-001→014 (-059→062) | 18 | March 8, 2026 | ConcurrentDictionary, Interlocked.Increment. **AP-004 was missed — still open.** |
+| AP Frontend AP-041→057 | 17 | March 8, 2026 | Service layer extraction, TypeScript any fixes, component cleanup |
+| Wave 9 Stubs COMM-005/006, SVC-001→003, SUB-001→002 | 7 | March 8, 2026 | MailKit SMTP, Twilio SMS, cohort MRR, hosted services re-enabled |
+| AP-058 IDistributedStreamPort | 1 | March 8, 2026 | Technology-neutral port; IRedisProvider shim with [Obsolete] |
+| AP-019 through AP-045 Scripting/AI stubs verified | Batch | March 8, 2026 | SCRIPT-CTRL, AI-001→006 all confirmed fully implemented |
+| **Total Completed** | **~995** | | |
 
 ---
 
-## Summary — Batch 3
+## Section 2 — Active Backlog
 
-| Phase | Total Items | Priority | Estimated Duration |
-|-------|-------------|----------|---------------------|
-| Phase 1: Database & Backend Foundation | 19 | P0 | Week 1 |
-| Phase 2: Entity Migration | 16 | P0 | Week 2 |
-| Phase 3: Frontend Implementation | 18 | P0/P1 | Week 3 |
-| Phase 4: Testing & Validation | 14 | P0/P1 | Week 4 |
-| **Total** | **67** | — | **4 weeks** |
+### P0 — Critical (Fix Before Any Production Deployment)
 
----
+> Carry data corruption or thread-pool starvation risk. All can run in parallel.
 
-## Batch 2 — New Feature Tasks
-
-### FEAT-COLLAB: Record Comments & @Mentions
-
-**Goal:** Add threaded comments with @mention support to all major CRM entities (Accounts, Contacts, Leads, Opportunities, Service Requests).
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| COLLAB-001 | P0 | Create `RecordComment` entity (Id, EntityType, EntityId, Content, AuthorId, ParentCommentId, MentionedUserIds JSON, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | ✅ Completed |
-| COLLAB-002 | P0 | Add `DbSet<RecordComment>` to `CrmDbContext` + `OnModelCreating` config | ✅ Completed |
-| COLLAB-003 | P0 | Create EF Core migration `AddRecordComments` and apply to `crm_db` | ✅ Completed |
-| COLLAB-004 | P0 | Implement `IRecordCommentService` / `RecordCommentService` (GetByEntity, Create, Update, Delete, GetThread) | ✅ Completed |
-| COLLAB-005 | P0 | Register `IRecordCommentService` in `Program.cs` DI | ✅ Completed |
-| COLLAB-006 | P0 | Implement `RecordCommentsController` (GET `/api/{entityType}/{id}/comments`, POST, PUT `/{commentId}`, DELETE `/{commentId}`) | ✅ Completed |
-| COLLAB-007 | P1 | Build `RecordComments` React component (threaded list + compose box with @mention autocomplete) | ✅ Completed |
-| COLLAB-008 | P1 | Add `recordCommentService.ts` TypeScript service | ✅ Completed |
-| COLLAB-009 | P1 | Integrate `RecordComments` component into Account, Contact, Lead, Opportunity, ServiceRequest detail pages | ✅ Completed |
-| COLLAB-010 | P1 | Unit tests for `RecordCommentService` (10+ test cases) | ✅ Completed |
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| AP-004 | `ServiceRequestService.cs` L35-36 | `static int _ticketCounter` + `static bool _counterInitialized` not atomic | Use `Interlocked.Increment`; add `volatile` to flag |
+| AP-015 | 7 Provider Factories: Search, Chat, AI, Notification, Analytics, Signature, Integration | Each calls `.IsEnabledAsync().GetAwaiter().GetResult()` in factory creation — blocks thread pool | Cache feature flag at startup via `IHostedService`, or expose `CreateAsync()` factory |
+| AP-016 | `OptionalAuditLoggingService.cs` L172 | `IsEnabledAsync(...).GetAwaiter().GetResult()` in sync path | Cache on startup or make caller async |
+| AP-017 | `AdminSearchAnalyticsController.cs` L113-116 | `.Result` on completed tasks after `Task.WhenAll` | Replace with `await` destructuring |
 
 ---
 
-### FEAT-CSAT: Customer Satisfaction (CSAT/NPS)
+### P1 — Pre-GA Blockers
 
-**Goal:** Enable CSAT surveys after service request resolution and periodic NPS score collection.
+> Groups B1–B5 are independent; all groups can run in parallel.
 
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| CSAT-001 | P0 | Create `SatisfactionSurvey` entity (Id, EntityType, EntityId, Type [CSAT/NPS/CES], Status, SentAt, ResponseReceivedAt, ContactId, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | ✅ Completed |
-| CSAT-002 | P0 | Create `SatisfactionResponse` entity (Id, SurveyId, Score, Comment, Sentiment, SubmittedAt) | ✅ Completed |
-| CSAT-003 | P0 | Add `DbSet` + migration `AddSatisfactionTracking` | ✅ Completed |
-| CSAT-004 | P0 | Implement `ISatisfactionService` / `SatisfactionService` (SendSurvey, RecordResponse, GetMetrics, GetNPSScore, GetCSATScore) | ✅ Completed |
-| CSAT-005 | P0 | Implement `SatisfactionController` (CRUD + metrics endpoints + `/api/satisfaction/nps` + `/api/satisfaction/csat`) | ✅ Completed |
-| CSAT-006 | P1 | Frontend: `SatisfactionDashboard` page + NPS trend chart + CSAT score widget + response log table | ✅ Completed |
-| CSAT-007 | P1 | Frontend: `SurveyResponseForm` component (public-facing survey form for email links) | ✅ Completed |
-| CSAT-008 | P1 | Add `satisfactionService.ts` TypeScript service | ✅ Completed |
-| CSAT-009 | P1 | Unit tests for `SatisfactionService` (8+ test cases) | ✅ Completed |
+#### Group B1 — Obsolete Attribute Cleanup (PRA-001→003)
 
----
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| PRA-001 | Auth DTOs | `ForgotPasswordRequestDto`, `ResetPasswordRequestDto`, `VerifyResetTokenRequestDto` marked `[Obsolete]` but actively bound to controller endpoints | Remove `[Obsolete]` attributes from all 3 DTOs |
+| PRA-002 | `SystemSettingsDto.cs` | `ShowDemoData` still returned in API response | Remove from DTO mapping |
+| PRA-003 | `SystemSettings.cs` | `SampleDataSeeded` + `SampleDataLastSeeded` marked `[Obsolete]` but are intentional seed-tracking fields | Remove `[Obsolete]` attributes |
 
-### FEAT-REVENUE: Revenue Analytics (ARR/MRR)
+#### Group B2 — Hardcoded Data / Stub Stubs (PRA-004→005)
 
-**Goal:** Track Monthly Recurring Revenue (MRR) and Annual Recurring Revenue (ARR) with movement analysis (new, expansion, churn, contraction).
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| PRA-004 | `WorkflowController.cs` | 12 field schemas hardcoded inline — schema drift risk | Migrate to `IFieldConfigurationService` or a config file |
+| PRA-005 | `MonitoringController.cs` `GetActiveSessions()` | Always returns empty list — misleading in production monitoring | Implement Redis/auth store query, or add `// stub` doc comment |
 
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| REVENUE-001 | P0 | Create `RevenueSnapshot` entity (Id, SnapshotDate, MRR, ARR, NewMRR, ExpansionMRR, ContractionMRR, ChurnMRR, NetNewMRR, CustomerCount, CreatedAt) | ✅ Completed |
-| REVENUE-002 | P0 | Add `DbSet<RevenueSnapshot>` + migration `AddRevenueSnapshots` | ✅ Completed |
-| REVENUE-003 | P0 | Implement `IRevenueAnalyticsService` / `RevenueAnalyticsService` (CalculateMRR, GetARRTrend, GetMRRMovements, GetChurnRate, GetExpansionRevenue) using existing `Subscription`/`Contract`/`Invoice` entities | ✅ Completed |
-| REVENUE-004 | P0 | Implement `RevenueAnalyticsController` (GET `/api/revenue/mrr`, `/api/revenue/arr`, `/api/revenue/movements`, `/api/revenue/churn-rate`, `/api/revenue/cohorts`) | ✅ Completed |
-| REVENUE-005 | P1 | Frontend: `RevenueAnalyticsPage` with MRR/ARR trend chart, waterfall MRR movement chart, churn rate gauge | ✅ Completed |
-| REVENUE-006 | P1 | Frontend: `RevenueDashboardWidget` — embed key metrics in main dashboard | ✅ Completed |
-| REVENUE-007 | P1 | Add `revenueAnalyticsService.ts` TypeScript service | ✅ Completed |
-| REVENUE-008 | P1 | Unit tests for `RevenueAnalyticsService` (8+ test cases) | ✅ Completed |
+#### Group B3 — Service Locator Pattern (AP-018→019)
 
----
+| ID | File | Issue | Fix |
+|----|------|-------|-----|
+| AP-018 | `ContactInfoController.cs` L708, 740, 783 | Resolves `IContactInfoValidationService` from `HttpContext.RequestServices` at runtime | Move to constructor injection |
+| AP-019 | `Program.cs` | 11 instances of `GetService`/`GetRequiredService` in seeding and factory lambdas | Extract to `AddXyzServices()` extension methods |
 
-### FEAT-PORTAL: Customer Self-Service Portal — Complete Implementation
+#### Group B4 — Fat Controllers (AP-020→023, all independent)
 
-**Goal:** Allow external customers to log in, view their tickets, submit new requests, browse the knowledge base, and manage their profile — without a CRM user account. Full production-grade portal with real-time updates, file attachments, email notifications, protected routing, and E2E test coverage.
+| ID | Controller | Issue | Extract To |
+|----|-----------|-------|-----------|
+| AP-020 | `QuotesController.cs` L68-107 | DB query logic in controller (`Where/Select/Include`) | `IQuoteService.GetFilteredAsync()` |
+| AP-021 | `SLAPoliciesController.cs` L239-297 | Complex `GroupBy()` analytics aggregation | `ISLAAnalyticsService` |
+| AP-022 | `SubscriptionUsageController.cs` L83-249 | Inline usage metrics aggregation | `ISubscriptionUsageService` |
+| AP-023 | `PipelinesController.cs` L82-83 | `GroupBy/Select` pipeline analysis | `IPipelineAnalyticsService` |
 
-**Status:** Foundation ~50% complete (auth, CRUD, basic pages). Route conflict bug present. Ticket detail, profile, attachments, real-time updates, full test coverage all missing.
+#### Group B5 — Missing Input Validation at API Boundary (AP-024→027, all independent)
 
-#### Already Completed (Foundation)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PORTAL-001 | P0 | `PortalUser` entity + `PortalConfig` entity — `DbSet` in `CrmDbContext`, `OnModelCreating` config, unique index on Email | ✅ Completed |
-| PORTAL-002 | P0 | JWT-based portal auth (stateless): portal JWT includes `portal=true` + `portal_user_id` claims, validated in `PortalController.ExtractPortalUserId()` | ✅ Completed |
-| PORTAL-003 | P0 | `IPortalAuthService` / `PortalAuthService` — Login, Register, ForgotPassword, ResetPassword, VerifyEmail (232 lines) | ✅ Completed |
-| PORTAL-004 | P0 | `IPortalService` / `PortalService` — GetMyTickets, CreateTicket, GetTicket, GetTicketComments, AddTicketComment, GetKnowledgeArticles, GetKnowledgeArticle, GetConfig (311 lines) | ✅ Completed |
-| PORTAL-005 | P0 | `IPortalAdminService` / `PortalAdminService` — GetConfig, UpdateConfig, GetPortalUsers, Activate/DeactivatePortalUser (144 lines) | ✅ Completed |
-| PORTAL-006 | P0 | `PortalAuthController` — login, register, forgot-password, reset-password, verify-email | ✅ Completed |
-| PORTAL-007 | P0 | `PortalController` — tickets list/get/create/comments, knowledge-base list/get, public config | ✅ Completed |
-| PORTAL-008 | P0 | `PortalAdminController` — GET/PUT config, GET users, POST activate/deactivate | ✅ Completed |
-| PORTAL-009 | P0 | DI registration of `IPortalAuthService`, `IPortalService`, `IPortalAdminService` in `Program.cs` | ✅ Completed |
-| PORTAL-010 | P1 | Frontend: `PortalLoginPage`, `PortalRegisterPage`, `PortalDashboardPage`, `PortalTicketListPage`, `PortalKBPage`, `PortalKBSearchPage` | ✅ Completed |
-| PORTAL-011 | P1 | Frontend: `portalService.ts` (axios service + `portalAdminService`), `PortalConfigPage.tsx` (admin config + user management) | ✅ Completed |
-| PORTAL-012 | P1 | App.tsx routes: `/portal/login`, `/portal/register`, `/portal/dashboard`, `/portal/tickets`, `/portal/knowledge-base`, `/admin/portal` | ✅ Completed |
-| PORTAL-013 | P1 | Unit tests: `PortalAuthServiceTests.cs` — 9 passing test cases | ✅ Completed |
-
-#### Remaining Gaps — Backend (P0 Blockers)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PORTAL-014 | P0 | **Fix route conflict:** `CustomerPortalController` and `PortalController` both map to `[Route("api/portal")]` — causes ASP.NET Core route ambiguity exception. Remove or re-route `CustomerPortalController` to `/api/portal/crm` (it uses CRM-staff `[Authorize]` and is superseded by `PortalController`) | ✅ Completed |
-| PORTAL-015 | P0 | **Feature flag gating:** Add `[FeatureGate(FeatureFlags.EnableCustomerPortal)]` to `PortalController` and `PortalAuthController` — endpoints must return 404/503 when `EnableCustomerPortal=false` in feature management | ✅ Completed |
-| PORTAL-016 | P0 | **EF Core migration:** Verify `PortalUsers` and `PortalConfigs` have an explicit named migration file (not only in `ModelSnapshot`). Create and apply `AddCustomerPortalTables` migration if absent | ✅ Completed |
-| PORTAL-017 | P0 | **Default PortalConfig seed:** Add default `PortalConfig` row in `SampleDataSeederService` (IsEnabled=false, AllowSelfRegistration=false, Title="Customer Portal") so `GET /api/portal/config` never returns 404 on fresh install | ✅ Completed |
-
-#### Remaining Gaps — Backend (P1 Features)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PORTAL-018 | P1 | **Portal rate limiting:** Add rules to `appsettings.json` RateLimiting section — `/api/portal/auth/login`: 5/min, `/api/portal/auth/register`: 3/hour, `/api/portal/auth/forgot-password`: 3/hour | ✅ Completed |
-| PORTAL-019 | P1 | **Portal user profile API:** Add `GET /api/portal/profile` and `PUT /api/portal/profile` (update display name, phone) and `POST /api/portal/profile/change-password` to `PortalController` + corresponding `IPortalService` methods | ✅ Completed |
-| PORTAL-020 | P1 | **Portal email notifications:** Wire `INotificationPort` (or `IEmailService`) inside `PortalAuthService.RegisterAsync` to send email-verification email; inside `PortalService.CreateTicketAsync` to send ticket-created confirmation email | ✅ Completed |
-| PORTAL-021 | P1 | **Ticket status change notification:** When CRM agent updates `ServiceRequest.Status`, emit notification to portal user via existing `INotificationPort` (email) and SignalR if portal user is connected | ✅ Completed |
-| PORTAL-022 | P1 | **File attachments on portal tickets:** Add `POST /api/portal/tickets/{id}/attachments` (multipart, max 10 MB) and `GET /api/portal/tickets/{id}/attachments` to `PortalController` + `IPortalService.UploadAttachmentAsync` / `GetAttachmentsAsync` using existing `FileAttachment` or blob store | ✅ Completed |
-
-#### Remaining Gaps — Backend (P2 Enhancements)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PORTAL-023 | P2 | **Ticket cancel endpoint:** `PATCH /api/portal/tickets/{id}/cancel` — portal user cancels their own open ticket (validates ownership, sets status = Cancelled) | ✅ Completed |
-| PORTAL-024 | P2 | **Portal CSAT trigger:** After ticket resolved, call `ISatisfactionService.SendSurveyAsync` linked to portal user's contact record (depends on FEAT-CSAT completion) | ✅ Completed |
-| PORTAL-025 | P2 | **Partner Portal backend:** `PartnerPortalPage.tsx` exists with no API. Create `IPartnerPortalService` + `PartnerPortalController` (`/api/partner-portal/deals`, `/opportunities`, `/resources`) for partner-specific views | ✅ Completed |
-
-#### Remaining Gaps — Frontend (P0 Blockers)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PORTAL-026 | P0 | **`PortalProtectedRoute` component:** `src/components/portal/PortalProtectedRoute.tsx` — reads portal JWT from `localStorage`, checks expiry, redirects to `/portal/login` if absent/expired. Apply to dashboard, tickets, detail, KB, profile routes | ✅ Completed |
-| PORTAL-027 | P0 | **`PortalTicketDetailPage.tsx`:** Full ticket detail view — status/priority badge, description, agent name, created date, complete comment thread with `AddComment` form, file attachments list, Cancel button (calls PORTAL-023). Route: `/portal/tickets/:id` | ✅ Completed |
-| PORTAL-028 | P0 | **Portal logout:** Add logout button/menu item in portal header that clears `portal_token` from `localStorage` and redirects to `/portal/login` | ✅ Completed |
-| PORTAL-029 | P0 | **Update App.tsx portal routes:** Add `/portal/tickets/:id` → `PortalTicketDetailPage`, `/portal/knowledge-base/:id` → `PortalKBArticlePage`, `/portal/profile` → `PortalUserProfilePage`, `/portal/forgot-password`, `/portal/reset-password`, `/portal/verify-email` | ✅ Completed |
-
-#### Remaining Gaps — Frontend (P1 Features)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PORTAL-030 | P1 | **`PortalLayout` component:** `src/components/portal/PortalLayout.tsx` — shared top navbar (logo from PortalConfig, nav links: My Tickets / Knowledge Base / Profile, logout). Wrap all authenticated portal pages | ✅ Completed |
-| PORTAL-031 | P1 | **`PortalKBArticlePage.tsx`:** Full KB article view — title, content (rich text), breadcrumb, "Was this helpful?" feedback. Route: `/portal/knowledge-base/:id` | ✅ Completed |
-| PORTAL-032 | P1 | **`PortalUserProfilePage.tsx`:** View/edit display name + phone; change password form. Route: `/portal/profile` | ✅ Completed |
-| PORTAL-033 | P1 | **Email verification UI:** `PortalVerifyEmailPage.tsx` — reads `?token=` from URL, calls `/api/portal/auth/verify-email`, shows success/error. After register, redirect to "check your email" notice. Route: `/portal/verify-email` | ✅ Completed |
-| PORTAL-034 | P1 | **Password reset UI:** `PortalForgotPasswordPage.tsx` + `PortalResetPasswordPage.tsx`. Route: `/portal/forgot-password`, `/portal/reset-password?token=...` | ✅ Completed |
-| PORTAL-035 | P1 | **Real-time portal ticket updates:** Connect `PortalTicketDetailPage` and `PortalTicketListPage` to SignalR — show toast when agent replies or ticket status changes while portal user is active | ✅ Completed |
-
-#### Remaining Gaps — Frontend (P2 Enhancements)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PORTAL-036 | P2 | **File attachment UI on ticket detail:** Drag-drop upload zone on `PortalTicketDetailPage` (max 10 MB, shows uploaded file list with download links) — depends on PORTAL-022 | ✅ Completed |
-| PORTAL-037 | P2 | **Portal CSAT widget:** After ticket resolved, show inline satisfaction rating (1–5 stars + comment) within ticket detail view | ✅ Completed |
-
-#### Remaining Gaps — Testing
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PORTAL-038 | P0 | Unit tests: `PortalServiceTests.cs` — 12+ cases: GetMyTickets (pagination, empty), CreateTicket (valid, portal disabled), GetTicket (own vs. other user = 403), AddTicketComment (own ticket), GetKnowledgeArticles (search filter) | ✅ Completed |
-| PORTAL-039 | P0 | Unit tests: `PortalAdminServiceTests.cs` — 6+ cases: GetConfig (no row → creates default), UpdateConfig, GetPortalUsers (pagination), ActivateUser (valid/not-found), DeactivateUser | ✅ Completed |
-| PORTAL-040 | P1 | Integration tests: `PortalIntegrationTests.cs` — POST login valid/invalid; POST register + duplicate email; POST tickets with portal JWT; GET tickets list; GET knowledge-base with search | ✅ Completed |
-| PORTAL-041 | P1 | E2E: `TC-PORTAL-001` — register → verify email → login → create ticket → view ticket detail → add comment | ✅ Completed |
-| PORTAL-042 | P1 | E2E: `TC-PORTAL-002` — search knowledge base → view article → thumbs up feedback | ✅ Completed |
-| PORTAL-043 | P2 | E2E: `TC-PORTAL-003` — admin disables portal → portal login returns error → admin re-enables → login succeeds | ✅ Completed |
+| ID | Endpoint | Add |
+|----|---------|-----|
+| AP-024 | `POST /api/subscriptions` | `[Required]`, `[Range]` on `CreateSubscriptionDto` |
+| AP-025 | `POST /api/payments` | Validation on amounts, dates, methods |
+| AP-026 | `POST /api/dunning-schedules` | Validation on dates, amounts |
+| AP-027 | `POST /api/service-requests` | Required field checks |
 
 ---
 
-### FEAT-AISCORING: AI Lead Scoring Real-time Triggers
+### P2 — Post-GA Improvements (Active Code Work)
 
-**Goal:** Auto-score leads on create/update using existing scoring rules, implement score decay for stale leads, add score history tracking.
+> Organized by dependency. Work within each group is mostly parallel unless noted.
 
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AISCORING-001 | P0 | Create `LeadScoreHistory` entity (Id, LeadId, Score, PreviousScore, Delta, Reason, ScoreComponents JSON, ScoredAt, ScoredBy [user/system/decay]) | ✅ Completed |
-| AISCORING-002 | P0 | Add `DbSet<LeadScoreHistory>` + migration `AddLeadScoreHistory` | ✅ Completed |
-| AISCORING-003 | P0 | Implement `LeadScoringBackgroundService : BackgroundService` — runs every 6h, applies score decay to leads inactive for 14+ days using existing `LastScoreDecayDate` | ✅ Completed |
-| AISCORING-004 | P0 | Modify `LeadService.CreateAsync` + `UpdateAsync` to auto-trigger lead scoring via `IAILeadScoringService` and persist `LeadScoreHistory` entry | ✅ Completed |
-| AISCORING-005 | P0 | Add endpoints to existing `AILeadScoringController`: GET `/api/aileadscoring/leads/{id}/history`, GET `/api/aileadscoring/leads/{id}/explanation` | ✅ Completed |
-| AISCORING-006 | P1 | Frontend: `LeadScoreHistoryChart` — sparkline or mini trend chart showing score over time on Lead detail page | ✅ Completed |
-| AISCORING-007 | P1 | Frontend: `LeadScoreExplanation` drawer — shows score breakdown by component (BANT/MEDDIC/activity/engagement) | ✅ Completed |
-| AISCORING-008 | P1 | Frontend: Update `LeadsPage` to show score trend indicator (⬆️ improving / ⬇️ declining / ➡️ stable) next to score badge | ✅ Completed |
-| AISCORING-009 | P1 | Unit tests for `LeadScoringBackgroundService` + score history (8+ test cases) | ✅ Completed |
+#### Frontend Type Consolidation (PRA-006→007, parallel)
 
----
+| ID | Issue | Fix |
+|----|-------|-----|
+| PRA-006 | 5 pages define local `interface Customer` instead of shared `Account` type from `types/` | Import shared `Account` type in all 5 pages |
+| PRA-007 | `validation.ts` has `customerSchema` missing 5 fields (`firstName`, `lastName`, `customerCategory`, `customerType`, `annualRevenue`) | Rename to `accountSchema`; add missing Yup validations |
 
-### FEAT-E2E: E2E Test Suite Stabilization
+#### Test Suite Re-enablement (PRA-008, PRA-016, PRA-017)
 
-**Goal:** Fix CRUD UI test failures (selector/navigation issues) and eliminate Mobile Safari false negatives so the full e2e suite runs green on chromium + firefox.
+| ID | Issue | Fix |
+|----|-------|-----|
+| PRA-008 | 3 fully disabled test files + 5 partially disabled test blocks | Fix compilation issues; remove skip markers |
+| PRA-016 | `AccountServiceIntegrationTests.cs` — `Expression<Func>` vs `Func` signature mismatch | Fix mock setup signatures |
+| PRA-017 | `QuoteServiceTests.cs` — missing `UpdateStatusAsync` method | Verify `IQuoteService`; add or stub method |
 
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| E2E-001 | P0 | Fix `crud-accounts.spec.ts` TC-ACC-001 to TC-ACC-016 — update navigation selectors to match the current MUI sidebar structure | ✅ Completed |
-| E2E-002 | P0 | Fix auth registration tests TC-AUTH-011 + TC-AUTH-013 — either update expected behavior (if registration is disabled) or fix the form selectors | ✅ Completed |
-| E2E-003 | P0 | Update `playwright.config.ts` to exclude `Mobile Safari` project from standard `test:comprehensive` run (add `--project=chromium --project=firefox` constraint) | ✅ Completed |
-| E2E-004 | P1 | Fix `crud-contacts.spec.ts` selector issues (if any) | ✅ Completed |
-| E2E-005 | P1 | Fix `crud-opportunities.spec.ts` selector issues (if any) | ✅ Completed |
-| E2E-006 | P1 | Add BVT test cases for COLLAB, CSAT, REVENUE, and PORTAL API endpoints | ✅ Completed |
-| E2E-007 | P1 | Ensure `npm run test:comprehensive` exits with 0 failures on chromium+firefox | ✅ Completed |
+#### Orphaned Code (PRA-011, independent)
 
----
+| ID | Issue | Fix |
+|----|-------|-----|
+| PRA-011 | `ContractExpirationJob` defined but never registered in DI or Hangfire | Wire to `IHostedService` or `AddHangfireJob()`; or delete if dead code |
 
-## Summary — Batch 2
+#### CancellationToken Propagation (AP-028→031, all independent)
 
-| Feature Group | Total Items | Priority | Status |
-|--------------|-------------|----------|--------|
-| FEAT-COLLAB (Record Comments) | 10 | P0/P1 | ✅ Completed |
-| FEAT-CSAT (Satisfaction) | 9 | P0/P1 | ✅ Completed |
-| FEAT-REVENUE (ARR/MRR) | 8 | P0/P1 | ✅ Completed |
-| FEAT-PORTAL (Customer Portal) | 12 | P0/P1 | ✅ Completed |
-| FEAT-AISCORING (Lead Scoring) | 9 | P0/P1 | ✅ Completed |
-| FEAT-E2E (Test Stabilization) | 7 | P0/P1 | ✅ Completed |
-| **Total** | **55** | — | ✅ All Complete |
+| ID | File | Missing Calls |
+|----|------|---------------|
+| AP-028 | `CommunicationService.cs` | `SaveChangesAsync()` at L134, 207, 237, 293, 419 |
+| AP-029 | `MasterDataController.cs` | `SaveChangesAsync()` at L326, 352 |
+| AP-030 | `UsersController.cs` | `SaveChangesAsync()` at L134, 782 |
+| AP-031 | `ApiUsersController.cs` | `SaveChangesAsync()` at L162, 203, 239, 303, 334, 361 |
 
----
+#### Error Handling Standardization (AP-032 first, then AP-033→035 in parallel)
 
+| ID | Action | Depends On |
+|----|--------|-----------|
+| AP-032 | **Define convention**: services throw typed exceptions (`NotFoundException`, `ValidationException`, `ConflictException`); global middleware maps to HTTP status codes | — (must be done first) |
+| AP-033 | `ApprovalWorkflowService.cs` — convert `InvalidOperationException` to typed domain exceptions | AP-032 |
+| AP-034 | `CommissionRulesEngine.cs` — unify return-null vs throw pattern | AP-032 |
+| AP-035 | `CommunicationService.cs` — align with convention | AP-032 |
 
+#### God Class Splits (AP-036→038, all independent)
 
----
+| ID | Class | Lines | Extract To |
+|----|-------|-------|-----------|
+| AP-036 | `LLMService.cs` | 1500+ | `ILLMProvider` interface + per-provider classes + `LLMProviderFactory` |
+| AP-037 | `AccountService.cs` | 1600+ | `AccountContactService`, `AccountPreferencesService` |
+| AP-038 | `MonitoringService.cs` | 1200+ | `DatabaseHealthService`, `DockerMonitoringService`, `KubernetesMonitoringService` |
 
-## Active Features
+#### Knowledge Base — General KB Backend (KB-001→009)
 
-### Feature: Scripting Language Support
+> KB-002→KB-005 are sequential. KB-006, KB-008 independent. KB-007, KB-009 require KB-005.
 
-**Goal:** Allow users to **write new** and **edit existing** Workflow Script nodes and Agent Script Plugins using JavaScript (Jint, always-on) and/or Python 3.x (Python.NET + RestrictedPython, feature-flagged).  
-
-**Specifications:**
-- [SPEC-SD-004-WorkflowEngine.md](11-specifications/SPEC-SD-004-WorkflowEngine.md) — SF11 + Section 3.9 (Workflow Script node language support)
-- [SPEC-AI-006-AgentScripting.md](11-specifications/SPEC-AI-006-AgentScripting.md) — Full dual-language agent & workflow scripting architecture
-
-**User Stories Covered:**
-| Story | Component |
-|-------|-----------|
-| Edit existing Workflow Script nodes (change language, update code) | `ScriptNodeEditor` + `ScriptNodeConfigDto.language` field |
-| Write new Workflow Script nodes from the workflow designer | `ScriptNodeEditor` + `ExecuteScriptAction` via `IScriptEngine` |
-| Edit existing Agent Script Plugins | `ScriptPluginEditorPage` + `ScriptPluginService.UpdateAsync` |
-| Write new Agent Script Plugins | `ScriptPluginsController POST` + `ScriptPluginLibraryPage` |
+| ID | Priority | Description | Depends On |
+|----|----------|-------------|-----------|
+| KB-001 | P1 | Resolve `ArticleType` enum collision — ITSM (`FAQ=3`) vs General KB (`FAQ=1`). Add disambiguating XML doc comments. Update `SPEC-GEN-001-EnumReference.md` | — |
+| KB-002 | P1 | Create `IKnowledgeBaseService` — 14 methods: GetAll (paginated), GetById, GetBySlug, Create, Update, Delete, Publish, Archive, SubmitFeedback, GetCategories, GetPopular, GetRecent, GetByProduct, TrackCaseDeflection | — |
+| KB-003 | P1 | Create General KB DTOs — `KnowledgeBaseArticleDto`, `CreateKnowledgeBaseArticleDto`, `UpdateKnowledgeBaseArticleDto`, `KnowledgeBaseFeedbackDto`, `KnowledgeCategoryDto` | KB-002 |
+| KB-004 | P1 | Implement `KnowledgeBaseService` using `context.KnowledgeArticles` DbSet; Draft→InReview→Published→Archived state machine | KB-002, KB-003 |
+| KB-005 | P1 | Create `KnowledgeBaseController` at `/api/knowledge` — 13 endpoints; register DI in `Program.cs` | KB-004 |
+| KB-006 | P1 | Unit tests for `KnowledgeBaseService` — all 14 methods, state transitions, slug collision, edge cases | KB-004 |
+| KB-007 | P1 | Fix `KnowledgeBasePage.tsx` — update 404 API calls from `/knowledge/*` to `/api/knowledge/*` | KB-005 |
+| KB-008 | P2 | Create `knowledgeBaseService.ts` frontend service — typed axios calls for all CRUD operations | — |
+| KB-009 | P2 | Controller tests for `KnowledgeBaseController` — 13 endpoints, auth requirements, pagination | KB-005 |
 
 ---
 
-## Summary by Priority
+### P2 — Feature Flag and External Integration Enablements (Blocked)
 
-| Priority | Count | Area |
-|----------|-------|------|
-| **P0** | ✅ 6 | Backend foundation (interface, enum, factory, refactor) + Testing (enum test) [COMPLETED] |
-| **P1** | ✅ 16 | Backend engines, entity/DB, services, SK integration, API, frontend core [ALL COMPLETE] |
-| **P2** | ✅ 2 | Frontend optional components (TestPanel, VariableInspector) [COMPLETE] |
-| **Done** | 1 | Enum reference documentation |
-| **Total** | **23** | 23 Complete, 0 Pending |
+> Scaffolding complete. Blocked on external prerequisites. No code work needed until unblocked.
 
----
-
-## TODO Items
-
-### Group 1 — Backend Foundation (P0)
-> These must be done first — everything else depends on them.
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-001 | AI006-TODO01 / SD004-TODO01 | P0 | Create `IScriptEngine` interface + `ScriptExecutionResult` + `ScriptDiagnostic` records in `CRM.Core/Interfaces/Scripting/` | Completed |
-| SCRIPT-002 | AI006-TODO05 / SD004-TODO04 | P0 | Create `ScriptLanguage` enum at `CRM.Core/Enums/ScriptLanguage.cs` (JavaScript=0, Python=1, CSharp=2) | Completed |
-| SCRIPT-003 | AI006-TODO04 / SD004-TODO08 | P0 | Implement `ScriptEngineFactory` resolving `IScriptEngine` by `ScriptLanguage` from DI | Completed |
-| SCRIPT-004 | SD004-TODO02 | P0 | Refactor `ExecuteScriptAction` call-site in `WorkflowWorkerService` to resolve and invoke `IScriptEngine` via `ScriptEngineFactory` | Completed |
-| SCRIPT-005 | AI006-TODO02 / SD004-TODO03 | P0 | Extract existing inline Jint JavaScript logic from `WorkflowWorkerService` into `JintScriptEngine : IScriptEngine` (preserving timeout/memory sandbox) | Completed |
-
-### Group 2 — Backend Engine Implementations (P1)
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-006 | AI006-TODO03 / SD004-TODO06,07 | P1 | Implement `PythonScriptEngine : IScriptEngine` using Python.NET + RestrictedPython sandbox (gated by `FeatureManagement:EnablePythonScripting` flag) | ✅ Stub registered in DI (`ScriptingServiceExtensions.cs`); `IsAvailable=false` until pythonnet wired; 12 unit tests passing (`PythonScriptEngineTests.cs`) |
-
-### Group 3 — Backend ScriptPlugin Entity & Persistence (P1)
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-007 | AI006-TODO06 | P1 | Add `ScriptPlugin` entity and `DbSet<ScriptPlugin>` to `CrmDbContext` | Completed |
-| SCRIPT-008 | AI006-TODO07 | P1 | Create EF Core migration `AddScriptPlugins` and apply to `crm_db` | Completed — Migration created (20260226114639) |
-| SCRIPT-009 | AI006-TODO08 | P1 | Implement `IScriptPluginService` / `ScriptPluginService` (CRUD: Create, UpdateAsync, Delete, GetAll, GetById, TestExecute) | Completed |
-
-### Group 4 — Semantic Kernel Integration (P1)
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-010 | AI006-TODO09 | P1 | Implement `ScriptPluginLoader` — reads enabled `ScriptPlugin` rows from DB and registers each as a `KernelPlugin` with a `KernelFunction` wrapper | Completed |
-| SCRIPT-011 | AI006-TODO10 | P1 | Update `CrmKernelFactory.CreateKernelAsync()` to call `ScriptPluginLoader.LoadDynamicPluginsAsync()` after static plugin registration | Completed — async overloads added |
-| SCRIPT-012 | AI006-TODO12 | P1 | Register `JintScriptEngine`, `PythonScriptEngine` (conditional), `ScriptEngineFactory`, `ScriptPluginLoader`, `ScriptPluginService` in `SemanticKernelServiceExtensions` | Completed |
-
-### Group 5 — Backend API Layer (P1)
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-013 | AI006-TODO11 | P1 | Implement `ScriptPluginsController` with endpoints: GET /api/script-plugins, GET /{id}, POST, PUT /{id}, DELETE /{id}, POST /{id}/enable, POST /{id}/disable, POST /test, GET /languages | Completed — 9 endpoints in ScriptingController |
-| SCRIPT-014 | SD004-TODO05 | P1 | Add `language` (ScriptLanguage enum) field to `ScriptNodeConfigDto` and persist/read from `WorkflowNodes.ConfigurationJson` | Completed |
-
-### Group 6 — Frontend Core Components (P1)
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-015 | AI006-TODO13 / SD004-TODO09 | P1 | Build `ScriptNodeEditor` React component with `@monaco-editor/react`, language selector (JS/Python), and workflow context variable hints — used in both new workflow creation and editing existing Script nodes | Completed — Full Monaco IDE with theme-adaptive dark/light mode |
-| SCRIPT-016 | AI006-TODO16 | P1 | Build `ScriptPluginLibraryPage` (list view for creating new agent scripts) and `ScriptPluginEditorPage` (Monaco editor for editing existing and creating new agent script plugins) | Completed — 437-line LibraryPage + 714-line EditorPage |
-| SCRIPT-017 | AI006-TODO17 | P1 | Add `scriptPluginService.ts` TypeScript service (axios calls for all `ScriptPluginsController` endpoints, typed DTOs) | Completed |
-
-### Group 7 — Frontend Optional Components (P2)
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-018 | AI006-TODO14 / SD004-TODO10 | P2 | Build `ScriptTestPanel` React component — inline test runner accepting mock context JSON and showing stdout / return value / errors | Completed — 392 lines, variables editor, context accordion, timeout selector, result panel |
-| SCRIPT-019 | AI006-TODO15 / SD004-TODO11 | P2 | Build `ScriptVariableInspector` React component — sidebar listing available workflow context variables with types and sample values | Completed — 298 lines, table + compact chip modes, context section, click-to-insert |
-
-### Group 8 — Testing (P0/P1)
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-020 | AI006-TODO21 / SD004-TODO14 | P0 | Add `ScriptLanguageEnumTests` unit test — assert count=3 and values JavaScript=0, Python=1, CSharp=2 | Completed |
-| SCRIPT-021 | AI006-TODO18 / SD004-TODO12 | P1 | Write unit tests for `JintScriptEngine`: timeout enforcement, memory limit, context variable injection, `log()` capture, error propagation | Completed — 18 tests passing |
-| SCRIPT-022 | AI006-TODO19 / SD004-TODO13 | P1 | Write unit tests for `PythonScriptEngine`: sandbox restriction (import block), context injection, timeout, basic evaluation | Completed — 6 tests in ScriptEngineFactory (Python mocked) |
-| SCRIPT-023 | AI006-TODO20 | P1 | Write unit tests for `ScriptPluginLoader` (dynamic kernel plugin registration) and `ScriptPluginService` (CRUD + validation) | Completed — 10 ScriptPluginService tests + 4 ScriptPluginLoader tests (all passing) |
-
-### Group 9 — Documentation (Done)
-
-| ID | Spec Ref | Priority | Description | Status |
-|----|----------|----------|-------------|--------|
-| SCRIPT-024 | AI006-TODO22 | P0 | Update `SPEC-GEN-001-EnumReference.md` with `ScriptLanguage` enum (section 2.8) | Done (Feb 26, 2026) |
+| ID | Feature | Blocker |
+|----|---------|---------|
+| FLAG-001 | Enable `EnableCustomerPortal` | SMTP credentials deployed to environment |
+| FLAG-002 | Enable `EnablePartnerPortal` | Partner dashboard FE needs to be built first |
+| FLAG-003 | Enable `NewSearchExperience` | External search provider (Meilisearch/Algolia) not configured |
+| FLAG-004 | AIAssistant floating chat widget | Build widget with SK agent endpoint + conversation history |
+| FLAG-005 | `UseOptionalAuditLogging` extended audit | Needs async queue (Redis Stream / RabbitMQ) + log rotation policy |
+| FLAG-006 | `Stripe.EnableSubscriptionTracking` | Stripe account + webhook setup |
+| COMM-001 | WhatsApp Business API | Meta Business API credentials |
+| COMM-002 | Facebook Messenger | Facebook Graph API credentials |
+| COMM-003 | Twitter/X API v2 DM | X API credentials (expensive tier — low priority) |
+| COMM-004 | LinkedIn Messaging | LinkedIn Sales Navigator Enterprise license |
+| INT-001 | QuickBooks/Xero accounting sync | OAuth2 app credentials; wire `AccountingSyncService` stub |
+| INT-002 | Mailchimp/HubSpot marketing sync | API credentials; wire `MarketingSyncService` stub |
+| INT-003 | LinkedIn Sales Navigator integration | Sales Navigator license (very low priority) |
+| INT-004 | Calendly/Cal.com scheduling | Better suited for n8n workflow template |
 
 ---
 
-## Recommended Implementation Order
+### P2 — KB Unified Search Facade (KB-010→014)
 
-Phase 1 — Foundation (✅ COMPLETE — Feb 26, 2026):
-  ✅ SCRIPT-001  IScriptEngine interface + result types
-  ✅ SCRIPT-002  ScriptLanguage enum (.cs file)
-  ✅ SCRIPT-003  ScriptEngineFactory
-  ✅ SCRIPT-005  JintScriptEngine (extract from WorkflowWorkerService)
-  ✅ SCRIPT-004  Refactor ExecuteScriptAction call-site
-  ✅ SCRIPT-020  ScriptLanguage enum unit test (values validated)
+> KB-010 must come first. Then KB-011/KB-014 in parallel. Then KB-012/KB-013 in parallel.
 
-Phase 2 — Python Engine & Tests (✅ COMPLETE — Feb 26, 2026):
-  ✅ SCRIPT-006  PythonScriptEngine stub (full impl deferred — Python.NET host setup)
-  ✅ SCRIPT-021  JintScriptEngine unit tests (18 passing)
-  ✅ SCRIPT-022  ScriptEngineFactory tests (6 passing, Python mocked)
-
-Phase 3 — ScriptPlugin Entity & Service (✅ COMPLETE — Feb 26, 2026):
-  ✅ SCRIPT-007  ScriptPlugin entity + DbSet
-  ✅ SCRIPT-008  EF migration AddScriptPlugins (20260226114639)
-  ✅ SCRIPT-009  ScriptPluginService (CRUD + TestExecute)
-  ✅ SCRIPT-013  ScriptPluginsController (9 endpoints fully implemented)
-  ✅ SCRIPT-014  language field in ScriptNodeConfigDto + WorkflowWorkerService 3-way language resolution
-
-Phase 4 — Semantic Kernel Integration (✅ COMPLETE — Feb 26, 2026):
-  ✅ SCRIPT-010  ScriptPluginLoader
-  ✅ SCRIPT-011  CrmKernelFactory update (async overloads added)
-  ✅ SCRIPT-012  DI registration in ScriptingServiceExtensions
-  ✅ SCRIPT-023  14 tests: ScriptPluginService (10) + ScriptPluginLoader (4) — all passing
-
-Phase 5 — Frontend (✅ COMPLETE — Feb 26, 2026):
-  ✅ SCRIPT-017  scriptPluginService.ts (complete with all typed DTOs)
-  ✅ SCRIPT-015  ScriptNodeEditor with full Monaco IDE, theme-adaptive, language selector
-  ✅ SCRIPT-016  ScriptPluginLibraryPage (437 lines) + ScriptPluginEditorPage (714 lines)
-  ✅ SCRIPT-018  ScriptTestPanel (392 lines, variables + context + timeout + result panel)
-  ✅ SCRIPT-019  ScriptVariableInspector (298 lines, table + compact chip modes)
-
-Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
-  ✅ SCRIPT-020  Workflow Designer split JSON script panel — Monaco editor alongside canvas, bidirectional live sync (visual→JSON + JSON→canvas with 600ms debounce); toggle button in toolbar; parse errors shown inline (WorkflowDesignerPage.tsx)
-  ✅ SCRIPT-021  Scripting section added to Navigation — Admin > Scripting subcategory with "Script Library" (/scripting/plugins) and "New Script" (/scripting/plugins/new) items; nav config version bumped to v3-2026-02-26
+| ID | Description | Depends On |
+|----|-------------|-----------|
+| KB-010 | Create `IUnifiedKnowledgeSearchService` — `SearchAsync(query, maxResults, source?, ct)` + `IndexAllAsync`; `KnowledgeSource` enum (General/ITSM); `UnifiedKnowledgeSearchResultDto` | — |
+| KB-011 | Implement `UnifiedKnowledgeSearchService` — parallel queries on both DbSets; merge by relevance score; optional source filter | KB-010 |
+| KB-012 | Add `GET /api/knowledge/search` unified search endpoint | KB-011 |
+| KB-013 | Wire `SelfServiceChatbotService` to `IUnifiedKnowledgeSearchService` — replace hardcoded mock articles | KB-011 |
+| KB-014 | Extend `AIKnowledgeSearchService` to index `KnowledgeArticles` (General KB) alongside existing `ITSMKnowledgeArticles` | KB-010 |
 
 ---
 
-## FEAT-SCRIPTING-ARCH: Full Scripting Engine Architecture Migration
+### P3 — Technical Debt Cleanup (Opportunistic)
 
-**Source Document:** `docs/11-specifications/scripting-engine-architecture.docx` v1.0 (Feb 2026)
-**Gap Analysis Report:** `docs/investigations/scripting-engine-gap-analysis.md`
-**Overall Current Coverage:** ~20–25% of spec
-**Goal:** Migrate the existing Jint-based JavaScript-only scripting to the full dual-runtime (TypeScript 20 + .NET 10 Roslyn), sandbox-first, governance-driven scripting platform defined in the spec — across Workflow Orchestration, Agent Scripting, Script Registry, Tool Bridge, and full OpenTelemetry observability.
+> No dependencies between items. Do not block GA on any P3 item.
 
-### Phase 1 — Shared Contracts & IScriptEngine Enhancement (Weeks 1–4)
+| ID | Action |
+|----|--------|
+| PRA-013 | Delete `ProcessPaymentRequestDto` obsolete alias — unused |
+| PRA-014 | Delete shell aliases `Customer`/`AccountStatus`/`CustomerContact` from `AccountDtos.cs` — confirm no external API consumers first |
+| PRA-015 | Audit 31 `.disabled` archive files — delete or move to `archive/` branch |
+| PRA-018 | Implement `RoslynScriptEngine` / `TypeScriptScriptEngine` stubs (currently `NotImplementedException`) — or document as post-GA roadmap |
+| PRA-019 | Wire `EmailDigestPage.tsx`, `ReportTemplatesPage.tsx`, `InvoiceDetailsPage.tsx` TODO stubs to actual endpoints |
+| PRA-020 | Re-enable `AccountMergeDialog`, `AccountHierarchyTree`, `AccountTimeline` — implement merge API, MUI tree-view fix, activityService |
+| AP-039 | Split `Program.cs` (1500+ lines) into `AddAuthServices()`, `AddDatabaseServices()`, `AddHealthCheckServices()` extension methods |
+| AP-040 | Split `CrmDbContext.cs` (4000+ lines) — extract `OnModelCreating` config into `IEntityTypeConfiguration<T>` per entity group |
+| KB-015 | Add Meilisearch unified knowledge index (both `KnowledgeArticles` + `ITSMKnowledgeArticles` with `source` discriminator) |
+| KB-016 | Consolidate `KnowledgeArticleVersion.cs` + `ArticleVersion.cs` in ITSM namespace (near-identical schemas) |
+| KB-017 | Add General KB category management UI — hierarchical CRUD for `KnowledgeCategory` entities |
 
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-001 | P0 | **Create `ScriptDefinition` record** with: `Id` (ULID), `Name`, `Version` (SemVer string), `Kind` (`ScriptKind` enum: workflow_step / agent_hook / guardrail / transform / validation / tool_adapter), `Runtime` (dotnet / typescript), `Source`, `InputSchema` (JSON Schema string), `OutputSchema` (JSON Schema string), `Permissions` (Permission[]), `Timeout` (TimeSpan), `MemoryLimitMb` (int), `Metadata` (author, tags, lifecycle state, approval chain) | ✅ Completed 2026-02-28 — `CRM.Core/Scripting/ScriptDefinition.cs` |
-| SARCH-002 | P0 | **Create `IScriptContext<TInput>` contract** — injected into sandbox; must include typed `Input: TInput`, `Env` (ExecutionEnvironment: tenantId, correlationId, callerId), `Tools` (IToolInvoker), `Config` (ReadOnlyDictionary), `Secrets` (ISecretAccessor), `State` (IStateAccessor), `Metrics` (IMetricsRecorder), `Logger` (IScriptLogger) | ✅ Completed 2026-02-28 — `CRM.Core/Scripting/IScriptContext.cs` |
-| SARCH-003 | P0 | **Create `ScriptKind` enum** — workflow_step=0, agent_hook=1, guardrail=2, transform=3, validation=4, tool_adapter=5 — add to `SPEC-GEN-001-EnumReference.md` | ✅ Completed 2026-02-28 — `CRM.Core/Scripting/ScriptEnums.cs` + `SPEC-GEN-001-EnumReference.md` created |
-| SARCH-004 | P0 | **Extend `IScriptEngine` interface** — add: `CompileAsync(ScriptDefinition, CompilationOptions?, CancellationToken) → Task<CompilationResult>`, `ExecuteAsync<TIn, TOut>(CompiledScript, IScriptContext<TIn>, ExecutionOptions?, CancellationToken) → Task<ExecutionResult<TOut>>`, `RunAsync<TIn, TOut>(string scriptId, TIn input, ExecutionOptions?, CancellationToken) → Task<ExecutionResult<TOut>>` (registry lookup) | ✅ Completed 2026-02-28 — `CRM.Core/Scripting/ICompiledScriptEngine.cs` (new interface; existing `IScriptEngine` preserved) |
-| SARCH-005 | P0 | **Create `CompilationResult`** — `CompiledScriptRef` (artefact ID), `ContentHash` (SHA-256), `Diagnostics` (DiagnosticMessage[]), `CompiledAt`, `CachePath` | ✅ Completed 2026-02-28 — `CRM.Core/Scripting/ICompiledScriptEngine.cs` |
-| SARCH-006 | P0 | **Create `ExecutionResult<TOut>`** — `Output: TOut`, `Success`, `Error`, `Trace` (ActivitySpan ID), `ResourceUsage` (CpuMs, MemoryPeakBytes), `Duration`, `InputHash` (SHA-256), `OutputHash` (SHA-256) | ✅ Completed 2026-02-28 — `CRM.Core/Scripting/ICompiledScriptEngine.cs` |
-| SARCH-007 | P0 | **Create ADRs** — write docs/01-architecture/ADR-006-Scripting-Engine-Jint-Deviation.md (Jint vs Roslyn decision), ADR-007-Script-Tool-Bridge.md, ADR-008-YAML-WDL.md, ADR-009-TS-Sandbox.md, ADR-010-Embeddable-Library.md | ✅ Completed 2026-02-28 — ADR-006 through ADR-010 created in `docs/01-architecture/` |
-| SARCH-008 | P1 | **`ScriptTestHarness` API** — `ScriptTestHarness.FromDefinition(ScriptDefinition)` sets up mock Tool Bridge + state + secrets; `harness.When("tool").Returns(...)` DSL; `harness.ExecuteAsync(input)` returns `ExecutionResult` with assertions | ✅ Completed 2026-02-28 — `CRM.Core/Scripting/ScriptTestHarness.cs` |
+### Deferred (will not be addressed this wave)
 
-### Phase 2 — Script Registry Full Lifecycle (Weeks 5–8)
+| ID | Reason |
+|----|--------|
+| AP-059 | Anemic domain model — adding behavior to 90+ entities requires a dedicated DDD migration phase with full team coordination |
+| XMOD-011 | `KnowledgeArticle` entity consolidation — ITSM + General KB versions have separate DbSets and incompatible schemas; needs architectural decision first |
 
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-009 | P0 | **`ScriptLifecycleState` enum** — draft=0, review=1, approved=2, staged=3, deployed=4, retired=5 — add to `ScriptPlugin`/`ScriptDefinition`, add allowed-transition guard in service | ✅ Completed |
-| SARCH-010 | P0 | **`ScriptPlugin` entity SemVer migration** — added `SemVersion` (string), `Runtime` (ScriptRuntime), `LifecycleState` (ScriptLifecycleState), `InputSchemaJson`, `OutputSchemaJson`, `PermissionsJson`, `MemoryLimitMb`, `TimeoutSeconds` fields to ScriptPlugin entity | ✅ Completed |
-| SARCH-011 | P0 | **`ScriptVersion` entity (version history)** — Id, ScriptPluginId (FK), VersionMajor/Minor/Patch, Source, CompiledArtefactPath, ContentHash, CreatedAt, CreatedByUserId — keep last 10 versions per script | ✅ Completed |
-| SARCH-012 | P0 | **`ScriptAuditLog` entity** — immutable append-only: Id (ULID), ScriptId, EventType, UserId, Timestamp, Details (JSON) — 7-year retention setting | ✅ Completed |
-| SARCH-013 | P0 | **Script approval API** — `POST /api/scriptsregistry/{id}/submit-review`, `POST /api/scriptsregistry/{id}/approve`, `POST /api/scriptsregistry/{id}/reject`, `POST /api/scriptsregistry/{id}/deploy`, `POST /api/scriptsregistry/{id}/retire` — validate role (Script Reviewer, Release Manager) | ✅ Completed |
-| SARCH-014 | P0 | **EF Core migration** `AddScriptRegistryEnhancements` — add LifecycleState, SemVer cols, ScriptVersions table, ScriptAuditLogs table | ✅ Completed |
-| SARCH-015 | P1 | **Compiled artefact store** — on successful compilation cache compiled artefact (Base64 assembly or JS bundle) in Redis (key = `artefact:{scriptId}:{contentHash}`); load from cache on `RunAsync` (skip recompile); tamper detection on load (re-check SHA-256) | ✅ Completed |
-| SARCH-016 | P1 | **Breaking-change detection** — on new version submit, compare InputSchema / OutputSchema against previous deployed version using NJsonSchema diff; flag MAJOR bump if breaking | ✅ Completed |
-| SARCH-017 | P1 | **Script Registry RBAC** — `[Authorize(Roles = "Admin,ScriptApprover")]` on approve/reject; `[Authorize(Roles = "Admin")]` on deploy/retire; `[Authorize]` on all endpoints in `ScriptRegistryController` | ✅ Completed |
-| SARCH-018 | P1 | **Frontend: Script governance UI** — `ScriptRegistryPage.tsx` scaffold created at `pages/admin/ScriptRegistryPage.tsx`; full Sprint 3 implementation planned | ✅ Completed (scaffold) |
-| SARCH-019 | P1 | **Frontend: Script monitoring dashboard** — `ScriptMonitoringPage.tsx` — table of recent executions per script (execution count, avg duration, error rate, last run), filterable by script, date range, status | ✅ Completed (scaffold in ScriptRegistryPage) |
-| SARCH-020 | P2 | **`dotnet tool` CLI** — `dotnet tool install crm-script-cli` providing: `crm-script init`, `crm-script validate <file>`, `crm-script test <file>`, `crm-script push <file> --registry <url>` | ✅ Completed (scaffold placeholder) |
+---
 
-### Phase 3 — .NET Roslyn Scripting Engine + ALC Isolation (Weeks 5–8)
+## Section 3 — Execution Plan
 
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-021 | P0 | **Add Roslyn NuGet packages** — `Microsoft.CodeAnalysis.CSharp.Scripting` + `Microsoft.CodeAnalysis.CSharp` v4.8.0 added to `CRM.Infrastructure.csproj` | ✅ Completed |
-| SARCH-022 | P0 | **Custom `DiagnosticAnalyzer`** — `SecureScriptAnalyzer.cs` blocks: `System.Reflection`, `System.IO`, `System.Net`, `System.Diagnostics.Process`, `unsafe` keyword, `DllImport`, direct `HttpClient` instantiation — emits `SCRIPT001` error on violation | ✅ Completed |
-| SARCH-023 | P0 | **Allow-listed `MetadataReference` set** — `SecureReferenceResolver.cs` returns only explicitly permitted assemblies (corlib, System.Linq, System.Text.Json, CRM.Core contracts, etc.); blocks all others | ✅ Completed |
-| SARCH-024 | P0 | **`RoslynScriptEngine : ICompiledScriptEngine`** — `CompileAsync`: `CSharpScript.Create` with `SecureReferenceResolver` → cache sentinel in Redis; `ExecuteAsync`: concurrency-limited via `SemaphoreSlim(10)` | ✅ Completed |
-| SARCH-025 | P0 | **`ScriptAssemblyLoadContext`** — collectible ALC per execution; override `Load` to block assemblies not in allow-list; `Dispose` after execution to force GC collection | ✅ Completed |
-| SARCH-026 | P1 | **`MemoryWatchdog`** — `PeriodicTimer` polling `GC.GetTotalMemory` every 100ms; returns false if process memory exceeds limit, allowing caller to cancel execution | ✅ Completed |
-| SARCH-027 | P1 | **`SemaphoreSlim` concurrency ceiling** — `RoslynScriptEngine` holds `SemaphoreSlim(10, 10)` — all `ExecuteAsync` calls wait to acquire; max concurrent = `MaxConcurrentExecutions = 10` | ✅ Completed |
-| SARCH-028 | P1 | **Register `RoslynScriptEngine`** in `ScriptingServiceExtensions.cs` — `AddCrmScripting()` registers `ICompiledScriptEngine`, `ScriptArtefactStore`, `ScriptBreakingChangeDetector`, `MemoryWatchdog` as singletons; `IScriptRegistryService` as scoped | ✅ Completed |
-| SARCH-029 | P1 | **Unit tests: `RoslynScriptEngineTests.cs`** — 13 passing cases: runtime property, compile valid/invalid syntax, content hash determinism, execute success, ScriptDefinition defaults, CompilationResult.Success logic, enum value counts | ✅ Completed |
-
-### Phase 3b — TypeScript Scripting Engine (isolated-vm) (Weeks 9–12)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-030 | P0 | **Add Node.js sidecar service** — `crm-script-runner` Node.js process (TypeScript 20); manage from `CRM.Infrastructure` via stdin/stdout pipe or HTTP on a named socket; responsible for SWC compilation + isolated-vm execution | ✅ Completed |
-| SARCH-031 | P0 | **SWC + tsc compilation pipeline** — AST security scan (SWC Visitor plugin blocking `eval()`, `globalThis`, `import()`, dynamic `require()`, `Proxy`/`Reflect`); tsc type-check against `@engine/contracts` `.d.ts`; SWC transform (IIFE wrap + inject `__ctx`); output cached by content hash | ✅ Completed |
-| SARCH-032 | P0 | **`isolated-vm` V8 Isolate sandbox** — V8 Isolate per execution (separate heap, hardware-level boundary); `memoryLimit` from `ScriptDefinition.MemoryLimitMb`; CPU bounded via `timeout` on `Script.runInContext()`; reference callbacks for Tool Bridge calls back to .NET | ✅ Completed |
-| SARCH-033 | P0 | **`@engine/stdlib` package** — audited utility library published to internal npm registry: `http` (proxy via Tool Bridge), `encoding`, `date`, `crypto` (hash only), `collections` — blocked: `fs`, `child_process`, `net`, `os`, `cluster` | ✅ Completed |
-| SARCH-034 | P0 | **`@engine/contracts` package** — TypeScript `.d.ts` generated from C# `IScriptContext<TIn>` contracts via `NSwag` or `TypeSpec`; published to internal npm registry | ✅ Completed |
-| SARCH-035 | P0 | **`TypeScriptScriptEngine : IScriptEngine`** in C# — `CompileAsync` sends source to crm-script-runner via pipe/socket and receives compiled bundle; `ExecuteAsync` sends bundle + context → receives `ExecutionResult<TOut>` JSON | ✅ Completed |
-| SARCH-036 | P1 | **Add crm-script-runner to docker-compose** — `crm-components` stack, Unix socket mounted at `/tmp/crm-script-runner.sock`, `NODE_ENV=production`, no network access | ✅ Completed |
-| SARCH-037 | P1 | **`@engine/testing` Vitest harness** — npm package providing `scriptTest(file, { tools: mockedTools, input: {...} })` for unit testing `.ts` scripts outside the runtime | ✅ Completed |
-| SARCH-038 | P1 | **Unit tests: `TypeScriptScriptEngineTests.cs`** — 8+ cases: basic execution, blocked `eval()`, blocked `import`, tool bridge invocation, timeout, memory | ✅ Completed |
-
-### Phase 4 — Tool Bridge (Weeks 5–8, parallel with Phase 3)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-039 | P0 | **`IToolInvoker` interface** — `Task<ToolResult<TResult>> CallAsync<TResult>(string toolName, object parameters, CancellationToken)` — permission-gated call to registered platform tools from within a script execution | ✅ Completed |
-| SARCH-040 | P0 | **`ToolRegistry`** — `services.AddScriptTool("GetActiveCustomers", ...)` registration pattern in DI; stores `ToolDescriptor` (name, permissions required, delegate); auto-discovered via `[ScriptTool]` attribute on CRM service methods | ✅ Completed |
-| SARCH-041 | P0 | **`ToolBridgeInvoker : IToolInvoker`** — validates `ScriptDefinition.Permissions` includes required permission; checks SoD rules; calls the registered tool delegate; records `ToolCallAuditEntry` (scriptId, toolName, callerId, durationMs, inputHash, outputHash); applies per-tool rate limit; circuit breaker via Polly | ✅ Completed |
-| SARCH-042 | P0 | **`IStateAccessor` implementation** — per-execution key-value store backed by Redis (`HSET execution:{correlationId} key value`); TTL = workflow instance lifetime; scripts access via `ctx.state.get(key)` / `ctx.state.set(key, value)` | ✅ Completed |
-| SARCH-043 | P0 | **`ISecretAccessor` implementation** — reads from `IConfiguration` + Azure Key Vault (or local `secrets.json` in dev); scripts access `ctx.secrets.get("ApiKey")` — key must be declared in `ScriptDefinition.RequiredSecrets` list | ✅ Completed |
-| SARCH-044 | P1 | **`IMetricsRecorder` implementation** — records custom metrics from scripts as OTel custom counters; `ctx.metrics.increment("custom.counter", 1, { tag: value })` | ✅ Completed |
-| SARCH-045 | P1 | **Tool Bridge for TypeScript** — `isolated-vm` `Reference` callbacks marshalled through crm-script-runner via async message to C# `ToolBridgeInvoker` and back; JSON serialized | ✅ Completed |
-| SARCH-046 | P1 | **Register CRM platform tools** — annotate/register core CRM service methods as Script Tools: `GetCustomerById`, `GetActiveLeads`, `CreateServiceRequest`, `GetKnowledgeArticle`, `LlmComplete` (AI call), `SendEmail`, `GetOpportunities`, `UpdateLeadStatus` | ✅ Completed |
-| SARCH-047 | P1 | **Unit tests: `ToolBridgeInvokerTests.cs`** — 10+ cases: permission granted/denied, SoD violation, rate limit triggered, circuit breaker open, audit log written, tool not found | ✅ Completed |
-
-### Phase 5 — Workflow Engine: YAML WDL + Full Step Types (Weeks 9–12)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-048 | P0 | **YAML WDL parser** — `WorkflowDefinitionParser.ParseYaml(string yaml) → WorkflowPlan` using YamlDotNet; validates against WDL JSON Schema; resolves `${}` expression references to previous step outputs | ✅ Completed |
-| SARCH-049 | P0 | **CEL expression evaluator** — integrate `cel-csharp` or implement mini-CEL evaluator for condition step type (`${steps.check.output.risk} > 0.7`); used in `condition` step and `approval` gate conditions | ✅ Completed |
-| SARCH-050 | P0 | **`parallel` step type** — fan-out: start all child step executions concurrently via `Task.WhenAll`; fan-in: collect all results into `steps.parallel_name.outputs[]`; barrier with configurable `waitForAll` (bool) | ✅ Completed |
-| SARCH-051 | P0 | **`tool` step type** — direct platform tool invocation step (no script wrapper); calls `IToolInvoker.CallAsync` directly; input/output mapped via WDL expression bindings | ✅ Completed |
-| SARCH-052 | P0 | **`condition` step type** — evaluates CEL expression; routes to `then` branch or `else` branch; branches reference next step IDs | ✅ Completed |
-| SARCH-053 | P0 | **`delay` step type** — suspends workflow instance for configured duration; stores `ResumeAt` on `WorkflowInstance`; background service polls for resumable instances | ✅ Completed |
-| SARCH-054 | P1 | **`loop` step type** — iterates over `foreach` collection (from prior step output or context); executes body steps for each item; accumulates results into array | ✅ Completed |
-| SARCH-055 | P1 | **`subworkflow` step type** — launches child `WorkflowInstance` linked to parent instance; parent waits for child completion via `WorkflowInstance.ParentInstanceId` FK + completion callback | ✅ Completed |
-| SARCH-056 | P0 | **Durable per-step state commit** — before executing next step, serialize current step's output + context to `WorkflowInstance.StateData` (JSON); if step fails after commit, new execution starts from last committed step | ✅ Completed |
-| SARCH-057 | P0 | **Saga integration into workflow steps** — each `WorkflowNode` gains optional `CompensationScriptId` (FK to `ScriptPlugin`) and `CompensationOrder` (int); workflow engine calls compensations in reverse order on failure | ✅ Completed |
-| SARCH-058 | P1 | **Dead-letter queue** — permanently failed `WorkflowInstance` (max retries exhausted) moved to `WorkflowDeadLetter` table with `FailureReason`, `LastError`, `LastAttemptAt`; admin endpoint `GET /api/workflow/dead-letter` + `POST /api/workflow/dead-letter/{id}/requeue` | ✅ Completed |
-| SARCH-059 | P1 | **Workflow replay engine** — `WorkflowReplayService.ReplayAsync(instanceId, fromStepId)` re-executes from checkpoint; used in testing harness and admin troubleshooting | ✅ Completed |
-| SARCH-060 | P2 | **YAML frontend editor** — add "YAML" tab to workflow designer (`WorkflowDesignerPage.tsx`) alongside existing JSON split view; YAML ↔ node graph bidirectional sync | ✅ Completed |
-
-### Phase 6 — Agent Lifecycle Hooks + Guardrails (Weeks 13–16)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-061 | P0 | **`AIAgent` hook fields** — add 8 nullable `FKs` to `ScriptPlugin` on `AIAgent` entity: `OnActivateScriptId`, `OnPlanScriptId`, `OnBeforeToolCallScriptId`, `OnAfterToolCallScriptId`, `OnDecisionScriptId`, `OnMessageScriptId`, `OnErrorScriptId`, `OnCompleteScriptId` + EF Core migration `AddAgentHookScripts` | ✅ Completed |
-| SARCH-062 | P0 | **`onActivate` hook** — called at start of `AgentExecutionService.ChatAsync`; receives agent config + initial message; may mutate system prompt or raise `PreventActivationException` | ✅ Completed |
-| SARCH-063 | P0 | **`onPlan` hook** — called after LLM returns tool-call plan (before tools execute); receives `ToolCallPlan[]`; may reorder, remove, or augment planned calls | ✅ Completed |
-| SARCH-064 | P0 | **`onBeforeToolCall` hook** — called before each individual tool call; receives tool name + parameters; can block call (`throw GuardrailViolationException`) or modify parameters | ✅ Completed |
-| SARCH-065 | P0 | **`onAfterToolCall` hook** — called after each tool call result; receives tool name + raw result; can transform result before agent sees it | ✅ Completed |
-| SARCH-066 | P0 | **`onDecision` hook** — called when agent selects final response (no more tool calls); receives candidate response; can modify or flag for human approval | ✅ Completed |
-| SARCH-067 | P0 | **`onMessage` hook** — called on inter-agent message receipt (multi-agent messaging); receives sender ID + message; can filter, modify, or drop | ✅ Completed |
-| SARCH-068 | P0 | **`onError` hook** — called when agent execution throws unhandled exception; receives error + context; can log, alert, or attempt recovery | ✅ Completed |
-| SARCH-069 | P0 | **`onComplete` hook** — called after agent returns final response; receives complete conversation history + final output; for cleanup, cost recording, memory compaction | ✅ Completed |
-| SARCH-070 | P0 | **Guardrail framework** — `GuardrailPipeline` executed inline in `AgentExecutionService`; runs registered `IGuardrailScript[]` at: Pre-Action (before tool calls), Post-Action (after tool results), Output (before final response); `GuardrailViolationException` blocks the action | ✅ Completed |
-| SARCH-071 | P0 | **`AIAgent` budget fields** — add `MaxActionsPerExecution` (int?), `MaxLlmCallsPerExecution` (int?), `MaxBudgetUsdPerExecution` (decimal?), `RequiresHumanApprovalCondition` (CEL expression string?) + enforcement in `AgentExecutionService` | ✅ Completed |
-| SARCH-072 | P1 | **`AgentSimulationHarness`** — `AgentSimulationHarness.ForAgent(agentId).WithScenario("...").WithMockedTools([...]).RunAsync()` returns quality metrics; integrates with promptfoo YAML scenarios | ✅ Completed |
-| SARCH-073 | P1 | **Frontend: Agent hook configuration UI** — extend agent detail page with "Lifecycle Hooks" accordion: dropdown per hook to select script from registry (deployed scripts only, filtered by ScriptKind=agent_hook) | ✅ Completed |
-| SARCH-074 | P1 | **Frontend: Guardrail management UI** — `GuardrailManagementPage.tsx` — list guardrails assigned to agent, add/remove, set type (Pre/Post/Output/Invariant/Decision) | ✅ Completed |
-
-### Phase 7 — Observability + Security Hardening (Weeks 17–20)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-075 | P0 | **OpenTelemetry spans for script execution** — `ScriptEngine.Execute` root span with child spans: `Script.Compile`, `Sandbox.Init`, `Script.Run`, each `ToolBridge.Call`, `Output.Validate`; tag with scriptId, version, runtime, correlationId; export to configured OTel backend | ✅ Completed |
-| SARCH-076 | P0 | **OTel metrics counters** — `script_executions_total` (labels: script_id, runtime, success), `script_compilations_total`, `tool_calls_total` (labels: tool_name, success), `guardrail_blocks_total`, `workflow_completions_total`, `workflow_step_failures_total` | ✅ Completed |
-| SARCH-077 | P0 | **OTel metrics histograms** — `script_execution_duration_ms`, `compilation_duration_ms`, `tool_call_duration_ms`, `sandbox_memory_peak_bytes` | ✅ Completed |
-| SARCH-078 | P0 | **Security: T3 data exfiltration prevention** — static import analysis in Jint to block `require()` / network calls; no direct `HttpClient` access; all egress via Tool Bridge only; test with intentional exfiltration attempt | ✅ Completed |
-| SARCH-079 | P0 | **Security: T6 state tampering** — HMAC-sign workflow state snapshots before saving; validate signature on load; reject tampered snapshots | ✅ Completed |
-| SARCH-080 | P0 | **Security: T8 script poisoning** — four-eyes review gate (approval from 2 distinct `ScriptReviewer` users for `ScriptKind.agent_hook` or `ScriptKind.guardrail`); SHA-256 signed artefacts; signature verified before every execution | ✅ Completed |
-| SARCH-081 | P1 | **Pre-built Grafana dashboard** — scripting & workflow JSON dashboard: panels for executions/min, avg duration, error rate, top scripts by execution count, tool call breakdown, memory usage, guardrail block events | ✅ Completed |
-| SARCH-082 | P2 | **Chaos testing middleware** — `ChaosScriptingMiddleware` (dev/staging only): random delay injection, Tool Bridge failure injection, memory pressure simulation; configurable via `appsettings.Testing.json` | ✅ Completed |
-
-### Phase 8 — Multi-Agent Messaging + Advanced Features (Weeks 17–20)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-083 | P1 | **Inter-agent messaging** — Register `SendAgentMessage` as a Script Tool; publishing to `AgentMessageQueue` (Redis Stream or in-memory `Channel<T>`); receiving agent activated via registered `onMessage` hook | ✅ Completed |
-| SARCH-084 | P1 | **`AgentMemory` episodic model** — add `Type` (episodic / semantic / procedural), `CompactorScriptId` (FK), `MaxEntries` (int), `TtlDays` (int) to `AgentMemory`; background service triggers compactor script when `MaxEntries` reached | ✅ Completed |
-| SARCH-085 | P2 | **Script sidecar mode** — `crm-script-runner` can run as a kubernetes sidecar alongside `crm-api` pod; HTTP-based API for compile/execute; allows scaling script execution independently | ✅ Completed |
-| SARCH-086 | P2 | **`@engine/cli` npx tool** — `npx @engine/cli init`, `validate`, `test`, `push` — TypeScript script authoring workflow from developer machine | ✅ Completed |
-
-### Testing — Full Scripting Engine Architecture
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| SARCH-087 | P0 | Unit tests: `RoslynScriptEngineTests.cs` — 12+ cases (maps to SARCH-029) | ✅ Completed — 13 tests confirmed in `ScriptEngineTests.cs` |
-| SARCH-088 | P0 | Unit tests: `ToolBridgeInvokerTests.cs` — 10+ cases (maps to SARCH-047) | ✅ Completed — 12 tests confirmed in `ToolBridgeTests.cs` |
-| SARCH-089 | P0 | Unit tests: `TypeScriptScriptEngineTests.cs` — 8+ cases (maps to SARCH-038) | ✅ Completed — 12 tests confirmed in `TypeScriptScriptEngineTests.cs` |
-| SARCH-090 | P0 | Unit tests: `AgentLifecycleHookTests.cs` — 8 hook invocations, blocked action, budget exceeded, guardrail violation | ✅ Completed |
-| SARCH-091 | P1 | Integration tests: `WorkflowWDLIntegrationTests.cs` — parse YAML → execute plan → assert step outputs; test all 8 step types | ✅ Completed — 14 tests in `WorkflowIntegrationTests.cs` (parse ×4, validate ×4, CEL ×2, orchestrator ×4); all passing |
-| SARCH-092 | P1 | Integration tests: `GuardrailIntegrationTests.cs` — Pre-Action guard blocks tool call, Output guard modifies response | ✅ Completed — 10 tests in `GuardrailIntegrationTests.cs` (SSN ×2, credit-card ×2, prompt-injection ×3, clean-pass ×2, output-check ×1); all passing |
-| SARCH-093 | P1 | E2E: `TC-SARCH-001` — author `.ts` script → submit for review → approve → deploy → execute in workflow → verify OTel trace | ✅ Completed — Playwright spec at `e2e-tests/tests/scripting/script-registry.spec.ts` (5 E2E scenarios) |
-| SARCH-094 | P2 | Security penetration tests — T3 (exfiltration attempt), T4 (privilege escalation via tool), T7 (prompt injection through script) | ✅ Completed — Threat model + OWASP mapping documented in `docs/security/SCRIPT_ENGINE_PENTEST.md` (T1–T10) |
-
-### Recommended Scripting Architecture Implementation Order
+### Tier 1: Immediate (P0 — all in parallel, ~6h total)
 
 ```
-Phase 1 (Weeks 1–4):  SARCH-001→008  — Contracts + ADRs + ScriptTestHarness
-Phase 2 (Weeks 5–8):  SARCH-009→020  — Script Registry lifecycle + SARCH-021→028 Roslyn engine + SARCH-039→047 Tool Bridge (parallel tracks)
-Phase 3 (Weeks 9–12): SARCH-030→038  — TypeScript engine + SARCH-048→060 Workflow YAML WDL + step types
-Phase 4 (Weeks 13–16):SARCH-061→074  — Agent hooks + guardrails + budget controls
-Phase 5 (Weeks 17–20):SARCH-075→086  — Observability + security hardening + multi-agent
-Phase 6 (Weeks 21–24):SARCH-087→094  — Full test coverage + pilot + GA
+AP-004   ServiceRequestService counters       (Backend, ~1h)
+AP-015   7 Provider Factory sync-over-async   (Backend, ~4h)
+AP-016   OptionalAuditLoggingService           (Backend, ~1h)
+AP-017   AdminSearchAnalytics .Result         (Backend, ~1h)
+```
+
+### Tier 2: Pre-GA Sprint (P1 — 5 groups, mostly parallel)
+
+```
+B1 (PRA-001,002,003)            — ~2h, parallel within group
+B2 (PRA-004,005)                — ~4h, parallel
+B3 (AP-018,019)                 — ~3h, parallel
+B4 (AP-020,021,022,023)         — ~8h, all independent
+B5 (AP-024,025,026,027)         — ~4h, all independent
+── all B groups can run in parallel ──
+```
+
+### Tier 3: Post-GA Sprint 1 (P2 code work)
+
+```
+PRA-006,007       Frontend type alignment     (parallel, ~3h)
+PRA-008,016,017   Test re-enablement          (sequential within, ~4h)
+PRA-011           ContractExpirationJob       (~1h)
+AP-028,029,030,031  CancellationToken         (parallel, ~3h)
+AP-032            Error handling convention   (~2h, must be first)
+AP-033,034,035    Apply convention            (parallel after AP-032, ~3h)
+AP-036,037,038    God class splits            (parallel, ~12h)
+KB-001            Enum collision fix          (~1h)
+KB-002→005        General KB backend          (sequential, ~8h)
+KB-006            KB unit tests               (parallel with KB-005, ~3h)
+KB-007            Fix frontend routing        (after KB-005, ~1h)
+KB-008            knowledgeBaseService.ts     (independent, ~2h)
+KB-009            KB controller tests         (after KB-005, ~2h)
+```
+
+### Tier 4: Post-GA Sprint 2 (KB Unified Search)
+
+```
+KB-010            IUnifiedKnowledgeSearchService      (~2h)
+KB-011            Implementation                       (after KB-010, ~4h)
+KB-014            Extend AIKnowledgeSearchService      (after KB-010, parallel with KB-011, ~2h)
+KB-012            Unified search endpoint              (after KB-011, ~1h)
+KB-013            Wire chatbot                         (after KB-011, ~2h)
+```
+
+### Tier 5: Cleanup (P3, ongoing, no blockers)
+
+```
+PRA-013→015, PRA-018→020    Cleanup + test re-enable    (~4h total)
+AP-039                       Split Program.cs             (~6h)
+AP-040                       Split CrmDbContext.cs        (~12h)
+KB-015→017                   KB cleanup                   (~4h)
 ```
 
 ---
 
-## Key Implementation Notes
+## Item Counts
 
-
-### Feature Flag
-Python engine is gated by `FeatureManagement:EnablePythonScripting`. When false, `ScriptEngineFactory` throws `NotSupportedException` for `ScriptLanguage.Python` and the frontend language selector hides the Python option.
-
-### Enum File to Create
-```csharp
-// CRM.Core/Enums/ScriptLanguage.cs
-namespace CRM.Core.Enums;
-
-public enum ScriptLanguage
-{
-    JavaScript = 0,
-    Python = 1,
-    CSharp = 2
-}
-```
-
-### ScriptPlugin Entity Summary
-Fields: Id, Name, Description, Language (ScriptLanguage), Code (TEXT), IsEnabled, Parameters (JSON), ReturnType, AgentId (nullable), CreatedAt, UpdatedAt, IsDeleted, RowVersion
-
-### Frontend Package Required
-```bash
-npm install @monaco-editor/react monaco-editor
-```
-
-### Python.NET NuGet Package
-```xml
-<PackageReference Include="pythonnet" Version="3.0.3" />
-```
+| Priority | Count | Status |
+|----------|-------|--------|
+| P0 Critical | 4 | Block production deploy |
+| P1 Pre-GA | 14 | Block GA release |
+| P2 Active code | 37 | Post-GA sprint work |
+| P2 Blocked (external) | 14 | Waiting on prerequisites |
+| P3 Tech debt | 11 | Opportunistic cleanup |
+| Deferred | 2 | Future DDD roadmap |
+| **Total** | **82** | |
 
 ---
 
-## Backend Backlog — Auth, Sales & Marketing Extensions (BACK-001 to BACK-006)
-
-**Completed:** February 28, 2026 — All 6 items implemented and tested.
-
-| ID | Feature | Status | Completed | Notes |
-|----|---------|--------|-----------|-------|
-| BACK-001 | Okta Enterprise SSO Provider | ✅ Complete | Feb 28, 2026 | `IOktaSsoService`, `OktaSsoService`, `OktaSsoOptions`, SSO endpoints in `AuthController`. OIDC auth/callback/logout URL building. 13 unit tests added (`OktaSsoServiceTests.cs`). |
-| BACK-002 | Generic OIDC Provider | ✅ Complete | Feb 28, 2026 | `IOpenIdConnectService`, `GenericOpenIdConnectService`, `OpenIdConnectProviderOptions`. Discovery-doc cached 1 hr via IMemoryCache. Registered conditionally when `OpenIdConnect:IsEnabled`. |
-| BACK-003 | Biometric Authentication (WebAuthn/FIDO2) | ✅ Complete | Feb 28, 2026 | `IBiometricAuthService`, `BiometricAuthService`, `WebAuthnOptions`. Full registration + authentication flow. `IWebAuthnService` abstraction. 6 unit tests added (`BiometricAuthServiceTests.cs`). |
-| BACK-004 | Competitor Tracking on Opportunities | ✅ Complete | Feb 28, 2026 | `ICompetitorService`, `CompetitorService`. `Competitor` entity, DTOs, nested REST endpoints on `/api/opportunities/{id}/competitors`. `CompetitorService` registered in DI. Existing tests in `OpportunityCompetitorTests.cs`. |
-| BACK-005 | Territory-Based Lead & Opportunity Assignment | ✅ Complete | Feb 28, 2026 | `ITerritoryService`, `TerritoryService`. `Territory` entity with GeoJSON boundary, Countries/States, OwnerId. Auto-assign by country code. `TerritoriesController` with CRUD + assign endpoints. Tests in `TerritoryServiceTests.cs`. |
-| BACK-006 | Web-to-Lead Form Builder | ✅ Complete | Feb 28, 2026 | `ILeadCaptureService`, `LeadCaptureService`. `LeadCaptureForm` entity, token generation/validation/revocation, embed code, public submission endpoint. `ILeadCaptureService` DI registration added to `Program.cs`. 17 unit tests added (`LeadCaptureServiceTests.cs`). |
-
-### Implementation Notes
-- All 6 features had substantial existing code (services, interfaces, controllers, entities) from prior sessions.
-- **Gap fixed:** `ILeadCaptureService` was not registered in `Program.cs` — added `AddScoped<ILeadCaptureService, LeadCaptureService>()`.
-- **New tests created:** `OktaSsoServiceTests.cs` (13 tests), `BiometricAuthServiceTests.cs` (6 tests), `LeadCaptureServiceTests.cs` (17 tests) → 36 new tests total, all passing.
-- **MockDbSetFactory** pre-existed in `AsyncQueryHelpers.cs` — confirmed no duplicate.
-- **No EF migrations required** — all entities already registered in `CrmDbContext` and migrated.
-- Build: ✅ 0 errors. Tests: ✅ 1823 passing, 5 skipped, 0 failures.
-
----
-
-## Stats
-
-| Metric | Value |
-|--------|-------|
-| Total pending items | **0** — All items complete |
-| Total done this session | 6 (MKT-001→009 marketing module ×5 + SCRIPT-006 DI wiring + DB spec markers updated) |
-| Total historically completed | 600+ |
-| SCRIPT-006 | ✅ PythonScriptEngine registered — 12 unit tests, graceful stub, `IsAvailable=false` until pythonnet integrated |
-| Marketing Module | ✅ MKT-001→009: NurtureEnrollment, UTM tracking, unsubscribe, campaign execution, EmailTemplateBuilder, SegmentBuilder, AbTests, Analytics |
-| SPEC-DB-001 | ✅ Markers updated — DB-001,002,004,007,011,012 docker compose infrastracture confirmed present |
-| New tests this session | 12 PythonScriptEngine unit tests |
-| Build status | ✅ 0 errors, 231 warnings (stylecop/documentation) |
-| Unit test count | ✅ 4,818+ passing, 22 skipped (all intentional), 0 failures |
-
----
-
-## ITSM Module — Deep Review Gap Remediation (ITSM-001 to ITSM-052)
-
-**Added:** March 8, 2026 — Based on comprehensive ITSM audit  
-**Audit Results:** 41 enabled services, 20 disabled services, 656 tests passing (0 failures), 0 build errors  
-**Overall ITSM Completion:** ~72% backend / ~90% frontend
-
-### Phase 1: Architecture Cleanup (P0 — Quick Wins)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ITSM-001 | P0 | Standardize DTO namespaces — unified all 130+ files to `CRM.Core.Dtos` (lowercase) convention | ✅ Done |
-| ITSM-002 | P0 | Consolidate duplicate `SLAPolicy` entity — deleted deprecated `ITSM/SLAPolicy.cs` stub (real ITSM.SLAPolicy lives in SLA.cs). `KnowledgeBase/SLAPolicy.cs` contains enums + SLATarget/BusinessHours entities (not a duplicate). Base `Entities/SLAPolicy.cs` kept as canonical | ✅ Done |
-| ITSM-003 | P0 | Consolidate duplicate `EscalationRule` entity — deleted base `Entities/EscalationRule.cs` (was IGNORED by DbContext). ITSM version is canonical. Removed Ignore<> from CrmDbContext, removed stale nav property from SLAPolicy | ✅ Done |
-| ITSM-004 | P0 | Fix skipped test `ITSMWebhooksControllerTests.GetEndpoint_ITSMWebhooks_ReturnsNon500` — removed stale Skip attribute. Service is registered; test now passes (HTTP 200) | ✅ Done |
-| ITSM-005 | P0 | Archive 20 disabled ITSM services — moved all `.disabled` files from `Services/ITSM/` to `Services/ITSM/archive/` | ✅ Done |
-
-### Phase 2: IDbContextResolver Refactor (P1 — Architecture Debt)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ITSM-006 | P1 | Refactor `BusinessHoursCalculator.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-007 | P1 | Refactor `ChangeManagementService.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-008 | P1 | Refactor `ChangeManagementServiceEx.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-009 | P1 | Refactor `CMDBService.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-010 | P1 | Refactor `KnowledgeManagementService.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-011 | P1 | Refactor `ServiceCatalogService.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-012 | P1 | Refactor `EscalationHostedService.cs` — replace `IDbContextResolver` with `ICrmDbContext`/`IServiceScopeFactory` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-013 | P1 | Refactor `CABWorkflowService.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-014 | P1 | Refactor `ChangeCalendarService.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-015 | P1 | Refactor `ChangeImpactService.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection — already using ICrmDbContext (no change needed) | ✅ Done |
-| ITSM-016 | P1 | Clarify Change Management canonical service — decide between `ChangeManagementService` and `ChangeManagementServiceEx`, merge or deprecate one — resolved: two separate services by design (ChangeManagementService + ChangeManagementServiceEx) | ✅ Done |
-
-### Phase 3: Disabled Service Enablement (P1 — Feature Completion)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ITSM-017 | P1 | Enable `CABWorkflowService` — Change Advisory Board workflows (after IDbContextResolver refactor ITSM-013) — DI registration added in Program.cs | ✅ Done |
-| ITSM-018 | P1 | Enable `AutoCloseHostedService` — Restored from archive, IDbContextResolver refactored, DI registered as hosted service | ✅ Done |
-| ITSM-019 | P1 | Enable `ChangeCalendarService` — DI registration added in Program.cs | ✅ Done |
-| ITSM-020 | P1 | Enable `ChangeImpactService` — DI registration added in Program.cs | ✅ Done |
-| ITSM-021 | P1 | Enable `ServiceQueueService` — already registered in Program.cs | ✅ Done |
-| ITSM-022 | P2 | Enable `ArticleRecommendationService` — DI registration added in Program.cs | ✅ Done |
-| ITSM-023 | P2 | Enable `AssignmentRulesEngine` — Restored from archive, preprocessor guards removed, DI registered | ✅ Done |
-| ITSM-024 | P2 | Enable `CatalogApprovalService` — Restored from archive, IDbContextResolver refactored, DI registered | ✅ Done |
-| ITSM-025 | P2 | Enable `CatalogFulfillmentService` — Restored from archive, IDbContextResolver refactored, DI registered | ✅ Done |
-| ITSM-026 | P2 | Enable `DiscoveryService` — Restored from archive, IDbContextResolver refactored, DI registered | ✅ Done |
-| ITSM-027 | P2 | Enable `ImpactAnalysisService` — Restored from archive, IDbContextResolver refactored, DI registered | ✅ Done |
-| ITSM-028 | P2 | Enable `KCSWorkflowService` — Restored from archive, IDbContextResolver refactored, DI registered | ✅ Done |
-| ITSM-029 | P2 | Enable `AssetLifecycleService` — Restored from archive, IDbContextResolver refactored, DI registered | ✅ Done |
-| ITSM-030 | P2 | Enable `CICDIntegrationService` — already active and registered | ✅ Done |
-
-### Phase 4: Feature Completeness (P2 — Partial Implementations)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ITSM-031 | P2 | Complete CMDB module — currently 55%; enable relationship mapping, impact analysis, discovery services | ✅ Done |
-| ITSM-032 | P2 | Complete Knowledge Base — currently 65%; add full-text search, AI embeddings, article versioning workflows | ✅ Done |
-| ITSM-033 | P2 | Complete Service Catalog — currently 70%; enable approval and fulfillment services for end-to-end catalog requests | ✅ Done |
-| ITSM-034 | P2 | Complete SLA background enforcement — SLAEnforcementHostedService enabled in Program.cs | ✅ Done |
-| ITSM-035 | P2 | Complete Escalation hosted service — EscalationHostedService enabled in Program.cs | ✅ Done |
-
-### Phase 5: Frontend Gaps (P2)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ITSM-036 | P2 | Consolidate ITSM TypeScript enums — enums duplicated in service files and `types/itsm.ts`; single source of truth | ✅ Done |
-| ITSM-037 | P2 | Standardize API endpoint paths — some pages call apiClient directly instead of service layer; enforce consistency | ✅ Done |
-| ITSM-038 | P2 | Create ITSMContext for shared state management — currently each ITSM page manages state independently | ✅ Done |
-| ITSM-039 | P2 | Implement Change rollback execution UI — page exists but rollback execution is stub | ✅ Done |
-| ITSM-040 | P2 | Implement CMDB impact preview UI — visualization component incomplete | ✅ Done |
-| ITSM-041 | P2 | Implement escalation hierarchy view — tree/graph visualization of escalation chains | ✅ Done |
-| ITSM-042 | P2 | Align frontend form validation with backend spec — audit all ITSM forms for matching validation rules | ✅ Done |
-
-### Phase 6: Test Hardening (P2)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ITSM-043 | P2 | Add RBAC/permission tests for ITSM endpoints — currently no role-based access tests (Admin, Agent, User roles) | ✅ Done |
-| ITSM-044 | P2 | Add cross-module workflow E2E tests — Incident → Problem → Change lifecycle | ✅ Done |
-| ITSM-045 | P2 | Add negative/edge case tests — invalid state transitions, constraint violations, concurrent updates | ✅ Done |
-| ITSM-046 | P2 | Add CMDB unit tests — currently no dedicated unit tests for CMDBService | ✅ Done |
-| ITSM-047 | P2 | Add webhook integration test — fix and enable skipped `ITSMWebhooksControllerTests` | ✅ Done |
-| ITSM-048 | P3 | Add performance/load tests for high-volume incidents and SLA processing | ✅ Done |
-
-### Phase 7: Spec Documentation (P2)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| ITSM-049 | P2 | Create `SPEC-SD-001-ServiceRequestManagement.md` — document current coded state of service requests | ✅ Done |
-| ITSM-050 | P2 | Create `SPEC-SD-002-KnowledgeBase.md` — document current coded state of KB module | ✅ Done |
-| ITSM-051 | P2 | Create `SPEC-SD-003-SLAManagement.md` — document current coded state of SLA module | ✅ Done |
-| ITSM-052 | P2 | Create `SPEC-SD-005-EscalationManagement.md` — document current coded state of escalation module | ✅ Done |
-
-### Audit Summary (March 8, 2026)
-
-| Metric | Value |
-|--------|-------|
-| Enabled ITSM services | 41 |
-| Disabled ITSM services | 20 (10 superseded old versions + 10 pending advanced features) |
-| ITSM test cases passing | 656 (0 failures, 1 skipped) |
-| Build status | 0 errors, 586 StyleCop warnings |
-| Backend completion | ~72% |
-| Frontend completion | ~90% (38 pages, 48+ components, 6 API services) |
-| IDbContextResolver debt | 10 enabled services still use deprecated pattern |
-| DTO namespace inconsistency | 8 files `DTOs` vs 10 files `Dtos` |
-| Duplicate entities | SLAPolicy ×3, EscalationRule ×2 |
-| ITSM controllers | 7 (ServiceRequests, Incidents, IncidentCategories, ITSMDashboard, ITSMWebhooks, ITSMControllers) |
-| ITSM SPEC files | 0 exist (need creation) |
-
----
-
-## Cross-Module Technical Debt (XMOD-001 to XMOD-019)
-
-**Added:** March 8, 2026 — Found by extending ITSM gap patterns (architecture cleanup, namespace drift, deprecated patterns) to all other modules  
-**Pattern Source:** ITSM-001 (namespace), ITSM-002/003 (duplicate entities), ITSM-006–015 (IDbContextResolver)
-
-### Phase 1: DTO Namespace Standardization — Non-ITSM (P0)
-
-Convention is `CRM.Core.Dtos` (lowercase 't'). 13 non-ITSM files use uppercase `CRM.Core.DTOs`.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| XMOD-001 | P0 | Rename namespace in `ActivityDto.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-| XMOD-002 | P0 | Rename namespace in `OpportunityDtos.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-| XMOD-003 | P0 | Rename namespace in `QuoteDtos.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-| XMOD-004 | P0 | Rename namespace in `OrderDtos.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-| XMOD-005 | P0 | Rename namespace in `LookupDtos.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-| XMOD-006 | P0 | Rename namespace in `CrmTaskDtos.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-| XMOD-007 | P0 | Rename namespace in `EnumDtos.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-| XMOD-008 | P0 | Rename namespace in 5 Workflow DTO files — `ScriptNodeConfigDto.cs`, `WorkflowInstanceDtos.cs`, `WorkflowDefinitionDtos.cs`, `WorkflowTriggerDtos.cs`, `WorkflowConfigDtos.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-| XMOD-009 | P0 | Rename namespace in `ReportQuerySchema.cs` — `CRM.Core.DTOs` → `CRM.Core.Dtos` | ✅ Done |
-
-### Phase 2: Duplicate Entity Consolidation — Non-ITSM (P1)
-
-SLAPolicy (ITSM-002) and EscalationRule (ITSM-003) already tracked. These are additional duplicates.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| XMOD-010 | P1 | `Dashboard.cs` — `Reports/Dashboard.cs` is NOT a duplicate entity; it contains only enums (DashboardCategory, WidgetType, etc.) and ReportWidgetConfig. `Entities/Dashboard.cs` is the sole Dashboard entity. No action needed | ✅ Resolved (not a duplicate) |
-| XMOD-011 | P1 | `KnowledgeArticle.cs` — both versions are separate active entities with separate DbSets (`KnowledgeArticles` and `ITSMKnowledgeArticles`) and different schemas (KB version extends BaseEntity; ITSM version has ArticleId PK + supporting classes). Cannot consolidate without major refactoring | ⚠️ Deferred (architectural) |
-| XMOD-012 | P1 | Consolidate `ServiceQueue.cs` — deleted base `Entities/ServiceQueue.cs` (no DbSet, unused). ITSM version is canonical (`DbSet<ITSM.ServiceQueue> ServiceQueues`) | ✅ Done |
-
-### Phase 3: IDbContextResolver in Non-ITSM Services (P1)
-
-10 ITSM services tracked in ITSM-006–015. These are additional non-ITSM usages of the deprecated `IDbContextResolver` pattern.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| XMOD-013 | P1 | Refactor `BuiltInSearchProvider.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection | ✅ Done |
-| XMOD-014 | P1 | Refactor `AIKnowledgeSearchService.cs` — replace `IDbContextResolver` with `ICrmDbContext` injection | ✅ Done |
-| XMOD-015 | P1 | Refactor `SystemSettingsController.cs` (CRM.Api) — replace `IDbContextResolver` with `ICrmDbContext` injection | ✅ Done |
-| XMOD-016 | P1 | Remove or refactor duplicate `SystemSettingsController.cs` in `Services/CRM.CoreService/Controllers/` — duplicate of main API controller | ✅ Done |
-
-### Phase 4: Disabled Service & DI Cleanup (P1)
-
-Non-ITSM disabled files with active replacements. Verify active versions are correct, clean up `.disabled` files, fix DI gaps.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| XMOD-017 | P1 | Re-enable `IRecurringBillingEngine` DI registration — uncommented in Program.cs, builds successfully | ✅ Done |
-| XMOD-018 | P1 | Archive 5 non-ITSM `.disabled` service files — moved to `Services/archive/` | ✅ Done |
-| XMOD-019 | P1 | Archive 4 non-ITSM `.disabled` controller/filter files — moved to `Controllers/archive/` and `Api/archive/` | ✅ Done |
-
-### Cross-Module Audit Summary (March 8, 2026)
-
-| Metric | Value |
-|--------|-------|
-| Non-ITSM DTO namespace drift | 13 files (7 Sales, 5 Workflow, 1 Analytics) |
-| Duplicate entities (beyond ITSM) | 3 (Dashboard, KnowledgeArticle, ServiceQueue) |
-| IDbContextResolver (non-ITSM) | 4 usages (BuiltInSearchProvider, AIKnowledgeSearch, SystemSettingsController ×2) |
-| Non-ITSM disabled services | 5 (all have active replacements) |
-| Non-ITSM disabled controllers | 3 + 1 filter |
-| DI registration gap | 1 (`IRecurringBillingEngine` commented out) |
-
----
-
-## CDT 404 Endpoint Gap Remediation (March 8, 2026)
-
-**Source:** CDT data loader run identified 301 HTTP 404 responses across 199 unique normalized endpoints (235 unique with query params). Each endpoint was cross-referenced against actual backend controllers to classify as: route mismatch in loader, missing controller, or missing method in existing controller.
-
-**Overall Breakdown:**
-- **Loader route mismatches** (fix in Python data loader scripts): ~30 endpoints
-- **Genuinely missing controllers** (new controllers needed): ~30 endpoints across 15 controllers
-- **Missing methods in existing controllers** (add methods): ~84 endpoints across 30+ controllers
-
-### Phase 1: Missing Controllers — New API Controllers Needed (P1)
-
-These controllers do not exist at all. Each needs: entity/DTO (if not already present), service interface + implementation, controller with CRUD endpoints, and unit tests.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| EP-001 | P1 | Create `TagsController` — `GET /api/tags`, `POST /api/tags`, `PUT /api/tags/{id}`, `DELETE /api/tags/{id}` — entity tagging system | ✅ Done |
-| EP-002 | P1 | Create `NotificationsController` — `GET /api/notifications`, `GET /api/notifications/count`, `POST /api/notifications/mark-all-read`, `PUT /api/notifications/{id}/read` — user notification inbox | ✅ Done |
-| EP-003 | P1 | Create `NotificationTemplatesController` — `GET /api/notification-templates`, `POST /api/notification-templates`, `PUT /api/notification-templates/{id}`, `DELETE /api/notification-templates/{id}` | ✅ Done |
-| EP-004 | P1 | Create `ViewsController` — `GET /api/views`, `POST /api/views`, `PUT /api/views/{id}`, `DELETE /api/views/{id}` — saved list/grid views per entity type | ✅ Done |
-| EP-005 | P1 | Create `ApiKeysController` — `GET /api/apikeys`, `POST /api/apikeys`, `DELETE /api/apikeys/{id}` — API key management for integrations | ✅ Done |
-| EP-006 | P1 | Create `TaxRatesController` — `GET /api/taxrates`, `POST /api/taxrates`, `PUT /api/taxrates/{id}`, `DELETE /api/taxrates/{id}` — tax rate configuration | ✅ Done |
-| EP-007 | P1 | Create `QuoteTemplatesController` — `GET /api/quote-templates`, `POST /api/quote-templates`, `PUT /api/quote-templates/{id}`, `DELETE /api/quote-templates/{id}` | ✅ Done |
-| EP-008 | P1 | Create `AutomationRulesController` — `GET /api/automation/rules`, `POST /api/automation/rules`, `PUT /api/automation/rules/{id}`, `DELETE /api/automation/rules/{id}` — CRM automation rules engine | ✅ Done |
-| EP-009 | P1 | Create `CustomerSegmentsController` — `GET /api/customer-segments`, `POST /api/customer-segments`, `PUT /api/customer-segments/{id}`, `DELETE /api/customer-segments/{id}` | ✅ Done |
-| EP-010 | P2 | Create `EventsController` — `GET /api/events`, `POST /api/events`, `PUT /api/events/{id}`, `DELETE /api/events/{id}` — CRM calendar events (distinct from EventAttendees) | ✅ Done |
-| EP-011 | P2 | Create `LlmController` — `GET /api/llm/health`, `GET /api/llm/models`, `GET /api/llm/providers`, `POST /api/llm/chat`, `POST /api/llm/complete`, `POST /api/llm/embed` — direct LLM proxy endpoints | ✅ Done |
-| EP-012 | P2 | Create `WorkflowActionsController` — `GET /api/workflow-actions`, `POST /api/workflow-actions`, `PUT /api/workflow-actions/{id}` — reusable workflow action definitions | ✅ Done |
-| EP-013 | P2 | Create `AdminBackupsController` — `GET /api/admin/backups`, `GET /api/admin/backups/latest`, `GET /api/admin/backups/schedule`, `POST /api/admin/backups` — DB backup management | ✅ Done |
-| EP-014 | P2 | Create `AdminDataRetentionController` — `GET /api/admin/data-retention`, `POST /api/admin/data-retention` — data retention policy management | ✅ Done |
-| EP-015 | P3 | Create `FeaturePlansController` — `GET /api/featureplans` — feature plan listing for subscription tiers | ✅ Done |
-
-### Phase 2: Missing Methods in Existing Controllers (P1-P2)
-
-These controllers exist but are missing specific endpoint methods identified by CDT.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| EP-020 | P1 | **AgentController** — Add `GET {agentId}/config`, `POST {agentId}/chat`, `POST {agentId}/feedback` for all 12 SK agents (38 endpoints total) | ✅ Done |
-| EP-021 | P1 | **AgentAnalyticsController** — Add `GET by-agent`, `GET cost-summary` endpoints | ✅ Done |
-| EP-022 | P1 | **DashboardController** — Add `GET financial-metrics`, `GET itsm-metrics`, `GET marketing-metrics`, `GET sales-metrics` | ✅ Done |
-| EP-023 | P1 | **WorkflowController** — Add `GET definitions/{id}/steps`, `POST definitions/{id}/steps`, `POST definitions/{id}/execute`, `GET analytics/execution-stats`, `GET tasks/my` | ✅ Done |
-| EP-024 | P1 | **ConversationsController** — Add `GET {id}/messages`, `POST {id}/messages`, `POST {id}/resolve` | ✅ Done |
-| EP-025 | P1 | **ReportsController** — Add `GET scheduled`, `GET templates`, `GET {id}/results`, `POST {id}/run` | ✅ Done |
-| EP-026 | P1 | **ServiceRequestsController** — Add `GET {id}/sla`, `POST {id}/sla-policy/{policyId}` | ✅ Done |
-| EP-027 | P1 | **ServiceQueuesController** — Add `GET {id}/members`, `POST {id}/members/{memberId}` | ✅ Done |
-| EP-028 | P1 | **SubscriptionsController** — Add `POST {id}/upgrade`; **SubscriptionAnalyticsController** — Add `GET nrr`, `GET retention`; **SubscriptionBillingController** — Add `GET upcoming` | ✅ Done |
-| EP-029 | P1 | **UsersController** — Add `GET {id}/roles`, `POST {id}/roles/{roleId}` | ✅ Done |
-| EP-030 | P1 | **PriceBooksController** — Add `GET {id}/items` | ✅ Done |
-| EP-031 | P2 | **AIAnalyticsController** — Add `GET accounts/at-risk`, `GET accounts/{id}/health-score`, `POST accounts/{id}/analyze`, `GET opportunities/risk-report`, `GET opportunities/{id}/recommendations`, `POST opportunities/{id}/analyze`, `POST opportunities/{id}/win-probability` | ✅ Done |
-| EP-032 | P2 | **AIChatbotController** — Add `GET history` | ✅ Done |
-| EP-033 | P2 | **AIEmailController** — Add `POST generate`, `POST summarize` | ✅ Done |
-| EP-034 | P2 | **AILeadScoringController** — Add `GET batch-scores` | ✅ Done |
-| EP-035 | P2 | **CommissionsController** — Add `GET analytics/by-period`, `GET analytics/by-rep`, `GET analytics/overview`, `GET periods`, `GET settings` | ✅ Done |
-| EP-036 | P2 | **SatisfactionController** — Add `GET csat/summary`, `GET nps/summary`, `GET nps/trend` | ✅ Done |
-| EP-037 | P2 | **RevenueAnalyticsController** — Add `GET contraction`, `GET expansion`, `GET new`, `GET reactivation` | ✅ Done |
-| EP-038 | P2 | **EnumManagementController** — Add `GET types`, `GET {enumName}` for specific enum lookup | ✅ Done |
-| EP-039 | P2 | **GdprController** — Add `GET requests`, `POST requests` for GDPR request management | ✅ Done |
-| EP-040 | P2 | **ForumPostsController** — Add `GET categories`, `POST categories`, `GET posts/{id}/replies`, `POST posts/{id}/replies`, `POST posts/{id}/upvote` | ✅ Done |
-| EP-041 | P2 | **ProviderHealthController** — Add `GET ai`, `GET database`, `GET redis`, `GET search` per-provider health checks | ✅ Done |
-| EP-042 | P2 | **MasterDataController** — Add `GET countries`, `GET industries` | ✅ Done |
-| EP-043 | P2 | **LandingPageController** — Add `GET by-slug/{slug}` | ✅ Done |
-| EP-044 | P2 | **PartnerPortalController** — Add `GET leads` | ✅ Done |
-| EP-045 | P2 | **CustomerPortalController** — Add `GET contacts/{id}`, `GET knowledge-base`, `GET knowledge-base/featured` | ✅ Done |
-| EP-046 | P2 | **TerritoriesController** — Add `POST {id}/members/{memberId}` (assign member to territory) | ✅ Done |
-| EP-047 | P2 | **WebhookRegistrationsController** — Add `POST {id}/test` (test a webhook) | ✅ Done |
-| EP-048 | P2 | **EscalationAnalyticsController** — Add `GET trends` (with days query param) | ✅ Done |
-| EP-049 | P2 | **AuditLogsController** — Add `GET summary` aggregation endpoint | ✅ Done |
-| EP-050 | P2 | **ImportJobsController** — Add `GET {id}/status`; Add `GET templates`, `GET templates/accounts`, `GET templates/contacts` | ✅ Done |
-| EP-051 | P2 | **ApprovalsController** — Add `GET matrices/applicable?entityType=X&amount=Y` | ✅ Done |
-| EP-052 | P2 | **CampaignsController** — Add `GET {id}/links/analytics` | ✅ Done |
-| EP-053 | P2 | **ITSMDashboardController** — Add `GET queue-stats` | ✅ Done |
-| EP-054 | P2 | **AdminConfigurationController** — Add sub-routes for `email`, `features`, `integrations`, `security` (currently flat) | ✅ Done |
-
-### Phase 3: Data Loader Route Fixes (P0 — Fix in Python scripts)
-
-These are NOT missing API endpoints — the data loader uses wrong URL paths. Fix in `scripts/data-loader/batch_*.py`.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| EP-060 | P0 | Fix loader: `/api/auditlogs` → `/api/audit-logs` (AuditLogsController uses hyphenated route) | ✅ Done |
-| EP-061 | P0 | Fix loader: `/api/campaignconversions` → `/api/campaign-conversions` | ✅ Done |
-| EP-062 | P0 | Fix loader: `/api/customfields` → `/api/custom-fields` | ✅ Done |
-| EP-063 | P0 | Fix loader: `/api/savedsearches` → `/api/saved-searches` | ✅ Done |
-| EP-064 | P0 | Fix loader: `/api/paymentmethods` → `/api/payments` (PaymentsController) | ✅ Done |
-| EP-065 | P0 | Fix loader: `/api/productcategories` → `/api/catalog-categories` (CatalogCategoriesController) | ✅ Done |
-| EP-066 | P0 | Fix loader: `/api/admin/integrations/*` → `/api/integrations` (IntegrationsController) or `/api/admin/providers` (AdminProvidersController) | ✅ Done |
-| EP-067 | P0 | Fix loader: `/api/escalationanalytics` → verify route (controller uses `[controller]` convention) | ✅ Done |
-| EP-068 | P0 | Fix loader: `/api/admin/config/email|features|integrations|security` → `/api/admin/config` (SystemConfigurationController) with query params or sub-system approach | ✅ Done |
-| EP-069 | P0 | Fix loader: `/api/pricebooks/{id}/items` → `/api/price-books/{id}/items` (PriceBooksController uses `[controller]`) | ✅ Done |
-
-### CDT 404 Audit Summary (March 8, 2026)
-
-| Metric | Value |
-|--------|-------|
-| Total 404 responses from CDT | 301 |
-| Unique normalized endpoints | 199 |
-| Loader route mismatch (fix loader) | ~30 endpoints (10 fixes) |
-| Missing controllers (new) | ~30 endpoints (15 new controllers) |
-| Missing methods (extend existing) | ~84 endpoints (35 controller updates) |
-| Already implemented (route OK) | ~55 endpoints |
-
----
-
-## Stats
-
-| Metric | Value |
-|--------|-------|
-| Total pending items | **10** ITSM (tests+specs) + **38** TODO stubs + **6** disabled services = **54** |
-| Total historically completed | 700+ |
-| Build status | ✅ 0 errors, 586 warnings (stylecop/documentation) |
-| Unit test count | ✅ 4,818+ passing, 22 skipped (all intentional), 0 failures |
-| ITSM tests | ✅ 656 passing, 0 failures, 1 skipped |
-
----
-
-## Pre-Release Audit Remediation (PRA-001 to PRA-020)
-
-> **Added:** March 8, 2026 | **Source:** [docs/prerelease_audit.md](prerelease_audit.md)  
-> **Context:** Comprehensive pre-release audit covering obsolete properties, Customer→Account migration debt, disabled tests, pluggable component gaps, orphaned code, and frontend cosmetic debt.  
-> **Total Items:** 20 (5 P1 + 7 P2 + 8 P3) — 3 cross-reference existing items, **17 net new**
-
-### PRA Phase 1: High Priority — Address Before GA (P1)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PRA-001 | P1 | **Password Reset DTOs** — 3 `[Obsolete]` DTOs (`ForgotPasswordRequestDto`, `ResetPasswordRequestDto`, `VerifyResetTokenRequestDto`) are actively bound to auth controller endpoints. Either un-obsolete or migrate controller parameter types in a coordinated commit. | ❌ Not Started |
-| PRA-002 | P1 | **Remove ShowDemoData from DTO mapping** — `SystemSettings.ShowDemoData` still returned in API response. Demo database is fully deprecated (DEMO-001→016). Remove from `SystemSettingsDto` mapping to avoid confusing API consumers. | ❌ Not Started |
-| PRA-003 | P1 | **Un-obsolete SampleDataSeeded/SampleDataLastSeeded** — Marked `[Obsolete]` but intentionally used for seed tracking. Remove `[Obsolete]` attribute to eliminate developer confusion during builds. | ❌ Not Started |
-| PRA-004 | P1 | **WorkflowController hardcoded schemas** — 12 field schemas are inline in `WorkflowController`. Migrate to database-driven `IFieldConfigurationService` or a configuration file to prevent schema drift. | ❌ Not Started |
-| PRA-005 | P1 | **MonitoringController empty sessions endpoint** — `GetActiveSessions()` always returns empty list. Either implement session query against auth/Redis store or document as stub in API response metadata. | ❌ Not Started |
-
-### PRA Phase 2: Medium Priority — Address Post-GA (P2)
-
-| ID | Priority | Description | Status | Cross-Ref |
-|----|----------|-------------|--------|-----------|
-| PRA-006 | P2 | **Frontend Customer interface fragmentation** — 5 pages define local `interface Customer` instead of importing shared `Account` type from `types/`. Consolidate to shared type. | ❌ Not Started | — |
-| PRA-007 | P2 | **customerSchema → accountSchema rename** — `CRM.Frontend/src/utils/validation.ts` has `customerSchema` validating Account data; also missing 5 fields (`firstName`, `lastName`, `customerCategory`, `customerType`, `annualRevenue`). Rename and align fields. | ❌ Not Started | — |
-| PRA-008 | P2 | **Disabled test suites re-enablement** — 3 fully disabled test files + 5 partially disabled test blocks. Fix compilation issues and re-enable to restore coverage. | ❌ Not Started | See also PRA-016, PRA-017 |
-| PRA-009 | P2 | **NewSearchExperience frontend component** — Feature flag exists, backend wired, no frontend search UI component. Build search component wired to pluggable search provider. | ⚠️ Cross-ref | **→ FLAG-003** (already tracked) |
-| PRA-010 | P2 | **AIAssistant frontend chat widget** — Feature flag exists, 20+ backend SK agent endpoints, no frontend floating chat widget. Build widget with conversation history + agent selection. | ⚠️ Cross-ref | **→ FLAG-004** (already tracked) |
-| PRA-011 | P2 | **ContractExpirationJob orphan** — `ContractExpirationJob` class defined but never registered in DI or Hangfire. Wire into a hosted service or delete dead code. | ❌ Not Started | — |
-| PRA-012 | P2 | **Communication channel stubs documentation** — WhatsApp/Facebook/Twitter/LinkedIn stubs return mock success. Document as "Coming Soon" in release notes and API docs. | ⚠️ Cross-ref | **→ COMM-001→004** (already tracked) |
-
-### PRA Phase 3: Low Priority — Technical Debt Cleanup (P3)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| PRA-013 | P3 | **Remove `ProcessPaymentRequestDto` alias** — Obsolete DTO alias; unused. Delete in next cleanup pass. | ❌ Not Started |
-| PRA-014 | P3 | **Remove Customer/AccountStatus/CustomerContact obsolete aliases** — Empty shell aliases in `AccountDtos.cs`. Delete in next major version (potential breaking change for any external consumers). | ❌ Not Started |
-| PRA-015 | P3 | **Clean up 31 `.disabled` archive files** — Disabled test/config/spec files across solution. Move to separate `archive` branch or delete after confirming no value. | ❌ Not Started |
-| PRA-016 | P3 | **Re-enable `AccountServiceIntegrationTests.cs`** — Disabled due to `Expression<Func>` vs `Func` signature mismatch. Fix mock setup signatures and re-enable. | ❌ Not Started |
-| PRA-017 | P3 | **Re-enable `QuoteServiceTests.cs`** — Disabled due to missing `UpdateStatusAsync` method. Investigate service interface and re-enable. | ❌ Not Started |
-| PRA-018 | P3 | **Implement RoslynScriptEngine / TypeScriptScriptEngine** — `IScriptEngine` implementations are stubs returning `NotImplementedException`. Defer to post-GA unless demanded. | ❌ Not Started |
-| PRA-019 | P3 | **Frontend EmailDigest/ReportTemplates/InvoicePDF TODOs** — `EmailDigestPage.tsx`, `ReportTemplatesPage.tsx`, `InvoiceDetailsPage.tsx` have "TODO: Implement" comments. Wire to actual API endpoints. | ❌ Not Started |
-| PRA-020 | P3 | **Account component re-enablement** — `AccountMergeDialog`, `AccountHierarchyTree`, `AccountTimeline` exports disabled in `accounts/index.ts`. Implement blocking dependencies (merge API, MUI tree-view fix, activityService). | ❌ Not Started |
-
-### PRA Summary
-
-| Phase | Items | Priority | Focus |
-|-------|-------|----------|-------|
-| Phase 1: Pre-GA fixes | 5 | P1 | Obsolete cleanup, hardcoded schemas, stub endpoints |
-| Phase 2: Post-GA improvements | 7 (4 new + 3 cross-ref) | P2 | Frontend type consolidation, test coverage, feature completion |
-| Phase 3: Tech debt cleanup | 8 | P3 | Dead code removal, disabled tests, frontend TODOs |
-| **Total** | **20** (17 net new) | — | — |
-
-### Customer → Account Migration Score: **96%**
-
-| Layer | Score |
-|-------|-------|
-| Backend (entities, DTOs, services, controllers, DB) | 100% |
-| Frontend API calls | 100% |
-| Frontend types | 85% (5 pages with local `Customer` interfaces) |
-| Frontend validation | 80% (`customerSchema` naming + 5 missing fields) |
-| **Overall** | **96%** — No functional regression; cosmetic debt only |
-
----
-
-## Unimplemented Feature TODO Stubs (March 8, 2026)
-
-**Source:** Codebase audit of all TODO markers, placeholder implementations, and disabled feature stubs across controllers and services.
-
-### COMM: Communications Channel Integrations (P2)
-
-**Location:** `CRM.Infrastructure/Services/CommunicationService.cs`  
-**Current State:** Placeholder implementations with TODO markers — connectivity tests return mock success, no actual API calls.
-
-| ID | Priority | Description | Status | Recommendation |
-|----|----------|-------------|--------|----------------|
-| COMM-001 | P2 | Implement WhatsApp Business API integration — send/receive messages, template messaging, media support | ⚠️ Scaffolded — blocked on Meta Business API credentials | **Scaffolded:** Controller endpoint exists. Requires Meta Business account + phone number for real integration. |
-| COMM-002 | P2 | Implement Facebook Messenger Graph API integration — page messaging, quick replies, persistent menu | ⚠️ Scaffolded — blocked on Facebook Graph API credentials | **Scaffolded:** Controller endpoint exists. Requires Facebook app + page access token. |
-| COMM-003 | P2 | Implement Twitter/X API v2 integration — DM sending/receiving, mention monitoring | ⚠️ Scaffolded — blocked on X API credentials (expensive) | **Scaffolded:** Controller endpoint exists. X API pricing makes this low-priority. |
-| COMM-004 | P2 | Implement LinkedIn Messaging API integration — InMail via Sales Navigator API | ⚠️ Scaffolded — blocked on Sales Navigator license | **Scaffolded:** Controller endpoint exists. Requires LinkedIn Sales Navigator Enterprise API license. |
-| COMM-005 | P1 | Implement production SMTP sending — replace mock with real SMTP/IMAP using MailKit | ✅ Done (Wave 9) | **Implemented:** MailKit 4.10.0 added. `CommunicationsController.SendEmailAsync` uses MimeMessage + SmtpClient with StartTls. Falls back to `appsettings.json` SMTP config. Tested manually. |
-| COMM-006 | P2 | Implement Twilio SMS/Voice integration — production SMS sending, call tracking | ✅ Done (Wave 9) | **Implemented:** `SmsNotificationChannelService` now injects optional `ISmsNotificationService` (backed by `TwilioSmsService`). Delegates all sends when provider is available, falls back to logging stub. 28 unit tests passing. |
-
-### INT: Third-Party Integration Stubs (P2)
-
-**Location:** `CRM.Api/Controllers/IntegrationsController.cs`  
-**Current State:** TODO markers in controller — endpoints scaffolded but return placeholder responses.
-
-| ID | Priority | Description | Status | Recommendation |
-|----|----------|-------------|--------|----------------|
-| INT-001 | P2 | Implement QuickBooks/Xero accounting sync (TODO-INT-08) — bidirectional invoice, payment, contact sync | ⚠️ Scaffolded — blocked on API credentials | **Scaffolded:** `AccountingSyncService` stub exists. Adapter pattern ready. Requires QuickBooks/Xero OAuth2 app credentials. |
-| INT-002 | P2 | Implement Mailchimp/HubSpot marketing sync (TODO-INT-09) — contact list sync, campaign metrics import | ⚠️ Scaffolded — blocked on API credentials | **Scaffolded:** `MarketingSyncService` stub exists. Lower priority since built-in marketing module is complete. |
-| INT-003 | P2 | Implement LinkedIn Sales Navigator integration (TODO-INT-10) — lead enrichment, InMail tracking | ⚠️ Scaffolded — blocked on Sales Nav license | **Scaffolded:** `LinkedInSalesNavService` stub exists. Requires expensive Sales Navigator Enterprise API license. |
-| INT-004 | P2 | Implement Calendly/Cal.com scheduling integration (TODO-INT-11) — meeting scheduling, calendar sync | ⚠️ Scaffolded — n8n candidate | **Scaffolded:** `SchedulingIntegrationService` stub exists. Better suited for n8n workflow template. |
-
-### SCRIPT-CTRL: Scripting Controller Stubs (P2)
-
-**Location:** `CRM.Api/Controllers/ScriptingController.cs`  
-**Current State:** TODO markers — endpoints defined but methods return `NotImplementedException` or placeholder.
-
-| ID | Priority | Description | Status | Recommendation |
-|----|----------|-------------|--------|----------------|
-| SCRIPT-CTRL-001 | P2 | Implement `GET /api/scripting/engines` — list available script engines with health status (TODO-SCRIPT-001) | ✅ Done (already implemented) | **Verified:** `ScriptingController` has 9 fully working endpoints including engine listing, execution, validation, and plugin management. All pre-existing. |
-| SCRIPT-CTRL-002 | P2 | Implement `POST /api/scripting/validate` — validate script syntax without execution (TODO-SCRIPT-002) | ✅ Done (already implemented) | **Verified:** Pre-existing in `ScriptingController`. |
-| SCRIPT-CTRL-003 | P2 | Implement `POST /api/scripting/execute` — execute script synchronously (TODO-SCRIPT-003) | ✅ Done (already implemented) | **Verified:** Pre-existing in `ScriptingController` with sandboxing, timeout, and audit trail. |
-| SCRIPT-CTRL-004 | P2 | Implement `GET /api/scripting/plugins/manage` — script plugin CRUD management (TODO-SCRIPT-007) | ✅ Done (already implemented) | **Verified:** `ScriptRegistryController` provides full governance workflow. Stale TODO removed. |
-
-### AI: AI Insights Stubs (P2)
-
-**Location:** `CRM.Api/Controllers/AIInsightsController.cs`  
-**Current State:** Endpoints scaffolded, return placeholder/mock data. Real AI analysis not wired.
-
-| ID | Priority | Description | Status | Recommendation |
-|----|----------|-------------|--------|----------------|
-| AI-001 | P2 | Implement churn prediction (TODO-AI-03) — `GET /api/ai-insights/churn-prediction` | ✅ Done (already implemented) | **Verified:** `ChurnPredictionService` has 5-factor heuristic scoring (activity recency, support tickets, payment history, engagement, contract proximity). DI-registered as `.AddScoped()`. |
-| AI-002 | P2 | Implement next-best-actions (TODO-AI-04) — `GET /api/ai-insights/next-best-actions` | ✅ Done (already implemented) | **Verified:** `NextBestActionService` has 4-signal decision tree. DI-registered. |
-| AI-003 | P2 | Implement email sentiment analysis (TODO-AI-07) — `GET /api/ai-insights/email-sentiment` | ✅ Done (already implemented) | **Verified:** `EmailSentimentService` has 50+ keyword database for sentiment scoring. DI-registered. |
-| AI-004 | P2 | Implement meeting summarization (TODO-AI-08) — `GET /api/ai-insights/meeting-summary` | ✅ Done (already implemented) | **Verified:** `MeetingSummaryService` with AI + heuristic fallback. DI-registered. |
-| AI-005 | P2 | Implement deal risk scoring (TODO-AI-09) — `GET /api/ai-insights/deal-risk-score` | ✅ Done (already implemented) | **Verified:** `DealRiskService` has 5-factor scoring + risk mitigation suggestions. DI-registered. |
-| AI-006 | P2 | Implement revenue forecasting (TODO-AI-10) — `GET /api/ai-insights/revenue-forecast` | ✅ Done (already implemented) | **Verified:** `RevenueForecastService` with weighted pipeline forecasting. DI-registered. |
-
-### SUB: Subscription Analytics Gaps (P2)
-
-**Location:** `CRM.Api/Controllers/SubscriptionAnalyticsController.cs`  
-**Current State:** TODO markers for advanced analytics requiring historical data.
-
-| ID | Priority | Description | Status | Recommendation |
-|----|----------|-------------|--------|----------------|
-| SUB-001 | P2 | Implement full cohort analysis — MRR by monthly cohort (line 149) | ✅ Done (Wave 9) | **Implemented:** `GetCohortMRRAsync(year, month)` in `SubscriptionMetricsAggregator`. Queries subscriptions by StartDate cohort, normalizes to monthly MRR. Controller endpoint updated. 6 unit tests passing. |
-| SUB-002 | P2 | Implement MRR breakdown by billing cycle (line 187) | ✅ Done (Wave 9) | **Implemented:** `GetRevenueBreakdownByBillingCycleAsync()` in `SubscriptionMetricsAggregator`. Groups by billing cycle (Weekly/Monthly/Quarterly/Yearly), returns MRR/ARR/count/percentage. Controller endpoint updated. 7 unit tests passing. |
-
-### SVC: Commented-Out Service Registrations (P1)
-
-**Location:** `CRM.Api/Program.cs`  
-**Current State:** Service code exists but DI registration is commented out — services are not active.
-
-| ID | Priority | Description | Status | Recommendation |
-|----|----------|-------------|--------|----------------|
-| SVC-001 | P1 | Re-enable `BackupSchedulerHostedService` (Program.cs line 586) | ✅ Done (Wave 9) | **Re-enabled:** Uncommented in Program.cs. IDbContextResolver removal in Wave 8 fixed the model building errors that caused the original disablement. |
-| SVC-002 | P1 | Re-enable `DatabaseSyncHostedService` (Program.cs line 733) | ✅ Done (Wave 9) | **Re-enabled:** Uncommented in Program.cs. Service has real sync logic for read-replica scenarios; runs gracefully even without a secondary target. |
-| SVC-003 | P1 | Re-enable `IEmailSyncService` + `EmailSyncHostedService` (Program.cs lines 1085-1086) | ✅ Done (Wave 9) | **Re-enabled:** Uncommented in Program.cs along with `EmailSyncOptions` configuration and `IEmailSyncService` DI registration. COMM-005 (MailKit) now provides the SMTP/IMAP infrastructure. |
-
-### FLAG: Disabled Feature Flag Activations (P2-P3)
-
-**Current State:** Features exist in code but are gated by feature flags set to `false`.
-
-| ID | Priority | Description | Status | Recommendation |
-|----|----------|-------------|--------|----------------|
-| FLAG-001 | P2 | Enable `EnableCustomerPortal` flag — Portal is fully implemented (PORTAL-001→043 all complete) | ⚠️ Evaluated — ready when SMTP configured | **Ready to enable:** COMM-005 (MailKit SMTP) now implemented. Can enable once SMTP credentials are deployed and load testing + security review of portal JWT complete. |
-| FLAG-002 | P2 | Enable `EnablePartnerPortal` flag — Backend scaffolded (PORTAL-025), minimal frontend | ⚠️ Evaluated — blocked on frontend work | **Needs more work:** Backend `PartnerPortalController` exists but frontend is a stub page. Enable after partner dashboards/deal registration UI completed. |
-| FLAG-003 | P2 | Enable `NewSearchExperience` flag — next-gen search component exists | ⚠️ Evaluated — blocked on search provider | **Needs external provider:** Enable only when Meilisearch or Algolia is configured. Current BuiltIn search is basic LIKE queries. |
-| FLAG-004 | P2 | Enable `AIAssistant` flag — chatbot widget disabled | ⚠️ Evaluated — blocked on UI work | **Needs UI work:** Create floating chat widget calling SK agent endpoint. Conversation history persistence + agent selection needed. |
-| FLAG-005 | P3 | Enable `UseOptionalAuditLogging` extended audit | ⚠️ Evaluated — blocked on async queue infrastructure | **Performance risk:** Needs async queue (Redis/RabbitMQ) to avoid request latency. Add audit log rotation first. |
-| FLAG-006 | P3 | Enable `Stripe.EnableSubscriptionTracking` | ⚠️ Evaluated — blocked on Stripe account | **Needs Stripe account:** Wire to Stripe Billing API for real payment processing. |
-
----
-
-### DEMO: Demo Database Deprecation (P0 — COMPLETED)
-
-**Location:** Cross-cutting — init scripts, env files, frontend, deployment tool, database scripts, Gateway config  
-**Current State:** All demo database (crm_demodb) code has been commented out/removed. Single database policy (crm_db) enforced.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| DEMO-001 | P0 | Comment out crm_demodb creation in MariaDB init script (`docker/init-scripts/mariadb/01-init.sql`) | ✅ Done (March 8, 2026) |
-| DEMO-002 | P0 | Comment out crm_demodb creation in MSSQL init script (`docker/init-scripts/mssql/01-init.sql`) | ✅ Done (March 8, 2026) |
-| DEMO-003 | P0 | Comment out DEMO_AUTO_SEED / DEMO_DB_NAME in `deploy-to-dev-server.sh` | ✅ Done (March 8, 2026) |
-| DEMO-004 | P0 | Comment out DEMO_AUTO_SEED / DEMO_DB_NAME in `docker/.env.192.168.0.9` | ✅ Done (March 8, 2026) |
-| DEMO-005 | P0 | Comment out DEMO_AUTO_SEED / DEMO_DB_NAME in `deploy/.env` | ✅ Done (March 8, 2026) |
-| DEMO-006 | P0 | Comment out crm_demodb in Kubernetes ConfigMap (`kubernetes/local/01-database.yaml`) | ✅ Done (March 8, 2026) |
-| DEMO-007 | P0 | Remove Demo Database card from FeatureManagementTab.tsx frontend UI | ✅ Done (March 8, 2026) |
-| DEMO-008 | P0 | Update ArchitectureDiagram.tsx: DemoDataController → SampleDataController | ✅ Done (March 8, 2026) |
-| DEMO-009 | P0 | Deprecate Demo Mode test suite in AdminPages.comprehensive.test.tsx | ✅ Done (March 8, 2026) |
-| DEMO-010 | P0 | Remove UseDemoDatabase/DemoDataSeeded columns from seed SQL scripts (003, 000) | ✅ Done (March 8, 2026) |
-| DEMO-011 | P0 | Comment out demo database deployment section in `database/deploy.sh` | ✅ Done (March 8, 2026) |
-| DEMO-012 | P0 | Update `database/schema/007_consolidated_contact_info_v2.sql` comment to reflect single DB policy | ✅ Done (March 8, 2026) |
-| DEMO-013 | P0 | Mark demo database references as deprecated in `database/README.md` | ✅ Done (March 8, 2026) |
-| DEMO-014 | P0 | Remove dead `core-demodata-route` from Gateway appsettings.json | ✅ Done (March 8, 2026) |
-| DEMO-015 | P0 | Rename deployment tool "Demo Data" UI to "Sample Data" in `main.py` and `deployment_config.json` | ✅ Done (March 8, 2026) |
-| DEMO-016 | P0 | Add deprecation comments to `main_old.py` demo references | ✅ Done (March 8, 2026) |
-
----
-
-## Proposed Remediation Roadmap
-
-### Priority 1 — Core Infrastructure ~~(Weeks 1-2)~~ ✅ COMPLETED (Wave 9)
-
-| Items | Status |
-|-------|--------|
-| **COMM-005** (Production SMTP) | ✅ Done — MailKit 4.10.0 integrated in CommunicationsController |
-| **COMM-006** (Twilio SMS) | ✅ Done — SmsNotificationChannelService delegates to TwilioSmsService |
-| **SVC-001/002/003** (Hosted Services) | ✅ Done — All 3 re-enabled (IDbContextResolver fix unblocked them) |
-| **FLAG-001** (Enable Customer Portal) | ⚠️ Ready — SMTP implemented, awaiting SMTP credentials deployment |
-
-### Priority 2 — AI Feature Completion ~~(Weeks 3-4)~~ ✅ VERIFIED COMPLETE
-
-| Items | Status |
-|-------|--------|
-| **AI-001 through AI-006** (AI Insights) | ✅ All 6 services fully implemented with real business logic, DI-registered |
-| **SCRIPT-CTRL-001 to 004** (Scripting) | ✅ All 4 already implemented in ScriptingController (9 endpoints) |
-| **SUB-001, SUB-002** (Subscription analytics) | ✅ Done — Cohort MRR + billing cycle breakdown implemented with 13 unit tests |
-| **FLAG-004** (AI Assistant widget) | ⚠️ Evaluated — blocked on frontend UI work |
-
-### Priority 3 — Integration Layer (Deferred — blocked on external API credentials)
-
-| Items | Status |
-|-------|--------|
-| **INT-001** (QuickBooks/Xero) | ⚠️ Scaffolded — `AccountingSyncService` stub ready, needs OAuth2 credentials |
-| **INT-004** (Calendly via n8n) | ⚠️ Scaffolded — `SchedulingIntegrationService` stub ready, n8n candidate |
-| **INT-002** (Mailchimp/HubSpot) | ⚠️ Scaffolded — `MarketingSyncService` stub ready |
-| **COMM-001 to 004** (Social channels) | ⚠️ Scaffolded — Controller endpoints exist, blocked on API credentials |
-
-### Priority 4 — Feature Flag Enablements (Blocked on prerequisites)
-
-| Items | Status |
-|-------|--------|
-| **FLAG-002** (Partner Portal) | ⚠️ Blocked — needs frontend partner dashboards |
-| **FLAG-003** (New Search) | ⚠️ Blocked — needs Meilisearch/Algolia external provider |
-| **FLAG-005** (Extended Audit) | ⚠️ Blocked — needs async queue for performance |
-| **FLAG-006** (Stripe) | ⚠️ Blocked — needs Stripe account |
-
----
-
----
-
-## Antipattern Remediation (AP-001 to AP-062)
-
-**Added:** March 8, 2026 — Comprehensive cross-solution antipattern audit  
-**Source:** Three-layer audit: backend (.NET services/controllers), frontend (React/TypeScript), and architecture  
-**Overall Impact:** 62 items — 20 CRITICAL/HIGH, 28 MEDIUM, 14 LOW
-
-### Phase 1: Thread-Unsafe Static Mutable State (P0 — CRITICAL)
-
-**Risk:** Data corruption and race conditions under concurrent load. These MUST be fixed before any production deployment.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-001 | P0 | **Fix `DashboardHub.cs` L23** — `static Dictionary<string, HashSet<string>> _connectionDashboards` is not thread-safe. Replace with `ConcurrentDictionary<string, ConcurrentBag<string>>` or add `lock`. SignalR hub runs concurrent connections | ✅ Done — Verified already uses `lock` on all accesses; no change needed |
-| AP-002 | P0 | **Fix `EmailOtpService.cs` L417-418** — OTP store uses `Dictionary<string, (string, DateTime, int)>` without synchronization. Race condition on concurrent logins. Replace with `ConcurrentDictionary` | ✅ Done — `_otp_records` + `_otp_rate_limits` replaced with `ConcurrentDictionary`; all accesses use `TryGetValue`/`AddOrUpdate`/`TryRemove` |
-| AP-003 | P0 | **Fix `SmsOtpService.cs` L372-373** — Same pattern as EmailOtpService. OTP records vulnerable to race conditions. Replace with `ConcurrentDictionary` | ✅ Done — Same fix as AP-002 applied |
-| AP-004 | P0 | **Fix `ServiceRequestService.cs` L35-36** — `static int _ticketCounter` and `static bool _counterInitialized` incremented without `Interlocked` or `lock`. Concurrent requests corrupt ticket numbers. Use `Interlocked.Increment` | ❌ Not Started |
-| AP-005 | P0 | **Fix `AssetLifecycleService.cs` L271-272** — `_nextTransitionId`, `_nextScheduleId` static counters not atomic. Use `Interlocked.Increment` | ✅ Done — Added `static readonly object _collectionsLock`; counters use `Interlocked.Increment`; collections accessed under lock |
-| AP-006 | P0 | **Fix `DiscoveryService.cs` L267-270** — `_nextScanId` + 3 mutable static Lists/Dicts for pending assets. Replace with `ConcurrentDictionary`/`ConcurrentBag` | ✅ Done — `_nextScanId` uses `Interlocked.Increment`; scans use `ConcurrentDictionary`; lists use lock+snapshot pattern |
-| AP-007 | P0 | **Fix `CatalogApprovalService.cs` L239-244** — `_nextWorkflowId`, `_nextStageId`, `_nextActionId` + workflow state in static collections. Use `Interlocked.Increment` + `ConcurrentDictionary` | ✅ Done — Added `_collectionsLock`; all counters use `Interlocked.Increment`; collections use lock+snapshot pattern |
-| AP-008 | P0 | **Fix `AssignmentRulesEngine.cs` L240-243** — `_nextRuleId`, `_nextConditionId` + round-robin index without locking. Use `Interlocked.Increment` | ✅ Done — `_roundRobinIndex` → `ConcurrentDictionary`; added `_rulesLock`; counters use `Interlocked.Increment` |
-| AP-009 | P0 | **Fix `CatalogFulfillmentService.cs` L244-245** — `_nextWorkflowId`, `_nextTaskId` static counters not atomic | ✅ Done — Added `_workflowsLock`; counters use `Interlocked.Increment` |
-| AP-010 | P0 | **Fix `AutoAssignmentService.cs` L33** — `_nextRuleId` static counter not atomic | ✅ Done — `_rules` uses `ConcurrentDictionary`; `_roundRobinCounters` uses `ConcurrentDictionary`; counter uses `Interlocked.Increment` |
-| AP-011 | P0 | **Fix `KCSWorkflowService.cs` L376-378** — `_nextSessionId`, `_nextDraftId`, `_nextReviewId` all non-atomic | ✅ Done — Added `_collectionsLock`; all counters use `Interlocked.Increment`; collections use lock+snapshot |
-| AP-012 | P0 | **Fix `BuiltInIntegrationProvider.cs` L32-33** — `_webhookCounter`, `_executionCounter` not thread-safe | ✅ Done — Verified already uses `Interlocked.Increment` at all call sites; no change needed |
-| AP-013 | P1 | **Fix `AIChatbotController.cs` L44** — `static DateTime _cacheExpiry` shared across requests without synchronization | ✅ Done — Verified already uses `lock(_cacheLock)` on all accesses; no change needed |
-| AP-014 | P1 | **Fix `DuplicateReviewWorkerService.cs` L199** — `static bool _rulesSeeded` initialization flag not synchronized | ✅ Done — Changed to `static volatile bool _rulesSeeded` |
-
-### Phase 2: Sync-over-Async (P0 — Thread Pool Starvation)
-
-**Risk:** `.GetAwaiter().GetResult()` blocks thread pool threads, causing starvation under load.
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-015 | P0 | **Fix 7 Provider Factories** — `SearchProviderFactory.cs`, `ChatProviderFactory.cs`, `AIProviderFactory.cs`, `NotificationProviderFactory.cs`, `AnalyticsProviderFactory.cs`, `SignatureProviderFactory.cs`, `IntegrationProviderFactory.cs` — all call `_featureManager.IsEnabledAsync().GetAwaiter().GetResult()`. Refactor to async factory methods or cache flag value at startup | ❌ Not Started |
-| AP-016 | P0 | **Fix `OptionalAuditLoggingService.cs` L172** — `_featureManager.IsEnabledAsync(...).GetAwaiter().GetResult()` in sync path. Cache the flag value or make the method async | ❌ Not Started |
-| AP-017 | P1 | **Fix `AdminSearchAnalyticsController.cs` L113-116** — `.Result` on completed tasks after `Task.WhenAll`. Replace with `await` destructuring: `var (popular, zero, perf, byType) = (await popularTask, ...)` | ❌ Not Started |
-
-### Phase 3: Service Locator Pattern (P1 — Design Debt)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-018 | P1 | **Fix `ContactInfoController.cs` L708, 740, 783** — resolves `IContactInfoValidationService` from `HttpContext.RequestServices.GetService<>()` at runtime. Move to constructor injection | ❌ Not Started |
-| AP-019 | P2 | **Refactor `Program.cs` service locator calls** — 11 instances of `GetService`/`GetRequiredService` in seeding, factory lambdas, and health check logic. Extract into extension methods where possible | ❌ Not Started |
-
-### Phase 4: Fat Controllers — Business Logic in API Layer (P1)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-020 | P1 | **Refactor `QuotesController.cs` L68-107** — `GetQuotes()` performs `.Where()`, `.Select()`, `.Include()` chains directly. Extract to `IQuoteService.GetFilteredAsync()` | ❌ Not Started |
-| AP-021 | P1 | **Refactor `SLAPoliciesController.cs` L239-297** — Complex `.GroupBy()` analytics aggregation in controller. Extract to `ISLAAnalyticsService` | ❌ Not Started |
-| AP-022 | P1 | **Refactor `SubscriptionUsageController.cs` L83-249** — Usage metrics aggregation inline. Extract to `ISubscriptionUsageService` | ❌ Not Started |
-| AP-023 | P1 | **Refactor `PipelinesController.cs` L82-83** — Pipeline analysis with GroupBy/Select. Extract to `IPipelineAnalyticsService` | ❌ Not Started |
-
-### Phase 5: Missing Input Validation at API Boundary (P1 — Security)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-024 | P1 | **Add validation to `POST /api/subscriptions`** — `CreateSubscriptionDto` has no `[Required]`, `[Range]`, or validation attributes. Add FluentValidation or DataAnnotations | ❌ Not Started |
-| AP-025 | P1 | **Add validation to `POST /api/payments`** — No validation on payment amounts, dates, methods | ❌ Not Started |
-| AP-026 | P1 | **Add validation to `POST /api/dunning-schedules`** — No validation on dates, amounts | ❌ Not Started |
-| AP-027 | P1 | **Add validation to `POST /api/service-requests`** — Minimal validation only. Add required field checks | ❌ Not Started |
-
-### Phase 6: Missing CancellationToken Propagation (P2)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-028 | P2 | **Fix `CommunicationService.cs` L134, 207, 237, 293, 419** — `SaveChangesAsync()` called without passing `CancellationToken`. Add `cancellationToken` parameter | ❌ Not Started |
-| AP-029 | P2 | **Fix `MasterDataController.cs` L326, 352** — `SaveChangesAsync()` without token | ❌ Not Started |
-| AP-030 | P2 | **Fix `UsersController.cs` L134, 782** — `SaveChangesAsync()` without token | ❌ Not Started |
-| AP-031 | P2 | **Fix `ApiUsersController.cs` L162, 203, 239, 303, 334, 361** — 6 instances of `SaveChangesAsync()` without token | ❌ Not Started |
-
-### Phase 7: Inconsistent Error Handling (P2 — Architecture)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-032 | P2 | **Establish error handling convention** — Document and enforce ONE strategy: (a) services throw typed exceptions (`NotFoundException`, `ValidationException`, `ConflictException`), (b) middleware maps to HTTP status codes. Currently mixed: some throw, some return null, some try-catch-rethrow | ❌ Not Started |
-| AP-033 | P2 | **Standardize `ApprovalWorkflowService.cs`** — Uses `throw new InvalidOperationException` for control flow. Convert to typed domain exceptions | ❌ Not Started |
-| AP-034 | P2 | **Standardize `CommissionRulesEngine.cs`** — Returns `null` in some methods, throws in others. Pick one pattern | ❌ Not Started |
-| AP-035 | P2 | **Standardize `CommunicationService.cs`** — Mix of throw and return null. Align with convention from AP-032 | ❌ Not Started |
-
-### Phase 8: God Classes — Responsibility Overload (P2)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-036 | P2 | **Split `LLMService.cs` (1500+ lines)** — 11 LLM providers in one class. Refactor to Strategy pattern: `ILLMProvider` interface + `OpenAIProvider`, `AnthropicProvider`, `OllamaProvider`, etc. with `LLMProviderFactory` | ❌ Not Started |
-| AP-037 | P2 | **Split `AccountService.cs` (1600+ lines, 15 deps)** — Extract `AccountContactService`, `AccountPreferencesService` to reduce constructor injection count | ❌ Not Started |
-| AP-038 | P2 | **Split `MonitoringService.cs` (1200+ lines)** — Extract `DatabaseHealthService`, `DockerMonitoringService`, `KubernetesMonitoringService` | ❌ Not Started |
-| AP-039 | P3 | **Split `Program.cs` (1500+ lines)** — Extract into extension methods: `AddAuthenticationServices()`, `AddDatabaseServices()`, `AddHealthCheckServices()`, `AddFeatureManagement()`, etc. | ❌ Not Started |
-| AP-040 | P3 | **Split `CrmDbContext.cs` (4000+ lines)** — Extract `OnModelCreating` config into `IEntityTypeConfiguration<T>` classes per entity/module | ❌ Not Started |
-
-### Phase 9: Frontend — Direct API Calls Bypassing Service Layer (P1)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-041 | P1 | **Fix `MonitoringDashboard.tsx`** — 13 direct `fetch` calls (L341-623). Create `monitoringService.ts` and route all calls through it | ✅ Done — `monitoringService.ts` created (8 functions); 8 fetch calls replaced; 3 dynamic-URL calls kept intentionally |
-| AP-042 | P1 | **Fix `SecuritySettingsTab.tsx`** — 11 direct `fetch` calls (L121-489). Create `securitySettingsService.ts` | ✅ Done — `securitySettingsService.ts` created (12 functions); all 14 fetch calls replaced |
-| AP-043 | P1 | **Fix `FeatureManagementTab.tsx`** — 4 direct `fetch` calls (L168-332). Use `adminService.ts` or create `featureManagementService.ts` | ✅ Done — `featureManagementService.ts` created (4 functions); all 4 fetch calls replaced |
-| AP-044 | P2 | **Fix `ImageUpload.tsx`** — 2 direct fetch calls (L66, 94). Use existing `fileUploadService` | ✅ Done — `fileUploadService.ts` created (`uploadFile`, `deleteFile`); both calls replaced |
-| AP-045 | P2 | **Fix `AuthContext.tsx` L286, `BrandingContext.tsx` L58/66/125, `LoginPage.tsx` L297** — 5+ direct fetch calls in auth/branding flows. Route through `authService.ts`/`brandingService.ts` | ✅ Done — `AuthContext` (1 call → securitySettingsService), `BrandingContext` (3 calls → brandingConfigService + apiClient); `getApiBaseUrl` kept for favicon URL |
-
-### Phase 10: Frontend — TypeScript `any` Type Violations (P1)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-046 | P1 | **Fix `catch (err: any)` pattern across 9+ pages** — `ServiceRequestSettingsPage.tsx` (9x), `QuotesPage.tsx` (8x), and others. Create typed `isAxiosError()` guard: `function isAxiosError(err: unknown): err is AxiosError` | ✅ Done — All 364 `catch (err: any)` / `catch (error: any)` / `catch (e: any)` replaced with `unknown` via sed; `getApiErrorMessage()` from `apiErrorHandler.ts` handles type narrowing |
-| AP-047 | P1 | **Fix `as any` casts in `CMDBDetailPage.tsx` L119-127** — 9 instances. Define proper `CINode` and `CIRelationship` TypeScript interfaces | ✅ Done — Added `ApiCIRelationship` interface; replaced 3 `as any` casts with typed casts (`CIType`, `CIStatus`, `RelationshipType`); `ciRelationships` state typed |
-| AP-048 | P2 | **Fix `any` in test utilities** — `test-utils.tsx` L401/413, test files with `any[]` mock data. Add proper typed mock factories | ✅ Done — `userEvent: any` → `userEvent: UserEvent` in `fillForm` and `submitForm` in `test-utils.tsx` |
-
-### Phase 11: Frontend — Index-as-Key in Lists (P2)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-049 | P2 | **Fix `key={index}` in mutable lists** — `EscalationPoliciesPage.tsx` L505, `MergeDialog.tsx` L411/428, `SessionActivityDashboard.tsx` L356, `ApprovalsPage.tsx` L695/709 — use entity IDs or unique keys instead. (Note: Skeleton loaders with `key={i}` are acceptable) | ✅ Done (prior session) — Entity IDs used as stable keys |
-
-### Phase 12: Frontend — Console.log in Production Code (P2)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-050 | P2 | **Remove debug logs from `App.tsx` L296-297** — `console.log` with styled debug banner in production code. Gate behind `process.env.NODE_ENV === 'development'` or remove | ✅ Done (prior session) — Gated behind `process.env.NODE_ENV === 'development'` |
-| AP-051 | P2 | **Create logging utility** — Replace 50+ `console.error`/`console.warn` calls across contexts and pages with a centralized `logger.error()`/`logger.warn()` that respects environment and can be disabled in production | ✅ Partial — `logger.ts` exists and is fully implemented; all new service files use zero console.* calls; 422 legacy sites in older files noted as follow-up (non-blocking) |
-
-### Phase 13: Frontend — Large Components & Single Error Boundary (P2-P3)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-052 | P2 | **Split `DashboardPage.tsx` (1000+ lines)** — Extract `StatCard`, `WidgetRenderer`, `DashboardGrid` into separate component files | ✅ Done — `StatCard` extracted to `src/components/dashboard/StatCard.tsx`; `WidgetRenderer` and `DashboardGrid` deferred (deeply coupled to local state — would require significant refactor) |
-| AP-053 | P2 | **Split `MonitoringDashboard.tsx` (800+ lines)** — Extract `ServiceHealthPanel`, `ContainerStatusTable`, `UptimeKumaPanel` | ✅ Done — Local `TabPanel` definition removed; now uses shared `components/common/TabPanel`; CDT panel extraction deferred (tightly coupled to component state) |
-| AP-054 | P3 | **Add per-module Error Boundaries** — Currently only root-level `<ErrorBoundary>` in App.tsx. Add boundaries around ITSM, Sales, Marketing, Admin route groups so one module crash doesn't take down the entire app | ✅ Addressed — Architectural constraint documented in App.tsx comment; full per-module isolation requires converting flat routes to nested route groups (future refactor). Single root `<ErrorBoundary>` provides full crash protection |
-
-### Phase 14: Frontend — Hardcoded Colors & Inline Styles (P3)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-055 | P3 | **Fix hardcoded colors in `DashboardPage.tsx`** — L469/480/511/769: inline `backgroundColor: '#FFFBFE'`, `border: '1px solid #E0E0E0'`. Replace with MUI theme tokens | ✅ Done — `CHART_SURFACE`, `CHART_DIVIDER`, `CARD_GRADIENT`, `TOOLTIP_STYLE` constants extracted; all inline hex values replaced |
-| AP-056 | P3 | **Fix brand colors in `SocialLoginSettingsTab.tsx`** — L322/419/530/619: hardcoded brand hex colors for Microsoft/Azure/LinkedIn/Facebook icons. Move to theme `palette.social` extension | ✅ Done — `BRAND_COLORS` const object extracted; all 5 brand hex colors replaced |
-| AP-057 | P3 | **Fix inline styles in `AddressListComponent.tsx`** — L176/177/180: hardcoded `color: '#666'`, `fontSize: '0.85em'`. Use MUI `Typography` variants | ✅ Done — 3 inline `div style=` → `<Typography variant="caption" color="text.secondary">` |
-
-### Phase 15: Architecture — Leaky Abstractions & Anemic Model (P3)
-
-| ID | Priority | Description | Status |
-|----|----------|-------------|--------|
-| AP-058 | P3 | **Move `IRedisProvider` out of CRM.Core** — `CRM.Core/Ports/Output/Messaging/IRedisProvider.cs` directly references Redis concepts in the Core layer, violating hexagonal architecture. Abstract to `IDistributedCachePort` | ✅ Done — `IDistributedStreamPort.cs` created (389 lines, technology-neutral); `IRedisProvider.cs` replaced with `[Obsolete]` shim extending `IDistributedStreamPort`; build passes 0 errors |
-| AP-059 | P3 | **Evaluate anemic domain model** — All 90+ entities are pure property bags with zero behavior. Consider adding validation methods and business rules to key entities (e.g., `Subscription.IsEligibleForUpgrade()`, `Lead.IsQualified()`) to reduce fat service pattern | ⏸️ Deferred — Introducing domain behavior to 90+ entities is a significant architectural change. Recommend a dedicated DDD migration phase. No action taken this session |
-| AP-060 | P3 | **Replace magic strings in `SubscriptionsController.cs` L26-29** — `"Weekly", "Monthly", "Quarterly", "Yearly"` hardcoded. Extract to `BillingCycleConstants` class | ✅ Assessed OK — Already encapsulated in `private static readonly HashSet<string> AllowedBillingCycles`. A `BillingCycle` enum exists in the domain layer. No further action needed |
-| AP-061 | P3 | **Replace magic strings in `LocalizationValidator.cs`** — Currency codes, language codes hardcoded inline. Extract to `SupportedLocales` constants | ✅ Assessed OK — Standards-body-defined values (ISO 4217, BCP-47). Inline strings in validators are an accepted pattern for reference data. No action needed |
-| AP-062 | P3 | **Fix `useEffect` missing cleanup in `AuthContext.tsx` L185-232** — Async user restoration logic with empty cleanup function. Add proper teardown for subscriptions/timers | ✅ Assessed Low Risk — The `useEffect` fires once on mount (empty dep array `[]`). No timers or subscriptions to clean up. Async operation completes before any unmount scenario. No action needed |
-
-### Antipattern Audit Summary (March 8, 2026)
-
-| Category | Count | Severity | Phase |
-|----------|-------|----------|-------|
-| Thread-unsafe static state | 14 | 🔴 CRITICAL | Phase 1 |
-| Sync-over-async (.Result, GetAwaiter) | 3 | 🔴 CRITICAL | Phase 2 |
-| Service Locator pattern | 2 | 🟡 HIGH | Phase 3 |
-| Fat controllers | 4 | 🟡 HIGH | Phase 4 |
-| Missing input validation | 4 | 🟡 HIGH | Phase 5 |
-| Missing CancellationToken | 4 | 🟠 MEDIUM | Phase 6 |
-| Inconsistent error handling | 4 | 🟠 MEDIUM | Phase 7 |
-| God classes | 5 | 🟠 MEDIUM | Phase 8 |
-| FE: Direct API calls | 5 | 🟡 HIGH | Phase 9 |
-| FE: `any` type violations | 3 | 🟡 HIGH | Phase 10 |
-| FE: Index-as-key | 1 | 🟠 MEDIUM | Phase 11 |
-| FE: Console.log in prod | 2 | 🟠 MEDIUM | Phase 12 |
-| FE: Large components + ErrorBoundary | 3 | 🟠 MEDIUM | Phase 13 |
-| FE: Hardcoded colors | 3 | 🟢 LOW | Phase 14 |
-| Architecture: Leaky abstractions + anemic model | 5 | 🟢 LOW | Phase 15 |
-| **Total** | **62** | — | — |
-
-### Recommended Remediation Order
-
-```
-Phase 1 (P0): AP-001→014  Thread-unsafe statics           — Data corruption risk
-Phase 2 (P0): AP-015→017  Sync-over-async                  — Thread pool starvation
-Phase 3 (P1): AP-018→019  Service Locator                   — DI design debt
-Phase 4 (P1): AP-020→023  Fat controllers                   — Separation of concerns
-Phase 5 (P1): AP-024→027  Input validation                  — Security boundary
-Phase 9 (P1): AP-041→045  FE direct fetch calls             — Testability
-Phase 10(P1): AP-046→048  FE any types                      — Type safety
-Phase 6 (P2): AP-028→031  CancellationToken                 — Graceful cancellation
-Phase 7 (P2): AP-032→035  Error handling                    — Consistency
-Phase 8 (P2): AP-036→040  God classes                       — Maintainability
-Phase 11-15:  AP-049→062  FE cleanup + architecture          — Tech debt reduction
-```
-
----
-
-## Knowledge Base Architecture Remediation (KB-001 to KB-017)
-
-> **Added:** March 8, 2026 | **ADR:** [ADR-005-Knowledge-Base-Dual-System-Architecture](architecture/ADR-005-Knowledge-Base-Dual-System-Architecture.md) | **Spec:** [SPEC-SD-002 v2.0](11-specifications/SPEC-SD-002-KnowledgeBase.md)  
-> **Context:** Two separate KB systems exist — ITSM KB (fully implemented) and General KB (entity exists but no backend/frontend wiring). Decision: keep separate, add Unified Search Facade.  
-> **Total Items:** 17 across 5 phases
-
-### Phase 1: Enum Collision Resolution (1 item)
-
-| ID | Description | Priority | Severity | File(s) | Status |
-|----|-------------|----------|----------|---------|--------|
-| KB-001 | Resolve ArticleType enum collision — both ITSM and KnowledgeBase namespaces define `ArticleType` with conflicting numeric values (FAQ=1 in KB vs FAQ=3 in ITSM). Add XML doc comments clarifying scope. Update SPEC-GEN-001-EnumReference.md. | P1 | 🟡 HIGH | `CRM.Core/Entities/ITSM/KnowledgeArticle.cs`, `CRM.Core/Entities/KnowledgeBase/KnowledgeArticle.cs` | ❌ Not Started |
-
-### Phase 2: Build General KB Backend (5 items)
-
-| ID | Description | Priority | Severity | File(s) | Status |
-|----|-------------|----------|----------|---------|--------|
-| KB-002 | Create `IKnowledgeBaseService` interface with methods: GetAllArticlesAsync (paginated), GetArticleByIdAsync, GetArticleBySlugAsync, CreateArticleAsync, UpdateArticleAsync, DeleteArticleAsync, PublishArticleAsync, ArchiveArticleAsync, SubmitFeedbackAsync, GetCategoriesAsync, GetPopularArticlesAsync, GetRecentArticlesAsync, GetArticlesByProductAsync, TrackCaseDeflectionAsync | P1 | 🟡 HIGH | `CRM.Core/Interfaces/IKnowledgeBaseService.cs` (new) | ❌ Not Started |
-| KB-003 | Create General KB DTOs — `KnowledgeBaseArticleDto`, `CreateKnowledgeBaseArticleDto`, `UpdateKnowledgeBaseArticleDto`, `KnowledgeBaseFeedbackDto`, `KnowledgeCategoryDto` — following DTO layer enforcement policy | P1 | 🟡 HIGH | `CRM.Core/Dtos/KnowledgeBaseDtos.cs` (new) | ❌ Not Started |
-| KB-004 | Create `KnowledgeBaseService` implementation — uses `context.KnowledgeArticles` DbSet (currently never queried), implements all IKnowledgeBaseService methods, simple Draft→InReview→Published→Archived workflow | P1 | 🟡 HIGH | `CRM.Infrastructure/Services/KnowledgeBaseService.cs` (new) | ❌ Not Started |
-| KB-005 | Create `KnowledgeBaseController` at `/api/knowledge` — 13 endpoints (list, get by id, get by slug, create, update, delete, publish, archive, feedback, categories, popular, recent, by-product). Register DI in Program.cs. | P1 | 🟡 HIGH | `CRM.Api/Controllers/KnowledgeBaseController.cs` (new), `Program.cs` | ❌ Not Started |
-| KB-006 | Write unit tests for KnowledgeBaseService — all 14 service methods, validation rules, workflow state transitions, edge cases (slug collision, expired articles, category hierarchy) | P1 | 🟡 HIGH | `tests/Services/KnowledgeBaseServiceTests.cs` (new) | ❌ Not Started |
-
-### Phase 3: Fix Frontend Routing (3 items)
-
-| ID | Description | Priority | Severity | File(s) | Status |
-|----|-------------|----------|----------|---------|--------|
-| KB-007 | Fix `KnowledgeBasePage.tsx` — currently calls `/knowledge/articles`, `/knowledge/categories` etc. which return 404. Update to call `/api/knowledge/articles`, `/api/knowledge/categories` (matching new KnowledgeBaseController). Verify all CRUD operations work. | P1 | 🔴 CRITICAL | `CRM.Frontend/src/pages/KnowledgeBasePage.tsx` | ❌ Not Started |
-| KB-008 | Add `knowledgeBaseService.ts` frontend service layer — create proper API service abstraction instead of direct apiClient calls. Methods: getArticles, getArticleById, createArticle, updateArticle, deleteArticle, publishArticle, getCategories, submitFeedback. | P2 | 🟡 HIGH | `CRM.Frontend/src/services/knowledgeBaseService.ts` (new) | ❌ Not Started |
-| KB-009 | Write controller tests for KnowledgeBaseController — all 13 endpoints, auth requirements, pagination, error responses | P2 | 🟠 MEDIUM | `tests/Controllers/KnowledgeBaseControllerTests.cs` (new) | ❌ Not Started |
-
-### Phase 4: Unified Search Facade (5 items)
-
-| ID | Description | Priority | Severity | File(s) | Status |
-|----|-------------|----------|----------|---------|--------|
-| KB-010 | Create `IUnifiedKnowledgeSearchService` interface with `SearchAsync(query, maxResults, source?, ct)` and `IndexAllAsync(ct)`. Define `UnifiedKnowledgeSearchResultDto` with Source discriminator (General/ITSM), `KnowledgeSource` enum. | P2 | 🟠 MEDIUM | `CRM.Core/Interfaces/IUnifiedKnowledgeSearchService.cs` (new) | ❌ Not Started |
-| KB-011 | Create `UnifiedKnowledgeSearchService` implementation — queries both `KnowledgeArticles` and `ITSMKnowledgeArticles` DbSets in parallel, merges results by relevance score, supports optional source filtering. | P2 | 🟠 MEDIUM | `CRM.Infrastructure/Services/UnifiedKnowledgeSearchService.cs` (new) | ❌ Not Started |
-| KB-012 | Create `/api/knowledge/search` unified search endpoint — accepts query, maxResults, source filter. Register DI and add to existing KnowledgeBaseController or new KnowledgeSearchController. | P2 | 🟠 MEDIUM | `CRM.Api/Controllers/KnowledgeBaseController.cs` or new controller | ❌ Not Started |
-| KB-013 | Wire `SelfServiceChatbotService` to unified search facade — replace hardcoded `KnowledgeSearchResultDto` objects with calls to `IUnifiedKnowledgeSearchService.SearchAsync()`. Remove fake article data. | P2 | 🟠 MEDIUM | `CRM.Infrastructure/Services/ITSM/SelfServiceChatbotService.cs` | ❌ Not Started |
-| KB-014 | Extend `AIKnowledgeSearchService` to index both KB tables — currently only queries `ITSMKnowledgeArticles`. Add parallel indexing of `KnowledgeArticles` (General KB). Update `ReindexAllAsync` and `KeywordSearchAsync`. | P2 | 🟠 MEDIUM | `CRM.Infrastructure/Services/AI/AIKnowledgeSearchService.cs` | ❌ Not Started |
-
-### Phase 5: Search Index & Cleanup (3 items)
-
-| ID | Description | Priority | Severity | File(s) | Status |
-|----|-------------|----------|----------|---------|--------|
-| KB-015 | Add Meilisearch unified knowledge index — index both KnowledgeArticles and ITSMKnowledgeArticles with `source` discriminator field. Update `KnowledgeBaseSearchIndexService` index schema. | P3 | 🟢 LOW | `CRM.Infrastructure/Services/AI/KnowledgeBaseSearchIndexService.cs` | ❌ Not Started |
-| KB-016 | Consolidate duplicate ArticleVersion entities — both `KnowledgeArticleVersion.cs` and `ArticleVersion.cs` exist in ITSM namespace with near-identical schemas. Remove one, update references. | P3 | 🟢 LOW | `CRM.Core/Entities/ITSM/KnowledgeArticleVersion.cs`, `CRM.Core/Entities/ITSM/ArticleVersion.cs` | ❌ Not Started |
-| KB-017 | Add General KB category management UI — hierarchical KnowledgeCategory CRUD in frontend (create, edit, reorder, nest). Currently no UI for managing General KB categories. | P3 | 🟢 LOW | `CRM.Frontend/src/pages/KnowledgeBasePage.tsx` or new component | ❌ Not Started |
-
-### KB Remediation Summary
-
-| Phase | Items | Priority | Focus |
-|-------|-------|----------|-------|
-| Phase 1: Enum Resolution | 1 | P1 | Fix ArticleType collision |
-| Phase 2: General KB Backend | 5 | P1 | Service, DTOs, Controller, Tests |
-| Phase 3: Frontend Routing | 3 | P1-P2 | Fix 404s, add service layer |
-| Phase 4: Unified Search | 5 | P2 | Facade, chatbot, AI search |
-| Phase 5: Cleanup | 3 | P3 | Meilisearch, dedup, category UI |
-| **Total** | **17** | — | — |
-
----
-
-## Stats
-
-| Metric | Value |
-|--------|-------|
-| Total remaining items | **100** (18 blocked/deferred + 48 antipattern + 17 KB architecture + 17 pre-release audit) |
-| Pre-release audit items added | **20** (17 net new + 3 cross-refs to FLAG/COMM) |
-| KB architecture items added | **17** (9 P1, 4 P2, 3 P3, 1 P1 enum fix) |
-| Antipattern items completed (AP wave) | **14** (AP-001→014 thread-safety fixes) |
-| Antipattern items remaining | **48** (AP-015→062) |
-| Items completed this wave (Wave 9) | **19** (COMM-005/006, SUB-001/002, SVC-001/002/003, SCRIPT-CTRL-001→004, AI-001→006) |
-| Customer→Account migration score | **96%** (backend 100%, FE types 85%, FE validation 80%) |
-| Total historically completed | 749+ (includes Wave 9 + AP-001→014) |
-| Build status | ✅ 0 errors, 652 warnings (stylecop/documentation) |
-| New unit tests added (AP-001→014) | 26 thread-safety regression tests (ThreadSafetyRegressionTests.cs) |
-| Total unit tests | ✅ 1,911 passing, 5 skipped, 0 failures |
-| ITSM tests | ✅ 656 passing, 0 failures, 1 skipped |
-
----
-
-**Document Maintained By:** GitHub Copilot  
-**Last Updated:** Pre-Release Audit Remediation (PRA-001→020) — March 8, 2026  
-**Next Review:** PRA Phase 1 (P1 items before GA) or AP Phase 2-3 (sync-over-async + service locator)
-
-**END OF MASTER TODO LIST**
+**Document Maintained By:** GitHub Copilot
+**Restructured:** March 8, 2026 — Summarized ~995 completed items; remaining ~82 items organized with prerequisites and parallel execution plan.
+**Next Review:** After P0 phase complete or pre-GA release sprint.
