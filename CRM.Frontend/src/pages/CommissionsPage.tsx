@@ -286,8 +286,8 @@ function CommissionsPage() {
       const data = await commissionService.getCommissions();
       setCommissions(data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch commissions');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch commissions');
       logger.error('Failed to fetch commissions', err);
     } finally {
       setLoading(false);
@@ -299,8 +299,8 @@ function CommissionsPage() {
       setLoadingPlans(true);
       const data = await commissionService.getPlans();
       setPlans(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch plans');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch plans');
       logger.error('Failed to fetch plans', err);
     } finally {
       setLoadingPlans(false);
@@ -439,8 +439,8 @@ function CommissionsPage() {
       fetchCommissions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete commission');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete commission');
     }
   };
 
@@ -455,8 +455,8 @@ function CommissionsPage() {
       fetchCommissions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to approve commission');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to approve commission');
     }
   };
 
@@ -475,8 +475,8 @@ function CommissionsPage() {
       fetchCommissions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reject commission');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to reject commission');
       setRejectDialogOpen(false);
     }
   };
@@ -488,8 +488,8 @@ function CommissionsPage() {
       fetchCommissions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to mark commission as paid');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to mark commission as paid');
     }
   };
 
@@ -508,8 +508,8 @@ function CommissionsPage() {
       fetchCommissions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to claw back commission');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to claw back commission');
       setClawbackDialogOpen(false);
     }
   };
@@ -521,8 +521,8 @@ function CommissionsPage() {
       fetchCommissions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to recalculate commission');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to recalculate commission');
     }
   };
 
@@ -641,8 +641,8 @@ function CommissionsPage() {
       setSuccessMessage('Plan deleted successfully');
       fetchPlans();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete plan');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete plan');
     }
   };
 
@@ -720,8 +720,8 @@ function CommissionsPage() {
         fetchTiers(selectedPlanForTiers.id);
       }
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete tier');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete tier');
     }
   };
 
@@ -745,8 +745,8 @@ function CommissionsPage() {
       setSuccessMessage('Statement generated successfully');
       setStatementDialogOpen(false);
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to generate statement');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to generate statement');
     }
   };
 

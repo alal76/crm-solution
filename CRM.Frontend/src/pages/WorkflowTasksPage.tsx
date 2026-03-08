@@ -21,8 +21,8 @@ const WorkflowTasksPage: React.FC = () => {
       const result = await workflowTaskService.getMyTasks();
       setTasks(result);
       setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load workflow tasks');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load workflow tasks');
     } finally {
       setLoading(false);
     }

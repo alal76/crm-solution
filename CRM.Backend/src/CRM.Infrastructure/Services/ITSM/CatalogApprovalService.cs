@@ -239,9 +239,10 @@ public class CatalogApprovalService : ICatalogApprovalService
     private static readonly List<ApprovalWorkflow> _workflows = new();
     private static readonly List<ApprovalAction> _actions = new();
     private static readonly Dictionary<int, CatalogApprovalRule> _rules = new();
-    private static int _nextWorkflowId = 1;
-    private static int _nextStageId = 1;
-    private static int _nextActionId = 1;
+    private static readonly object _collectionsLock = new();
+    private static int _nextWorkflowId = 0;
+    private static int _nextStageId = 0;
+    private static int _nextActionId = 0;
 
     static CatalogApprovalService()
     {
@@ -346,7 +347,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         // Create workflow
         var workflow = new ApprovalWorkflow
         {
-            WorkflowId = _nextWorkflowId++,
+            WorkflowId = Interlocked.Increment(ref _nextWorkflowId),
             ServiceRequestId = serviceRequestId,
             ServiceRequestNumber = $"CR-{serviceRequest.RequestId}",
             CatalogItemId = serviceRequest.CatalogItemId,
@@ -365,7 +366,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         {
             var stage = new ApprovalStage
             {
-                StageId = _nextStageId++,
+                StageId = Interlocked.Increment(ref _nextStageId),
                 StageNumber = stageDef.StageNumber,
                 StageName = stageDef.StageName,
                 ApproverType = stageDef.ApproverType,
@@ -397,7 +398,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         workflow.EstimatedCompletionTime = TimeSpan.FromHours(
             rule.StageDefinitions.Sum(s => s.SLAHours));
 
-        _workflows.Add(workflow);
+        lock (_collectionsLock) { _workflows.Add(workflow); }
 
         // Update service request status
         serviceRequest.State = CatalogRequestState.PendingApproval;
@@ -433,7 +434,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         // Record the action
         var action = new ApprovalAction
         {
-            ActionId = _nextActionId++,
+            ActionId = Interlocked.Increment(ref _nextActionId),
             WorkflowId = workflowId,
             StageId = currentStage.StageId,
             Decision = decision,
@@ -443,7 +444,7 @@ public class CatalogApprovalService : ICatalogApprovalService
             Comments = comments
         };
 
-        _actions.Add(action);
+        lock (_collectionsLock) { _actions.Add(action); }
 
         // Update stage
         currentStage.Decision = decision;
@@ -492,15 +493,18 @@ public class CatalogApprovalService : ICatalogApprovalService
 
     public async Task<ApprovalWorkflow?> GetApprovalStatusAsync(int serviceRequestId)
     {
-        return await Task.FromResult(
-            _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId));
+        ApprovalWorkflow? wf;
+        lock (_collectionsLock) { wf = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId); }
+        return await Task.FromResult(wf);
     }
 
     public async Task<List<PendingServiceRequestApproval>> GetPendingApprovalsAsync(int approverId)
     {
         var pending = new List<PendingServiceRequestApproval>();
 
-        foreach (var workflow in _workflows.Where(w => w.State == WorkflowState.InProgress))
+        List<ApprovalWorkflow> workflowSnapshot;
+        lock (_collectionsLock) { workflowSnapshot = _workflows.ToList(); }
+        foreach (var workflow in workflowSnapshot.Where(w => w.State == WorkflowState.InProgress))
         {
             var activeStage = workflow.Stages.FirstOrDefault(s => s.State == StageState.Active);
             if (activeStage == null) continue;
@@ -563,7 +567,9 @@ public class CatalogApprovalService : ICatalogApprovalService
 
     public async Task<bool> EscalateApprovalAsync(int workflowId, string reason)
     {
-        var workflow = _workflows.FirstOrDefault(w => w.WorkflowId == workflowId);
+        ApprovalWorkflow? escalateWf;
+        lock (_collectionsLock) { escalateWf = _workflows.FirstOrDefault(w => w.WorkflowId == workflowId); }
+        var workflow = escalateWf;
         if (workflow == null) return false;
 
         var activeStage = workflow.Stages.FirstOrDefault(s => s.State == StageState.Active);
@@ -581,11 +587,17 @@ public class CatalogApprovalService : ICatalogApprovalService
 
     public async Task<bool> WithdrawApprovalAsync(int serviceRequestId, int requestedById, string reason)
     {
-        var workflow = _workflows.FirstOrDefault(w =>
-            w.ServiceRequestId == serviceRequestId &&
-            w.SubmittedById == requestedById);
+        ApprovalWorkflow? withdrawWf;
+        lock (_collectionsLock)
+        {
+            withdrawWf = _workflows.FirstOrDefault(w =>
+                w.ServiceRequestId == serviceRequestId &&
+                w.SubmittedById == requestedById);
+        }
 
-        if (workflow == null) return false;
+        if (withdrawWf == null) return false;
+
+        var workflow = withdrawWf;
 
         if (workflow.State != WorkflowState.InProgress && workflow.State != WorkflowState.Pending)
         {
@@ -597,16 +609,19 @@ public class CatalogApprovalService : ICatalogApprovalService
         workflow.CompletedAt = DateTime.UtcNow;
 
         // Record withdrawal action
-        _actions.Add(new ApprovalAction
+        lock (_collectionsLock)
         {
-            ActionId = _nextActionId++,
-            WorkflowId = workflow.WorkflowId,
-            StageId = workflow.CurrentStage,
-            Decision = ApprovalDecision.Reject,
-            ApproverId = requestedById,
-            ActionAt = DateTime.UtcNow,
-            Comments = $"Withdrawn: {reason}"
-        });
+            _actions.Add(new ApprovalAction
+            {
+                ActionId = Interlocked.Increment(ref _nextActionId),
+                WorkflowId = workflow.WorkflowId,
+                StageId = workflow.CurrentStage,
+                Decision = ApprovalDecision.Reject,
+                ApproverId = requestedById,
+                ActionAt = DateTime.UtcNow,
+                Comments = $"Withdrawn: {reason}"
+            });
+        }
         await UpdateServiceRequestStatusAsync(serviceRequestId, CatalogRequestState.Cancelled, _context);
         await _context.SaveChangesAsync();
 
@@ -619,11 +634,18 @@ public class CatalogApprovalService : ICatalogApprovalService
 
     public async Task<List<ApprovalAction>> GetApprovalHistoryAsync(int serviceRequestId)
     {
-        var workflow = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId);
-        if (workflow == null) return new List<ApprovalAction>();
+        ApprovalWorkflow? histWf;
+        List<ApprovalAction> actionsSnapshot;
+        lock (_collectionsLock)
+        {
+            histWf = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId);
+            actionsSnapshot = _actions.ToList();
+        }
+
+        if (histWf == null) return new List<ApprovalAction>();
 
         return await Task.FromResult(
-            _actions.Where(a => a.WorkflowId == workflow.WorkflowId)
+            actionsSnapshot.Where(a => a.WorkflowId == histWf.WorkflowId)
                     .OrderBy(a => a.ActionAt)
                     .ToList());
     }

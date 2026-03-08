@@ -4,7 +4,7 @@ import { Box, Typography, Paper, Button, Grid, CircularProgress } from '@mui/mat
 import apiClient from '../../services/apiClient';
 import { RelationshipDiagram, ServiceMap } from '../../components/itsm';
 import { CIRelationshipDiagram } from '../../components/itsm/CIRelationshipDiagram';
-import type { ConfigurationItem, CIRelationship } from '../../components/itsm/CIRelationshipDiagram';
+import type { ConfigurationItem, CIRelationship, CIType, CIStatus, RelationshipType } from '../../components/itsm/CIRelationshipDiagram';
 import type { ConfigurationItemNode, ServiceNode } from '../../components/itsm';
 
 interface ConfigurationItemDetail {
@@ -17,13 +17,25 @@ interface ConfigurationItemDetail {
   description?: string;
 }
 
+/** Raw relationship shape as returned by the /cmdb/{id}/relationships API. */
+interface ApiCIRelationship {
+  id?: string | number;
+  sourceId?: string | number;
+  targetId?: string | number;
+  fromCIId?: string | number;
+  toCIId?: string | number;
+  type?: string;
+  label?: string;
+  relationshipType?: string;
+}
+
 const CMDBDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [ci, setCi] = useState<ConfigurationItemDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [relatedCIs, setRelatedCIs] = useState<ConfigurationItemNode[]>([]);
-  const [ciRelationships, setCiRelationships] = useState<any[]>([]);
+  const [ciRelationships, setCiRelationships] = useState<ApiCIRelationship[]>([]);
   const [serviceNodes, setServiceNodes] = useState<ServiceNode[]>([]);
 
   useEffect(() => {
@@ -104,7 +116,14 @@ const CMDBDetailPage: React.FC = () => {
             criticality: 'medium',
           }}
           relatedCIs={relatedCIs}
-          relationships={ciRelationships}
+          relationships={ciRelationships.map((rel, idx) => ({
+            id: Number(rel.id ?? idx),
+            parentId: Number(rel.sourceId ?? rel.fromCIId ?? 0),
+            childId: Number(rel.targetId ?? rel.toCIId ?? 0),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            type: (rel.type ?? 'depends_on') as any,
+            description: rel.label ?? rel.relationshipType,
+          }))}
         />
       </Box>
 
@@ -116,15 +135,15 @@ const CMDBDetailPage: React.FC = () => {
             configItems={relatedCIs.map((node: ConfigurationItemNode) => ({
               id: String(node.id),
               name: node.name,
-              type: (node.ciType as any) || 'server',
-              status: (node.status as any) || 'active',
+              type: (node.ciType as CIType) || 'server',
+              status: (node.status as CIStatus) || 'operational',
               environment: undefined,
             } as ConfigurationItem))}
-            relationships={ciRelationships.map((rel: any, idx: number) => ({
+            relationships={ciRelationships.map((rel: ApiCIRelationship, idx: number) => ({
               id: String(rel.id ?? idx),
               sourceId: String(rel.sourceId ?? rel.fromCIId),
               targetId: String(rel.targetId ?? rel.toCIId),
-              type: (rel.type as any) || 'depends_on',
+              type: (rel.type as RelationshipType) || 'depends_on',
               label: rel.label ?? rel.relationshipType ?? '',
             } as CIRelationship))}
             selectedCIId={String(ci.ciId)}

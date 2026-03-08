@@ -268,8 +268,9 @@ public class AssetLifecycleService : IAssetLifecycleService
     // In-memory storage for transitions (would be database in production)
     private static readonly List<AssetLifecycleTransition> _transitions = new();
     private static readonly List<AssetRetirementSchedule> _retirements = new();
-    private static int _nextTransitionId = 1;
-    private static int _nextScheduleId = 1;
+    private static readonly object _collectionsLock = new();
+    private static int _nextTransitionId = 0;
+    private static int _nextScheduleId = 0;
 
     // Allowed lifecycle transitions
     private static readonly Dictionary<LifecycleStage, LifecycleStage[]> AllowedTransitions = new()
@@ -304,10 +305,18 @@ public class AssetLifecycleService : IAssetLifecycleService
         }
 
         var currentStage = MapStatusToLifecycleStage(ci.OperationalStatus);
-        var lastTransition = _transitions
-            .Where(t => t.ConfigurationItemId == configurationItemId)
-            .OrderByDescending(t => t.TransitionedAt)
-            .FirstOrDefault();
+        AssetLifecycleTransition? lastTransition;
+        AssetRetirementSchedule? scheduledRetirement;
+        lock (_collectionsLock)
+        {
+            lastTransition = _transitions
+                .Where(t => t.ConfigurationItemId == configurationItemId)
+                .OrderByDescending(t => t.TransitionedAt)
+                .FirstOrDefault();
+            scheduledRetirement = _retirements
+                .FirstOrDefault(r => r.ConfigurationItemId == configurationItemId &&
+                                    r.Status == RetirementStatus.Scheduled);
+        }
 
         var stageEnteredAt = lastTransition?.TransitionedAt ?? ci.CreatedAt;
 
@@ -324,10 +333,7 @@ public class AssetLifecycleService : IAssetLifecycleService
             WarrantyExpirationDate = ci.WarrantyExpiration,
             EndOfSupportDate = ci.EndOfSupportDate,
             EndOfLifeDate = ci.EndOfLifeDate,
-            ScheduledRetirementDate = _retirements
-                .FirstOrDefault(r => r.ConfigurationItemId == configurationItemId &&
-                                    r.Status == RetirementStatus.Scheduled)?
-                .ScheduledDate,
+            ScheduledRetirementDate = scheduledRetirement?.ScheduledDate,
             HealthStatus = DetermineHealthStatus(ci)
         };
     }
@@ -359,7 +365,7 @@ public class AssetLifecycleService : IAssetLifecycleService
         // Create transition record
         var transition = new AssetLifecycleTransition
         {
-            TransitionId = _nextTransitionId++,
+            TransitionId = Interlocked.Increment(ref _nextTransitionId),
             ConfigurationItemId = configurationItemId,
             FromStage = currentStage,
             ToStage = targetStage,
@@ -368,7 +374,7 @@ public class AssetLifecycleService : IAssetLifecycleService
             Notes = notes
         };
 
-        _transitions.Add(transition);
+        lock (_collectionsLock) { _transitions.Add(transition); }
 
         // Update CI status
         ci.OperationalStatus = MapLifecycleStageToOperationalStatus(targetStage);
@@ -384,8 +390,10 @@ public class AssetLifecycleService : IAssetLifecycleService
 
     public async Task<List<AssetLifecycleTransition>> GetLifecycleHistoryAsync(int configurationItemId)
     {
+        List<AssetLifecycleTransition> snapshot;
+        lock (_collectionsLock) { snapshot = _transitions.ToList(); }
         return await Task.FromResult(
-            _transitions
+            snapshot
                 .Where(t => t.ConfigurationItemId == configurationItemId)
                 .OrderByDescending(t => t.TransitionedAt)
                 .ToList());
@@ -423,7 +431,9 @@ public class AssetLifecycleService : IAssetLifecycleService
         }
 
         // Check scheduled retirements
-        foreach (var retirement in _retirements.Where(r => r.Status == RetirementStatus.Scheduled && r.ScheduledDate <= cutoffDate))
+        List<AssetRetirementSchedule> retirementsSnapshot;
+        lock (_collectionsLock) { retirementsSnapshot = _retirements.ToList(); }
+        foreach (var retirement in retirementsSnapshot.Where(r => r.Status == RetirementStatus.Scheduled && r.ScheduledDate <= cutoffDate))
         {
             var ci = await _context.ConfigurationItems.FindAsync(retirement.ConfigurationItemId);
             if (ci != null)
@@ -496,7 +506,7 @@ public class AssetLifecycleService : IAssetLifecycleService
 
         var schedule = new AssetRetirementSchedule
         {
-            ScheduleId = _nextScheduleId++,
+            ScheduleId = Interlocked.Increment(ref _nextScheduleId),
             ConfigurationItemId = configurationItemId,
             AssetName = ci.CIName,
             ScheduledDate = retirementDate,
@@ -506,7 +516,7 @@ public class AssetLifecycleService : IAssetLifecycleService
             Tasks = GetRetirementTasks(ci)
         };
 
-        _retirements.Add(schedule);
+        lock (_collectionsLock) { _retirements.Add(schedule); }
 
         _logger.LogInformation(
             "Scheduled retirement for asset {AssetName} on {Date}",

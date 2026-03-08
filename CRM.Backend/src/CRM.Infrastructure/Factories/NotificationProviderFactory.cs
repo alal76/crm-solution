@@ -29,6 +29,7 @@ public class NotificationProviderFactory : IProviderFactory<INotificationPort>
     private readonly IFeatureManager _featureManager;
     private readonly IConfiguration _configuration;
     private readonly ILogger<NotificationProviderFactory> _logger;
+    private readonly bool _useExternalProvider;
 
     public NotificationProviderFactory(
         IServiceProvider serviceProvider,
@@ -40,13 +41,14 @@ public class NotificationProviderFactory : IProviderFactory<INotificationPort>
         _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        // AP-015: Cache feature flag once per request scope; avoids per-call blocking on async flag check
+        _useExternalProvider = _configuration.GetValue<bool>("FeatureManagement:UseExternalNotifications");
     }
 
     /// <inheritdoc />
     public INotificationPort GetProvider()
     {
-        var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications)
-            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
+        var useExternal = _useExternalProvider;
 
         if (!useExternal)
         {
@@ -111,8 +113,7 @@ public class NotificationProviderFactory : IProviderFactory<INotificationPort>
     /// <inheritdoc />
     public string GetActiveProviderName()
     {
-        var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications)
-            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
+        var useExternal = _useExternalProvider;
 
         if (!useExternal)
         {

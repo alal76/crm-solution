@@ -1,19 +1,19 @@
 {
   "major": 0,
-  "minor": 616,
+  "minor": 617,
   "patch": 0,
   "lastUpdate": "2026-03-08",
-  "description": "feat: v0.616.0 - Wave 9 MASTER_TODO completion: SUB-001/002 cohort MRR + billing cycle breakdown, COMM-005 MailKit SMTP, COMM-006 Twilio SMS wiring, SVC-001/002/003 hosted services re-enabled, verified SCRIPT-CTRL-001-004 + AI-001-006 already complete. 28 new unit tests. 19 items resolved.",
+  "description": "feat: v0.617.0 - AP antipattern remediation wave 2: AP-041-062. Frontend: monitoringService, securitySettingsService, featureManagementService, fileUploadService created; 364 catch(err:any) fixed; StatCard extracted; MonitoringDashboard uses shared TabPanel; hardcoded colors/styles fixed; AP-046-048 TypeScript any violations resolved. Backend: IDistributedStreamPort created (technology-neutral Redis port); IRedisProvider deprecated as [Obsolete] shim. Docs: MASTER_TODO_LIST.md fully updated AP-041 through AP-062.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
     "api": {
-      "version": "0.616.0",
+      "version": "0.617.0",
       "lastUpdate": "2026-03-08"
     },
     "frontend": {
-      "version": "0.614.62",
-      "lastUpdate": "2026-03-02"
+      "version": "0.617.0",
+      "lastUpdate": "2026-03-08"
     },
     "cdt": {
       "version": "0.614.64",

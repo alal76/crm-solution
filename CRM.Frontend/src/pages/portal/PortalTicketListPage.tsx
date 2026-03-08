@@ -93,8 +93,8 @@ const PortalTicketListPage: React.FC = () => {
       setCreateOpen(false);
       setCreateForm({ title: '', description: '', priority: 'Medium' });
       loadTickets();
-    } catch (err: any) {
-      setCreateError(err?.response?.data?.message ?? 'Failed to create ticket.');
+    } catch (err: unknown) {
+      setCreateError((err as any)?.response?.data?.message ?? 'Failed to create ticket.');
     } finally {
       setCreateLoading(false);
     }

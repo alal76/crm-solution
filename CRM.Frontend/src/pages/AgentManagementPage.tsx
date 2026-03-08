@@ -135,12 +135,12 @@ const AgentManagementPage: React.FC = () => {
       } else {
         setAgents(Array.isArray(data) ? data : []);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg =
-        err?.response?.data?.message ||
-        err?.message ||
+        (err as any)?.response?.data?.message ||
+        (err as Error)?.message ||
         'Failed to load agents';
-      if (err?.response?.status === 500 || err?.response?.status === 503) {
+      if ((err as any)?.response?.status === 500 || (err as any)?.response?.status === 503) {
         setError('AI Agent subsystem is not available. Enable it in Administration > Feature Management.');
       } else {
         setError(msg);
@@ -170,10 +170,10 @@ const AgentManagementPage: React.FC = () => {
         `${agent.displayName} has been ${agent?.isActive !== false ? 'deactivated' : 'activated'}.`,
       );
       await loadAgents();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg =
-        err?.response?.data?.message ||
-        err?.message ||
+        (err as any)?.response?.data?.message ||
+        (err as Error)?.message ||
         'Failed to toggle agent';
       setError(msg);
     }
@@ -221,10 +221,10 @@ const AgentManagementPage: React.FC = () => {
       setSuccess(`Configuration for "${selectedAgent.displayName}" saved.`);
       handleCloseDialog();
       await loadAgents();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg =
-        err?.response?.data?.message ||
-        err?.message ||
+        (err as any)?.response?.data?.message ||
+        (err as Error)?.message ||
         'Failed to save agent configuration';
       setError(msg);
     } finally {

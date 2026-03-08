@@ -196,7 +196,7 @@ public class DuplicateReviewWorkerService : BackgroundService
 
     #region Default Rule Seeding
 
-    private static bool _rulesSeeded = false;
+    private static volatile bool _rulesSeeded = false;
 
     private async Task EnsureDefaultRulesSeededAsync(CrmDbContext context, CancellationToken cancellationToken)
     {

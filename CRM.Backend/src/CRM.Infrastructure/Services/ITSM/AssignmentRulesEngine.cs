@@ -18,6 +18,7 @@
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
 
+using System.Collections.Concurrent;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -238,7 +239,8 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
     // In-memory storage for rules (would be database in production)
     private static readonly List<AssignmentRule> _rules = new();
-    private static readonly Dictionary<int, int> _roundRobinIndex = new();
+    private static readonly ConcurrentDictionary<int, int> _roundRobinIndex = new();
+    private static readonly object _rulesLock = new();
     private static int _nextRuleId = 1;
     private static int _nextConditionId = 1;
 
@@ -375,8 +377,9 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
             EvaluatedRules = new List<RuleEvaluation>()
         };
 
-        // Get active rules sorted by priority
-        var activeRules = _rules
+        List<AssignmentRule> rulesSnapshot;
+        lock (_rulesLock) { rulesSnapshot = _rules.ToList(); }
+        var activeRules = rulesSnapshot
             .Where(r => r.IsActive)
             .OrderBy(r => r.Priority)
             .ToList();
@@ -452,34 +455,39 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
     public Task<List<AssignmentRule>> GetRulesAsync()
     {
-        return Task.FromResult(_rules.OrderBy(r => r.Priority).ToList());
+        List<AssignmentRule> snapshot;
+        lock (_rulesLock) { snapshot = _rules.ToList(); }
+        return Task.FromResult(snapshot.OrderBy(r => r.Priority).ToList());
     }
 
     public Task<AssignmentRule> SaveRuleAsync(AssignmentRule rule)
     {
         if (rule.RuleId == 0)
         {
-            rule.RuleId = _nextRuleId++;
+            rule.RuleId = Interlocked.Increment(ref _nextRuleId);
             rule.CreatedAt = DateTime.UtcNow;
 
             foreach (var condition in rule.Conditions)
             {
                 if (condition.ConditionId == 0)
-                    condition.ConditionId = _nextConditionId++;
+                    condition.ConditionId = Interlocked.Increment(ref _nextConditionId);
             }
 
-            _rules.Add(rule);
+            lock (_rulesLock) { _rules.Add(rule); }
         }
         else
         {
-            var existing = _rules.FirstOrDefault(r => r.RuleId == rule.RuleId);
-            if (existing != null)
+            lock (_rulesLock)
             {
-                _rules.Remove(existing);
-            }
+                var existing = _rules.FirstOrDefault(r => r.RuleId == rule.RuleId);
+                if (existing != null)
+                {
+                    _rules.Remove(existing);
+                }
 
-            rule.ModifiedAt = DateTime.UtcNow;
-            _rules.Add(rule);
+                rule.ModifiedAt = DateTime.UtcNow;
+                _rules.Add(rule);
+            }
         }
 
         _logger.LogInformation("Saved assignment rule: {Name}", rule.Name);
@@ -488,11 +496,15 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
     public Task<bool> DeleteRuleAsync(int ruleId)
     {
-        var rule = _rules.FirstOrDefault(r => r.RuleId == ruleId);
-        if (rule != null)
+        AssignmentRule? toDelete;
+        lock (_rulesLock)
         {
-            _rules.Remove(rule);
-            _logger.LogInformation("Deleted assignment rule: {Name}", rule.Name);
+            toDelete = _rules.FirstOrDefault(r => r.RuleId == ruleId);
+            if (toDelete != null) { _rules.Remove(toDelete); }
+        }
+        if (toDelete != null)
+        {
+            _logger.LogInformation("Deleted assignment rule: {Name}", toDelete.Name);
             return Task.FromResult(true);
         }
         return Task.FromResult(false);
@@ -500,7 +512,8 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
     public async Task<RuleTestResult> TestRuleAsync(int ruleId, int incidentId)
     {
-        var rule = _rules.FirstOrDefault(r => r.RuleId == ruleId);
+        AssignmentRule? rule;
+        lock (_rulesLock) { rule = _rules.FirstOrDefault(r => r.RuleId == ruleId); }
         if (rule == null)
         {
             throw new ArgumentException($"Rule {ruleId} not found");
@@ -750,12 +763,9 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
         if (rule.Action.UseRoundRobin)
         {
-            // Get next agent in rotation
-            if (!_roundRobinIndex.ContainsKey(rule.Action.TargetGroupId.Value))
-                _roundRobinIndex[rule.Action.TargetGroupId.Value] = 0;
-
-            var index = _roundRobinIndex[rule.Action.TargetGroupId.Value] % availableAgents.Count;
-            _roundRobinIndex[rule.Action.TargetGroupId.Value]++;
+            // Get next agent in rotation - atomic counter increment
+            var counter = _roundRobinIndex.AddOrUpdate(rule.Action.TargetGroupId.Value, 0, (_, v) => v + 1);
+            var index = counter % availableAgents.Count;
 
             return availableAgents[index];
         }

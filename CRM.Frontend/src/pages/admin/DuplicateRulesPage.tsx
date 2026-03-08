@@ -128,9 +128,9 @@ const DuplicateRulesPage: React.FC = () => {
     try {
       const data = await getActiveRules(selectedEntityType);
       setRules(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load rules:', err);
-      setError(err?.response?.data?.message || err?.message || 'Failed to load duplicate rules. Please try again.');
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to load duplicate rules. Please try again.');
       setRules([]);
     } finally {
       setLoading(false);
@@ -183,8 +183,8 @@ const DuplicateRulesPage: React.FC = () => {
       await api.delete(`/api/duplicates/rules/${ruleId}`);
       setSuccessMessage('Rule deleted successfully');
       loadRules();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete rule');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete rule');
     }
   };
 
@@ -204,8 +204,8 @@ const DuplicateRulesPage: React.FC = () => {
       }
       setDialogOpen(false);
       loadRules();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save rule');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save rule');
     }
   };
 
@@ -242,8 +242,8 @@ const DuplicateRulesPage: React.FC = () => {
         duplicateCandidatesFound: result.duplicateCandidatesFound,
       });
       setSuccessMessage(`Scan complete: Found ${result.duplicateCandidatesFound} potential duplicates`);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to run scan');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to run scan');
     } finally {
       setScanning(false);
     }

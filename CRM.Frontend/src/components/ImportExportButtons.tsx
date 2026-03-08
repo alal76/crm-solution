@@ -85,8 +85,8 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
       window.URL.revokeObjectURL(url);
 
       setExportDialogOpen(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to export data');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to export data');
     } finally {
       setLoading(false);
     }
@@ -109,8 +109,8 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to download template');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to download template');
     } finally {
       setLoading(false);
     }
@@ -154,8 +154,8 @@ export const ImportExportButtons: React.FC<ImportExportButtonsProps> = ({
       if (response.data.imported > 0 && onImportComplete) {
         onImportComplete();
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to import data');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to import data');
     } finally {
       setLoading(false);
     }

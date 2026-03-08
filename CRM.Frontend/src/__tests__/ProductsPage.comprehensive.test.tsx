@@ -696,8 +696,8 @@ describe('ProductsPage - Error Handling', () => {
     
     try {
       await mockApiClient.get('/products');
-    } catch (error: any) {
-      expect(error.message).toBe('Network error');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('Network error');
     }
   });
 
@@ -717,8 +717,8 @@ describe('ProductsPage - Error Handling', () => {
     
     try {
       await mockApiClient.post('/products', { sku: 'ENT-001' });
-    } catch (error: any) {
-      expect(error.response.status).toBe(409);
+    } catch (error: unknown) {
+      expect((error as any).response.status).toBe(409);
     }
   });
 });

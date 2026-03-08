@@ -81,11 +81,11 @@ export const PaymentHistory: React.FC<PaymentHistoryProps> = ({ invoiceId }) => 
       setError(null);
       const response = await apiClient.get(`/invoices/${invoiceId}/payments`);
       setPayments(response.data || []);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      if ((err as any).response?.status === 404) {
         setPayments([]);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch payment history');
+        setError((err as any).response?.data?.message || 'Failed to fetch payment history');
       }
     } finally {
       setLoading(false);

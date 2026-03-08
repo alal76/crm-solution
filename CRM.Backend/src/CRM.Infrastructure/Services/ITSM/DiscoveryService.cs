@@ -18,6 +18,7 @@
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
 
+using System.Collections.Concurrent;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -264,10 +265,11 @@ public class DiscoveryService : IDiscoveryService
     private readonly ILogger<DiscoveryService> _logger;
 
     // In-memory storage for demo (would be database in production)
-    private static readonly Dictionary<int, DiscoveryScanResult> _scans = new();
+    private static readonly ConcurrentDictionary<int, DiscoveryScanResult> _scans = new();
     private static readonly List<DiscoveredAsset> _pendingAssets = new();
     private static readonly List<DiscoverySchedule> _schedules = new();
-    private static int _nextScanId = 1;
+    private static readonly object _collectionsLock = new();
+    private static int _nextScanId = 0;
 
     public DiscoveryService(
         ICrmDbContext context,
@@ -279,7 +281,7 @@ public class DiscoveryService : IDiscoveryService
 
     public async Task<DiscoveryScanResult> RunDiscoveryScanAsync(DiscoveryScanRequest request)
     {
-        var scanId = _nextScanId++;
+        var scanId = Interlocked.Increment(ref _nextScanId);
 
         var result = new DiscoveryScanResult
         {
@@ -335,9 +337,12 @@ public class DiscoveryService : IDiscoveryService
                 result.EndTime = DateTime.UtcNow;
 
                 // Add new assets to pending list
-                _pendingAssets.AddRange(
-                    assets.Where(a => a.MatchStatus == AssetMatchStatus.New ||
-                                      a.MatchStatus == AssetMatchStatus.PotentialMatch));
+                lock (_collectionsLock)
+                {
+                    _pendingAssets.AddRange(
+                        assets.Where(a => a.MatchStatus == AssetMatchStatus.New ||
+                                          a.MatchStatus == AssetMatchStatus.PotentialMatch));
+                }
 
                 _logger.LogInformation(
                     "Discovery scan {ScanId} completed: {Count} assets discovered, {New} new, {Updated} updated",
@@ -366,16 +371,22 @@ public class DiscoveryService : IDiscoveryService
 
     public async Task<List<DiscoveredAsset>> GetPendingAssetsAsync()
     {
-        return await Task.FromResult(_pendingAssets.ToList());
+        List<DiscoveredAsset> pendingSnapshot;
+        lock (_collectionsLock) { pendingSnapshot = _pendingAssets.ToList(); }
+        return await Task.FromResult(pendingSnapshot);
     }
 
     public async Task<CmdbImportResult> ImportAssetsAsync(List<int> assetIds, int approvedById)
     {
         var result = new CmdbImportResult();
 
-        var assetsToImport = _pendingAssets
-            .Where(a => assetIds.Contains(a.DiscoveredAssetId))
-            .ToList();
+        List<DiscoveredAsset> assetsToImport;
+        lock (_collectionsLock)
+        {
+            assetsToImport = _pendingAssets
+                .Where(a => assetIds.Contains(a.DiscoveredAssetId))
+                .ToList();
+        }
 
         foreach (var asset in assetsToImport)
         {
@@ -423,7 +434,7 @@ public class DiscoveryService : IDiscoveryService
                 }
 
                 // Remove from pending list
-                _pendingAssets.Remove(asset);
+                lock (_collectionsLock) { _pendingAssets.Remove(asset); }
             }
             catch (Exception ex)
             {
@@ -488,52 +499,60 @@ public class DiscoveryService : IDiscoveryService
 
     public async Task<List<DiscoverySchedule>> GetSchedulesAsync()
     {
-        if (!_schedules.Any())
+        lock (_collectionsLock)
         {
-            // Return default schedules
-            _schedules.AddRange(new[]
+            if (!_schedules.Any())
             {
-                new DiscoverySchedule
+                // Return default schedules
+                _schedules.AddRange(new[]
                 {
-                    ScheduleId = 1,
-                    Name = "Weekly Network Scan",
-                    Type = DiscoveryType.NetworkScan,
-                    Target = "10.0.0.0/8",
-                    CronExpression = "0 0 2 * * SUN", // Every Sunday at 2 AM
-                    IsActive = true,
-                    AutoImportMatches = true
-                },
-                new DiscoverySchedule
-                {
-                    ScheduleId = 2,
-                    Name = "Daily Cloud Sync",
-                    Type = DiscoveryType.Azure,
-                    Target = "subscription-id",
-                    CronExpression = "0 0 * * * *", // Every hour
-                    IsActive = true,
-                    AutoImportMatches = false
-                }
-            });
+                    new DiscoverySchedule
+                    {
+                        ScheduleId = 1,
+                        Name = "Weekly Network Scan",
+                        Type = DiscoveryType.NetworkScan,
+                        Target = "10.0.0.0/8",
+                        CronExpression = "0 0 2 * * SUN", // Every Sunday at 2 AM
+                        IsActive = true,
+                        AutoImportMatches = true
+                    },
+                    new DiscoverySchedule
+                    {
+                        ScheduleId = 2,
+                        Name = "Daily Cloud Sync",
+                        Type = DiscoveryType.Azure,
+                        Target = "subscription-id",
+                        CronExpression = "0 0 * * * *", // Every hour
+                        IsActive = true,
+                        AutoImportMatches = false
+                    }
+                });
+            }
         }
 
-        return await Task.FromResult(_schedules.ToList());
+        List<DiscoverySchedule> schedulesSnapshot;
+        lock (_collectionsLock) { schedulesSnapshot = _schedules.ToList(); }
+        return await Task.FromResult(schedulesSnapshot);
     }
 
     public async Task<DiscoverySchedule> SaveScheduleAsync(DiscoverySchedule schedule)
     {
-        if (schedule.ScheduleId == 0)
+        lock (_collectionsLock)
         {
-            schedule.ScheduleId = _schedules.Count + 1;
-            _schedules.Add(schedule);
-        }
-        else
-        {
-            var existing = _schedules.FirstOrDefault(s => s.ScheduleId == schedule.ScheduleId);
-            if (existing != null)
+            if (schedule.ScheduleId == 0)
             {
-                _schedules.Remove(existing);
+                schedule.ScheduleId = _schedules.Count + 1;
+                _schedules.Add(schedule);
             }
-            _schedules.Add(schedule);
+            else
+            {
+                var existing = _schedules.FirstOrDefault(s => s.ScheduleId == schedule.ScheduleId);
+                if (existing != null)
+                {
+                    _schedules.Remove(existing);
+                }
+                _schedules.Add(schedule);
+            }
         }
 
         _logger.LogInformation(

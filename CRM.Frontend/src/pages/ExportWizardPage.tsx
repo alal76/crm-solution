@@ -253,7 +253,7 @@ function ExportWizardPage() {
       setExportJob(job);
       pollExportJob(job.id);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Export failed. Please try again.';
+      const message = err instanceof Error ? (err as Error).message : 'Export failed. Please try again.';
       setExportError(message);
       setIsExporting(false);
     }

@@ -226,7 +226,7 @@ public class MasterDataController : CrmControllerBase
         };
 
         _context.LookupCategories.Add(category);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(HttpContext.RequestAborted);
 
         return Ok(category);
     }
@@ -249,7 +249,7 @@ public class MasterDataController : CrmControllerBase
         category.Description = request.Description;
         category.IsActive = request.IsActive ?? category.IsActive;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(HttpContext.RequestAborted);
 
         return Ok(category);
     }
@@ -269,7 +269,7 @@ public class MasterDataController : CrmControllerBase
         }
 
         _context.LookupCategories.Remove(category);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(HttpContext.RequestAborted);
 
         return Ok(new { message = "Category deleted" });
     }
@@ -296,7 +296,7 @@ public class MasterDataController : CrmControllerBase
         };
 
         _context.LookupItems.Add(item);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(HttpContext.RequestAborted);
 
         return Ok(item);
     }
@@ -321,7 +321,7 @@ public class MasterDataController : CrmControllerBase
         item.SortOrder = request.SortOrder ?? item.SortOrder;
         item.IsActive = request.IsActive ?? item.IsActive;
 
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(HttpContext.RequestAborted);
 
         return Ok(item);
     }
@@ -341,7 +341,7 @@ public class MasterDataController : CrmControllerBase
         }
 
         _context.LookupItems.Remove(item);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(HttpContext.RequestAborted);
 
         return Ok(new { message = "Item deleted" });
     }
@@ -385,7 +385,7 @@ public class MasterDataController : CrmControllerBase
         };
 
         _dbContext.ColorPalettes.Add(palette);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         return Ok(palette);
     }
@@ -405,7 +405,7 @@ public class MasterDataController : CrmControllerBase
         }
 
         _dbContext.ColorPalettes.Remove(palette);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         return Ok(new { message = "Palette deleted" });
     }
@@ -680,7 +680,7 @@ public class MasterDataController : CrmControllerBase
             settings.CompanyDescription = request.CompanyDescription;
         }
         settings.LastModified = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         // Delegate standard settings (name, logo, colors, currency, timezone) to settings service
         var stdRequest = new UpdateSystemSettingsRequest

@@ -163,12 +163,12 @@ function TeamsPage() {
       const response = await apiClient.get('/teams');
       setTeams(response.data);
       setError(null);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      if ((err as any).response?.status === 404) {
         setTeams([]);
         setError(null);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch teams');
+        setError((err as any).response?.data?.message || 'Failed to fetch teams');
       }
     } finally {
       setLoading(false);
@@ -250,8 +250,8 @@ function TeamsPage() {
         setSuccessMessage('Team deleted successfully');
         fetchTeams();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete team');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete team');
       }
     }
   };
@@ -295,8 +295,8 @@ function TeamsPage() {
         }
         fetchTeams();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to remove member');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to remove member');
       }
     }
   };

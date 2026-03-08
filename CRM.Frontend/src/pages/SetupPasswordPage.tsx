@@ -147,8 +147,8 @@ function SetupPasswordPage() {
           state: { message: 'Password set successfully. Please log in with your new password.' },
         });
       }, 2000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to set password');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to set password');
       console.error('Error setting password:', err);
     } finally {
       setLoading(false);

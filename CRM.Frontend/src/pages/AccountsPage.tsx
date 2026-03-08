@@ -416,7 +416,7 @@ function AccountsPage() {
       const response = await apiClient.get('/accounts');
       setAccounts(response.data);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(getApiErrorMessage(err, 'Failed to fetch accounts'));
     } finally {
       setLoading(false);
@@ -494,10 +494,10 @@ function AccountsPage() {
       setAddressesError(null);
       const addresses = await addressService.getAccountAddresses(accountId);
       setAccountAddresses(addresses);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching account addresses:', err);
       setAddressesError(
-        err?.response?.data?.message || 'Failed to load addresses'
+        (err as any)?.response?.data?.message || 'Failed to load addresses'
       );
       setAccountAddresses([]);
     } finally {
@@ -549,10 +549,10 @@ function AccountsPage() {
       setSuccessMessage(editingAddress ? 'Address updated successfully' : 'Address created successfully');
       handleCloseAddressModal();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error saving address:', err);
       setAddressesError(
-        err?.response?.data?.message || 'Failed to save address'
+        (err as any)?.response?.data?.message || 'Failed to save address'
       );
     } finally {
       setAddressFormSubmitting(false);
@@ -751,7 +751,7 @@ function AccountsPage() {
       }
       fetchAccounts();
       setTimeout(() => setSuccessMessage(null), 5000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setDialogError(getApiErrorMessage(err, 'Failed to save account'));
       logger.error('[AccountsPage] Save account error:', err);
     }
@@ -883,7 +883,7 @@ function AccountsPage() {
       setContactIsDecisionMaker(false);
       setSuccessMessage('Contact linked successfully');
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(getApiErrorMessage(err, 'Failed to link contact'));
     }
   };
@@ -898,7 +898,7 @@ function AccountsPage() {
         setAccountContacts(response.data);
         setSuccessMessage('Contact removed successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
+      } catch (err: unknown) {
         setError(getApiErrorMessage(err, 'Failed to remove contact'));
       }
     }

@@ -109,11 +109,11 @@ const AgentDirectoryPage = () => {
         } else {
           setAgents([]);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load agents:', err);
         // Don't show a scary error - just show empty state with info
-        const message = err?.response?.data?.message;
-        if (err?.response?.status === 500 || err?.response?.status === 503) {
+        const message = (err as any)?.response?.data?.message;
+        if ((err as any)?.response?.status === 500 || (err as any)?.response?.status === 503) {
           setError('AI Agent subsystem is not available. This feature can be enabled in Administration > Feature Management.');
         } else if (message) {
           setError(message);

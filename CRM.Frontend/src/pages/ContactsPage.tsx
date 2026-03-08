@@ -286,7 +286,7 @@ function ContactsPage() {
       // Fetch contact info summaries
       fetchContactInfoSummaries(response.data);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(getApiErrorMessage(err, 'Failed to fetch contacts'));
       console.error('Error fetching contacts:', err);
     } finally {

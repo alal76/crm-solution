@@ -204,8 +204,8 @@ function QuotesPage() {
       const response = await apiClient.get('/quotes');
       setQuotes(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch quotes');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch quotes');
     } finally {
       setLoading(false);
     }
@@ -304,8 +304,8 @@ function QuotesPage() {
       setSuccessMessage('Quote sent successfully');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send quote');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to send quote');
     }
   };
 
@@ -315,8 +315,8 @@ function QuotesPage() {
       setSuccessMessage('Quote accepted');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to accept quote');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to accept quote');
     }
   };
 
@@ -326,8 +326,8 @@ function QuotesPage() {
       setSuccessMessage('Quote rejected');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reject quote');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to reject quote');
     }
   };
 
@@ -337,8 +337,8 @@ function QuotesPage() {
       setSuccessMessage('Quote revised - new revision created');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to revise quote');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to revise quote');
     }
   };
 
@@ -349,8 +349,8 @@ function QuotesPage() {
         setSuccessMessage('Quote deleted successfully');
         fetchQuotes();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete quote');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete quote');
       }
     }
   };

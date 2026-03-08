@@ -104,8 +104,8 @@ const ApprovalsPage = () => {
     try {
       const res = await approvalService.getMyPendingApprovals();
       setPendingApprovals(res.data?.items ?? []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load pending approvals');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to load pending approvals');
       setPendingApprovals([]);
     } finally {
       setLoading(false);
@@ -118,7 +118,7 @@ const ApprovalsPage = () => {
       const entityType = filterEntityType !== 'all' ? filterEntityType as ApprovalEntityType : undefined;
       const res = await approvalService.getAllRequests(status, entityType, 1, 100);
       setAllRequests(res.data?.items ?? []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load requests:', err);
       setAllRequests([]);
     }
@@ -128,7 +128,7 @@ const ApprovalsPage = () => {
     try {
       const res = await approvalService.getMatrices();
       setMatrices(res.data ?? []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load matrices:', err);
       setMatrices([]);
     }
@@ -138,7 +138,7 @@ const ApprovalsPage = () => {
     try {
       const res = await approvalService.getStatistics();
       setStatistics(res.data ?? null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load statistics:', err);
       setStatistics(null);
     }
@@ -182,8 +182,8 @@ const ApprovalsPage = () => {
       setApproveDialog(false);
       loadPendingApprovals();
       loadStatistics();
-    } catch (err: any) {
-      setError(err.message || 'Failed to approve request');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to approve request');
     } finally {
       setSaving(false);
     }
@@ -198,8 +198,8 @@ const ApprovalsPage = () => {
       setRejectDialog(false);
       loadPendingApprovals();
       loadStatistics();
-    } catch (err: any) {
-      setError(err.message || 'Failed to reject request');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to reject request');
     } finally {
       setSaving(false);
     }
@@ -213,8 +213,8 @@ const ApprovalsPage = () => {
       setSuccessMessage('Request delegated successfully');
       setDelegateDialog(false);
       loadPendingApprovals();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delegate request');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to delegate request');
     } finally {
       setSaving(false);
     }
@@ -229,8 +229,8 @@ const ApprovalsPage = () => {
       setSelectedRequests([]);
       loadPendingApprovals();
       loadStatistics();
-    } catch (err: any) {
-      setError(err.message || 'Failed to bulk approve');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to bulk approve');
     } finally {
       setSaving(false);
     }
@@ -240,8 +240,8 @@ const ApprovalsPage = () => {
     try {
       await approvalService.sendReminder(request.id!);
       setSuccessMessage('Reminder sent');
-    } catch (err: any) {
-      setError(err.message || 'Failed to send reminder');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to send reminder');
     }
   };
 
@@ -287,8 +287,8 @@ const ApprovalsPage = () => {
       setSuccessMessage('Approval matrix created');
       setMatrixDialog(false);
       loadMatrices();
-    } catch (err: any) {
-      setError(err.message || 'Failed to save matrix');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to save matrix');
     } finally {
       setSaving(false);
     }

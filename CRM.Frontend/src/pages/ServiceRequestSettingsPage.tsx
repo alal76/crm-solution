@@ -176,8 +176,8 @@ function ServiceRequestSettingsPage() {
           console.warn('Could not load workflows:', e);
           setWorkflows([]);
         }
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load settings');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to load settings');
       } finally {
         setLoading(false);
       }
@@ -218,8 +218,8 @@ function ServiceRequestSettingsPage() {
         await serviceRequestCategoryService.delete(id);
         setCategories(categories.filter((c) => c.id !== id));
         setSuccessMessage('Category deleted successfully');
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete category');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete category');
       }
     }
   };
@@ -242,8 +242,8 @@ function ServiceRequestSettingsPage() {
       }
 
       setCategoryDialogOpen(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save category');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save category');
     }
   };
 
@@ -260,8 +260,8 @@ function ServiceRequestSettingsPage() {
     try {
       await serviceRequestCategoryService.reorder(newCategories.map((c) => c.id!));
       setCategories(newCategories);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reorder categories');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to reorder categories');
     }
   };
 
@@ -298,8 +298,8 @@ function ServiceRequestSettingsPage() {
         await serviceRequestSubcategoryService.delete(id);
         setSubcategories(subcategories.filter((s) => s.id !== id));
         setSuccessMessage('Subcategory deleted successfully');
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete subcategory');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete subcategory');
       }
     }
   };
@@ -322,8 +322,8 @@ function ServiceRequestSettingsPage() {
       }
 
       setSubcategoryDialogOpen(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save subcategory');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save subcategory');
     }
   };
 
@@ -377,8 +377,8 @@ function ServiceRequestSettingsPage() {
           setActiveFieldCount((prev) => prev - 1);
         }
         setSuccessMessage('Custom field deleted successfully');
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete custom field');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete custom field');
       }
     }
   };
@@ -416,8 +416,8 @@ function ServiceRequestSettingsPage() {
       }
 
       setFieldDialogOpen(false);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save custom field');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save custom field');
     }
   };
 
@@ -434,8 +434,8 @@ function ServiceRequestSettingsPage() {
     try {
       await serviceRequestCustomFieldService.reorder(newFields.map((f) => f.id!));
       setCustomFields(newFields);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reorder custom fields');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to reorder custom fields');
     }
   };
 

@@ -131,7 +131,7 @@ public class UsersController : CrmControllerBase
                     {
                         user.PrimaryGroupId = request.PrimaryGroupId.Value;
                     }
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
                 }
             }
 
@@ -779,7 +779,7 @@ public class UsersController : CrmControllerBase
         };
 
         _dbContext.UserGroupMembers.Add(membership);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         _logger.LogInformation("User {UserId} assigned to group {GroupId}", id, roleId);
 

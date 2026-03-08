@@ -236,8 +236,8 @@ const ModuleFieldSettingsTab: React.FC = () => {
         const retryResponse = await apiClient.get('/moduleuiconfig');
         setModules(retryResponse.data);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load module configurations');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load module configurations');
     } finally {
       setLoading(false);
     }
@@ -294,7 +294,7 @@ const ModuleFieldSettingsTab: React.FC = () => {
         ...prev,
         [moduleName]: { fields, tabs, linkedEntities }
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`Failed to load config for ${moduleName}:`, err);
     }
   }, []);
@@ -362,8 +362,8 @@ const ModuleFieldSettingsTab: React.FC = () => {
       setSuccess(`Module ${enabled ? 'enabled' : 'disabled'} successfully`);
       await refreshModuleStatus();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to toggle module');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to toggle module');
     }
   };
 
@@ -604,8 +604,8 @@ const ModuleFieldSettingsTab: React.FC = () => {
 
       setSuccess(`Configuration saved for ${moduleName}`);
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save configuration');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save configuration');
     } finally {
       setSaving(false);
     }
@@ -633,8 +633,8 @@ const ModuleFieldSettingsTab: React.FC = () => {
       
       setSuccess(`Reset ${moduleName} configuration to defaults`);
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset to defaults');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to reset to defaults');
     } finally {
       setSaving(false);
     }
@@ -649,8 +649,8 @@ const ModuleFieldSettingsTab: React.FC = () => {
       setSuccess('All modules enabled');
       await refreshModuleStatus();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to enable all modules');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to enable all modules');
     }
   };
 
@@ -665,8 +665,8 @@ const ModuleFieldSettingsTab: React.FC = () => {
       setSuccess('Modules disabled (Dashboard kept enabled)');
       await refreshModuleStatus();
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to disable modules');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to disable modules');
     }
   };
 

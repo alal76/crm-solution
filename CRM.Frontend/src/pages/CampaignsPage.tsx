@@ -211,8 +211,8 @@ function CampaignsPage() {
       const response = await apiClient.get('/campaigns');
       setCampaigns(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch campaigns');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch campaigns');
     } finally {
       setLoading(false);
     }

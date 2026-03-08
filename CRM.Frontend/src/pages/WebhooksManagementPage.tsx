@@ -97,7 +97,7 @@ export const WebhooksManagementPage: React.FC = () => {
       setTotalCount(result.totalCount);
       clearError();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load webhooks';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to load webhooks';
       setError(message);
       logger.error('Failed to load webhooks', err);
     }
@@ -128,7 +128,7 @@ export const WebhooksManagementPage: React.FC = () => {
       setEditingWebhook(undefined);
       await loadWebhooks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save webhook');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to save webhook');
     }
   };
 
@@ -139,7 +139,7 @@ export const WebhooksManagementPage: React.FC = () => {
       await webhookService.deleteWebhook(id);
       await loadWebhooks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete webhook');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to delete webhook');
     }
   };
 
@@ -152,7 +152,7 @@ export const WebhooksManagementPage: React.FC = () => {
       }
       await loadWebhooks();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update webhook status');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to update webhook status');
     }
   };
 
@@ -169,7 +169,7 @@ export const WebhooksManagementPage: React.FC = () => {
         alert(`Webhook test failed!\n${result.errorMessage}`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to test webhook');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to test webhook');
     }
   };
 
@@ -208,7 +208,7 @@ export const WebhooksManagementPage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-            {typeof error === 'string' ? error : error.message}
+            {typeof error === 'string' ? error : (error as Error).message}
           </Alert>
         )}
 

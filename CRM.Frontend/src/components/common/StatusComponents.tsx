@@ -46,7 +46,7 @@ export const DialogError: React.FC<DialogErrorProps> = ({
 }) => {
   if (!error) return null;
   
-  const message = typeof error === 'string' ? error : error.message;
+  const message = typeof error === 'string' ? error : (error as Error).message;
   const details = typeof error === 'object' ? error.details : undefined;
   
   return (

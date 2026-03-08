@@ -120,8 +120,8 @@ const PortalTicketDetailPage: React.FC = () => {
       const newComment = await portalService.addComment(ticketId, comment);
       setComments((prev) => [...prev, newComment]);
       setComment('');
-    } catch (err: any) {
-      setCommentError(err?.response?.data?.message ?? 'Failed to add comment.');
+    } catch (err: unknown) {
+      setCommentError((err as any)?.response?.data?.message ?? 'Failed to add comment.');
     } finally {
       setCommentLoading(false);
     }
@@ -133,8 +133,8 @@ const PortalTicketDetailPage: React.FC = () => {
     try {
       await portalService.cancelTicket(ticketId);
       await loadData();
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Failed to cancel ticket.');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message ?? 'Failed to cancel ticket.');
     } finally {
       setCancelLoading(false);
     }

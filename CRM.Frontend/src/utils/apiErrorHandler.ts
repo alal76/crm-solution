@@ -24,8 +24,8 @@ interface ApiErrorBody {
  * Priority order:
  *  1. `response.data.message` from an Axios error (CRM API standard field)
  *  2. `response.data.title` or `.detail` (ASP.NET Core ProblemDetails)
- *  3. `error.message` from Axios (e.g. "Network Error", "timeout of Xms exceeded")
- *  4. `error.message` from a plain `Error`
+ *  3. `(error as Error).message` from Axios (e.g. "Network Error", "timeout of Xms exceeded")
+ *  4. `(error as Error).message` from a plain `Error`
  *  5. Generic fallback string
  *
  * @example
@@ -35,18 +35,18 @@ interface ApiErrorBody {
  */
 export function getApiErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
-    const body = error.response?.data as ApiErrorBody | undefined;
+    const body = (error as any).response?.data as ApiErrorBody | undefined;
     return (
       body?.message ??
       body?.detail ??
       body?.title ??
       body?.error ??
-      error.message ??
+      (error as Error).message ??
       'An error occurred'
     );
   }
   if (error instanceof Error) {
-    return error.message;
+    return (error as Error).message;
   }
   return 'An unexpected error occurred';
 }

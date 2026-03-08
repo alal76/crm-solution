@@ -183,12 +183,12 @@ function KnowledgeBasePage() {
       const response = await apiClient.get('/knowledge/articles');
       setArticles(response.data);
       setError(null);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      if ((err as any).response?.status === 404) {
         setArticles([]);
         setError(null);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch articles');
+        setError((err as any).response?.data?.message || 'Failed to fetch articles');
       }
     } finally {
       setLoading(false);
@@ -199,7 +199,7 @@ function KnowledgeBasePage() {
     try {
       const response = await apiClient.get('/knowledge/categories');
       setCategories(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Categories endpoint might not exist yet
       setCategories([]);
     }
@@ -290,8 +290,8 @@ function KnowledgeBasePage() {
         setSuccessMessage('Article deleted successfully');
         fetchArticles();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete article');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete article');
       }
     }
   };
@@ -389,8 +389,8 @@ function KnowledgeBasePage() {
       setCategoryDialogOpen(false);
       fetchCategories();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save category');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save category');
     }
   };
 
@@ -401,8 +401,8 @@ function KnowledgeBasePage() {
         setSuccessMessage('Category deleted');
         fetchCategories();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete category');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete category');
       }
     }
   };

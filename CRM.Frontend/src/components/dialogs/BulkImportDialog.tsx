@@ -143,7 +143,7 @@ const BulkImportDialog: React.FC<BulkImportDialogProps> = ({
         } catch (validationError: any) {
           if (validationError.inner) {
             validationError.inner.forEach((error: any) => {
-              errors.push(error.message);
+              errors.push((error as Error).message);
             });
           }
         }
@@ -159,8 +159,8 @@ const BulkImportDialog: React.FC<BulkImportDialogProps> = ({
       const validated = await Promise.all(validationPromises);
       setPreviewRows(validated);
       setStep(1); // Move to preview step
-    } catch (err: any) {
-      setFileError(`Failed to parse CSV: ${err.message}`);
+    } catch (err: unknown) {
+      setFileError(`Failed to parse CSV: ${(err as Error).message}`);
     }
   };
 
@@ -202,8 +202,8 @@ const BulkImportDialog: React.FC<BulkImportDialogProps> = ({
       setTimeout(() => {
         onImportComplete(successCount);
       }, 2000);
-    } catch (err: any) {
-      setImportError(err.response?.data?.message || 'Failed to import accounts');
+    } catch (err: unknown) {
+      setImportError((err as any).response?.data?.message || 'Failed to import accounts');
       setStep(1); // Back to preview
     }
   };

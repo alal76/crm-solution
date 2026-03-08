@@ -275,8 +275,8 @@ function InteractionsPage() {
       const response = await apiClient.get(`/interactions?${params.toString()}`);
       setInteractions(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch interactions');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch interactions');
     } finally {
       setLoading(false);
     }
@@ -403,8 +403,8 @@ function InteractionsPage() {
       setSuccess('Interaction marked as completed');
       fetchInteractions();
       fetchNeedsAttention();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to complete interaction');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to complete interaction');
     }
   };
 
@@ -421,8 +421,8 @@ function InteractionsPage() {
       setLinkDialogOpen(false);
       fetchInteractions();
       fetchNeedsAttention();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to link interaction');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to link interaction');
     }
   };
 
@@ -433,8 +433,8 @@ function InteractionsPage() {
       setSuccess('Note added successfully');
       setNoteDialogOpen(false);
       fetchInteractions();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to add note');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to add note');
     }
   };
 
@@ -445,8 +445,8 @@ function InteractionsPage() {
       setSuccess('Tags updated successfully');
       setTagDialogOpen(false);
       fetchInteractions();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update tags');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to update tags');
     }
   };
 
@@ -466,8 +466,8 @@ function InteractionsPage() {
       setCreateContactDialogOpen(false);
       fetchInteractions();
       fetchEntities();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create contact');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to create contact');
     }
   };
 
@@ -484,8 +484,8 @@ function InteractionsPage() {
       setSuccess(`Service request created ${serviceRequestForm.expedite ? '(EXPEDITED)' : ''} successfully`);
       setCreateServiceRequestDialogOpen(false);
       fetchInteractions();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create service request');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to create service request');
     }
   };
 

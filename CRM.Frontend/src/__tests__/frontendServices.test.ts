@@ -359,8 +359,8 @@ describe('Frontend Service Tests', () => {
 
       try {
         await apiClient.get('/commissions/999');
-      } catch (error: any) {
-        expect(error.response.status).toBe(404);
+      } catch (error: unknown) {
+        expect((error as any).response.status).toBe(404);
       }
     });
 
@@ -369,8 +369,8 @@ describe('Frontend Service Tests', () => {
 
       try {
         await apiClient.get('/campaigns');
-      } catch (error: any) {
-        expect(error.response.status).toBe(500);
+      } catch (error: unknown) {
+        expect((error as any).response.status).toBe(500);
       }
     });
 
@@ -379,8 +379,8 @@ describe('Frontend Service Tests', () => {
 
       try {
         await apiClient.get('/campaigns');
-      } catch (error: any) {
-        expect(error.code).toMatch(/timeout|ERR_NETWORK|ECONNABORTED/);
+      } catch (error: unknown) {
+        expect((error as any).code).toMatch(/timeout|ERR_NETWORK|ECONNABORTED/);
       }
     });
 
@@ -390,8 +390,8 @@ describe('Frontend Service Tests', () => {
 
       try {
         await apiClient.post('/commissions', { amount: -100 });
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
+      } catch (error: unknown) {
+        expect((error as any).response.status).toBe(400);
       }
     });
   });

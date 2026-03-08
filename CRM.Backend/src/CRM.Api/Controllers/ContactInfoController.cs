@@ -23,11 +23,15 @@ public class ContactInfoController : CrmControllerBase
 {
 
     private readonly IContactInfoService _contactInfoService;
+    private readonly IContactInfoValidationService _contactInfoValidationService;
     private const string UserNotAuthenticated = "User not authenticated";
 
-    public ContactInfoController(IContactInfoService contactInfoService)
+    public ContactInfoController(
+        IContactInfoService contactInfoService,
+        IContactInfoValidationService contactInfoValidationService)
     {
         _contactInfoService = contactInfoService;
+        _contactInfoValidationService = contactInfoValidationService;
     }
 
     private int? GetCurrentUserId() // NOSONAR
@@ -705,7 +709,7 @@ public class ContactInfoController : CrmControllerBase
             return BadRequest("Email is required");
         }
 
-        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+        var validationService = _contactInfoValidationService;
         if (validationService == null)
         {
             return StatusCode(500, "Validation service not available");
@@ -737,7 +741,7 @@ public class ContactInfoController : CrmControllerBase
             return BadRequest("Phone number is required");
         }
 
-        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+        var validationService = _contactInfoValidationService;
         if (validationService == null)
         {
             return StatusCode(500, "Validation service not available");
@@ -780,7 +784,7 @@ public class ContactInfoController : CrmControllerBase
             return BadRequest($"Invalid platform: {request.Platform}. Valid values: {string.Join(", ", Enum.GetNames<SocialMediaPlatform>())}");
         }
 
-        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
+        var validationService = _contactInfoValidationService;
         if (validationService == null)
         {
             return StatusCode(500, "Validation service not available");

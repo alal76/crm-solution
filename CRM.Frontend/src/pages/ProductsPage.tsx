@@ -224,8 +224,8 @@ function ProductsPage() {
       const response = await apiClient.get('/products');
       setProducts(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch products');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch products');
     } finally {
       setLoading(false);
     }

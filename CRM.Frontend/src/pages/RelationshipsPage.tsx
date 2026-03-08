@@ -365,7 +365,7 @@ function RelationshipsPage() {
       setTypeDialogOpen(false);
       fetchData();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save relationship type';
+      const errorMessage = err instanceof Error ? (err as Error).message : 'Failed to save relationship type';
       dialogApi.setError(errorMessage);
     } finally {
       dialogApi.setLoading(false);
@@ -418,7 +418,7 @@ function RelationshipsPage() {
       setRelationshipDialogOpen(false);
       fetchData();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save relationship';
+      const errorMessage = err instanceof Error ? (err as Error).message : 'Failed to save relationship';
       dialogApi.setError(errorMessage);
     } finally {
       dialogApi.setLoading(false);
@@ -470,7 +470,7 @@ function RelationshipsPage() {
       });
       fetchData(); // Refresh relationships to update last interaction date
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to log interaction';
+      const errorMessage = err instanceof Error ? (err as Error).message : 'Failed to log interaction';
       dialogApi.setError(errorMessage);
     } finally {
       dialogApi.setLoading(false);

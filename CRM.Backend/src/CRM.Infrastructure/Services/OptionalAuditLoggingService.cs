@@ -39,6 +39,8 @@ public class OptionalAuditLoggingService : IOptionalAuditLoggingService
         _featureManager = featureManager;
         _context = context;
         _logger = logger;
+        // AP-016: Cache feature flag once at construction (per-scope) to remove per-call blocking
+        _cachedFeatureEnabled = featureManager.IsEnabledAsync(FEATURE_FLAG_NAME).GetAwaiter().GetResult(); // NOSONAR S4462 -- called once per scope; sync interface, no async alternative
     }
 
     #region Action Logging
@@ -168,9 +170,8 @@ public class OptionalAuditLoggingService : IOptionalAuditLoggingService
 
     public bool IsEnabled()
     {
-        // Use cached value if available
-        _cachedFeatureEnabled ??= _featureManager.IsEnabledAsync(FEATURE_FLAG_NAME).GetAwaiter().GetResult(); // NOSONAR S4462 -- result is cached after first call; sync interface, no async alternative // NOSONAR S4462 -- result is cached after first call; sync interface, no async alternative
-        return _cachedFeatureEnabled.Value;
+        // Value is always set in constructor (AP-016 fix)
+        return _cachedFeatureEnabled!.Value;
     }
 
     private async Task<bool> IsEnabledAsync(CancellationToken cancellationToken)

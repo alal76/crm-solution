@@ -282,8 +282,8 @@ function LeadsPage() {
       });
       setLeads(leadsWithMeta);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch leads');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch leads');
       console.error('Error fetching leads:', err);
     } finally {
       setLoading(false);
@@ -685,8 +685,8 @@ function LeadsPage() {
         fetchLeads();
         
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to convert lead');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to convert lead');
         console.error('Error converting lead:', err);
       }
     }
@@ -711,8 +711,8 @@ function LeadsPage() {
       } else {
         setError('Failed to score lead - AI service may not be configured');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to score lead');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.error || 'Failed to score lead');
     } finally {
       setScoringLeadId(null);
     }
@@ -739,8 +739,8 @@ function LeadsPage() {
       } else {
         setError('Failed to batch score leads');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to batch score leads');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.error || 'Failed to batch score leads');
     } finally {
       setLoading(false);
     }

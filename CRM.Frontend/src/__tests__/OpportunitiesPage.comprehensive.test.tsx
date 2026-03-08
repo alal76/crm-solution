@@ -708,8 +708,8 @@ describe('OpportunitiesPage - Error Handling', () => {
     
     try {
       await mockApiClient.get('/opportunities');
-    } catch (error: any) {
-      expect(error.message).toBe('Network error');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('Network error');
     }
   });
 

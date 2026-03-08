@@ -136,8 +136,8 @@ function EmailTemplatesPage() {
       const response = await apiClient.get(`/emailtemplates${params}`);
       setTemplates(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch email templates');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch email templates');
     } finally {
       setLoading(false);
     }
@@ -222,8 +222,8 @@ function EmailTemplatesPage() {
       fetchTemplates();
       setSuccessMessage('Template deleted');
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete template');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete template');
     }
   };
 
@@ -233,8 +233,8 @@ function EmailTemplatesPage() {
       fetchTemplates();
       setSuccessMessage('Template duplicated');
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to duplicate template');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to duplicate template');
     }
   };
 
@@ -251,8 +251,8 @@ function EmailTemplatesPage() {
         body: response.data.body,
       });
       setPreviewOpen(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to preview template');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to preview template');
     }
   };
 

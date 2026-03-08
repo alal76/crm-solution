@@ -100,11 +100,11 @@ const AgentApprovalsPage: React.FC = () => {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setApprovals(sorted);
-    } catch (err: any) {
-      if (err?.response?.status === 500 || err?.response?.status === 503) {
+    } catch (err: unknown) {
+      if ((err as any)?.response?.status === 500 || (err as any)?.response?.status === 503) {
         setError('AI Agent subsystem is not available. Enable it in Administration > Feature Management.');
       } else {
-        setError(err?.response?.data?.message || err?.message || 'Failed to load approvals');
+        setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to load approvals');
       }
       setApprovals([]);
     } finally {
@@ -133,8 +133,8 @@ const AgentApprovalsPage: React.FC = () => {
       await agentService.approveAction(id);
       setSuccess('Approval granted successfully.');
       await loadApprovals();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to approve action');
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Failed to approve action');
     } finally {
       setProcessing(false);
     }
@@ -157,8 +157,8 @@ const AgentApprovalsPage: React.FC = () => {
       setSelectedApprovalId(null);
       setRejectReason('');
       await loadApprovals();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to reject action');
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Failed to reject action');
     } finally {
       setProcessing(false);
     }

@@ -55,8 +55,8 @@ const ChangeFormPage: React.FC = () => {
     try {
       await apiClient.post('/changes', formData);
       navigate('/itsm/changes');
-    } catch (error: any) {
-      setSubmitError(error?.response?.data?.message || 'Failed to create change');
+    } catch (error: unknown) {
+      setSubmitError((error as any)?.response?.data?.message || 'Failed to create change');
       setSubmitting(false);
     }
   };

@@ -373,9 +373,10 @@ public class KCSWorkflowService : IKCSWorkflowService
     private static readonly List<KCSReviewRequest> _reviewRequests = new();
     private static readonly List<ArticleReuseRecord> _reuseRecords = new();
     private static readonly List<ArticleFlagRecord> _flagRecords = new();
-    private static int _nextSessionId = 1;
-    private static int _nextDraftId = 1;
-    private static int _nextReviewId = 1;
+    private static readonly object _collectionsLock = new();
+    private static int _nextSessionId = 0;
+    private static int _nextDraftId = 0;
+    private static int _nextReviewId = 0;
 
     public KCSWorkflowService(
         ICrmDbContext context,
@@ -396,8 +397,8 @@ public class KCSWorkflowService : IKCSWorkflowService
         }
 
         // Check for existing active session
-        var existingSession = _sessions.FirstOrDefault(s =>
-            s.IncidentId == incidentId && s.State == KCSSessionState.Active);
+        KCSSession? existingSession;
+        lock (_collectionsLock) { existingSession = _sessions.FirstOrDefault(s => s.IncidentId == incidentId && s.State == KCSSessionState.Active); }
 
         if (existingSession != null)
         {
@@ -406,7 +407,7 @@ public class KCSWorkflowService : IKCSWorkflowService
 
         var session = new KCSSession
         {
-            SessionId = _nextSessionId++,
+            SessionId = Interlocked.Increment(ref _nextSessionId),
             IncidentId = incidentId,
             IncidentNumber = incident.Number,
             AgentId = agentId,
@@ -414,7 +415,7 @@ public class KCSWorkflowService : IKCSWorkflowService
             State = KCSSessionState.Active
         };
 
-        _sessions.Add(session);
+        lock (_collectionsLock) { _sessions.Add(session); }
 
         _logger.LogInformation(
             "Started KCS capture session {SessionId} for incident {IncidentNumber}",
@@ -440,7 +441,7 @@ public class KCSWorkflowService : IKCSWorkflowService
         // Generate draft from incident data
         var draft = new KCSDraftArticle
         {
-            DraftId = _nextDraftId++,
+            DraftId = Interlocked.Increment(ref _nextDraftId),
             SourceIncidentId = incidentId,
             SourceIncidentNumber = incident.Number,
             Title = GenerateArticleTitle(incident),
@@ -458,11 +459,11 @@ public class KCSWorkflowService : IKCSWorkflowService
         // Assess quality
         draft.QualityAssessment = AssessArticleQuality(draft);
 
-        _drafts.Add(draft);
+        lock (_collectionsLock) { _drafts.Add(draft); }
 
         // Update session if exists
-        var session = _sessions.FirstOrDefault(s =>
-            s.IncidentId == incidentId && s.State == KCSSessionState.Active);
+        KCSSession? session;
+        lock (_collectionsLock) { session = _sessions.FirstOrDefault(s => s.IncidentId == incidentId && s.State == KCSSessionState.Active); }
 
         if (session != null)
         {
@@ -493,7 +494,7 @@ public class KCSWorkflowService : IKCSWorkflowService
 
         var reviewRequest = new KCSReviewRequest
         {
-            ReviewRequestId = _nextReviewId++,
+            ReviewRequestId = Interlocked.Increment(ref _nextReviewId),
             ArticleId = articleId,
             ArticleNumber = article.Number,
             ArticleTitle = article.Title,
@@ -505,7 +506,7 @@ public class KCSWorkflowService : IKCSWorkflowService
             DueAt = DateTime.UtcNow.AddDays(3)
         };
 
-        _reviewRequests.Add(reviewRequest);
+        lock (_collectionsLock) { _reviewRequests.Add(reviewRequest); }
 
         // Update article status
         article.PublishingState = PublishingState.Review;
@@ -525,7 +526,8 @@ public class KCSWorkflowService : IKCSWorkflowService
         KCSReviewDecision decision,
         string? feedback = null)
     {
-        var request = _reviewRequests.FirstOrDefault(r => r.ReviewRequestId == reviewRequestId);
+        KCSReviewRequest? request;
+        lock (_collectionsLock) { request = _reviewRequests.FirstOrDefault(r => r.ReviewRequestId == reviewRequestId); }
         if (request == null)
         {
             throw new ArgumentException($"Review request {reviewRequestId} not found");
@@ -643,12 +645,20 @@ public class KCSWorkflowService : IKCSWorkflowService
             .Where(a => a.CreatedAt >= fromDate && a.CreatedAt <= toDate)
             .ToListAsync();
 
-        var reuses = _reuseRecords
+        List<ArticleReuseRecord> reuseSnapshot;
+        List<KCSReviewRequest> reviewSnapshot;
+        lock (_collectionsLock)
+        {
+            reuseSnapshot = _reuseRecords.ToList();
+            reviewSnapshot = _reviewRequests.ToList();
+        }
+
+        var reuses = reuseSnapshot
             .Where(r => r.AgentId == agentId)
             .Where(r => r.RecordedAt >= fromDate && r.RecordedAt <= toDate)
             .ToList();
 
-        var reviews = _reviewRequests
+        var reviews = reviewSnapshot
             .Where(r => r.SubmittedById == agentId)
             .Where(r => r.SubmittedAt >= fromDate && r.SubmittedAt <= toDate)
             .ToList();
@@ -709,14 +719,16 @@ public class KCSWorkflowService : IKCSWorkflowService
             throw new ArgumentException($"Article {articleId} not found");
         }
 
-        var reviews = _reviewRequests
-            .Where(r => r.ArticleId == articleId)
-            .OrderByDescending(r => r.SubmittedAt)
-            .ToList();
+        List<KCSReviewRequest> reviewsForArticle;
+        List<ArticleReuseRecord> reusesForArticle;
+        lock (_collectionsLock)
+        {
+            reviewsForArticle = _reviewRequests.Where(r => r.ArticleId == articleId).OrderByDescending(r => r.SubmittedAt).ToList();
+            reusesForArticle = _reuseRecords.Where(r => r.ArticleId == articleId).ToList();
+        }
 
-        var reuses = _reuseRecords
-            .Where(r => r.ArticleId == articleId)
-            .ToList();
+        var reviews = reviewsForArticle;
+        var reuses = reusesForArticle;
 
         var lifecycle = new KCSArticleLifecycle
         {
@@ -772,21 +784,24 @@ public class KCSWorkflowService : IKCSWorkflowService
         var article = await _context.ITSMKnowledgeArticles.FindAsync(articleId);
         if (article == null) return false;
 
-        _flagRecords.Add(new ArticleFlagRecord
+        lock (_collectionsLock)
         {
-            ArticleId = articleId,
-            Flag = flag,
-            FlaggedById = flaggedById,
-            Reason = reason,
-            FlaggedAt = DateTime.UtcNow
-        });
+            _flagRecords.Add(new ArticleFlagRecord
+            {
+                ArticleId = articleId,
+                Flag = flag,
+                FlaggedById = flaggedById,
+                Reason = reason,
+                FlaggedAt = DateTime.UtcNow
+            });
+        }
 
         // Create review request for flagged articles
         if (flag is KCSFlag.Inaccurate or KCSFlag.Outdated or KCSFlag.NeedsUpdate)
         {
             var reviewRequest = new KCSReviewRequest
             {
-                ReviewRequestId = _nextReviewId++,
+                ReviewRequestId = Interlocked.Increment(ref _nextReviewId),
                 ArticleId = articleId,
                 ArticleNumber = article.Number,
                 ArticleTitle = article.Title,
@@ -796,7 +811,7 @@ public class KCSWorkflowService : IKCSWorkflowService
                 State = KCSReviewState.Pending,
                 DueAt = DateTime.UtcNow.AddDays(7)
             };
-            _reviewRequests.Add(reviewRequest);
+            lock (_collectionsLock) { _reviewRequests.Add(reviewRequest); }
         }
 
         _logger.LogInformation(
@@ -837,7 +852,9 @@ public class KCSWorkflowService : IKCSWorkflowService
         }
 
         // Add flagged articles
-        foreach (var flag in _flagRecords.Where(f => f.Flag == KCSFlag.Inaccurate))
+        List<ArticleFlagRecord> flagSnapshot;
+        lock (_collectionsLock) { flagSnapshot = _flagRecords.ToList(); }
+        foreach (var flag in flagSnapshot.Where(f => f.Flag == KCSFlag.Inaccurate))
         {
             var article = await _context.ITSMKnowledgeArticles
                 .Include(a => a.Author)
@@ -871,14 +888,17 @@ public class KCSWorkflowService : IKCSWorkflowService
         var incident = await _context.Incidents.FindAsync(incidentId);
         var agentId = incident?.AssignedToId ?? 0;
 
-        _reuseRecords.Add(new ArticleReuseRecord
+        lock (_collectionsLock)
         {
-            ArticleId = articleId,
-            IncidentId = incidentId,
-            AgentId = agentId,
-            Outcome = outcome,
-            RecordedAt = DateTime.UtcNow
-        });
+            _reuseRecords.Add(new ArticleReuseRecord
+            {
+                ArticleId = articleId,
+                IncidentId = incidentId,
+                AgentId = agentId,
+                Outcome = outcome,
+                RecordedAt = DateTime.UtcNow
+            });
+        }
 
         // Update article view count
         var article = await _context.ITSMKnowledgeArticles.FindAsync(articleId);
@@ -893,19 +913,19 @@ public class KCSWorkflowService : IKCSWorkflowService
         }
 
         // Update session if exists
-        var session = _sessions.FirstOrDefault(s =>
-            s.IncidentId == incidentId && s.State == KCSSessionState.Active);
+        KCSSession? reuseSession;
+        lock (_collectionsLock) { reuseSession = _sessions.FirstOrDefault(s => s.IncidentId == incidentId && s.State == KCSSessionState.Active); }
 
-        if (session != null)
+        if (reuseSession != null)
         {
-            session.State = outcome == ReuseOutcome.SolvedIncident
+            reuseSession.State = outcome == ReuseOutcome.SolvedIncident
                 ? KCSSessionState.ArticleReused
                 : KCSSessionState.Active;
-            session.UsedArticleId = articleId;
+            reuseSession.UsedArticleId = articleId;
 
             if (outcome == ReuseOutcome.SolvedIncident)
             {
-                session.EndedAt = DateTime.UtcNow;
+                reuseSession.EndedAt = DateTime.UtcNow;
             }
         }
 

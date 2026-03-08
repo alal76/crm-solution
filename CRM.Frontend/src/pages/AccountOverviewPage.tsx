@@ -174,8 +174,8 @@ function AccountOverviewPage() {
       const response = await apiClient.get('/accounts');
       setAccounts(response.data || []);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch customers');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch customers');
     } finally {
       setLoading(false);
     }
@@ -297,7 +297,7 @@ function AccountOverviewPage() {
         setLoadingActivities(false);
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching customer details:', err);
     } finally {
       setLoadingDetails(false);

@@ -252,13 +252,13 @@ function ContractsPage() {
       const data = response.data;
       setContracts(Array.isArray(data) ? data : (data?.items ?? []));
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If endpoint doesn't exist, show empty state
-      if (err.response?.status === 404) {
+      if ((err as any).response?.status === 404) {
         setContracts([]);
         setError(null);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch contracts');
+        setError((err as any).response?.data?.message || 'Failed to fetch contracts');
       }
     } finally {
       setLoading(false);
@@ -362,8 +362,8 @@ function ContractsPage() {
         setSuccessMessage('Contract deleted successfully');
         fetchContracts();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete contract');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete contract');
       }
     }
   };
@@ -395,8 +395,8 @@ function ContractsPage() {
       setUploadDialogOpen(false);
       fetchContracts();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to upload file');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to upload file');
     }
   };
 
@@ -413,7 +413,7 @@ function ContractsPage() {
       document.body.appendChild(link);
       link.click();
       link.remove();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Failed to download file');
     }
   };

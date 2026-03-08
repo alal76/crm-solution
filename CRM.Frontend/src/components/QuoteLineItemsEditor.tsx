@@ -118,8 +118,8 @@ export default function QuoteLineItemsEditor({ quoteId, readOnly = false, onTota
       setLineItems(response.data);
       setError(null);
       calculateTotals(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch line items');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch line items');
     } finally {
       setLoading(false);
     }
@@ -244,8 +244,8 @@ export default function QuoteLineItemsEditor({ quoteId, readOnly = false, onTota
 
       handleCloseDialog();
       await fetchLineItems();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save line item');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save line item');
     } finally {
       setSaving(false);
     }
@@ -257,8 +257,8 @@ export default function QuoteLineItemsEditor({ quoteId, readOnly = false, onTota
     try {
       await apiClient.delete(`/quotes/${quoteId}/lineitems/${itemId}`);
       await fetchLineItems();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete line item');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete line item');
     }
   };
 

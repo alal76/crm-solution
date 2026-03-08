@@ -192,8 +192,8 @@ function WorkflowMonitorPage() {
       setInstances(result.items || []);
       setTotalCount(result.totalCount || 0);
       setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load instances');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load instances');
     } finally {
       setLoading(false);
     }
@@ -236,8 +236,8 @@ function WorkflowMonitorPage() {
       setLogs(logsResult);
 
       setDetailDialogOpen(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load instance details');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load instance details');
     } finally {
       setLoading(false);
     }
@@ -249,8 +249,8 @@ function WorkflowMonitorPage() {
       await workflowInstanceService.cancelInstance(instanceId, 'Cancelled by user');
       setSuccess('Instance cancelled');
       loadInstances();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to cancel instance');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to cancel instance');
     }
   };
 
@@ -259,8 +259,8 @@ function WorkflowMonitorPage() {
       await workflowInstanceService.pauseInstance(instanceId);
       setSuccess('Instance paused');
       loadInstances();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to pause instance');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to pause instance');
     }
   };
 
@@ -269,8 +269,8 @@ function WorkflowMonitorPage() {
       await workflowInstanceService.resumeInstance(instanceId);
       setSuccess('Instance resumed');
       loadInstances();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to resume instance');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to resume instance');
     }
   };
 
@@ -279,8 +279,8 @@ function WorkflowMonitorPage() {
       await workflowInstanceService.retryInstance(instanceId);
       setSuccess('Instance retry initiated');
       loadInstances();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to retry instance');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to retry instance');
     }
   };
 
@@ -291,8 +291,8 @@ function WorkflowMonitorPage() {
       const result = await workflowInstanceService.getMyTasks();
       setTasks(result);
       setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load tasks');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load tasks');
     } finally {
       setLoading(false);
     }

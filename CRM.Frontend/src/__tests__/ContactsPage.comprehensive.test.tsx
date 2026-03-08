@@ -724,8 +724,8 @@ describe('ContactsPage - Error Handling', () => {
     
     try {
       await mockApiClient.get('/contacts');
-    } catch (error: any) {
-      expect(error.message).toBe('Network error');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('Network error');
     }
   });
 
@@ -743,8 +743,8 @@ describe('ContactsPage - Error Handling', () => {
     
     try {
       await mockApiClient.get('/contacts/999');
-    } catch (error: any) {
-      expect(error.response.status).toBe(404);
+    } catch (error: unknown) {
+      expect((error as any).response.status).toBe(404);
     }
   });
 });

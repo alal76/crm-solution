@@ -59,8 +59,8 @@ function CalendarIntegrationTab() {
       setError(null);
       const response = await apiClient.get('/calendar/integrations');
       setIntegrations(response.data || []);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to load calendar integrations');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to load calendar integrations');
     } finally {
       setLoading(false);
     }
@@ -75,8 +75,8 @@ function CalendarIntegrationTab() {
       } else {
         setError('Authorization URL not returned');
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to initiate OAuth connection');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to initiate OAuth connection');
     }
   };
 
@@ -88,8 +88,8 @@ function CalendarIntegrationTab() {
         syncIntervalMinutes: integration.syncIntervalMinutes,
       });
       await loadIntegrations();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to update settings');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to update settings');
     } finally {
       setSavingId(null);
     }
@@ -100,8 +100,8 @@ function CalendarIntegrationTab() {
       setSyncingId(integration.id);
       await apiClient.post(`/calendar/sync/${integration.provider.toLowerCase()}`);
       await loadIntegrations();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to sync calendar');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to sync calendar');
     } finally {
       setSyncingId(null);
     }
@@ -112,8 +112,8 @@ function CalendarIntegrationTab() {
       setDisconnectingId(integration.id);
       await apiClient.delete(`/calendar/integrations/${integration.provider.toLowerCase()}`);
       await loadIntegrations();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to disconnect integration');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to disconnect integration');
     } finally {
       setDisconnectingId(null);
     }

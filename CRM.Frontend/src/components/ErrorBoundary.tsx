@@ -93,7 +93,7 @@ class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     const entry: ErrorLogEntry = {
       timestamp: new Date().toISOString(),
-      error: `${error.name}: ${error.message}\n${error.stack || ''}`,
+      error: `${error.name}: ${(error as Error).message}\n${error.stack || ''}`,
       componentStack: errorInfo.componentStack ?? undefined,
       url: window.location.href,
       userAgent: navigator.userAgent,
@@ -139,7 +139,7 @@ class ErrorBoundary extends Component<Props, State> {
   handleCopyError = (): void => {
     const { error, errorInfo } = this.state;
     const errorText = `
-Error: ${error?.name}: ${error?.message}
+Error: ${error?.name}: ${(error as Error)?.message}
 
 Stack Trace:
 ${error?.stack || 'N/A'}
@@ -199,7 +199,7 @@ Timestamp: ${new Date().toISOString()}
             <Alert severity="error" sx={{ mb: 3 }}>
               <AlertTitle>Error Details</AlertTitle>
               <Typography variant="body2" component="pre" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-                {error?.message || 'Unknown error'}
+                {(error as Error)?.message || 'Unknown error'}
               </Typography>
             </Alert>
 

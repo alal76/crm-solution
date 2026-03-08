@@ -108,12 +108,13 @@ public class AdminSearchAnalyticsController : CrmControllerBase
 
         await Task.WhenAll(popularTask, zeroTask, perfTask, byTypeTask);
 
+        // AP-017: Await already-completed tasks instead of accessing .Result (avoids AggregateException wrapping)
         return Ok(new
         {
-            popularQueries = popularTask.Result,
-            zeroResultQueries = zeroTask.Result,
-            performance = perfTask.Result,
-            byEntityType = byTypeTask.Result
+            popularQueries = await popularTask,
+            zeroResultQueries = await zeroTask,
+            performance = await perfTask,
+            byEntityType = await byTypeTask
         });
     }
 }

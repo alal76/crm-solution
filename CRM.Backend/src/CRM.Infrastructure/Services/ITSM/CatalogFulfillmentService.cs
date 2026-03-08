@@ -241,8 +241,9 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
     // In-memory storage (would be database in production)
     private static readonly List<FulfillmentWorkflow> _workflows = new();
     private static readonly Dictionary<int, FulfillmentTemplate> _templates = new();
-    private static int _nextWorkflowId = 1;
-    private static int _nextTaskId = 1;
+    private static readonly object _workflowsLock = new();
+    private static int _nextWorkflowId = 0;
+    private static int _nextTaskId = 0;
 
     static CatalogFulfillmentService()
     {
@@ -477,7 +478,8 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         }
 
         // Check if workflow already exists
-        var existingWorkflow = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId);
+        FulfillmentWorkflow? existingWorkflow;
+        lock (_workflowsLock) { existingWorkflow = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId); }
         if (existingWorkflow != null)
         {
             return existingWorkflow;
@@ -489,7 +491,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         // Create workflow
         var workflow = new FulfillmentWorkflow
         {
-            WorkflowId = _nextWorkflowId++,
+            WorkflowId = Interlocked.Increment(ref _nextWorkflowId),
             ServiceRequestId = serviceRequestId,
             ServiceRequestNumber = serviceRequest.RequestId.ToString(),
             CatalogItemId = serviceRequest.CatalogItemId,
@@ -505,7 +507,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         {
             var task = new FulfillmentTask
             {
-                TaskId = _nextTaskId++,
+                TaskId = Interlocked.Increment(ref _nextTaskId),
                 Sequence = taskDef.Sequence,
                 Name = taskDef.Name,
                 Description = taskDef.Description,
@@ -531,7 +533,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         workflow.CurrentTaskName = workflow.Tasks.FirstOrDefault(t => t.State == TaskState.InProgress)?.Name;
         workflow.EstimatedTimeRemaining = TimeSpan.FromMinutes(template.EstimatedMinutes);
 
-        _workflows.Add(workflow);
+        lock (_workflowsLock) { _workflows.Add(workflow); }
 
         // Update service request status
         serviceRequest.State = CatalogRequestState.InProgress;
@@ -553,7 +555,8 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
 
     public async Task<FulfillmentWorkflow?> GetFulfillmentStatusAsync(int serviceRequestId)
     {
-        var workflow = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId);
+        FulfillmentWorkflow? workflow;
+        lock (_workflowsLock) { workflow = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId); }
         if (workflow != null)
         {
             UpdateWorkflowProgress(workflow);
@@ -563,7 +566,8 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
 
     public async Task<FulfillmentTask> CompleteTaskAsync(int taskId, int completedById, string? notes = null)
     {
-        var workflow = _workflows.FirstOrDefault(w => w.Tasks.Any(t => t.TaskId == taskId));
+        FulfillmentWorkflow? workflow;
+        lock (_workflowsLock) { workflow = _workflows.FirstOrDefault(w => w.Tasks.Any(t => t.TaskId == taskId)); }
         if (workflow == null)
         {
             throw new ArgumentException($"Task {taskId} not found");
@@ -603,12 +607,14 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
 
     public async Task<AutomationResult> ExecuteAutomationAsync(int taskId)
     {
-        var workflow = _workflows.FirstOrDefault(w => w.Tasks.Any(t => t.TaskId == taskId));
-        if (workflow == null)
+        FulfillmentWorkflow? autoWorkflow;
+        lock (_workflowsLock) { autoWorkflow = _workflows.FirstOrDefault(w => w.Tasks.Any(t => t.TaskId == taskId)); }
+        if (autoWorkflow == null)
         {
             throw new ArgumentException($"Task {taskId} not found");
         }
 
+        var workflow = autoWorkflow;
         var task = workflow.Tasks.First(t => t.TaskId == taskId);
 
         if (task.Automation == null)
@@ -792,7 +798,9 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
 
     public async Task<FulfillmentMetrics> GetMetricsAsync(DateTime fromDate, DateTime toDate)
     {
-        var workflowsInRange = _workflows
+        List<FulfillmentWorkflow> wfSnapshot;
+        lock (_workflowsLock) { wfSnapshot = _workflows.ToList(); }
+        var workflowsInRange = wfSnapshot
             .Where(w => w.StartedAt >= fromDate && w.StartedAt <= toDate)
             .ToList();
 
@@ -846,7 +854,9 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
 
     public async Task<bool> CancelFulfillmentAsync(int serviceRequestId, string reason, int cancelledById)
     {
-        var workflow = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId);
+        FulfillmentWorkflow? cancelWorkflow;
+        lock (_workflowsLock) { cancelWorkflow = _workflows.FirstOrDefault(w => w.ServiceRequestId == serviceRequestId); }
+        var workflow = cancelWorkflow;
         if (workflow == null) return false;
 
         if (workflow.State == FulfillmentState.Completed)

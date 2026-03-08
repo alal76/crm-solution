@@ -157,8 +157,8 @@ function GroupManagementPage() {
       const response = await apiClient.get('/usergroups');
       setGroups(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch groups');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch groups');
       console.error('Error fetching groups:', err);
     } finally {
       setLoading(false);
@@ -273,8 +273,8 @@ function GroupManagementPage() {
 
       handleCloseDialog();
       fetchGroups();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save group');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save group');
       console.error('Error saving group:', err);
     }
   };
@@ -286,8 +286,8 @@ function GroupManagementPage() {
       await apiClient.delete(`/usergroups/${groupId}`);
       setSuccessMessage('Group deleted successfully');
       fetchGroups();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete group');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete group');
       console.error('Error deleting group:', err);
     }
   };

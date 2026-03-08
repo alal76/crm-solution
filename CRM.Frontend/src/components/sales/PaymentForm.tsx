@@ -228,8 +228,8 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({
       setLoading(true);
       await onSubmit(formData);
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to process payment');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to process payment');
     } finally {
       setLoading(false);
     }

@@ -131,8 +131,8 @@ const BulkExportButton: React.FC<BulkExportButtonProps> = ({
       downloadCSV(csvContent, filename);
 
       logger.info(`Successfully exported ${accounts.length} accounts to ${filename}`);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || err.message || 'Failed to export accounts';
+    } catch (err: unknown) {
+      const errorMessage = (err as any).response?.data?.message || (err as Error).message || 'Failed to export accounts';
       setError(errorMessage);
       logger.error('Account export failed', errorMessage);
     } finally {

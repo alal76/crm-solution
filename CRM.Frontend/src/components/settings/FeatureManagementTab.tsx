@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getApiUrl } from '../../config/ports';
+import featureManagementService from '../../services/featureManagementService';
 import {
   Box,
   Typography,
@@ -158,23 +158,10 @@ function FeatureManagementTab() {
   const [hasChanges, setHasChanges] = useState(false);
   const [expandedPanel, setExpandedPanel] = useState<string | false>('core');
 
-  const apiUrl = getApiUrl();
-
   const loadFeatures = useCallback(async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const apiUrl = getApiUrl();
-
-      const response = await fetch(`${apiUrl}/systemsettings/features`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setFeatures(data);
-      } else {
-        throw new Error('Failed to load features');
-      }
+      const data = await featureManagementService.getFeatures();
+      setFeatures(data);
     } catch (err) {
       console.error('Error loading features:', err);
       setSnackbar({ open: true, message: 'Failed to load feature configuration', severity: 'error' });
@@ -183,17 +170,8 @@ function FeatureManagementTab() {
 
   const loadDatabaseStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const apiUrl = getApiUrl();
-
-      const response = await fetch(`${apiUrl}/systemsettings/database/status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setDatabaseStatus(data);
-      }
+      const data = await featureManagementService.getDatabaseStatus();
+      setDatabaseStatus(data);
     } catch (err) {
       console.error('Error loading database status:', err);
     }
@@ -274,9 +252,6 @@ function FeatureManagementTab() {
 
     setSaving(true);
     try {
-      const token = localStorage.getItem('accessToken');
-      const apiUrl = getApiUrl();
-
       const updateRequest = {
         customersEnabled: features.coreModules.customers.enabled,
         contactsEnabled: features.coreModules.contacts.enabled,
@@ -299,22 +274,9 @@ function FeatureManagementTab() {
         // useDemoDatabase: features.systemSettings?.useDemoDatabase ?? false,
         activeDatabaseProvider: features.activeDatabaseProvider,
       };
-
-      const response = await fetch(`${apiUrl}/systemsettings/features`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateRequest),
-      });
-
-      if (response.ok) {
-        setSnackbar({ open: true, message: 'Feature settings saved successfully', severity: 'success' });
-        setHasChanges(false);
-      } else {
-        throw new Error('Failed to save settings');
-      }
+      await featureManagementService.updateFeatures(updateRequest);
+      setSnackbar({ open: true, message: 'Feature settings saved successfully', severity: 'success' });
+      setHasChanges(false);
     } catch (err) {
       console.error('Error saving features:', err);
       setSnackbar({ open: true, message: 'Failed to save feature settings', severity: 'error' });
@@ -326,25 +288,13 @@ function FeatureManagementTab() {
   const handleSyncDatabases = async () => {
     setSyncing(true);
     try {
-      const token = localStorage.getItem('accessToken');
-      const apiUrl = getApiUrl();
-
-      const response = await fetch(`${apiUrl}/systemsettings/database/sync`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
+      const result = await featureManagementService.syncDatabases();
+      setSnackbar({
+        open: true,
+        message: `Database sync completed. ${result.fieldsSynced} fields synced.`,
+        severity: 'success',
       });
-
-      if (response.ok) {
-        const result = await response.json();
-        setSnackbar({
-          open: true,
-          message: `Database sync completed. ${result.fieldsSynced} fields synced.`,
-          severity: 'success',
-        });
-        await loadDatabaseStatus();
-      } else {
-        throw new Error('Failed to sync databases');
-      }
+      await loadDatabaseStatus();
     } catch (err) {
       console.error('Error syncing databases:', err);
       setSnackbar({ open: true, message: 'Failed to sync databases', severity: 'error' });

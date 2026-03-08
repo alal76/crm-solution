@@ -151,7 +151,7 @@ export const SignatureVerificationUI: React.FC<SignatureVerificationUIProps> = (
       setResult({
         valid: false,
         computedSignature: '',
-        message: `Verification error: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        message: `Verification error: ${err instanceof Error ? (err as Error).message : 'Unknown error'}`,
       });
     } finally {
       setVerifying(false);

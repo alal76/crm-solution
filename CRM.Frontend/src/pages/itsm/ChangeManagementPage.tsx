@@ -115,7 +115,7 @@ export const ChangeManagementPage: React.FC = () => {
       setTotalCount(result.totalCount);
       clearError();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load changes';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to load changes';
       setError(message);
       logger.error('Failed to load changes', err);
     }
@@ -132,7 +132,7 @@ export const ChangeManagementPage: React.FC = () => {
       await changeService.deleteChange(id);
       await loadChanges();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete change');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to delete change');
     }
   };
 
@@ -143,7 +143,7 @@ export const ChangeManagementPage: React.FC = () => {
       await loadChanges();
       setDetailDialogOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to approve change');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to approve change');
     }
   };
 
@@ -154,7 +154,7 @@ export const ChangeManagementPage: React.FC = () => {
       await loadChanges();
       setDetailDialogOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject change');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to reject change');
     }
   };
 
@@ -189,7 +189,7 @@ export const ChangeManagementPage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-            {typeof error === 'string' ? error : error.message}
+            {typeof error === 'string' ? error : (error as Error).message}
           </Alert>
         )}
 

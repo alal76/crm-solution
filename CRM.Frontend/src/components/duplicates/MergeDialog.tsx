@@ -132,8 +132,8 @@ const MergeDialog: React.FC<MergeDialogProps> = ({
         sources[fieldName] = fieldPreview.sourceRecordId;
       });
       setFieldSources(sources);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load merge preview');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to load merge preview');
     } finally {
       setIsLoading(false);
     }
@@ -175,8 +175,8 @@ const MergeDialog: React.FC<MergeDialogProps> = ({
       } else {
         setError(result.errorMessage || 'Merge failed');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to merge records');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to merge records');
     } finally {
       setIsLoading(false);
     }
@@ -408,7 +408,7 @@ const MergeDialog: React.FC<MergeDialogProps> = ({
           </Typography>
           <List dense>
             {preview.relatedRecords.map((related, index) => (
-              <ListItem key={index}>
+              <ListItem key={related.description ?? `related-${index}`}>
                 <ListItemIcon>
                   <LinkIcon />
                 </ListItemIcon>
@@ -425,7 +425,7 @@ const MergeDialog: React.FC<MergeDialogProps> = ({
           <AlertTitle>Warnings</AlertTitle>
           <List dense>
             {preview.warnings.map((warning, index) => (
-              <ListItem key={index}>{warning}</ListItem>
+              <ListItem key={`warning-${index}-${warning}`}>{warning}</ListItem>
             ))}
           </List>
         </Alert>

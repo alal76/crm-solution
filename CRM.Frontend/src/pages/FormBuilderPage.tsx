@@ -316,13 +316,13 @@ function FormBuilderPage() {
       const response = await apiClient.get('/forms');
       setForms(response.data);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // If the endpoint doesn't exist yet, show empty state
-      if (err.response?.status === 404) {
+      if ((err as any).response?.status === 404) {
         setForms([]);
         setError(null);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch forms');
+        setError((err as any).response?.data?.message || 'Failed to fetch forms');
       }
     } finally {
       setLoading(false);
@@ -333,7 +333,7 @@ function FormBuilderPage() {
     try {
       const response = await apiClient.get(`/forms/${formId}/submissions`);
       setSubmissions(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setSubmissions([]);
     }
   };
@@ -427,8 +427,8 @@ function FormBuilderPage() {
         setSuccessMessage('Form deleted successfully');
         fetchForms();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete form');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete form');
       }
     }
   };
@@ -448,8 +448,8 @@ function FormBuilderPage() {
       setSuccessMessage('Form duplicated successfully');
       fetchForms();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to duplicate form');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to duplicate form');
     }
   };
 

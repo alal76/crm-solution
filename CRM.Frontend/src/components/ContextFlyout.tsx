@@ -133,8 +133,8 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
         // The chatbot backend will load documentation - just notify it to initialize
         await apiClient.post('/ai/chatbot/initialize', {});
         setDocsLoaded(true);
-      } catch (error: any) {
-        console.warn('Chatbot initialization skipped - AI features may be disabled:', error?.message);
+      } catch (error: unknown) {
+        console.warn('Chatbot initialization skipped - AI features may be disabled:', (error as Error)?.message);
         // Don't block - chatbot will work without pre-loaded docs or just be unavailable
         setDocsLoaded(true);
       } finally {

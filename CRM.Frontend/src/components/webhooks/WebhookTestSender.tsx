@@ -130,7 +130,7 @@ const WebhookTestSender: React.FC<WebhookTestSenderProps> = ({
       onTestComplete?.(result);
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : 'Failed to send test webhook';
+        err instanceof Error ? (err as Error).message : 'Failed to send test webhook';
       const result: TestResult = {
         success: false,
         statusCode: 0,

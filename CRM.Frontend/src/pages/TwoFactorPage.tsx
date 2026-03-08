@@ -21,7 +21,7 @@ function TwoFactorPage() {
       const response = await apiClient.get('/auth/2fa-status');
       setEnabled(response.data.enabled);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error checking 2FA status:', err);
     } finally {
       setLoading(false);
@@ -36,8 +36,8 @@ function TwoFactorPage() {
       setSuccess(true);
       setIsVerifying(true);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to enable 2FA');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to enable 2FA');
       console.error('Error enabling 2FA:', err);
     } finally {
       setLoading(false);
@@ -53,8 +53,8 @@ function TwoFactorPage() {
         setSuccess(true);
         setError(null);
         setTimeout(() => setSuccess(false), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to disable 2FA');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to disable 2FA');
         console.error('Error disabling 2FA:', err);
       } finally {
         setLoading(false);
@@ -77,8 +77,8 @@ function TwoFactorPage() {
       setSuccess(true);
       setError(null);
       setTimeout(() => setSuccess(false), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid verification code');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Invalid verification code');
       console.error('Error verifying code:', err);
     } finally {
       setLoading(false);

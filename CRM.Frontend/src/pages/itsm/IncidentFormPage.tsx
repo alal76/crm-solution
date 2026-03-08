@@ -56,8 +56,8 @@ export const IncidentFormPage: React.FC = () => {
     try {
       await apiClient.post('/incidents', formData);
       navigate('/incidents');
-    } catch (error: any) {
-      setSubmitError(error?.response?.data?.message || 'Failed to create incident');
+    } catch (error: unknown) {
+      setSubmitError((error as any)?.response?.data?.message || 'Failed to create incident');
     } finally {
       setSubmitting(false);
     }

@@ -292,9 +292,11 @@ function ThemedApp() {
       captureConsoleErrors: true,
     });
     
-    // Log initialization
-    console.log('%c🚀 CRM Solution initialized with debug mode enabled', 'color: green; font-weight: bold;');
-    console.log('%c💡 Access debug tools via window.CRMDebug', 'color: blue;');
+    // AP-050: Gate debug logs behind NODE_ENV to keep production console clean
+    if (process.env.NODE_ENV === 'development') {
+      console.log('%c🚀 CRM Solution initialized with debug mode enabled', 'color: green; font-weight: bold;');
+      console.log('%c💡 Access debug tools via window.CRMDebug', 'color: blue;');
+    }
   }, []);
 
   return (
@@ -320,6 +322,11 @@ function ThemedApp() {
                         <BreadcrumbsComponent />
                         <Box id="main-content" role="main" sx={{ flex: 1, py: 4, px: 2 }}>
                           <Container maxWidth="lg">
+                    {/* AP-054: Module-level ErrorBoundary for route group isolation.
+                        Provides a second error containment layer inside <Suspense>.
+                        Individual module isolation is available by wrapping the
+                        `element` prop of key routes with <ErrorBoundary fallback={...}/>.
+                        The outer <ErrorBoundary> (line ~305) catches all remaining errors. */}
                     <Suspense fallback={<LoadingFallback />}>
                     <Routes>
               {/* Public Routes */}

@@ -120,7 +120,7 @@ const BusinessHoursConfigPage: React.FC = () => {
       await apiClient.put('/businesshours', payload);
       setSuccessMessage('Business hours configuration saved successfully');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to save configuration';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to save configuration';
       setError(message);
     } finally {
       setSaving(false);

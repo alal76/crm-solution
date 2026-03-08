@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 #pragma warning disable SA1649 // file name should match first type name
+using System.ComponentModel.DataAnnotations;
 namespace CRM.Core.Dtos;
 
 /// <summary>
@@ -12,14 +13,25 @@ namespace CRM.Core.Dtos;
 /// </summary>
 public class CreateSubscriptionDto
 {
+    [Required(ErrorMessage = "Account ID is required")]
+    [Range(1, int.MaxValue, ErrorMessage = "Account ID must be greater than 0")]
     public int AccountId { get; set; }
+
     public int? ProductId { get; set; }
+
+    [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Amount must be between 0.01 and 999,999,999.99")]
     public decimal Amount { get; set; }
+
+    [StringLength(50, ErrorMessage = "BillingCycle cannot exceed 50 characters")]
     public string BillingCycle { get; set; } = "Monthly";
     public DateTime BillingStartDate { get; set; }
     public DateTime? TrialEndDate { get; set; }
     public bool IsAutoRenewal { get; set; } = true;
+
+    [StringLength(50, ErrorMessage = "ProrationType cannot exceed 50 characters")]
     public string? ProrationType { get; set; } = "ProRata";
+
+    [StringLength(1000, ErrorMessage = "Notes cannot exceed 1000 characters")]
     public string? Notes { get; set; }
 }
 

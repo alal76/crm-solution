@@ -185,8 +185,8 @@ function TasksPage() {
       const response = await apiClient.get('/tasks/my-queue');
       setQueueData(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch queue');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch queue');
     } finally {
       setLoading(false);
     }
@@ -198,8 +198,8 @@ function TasksPage() {
       const response = await apiClient.get('/tasks');
       setTasks(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch tasks');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch tasks');
     } finally {
       setLoading(false);
     }
@@ -311,8 +311,8 @@ function TasksPage() {
       setSuccessMessage('Task marked as completed');
       fetchMyQueue();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to complete task');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to complete task');
     }
   };
 
@@ -323,8 +323,8 @@ function TasksPage() {
         setSuccessMessage('Task deleted successfully');
         fetchMyQueue();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete task');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete task');
       }
     }
   };

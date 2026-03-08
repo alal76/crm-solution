@@ -121,7 +121,7 @@ export const ProblemManagementPage: React.FC = () => {
       setTotalCount(result.totalCount);
       clearError();
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load problems';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to load problems';
       setError(message);
       logger.error('Failed to load problems', err);
     }
@@ -153,7 +153,7 @@ export const ProblemManagementPage: React.FC = () => {
       });
       await loadProblems();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create problem');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to create problem');
     }
   };
 
@@ -164,7 +164,7 @@ export const ProblemManagementPage: React.FC = () => {
       await problemService.deleteProblem(id);
       await loadProblems();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete problem');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to delete problem');
     }
   };
 
@@ -200,7 +200,7 @@ export const ProblemManagementPage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-            {typeof error === 'string' ? error : error.message}
+            {typeof error === 'string' ? error : (error as Error).message}
           </Alert>
         )}
 

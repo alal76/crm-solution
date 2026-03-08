@@ -21,8 +21,8 @@ const AccountPage: React.FC = () => {
     try {
       const res = await accountService.uploadContract(accountId, file);
       setStatus('Upload successful');
-    } catch (err: any) {
-      setStatus(err?.response?.data?.message || 'Upload failed');
+    } catch (err: unknown) {
+      setStatus((err as any)?.response?.data?.message || 'Upload failed');
     }
   };
 
@@ -36,8 +36,8 @@ const AccountPage: React.FC = () => {
     try {
       await accountService.deleteContract(accountId);
       setStatus('Deleted');
-    } catch (err: any) {
-      setStatus(err?.response?.data?.message || 'Delete failed');
+    } catch (err: unknown) {
+      setStatus((err as any)?.response?.data?.message || 'Delete failed');
     }
   };
 

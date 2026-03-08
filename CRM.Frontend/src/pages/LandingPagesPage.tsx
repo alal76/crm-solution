@@ -290,8 +290,8 @@ export default function LandingPagesPage() {
       const response = await apiClient.get('/landing-pages');
       setPages(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to load landing pages');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to load landing pages');
     } finally {
       setLoading(false);
     }
@@ -386,8 +386,8 @@ export default function LandingPagesPage() {
 
       setFormDialogOpen(false);
       fetchPages();
-    } catch (err: any) {
-      setFormError(err?.message || 'Failed to save landing page');
+    } catch (err: unknown) {
+      setFormError((err as Error)?.message || 'Failed to save landing page');
     } finally {
       setSubmitting(false);
     }
@@ -407,8 +407,8 @@ export default function LandingPagesPage() {
       setDeleteDialogOpen(false);
       setPageToDelete(null);
       fetchPages();
-    } catch (err: any) {
-      setFormError(err?.message || 'Failed to delete landing page');
+    } catch (err: unknown) {
+      setFormError((err as Error)?.message || 'Failed to delete landing page');
     } finally {
       setDeleting(false);
     }
@@ -418,8 +418,8 @@ export default function LandingPagesPage() {
     try {
       await apiClient.post(`/landing-pages/${page.id}/publish`);
       fetchPages();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to publish page');
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Failed to publish page');
     }
   };
 
@@ -427,8 +427,8 @@ export default function LandingPagesPage() {
     try {
       await apiClient.post(`/landing-pages/${page.id}/unpublish`);
       fetchPages();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to unpublish page');
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Failed to unpublish page');
     }
   };
 
@@ -436,8 +436,8 @@ export default function LandingPagesPage() {
     try {
       await apiClient.post(`/landing-pages/${page.id}/duplicate`);
       fetchPages();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to duplicate page');
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Failed to duplicate page');
     }
   };
 
@@ -451,8 +451,8 @@ export default function LandingPagesPage() {
       setBlocksLoading(true);
       const response = await apiClient.get(`/landing-pages/${page.id}/blocks`);
       setBlocks(response.data);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to load blocks');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to load blocks');
     } finally {
       setBlocksLoading(false);
     }
@@ -542,8 +542,8 @@ export default function LandingPagesPage() {
       await apiClient.put(`/landing-pages/${designerPage.id}/blocks`, blocks);
       setDesignerOpen(false);
       fetchPages();
-    } catch (err: any) {
-      setError(err?.message || 'Failed to save blocks');
+    } catch (err: unknown) {
+      setError((err as Error)?.message || 'Failed to save blocks');
     } finally {
       setBlocksSaving(false);
     }
@@ -556,8 +556,8 @@ export default function LandingPagesPage() {
       setPreviewOpen(true);
       const response = await apiClient.get(`/landing-pages/${page.id}/preview`);
       setPreviewHtml(response.data.html);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to generate preview');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to generate preview');
       setPreviewOpen(false);
     } finally {
       setPreviewLoading(false);
@@ -573,8 +573,8 @@ export default function LandingPagesPage() {
       setAnalyticsLoading(true);
       const response = await apiClient.get(`/landing-pages/${page.id}/analytics`);
       setAnalytics(response.data);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to load analytics');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to load analytics');
     } finally {
       setAnalyticsLoading(false);
     }

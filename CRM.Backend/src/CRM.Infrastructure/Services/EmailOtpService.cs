@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using System.Text;
 using CRM.Core.Interfaces;
@@ -401,21 +402,21 @@ public class EmailOtpService : IEmailOtpService
     private void IncrementOtpAttempt(string email, int userId)
     {
         var key = $"otp:{email}:{userId}";
-        if (_otp_records.TryGetValue(key, out var record))
-        {
-            _otp_records[key] = (record.hash, record.expiresAt, record.attempts + 1);
-        }
+        _otp_records.AddOrUpdate(
+            key,
+            _ => (string.Empty, DateTime.MinValue, 1),
+            (_, existing) => (existing.hash, existing.expiresAt, existing.attempts + 1));
     }
 
     private void ClearOtpRecord(string email, int userId)
     {
         var key = $"otp:{email}:{userId}";
-        _otp_records.Remove(key);
+        _otp_records.TryRemove(key, out _);
     }
 
     // In-memory storage (replace with Redis in production)
-    private static readonly Dictionary<string, (string hash, DateTime expiresAt, int attempts)> _otp_records = new();
-    private static readonly Dictionary<string, DateTime> _otp_rate_limits = new();
+    private static readonly ConcurrentDictionary<string, (string hash, DateTime expiresAt, int attempts)> _otp_records = new();
+    private static readonly ConcurrentDictionary<string, DateTime> _otp_rate_limits = new();
 
     private enum RateLimitType { Email,
         Sms }

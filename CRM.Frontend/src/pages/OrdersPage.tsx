@@ -245,12 +245,12 @@ function OrdersPage() {
       const response = await apiClient.get('/orders');
       setOrders(response.data);
       setError(null);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      if ((err as any).response?.status === 404) {
         setOrders([]);
         setError(null);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch orders');
+        setError((err as any).response?.data?.message || 'Failed to fetch orders');
       }
     } finally {
       setLoading(false);
@@ -368,8 +368,8 @@ function OrdersPage() {
         setSuccessMessage('Order deleted successfully');
         fetchOrders();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete order');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete order');
       }
     }
   };
@@ -382,8 +382,8 @@ function OrdersPage() {
       setSuccessMessage('Order approved');
       fetchOrders();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to approve order');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to approve order');
     }
   };
 
@@ -396,8 +396,8 @@ function OrdersPage() {
       setSuccessMessage('Order cancelled');
       fetchOrders();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to cancel order');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to cancel order');
     }
   };
 
@@ -407,8 +407,8 @@ function OrdersPage() {
       setSuccessMessage('Order marked as fulfilled');
       fetchOrders();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fulfill order');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fulfill order');
     }
   };
 

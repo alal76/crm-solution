@@ -60,8 +60,8 @@ const ChangeDetailPage: React.FC = () => {
       // Reload change data
       const response = await apiClient.get(`/changes/${id}`);
       setChange(response.data);
-    } catch (err: any) {
-      setRollbackError(err?.response?.data?.message || 'Failed to execute rollback');
+    } catch (err: unknown) {
+      setRollbackError((err as any)?.response?.data?.message || 'Failed to execute rollback');
     } finally {
       setRollbackSubmitting(false);
     }
@@ -221,13 +221,6 @@ const ChangeDetailPage: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-              affectedCIs: [],
-              assignedTo: change.requestorName ?? '',
-            }}
-            conflicts={conflicts}
-          />
-        </Box>
-      )}
     </Box>
   );
 };

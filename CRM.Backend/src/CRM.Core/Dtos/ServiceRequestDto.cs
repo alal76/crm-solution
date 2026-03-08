@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities;
 
 namespace CRM.Core.Dtos;
@@ -321,7 +322,11 @@ public class ServiceRequestDto
 
 public class CreateServiceRequestDto
 {
+    [Required(ErrorMessage = "Subject is required")]
+    [StringLength(500, MinimumLength = 1, ErrorMessage = "Subject must be between 1 and 500 characters")]
     public string Subject { get; set; } = string.Empty;
+
+    [StringLength(4000, ErrorMessage = "Description cannot exceed 4000 characters")]
     public string? Description { get; set; }
     public ServiceRequestChannel Channel { get; set; } = ServiceRequestChannel.SelfServicePortal;
     public ServiceRequestPriority Priority { get; set; } = ServiceRequestPriority.Medium;

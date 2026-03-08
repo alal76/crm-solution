@@ -123,8 +123,8 @@ function SubscriptionsPage() {
       const response = await subscriptionService.getAll();
       setSubscriptions(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch subscriptions');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch subscriptions');
       logger.error('Failed to fetch subscriptions', err);
     } finally {
       setLoading(false);
@@ -238,8 +238,8 @@ function SubscriptionsPage() {
       fetchSubscriptions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to activate subscription');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to activate subscription');
     }
   };
 
@@ -272,8 +272,8 @@ function SubscriptionsPage() {
       fetchSubscriptions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || `Failed to ${actionType} subscription`);
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || `Failed to ${actionType} subscription`);
       setActionDialogOpen(false);
     }
   };
@@ -285,8 +285,8 @@ function SubscriptionsPage() {
       fetchSubscriptions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to resume subscription');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to resume subscription');
     }
   };
 
@@ -297,8 +297,8 @@ function SubscriptionsPage() {
       fetchSubscriptions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reactivate subscription');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to reactivate subscription');
     }
   };
 
@@ -309,8 +309,8 @@ function SubscriptionsPage() {
       fetchSubscriptions();
       fetchStatistics();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to renew subscription');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to renew subscription');
     }
   };
 
@@ -319,8 +319,8 @@ function SubscriptionsPage() {
       await subscriptionService.generateInvoice(id);
       setSuccessMessage('Invoice generated');
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to generate invoice');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to generate invoice');
     }
   };
 
@@ -332,8 +332,8 @@ function SubscriptionsPage() {
         fetchSubscriptions();
         fetchStatistics();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete subscription');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete subscription');
       }
     }
   };

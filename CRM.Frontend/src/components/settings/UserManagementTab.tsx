@@ -468,9 +468,9 @@ function UserManagementTab() {
       fetchContacts();
       setSuccess('Contact created and linked');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error in handleCreateAndLinkContact:', err);
-      setError(err.message || 'Failed to create contact');
+      setError((err as Error).message || 'Failed to create contact');
       setTimeout(() => setError(null), 5000);
     } finally {
       setCreatingContact(false);

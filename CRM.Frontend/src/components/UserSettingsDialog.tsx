@@ -228,7 +228,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ open, onClose, 
         ...response.data,
         themePreference: response.data.themePreference || 'system',
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load preferences:', err);
       // Try to get from localStorage as fallback
       const savedTheme = localStorage.getItem('crm_theme_preference');
@@ -296,9 +296,9 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ open, onClose, 
       setTimeout(() => {
         onClose();
       }, 1000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to save preferences:', err);
-      setError(err.response?.data?.message || 'Failed to save preferences');
+      setError((err as any).response?.data?.message || 'Failed to save preferences');
     } finally {
       setSaving(false);
     }

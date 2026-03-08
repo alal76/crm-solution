@@ -162,8 +162,8 @@ function DashboardSettingsPage() {
       setDashboards(dashboardsRes.data);
       setDataSources(dataSourcesRes.data);
       setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load dashboards');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load dashboards');
     } finally {
       setLoading(false);
     }
@@ -173,8 +173,8 @@ function DashboardSettingsPage() {
     try {
       const res = await dashboardConfigService.getDashboard(id);
       setSelectedDashboard(res.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load dashboard details');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load dashboard details');
     }
   }, []);
 
@@ -233,8 +233,8 @@ function DashboardSettingsPage() {
       }
       setDashboardDialogOpen(false);
       loadDashboards();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save dashboard');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save dashboard');
     } finally {
       setSaving(false);
     }
@@ -250,8 +250,8 @@ function DashboardSettingsPage() {
         setSelectedDashboard(null);
       }
       loadDashboards();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete dashboard');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete dashboard');
     }
   };
 
@@ -260,8 +260,8 @@ function DashboardSettingsPage() {
       await dashboardConfigService.updateDashboard(dashboard.id, { isDefault: true });
       setSuccess('Default dashboard updated');
       loadDashboards();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to set default');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to set default');
     }
   };
 
@@ -333,8 +333,8 @@ function DashboardSettingsPage() {
       if (selectedDashboard) {
         loadDashboardDetail(selectedDashboard.id);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save widget');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save widget');
     } finally {
       setSaving(false);
     }
@@ -349,8 +349,8 @@ function DashboardSettingsPage() {
       if (selectedDashboard) {
         loadDashboardDetail(selectedDashboard.id);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete widget');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete widget');
     }
   };
 
@@ -360,8 +360,8 @@ function DashboardSettingsPage() {
       if (selectedDashboard) {
         loadDashboardDetail(selectedDashboard.id);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update widget');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to update widget');
     }
   };
 
@@ -371,8 +371,8 @@ function DashboardSettingsPage() {
       const res = await dashboardConfigService.initializeDefaults();
       setSuccess(res.data.message);
       loadDashboards();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to initialize dashboards');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to initialize dashboards');
     } finally {
       setSaving(false);
     }

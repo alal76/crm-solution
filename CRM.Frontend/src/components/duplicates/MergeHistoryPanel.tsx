@@ -86,8 +86,8 @@ const MergeHistoryPanel: React.FC<MergeHistoryPanelProps> = ({
       ]);
       setMergeHistory(history);
       setMergedRecords(merged);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load merge history');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to load merge history');
     } finally {
       setIsLoading(false);
     }
@@ -119,8 +119,8 @@ const MergeHistoryPanel: React.FC<MergeHistoryPanelProps> = ({
       } else {
         setError(result.errorMessage || 'Unmerge failed');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to unmerge records');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to unmerge records');
     } finally {
       setIsUnmerging(false);
     }

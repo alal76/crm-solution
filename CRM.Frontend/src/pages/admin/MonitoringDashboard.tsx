@@ -7,6 +7,9 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import monitoringService from '../../services/monitoringService';
+import type { MonitoringToolsData, UptimeKumaMonitorsData, PortainerData, EnvironmentInfo } from '../../services/monitoringService';
+import { TabPanel } from '../../components/common';
 import {
   Box,
   Card,
@@ -209,69 +212,9 @@ interface ServiceStatus {
   details?: Record<string, unknown>;
 }
 
-interface EnvironmentInfo {
-  deploymentType: string;
-  isDocker: boolean;
-  isKubernetes: boolean;
-  databaseProvider: string;
-  databaseConnected: boolean;
-  hostname: string;
-  version: string;
-  dotNetVersion?: string;
-  enabledMonitors?: string[];
-}
-
-interface ExternalToolStatus {
-  status: 'online' | 'offline' | 'degraded' | 'error';
-  version?: string;
-  url?: string;
-  port?: number;
-  message?: string;
-}
-
-interface MonitoringToolsData {
-  uptimeKuma: ExternalToolStatus;
-  portainer: ExternalToolStatus;
-  timestamp: string;
-}
-
-interface UptimeKumaMonitor {
-  id: string;
-  status: number; // 0 = down, 1 = up, 2 = pending
-  ping: number;
-  time: string;
-  msg?: string;
-}
-
-interface UptimeKumaMonitorsData {
-  connected: boolean;
-  monitors: UptimeKumaMonitor[];
-  uptimeList?: Record<string, number>;
-  monitorCount: number;
-  message?: string;
-}
-
-interface PortainerData {
-  connected: boolean;
-  version?: string;
-  instanceId?: string;
-  message?: string;
-}
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div role="tabpanel" hidden={value !== index} {...other}>
-      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
-    </div>
-  );
-}
+// EnvironmentInfo, ExternalToolStatus, MonitoringToolsData, UptimeKumaMonitor,
+// UptimeKumaMonitorsData, and PortainerData are imported from monitoringService (top of file).
+type UptimeKumaMonitor = UptimeKumaMonitorsData['monitors'][number];
 
 // ── CDT batch descriptors ─────────────────────────────────────────────────
 interface CdtCheck { label: string; method: string; path: string; body?: object; expectedStatus?: number; }
@@ -375,7 +318,7 @@ const MonitoringDashboard: React.FC = () => {
       };
     } catch (err) {
       const responseTime = Date.now() - startTime;
-      const message = err instanceof Error ? err.message : 'Connection failed';
+      const message = err instanceof Error ? (err as Error).message : 'Connection failed';
       return {
         name: service.name,
         status: 'error',
@@ -425,26 +368,19 @@ const MonitoringDashboard: React.FC = () => {
 
     try {
       // Fetch environment info from API
-      const envResponse = await fetch('/api/monitoring/environment');
-      if (envResponse.ok) {
-        const data = await envResponse.json();
-        setEnvInfo(data);
-      } else {
-        console.warn('Environment info not available:', envResponse.status);
-      }
+      const data = await monitoringService.getEnvironmentInfo();
+      setEnvInfo(data);
     } catch (err) {
       console.warn('Environment info fetch failed:', err);
     }
 
     // Fetch external tools status from backend API (avoids CORS issues)
     try {
-      const toolsResponse = await fetch('/api/monitoring/tools/status');
-      if (toolsResponse.ok) {
-        const toolsData: MonitoringToolsData = await toolsResponse.json();
-        setExternalTools(toolsData);
+      const toolsData: MonitoringToolsData = await monitoringService.getToolsStatus();
+      setExternalTools(toolsData);
         
-        // Also update the legacy monitoringTools state for backwards compatibility
-        setMonitoringTools([
+      // Also update the legacy monitoringTools state for backwards compatibility
+      setMonitoringTools([
           {
             name: 'Uptime Kuma',
             status: toolsData.uptimeKuma.status === 'online' ? 'healthy' : 
@@ -461,8 +397,7 @@ const MonitoringDashboard: React.FC = () => {
             message: toolsData.portainer.version ? `v${toolsData.portainer.version}` : 
                      toolsData.portainer.message || 'Service unavailable',
           },
-        ]);
-      }
+      ]);
     } catch (err) {
       console.warn('External tools status fetch failed:', err);
       // Fallback to direct checks if API fails
@@ -475,22 +410,16 @@ const MonitoringDashboard: React.FC = () => {
 
     // Fetch detailed Uptime Kuma monitor data
     try {
-      const monitorsResponse = await fetch('/api/monitoring/uptime-kuma/monitors');
-      if (monitorsResponse.ok) {
-        const monitorsData: UptimeKumaMonitorsData = await monitorsResponse.json();
-        setUptimeKumaMonitors(monitorsData);
-      }
+      const monitorsData: UptimeKumaMonitorsData = await monitoringService.getUptimeKumaMonitors();
+      setUptimeKumaMonitors(monitorsData);
     } catch (err) {
       console.warn('Uptime Kuma monitors fetch failed:', err);
     }
 
     // Fetch Portainer data
     try {
-      const portainerResponse = await fetch('/api/monitoring/portainer/containers');
-      if (portainerResponse.ok) {
-        const pData: PortainerData = await portainerResponse.json();
-        setPortainerData(pData);
-      }
+      const pData: PortainerData = await monitoringService.getPortainerContainers();
+      setPortainerData(pData);
     } catch (err) {
       console.warn('Portainer data fetch failed:', err);
     }
@@ -558,25 +487,18 @@ const MonitoringDashboard: React.FC = () => {
 
   const fetchRateLimitStatus = async () => {
     try {
-      const res = await fetch('/api/system-controls/rate-limiting', { headers: authHeader() });
-      if (res.ok) {
-        const data = await res.json();
-        setRateLimitEnabled(data.isEnabled ?? data.enabled ?? false);
-        setRateLimitLastChanged(data.lastChangedAt ?? null);
-      }
+      const data = await monitoringService.getRateLimitStatus();
+      setRateLimitEnabled(data.isEnabled ?? data.enabled ?? false);
+      setRateLimitLastChanged(data.lastChangedAt ?? null);
     } catch { /* network error – leave null */ }
   };
 
   const toggleRateLimit = async (enable: boolean) => {
     setRateLimitLoading(true);
     try {
-      const action = enable ? 'enable' : 'disable';
-      const res = await fetch(`/api/system-controls/rate-limiting/${action}`, { method: 'POST', headers: authHeader() });
-      if (res.ok) {
-        const data = await res.json();
-        setRateLimitEnabled(data.isEnabled ?? enable);
-        setRateLimitLastChanged(data.changedAt ?? new Date().toISOString());
-      }
+      const data = await monitoringService.setRateLimit(enable);
+      setRateLimitEnabled(data.isEnabled ?? enable);
+      setRateLimitLastChanged(data.changedAt ?? new Date().toISOString());
     } finally {
       setRateLimitLoading(false);
     }
@@ -584,8 +506,8 @@ const MonitoringDashboard: React.FC = () => {
 
   const fetchJwtInfo = async () => {
     try {
-      const res = await fetch('/api/system-controls/jwt-rotation', { headers: authHeader() });
-      if (res.ok) { const d = await res.json(); setJwtInfo(d); }
+      const d = await monitoringService.getJwtRotationInfo();
+      setJwtInfo(d);
     } catch { /* ignore */ }
   };
 
@@ -593,16 +515,11 @@ const MonitoringDashboard: React.FC = () => {
     setJwtRotating(true);
     setJwtRotateResult(null);
     try {
-      const res = await fetch('/api/system-controls/jwt-rotation/rotate', { method: 'POST', headers: authHeader() });
-      const d = await res.json();
-      if (res.ok) {
-        setJwtRotateResult({ success: true, message: d.message ?? 'Secret rotated successfully. All existing tokens are now invalid.' });
-        setJwtInfo(prev => ({ ...prev, fingerprint: d.newFingerprint, lastRotatedAt: new Date().toISOString(), lastRotatedBy: 'admin' }));
-      } else {
-        setJwtRotateResult({ success: false, message: d.error ?? d.message ?? 'Rotation failed.' });
-      }
-    } catch (e: any) {
-      setJwtRotateResult({ success: false, message: e.message });
+      const d = await monitoringService.rotateJwtSecret();
+      setJwtRotateResult({ success: true, message: d.message ?? 'Secret rotated successfully. All existing tokens are now invalid.' });
+      setJwtInfo(prev => ({ ...prev, fingerprint: d.newFingerprint, lastRotatedAt: new Date().toISOString(), lastRotatedBy: 'admin' }));
+    } catch (e: unknown) {
+      setJwtRotateResult({ success: false, message: e instanceof Error ? (e as Error).message : 'Rotation failed.' });
     } finally {
       setJwtRotating(false);
     }
@@ -623,8 +540,8 @@ const MonitoringDashboard: React.FC = () => {
           const res = await fetch(check.path, { method: check.method, headers: authHeader(), ...(check.body ? { body: JSON.stringify(check.body) } : {}) });
           const expected = check.expectedStatus ?? 200;
           checkResults.push({ label: check.label, path: check.path, status: res.status === expected || res.status < 400 ? 'pass' : 'fail', httpStatus: res.status, durationMs: Date.now() - cStart });
-        } catch (e: any) {
-          checkResults.push({ label: check.label, path: check.path, status: 'fail', error: e.message, durationMs: Date.now() - cStart });
+        } catch (e: unknown) {
+          checkResults.push({ label: check.label, path: check.path, status: 'fail', error: (e as Error).message, durationMs: Date.now() - cStart });
         }
       }
       batchResults.push({ id: batch.id, label: batch.label, passed: checkResults.filter(r => r.status === 'pass').length, failed: checkResults.filter(r => r.status === 'fail').length, skipped: checkResults.filter(r => r.status === 'skip').length, durationMs: Date.now() - bStart, results: checkResults });

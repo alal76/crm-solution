@@ -24,6 +24,7 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
     private readonly IFeatureManager _featureManager;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AIProviderFactory> _logger;
+    private readonly bool _useExternalProvider;
 
     public AIProviderFactory(
         IServiceProvider serviceProvider,
@@ -35,13 +36,14 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
         _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        // AP-015: Cache feature flag once per request scope; avoids per-call blocking on async flag check
+        _useExternalProvider = _configuration.GetValue<bool>("FeatureManagement:UseExternalAI");
     }
 
     /// <inheritdoc />
     public IAIPort GetProvider()
     {
-        var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI)
-            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
+        var useExternal = _useExternalProvider;
 
         // Default to Ollama (local) if external is disabled
         if (!useExternal)
@@ -109,8 +111,7 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
     /// <inheritdoc />
     public string GetActiveProviderName()
     {
-        var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI)
-            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
+        var useExternal = _useExternalProvider;
 
         if (!useExternal)
         {

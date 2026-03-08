@@ -466,7 +466,7 @@ public class AutoAssignmentService : IAutoAssignmentService
         _rules.Clear();
         _roundRobinCounters.Clear();
         _globalRoundRobinIndex = 0;
-        _nextRuleId = 1;
+        Interlocked.Exchange(ref _nextRuleId, 1);
     }
 
     #endregion

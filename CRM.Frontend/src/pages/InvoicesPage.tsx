@@ -260,12 +260,12 @@ function InvoicesPage() {
       const response = await apiClient.get('/invoices');
       setInvoices(response.data);
       setError(null);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      if ((err as any).response?.status === 404) {
         setInvoices([]);
         setError(null);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch invoices');
+        setError((err as any).response?.data?.message || 'Failed to fetch invoices');
       }
     } finally {
       setLoading(false);
@@ -389,8 +389,8 @@ function InvoicesPage() {
         setSuccessMessage('Invoice deleted successfully');
         fetchInvoices();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete invoice');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete invoice');
       }
     }
   };
@@ -403,8 +403,8 @@ function InvoicesPage() {
       setSuccessMessage('Invoice sent successfully');
       fetchInvoices();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send invoice');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to send invoice');
     }
   };
 
@@ -414,8 +414,8 @@ function InvoicesPage() {
       setSuccessMessage('Invoice marked as paid');
       fetchInvoices();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to mark invoice as paid');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to mark invoice as paid');
     }
   };
 
@@ -425,8 +425,8 @@ function InvoicesPage() {
       setSuccessMessage('Invoice approved');
       fetchInvoices();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to approve invoice');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to approve invoice');
     }
   };
 

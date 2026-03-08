@@ -293,13 +293,13 @@ export const RelatedEntitiesPanel: React.FC<RelatedEntitiesPanelProps> = ({
           total 
         }
       }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       setSections(prev => ({
         ...prev,
         [relatedType]: { 
           ...prev[relatedType], 
           loading: false, 
-          error: err.response?.data?.message || 'Failed to load related data',
+          error: (err as any).response?.data?.message || 'Failed to load related data',
           data: [],
           total: 0
         }
