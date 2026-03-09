@@ -280,6 +280,11 @@ const PortalKBPage = lazy(() => import('./pages/portal/PortalKBPage'));
 const PortalForgotPasswordPage = lazy(() => import('./pages/portal/PortalForgotPasswordPage'));
 const PortalResetPasswordPage = lazy(() => import('./pages/portal/PortalResetPasswordPage'));
 const PortalConfigPage = lazy(() => import('./pages/PortalConfigPage'));
+// Partner Portal (FLAG-002)
+const PartnerDashboardPage = lazy(() => import('./pages/partner/PartnerDashboardPage'));
+const PartnerLeadsPage = lazy(() => import('./pages/partner/PartnerLeadsPage'));
+const PartnerDealsPage = lazy(() => import('./pages/partner/PartnerDealsPage'));
+const PartnerCommissionsPage = lazy(() => import('./pages/partner/PartnerCommissionsPage'));
 
 // Inner component that can access the theme context
 function ThemedApp() {
@@ -1470,6 +1475,11 @@ function ThemedApp() {
               {/* <Route path="/admin/portal" element={<ProtectedRoute><PortalConfigPage /></ProtectedRoute>} /> */}{/* UX-CONF-009: absorbed into CRMConfigurationPage Customer Portal tab */}
               <Route path="/admin/portal" element={<ProtectedRoute><Navigate to="/admin/config/crm" replace /></ProtectedRoute>} />{/* UX-CONF-009 */}
               <Route path="/survey/:token" element={<SurveyResponsePage />} />
+              {/* Partner Portal Routes (FLAG-002) - CRM-authenticated */}
+              <Route path="/partner" element={<ProtectedRoute><PartnerDashboardPage /></ProtectedRoute>} />
+              <Route path="/partner/leads" element={<ProtectedRoute><PartnerLeadsPage /></ProtectedRoute>} />
+              <Route path="/partner/deals" element={<ProtectedRoute><PartnerDealsPage /></ProtectedRoute>} />
+              <Route path="/partner/commissions" element={<ProtectedRoute><PartnerCommissionsPage /></ProtectedRoute>} />
                         </Routes>
                         </Suspense>
                         </Container>

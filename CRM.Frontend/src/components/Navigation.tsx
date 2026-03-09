@@ -317,6 +317,7 @@ function NavigationContent() {
     'campaign-analytics': { label: 'Campaign Analytics', icon: BarChartIcon, path: '/marketing/analytics', menuName: 'CampaignAnalytics' },
     'knowledge-base': { label: 'Knowledge Base', icon: QuoteIcon, path: '/knowledge-base', menuName: 'KnowledgeBase' },
     'relationships': { label: 'Relationships', icon: RelationshipsIcon, path: '/relationships', menuName: 'Relationships' },
+    'partner-portal': { label: 'Partner Portal', icon: RelationshipsIcon, path: '/partner', menuName: 'PartnerPortal' },
     'territories': { label: 'Territories', icon: BusinessIcon, path: '/territories', menuName: 'Territories' },
     'lead-routing': { label: 'Lead Routing', icon: AutomationIcon, path: '/lead-routing', menuName: 'LeadRouting' },
     'approvals': { label: 'Approvals', icon: QuoteIcon, path: '/approvals', menuName: 'Approvals' },
@@ -671,6 +672,8 @@ function NavigationContent() {
     { id: 'export-data', order: 19, visible: true, category: 'productivity' },
     // AI Agents
     { id: 'agent-directory', order: 40, visible: true, category: 'agents' },
+    // Partner Portal (FLAG-002)
+    { id: 'partner-portal', order: 20, visible: true, category: 'sales' },
     // Help & Info
     { id: 'about', order: 50, visible: true, category: 'info' },
     { id: 'help', order: 51, visible: true, category: 'info' },

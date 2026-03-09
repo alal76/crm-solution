@@ -118,4 +118,117 @@ public sealed class PartnerPortalService : IPartnerPortalService
         AccountId = o.AccountId,
         PrimaryContactId = o.PrimaryContactId,
     };
+
+    /// <inheritdoc/>
+    public async Task<PartnerDashboardDto> GetDashboardAsync(int userId, CancellationToken ct = default)
+    {
+        var closedStages = new[] { OpportunityStage.ClosedWon, OpportunityStage.ClosedLost };
+
+        var deals = await _db.Opportunities
+            .AsNoTracking()
+            .Where(o => !o.IsDeleted && (o.SalesOwnerId == userId || o.UserId == userId))
+            .ToListAsync(ct);
+
+        var leads = await _db.Leads
+            .AsNoTracking()
+            .Where(l => !l.IsDeleted && l.OwnerId == userId)
+            .ToListAsync(ct);
+
+        var now = DateTime.UtcNow;
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var commissionThisMonth = await _db.Commissions
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted && c.UserId == userId && c.EarnedDate >= monthStart)
+            .SumAsync(c => (decimal?)c.FinalCommissionAmount, ct) ?? 0m;
+
+        var activeDeals = deals.Where(o => !closedStages.Contains(o.Stage)).ToList();
+
+        return new PartnerDashboardDto
+        {
+            PartnerName = string.Empty, // populated from auth context on client
+            ActiveDealCount = activeDeals.Count,
+            TotalLeadCount = leads.Count,
+            CommissionEarnedThisMonth = commissionThisMonth,
+            PipelineValue = activeDeals.Sum(o => o.Amount),
+            RecentDeals = deals
+                .OrderByDescending(o => o.CreatedAt)
+                .Take(5)
+                .Select(o => new PartnerDealDto
+                {
+                    Id = o.Id,
+                    Name = o.Name,
+                    Stage = o.Stage.ToString(),
+                    Amount = o.Amount,
+                    Currency = o.Currency,
+                    ExpectedCloseDate = o.ExpectedCloseDate?.ToString("yyyy-MM-dd"),
+                    CreatedAt = o.CreatedAt,
+                }),
+            RecentLeads = leads
+                .OrderByDescending(l => l.CreatedAt)
+                .Take(5)
+                .Select(l => new PartnerLeadDto
+                {
+                    Id = l.Id,
+                    FirstName = l.FirstName,
+                    LastName = l.LastName,
+                    Email = l.Email,
+                    CompanyName = l.CompanyName,
+                    Status = l.Status.ToString(),
+                    CreatedAt = l.CreatedAt,
+                }),
+        };
+    }
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<PartnerLeadDto>> GetLeadsAsync(
+        int userId,
+        int page,
+        int pageSize,
+        CancellationToken ct = default)
+    {
+        var skip = Math.Max(0, (page - 1) * pageSize);
+        var items = await _db.Leads
+            .AsNoTracking()
+            .Where(l => !l.IsDeleted && l.OwnerId == userId)
+            .OrderByDescending(l => l.CreatedAt)
+            .Skip(skip)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return items.Select(l => new PartnerLeadDto
+        {
+            Id = l.Id,
+            FirstName = l.FirstName,
+            LastName = l.LastName,
+            Email = l.Email,
+            CompanyName = l.CompanyName,
+            Status = l.Status.ToString(),
+            CreatedAt = l.CreatedAt,
+        });
+    }
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<PartnerCommissionDto>> GetCommissionsAsync(
+        int userId,
+        CancellationToken ct = default)
+    {
+        var items = await _db.Commissions
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted && c.UserId == userId)
+            .OrderByDescending(c => c.EarnedDate)
+            .ToListAsync(ct);
+
+        return items.Select(c => new PartnerCommissionDto
+        {
+            Id = c.Id,
+            CommissionNumber = c.CommissionNumber,
+            CommissionPeriod = c.CommissionPeriod,
+            CommissionAmount = c.CommissionAmount,
+            FinalCommissionAmount = c.FinalCommissionAmount,
+            Currency = c.CurrencyCode,
+            Status = c.Status.ToString(),
+            EarnedDate = c.EarnedDate,
+            PaidDate = c.PaidDate,
+        });
+    }
 }

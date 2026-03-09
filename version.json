@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 619,
+  "minor": 620,
   "patch": 0,
   "lastUpdate": "2026-03-09",
-  "description": "feat: v0.619.0 — KB-013 SelfServiceChatbot wired to IUnifiedKnowledgeSearchService (7 tests); KB-014 AIKnowledgeSearchService extended to index General KB (5 tests); FLAG-001 CustomerPortal SMTP config fixed; FLAG-003 UseExternalSearch=true + Meilisearch configured; FLAG-004 AI Assistant widget verified complete; FLAG-005 UseOptionalAuditLogging async Redis Streams queue + AuditLogConsumerHostedService (11 tests); FLAG-006 EnableSubscriptionTracking + StripeWebhookController wired to ISubscriptionService (3 tests). Build: 0 errors.",
+  "description": "feat: v0.620.0 — Wave10 MASTER_TODO completion: FLAG-002 Partner Portal FE (4 pages + service + route); COMM-001 WhatsApp provider+webhook (HMAC-SHA1, 23 tests); COMM-002 Facebook Messenger provider+webhook (HMAC-SHA256, 23 tests); COMM-003 Twitter mock provider+webhook (CRC challenge, 34 tests); COMM-004 LinkedIn mock provider+webhook (34 tests); INT-001 QuickBooks+Xero OAuth2 sync (26 tests); INT-002 Mailchimp+HubSpot sync (16 tests); INT-004 Calendly webhook+n8n workflow JSON (16 tests). All 7 MASTER_TODO items complete. Build: 0 errors, 0 TS errors.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

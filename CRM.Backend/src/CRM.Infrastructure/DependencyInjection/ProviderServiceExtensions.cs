@@ -24,6 +24,8 @@ using CRM.Infrastructure.Providers.Slack;
 using CRM.Infrastructure.Providers.Stripe;
 using CRM.Infrastructure.Providers.Superset;
 using CRM.Infrastructure.Providers.Teams;
+using CRM.Core.Configuration;
+using CRM.Infrastructure.Providers.Messaging;
 using CRM.Infrastructure.Providers.Twilio;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -159,6 +161,9 @@ public static class ProviderServiceExtensions
 
         // Payment providers
         AddPaymentProviders(services, providersSection.GetSection("Payment"));
+
+        // Messaging providers (COMM-001: WhatsApp via Twilio Sandbox)
+        AddMessagingProviders(services, providersSection.GetSection("Messaging"));
 
         // AI/LLM providers (Phase 7)
         AddAIProviders(services, providersSection.GetSection("AI"));
@@ -484,6 +489,39 @@ public static class ProviderServiceExtensions
         {
             services.Configure<StripeConfiguration>(stripeConfig);
         }
+    }
+
+    private static void AddMessagingProviders(IServiceCollection services, IConfiguration config)
+    {
+        // WhatsApp Business via Twilio REST API (COMM-001)
+        var whatsAppConfig = config.GetSection("WhatsApp");
+        var accountSid = whatsAppConfig["AccountSid"];
+        if (!string.IsNullOrEmpty(accountSid))
+        {
+            services.Configure<WhatsAppOptions>(whatsAppConfig);
+            services.AddHttpClient<WhatsAppProvider>();
+            services.AddScoped<IWhatsAppProvider, WhatsAppProvider>();
+        }
+
+        // Facebook Messenger via Graph API (COMM-002)
+        // Always registered: the webhook controller requires IOptions<FacebookMessengerOptions>
+        // for verification-challenge handling regardless of whether sending is enabled.
+        var facebookConfig = config.GetSection("Facebook");
+        services.Configure<FacebookMessengerOptions>(facebookConfig);
+        services.AddHttpClient<FacebookMessengerProvider>();
+        services.AddScoped<IFacebookMessengerProvider, FacebookMessengerProvider>();
+
+        // Twitter/X DM mock provider (COMM-003)
+        // Always registered: webhook controller requires IOptions<TwitterMessagingOptions>
+        // for CRC challenge handling. Outbound DMs are mock-only (requires $100/month paid tier).
+        services.Configure<TwitterMessagingOptions>(config.GetSection("Twitter"));
+        services.AddScoped<ITwitterMessagingProvider, TwitterMessagingProvider>();
+
+        // LinkedIn Messaging mock provider (COMM-004)
+        // Always registered: webhook controller requires IOptions<LinkedInMessagingOptions>.
+        // Outbound messaging is mock-only (requires Sales Navigator at $1,600+/year).
+        services.Configure<LinkedInMessagingOptions>(config.GetSection("LinkedIn"));
+        services.AddScoped<ILinkedInMessagingProvider, LinkedInMessagingProvider>();
     }
 
     private static void AddAIProviders(IServiceCollection services, IConfiguration config)
