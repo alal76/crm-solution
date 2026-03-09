@@ -5,7 +5,11 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
 using CRM.Core.Models;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -137,7 +141,7 @@ public enum PaymentTerms
 /// Invoice entity for billing customers.
 /// Created from Order, triggers Payment workflow.
 /// </summary>
-public class Invoice : BaseEntity
+public class Invoice : BaseEntity, IHasDomainEvents
 {
     #region Identification
 
@@ -426,6 +430,101 @@ public class Invoice : BaseEntity
     [MaxLength(500)]
     [Url]
     public string? PdfUrl { get; set; }
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>
+    /// Sends the invoice to the customer. Throws if already sent or voided.
+    /// </summary>
+    public void Send()
+    {
+        if (Status == InvoiceStatus.Voided)
+            throw new BusinessRuleException("Invoice.Send", "Cannot send a voided invoice.");
+        if (SentDate.HasValue)
+            throw new BusinessRuleException("Invoice.Send", "Invoice has already been sent.");
+        if (Status != InvoiceStatus.Draft && Status != InvoiceStatus.Approved)
+            throw new BusinessRuleException("Invoice.Send", "Invoice must be in Draft or Approved status to send.");
+
+        Status = InvoiceStatus.Sent;
+        SentDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new InvoiceSentEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Marks the invoice as fully paid. Throws if already paid or voided.
+    /// </summary>
+    public void MarkPaid()
+    {
+        if (Status == InvoiceStatus.Paid)
+            throw new BusinessRuleException("Invoice.MarkPaid", "Invoice is already marked as paid.");
+        if (Status == InvoiceStatus.Voided)
+            throw new BusinessRuleException("Invoice.MarkPaid", "Cannot mark a voided invoice as paid.");
+
+        Status = InvoiceStatus.Paid;
+        PaidDate = DateTime.UtcNow;
+        AmountPaid = TotalAmount;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new InvoiceMarkedPaidEvent(Id, TotalAmount, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Voids the invoice. Throws if already voided or fully paid.
+    /// </summary>
+    public void Void(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new BusinessRuleException("Invoice.Void", "Void reason is required.");
+        if (Status == InvoiceStatus.Voided)
+            throw new BusinessRuleException("Invoice.Void", "Invoice is already voided.");
+        if (Status == InvoiceStatus.Paid)
+            throw new BusinessRuleException("Invoice.Void", "Cannot void a fully paid invoice.");
+
+        Status = InvoiceStatus.Voided;
+        VoidedDate = DateTime.UtcNow;
+        VoidReason = reason;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new InvoiceVoidedEvent(Id, reason, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Factory method for unit testing — creates an Invoice with specified status.
+    /// </summary>
+    internal static Invoice CreateForTesting(
+        InvoiceStatus status = InvoiceStatus.Draft,
+        decimal totalAmount = 1000m)
+    {
+        return new Invoice
+        {
+            Id = 1,
+            Status = status,
+            TotalAmount = totalAmount,
+            InvoiceNumber = "INV-TEST-001",
+            DueDate = DateTime.UtcNow.AddDays(30),
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 
     #endregion
 }

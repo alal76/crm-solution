@@ -1308,7 +1308,6 @@ public class FormBuilderService : IFormBuilderService
             CompanyName = GetFormValue(formData, "company") ?? GetFormValue(formData, "companyName"),
             Title = GetFormValue(formData, "title") ?? GetFormValue(formData, "jobTitle"),
             Source = ParseLeadSource(form.LeadSource),
-            Status = LeadLifecycleStatus.New,
             OwnerId = form.DefaultLeadOwnerId,
             CampaignId = form.CampaignId,
             CreatedAt = DateTime.UtcNow

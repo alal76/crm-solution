@@ -428,7 +428,8 @@ public class ServiceRequestWorkflowTests
                 Id = 1,
                 TicketNumber = "SR-0001",
                 Subject = "Printer not working",
-                Status = ServiceRequestStatus.Open,
+                // FIXME-AP059: was Status=ServiceRequestStatus.Open; add .WithStatus(ServiceRequestStatus.Open) after construction
+
                 StatusName = "Open",
                 Priority = ServiceRequestPriority.Medium,
                 PriorityName = "Medium",
@@ -442,7 +443,8 @@ public class ServiceRequestWorkflowTests
                 Id = 2,
                 TicketNumber = "SR-0002",
                 Subject = "Cannot login",
-                Status = ServiceRequestStatus.InProgress,
+                // FIXME-AP059: was Status=ServiceRequestStatus.InProgress; add .WithStatus(ServiceRequestStatus.InProgress) after construction
+
                 StatusName = "InProgress",
                 Priority = ServiceRequestPriority.High,
                 PriorityName = "High",

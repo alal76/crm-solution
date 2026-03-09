@@ -6,6 +6,9 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 using ContactModel = CRM.Core.Models.Contact;
 
 namespace CRM.Core.Entities;
@@ -101,7 +104,7 @@ public enum QualificationFramework
 /// - User (owner - SDR/Marketing)
 /// - Products (via LeadProductInterest junction table)
 /// </summary>
-public class Lead : BaseEntity
+public class Lead : BaseEntity, IHasDomainEvents
 {
     #region Lead Status & Scoring
 
@@ -388,6 +391,98 @@ public class Lead : BaseEntity
     /// <summary>Whether the lead is still open (not converted or disqualified)</summary>
     [NotMapped]
     public bool IsOpen => Status != LeadLifecycleStatus.Converted && Status != LeadLifecycleStatus.Disqualified;
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>Converts this lead to an opportunity linked to the given account.</summary>
+    public void ConvertToOpportunity(int accountId, string opportunityTitle)
+    {
+        if (Status == LeadLifecycleStatus.Converted)
+            throw new BusinessRuleException("Lead.ConvertToOpportunity", "Lead is already converted.");
+        if (Status == LeadLifecycleStatus.Disqualified)
+            throw new BusinessRuleException("Lead.ConvertToOpportunity", "Lead is disqualified and cannot be converted.");
+
+        Status = LeadLifecycleStatus.Converted;
+        AccountId = accountId;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new LeadConvertedEvent(Id, accountId, opportunityTitle, DateTime.UtcNow));
+    }
+
+    /// <summary>Disqualifies this lead with the given reason.</summary>
+    public void Disqualify(string reason)
+    {
+        if (Status == LeadLifecycleStatus.Disqualified)
+            throw new BusinessRuleException("Lead.Disqualify", "Lead is already disqualified.");
+        if (Status == LeadLifecycleStatus.Converted)
+            throw new BusinessRuleException("Lead.Disqualify", "Cannot disqualify a converted lead.");
+
+        Status = LeadLifecycleStatus.Disqualified;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new LeadDisqualifiedEvent(Id, reason, DateTime.UtcNow));
+    }
+
+    /// <summary>Qualifies this lead with the given score.</summary>
+    public void Qualify(int score)
+    {
+        if (score <= 0)
+            throw new BusinessRuleException("Lead.Qualify", "Lead score must be positive.");
+        if (Status == LeadLifecycleStatus.Converted || Status == LeadLifecycleStatus.Disqualified)
+            throw new BusinessRuleException("Lead.Qualify", "Cannot qualify a lead that is already converted or disqualified.");
+
+        Status = LeadLifecycleStatus.Qualified;
+        Score = score;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new LeadQualifiedEvent(Id, score, DateTime.UtcNow));
+    }
+
+    /// <summary>Assigns this lead to the given owner.</summary>
+    public void Assign(int ownerId)
+    {
+        if (ownerId <= 0)
+            throw new BusinessRuleException("Lead.Assign", "Owner ID must be positive.");
+        if (Status == LeadLifecycleStatus.Converted)
+            throw new BusinessRuleException("Lead.Assign", "Cannot assign a converted lead.");
+
+        OwnerId = ownerId;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new LeadAssignedEvent(Id, ownerId));
+    }
+
+    /// <summary>Internal factory for unit tests — bypasses service layer.</summary>
+    internal static Lead CreateForTesting(
+        LeadLifecycleStatus status = LeadLifecycleStatus.New)
+    {
+        return new Lead
+        {
+            Id = 1,
+            FirstName = "Test",
+            LastName = "Lead",
+            Email = "test.lead@example.com",
+            Status = status,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
 
     #endregion
 }

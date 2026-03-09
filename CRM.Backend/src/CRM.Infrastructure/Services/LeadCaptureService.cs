@@ -138,8 +138,7 @@ public class LeadCaptureService : ILeadCaptureService
                 UtmMedium = request.UtmMedium,
                 UtmCampaign = request.UtmCampaign,
                 OriginalSource = $"Web Form: {tokenData.FormName}",
-                FirstTouchDate = DateTime.UtcNow,
-                Status = LeadLifecycleStatus.New
+                FirstTouchDate = DateTime.UtcNow
             };
 
             var leadId = await _leadService.CreateAsync(lead);

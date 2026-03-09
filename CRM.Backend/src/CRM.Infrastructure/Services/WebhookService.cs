@@ -75,7 +75,6 @@ public class WebhookService : IWebhookService
                     Email = dto.Email,
                     Phone = dto.Phone,
                     Source = LeadSource.Web,
-                    Status = LeadLifecycleStatus.New,
                     QualificationNotes = $"{dto.Subject}\n\n{dto.Message}",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow

@@ -6,7 +6,10 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
 using CRM.Core.Models;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -76,7 +79,7 @@ public enum AccountPriority
 /// Supports both Individual and Organization accounts
 /// </summary>
 [Table("Accounts")]
-public class Account : BaseEntity
+public class Account : BaseEntity, IHasDomainEvents
 {
     #region Category & Type
 
@@ -246,6 +249,9 @@ public class Account : BaseEntity
     #endregion
 
     #region Lifecycle & Status
+
+    /// <summary>Whether this account is active</summary>
+    public bool IsActive { get; set; } = true;
 
     /// <summary>Customer lifecycle stage</summary>
     public AccountLifecycleStage LifecycleStage { get; set; } = AccountLifecycleStage.Other;
@@ -698,6 +704,86 @@ public class Account : BaseEntity
 
     /// <summary>Flag indicating if shipping address is same as billing</summary>
     public bool ShippingSameAsBilling { get; set; } = true;
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>
+    /// Changes the account lifecycle stage. Throws if the account is deactivated.
+    /// </summary>
+    public void ChangeLifecycleStage(AccountLifecycleStage newStage)
+    {
+        if (!IsActive)
+            throw new BusinessRuleException("Account.ChangeLifecycleStage", "Account is deactivated and cannot change lifecycle stage.");
+
+        var oldStage = LifecycleStage;
+        LifecycleStage = newStage;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new AccountLifecycleChangedEvent(Id, oldStage, newStage));
+    }
+
+    /// <summary>
+    /// Sets the primary contact for this account. Contact ID must be positive.
+    /// </summary>
+    public void SetPrimaryContact(int contactId)
+    {
+        if (contactId <= 0)
+            throw new BusinessRuleException("Account.SetPrimaryContact", "Contact ID must be positive.");
+
+        PrimaryContactId = contactId;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new AccountPrimaryContactSetEvent(Id, contactId));
+    }
+
+    /// <summary>
+    /// Deactivates the account. Throws if already deactivated.
+    /// </summary>
+    public void Deactivate(string reason)
+    {
+        if (!IsActive)
+            throw new BusinessRuleException("Account.Deactivate", "Account is already deactivated.");
+
+        IsActive = false;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new AccountDeactivatedEvent(Id, reason, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Factory method for unit testing — creates an Account with specified lifecycle stage and active status.
+    /// </summary>
+    internal static Account CreateForTesting(
+        AccountLifecycleStage stage = AccountLifecycleStage.Lead,
+        bool isActive = true)
+    {
+        return new Account
+        {
+            Id = 1,
+            LifecycleStage = stage,
+            IsActive = isActive,
+            Company = "Test Account",
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 
     #endregion
 }

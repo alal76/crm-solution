@@ -6,6 +6,9 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -33,7 +36,7 @@ public enum SubscriptionStatus
 /// confusion with the Account entity (the company/person, formerly Customer).
 /// </summary>
 [Table("Subscriptions")]
-public class Subscription : BaseEntity
+public class Subscription : BaseEntity, IHasDomainEvents
 {
     #region Identification
 
@@ -319,6 +322,89 @@ public class Subscription : BaseEntity
     /// </summary>
     [Timestamp]
     public new byte[]? RowVersion { get; set; }
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>
+    /// Cancels the subscription with a reason. Throws if already cancelled or expired.
+    /// </summary>
+    public void Cancel(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new BusinessRuleException("Subscription.Cancel", "Cancellation reason is required.");
+        if (SubscriptionStatus == SubscriptionStatus.Cancelled)
+            throw new BusinessRuleException("Subscription.Cancel", "Subscription is already cancelled.");
+        if (SubscriptionStatus == SubscriptionStatus.Expired)
+            throw new BusinessRuleException("Subscription.Cancel", "Cannot cancel an expired subscription.");
+
+        SubscriptionStatus = SubscriptionStatus.Cancelled;
+        IsActive = false;
+        CancelledAt = DateTime.UtcNow;
+        CancellationReason = reason;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new SubscriptionCancelledEvent(Id, reason, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Reinstates a cancelled or paused subscription. Throws if already active or expired.
+    /// </summary>
+    public void Reinstate()
+    {
+        if (SubscriptionStatus == SubscriptionStatus.Active)
+            throw new BusinessRuleException("Subscription.Reinstate", "Subscription is already active.");
+        if (SubscriptionStatus == SubscriptionStatus.Expired)
+            throw new BusinessRuleException("Subscription.Reinstate", "Cannot reinstate an expired subscription.");
+        if (SubscriptionStatus != SubscriptionStatus.Cancelled && SubscriptionStatus != SubscriptionStatus.Paused && SubscriptionStatus != SubscriptionStatus.Suspended)
+            throw new BusinessRuleException("Subscription.Reinstate", "Subscription must be Cancelled, Paused, or Suspended to reinstate.");
+
+        SubscriptionStatus = SubscriptionStatus.Active;
+        IsActive = true;
+        CancelledAt = null;
+        CancellationReason = null;
+        CancelAtPeriodEnd = false;
+        PausedAt = null;
+        ResumeAt = null;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new SubscriptionReinstatedEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Factory method for unit testing — creates a Subscription with specified status.
+    /// </summary>
+    internal static Subscription CreateForTesting(
+        SubscriptionStatus status = SubscriptionStatus.Active,
+        bool isActive = true)
+    {
+        return new Subscription
+        {
+            Id = 1,
+            SubscriptionStatus = status,
+            IsActive = isActive,
+            SubscriptionNumber = "SUB-TEST-001",
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 
     #endregion
 }

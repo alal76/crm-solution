@@ -5,7 +5,10 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
 using CRM.Core.Models;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -79,7 +82,7 @@ public enum ContractType
 /// <summary>
 /// Contract entity for managing customer agreements, service contracts, and legal documents.
 /// </summary>
-public class Contract : BaseEntity
+public class Contract : BaseEntity, IHasDomainEvents
 {
     #region Identification
 
@@ -331,6 +334,95 @@ public class Contract : BaseEntity
     {
         get => Terms;
         set => Terms = value;
+    }
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>Approves the contract, transitioning it from PendingApproval to Approved.</summary>
+    public void Approve(int approvedByUserId)
+    {
+        if (Status != ContractStatus.PendingApproval)
+            throw new BusinessRuleException("Contract.Approve", "Only contracts in PendingApproval status can be approved.");
+
+        Status = ContractStatus.Approved;
+        ApprovedByUserId = approvedByUserId;
+        ApprovedDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new ContractApprovedEvent(Id, approvedByUserId, DateTime.UtcNow));
+    }
+
+    /// <summary>Renews the contract, extending its end date.</summary>
+    public void Renew(DateTime newEndDate)
+    {
+        if (Status != ContractStatus.Active && Status != ContractStatus.Expired)
+            throw new BusinessRuleException("Contract.Renew", "Only active or expired contracts can be renewed.");
+
+        Status = ContractStatus.Renewed;
+        EndDate = newEndDate;
+        RenewalCompletedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new ContractRenewedEvent(Id, newEndDate));
+    }
+
+    /// <summary>Terminates the contract early with a stated reason.</summary>
+    public void Terminate(string reason, int terminatedByUserId)
+    {
+        if (Status == ContractStatus.Terminated)
+            throw new BusinessRuleException("Contract.Terminate", "Already terminated contract cannot be terminated again.");
+
+        Status = ContractStatus.Terminated;
+        TerminationReason = reason;
+        TerminatedDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new ContractTerminatedEvent(Id, reason, terminatedByUserId, DateTime.UtcNow));
+    }
+
+    /// <summary>Marks the contract as expired when its end date passes.</summary>
+    public void Expire()
+    {
+        if (Status != ContractStatus.Active && Status != ContractStatus.Approved)
+            throw new BusinessRuleException("Contract.Expire", "Contract is not in a state that can expire.");
+
+        Status = ContractStatus.Expired;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new ContractExpiredEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>Internal factory for unit tests — bypasses service layer.</summary>
+    internal static Contract CreateForTesting(ContractStatus status = ContractStatus.Draft)
+    {
+        return new Contract
+        {
+            Id = 1,
+            ContractNumber = "CON-TEST-001",
+            Name = "Test Contract",
+            AccountId = 1,
+            Status = status,
+            StartDate = DateTime.UtcNow,
+            EndDate = DateTime.UtcNow.AddYears(1),
+            UpdatedAt = DateTime.UtcNow
+        };
     }
 
     #endregion

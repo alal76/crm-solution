@@ -7,6 +7,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -46,7 +49,7 @@ public enum QuoteStatus
 /// <summary>
 /// Quote entity for sales quotes and proposals
 /// </summary>
-public class Quote : BaseEntity
+public class Quote : BaseEntity, IHasDomainEvents
 {
     #region Identification
 
@@ -484,6 +487,101 @@ public class Quote : BaseEntity
     {
         get => Total;
         set => Total = value;
+    }
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>
+    /// Approves the quote. Throws if already approved, cancelled, or converted.
+    /// </summary>
+    public void Approve(int approvedByUserId)
+    {
+        if (Status == QuoteStatus.Approved)
+            throw new BusinessRuleException("Quote.Approve", "Quote is already approved.");
+        if (Status == QuoteStatus.Cancelled)
+            throw new BusinessRuleException("Quote.Approve", "Cannot approve a cancelled quote.");
+        if (Status == QuoteStatus.Converted)
+            throw new BusinessRuleException("Quote.Approve", "Cannot approve a converted quote.");
+
+        Status = QuoteStatus.Approved;
+        IsApproved = true;
+        ApprovalDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new QuoteApprovedEvent(Id, approvedByUserId, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Sends the quote to the customer. Throws if not approved or already sent.
+    /// </summary>
+    public void Send()
+    {
+        if (Status != QuoteStatus.Approved && Status != QuoteStatus.New && Status != QuoteStatus.Draft)
+            throw new BusinessRuleException("Quote.Send", "Quote must be in New, Draft, or Approved status to send.");
+        if (SentDate.HasValue)
+            throw new BusinessRuleException("Quote.Send", "Quote has already been sent.");
+
+        Status = QuoteStatus.Shared;
+        SentDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new QuoteSentEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Revokes/cancels the quote. Throws if already cancelled, converted, or accepted.
+    /// </summary>
+    public void Revoke(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new BusinessRuleException("Quote.Revoke", "Revocation reason is required.");
+        if (Status == QuoteStatus.Cancelled)
+            throw new BusinessRuleException("Quote.Revoke", "Quote is already cancelled.");
+        if (Status == QuoteStatus.Converted)
+            throw new BusinessRuleException("Quote.Revoke", "Cannot revoke a converted quote.");
+        if (Status == QuoteStatus.Accepted)
+            throw new BusinessRuleException("Quote.Revoke", "Cannot revoke an accepted quote.");
+
+        Status = QuoteStatus.Cancelled;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new QuoteRevokedEvent(Id, reason, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Factory method for unit testing — creates a Quote with specified status.
+    /// </summary>
+    internal static Quote CreateForTesting(
+        QuoteStatus status = QuoteStatus.New,
+        bool isApproved = false)
+    {
+        return new Quote
+        {
+            Id = 1,
+            Status = status,
+            IsApproved = isApproved,
+            Name = "Test Quote",
+            QuoteNumber = "Q-TEST-001",
+            CreatedAt = DateTime.UtcNow
+        };
     }
 
     #endregion

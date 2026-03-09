@@ -73,7 +73,7 @@ public class AutoAssignmentServiceTests : IDisposable
             TicketNumber = $"SR-{id:D6}",
             Subject = $"Test Service Request {id}",
             Description = "Test description",
-            Status = ServiceRequestStatus.New,
+
             Priority = priority,
             CategoryId = categoryId,
             Channel = ServiceRequestChannel.SelfServicePortal,
@@ -175,7 +175,8 @@ public class AutoAssignmentServiceTests : IDisposable
             {
                 TicketNumber = $"SR-LOAD-{i}",
                 Subject = $"Ticket {i}",
-                Status = ServiceRequestStatus.InProgress,
+                // FIXME-AP059: was Status=ServiceRequestStatus.InProgress; add .WithStatus(ServiceRequestStatus.InProgress) after construction
+
                 AssignedToUserId = agents[0].Id,
                 Priority = ServiceRequestPriority.Medium,
                 Channel = ServiceRequestChannel.Email,
@@ -186,14 +187,11 @@ public class AutoAssignmentServiceTests : IDisposable
         _dbContext.ServiceRequests.Add(new ServiceRequest
         {
             TicketNumber = "SR-LOAD-3",
-            Subject = "Ticket 3",
-            Status = ServiceRequestStatus.InProgress,
-            AssignedToUserId = agents[1].Id,
+            Subject = "Ticket 3", AssignedToUserId = agents[1].Id,
             Priority = ServiceRequestPriority.Medium,
             Channel = ServiceRequestChannel.Email,
             CreatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        });
+            IsDeleted = false}.WithStatus(ServiceRequestStatus.InProgress));
         await _dbContext.SaveChangesAsync();
 
         // Act
@@ -224,25 +222,19 @@ public class AutoAssignmentServiceTests : IDisposable
         _dbContext.ServiceRequests.Add(new ServiceRequest
         {
             TicketNumber = "SR-CLOSED-1",
-            Subject = "Closed Ticket",
-            Status = ServiceRequestStatus.Closed,
-            AssignedToUserId = agents[0].Id,
+            Subject = "Closed Ticket", AssignedToUserId = agents[0].Id,
             Priority = ServiceRequestPriority.Medium,
             Channel = ServiceRequestChannel.Email,
             CreatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        });
+            IsDeleted = false}.WithStatus(ServiceRequestStatus.Closed));
         _dbContext.ServiceRequests.Add(new ServiceRequest
         {
             TicketNumber = "SR-OPEN-1",
-            Subject = "Open Ticket",
-            Status = ServiceRequestStatus.InProgress,
-            AssignedToUserId = agents[1].Id,
+            Subject = "Open Ticket", AssignedToUserId = agents[1].Id,
             Priority = ServiceRequestPriority.Medium,
             Channel = ServiceRequestChannel.Email,
             CreatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        });
+            IsDeleted = false}.WithStatus(ServiceRequestStatus.InProgress));
         await _dbContext.SaveChangesAsync();
 
         // Act
@@ -342,14 +334,11 @@ public class AutoAssignmentServiceTests : IDisposable
         _dbContext.ServiceRequests.Add(new ServiceRequest
         {
             TicketNumber = "SR-EXISTING",
-            Subject = "Existing",
-            Status = ServiceRequestStatus.InProgress,
-            AssignedToUserId = agents[0].Id,
+            Subject = "Existing", AssignedToUserId = agents[0].Id,
             Priority = ServiceRequestPriority.High,
             Channel = ServiceRequestChannel.Email,
             CreatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        });
+            IsDeleted = false}.WithStatus(ServiceRequestStatus.InProgress));
         await _dbContext.SaveChangesAsync();
 
         var sr = await SeedServiceRequestAsync(priority: ServiceRequestPriority.High);

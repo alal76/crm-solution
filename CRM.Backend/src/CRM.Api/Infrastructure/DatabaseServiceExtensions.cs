@@ -5,8 +5,10 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Events;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Data.Interceptors;
+using CRM.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Infrastructure;
@@ -46,7 +48,11 @@ internal static class DatabaseServiceExtensions
             connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
         }
 
-        builder.Services.AddDbContext<CrmDbContext>(options =>
+        // AP-059: Domain event infrastructure
+        builder.Services.AddScoped<IDomainEventPublisher, DomainEventPublisher>();
+        builder.Services.AddScoped<DomainEventDispatchInterceptor>();
+
+        builder.Services.AddDbContext<CrmDbContext>((sp, options) =>
         {
             switch (databaseProvider.ToLower())
             {
@@ -73,7 +79,9 @@ internal static class DatabaseServiceExtensions
                     break;
             }
 
-            options.AddInterceptors(new AuditSaveChangesInterceptor());
+            options.AddInterceptors(
+                new AuditSaveChangesInterceptor(),
+                sp.GetRequiredService<DomainEventDispatchInterceptor>());
         });
 
         // Optional: Register CrmReadOnlyDbContext for analytics replica routing.

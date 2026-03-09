@@ -557,7 +557,6 @@ public class InteractionsController : CrmControllerBase
             Description = description,
             AccountId = interaction.AccountId,
             ContactId = interaction.ContactId,
-            Status = ServiceRequestStatus.New,
             Priority = priority,
             Channel = GetChannelFromInteractionType(interaction.InteractionType),
             SourceInteractionId = interaction.Id,

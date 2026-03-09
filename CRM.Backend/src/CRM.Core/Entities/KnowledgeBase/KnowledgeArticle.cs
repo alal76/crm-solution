@@ -5,6 +5,9 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 namespace CRM.Core.Entities.KnowledgeBase;
 
 #region Knowledge Article Enumerations
@@ -89,7 +92,7 @@ public enum ArticleVisibility
 /// <summary>
 /// Knowledge base article for self-service and agent assistance.
 /// </summary>
-public class KnowledgeArticle : BaseEntity
+public class KnowledgeArticle : BaseEntity, IHasDomainEvents
 {
     #region Identification
 
@@ -289,6 +292,75 @@ public class KnowledgeArticle : BaseEntity
 
     /// <summary>Article feedback</summary>
     public ICollection<ArticleFeedback> Feedback { get; set; } = new List<ArticleFeedback>();
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>
+    /// Publishes the article. Throws if already published or archived.
+    /// </summary>
+    public void Publish()
+    {
+        if (Status == ArticleStatus.Published)
+            throw new BusinessRuleException("KnowledgeArticle.Publish", "Article is already published.");
+        if (Status == ArticleStatus.Archived)
+            throw new BusinessRuleException("KnowledgeArticle.Publish", "Cannot publish an archived article.");
+
+        Status = ArticleStatus.Published;
+        PublishedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new KnowledgeArticlePublishedEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Archives the article. Throws if already archived.
+    /// </summary>
+    public void Archive()
+    {
+        if (Status == ArticleStatus.Archived)
+            throw new BusinessRuleException("KnowledgeArticle.Archive", "Article is already archived.");
+
+        Status = ArticleStatus.Archived;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new KnowledgeArticleArchivedEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Factory method for unit testing — creates a KnowledgeArticle with specified status.
+    /// </summary>
+    internal static KnowledgeArticle CreateForTesting(
+        ArticleStatus status = ArticleStatus.Draft)
+    {
+        return new KnowledgeArticle
+        {
+            Id = 1,
+            Status = status,
+            Title = "Test Article",
+            Content = "Test content",
+            AuthorUserId = 1,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 
     #endregion
 }
