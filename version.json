@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 621,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-03-09",
-  "description": "feat(domain): AP-059 Phase 1+2 complete - 6 entities enriched (ServiceRequest, Opportunity, Lead, Account, Contract, Incident) with IHasDomainEvents, behavioral methods, typed domain events, 238 zero-mock unit tests. Build: 0 errors, 2992 entity tests pass.",
+  "description": "chore(docs): KB-013/KB-014 verified complete - SelfServiceChatbotService wired to IUnifiedKnowledgeSearchService (7 tests), AIKnowledgeSearchService indexes both ITSM + General KB articles (14 tests). All Tier 4 KB Unified Search items done.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

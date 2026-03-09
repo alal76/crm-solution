@@ -1,8 +1,8 @@
 # CRM Solution — Master TODO List
 
-> **Last Updated:** March 9, 2026 (v0.621.0 — AP-059 Domain Model Enrichment Phase 1+2 complete: 6 entities enriched, 238 new entity behavioral tests)
-> **Version:** 0.618.1
-> **Active Backlog:** 0 active items — all P0/P1/P2/P3 complete; 2 deferred architectural items remain
+> **Last Updated:** March 9, 2026 (v0.621.1 — KB-013/KB-014 verified complete: SelfServiceChatbot wired to UnifiedKnowledgeSearch, AIKnowledgeSearchService indexes both ITSM + General KB)
+> **Version:** 0.621.1
+> **Active Backlog:** 0 active items — all P0/P1/P2/P3 complete; 2 deferred architectural items remain (XMOD-011, INT-003 blocked)
 > **Build:** ✅ 0 errors (backend + frontend) | **Tests:** ✅ 4,920+ passing, 22 skipped
 
 ---
@@ -287,8 +287,8 @@ CRM Config (/admin/config/crm — already exists)
 | ~~KB-010~~ | ✅ Create `IUnifiedKnowledgeSearchService` — `SearchAsync(query, maxResults, source?, ct)` + `IndexAllAsync`; `KnowledgeSource` enum (General/ITSM); `UnifiedKnowledgeSearchResultDto` | — |
 | ~~KB-011~~ | ✅ Implement `UnifiedKnowledgeSearchService` — parallel queries on both DbSets; merge by relevance score; optional source filter | KB-010 |
 | ~~KB-012~~ | ✅ Add `GET /api/knowledge/search` unified search endpoint + DI registration in Program.cs; 11/11 unit tests passing | KB-011 |
-| KB-013 | Wire `SelfServiceChatbotService` to `IUnifiedKnowledgeSearchService` — replace hardcoded mock articles | KB-011 |
-| KB-014 | Extend `AIKnowledgeSearchService` to index `KnowledgeArticles` (General KB) alongside existing `ITSMKnowledgeArticles` | KB-010 |
+| ~~KB-013~~ | ✅ **Done (2026-03-09)** — `SelfServiceChatbotService` constructor injects `IUnifiedKnowledgeSearchService`; 4 intent paths (password, VPN, performance, general) call `SearchAsync(userMessage, 5, KnowledgeSource.All, ct)` and map results to `KnowledgeSearchResultDto`. 7 unit tests verify wiring, result mapping, graceful fallback, and CancellationToken propagation. | KB-011 |
+| ~~KB-014~~ | ✅ **Done (2026-03-09)** — `AIKnowledgeSearchService` indexes both ITSM and General KB articles. `ReindexAllAsync` loads both DbSets; `IndexArticleAsync` falls through from ITSM to General KB; `KeywordSearchAsync` merges both sources. ID offset (100,000) prevents cache collisions. 14 unit tests including 3 KB-014-specific tests for General KB keyword search, combined source results, and empty General KB graceful handling. | KB-010 |
 
 ---
 
@@ -815,14 +815,14 @@ UX-CONF-013       Backend alignment           (parallel with UX-CONF-011, ~3h)
 UX-CONF-014       Playwright E2E tests        (after UX-CONF-011→013, ~4h)
 ```
 
-### Tier 4: Post-GA Sprint 2 (KB Unified Search)
+### Tier 4: Post-GA Sprint 2 (KB Unified Search) ✅ ALL COMPLETE
 
 ```
-KB-010            IUnifiedKnowledgeSearchService      (~2h)
-KB-011            Implementation                       (after KB-010, ~4h)
-KB-014            Extend AIKnowledgeSearchService      (after KB-010, parallel with KB-011, ~2h)
-KB-012            Unified search endpoint              (after KB-011, ~1h)
-KB-013            Wire chatbot                         (after KB-011, ~2h)
+KB-010  ✅  IUnifiedKnowledgeSearchService      (~2h)
+KB-011  ✅  Implementation                       (after KB-010, ~4h)
+KB-014  ✅  Extend AIKnowledgeSearchService      (after KB-010, parallel with KB-011, ~2h)
+KB-012  ✅  Unified search endpoint              (after KB-011, ~1h)
+KB-013  ✅  Wire chatbot                         (after KB-011, ~2h)
 ```
 
 ### Tier 5: Cleanup (P3, ongoing, no blockers)
