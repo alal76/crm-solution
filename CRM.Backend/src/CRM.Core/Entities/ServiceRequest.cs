@@ -6,7 +6,10 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
 using CRM.Core.Models;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -426,8 +429,15 @@ public class ServiceRequestCustomFieldValue : BaseEntity
 /// Main service request entity for managing customer service requests
 /// across multiple channels
 /// </summary>
-public class ServiceRequest : BaseEntity
+public class ServiceRequest : BaseEntity, IHasDomainEvents
 {
+    // --- Domain Events (IHasDomainEvents) ----------------------------------------
+    private readonly List<IDomainEvent> _domainEvents = new();
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
     #region Basic Information
 
     /// <summary>Unique ticket/case number</summary>
@@ -448,7 +458,7 @@ public class ServiceRequest : BaseEntity
     public ServiceRequestChannel Channel { get; set; } = ServiceRequestChannel.SelfServicePortal;
 
     /// <summary>Current status of the request</summary>
-    public ServiceRequestStatus Status { get; set; } = ServiceRequestStatus.New;
+    public ServiceRequestStatus Status { get; private set; } = ServiceRequestStatus.New;
 
     /// <summary>Configurable status FK for gradual migration to DB-driven enum (ENUM-MIG-009)</summary>
     public int? StatusId { get; set; }
@@ -733,6 +743,108 @@ public class ServiceRequest : BaseEntity
     public bool IsResolutionSlaAtRisk => !ResolvedDate.HasValue &&
                                           ResolutionDueDate.HasValue &&
                                           ResolutionDueDate.Value <= DateTime.UtcNow.AddHours(4);
+
+    #endregion
+
+    #region Business Operations
+
+    /// <summary>Administrative status override for generic transitions (e.g., UpdateStatusAsync, bulk ops).
+    /// Prefer Resolve/Close/Escalate/Assign/Reopen for business-specific transitions.</summary>
+    public void ChangeStatus(ServiceRequestStatus status) => Status = status;
+
+    /// <summary>Fluent status setter for collection initializers and test data setup.</summary>
+    public ServiceRequest WithStatus(ServiceRequestStatus status) { Status = status; return this; }
+
+    /// <summary>Factory for unit-testing — creates an entity in a controlled initial state.</summary>
+    public static ServiceRequest CreateForTesting(ServiceRequestStatus status)
+    {
+        var sr = new ServiceRequest();
+        sr.ChangeStatus(status);
+        return sr;
+    }
+
+    /// <summary>Resolves the service request with a resolution summary.</summary>
+    public void Resolve(string resolutionSummary, string? resolutionCode = null, string? rootCause = null)
+    {
+        if (Status == ServiceRequestStatus.Closed)
+            throw new BusinessRuleException("ServiceRequest.Resolve", "Cannot resolve a closed service request.");
+        if (Status == ServiceRequestStatus.Resolved)
+            throw new BusinessRuleException("ServiceRequest.Resolve", "Service request is already resolved.");
+
+        Status = ServiceRequestStatus.Resolved;
+        ResolutionSummary = resolutionSummary;
+        ResolutionCode = resolutionCode;
+        RootCause = rootCause;
+        ResolvedDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+
+        if (ResolutionDueDate.HasValue && ResolvedDate.Value > ResolutionDueDate.Value)
+            ResolutionSlaBreached = true;
+
+        AddDomainEvent(new ServiceRequestResolvedEvent(Id, resolutionSummary, ResolvedDate.Value));
+    }
+
+    /// <summary>Closes the service request (must be in Resolved state).</summary>
+    public void Close(string? closeNotes = null)
+    {
+        if (Status != ServiceRequestStatus.Resolved)
+            throw new BusinessRuleException("ServiceRequest.Close", "Service request must be resolved before closing.");
+
+        Status = ServiceRequestStatus.Closed;
+        ClosedDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+
+        if (!string.IsNullOrEmpty(closeNotes))
+            InternalNotes = string.IsNullOrEmpty(InternalNotes) ? closeNotes : $"{InternalNotes}\n{closeNotes}";
+
+        AddDomainEvent(new ServiceRequestClosedEvent(Id, closeNotes, ClosedDate.Value));
+    }
+
+    /// <summary>Escalates the service request to a higher support level.</summary>
+    public void Escalate(int escalationLevel, string reason)
+    {
+        if (Status == ServiceRequestStatus.Closed)
+            throw new BusinessRuleException("ServiceRequest.Escalate", "Cannot escalate a closed service request.");
+        if (Status == ServiceRequestStatus.Resolved)
+            throw new BusinessRuleException("ServiceRequest.Escalate", "Cannot escalate a resolved service request.");
+        if (escalationLevel <= 0)
+            throw new BusinessRuleException("ServiceRequest.Escalate", "Escalation level must be greater than zero.");
+
+        Status = ServiceRequestStatus.Escalated;
+        EscalationLevel = escalationLevel;
+        UpdatedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new ServiceRequestEscalatedEvent(Id, escalationLevel, reason));
+    }
+
+    /// <summary>Assigns the service request to a user.</summary>
+    public void Assign(int assigneeId)
+    {
+        if (assigneeId <= 0)
+            throw new BusinessRuleException("ServiceRequest.Assign", "Assignee ID must be greater than zero.");
+        if (Status == ServiceRequestStatus.Closed)
+            throw new BusinessRuleException("ServiceRequest.Assign", "Cannot assign a closed service request.");
+
+        AssignedToUserId = assigneeId;
+        UpdatedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new ServiceRequestAssignedEvent(Id, assigneeId));
+    }
+
+    /// <summary>Reopens a closed service request.</summary>
+    public void Reopen(string reason)
+    {
+        if (Status != ServiceRequestStatus.Closed)
+            throw new BusinessRuleException("ServiceRequest.Reopen", "Only closed service requests can be reopened.");
+
+        Status = ServiceRequestStatus.Open;
+        ResolvedDate = null;
+        ClosedDate = null;
+        ReopenCount++;
+        UpdatedAt = DateTime.UtcNow;
+
+        AddDomainEvent(new ServiceRequestReopenedEvent(Id, reason));
+    }
 
     #endregion
 }

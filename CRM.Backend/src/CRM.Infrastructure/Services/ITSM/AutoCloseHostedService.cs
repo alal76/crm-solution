@@ -150,7 +150,7 @@ public class AutoCloseHostedService : BackgroundService
 
         foreach (var request in completedRequests)
         {
-            request.Status = ServiceRequestStatus.Closed;
+            request.ChangeStatus(ServiceRequestStatus.Closed);
             request.UpdatedAt = now;
 
             _logger.LogDebug("Auto-closed service request {Id}", request.Id);

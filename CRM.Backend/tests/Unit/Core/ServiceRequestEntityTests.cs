@@ -10,6 +10,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
 using CRM.Core.Entities;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
 using FluentAssertions;
 using Xunit;
 
@@ -1160,12 +1162,12 @@ public class ServiceRequestEntityTests
         // Arrange & Act
         var request = new ServiceRequest
         {
-            Status = ServiceRequestStatus.Resolved,
             ResolvedDate = DateTime.UtcNow,
             ResolutionSummary = "Reset password and verified access",
             ResolutionCode = "PASSWORD_RESET",
             RootCause = "Password expired"
         };
+        request.ChangeStatus(ServiceRequestStatus.Resolved);
 
         // Assert
         request.Status.Should().Be(ServiceRequestStatus.Resolved);
@@ -1214,10 +1216,10 @@ public class ServiceRequestEntityTests
         // Arrange & Act
         var request = new ServiceRequest
         {
-            Status = ServiceRequestStatus.Escalated,
             EscalationLevel = 2,
             Priority = ServiceRequestPriority.Critical
         };
+        request.ChangeStatus(ServiceRequestStatus.Escalated);
 
         // Assert
         request.Status.Should().Be(ServiceRequestStatus.Escalated);
@@ -1267,7 +1269,7 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_IsOpen_ShouldBeTrueForNewStatus()
     {
         // Arrange & Act
-        var request = new ServiceRequest { Status = ServiceRequestStatus.New };
+        var request = new ServiceRequest(); // default is New
 
         // Assert
         request.IsOpen.Should().BeTrue();
@@ -1277,7 +1279,7 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_IsOpen_ShouldBeTrueForOpenStatus()
     {
         // Arrange & Act
-        var request = new ServiceRequest { Status = ServiceRequestStatus.Open };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
 
         // Assert
         request.IsOpen.Should().BeTrue();
@@ -1287,7 +1289,7 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_IsOpen_ShouldBeTrueForInProgressStatus()
     {
         // Arrange & Act
-        var request = new ServiceRequest { Status = ServiceRequestStatus.InProgress };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.InProgress);
 
         // Assert
         request.IsOpen.Should().BeTrue();
@@ -1297,7 +1299,7 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_IsOpen_ShouldBeTrueForEscalatedStatus()
     {
         // Arrange & Act
-        var request = new ServiceRequest { Status = ServiceRequestStatus.Escalated };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.Escalated);
 
         // Assert
         request.IsOpen.Should().BeTrue();
@@ -1307,7 +1309,7 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_IsOpen_ShouldBeTrueForReopenedStatus()
     {
         // Arrange & Act
-        var request = new ServiceRequest { Status = ServiceRequestStatus.Reopened };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.Reopened);
 
         // Assert
         request.IsOpen.Should().BeTrue();
@@ -1317,7 +1319,7 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_IsOpen_ShouldBeFalseForClosedStatus()
     {
         // Arrange & Act
-        var request = new ServiceRequest { Status = ServiceRequestStatus.Closed };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.Closed);
 
         // Assert
         request.IsOpen.Should().BeFalse();
@@ -1327,7 +1329,7 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_IsOpen_ShouldBeFalseForResolvedStatus()
     {
         // Arrange & Act
-        var request = new ServiceRequest { Status = ServiceRequestStatus.Resolved };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.Resolved);
 
         // Assert
         request.IsOpen.Should().BeFalse();
@@ -1337,7 +1339,7 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_IsOpen_ShouldBeFalseForCancelledStatus()
     {
         // Arrange & Act
-        var request = new ServiceRequest { Status = ServiceRequestStatus.Cancelled };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.Cancelled);
 
         // Assert
         request.IsOpen.Should().BeFalse();
@@ -1550,12 +1552,12 @@ public class ServiceRequestEntityTests
         {
             TicketNumber = "SR-001",
             Subject = "Test Issue",
-            Status = ServiceRequestStatus.New
         };
+        request.ChangeStatus(ServiceRequestStatus.New);
 
         // Act - Simulate assignment and work starting
         request.AssignedToUserId = 1;
-        request.Status = ServiceRequestStatus.InProgress;
+        request.ChangeStatus(ServiceRequestStatus.InProgress);
 
         // Assert
         request.Status.Should().Be(ServiceRequestStatus.InProgress);
@@ -1569,11 +1571,11 @@ public class ServiceRequestEntityTests
         var request = new ServiceRequest
         {
             TicketNumber = "SR-001",
-            Status = ServiceRequestStatus.InProgress
         };
+        request.ChangeStatus(ServiceRequestStatus.InProgress);
 
         // Act - Simulate resolution
-        request.Status = ServiceRequestStatus.Resolved;
+        request.ChangeStatus(ServiceRequestStatus.Resolved);
         request.ResolvedDate = DateTime.UtcNow;
         request.ResolutionSummary = "Issue fixed";
 
@@ -1589,12 +1591,12 @@ public class ServiceRequestEntityTests
         // Arrange
         var request = new ServiceRequest
         {
-            Status = ServiceRequestStatus.Resolved,
             ResolvedDate = DateTime.UtcNow.AddHours(-24)
         };
+        request.ChangeStatus(ServiceRequestStatus.Resolved);
 
         // Act - Customer confirms resolution
-        request.Status = ServiceRequestStatus.Closed;
+        request.ChangeStatus(ServiceRequestStatus.Closed);
         request.ClosedDate = DateTime.UtcNow;
         request.SatisfactionRating = 5;
         request.CustomerFeedback = "Great job!";
@@ -1612,13 +1614,13 @@ public class ServiceRequestEntityTests
         // Arrange
         var request = new ServiceRequest
         {
-            Status = ServiceRequestStatus.Resolved,
             ResolvedDate = DateTime.UtcNow.AddHours(-2),
             ReopenCount = 0
         };
+        request.ChangeStatus(ServiceRequestStatus.Resolved);
 
         // Act - Customer reports issue not fixed
-        request.Status = ServiceRequestStatus.Reopened;
+        request.ChangeStatus(ServiceRequestStatus.Reopened);
         request.ReopenCount++;
 
         // Assert
@@ -1633,13 +1635,13 @@ public class ServiceRequestEntityTests
         // Arrange
         var request = new ServiceRequest
         {
-            Status = ServiceRequestStatus.InProgress,
             Priority = ServiceRequestPriority.Medium,
             EscalationLevel = 0
         };
+        request.ChangeStatus(ServiceRequestStatus.InProgress);
 
         // Act - Escalate due to complexity
-        request.Status = ServiceRequestStatus.Escalated;
+        request.ChangeStatus(ServiceRequestStatus.Escalated);
         request.Priority = ServiceRequestPriority.High;
         request.EscalationLevel = 1;
 
@@ -1654,13 +1656,10 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_StatusWorkflow_PendingCustomer()
     {
         // Arrange
-        var request = new ServiceRequest
-        {
-            Status = ServiceRequestStatus.InProgress
-        };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.InProgress);
 
         // Act - Need more info from customer
-        request.Status = ServiceRequestStatus.PendingCustomer;
+        request.ChangeStatus(ServiceRequestStatus.PendingCustomer);
 
         // Assert
         request.Status.Should().Be(ServiceRequestStatus.PendingCustomer);
@@ -1671,13 +1670,10 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_StatusWorkflow_PendingInternal()
     {
         // Arrange
-        var request = new ServiceRequest
-        {
-            Status = ServiceRequestStatus.InProgress
-        };
+        var request = ServiceRequest.CreateForTesting(ServiceRequestStatus.InProgress);
 
         // Act - Waiting for vendor support
-        request.Status = ServiceRequestStatus.PendingInternal;
+        request.ChangeStatus(ServiceRequestStatus.PendingInternal);
 
         // Assert
         request.Status.Should().Be(ServiceRequestStatus.PendingInternal);
@@ -1688,13 +1684,10 @@ public class ServiceRequestEntityTests
     public void ServiceRequest_StatusWorkflow_Cancelled()
     {
         // Arrange
-        var request = new ServiceRequest
-        {
-            Status = ServiceRequestStatus.New
-        };
+        var request = new ServiceRequest(); // default is New
 
         // Act - Customer cancels request
-        request.Status = ServiceRequestStatus.Cancelled;
+        request.ChangeStatus(ServiceRequestStatus.Cancelled);
 
         // Assert
         request.Status.Should().Be(ServiceRequestStatus.Cancelled);
@@ -1994,7 +1987,7 @@ public class ServiceRequestEntityTests
 
         // Act - Assign to agent
         request.AssignedToUserId = 10;
-        request.Status = ServiceRequestStatus.InProgress;
+        request.ChangeStatus(ServiceRequestStatus.InProgress);
         request.FirstResponseDate = DateTime.UtcNow;
 
         // Assert after assignment
@@ -2002,7 +1995,7 @@ public class ServiceRequestEntityTests
         request.TimeToFirstResponseHours.Should().NotBeNull();
 
         // Act - Resolve ticket
-        request.Status = ServiceRequestStatus.Resolved;
+        request.ChangeStatus(ServiceRequestStatus.Resolved);
         request.ResolvedDate = DateTime.UtcNow;
         request.ResolutionSummary = "Reset VPN credentials and verified connection";
         request.ResolutionCode = "CREDENTIALS_RESET";
@@ -2013,7 +2006,7 @@ public class ServiceRequestEntityTests
         request.TimeToResolutionHours.Should().NotBeNull();
 
         // Act - Close ticket with feedback
-        request.Status = ServiceRequestStatus.Closed;
+        request.ChangeStatus(ServiceRequestStatus.Closed);
         request.ClosedDate = DateTime.UtcNow;
         request.SatisfactionRating = 4;
         request.CustomerFeedback = "Issue resolved, thank you";
@@ -2060,29 +2053,302 @@ public class ServiceRequestEntityTests
         var request = new ServiceRequest
         {
             TicketNumber = "SR-REOPEN-001",
-            Status = ServiceRequestStatus.New,
             ReopenCount = 0
         };
+        request.ChangeStatus(ServiceRequestStatus.New);
 
         // Act - First resolution and reopen
-        request.Status = ServiceRequestStatus.Resolved;
+        request.ChangeStatus(ServiceRequestStatus.Resolved);
         request.ResolvedDate = DateTime.UtcNow;
 
         // Reopen 1
-        request.Status = ServiceRequestStatus.Reopened;
+        request.ChangeStatus(ServiceRequestStatus.Reopened);
         request.ReopenCount++;
 
         // Resolve again
-        request.Status = ServiceRequestStatus.Resolved;
+        request.ChangeStatus(ServiceRequestStatus.Resolved);
 
         // Reopen 2
-        request.Status = ServiceRequestStatus.Reopened;
+        request.ChangeStatus(ServiceRequestStatus.Reopened);
         request.ReopenCount++;
 
         // Assert
         request.ReopenCount.Should().Be(2);
         request.Status.Should().Be(ServiceRequestStatus.Reopened);
         request.IsOpen.Should().BeTrue();
+    }
+
+    #endregion
+
+    #region AP-059 — ServiceRequest Behavioral Entity Tests
+
+    // ── Resolve ────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Resolve_ShouldSetStatusToResolved_WhenStatusIsOpen()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act
+        sr.Resolve("Password reset applied");
+        // Assert
+        sr.Status.Should().Be(ServiceRequestStatus.Resolved);
+    }
+
+    [Fact]
+    public void Resolve_ShouldSetResolvedDate_WhenCalled()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        var before = DateTime.UtcNow.AddSeconds(-1);
+        // Act
+        sr.Resolve("Fixed the issue");
+        // Assert
+        sr.ResolvedDate.Should().NotBeNull();
+        sr.ResolvedDate!.Value.Should().BeAfter(before);
+    }
+
+    [Fact]
+    public void Resolve_ShouldRaiseServiceRequestResolvedEvent()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act
+        sr.Resolve("Issue resolved");
+        // Assert
+        sr.DomainEvents.Should().ContainSingle(e => e is ServiceRequestResolvedEvent);
+        var evt = (ServiceRequestResolvedEvent)sr.DomainEvents.Single();
+        evt.ResolutionSummary.Should().Be("Issue resolved");
+    }
+
+    [Fact]
+    public void Resolve_ShouldThrowBusinessRuleException_WhenStatusIsClosed()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Closed);
+        // Act & Assert
+        var act = () => sr.Resolve("Summary");
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*Cannot resolve a closed*");
+    }
+
+    [Fact]
+    public void Resolve_ShouldThrowBusinessRuleException_WhenAlreadyResolved()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Resolved);
+        // Act & Assert
+        var act = () => sr.Resolve("Summary");
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*already resolved*");
+    }
+
+    [Fact]
+    public void Resolve_ShouldDetectSLABreach_WhenResolvedAfterDueDate()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Set a due date in the past so resolution will be "late"
+        sr.ResolutionDueDate = DateTime.UtcNow.AddHours(-2);
+        // Act
+        sr.Resolve("Late resolution");
+        // Assert
+        sr.ResolutionSlaBreached.Should().BeTrue();
+    }
+
+    // ── Close ─────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Close_ShouldSetStatusToClosed_WhenStatusIsResolved()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        sr.Resolve("Fixed");
+        // Act
+        sr.Close("Closing after customer confirmation");
+        // Assert
+        sr.Status.Should().Be(ServiceRequestStatus.Closed);
+    }
+
+    [Fact]
+    public void Close_ShouldRaiseServiceRequestClosedEvent()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        sr.Resolve("Fixed");
+        sr.ClearDomainEvents();
+        // Act
+        sr.Close("Done");
+        // Assert
+        sr.DomainEvents.Should().ContainSingle(e => e is ServiceRequestClosedEvent);
+    }
+
+    [Fact]
+    public void Close_ShouldThrowBusinessRuleException_WhenStatusIsNotResolved()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act & Assert
+        var act = () => sr.Close();
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*must be resolved before closing*");
+    }
+
+    // ── Escalate ──────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Escalate_ShouldSetStatusToEscalated_WhenStatusIsOpen()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act
+        sr.Escalate(1, "Customer is VIP");
+        // Assert
+        sr.Status.Should().Be(ServiceRequestStatus.Escalated);
+    }
+
+    [Fact]
+    public void Escalate_ShouldRaiseServiceRequestEscalatedEvent()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act
+        sr.Escalate(2, "Repeated failure");
+        // Assert
+        sr.DomainEvents.Should().ContainSingle(e => e is ServiceRequestEscalatedEvent);
+        var evt = (ServiceRequestEscalatedEvent)sr.DomainEvents.Single();
+        evt.EscalationLevel.Should().Be(2);
+        evt.Reason.Should().Be("Repeated failure");
+    }
+
+    [Fact]
+    public void Escalate_ShouldThrowBusinessRuleException_WhenStatusIsClosed()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Closed);
+        // Act & Assert
+        var act = () => sr.Escalate(1, "Reason");
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*Cannot escalate a closed*");
+    }
+
+    [Fact]
+    public void Escalate_ShouldThrowBusinessRuleException_WhenStatusIsResolved()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Resolved);
+        // Act & Assert
+        var act = () => sr.Escalate(1, "Reason");
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*Cannot escalate a resolved*");
+    }
+
+    // ── Assign ────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Assign_ShouldSetAssigneeId_WhenValid()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act
+        sr.Assign(42);
+        // Assert
+        sr.AssignedToUserId.Should().Be(42);
+    }
+
+    [Fact]
+    public void Assign_ShouldRaiseServiceRequestAssignedEvent()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act
+        sr.Assign(7);
+        // Assert
+        sr.DomainEvents.Should().ContainSingle(e => e is ServiceRequestAssignedEvent);
+        var evt = (ServiceRequestAssignedEvent)sr.DomainEvents.Single();
+        evt.AssigneeId.Should().Be(7);
+    }
+
+    [Fact]
+    public void Assign_ShouldThrowBusinessRuleException_WhenAssigneeIdIsZero()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act & Assert
+        var act = () => sr.Assign(0);
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*Assignee ID must be greater than zero*");
+    }
+
+    [Fact]
+    public void Assign_ShouldThrowBusinessRuleException_WhenStatusIsClosed()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Closed);
+        // Act & Assert
+        var act = () => sr.Assign(5);
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*Cannot assign a closed*");
+    }
+
+    // ── Reopen ────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public void Reopen_ShouldSetStatusToOpen_WhenStatusIsClosed()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Closed);
+        // Act
+        sr.Reopen("Customer reported issue recurred");
+        // Assert
+        sr.Status.Should().Be(ServiceRequestStatus.Open);
+    }
+
+    [Fact]
+    public void Reopen_ShouldRaiseServiceRequestReopenedEvent()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Closed);
+        // Act
+        sr.Reopen("Not fixed");
+        // Assert
+        sr.DomainEvents.Should().ContainSingle(e => e is ServiceRequestReopenedEvent);
+        var evt = (ServiceRequestReopenedEvent)sr.DomainEvents.Single();
+        evt.Reason.Should().Be("Not fixed");
+    }
+
+    [Fact]
+    public void Reopen_ShouldThrowBusinessRuleException_WhenStatusIsNotClosed()
+    {
+        // Arrange
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        // Act & Assert
+        var act = () => sr.Reopen("Reason");
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*Only closed service requests can be reopened*");
+    }
+
+    // ── IsOpen Computed Property ──────────────────────────────────────────────
+
+    [Fact]
+    public void IsOpen_ShouldReturnFalse_WhenStatusIsClosed()
+    {
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Closed);
+        sr.IsOpen.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsOpen_ShouldReturnFalse_WhenStatusIsResolved()
+    {
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Resolved);
+        sr.IsOpen.Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsOpen_ShouldReturnTrue_WhenStatusIsOpen()
+    {
+        var sr = ServiceRequest.CreateForTesting(ServiceRequestStatus.Open);
+        sr.IsOpen.Should().BeTrue();
     }
 
     #endregion

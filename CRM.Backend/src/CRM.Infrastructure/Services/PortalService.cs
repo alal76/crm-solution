@@ -113,7 +113,6 @@ public class PortalService : IPortalService
             Subject = dto.Title,
             Description = dto.Description,
             Priority = priority,
-            Status = ServiceRequestStatus.New,
             Channel = ServiceRequestChannel.SelfServicePortal,
             RequesterEmail = portalUser.Email,
             RequesterName = portalUser.DisplayName,
@@ -428,7 +427,7 @@ public class PortalService : IPortalService
                 $"Ticket cannot be cancelled \u2014 current status is '{sr.Status}'.");
         }
 
-        sr.Status = ServiceRequestStatus.Cancelled;
+        sr.ChangeStatus(ServiceRequestStatus.Cancelled);
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Portal user {UserId} cancelled ticket {TicketNumber}",

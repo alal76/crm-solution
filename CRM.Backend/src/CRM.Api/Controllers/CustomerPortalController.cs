@@ -95,7 +95,6 @@ public class CustomerPortalController : CrmControllerBase
             Description = req.Description,
             CreatedByUserId = userId,
             Priority = ServiceRequestPriority.Medium,
-            Status = ServiceRequestStatus.New,
             Channel = ServiceRequestChannel.SelfServicePortal,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

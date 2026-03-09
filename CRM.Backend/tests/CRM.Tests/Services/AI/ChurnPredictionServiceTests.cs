@@ -60,9 +60,9 @@ public class ChurnPredictionServiceTests : ServiceTestFixtureBase<ChurnPredictio
         // 3 open tickets
         var tickets = new List<ServiceRequest>
         {
-            new ServiceRequest { Id = 1, AccountId = 1, IsDeleted = false, Status = ServiceRequestStatus.Open },
-            new ServiceRequest { Id = 2, AccountId = 1, IsDeleted = false, Status = ServiceRequestStatus.Open },
-            new ServiceRequest { Id = 3, AccountId = 1, IsDeleted = false, Status = ServiceRequestStatus.InProgress }
+            new ServiceRequest { Id = 1, AccountId = 1, IsDeleted = false}.WithStatus(ServiceRequestStatus.Open),
+            new ServiceRequest { Id = 2, AccountId = 1, IsDeleted = false}.WithStatus(ServiceRequestStatus.Open),
+            new ServiceRequest { Id = 3, AccountId = 1, IsDeleted = false}.WithStatus(ServiceRequestStatus.InProgress)
         };
         // No open opportunities
         var opportunities = new List<Opportunity>();

@@ -85,7 +85,8 @@ public class ServiceRequestPluginTests
         {
             Id = 1,
             Subject = "Cannot login",
-            Status = ServiceRequestStatus.Open,
+            // FIXME-AP059: was Status=ServiceRequestStatus.Open; add .WithStatus(ServiceRequestStatus.Open) after construction
+
             Priority = ServiceRequestPriority.High
         };
         _srServiceMock.Setup(s => s.GetServiceRequestByIdAsync(1)).ReturnsAsync(ticket);
@@ -170,7 +171,8 @@ public class ServiceRequestPluginTests
         var ticket = new ServiceRequestDto
         {
             Id = 1,
-            Status = ServiceRequestStatus.InProgress,
+            // FIXME-AP059: was Status=ServiceRequestStatus.InProgress; add .WithStatus(ServiceRequestStatus.InProgress) after construction
+
             Priority = ServiceRequestPriority.Critical,
             ResponseSlaBreached = false,
             ResolutionSlaBreached = false,

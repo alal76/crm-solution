@@ -32,15 +32,16 @@ public class ConditionEvaluatorTests
         DateTime? dueDate = null,
         string subject = "Test Subject")
     {
-        return new CoreServiceRequest
+        var sr = new CoreServiceRequest
         {
             TicketNumber = "TEST-001",
             Subject = subject,
             Priority = priority,
-            Status = status,
             CategoryId = categoryId,
             DueDate = dueDate
         };
+        sr.ChangeStatus(status);
+        return sr;
     }
 
     // -------------------------------------------------------------------------

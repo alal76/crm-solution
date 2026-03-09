@@ -496,7 +496,6 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             Subject = dto.Subject,
             Description = dto.Description,
             Channel = dto.Channel,
-            Status = ServiceRequestStatus.New,
             Priority = dto.Priority,
             CategoryId = dto.CategoryId,
             SubcategoryId = dto.SubcategoryId,
@@ -568,7 +567,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.Subject = dto.Subject;
         entity.Description = dto.Description;
         entity.Channel = dto.Channel;
-        entity.Status = dto.Status;
+        entity.ChangeStatus(dto.Status);
         entity.Priority = dto.Priority;
         entity.CategoryId = dto.CategoryId;
         entity.SubcategoryId = dto.SubcategoryId;
@@ -708,7 +707,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             ?? throw new KeyNotFoundException($"Service request {id} not found");
 
         var oldStatus = entity.Status;
-        entity.Status = newStatus;
+        entity.ChangeStatus(newStatus);
         entity.LastModifiedByUserId = modifiedByUserId;
 
         // Handle status-specific logic
@@ -748,7 +747,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             // Update status if still new
             if (entity.Status == ServiceRequestStatus.New)
             {
-                entity.Status = ServiceRequestStatus.Open;
+                entity.ChangeStatus(ServiceRequestStatus.Open);
             }
 
             await _context.SaveChangesAsync();
@@ -763,18 +762,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var entity = await _context.ServiceRequests.FindAsync(id)
             ?? throw new KeyNotFoundException($"Service request {id} not found");
 
-        entity.Status = ServiceRequestStatus.Resolved;
-        entity.ResolutionSummary = resolutionSummary;
-        entity.ResolutionCode = resolutionCode;
-        entity.RootCause = rootCause;
-        entity.ResolvedDate = DateTime.UtcNow;
+        entity.Resolve(resolutionSummary, resolutionCode, rootCause);
         entity.LastModifiedByUserId = resolvedByUserId;
-
-        // Check if resolution SLA was breached
-        if (entity.ResolutionDueDate.HasValue && entity.ResolvedDate > entity.ResolutionDueDate)
-        {
-            entity.ResolutionSlaBreached = true;
-        }
 
         await _context.SaveChangesAsync();
 
@@ -832,8 +821,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var entity = await _context.ServiceRequests.FindAsync(id)
             ?? throw new KeyNotFoundException($"Service request {id} not found");
 
-        entity.Status = ServiceRequestStatus.Closed;
-        entity.ClosedDate = DateTime.UtcNow;
+        entity.Close();
         entity.LastModifiedByUserId = closedByUserId;
 
         await _context.SaveChangesAsync();
@@ -848,10 +836,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var entity = await _context.ServiceRequests.FindAsync(id)
             ?? throw new KeyNotFoundException($"Service request {id} not found");
 
-        entity.Status = ServiceRequestStatus.Reopened;
-        entity.ReopenCount++;
-        entity.ResolvedDate = null;
-        entity.ClosedDate = null;
+        entity.Reopen(reason);
         entity.InternalNotes = string.IsNullOrEmpty(entity.InternalNotes)
             ? $"Reopened: {reason}"
             : $"{entity.InternalNotes}\n\nReopened: {reason}";
@@ -870,8 +855,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         var entity = await _context.ServiceRequests.FindAsync(id)
             ?? throw new KeyNotFoundException($"Service request {id} not found");
 
-        entity.Status = ServiceRequestStatus.Escalated;
-        entity.EscalationLevel++;
+        entity.Escalate(entity.EscalationLevel + 1, reason);
         entity.InternalNotes = string.IsNullOrEmpty(entity.InternalNotes)
             ? $"Escalated (Level {entity.EscalationLevel}): {reason}"
             : $"{entity.InternalNotes}\n\nEscalated (Level {entity.EscalationLevel}): {reason}";
@@ -924,7 +908,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         if (entity.Status == ServiceRequestStatus.New)
         {
-            entity.Status = ServiceRequestStatus.Open;
+            entity.ChangeStatus(ServiceRequestStatus.Open);
         }
 
         await _context.SaveChangesAsync();

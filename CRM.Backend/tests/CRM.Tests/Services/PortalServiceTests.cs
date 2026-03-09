@@ -76,24 +76,18 @@ public class PortalServiceTests : ServiceTestFixtureBase<PortalService>
         {
             Id = 1,
             Subject = "User1 Ticket",
-            TicketNumber = "PT-001",
-            Status = ServiceRequestStatus.New,
-            Priority = ServiceRequestPriority.Medium,
+            TicketNumber = "PT-001", Priority = ServiceRequestPriority.Medium,
             RequesterEmail = "user1@portal.com",
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
+            UpdatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.New));
         _serviceRequests.Add(new ServiceRequest
         {
             Id = 2,
             Subject = "User2 Ticket",
-            TicketNumber = "PT-002",
-            Status = ServiceRequestStatus.New,
-            Priority = ServiceRequestPriority.Medium,
+            TicketNumber = "PT-002", Priority = ServiceRequestPriority.Medium,
             RequesterEmail = "user2@portal.com",
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        });
+            UpdatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.New));
 
         SetupMockDbSets();
 
@@ -376,13 +370,10 @@ public class PortalServiceTests : ServiceTestFixtureBase<PortalService>
         {
             Id = 10,
             Subject = "Open Ticket",
-            TicketNumber = "PT-010",
-            Status = ServiceRequestStatus.New,
-            Priority = ServiceRequestPriority.Medium,
+            TicketNumber = "PT-010", Priority = ServiceRequestPriority.Medium,
             RequesterEmail = "cancel@portal.com",
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            UpdatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.New);
         _portalUsers.Add(user);
         _serviceRequests.Add(ticket);
         SetupMockDbSets();
@@ -411,13 +402,10 @@ public class PortalServiceTests : ServiceTestFixtureBase<PortalService>
         {
             Id = 11,
             Subject = "Closed Ticket",
-            TicketNumber = "PT-011",
-            Status = ServiceRequestStatus.Closed,
-            Priority = ServiceRequestPriority.Low,
+            TicketNumber = "PT-011", Priority = ServiceRequestPriority.Low,
             RequesterEmail = "cancel2@portal.com",
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            UpdatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.Closed);
         _portalUsers.Add(user);
         _serviceRequests.Add(ticket);
         SetupMockDbSets();
@@ -444,13 +432,10 @@ public class PortalServiceTests : ServiceTestFixtureBase<PortalService>
         {
             Id = 12,
             Subject = "Someone Else Ticket",
-            TicketNumber = "PT-012",
-            Status = ServiceRequestStatus.Open,
-            Priority = ServiceRequestPriority.Low,
+            TicketNumber = "PT-012", Priority = ServiceRequestPriority.Low,
             RequesterEmail = "other-person@portal.com",
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            UpdatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.Open);
         _portalUsers.Add(user);
         _serviceRequests.Add(ticket);
         SetupMockDbSets();
@@ -509,13 +494,10 @@ public class PortalServiceTests : ServiceTestFixtureBase<PortalService>
         {
             Id = 20,
             Subject = "Foreign Ticket",
-            TicketNumber = "PT-020",
-            Status = ServiceRequestStatus.New,
-            Priority = ServiceRequestPriority.Low,
+            TicketNumber = "PT-020", Priority = ServiceRequestPriority.Low,
             RequesterEmail = "not-this-user@portal.com",
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            UpdatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.New);
         _portalUsers.Add(user);
         _serviceRequests.Add(ticket);
         SetupMockDbSets();
@@ -545,13 +527,10 @@ public class PortalServiceTests : ServiceTestFixtureBase<PortalService>
         {
             Id = 999_999_999,
             Subject = "No-Dir Ticket",
-            TicketNumber = "PT-NNN",
-            Status = ServiceRequestStatus.New,
-            Priority = ServiceRequestPriority.Low,
+            TicketNumber = "PT-NNN", Priority = ServiceRequestPriority.Low,
             RequesterEmail = "attach3@portal.com",
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+            UpdatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.New);
         _portalUsers.Add(user);
         _serviceRequests.Add(ticket);
         SetupMockDbSets();
