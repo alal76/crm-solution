@@ -57,6 +57,7 @@ var sslCertPassword = builder.Configuration["SSL_CERT_PASSWORD"] ?? "";
 var httpsPort = int.TryParse(builder.Configuration["HTTPS_PORT"], out var hp) ? hp : 5001;
 var httpPort = int.TryParse(builder.Configuration["HTTP_PORT"], out var p) ? p : 5000;
 
+var httpsEnabled = false;
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     // Always listen on HTTP
@@ -74,6 +75,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
             {
                 listenOptions.UseHttps(cert);
             });
+            httpsEnabled = true;
             Console.WriteLine($"HTTPS enabled on port {httpsPort} with certificate: {cert.Subject}");
         }
         catch (Exception ex)
@@ -992,6 +994,27 @@ builder.Services.AddScoped<CRM.Core.Ports.Input.IAccountingSyncService, CRM.Infr
 builder.Services.AddScoped<CRM.Core.Ports.Input.IMarketingSyncService, CRM.Infrastructure.Services.Integrations.MarketingSyncService>();
 builder.Services.AddScoped<CRM.Core.Ports.Input.ILinkedInSalesNavService, CRM.Infrastructure.Services.Integrations.LinkedInSalesNavService>();
 builder.Services.AddScoped<CRM.Core.Ports.Input.ISchedulingIntegrationService, CRM.Infrastructure.Services.Integrations.SchedulingIntegrationService>();
+
+// INT-001: QuickBooks & Xero OAuth2 accounting integrations
+builder.Services.Configure<CRM.Core.Configuration.QuickBooksOptions>(
+    builder.Configuration.GetSection(CRM.Core.Configuration.QuickBooksOptions.SectionName));
+builder.Services.Configure<CRM.Core.Configuration.XeroOptions>(
+    builder.Configuration.GetSection(CRM.Core.Configuration.XeroOptions.SectionName));
+builder.Services.AddSingleton<CRM.Infrastructure.Services.Integrations.IntegrationTokenStore>();
+builder.Services.AddHttpClient<CRM.Core.Interfaces.IQuickBooksService, CRM.Infrastructure.Services.Integrations.QuickBooksService>();
+builder.Services.AddHttpClient<CRM.Core.Interfaces.IXeroService, CRM.Infrastructure.Services.Integrations.XeroService>();
+
+// INT-002: Mailchimp contact-list sync & HubSpot bidirectional sync
+builder.Services.Configure<CRM.Core.Configuration.MailchimpOptions>(
+    builder.Configuration.GetSection(CRM.Core.Configuration.MailchimpOptions.SectionName));
+builder.Services.AddHttpClient<CRM.Core.Interfaces.IMailchimpService, CRM.Infrastructure.Services.Integrations.MailchimpService>();
+builder.Services.Configure<CRM.Core.Configuration.HubSpotOptions>(
+    builder.Configuration.GetSection(CRM.Core.Configuration.HubSpotOptions.SectionName));
+builder.Services.AddHttpClient<CRM.Core.Interfaces.IHubSpotService, CRM.Infrastructure.Services.Integrations.HubSpotService>();
+// INT-004: Calendly scheduling webhook integration
+builder.Services.Configure<CRM.Core.Configuration.CalendlyOptions>(
+    builder.Configuration.GetSection(CRM.Core.Configuration.CalendlyOptions.SectionName));
+builder.Services.AddHttpClient<CRM.Core.Interfaces.ICalendlyService, CRM.Infrastructure.Services.Integrations.CalendlyService>();
 builder.Services.Configure<NewsSocialOptions>(builder.Configuration.GetSection("NewsSocial"));
 builder.Services.AddHttpClient<INewsSocialService, NewsSocialService>();
 
@@ -1141,8 +1164,12 @@ app.UseMiddleware<ErrorHandlingMiddleware>();
 // Security headers (HSTS, X-Content-Type-Options, X-Frame-Options, etc.)
 app.UseSecurityHeaders();
 
-// HTTPS redirection
-app.UseHttpsRedirection();
+// HTTPS redirection — only active when HTTPS is actually available (certificate loaded).
+// Without a cert, Kestrel runs HTTP-only and redirecting to HTTPS would cause a connection loop.
+if (httpsEnabled)
+{
+    app.UseHttpsRedirection();
+}
 
 // CORS — must be registered before authentication/authorization
 app.UseCors();

@@ -1,9 +1,9 @@
 # CRM Solution — Master TODO List
 
-> **Last Updated:** March 9, 2026 (v0.619.0 — KB-013/014 completed; FLAG-001/003/004/005/006 completed)
-> **Version:** 0.619.0
-> **Active Backlog:** 0 P0/P1 items; 8 P2 external integrations (COMM/INT items) remain; 2 deferred
-> **Build:** ✅ 0 errors (backend + frontend) | **Tests:** ✅ 4,960+ passing
+> **Last Updated:** March 9, 2026 (v0.618.1 — KB-015/016/017 completed; AP-059 analyzed)
+> **Version:** 0.618.1
+> **Active Backlog:** 0 active items — all P0/P1/P2/P3 complete; 2 deferred architectural items remain
+> **Build:** ✅ 0 errors (backend + frontend) | **Tests:** ✅ 4,920+ passing, 22 skipped
 
 ---
 
@@ -255,20 +255,20 @@ CRM Config (/admin/config/crm — already exists)
 
 | ID | Feature | Original Blocker | Dev/Sandbox Option | Status |
 |----|---------|------------------|--------------------|--------|
-| FLAG-001 | `EnableCustomerPortal` | SMTP credentials | ✅ **Done (2026-03-09)** — Flag already enabled in dev; fixed broken `${...}` SMTP host/port literals in `appsettings.Development.json` to use `localhost:1025`; Mailpit already in providers.yml; all 10 portal page components + routes confirmed active | ✅ Unblocked |
-| FLAG-002 | Enable `EnablePartnerPortal` | Partner dashboard FE not built | No external service needed — blocker is FE code | — FE work only |
-| FLAG-003 | Enable `NewSearchExperience` | Meilisearch not configured | ✅ **Done (2026-03-09)** — `UseExternalSearch` set to `true` in `appsettings.Development.json`; Providers:Search already configured (Type=Meilisearch, localhost:7700, ApiKey=masterKey, IndexPrefix=crm_dev_); `SearchProviderFactory` test added for Meilisearch selection | ✅ Unblocked |
-| FLAG-004 | AIAssistant floating chat widget | SK agent endpoint + FE widget | ✅ **Done (2026-03-09)** — Verified complete: `AIAssistant=true` in dev; `ContextFlyout.tsx` Fab widget mounted in App.tsx after Routes; routes via `POST /api/agents/{id}/chat` (SK) or `POST /api/ai/chatbot/message` fallback; Groq provider configured | ✅ Unblocked |
-| FLAG-005 | `UseOptionalAuditLogging` extended audit | Async queue + log rotation | ✅ **Done (2026-03-09)** — `UseOptionalAuditLogging=true` in dev; `PublishAuditEventAsync` enqueues to Redis Stream `crm:audit:stream`; `AuditLogConsumerHostedService` (BackgroundService) XREADGROUP batch-writes to DB with XACK; 11 unit tests added | ✅ Unblocked |
-| FLAG-006 | `Stripe.EnableSubscriptionTracking` | Stripe account + webhook | ✅ **Done (2026-03-09)** — `EnableSubscriptionTracking` flag added + enabled in dev; `SyncSubscriptionFromStripeAsync` added to ISubscriptionService + impl; `StripeWebhookController` wired to sync subscriptions when flag enabled; stripe-mock already in providers.yml (port 12111); 3 new webhook controller tests | ✅ Unblocked |
-| COMM-001 | WhatsApp Business API | Meta Business API credentials | **Twilio WhatsApp Sandbox**: free at `console.twilio.com` → Messaging → Try WhatsApp — no WhatsApp Business account needed. **Mockoon** (`crm-mockoon:3001`) in providers.yml simulates inbound webhook payloads for automated tests | 🆓 Free Sandbox |
-| COMM-002 | Facebook Messenger | Facebook Graph API credentials | Free **Meta Developer account** at `developers.facebook.com`. Create a test app + test Facebook Page — webhooks and send-API work without approval. **Mockoon** simulates Graph API responses for unit/integration tests | 🆓 Free Sandbox |
-| COMM-003 | Twitter/X API v2 DM | X API Basic tier ($100/month) | **Mockoon** mock server can simulate X API v2 responses for inbound webhook testing. Outbound DMs require paid tier — defer real credentials to production. Suggest deprioritising until viable free tier exists | ⚠️ Partial (mock only) |
-| COMM-004 | LinkedIn Messaging | Sales Navigator Enterprise license | No affordable dev alternative. **Mockoon** can mock webhook payloads for inbound message testing only. Real credentials require Sales Navigator ($1,600+/year). Defer to production | ⚠️ Partial (mock only) |
-| INT-001 | QuickBooks/Xero accounting sync | OAuth2 app credentials | **QuickBooks Developer Sandbox**: free at `developer.intuit.com` — create an app, get `client_id`/`client_secret`, use sandbox company with pre-loaded test data. **Xero Demo Company** sandbox: free at `developer.xero.com`. Both provide full OAuth2 test environments | 🆓 Free Sandbox |
-| INT-002 | Mailchimp/HubSpot marketing sync | API credentials | **Mailchimp Free tier** (up to 500 contacts + API key) at `mailchimp.com`. **HubSpot Free CRM** (full API access) at `hubspot.com` — both viable for development without payment | 🆓 Free Sandbox |
+| FLAG-001 | Enable `EnableCustomerPortal` | SMTP credentials | **Mailpit** Docker container on port 1025/8025 — already in `docker-compose.providers.yml --profile dev-tools`. Set `Smtp:Host=crm-mailpit`, `Smtp:Port=1025`, `EnableSsl=false` in `appsettings.Local.json` | ✅ Unblocked |
+| FLAG-002 | Enable `EnablePartnerPortal` | Partner dashboard FE not built | No external service needed — blocker is FE code | ✅ Implemented (v0.620.0) — PartnerDashboardPage, PartnerLeadsPage, PartnerDealsPage, PartnerCommissionsPage + PartnerPortalController endpoints + DI registered |
+| FLAG-003 | Enable `NewSearchExperience` | Meilisearch not configured | **Meilisearch** already in `docker-compose.providers.yml` as `crm-meilisearch:7700`. Set `UseExternalSearch=true` + `Providers:Search:Type=Meilisearch` in `appsettings.Local.json` | ✅ Unblocked |
+| FLAG-004 | AIAssistant floating chat widget | SK agent endpoint + FE widget | **Ollama** in `docker-compose.ollama.yml` (local LLM). **Groq free tier** at `console.groq.com` (llama-3.3-70b, no billing required). Blocker is FE widget build, not provider | ✅ Unblocked |
+| FLAG-005 | `UseOptionalAuditLogging` extended audit | Async queue + log rotation | **Redis** (`crm-redis`) already in the db stack — use Redis Streams as the async queue. **RabbitMQ** in `docker-compose.rabbitmq.yml` if preferred. Log rotation via Serilog rolling file sink already configured | ✅ Unblocked |
+| FLAG-006 | `Stripe.EnableSubscriptionTracking` | Stripe account + webhook | **stripe-mock** (`crm-stripe-mock:12111`) in `docker-compose.providers.yml --profile dev-tools`. Use any `sk_test_*` key. For real test mode, get free Stripe test API keys at `dashboard.stripe.com` (no charges, test cards only) | ✅ Unblocked |
+| COMM-001 | WhatsApp Business API | Meta Business API credentials | **Twilio WhatsApp Sandbox**: free at `console.twilio.com` → Messaging → Try WhatsApp — no WhatsApp Business account needed. **Mockoon** (`crm-mockoon:3001`) in providers.yml simulates inbound webhook payloads for automated tests | ✅ Implemented (v0.620.0) — WhatsAppProvider + WhatsAppWebhookController (HMAC-SHA1 validation) + 23 tests |
+| COMM-002 | Facebook Messenger | Facebook Graph API credentials | Free **Meta Developer account** at `developers.facebook.com`. Create a test app + test Facebook Page — webhooks and send-API work without approval. **Mockoon** simulates Graph API responses for unit/integration tests | ✅ Implemented (v0.620.0) — FacebookMessengerProvider + FacebookWebhookController (HMAC-SHA256, GET challenge) + 23 tests |
+| COMM-003 | Twitter/X API v2 DM | X API Basic tier ($100/month) | **Mockoon** mock server can simulate X API v2 responses for inbound webhook testing. Outbound DMs require paid tier — defer real credentials to production. Suggest deprioritising until viable free tier exists | ✅ Implemented (v0.620.0) — TwitterMessagingProvider (mock-only, IsAvailable=false) + TwitterWebhookController (CRC + POST) + 17 tests |
+| COMM-004 | LinkedIn Messaging | Sales Navigator Enterprise license | No affordable dev alternative. **Mockoon** can mock webhook payloads for inbound message testing only. Real credentials require Sales Navigator ($1,600+/year). Defer to production | ✅ Implemented (v0.620.0) — LinkedInMessagingProvider (mock-only, IsAvailable=false) + LinkedInWebhookController + 17 tests |
+| INT-001 | QuickBooks/Xero accounting sync | OAuth2 app credentials | **QuickBooks Developer Sandbox**: free at `developer.intuit.com` — create an app, get `client_id`/`client_secret`, use sandbox company with pre-loaded test data. **Xero Demo Company** sandbox: free at `developer.xero.com`. Both provide full OAuth2 test environments | ✅ Implemented (v0.620.0) — QuickBooksService + XeroService + IntegrationTokenStore + OAuth2 connect/callback/sync endpoints + 26 tests |
+| INT-002 | Mailchimp/HubSpot marketing sync | API credentials | **Mailchimp Free tier** (up to 500 contacts + API key) at `mailchimp.com`. **HubSpot Free CRM** (full API access) at `hubspot.com` — both viable for development without payment | ✅ Implemented (v0.620.0) — MailchimpService + HubSpotService + sync endpoints in IntegrationsController + 16 tests |
 | INT-003 | LinkedIn Sales Navigator integration | Sales Navigator license | No viable free alternative. Defer to production | 🔴 Blocked |
-| INT-004 | Calendly/Cal.com scheduling | n8n workflow recommended | **n8n** already in `docker-compose.n8n.yml` — can receive/simulate scheduling webhooks. **Calendly free tier** provides API access for dev testing. **Cal.com** is fully open-source and self-hostable (see note below) | ✅ Unblocked |
+| INT-004 | Calendly/Cal.com scheduling | n8n workflow recommended | **n8n** already in `docker-compose.n8n.yml` — can receive/simulate scheduling webhooks. **Calendly free tier** provides API access for dev testing. **Cal.com** is fully open-source and self-hostable (see note below) | ✅ Implemented (v0.620.0) — CalendlyService + CalendlyWebhookController (HMAC-SHA256 with replay protection) + n8n workflow JSON + 16 tests |
 
 > **Cal.com self-hosted note:** Cal.com has an official Docker image (`calcom/cal.com`) but requires PostgreSQL + Redis and significant config. Recommended approach: use `n8n` to simulate scheduling webhooks locally, reserve Cal.com deployment for staging.
 
@@ -287,8 +287,8 @@ CRM Config (/admin/config/crm — already exists)
 | ~~KB-010~~ | ✅ Create `IUnifiedKnowledgeSearchService` — `SearchAsync(query, maxResults, source?, ct)` + `IndexAllAsync`; `KnowledgeSource` enum (General/ITSM); `UnifiedKnowledgeSearchResultDto` | — |
 | ~~KB-011~~ | ✅ Implement `UnifiedKnowledgeSearchService` — parallel queries on both DbSets; merge by relevance score; optional source filter | KB-010 |
 | ~~KB-012~~ | ✅ Add `GET /api/knowledge/search` unified search endpoint + DI registration in Program.cs; 11/11 unit tests passing | KB-011 |
-| ~~KB-013~~ | ✅ Done (2026-03-09) — `SelfServiceChatbotService` wired to `IUnifiedKnowledgeSearchService`; `SearchKnowledgeAsync` and `GenerateResponseAsync` pass `KnowledgeSource.All` + CancellationToken; 7 unit tests added | KB-011 |
-| ~~KB-014~~ | ✅ Done (2026-03-09) — `AIKnowledgeSearchService.KeywordSearchAsync` extended to query `context.KnowledgeArticles` (General KB) in parallel with ITSM articles; `IndexArticleAsync` falls back to General KB by Id+100_000 offset; 5 new tests (14 total) | KB-010 |
+| KB-013 | Wire `SelfServiceChatbotService` to `IUnifiedKnowledgeSearchService` — replace hardcoded mock articles | KB-011 |
+| KB-014 | Extend `AIKnowledgeSearchService` to index `KnowledgeArticles` (General KB) alongside existing `ITSMKnowledgeArticles` | KB-010 |
 
 ---
 

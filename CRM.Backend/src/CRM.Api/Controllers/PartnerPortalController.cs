@@ -1,6 +1,6 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-using CRM.Core.Dtos;
+using System.Security.Claims;
 using CRM.Core.Dtos;
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
@@ -13,7 +13,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// Partner portal API — exposes deal pipeline and shared resources to partner organisations.
-/// Requires standard CRM authentication and the EnablePartnerPortal feature flag. PORTAL-025.
+/// Requires standard CRM authentication and the EnablePartnerPortal feature flag. PORTAL-025 / FLAG-002.
 /// </summary>
 [ApiController]
 [Route("api/partner-portal")]
@@ -30,6 +30,18 @@ public sealed class PartnerPortalController : CrmControllerBase
     {
         _partnerPortal = partnerPortal;
         _logger = logger;
+    }
+
+    // ── Dashboard ────────────────────────────────────────────────────────────
+
+    /// <summary>Returns dashboard summary for the current partner user. FLAG-002.</summary>
+    [HttpGet("dashboard")]
+    [ProducesResponseType(typeof(PartnerDashboardDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetDashboard(CancellationToken ct)
+    {
+        var userId = GetCurrentUserId();
+        var result = await _partnerPortal.GetDashboardAsync(userId, ct);
+        return Ok(result);
     }
 
     // ── Deals ────────────────────────────────────────────────────────────────
@@ -97,16 +109,38 @@ public sealed class PartnerPortalController : CrmControllerBase
         return Ok(result);
     }
 
-    // ── Leads ────────────────────────────────────────────────────────────
+    // ── Leads ────────────────────────────────────────────────────────────────
 
-    /// <summary>Returns leads/deals assigned to the current partner.</summary>
+    /// <summary>Returns paginated leads owned by the current partner user. FLAG-002.</summary>
     [HttpGet("leads")]
-    [ProducesResponseType(typeof(IEnumerable<OpportunityDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<PartnerLeadDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLeads(
-        [FromQuery] int? partnerAccountId,
-        CancellationToken ct)
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
     {
-        var deals = await _partnerPortal.GetPartnerDealsAsync(partnerAccountId ?? 0, ct);
-        return Ok(deals);
+        var userId = GetCurrentUserId();
+        var result = await _partnerPortal.GetLeadsAsync(userId, page, pageSize, ct);
+        return Ok(result);
+    }
+
+    // ── Commissions ──────────────────────────────────────────────────────────
+
+    /// <summary>Returns commission history for the current partner user. FLAG-002.</summary>
+    [HttpGet("commissions")]
+    [ProducesResponseType(typeof(IEnumerable<PartnerCommissionDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCommissions(CancellationToken ct)
+    {
+        var userId = GetCurrentUserId();
+        var result = await _partnerPortal.GetCommissionsAsync(userId, ct);
+        return Ok(result);
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private int GetCurrentUserId() // NOSONAR
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(userIdClaim, out var userId) ? userId : 0;
     }
 }

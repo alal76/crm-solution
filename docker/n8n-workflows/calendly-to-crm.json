@@ -1,0 +1,191 @@
+{
+  "name": "Calendly → CRM Webhook Relay",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "calendly-events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "name": "Calendly Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [260, 300],
+      "webhookId": "calendly-events-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-001",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "invitee.created",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0002-0002-0002-000000000002",
+      "name": "Is Booking Created?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://crm-api:5000/api/webhooks/calendly",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Calendly-Webhook-Signature",
+              "value": "={{ $('Calendly Webhook').first().headers['calendly-webhook-signature'] ?? '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Calendly Webhook').first().json.body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "a1b2c3d4-0003-0003-0003-000000000003",
+      "name": "Forward Booking to CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://crm-api:5000/api/webhooks/calendly",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Calendly-Webhook-Signature",
+              "value": "={{ $('Calendly Webhook').first().headers['calendly-webhook-signature'] ?? '' }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Calendly Webhook').first().json.body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "a1b2c3d4-0004-0004-0004-000000000004",
+      "name": "Forward Cancellation to CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={ \"status\": \"processed\" }",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0005-0005-0005-000000000005",
+      "name": "Respond to Calendly",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [920, 300]
+    }
+  ],
+  "connections": {
+    "Calendly Webhook": {
+      "main": [
+        [
+          {
+            "node": "Is Booking Created?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Booking Created?": {
+      "main": [
+        [
+          {
+            "node": "Forward Booking to CRM",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Forward Cancellation to CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forward Booking to CRM": {
+      "main": [
+        [
+          {
+            "node": "Respond to Calendly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forward Cancellation to CRM": {
+      "main": [
+        [
+          {
+            "node": "Respond to Calendly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": ["calendly", "crm", "webhooks"],
+  "meta": {
+    "instanceId": "crm-n8n-instance",
+    "templateCredsSetupCompleted": false
+  },
+  "notes": "Relay workflow: receives Calendly webhook events and forwards them to the CRM API at /api/webhooks/calendly. The Calendly-Webhook-Signature header is forwarded so the CRM backend can validate the request. Both invitee.created and invitee.canceled are relayed — the CRM controller handles both event types. n8n webhook URL: http://<n8n-host>:5678/webhook/calendly-events (configure this URL in Calendly → Webhooks)."
+}

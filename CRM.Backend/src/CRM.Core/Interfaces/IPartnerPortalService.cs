@@ -21,4 +21,13 @@ public interface IPartnerPortalService
 
     /// <summary>Registers a new deal on behalf of a partner.</summary>
     Task RegisterDealAsync(RegisterPartnerDealDto dto, CancellationToken ct = default);
+
+    /// <summary>Returns dashboard summary for the given partner user. FLAG-002.</summary>
+    Task<PartnerDashboardDto> GetDashboardAsync(int userId, CancellationToken ct = default);
+
+    /// <summary>Returns leads owned by the given partner user. FLAG-002.</summary>
+    Task<IEnumerable<PartnerLeadDto>> GetLeadsAsync(int userId, int page, int pageSize, CancellationToken ct = default);
+
+    /// <summary>Returns commission records for the given partner user. FLAG-002.</summary>
+    Task<IEnumerable<PartnerCommissionDto>> GetCommissionsAsync(int userId, CancellationToken ct = default);
 }

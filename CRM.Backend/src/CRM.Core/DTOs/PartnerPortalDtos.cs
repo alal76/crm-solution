@@ -2,6 +2,82 @@
 // Copyright (C) 2024-2026 Abhishek Lal
 namespace CRM.Core.Dtos;
 
+/// <summary>Partner dashboard summary returned by GET /api/partner-portal/dashboard. FLAG-002.</summary>
+public class PartnerDashboardDto
+{
+    public string PartnerName { get; set; } = string.Empty;
+
+    public int ActiveDealCount { get; set; }
+
+    public int TotalLeadCount { get; set; }
+
+    public decimal CommissionEarnedThisMonth { get; set; }
+
+    public decimal PipelineValue { get; set; }
+
+    public IEnumerable<PartnerDealDto> RecentDeals { get; set; } = [];
+
+    public IEnumerable<PartnerLeadDto> RecentLeads { get; set; } = [];
+}
+
+/// <summary>Partner-facing deal (opportunity) summary. FLAG-002.</summary>
+public class PartnerDealDto
+{
+    public int Id { get; set; }
+
+    public string Name { get; set; } = string.Empty;
+
+    public string Stage { get; set; } = string.Empty;
+
+    public decimal Amount { get; set; }
+
+    public string Currency { get; set; } = "USD";
+
+    public string? ExpectedCloseDate { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>Partner-facing lead summary. FLAG-002.</summary>
+public class PartnerLeadDto
+{
+    public int Id { get; set; }
+
+    public string FirstName { get; set; } = string.Empty;
+
+    public string LastName { get; set; } = string.Empty;
+
+    public string Email { get; set; } = string.Empty;
+
+    public string? CompanyName { get; set; }
+
+    public string Status { get; set; } = string.Empty;
+
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>Partner commission record returned by GET /api/partner-portal/commissions. FLAG-002.</summary>
+public class PartnerCommissionDto
+{
+    public int Id { get; set; }
+
+    public string CommissionNumber { get; set; } = string.Empty;
+
+    public string CommissionPeriod { get; set; } = string.Empty;
+
+    public decimal CommissionAmount { get; set; }
+
+    public decimal FinalCommissionAmount { get; set; }
+
+    public string Currency { get; set; } = "USD";
+
+    public string Status { get; set; } = string.Empty;
+
+    public DateTime EarnedDate { get; set; }
+
+    public DateTime? PaidDate { get; set; }
+}
+
 /// <summary>A partner-facing resource (document, guide, link). PORTAL-025.</summary>
 public class PartnerResourceDto
 {
