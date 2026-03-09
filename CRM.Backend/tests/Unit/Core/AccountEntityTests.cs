@@ -5,7 +5,10 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using CRM.Core.Entities;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
 using FluentAssertions;
 using Xunit;
 
@@ -941,4 +944,165 @@ public class AccountEntityTests
 
     #endregion
 
+}
+
+/// <summary>
+/// AP-059-P2B: 12 zero-mock behavioral unit tests for Account entity domain methods.
+/// Covers ChangeLifecycleStage (4), SetPrimaryContact (4), and Deactivate (4).
+/// </summary>
+public class AccountEntityBehaviorTests
+{
+    // ---------------------------------------------------------------------------
+    #region ChangeLifecycleStage Tests
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public void ChangeLifecycleStage_ShouldUpdateStage_WhenActive()
+    {
+        var account = Account.CreateForTesting(AccountLifecycleStage.Lead, isActive: true);
+
+        account.ChangeLifecycleStage(AccountLifecycleStage.Active);
+
+        account.LifecycleStage.Should().Be(AccountLifecycleStage.Active);
+    }
+
+    [Fact]
+    public void ChangeLifecycleStage_ShouldRaiseAccountLifecycleChangedEvent()
+    {
+        var account = Account.CreateForTesting(AccountLifecycleStage.Lead, isActive: true);
+
+        account.ChangeLifecycleStage(AccountLifecycleStage.Active);
+
+        var evt = account.DomainEvents.OfType<AccountLifecycleChangedEvent>().SingleOrDefault();
+        evt.Should().NotBeNull();
+        evt!.OldStage.Should().Be(AccountLifecycleStage.Lead);
+        evt.NewStage.Should().Be(AccountLifecycleStage.Active);
+    }
+
+    [Fact]
+    public void ChangeLifecycleStage_ShouldSetUpdatedAt()
+    {
+        var before = DateTime.UtcNow.AddSeconds(-1);
+        var account = Account.CreateForTesting(AccountLifecycleStage.Lead, isActive: true);
+
+        account.ChangeLifecycleStage(AccountLifecycleStage.Active);
+
+        account.UpdatedAt.Should().NotBeNull();
+        account.UpdatedAt!.Value.Should().BeAfter(before);
+    }
+
+    [Fact]
+    public void ChangeLifecycleStage_ShouldThrowBusinessRuleException_WhenDeactivated()
+    {
+        var account = Account.CreateForTesting(AccountLifecycleStage.Lead, isActive: false);
+
+        var act = () => account.ChangeLifecycleStage(AccountLifecycleStage.Active);
+
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*Account is deactivated*");
+    }
+
+    #endregion
+
+    // ---------------------------------------------------------------------------
+    #region SetPrimaryContact Tests
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public void SetPrimaryContact_ShouldSetContactId_WhenValid()
+    {
+        var account = Account.CreateForTesting();
+
+        account.SetPrimaryContact(42);
+
+        account.PrimaryContactId.Should().Be(42);
+    }
+
+    [Fact]
+    public void SetPrimaryContact_ShouldRaiseAccountPrimaryContactSetEvent()
+    {
+        var account = Account.CreateForTesting();
+
+        account.SetPrimaryContact(99);
+
+        var evt = account.DomainEvents.OfType<AccountPrimaryContactSetEvent>().SingleOrDefault();
+        evt.Should().NotBeNull();
+        evt!.ContactId.Should().Be(99);
+    }
+
+    [Fact]
+    public void SetPrimaryContact_ShouldSetUpdatedAt()
+    {
+        var before = DateTime.UtcNow.AddSeconds(-1);
+        var account = Account.CreateForTesting();
+
+        account.SetPrimaryContact(5);
+
+        account.UpdatedAt.Should().NotBeNull();
+        account.UpdatedAt!.Value.Should().BeAfter(before);
+    }
+
+    [Fact]
+    public void SetPrimaryContact_ShouldThrowBusinessRuleException_WhenContactIdIsZero()
+    {
+        var account = Account.CreateForTesting();
+
+        var act = () => account.SetPrimaryContact(0);
+
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*Contact ID must be positive*");
+    }
+
+    #endregion
+
+    // ---------------------------------------------------------------------------
+    #region Deactivate Tests
+    // ---------------------------------------------------------------------------
+
+    [Fact]
+    public void Deactivate_ShouldSetIsActiveToFalse()
+    {
+        var account = Account.CreateForTesting();
+
+        account.Deactivate("No longer a customer");
+
+        account.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Deactivate_ShouldRaiseAccountDeactivatedEvent()
+    {
+        var account = Account.CreateForTesting();
+
+        account.Deactivate("Contract expired");
+
+        var evt = account.DomainEvents.OfType<AccountDeactivatedEvent>().SingleOrDefault();
+        evt.Should().NotBeNull();
+        evt!.Reason.Should().Be("Contract expired");
+    }
+
+    [Fact]
+    public void Deactivate_ShouldSetUpdatedAt()
+    {
+        var before = DateTime.UtcNow.AddSeconds(-1);
+        var account = Account.CreateForTesting();
+
+        account.Deactivate("Test reason");
+
+        account.UpdatedAt.Should().NotBeNull();
+        account.UpdatedAt!.Value.Should().BeAfter(before);
+    }
+
+    [Fact]
+    public void Deactivate_ShouldThrowBusinessRuleException_WhenAlreadyDeactivated()
+    {
+        var account = Account.CreateForTesting(isActive: false);
+
+        var act = () => account.Deactivate("Double deactivate");
+
+        act.Should().Throw<BusinessRuleException>()
+           .WithMessage("*already deactivated*");
+    }
+
+    #endregion
 }

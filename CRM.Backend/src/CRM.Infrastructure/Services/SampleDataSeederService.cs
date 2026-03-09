@@ -1625,7 +1625,7 @@ public class SampleDataSeederService
             var status = leadStatuses[_random.Next(leadStatuses.Length)];
             var score = _random.Next(10, 100);
 
-            leads.Add(new Lead
+            var orgLead = new Lead
             {
                 FirstName = firstName,
                 LastName = lastName,
@@ -1634,7 +1634,6 @@ public class SampleDataSeederService
                 CompanyName = $"{prefix} {suffix}",
                 Title = jobTitles[_random.Next(jobTitles.Length)],
                 Website = $"https://www.{prefix.ToLower()}{suffix.ToLower()}.com",
-                Status = status,
                 Source = leadSources[_random.Next(leadSources.Length)],
                 Score = score,
                 FitScore = _random.Next(20, 80),
@@ -1644,7 +1643,9 @@ public class SampleDataSeederService
                 MqlDate = status == LeadLifecycleStatus.Qualified || status == LeadLifecycleStatus.Converted ? DateTime.UtcNow.AddDays(-_random.Next(10, 60)) : null,
                 SqlDate = status == LeadLifecycleStatus.Converted ? DateTime.UtcNow.AddDays(-_random.Next(1, 30)) : null,
                 CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(1, 180))
-            });
+            };
+            orgLead.Status = status;
+            leads.Add(orgLead);
         }
 
         // 40 Individual Leads
@@ -1655,20 +1656,21 @@ public class SampleDataSeederService
             var status = leadStatuses[_random.Next(leadStatuses.Length)];
             var score = _random.Next(10, 80);
 
-            leads.Add(new Lead
+            var indivLead = new Lead
             {
                 FirstName = firstName,
                 LastName = lastName,
                 Email = $"{firstName.ToLower()}.{lastName.ToLower()}@personalmail.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
-                Status = status,
                 Source = leadSources[_random.Next(leadSources.Length)],
                 Score = score,
                 FitScore = _random.Next(10, 60),
                 EngagementScore = _random.Next(5, 40),
                 Region = regions[_random.Next(regions.Length)],
                 CreatedAt = DateTime.UtcNow.AddDays(-_random.Next(1, 180))
-            });
+            };
+            indivLead.Status = status;
+            leads.Add(indivLead);
         }
 
         context.Leads.AddRange(leads);

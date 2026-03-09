@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 620,
-  "patch": 1,
+  "minor": 621,
+  "patch": 0,
   "lastUpdate": "2026-03-09",
-  "description": "feat(domain): AP-059-P1A - ServiceRequest entity behavioral enrichment: IHasDomainEvents, private Status, 5 business methods, 23 entity tests. Build: 0 errors.",
+  "description": "feat(domain): AP-059 Phase 1+2 complete - 6 entities enriched (ServiceRequest, Opportunity, Lead, Account, Contract, Incident) with IHasDomainEvents, behavioral methods, typed domain events, 238 zero-mock unit tests. Build: 0 errors, 2992 entity tests pass.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

@@ -6,6 +6,9 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities.ITSM;
 
@@ -60,7 +63,7 @@ public enum ResolutionCode
 /// <summary>
 /// Represents an ITSM incident record.
 /// </summary>
-public class Incident
+public class Incident : IHasDomainEvents
 {
     [Key]
     public int IncidentId { get; set; }
@@ -193,6 +196,85 @@ public class Incident
     public ICollection<IncidentHistory>? History { get; set; }
 
     public ICollection<ProblemIncident>? ProblemIncidents { get; set; }
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>Resolves the incident with a summary. Sets SLABreached if past resolution due date.</summary>
+    public void Resolve(string resolutionSummary)
+    {
+        if (State == IncidentState.Closed)
+            throw new BusinessRuleException("Incident.Resolve", "Cannot resolve a closed incident.");
+        if (State == IncidentState.Resolved)
+            throw new BusinessRuleException("Incident.Resolve", "Incident is already resolved.");
+
+        State = IncidentState.Resolved;
+        ResolvedAt = DateTime.UtcNow;
+        ResolutionNotes = resolutionSummary;
+        SLABreached = ResolutionDueAt.HasValue && DateTime.UtcNow > ResolutionDueAt.Value;
+        ModifiedAt = DateTime.UtcNow;
+        AddDomainEvent(new IncidentResolvedEvent(IncidentId, resolutionSummary, DateTime.UtcNow, SLABreached));
+    }
+
+    /// <summary>Closes the incident. Incident must be resolved first.</summary>
+    public void Close(string? notes = null)
+    {
+        if (State != IncidentState.Resolved)
+            throw new BusinessRuleException("Incident.Close", "Incident must be resolved before closing.");
+
+        State = IncidentState.Closed;
+        ClosedAt = DateTime.UtcNow;
+        ModifiedAt = DateTime.UtcNow;
+        AddDomainEvent(new IncidentClosedEvent(IncidentId, notes, DateTime.UtcNow));
+    }
+
+    /// <summary>Escalates the incident to a higher support tier.</summary>
+    public void Escalate(int escalationLevel, string reason)
+    {
+        if (State == IncidentState.Closed || State == IncidentState.Resolved)
+            throw new BusinessRuleException("Incident.Escalate", "Cannot escalate a closed or resolved incident.");
+
+        EscalationLevel = escalationLevel;
+        ModifiedAt = DateTime.UtcNow;
+        AddDomainEvent(new IncidentEscalatedEvent(IncidentId, escalationLevel, reason));
+    }
+
+    /// <summary>Internal factory for unit tests — bypasses service layer.</summary>
+    internal static Incident CreateForTesting(
+        IncidentState state = IncidentState.New,
+        DateTime? resolutionDueAt = null)
+    {
+        return new Incident
+        {
+            IncidentId = 1,
+            Number = "INC-TEST-001",
+            ShortDescription = "Test Incident",
+            CallerId = 1,
+            Impact = IncidentImpact.Medium,
+            Urgency = IncidentUrgency.Medium,
+            State = state,
+            ResolutionDueAt = resolutionDueAt
+        };
+    }
+
+    #endregion
 }
 
 /// <summary>

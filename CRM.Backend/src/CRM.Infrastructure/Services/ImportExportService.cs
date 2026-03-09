@@ -557,7 +557,6 @@ public class ImportExportService : IImportExportService
                     Phone = record.Phone,
                     CompanyName = record.Company,
                     Source = ParseLeadSource(record.Source),
-                    Status = LeadLifecycleStatus.New,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };

@@ -7,6 +7,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using ContactModel = CRM.Core.Models.Contact;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -150,8 +153,80 @@ public enum LossReasonCategory
 /// - Lead (original source lead)
 /// - Products (via OpportunityProduct junction table)
 /// </summary>
-public class Opportunity : BaseEntity
+public class Opportunity : BaseEntity, IHasDomainEvents
 {
+    #region Domain Events (AP-059)
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    /// <summary>Default win probabilities by pipeline stage.</summary>
+    public static readonly IReadOnlyDictionary<OpportunityStage, int> StageProbabilityDefaults =
+        new Dictionary<OpportunityStage, int>
+        {
+            { OpportunityStage.Discovery,      10 },
+            { OpportunityStage.Qualification,  25 },
+            { OpportunityStage.Proposal,       50 },
+            { OpportunityStage.Negotiation,    75 },
+            { OpportunityStage.ClosedWon,     100 },
+            { OpportunityStage.ClosedLost,      0 },
+        };
+
+    #endregion
+
+    #region Business Methods (AP-059)
+
+    /// <summary>Moves the opportunity to a new pipeline stage and raises a domain event.</summary>
+    public void TransitionToStage(OpportunityStage newStage, int? probability = null)
+    {
+        if (Stage == OpportunityStage.ClosedWon || Stage == OpportunityStage.ClosedLost)
+            throw new BusinessRuleException("OpportunityStageTransition", "Cannot change stage of a closed opportunity.");
+        if (newStage == OpportunityStage.ClosedWon || newStage == OpportunityStage.ClosedLost)
+            throw new BusinessRuleException("OpportunityStageTransition", $"Stage {newStage} is not valid for transition. Use Close() instead.");
+
+        var oldStage = Stage;
+        Stage       = newStage;
+        Probability = probability ?? StageProbabilityDefaults[newStage];
+        UpdatedAt   = DateTime.UtcNow;
+
+        _domainEvents.Add(new OpportunityStageChangedEvent(Id, oldStage, newStage, Probability));
+    }
+
+    /// <summary>Closes the opportunity as Won or Lost and raises a domain event.</summary>
+    public void Close(OpportunityStage closeStage, string? reason = null)
+    {
+        if (Stage == OpportunityStage.ClosedWon || Stage == OpportunityStage.ClosedLost)
+            throw new BusinessRuleException("OpportunityClose", "Opportunity is already closed.");
+        if (closeStage != OpportunityStage.ClosedWon && closeStage != OpportunityStage.ClosedLost)
+            throw new BusinessRuleException("OpportunityClose", "Close stage must be ClosedWon or ClosedLost.");
+
+        Stage       = closeStage;
+        Probability = closeStage == OpportunityStage.ClosedWon ? 100 : 0;
+        ClosedDate  = DateTime.UtcNow;
+        UpdatedAt   = DateTime.UtcNow;
+        if (reason != null) LossReason = reason;
+
+        _domainEvents.Add(new OpportunityClosedEvent(Id, closeStage, reason, CompetitorWinnerId));
+    }
+
+    /// <summary>Updates expected revenue and close date, raising a domain event.</summary>
+    public void UpdateExpectedRevenue(decimal amount, DateTime expectedCloseDate)
+    {
+        if (amount < 0)
+            throw new BusinessRuleException("OpportunityRevenue", "Amount cannot be negative.");
+
+        Amount            = amount;
+        ExpectedCloseDate = expectedCloseDate;
+        UpdatedAt         = DateTime.UtcNow;
+
+        _domainEvents.Add(new OpportunityRevenueUpdatedEvent(Id, amount, expectedCloseDate));
+    }
+
+    #endregion
+
     #region Identification
 
     /// <summary>Opportunity name (usually Account - Product)</summary>

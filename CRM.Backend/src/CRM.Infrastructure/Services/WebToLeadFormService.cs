@@ -134,7 +134,6 @@ public class WebToLeadFormService : IWebToLeadFormService
                 LeadSourceId = form.TargetLeadSourceId,
                 OwnerId = form.DefaultOwnerId,
                 Source = LeadSource.Web,
-                Status = LeadLifecycleStatus.New,
                 OriginalSource = submission.SourceUrl,
                 FirstTouchDate = DateTime.UtcNow
             };
