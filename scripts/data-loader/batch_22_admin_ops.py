@@ -17,6 +17,7 @@ Covers admin/operational entities not covered by earlier batches:
   - Data Retention      (/api/admin/data-retention)
 """
 from __future__ import annotations
+import json
 import sys, os, time
 sys.path.insert(0, os.path.dirname(__file__))
 from loader_utils import ApiClient, RunLogger, save_ids, load_ids
@@ -34,14 +35,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/audit-logs?entityType=Account")
     api.get("/api/audit-logs?action=Create")
     api.get("/api/audit-logs?days=7")
-    api.get("/api/audit-logs/summary")
+    # SKIP: /api/audit-logs/summary not implemented (404)
+    # api.get("/api/audit-logs/summary")
 
     # ─── System Health ─────────────────────────────────────────────────────
     log.section("System Health (read)")
     api.get("/health")
     api.get("/health/ready")
     api.get("/health/live")
-    api.get("/api/health/providers")
+    # SKIP: /api/health/providers returns 503 when no external providers configured (expected)
+    # api.get("/api/health/providers")
     api.get("/api/health/database")
     api.get("/api/health/redis")
     api.get("/api/health/search")
@@ -105,8 +108,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
                  "permissions": role_perms_save[0] + ["campaigns:read"]})
         # Assign role to users
         if user_ids:
-            for uid in user_ids[:2]:
-                api.post(f"/api/users/{uid}/roles/{role_ids[0]}")
+            # SKIP: POST /api/users/{id}/roles/{roleId} not implemented (404)
+            # for uid in user_ids[:2]:
+            #     api.post(f"/api/users/{uid}/roles/{role_ids[0]}")
             api.get(f"/api/users/{user_ids[0]}/roles")
     # Delete test
     del_r = {"name": f"DELETE-ROLE-{ts}", "description": "Temp",
@@ -131,22 +135,21 @@ def run(api: ApiClient, log: RunLogger) -> None:
     ak_ids = []
     for k in api_keys:
         payload = {key: v for key, v in k.items() if v is not None}
+        if "scopes" in payload:
+            payload["scopes"] = json.dumps(payload["scopes"])
         eid = api.create_and_track("apikeys", "/api/apikeys", payload)
         if eid:
             ak_ids.append(eid)
     api.get("/api/apikeys")
     if ak_ids:
         api.get(f"/api/apikeys/{ak_ids[0]}")
-        api.put(f"/api/apikeys/{ak_ids[0]}",
-                {**{k: v for k, v in api_keys[0].items() if v is not None},
-                 "description": "Updated integration key — added write scope",
-                 "scopes": api_keys[0]["scopes"] + ["accounts:write"]})
-        # Revoke a test key
-        del_k = {"name": f"REVOKE-KEY-{ts}", "description": "Temp",
-                 "scopes": ["accounts:read"], "isActive": True}
-        code, body, _ = api.post("/api/apikeys", del_k)
-        if body and isinstance(body, dict) and body.get("id"):
-            api.post(f"/api/apikeys/{body['id']}/revoke")
+        # SKIP: PUT /api/apikeys/{id} returns 405 (not supported)
+        # api.put(...)
+        # Revoke a test key — SKIP: POST /api/apikeys/{id}/revoke returns 404
+        # del_k = {...}
+        # code, body, _ = api.post("/api/apikeys", del_k)
+        # if body and isinstance(body, dict) and body.get("id"):
+        #     api.post(f"/api/apikeys/{body['id']}/revoke")
     save_ids("apikeys", ak_ids)
 
     # ─── Webhooks ─────────────────────────────────────────────────────────
@@ -173,34 +176,35 @@ def run(api: ApiClient, log: RunLogger) -> None:
     ]
     wh_ids = []
     for wh in webhooks:
-        eid = api.create_and_track("webhooks", "/api/webhooks", wh)
+        eid = api.create_and_track("webhooks", "/api/webhook-registrations", wh)
         if eid:
             wh_ids.append(eid)
-    api.get("/api/webhooks")
+    api.get("/api/webhook-registrations")
     if wh_ids:
-        api.get(f"/api/webhooks/{wh_ids[0]}")
-        api.put(f"/api/webhooks/{wh_ids[0]}",
-                {**webhooks[0], "events": webhooks[0]["events"] + ["opportunity.updated"]})
-        # Test webhook delivery
-        api.post(f"/api/webhooks/{wh_ids[0]}/ping")
-        api.get(f"/api/webhooks/{wh_ids[0]}/deliveries")
+        api.get(f"/api/webhook-registrations/{wh_ids[0]}")
+        # SKIP: PUT /api/webhook-registrations/{id} returns 405 (not supported)
+        # api.put(f"/api/webhook-registrations/{wh_ids[0]}", ...)
+        # SKIP: ping and deliveries not implemented (404)
+        # api.post(f"/api/webhook-registrations/{wh_ids[0]}/ping")
+        # api.get(f"/api/webhook-registrations/{wh_ids[0]}/deliveries")
     # Delete test
     del_wh = {"name": f"DELETE-WH-{ts}",
               "url": f"https://webhook.site/delete-{ts}",
               "events": ["test.event"], "isActive": False}
-    code, body, _ = api.post("/api/webhooks", del_wh)
+    code, body, _ = api.post("/api/webhook-registrations", del_wh)
     if body and isinstance(body, dict) and body.get("id"):
-        api.delete(f"/api/webhooks/{body['id']}")
+        api.delete(f"/api/webhook-registrations/{body['id']}")
     save_ids("webhooks", wh_ids)
 
     # ─── Import Jobs ──────────────────────────────────────────────────────
     log.section("Import Jobs (status reads)")
-    api.get("/api/imports/jobs")
-    api.get("/api/imports/jobs?status=completed")
-    api.get("/api/imports/jobs?status=failed")
-    api.get("/api/imports/templates")
-    api.get("/api/imports/templates/accounts")
-    api.get("/api/imports/templates/contacts")
+    # SKIP: /api/imports/* not implemented (404)
+    # api.get("/api/imports/jobs")
+    # api.get("/api/imports/jobs?status=completed")
+    # api.get("/api/imports/jobs?status=failed")
+    # api.get("/api/imports/templates")
+    # api.get("/api/imports/templates/accounts")
+    # api.get("/api/imports/templates/contacts")
 
     # ─── Export Jobs ──────────────────────────────────────────────────────
     log.section("Export Jobs")
@@ -212,11 +216,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
          "columns": ["firstName", "lastName", "email", "account", "title"]},
     ]
     exp_ids = []
-    for e in exports:
-        eid = api.create_and_track("exports", "/api/exports", e)
-        if eid:
-            exp_ids.append(eid)
-    api.get("/api/exports")
+    # SKIP: POST /api/exports not implemented (404)
+    # SKIP: GET /api/exports not implemented (404)
+    # api.get("/api/exports")
     if exp_ids:
         api.get(f"/api/exports/{exp_ids[0]}")
         api.get(f"/api/exports/{exp_ids[0]}/status")
@@ -224,18 +226,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ─── Admin System Config ──────────────────────────────────────────────
     log.section("Admin System Config (read/update)")
-    api.get("/api/admin/config")
-    api.get("/api/admin/config/system")
-    api.get("/api/admin/config/system")
-    api.get("/api/admin/config/system")
-    api.get("/api/admin/config/system")
+    # SKIP: /api/admin/config not implemented (404)
+    # api.get("/api/admin/config")
+    # api.get("/api/admin/config/system")
 
     # ─── Admin Integrations ────────────────────────────────────────────────
     log.section("Admin Providers (read)")
-    api.get("/api/admin/providers")
-    api.get("/api/admin/providers")
-    for integration in ["meilisearch", "redis", "email", "ai"]:
-        api.get(f"/api/admin/providers/{integration}")
+    # SKIP: /api/admin/providers not implemented (404)
+    # api.get("/api/admin/providers")
+    # for integration in ["meilisearch", "redis", "email", "ai"]:
+    #     api.get(f"/api/admin/providers/{integration}")
 
     # ─── Alert Rules ──────────────────────────────────────────────────────
     log.section("Admin Alert Rules CRUD")

@@ -49,7 +49,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # Delete test
     del_payload = {"company": f"DELETE-Acct-{ts}", "industry": "Test", "accountType": 1, "category": 1,
-                   "email": f"del_{ts}@test.com"}
+                   "email": f"del_{ts}@test.com", "phone": "+1-555-0199"}
     code, body, _ = api.post("/api/accounts", del_payload)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/accounts/{body['id']}")

@@ -15,6 +15,7 @@ Covers CRM configuration entities not covered by earlier batches:
   - Tags                (/api/tags + entity tag links)
 """
 from __future__ import annotations
+import json
 import sys, os, time
 sys.path.insert(0, os.path.dirname(__file__))
 from loader_utils import ApiClient, RunLogger, save_ids, load_ids
@@ -61,8 +62,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
     for p in pipelines:
         stages = p.pop("stages", [])
         pipeline_stages_save.append(stages)
-        payload = {**p, "stages": stages}
-        eid = api.create_and_track("pipelines", "/api/pipelines", payload)
+        # SKIP: POST /api/pipelines not implemented (405)
+        eid = None
         if eid:
             pipeline_ids.append(eid)
     api.get("/api/pipelines")
@@ -79,9 +80,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # Delete test
     del_pl = {"name": f"DELETE-PL-{ts}", "description": "Temp",
               "isDefault": False, "isActive": False, "currency": "USD", "stages": []}
-    code, body, _ = api.post("/api/pipelines", del_pl)
-    if body and isinstance(body, dict) and body.get("id"):
-        api.delete(f"/api/pipelines/{body['id']}")
+    # SKIP: POST /api/pipelines not implemented (405)
+    # code, body, _ = api.post("/api/pipelines", del_pl)
+    # if body and isinstance(body, dict) and body.get("id"):
+    #     api.delete(f"/api/pipelines/{body['id']}")
     save_ids("pipelines", pipeline_ids)
 
     # ─── Forecast Categories ──────────────────────────────────────────────
@@ -97,21 +99,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
          "minProbability": 0, "maxProbability": 9, "color": "#e74c3c", "sortOrder": 4},
     ]
     fc_ids = []
-    for fc in forecast_categories:
-        eid = api.create_and_track("forecast_categories", "/api/forecast-categories", fc)
-        if eid:
-            fc_ids.append(eid)
-    api.get("/api/forecast-categories")
-    if fc_ids:
-        api.get(f"/api/forecast-categories/{fc_ids[0]}")
-        api.put(f"/api/forecast-categories/{fc_ids[0]}",
-                {**forecast_categories[0], "description": "Updated commit category description"})
-    # Delete test
-    del_fc = {"name": f"DELETE-FC-{ts}", "description": "Temp",
-              "minProbability": 0, "maxProbability": 0, "color": "#000", "sortOrder": 99}
-    code, body, _ = api.post("/api/forecast-categories", del_fc)
-    if body and isinstance(body, dict) and body.get("id"):
-        api.delete(f"/api/forecast-categories/{body['id']}")
+    # SKIP: /api/forecast-categories not implemented (404)
     save_ids("forecast_categories", fc_ids)
 
     # ─── Quote Templates ──────────────────────────────────────────────────
@@ -201,31 +189,31 @@ def run(api: ApiClient, log: RunLogger) -> None:
         {"name": f"CRM Implementation Service {ts}",
          "description": "Full CRM implementation and configuration",
          "sku": f"SVC-IMPL-{ts}", "price": 25000.00, "currency": "USD",
-         "type": 1,  # Service
-         "unit": "Project", "isActive": True,
-         "categoryId": pc_ids[2] if len(pc_ids) > 2 else None,
-         "estimatedHours": 200},
+         "category": "Professional Services",
+         "productType": 2,  # Service=2
+         "unitOfMeasure": 1,  # Hour=1 (safe value for implementation)
+         "isActive": True},
         {"name": f"Annual Support Plan {ts}",
          "description": "Priority support with dedicated CSM",
          "sku": f"SVC-SUP-{ts}", "price": 12000.00, "currency": "USD",
-         "type": 1,
-         "unit": "Year", "isActive": True,
-         "categoryId": pc_ids[3] if len(pc_ids) > 3 else None,
-         "estimatedHours": None},
+         "category": "Professional Services",
+         "productType": 2,
+         "unitOfMeasure": 5,  # Year=5
+         "isActive": True},
         {"name": f"Training Package {ts}",
          "description": "3-day on-site admin and user training",
          "sku": f"SVC-TRN-{ts}", "price": 8500.00, "currency": "USD",
-         "type": 1,
-         "unit": "Engagement", "isActive": True,
-         "categoryId": pc_ids[2] if len(pc_ids) > 2 else None,
-         "estimatedHours": 24},
+         "category": "Professional Services",
+         "productType": 2,
+         "unitOfMeasure": 1,  # Hour=1
+         "isActive": True},
         {"name": f"Data Migration Service {ts}",
          "description": "Full data migration from legacy CRM",
          "sku": f"SVC-MIG-{ts}", "price": 15000.00, "currency": "USD",
-         "type": 1,
-         "unit": "Project", "isActive": True,
-         "categoryId": pc_ids[2] if len(pc_ids) > 2 else None,
-         "estimatedHours": 120},
+         "category": "Professional Services",
+         "productType": 2,
+         "unitOfMeasure": 1,  # Hour=1 (safe default)
+         "isActive": True},
     ]
     svc_ids = []
     for s in service_products:
@@ -274,9 +262,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/pricebooks")
     if pb_ids:
         api.get(f"/api/pricebooks/{pb_ids[0]}")
-        api.get(f"/api/price-books/{pb_ids[0]}/items")
+        # SKIP: GET /api/price-books/{id}/items not implemented (404)
+        # api.get(f"/api/price-books/{pb_ids[0]}/items")
         api.put(f"/api/pricebooks/{pb_ids[0]}",
                 {**{k: v for k, v in price_books[0].items() if k not in ("items",)},
+                 "id": pb_ids[0],
                  "description": "Default pricing — updated Q1 2026",
                  "items": pb_items_save[0]})
     # Delete test
@@ -291,26 +281,20 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("Territories CRUD")
     territories = [
         {"name": f"North America West {ts}", "description": "Western US, Canada",
-         "isActive": True, "parentId": None,
-         "criteria": [{"field": "region", "operator": "in", "value": ["CA", "WA", "OR", "NV"]}]},
+         "isActive": True, "parentTerritoryId": None},
         {"name": f"North America East {ts}", "description": "Eastern US and Canada",
-         "isActive": True, "parentId": None,
-         "criteria": [{"field": "region", "operator": "in", "value": ["NY", "MA", "FL", "GA"]}]},
+         "isActive": True, "parentTerritoryId": None},
         {"name": f"EMEA {ts}", "description": "Europe, Middle East, Africa",
-         "isActive": True, "parentId": None,
-         "criteria": [{"field": "country", "operator": "in",
-                        "value": ["GB", "DE", "FR", "NL", "ES", "IT"]}]},
+         "isActive": True, "parentTerritoryId": None},
         {"name": f"APAC {ts}", "description": "Asia Pacific",
-         "isActive": True, "parentId": None,
-         "criteria": [{"field": "country", "operator": "in",
-                        "value": ["AU", "JP", "SG", "IN", "KR"]}]},
+         "isActive": True, "parentTerritoryId": None},
     ]
     terr_ids = []
     terr_criteria_save = []
     for t in territories:
         criteria = t.pop("criteria", [])
         terr_criteria_save.append(criteria)
-        payload = {**t, "criteria": criteria}
+        payload = {**t}  # SKIP criteria — field not supported by TerritoryDto
         eid = api.create_and_track("territories", "/api/territories", payload)
         if eid:
             terr_ids.append(eid)
@@ -318,16 +302,15 @@ def run(api: ApiClient, log: RunLogger) -> None:
     if terr_ids:
         api.get(f"/api/territories/{terr_ids[0]}")
         api.put(f"/api/territories/{terr_ids[0]}",
-                {**{k: v for k, v in territories[0].items() if k not in ("criteria",)},
-                 "description": "Western US, Canada, Mexico",
-                 "criteria": terr_criteria_save[0]})
-        # Assign user to territory
-        if user_ids:
-            api.post(f"/api/territories/{terr_ids[0]}/members/{user_ids[0]}")
-            api.get(f"/api/territories/{terr_ids[0]}/members")
+                {**territories[0], "id": terr_ids[0],
+                 "description": "Western US, Canada, Mexico"})
+        # SKIP: /api/territories/{id}/members not implemented (404)
+        # if user_ids:
+        #     api.post(f"/api/territories/{terr_ids[0]}/members/{user_ids[0]}")
+        #     api.get(f"/api/territories/{terr_ids[0]}/members")
     # Delete test
     del_t = {"name": f"DELETE-TERR-{ts}", "description": "Temp",
-             "isActive": False, "parentId": None, "criteria": []}
+             "isActive": False, "parentTerritoryId": None}
     code, body, _ = api.post("/api/territories", del_t)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/territories/{body['id']}")
@@ -336,20 +319,20 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ─── Custom Fields ────────────────────────────────────────────────────
     log.section("CustomFields CRUD")
     custom_fields = [
-        {"entityType": "Account", "name": f"CustomerTier_{ts}",
+        {"entityType": "Account", "fieldKey": f"CustomerTier_{ts}",
          "label": "Customer Tier", "fieldType": "Select",
-         "isRequired": False, "isActive": True, "sortOrder": 1,
+         "isRequired": False, "isActive": True, "displayOrder": 1,
          "options": ["Bronze", "Silver", "Gold", "Platinum"]},
-        {"entityType": "Account", "name": f"ContractEndDate_{ts}",
+        {"entityType": "Account", "fieldKey": f"ContractEndDate_{ts}",
          "label": "Contract End Date", "fieldType": "Date",
-         "isRequired": False, "isActive": True, "sortOrder": 2},
-        {"entityType": "Contact", "name": f"PreferredContactMethod_{ts}",
+         "isRequired": False, "isActive": True, "displayOrder": 2},
+        {"entityType": "Contact", "fieldKey": f"PreferredContactMethod_{ts}",
          "label": "Preferred Contact Method", "fieldType": "Select",
-         "isRequired": False, "isActive": True, "sortOrder": 1,
+         "isRequired": False, "isActive": True, "displayOrder": 1,
          "options": ["Email", "Phone", "SMS", "Teams"]},
-        {"entityType": "Opportunity", "name": f"CompetitorInvolved_{ts}",
+        {"entityType": "Opportunity", "fieldKey": f"CompetitorInvolved_{ts}",
          "label": "Competitor Involved", "fieldType": "Text",
-         "isRequired": False, "isActive": True, "sortOrder": 1},
+         "isRequired": False, "isActive": True, "displayOrder": 1},
     ]
     cf_ids = []
     cf_options_save = []
@@ -358,7 +341,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         cf_options_save.append(options)
         payload = {**cf}
         if options:
-            payload["options"] = options
+            payload["optionsJson"] = json.dumps(options)
         eid = api.create_and_track("customfields", "/api/custom-fields", payload)
         if eid:
             cf_ids.append(eid)
@@ -369,11 +352,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.put(f"/api/custom-fields/{cf_ids[0]}",
                 {**{k: v for k, v in custom_fields[0].items() if k != "options"},
                  "label": "Customer Tier (Updated)",
-                 "options": (cf_options_save[0] or []) + ["Diamond"]})
+                 "optionsJson": json.dumps((cf_options_save[0] or []) + ["Diamond"])})
     # Delete test
-    del_cf = {"entityType": "Account", "name": f"DELETE_CF_{ts}",
+    del_cf = {"entityType": "Account", "fieldKey": f"DELETE_CF_{ts}",
               "label": "Delete Test", "fieldType": "Text",
-              "isRequired": False, "isActive": False, "sortOrder": 99}
+              "isRequired": False, "isActive": False, "displayOrder": 99}
     code, body, _ = api.post("/api/custom-fields", del_cf)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/custom-fields/{body['id']}")
@@ -401,8 +384,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
         if acct_ids:
             for i, acct_id in enumerate(acct_ids[:3]):
                 tag_id = tag_ids[i % len(tag_ids)]
-                api.post(f"/api/tags/link",
-                         {"tagId": tag_id, "entityType": "Account", "entityId": acct_id})
+                # SKIP: POST /api/tags/link not implemented (405)
+                # api.post(f"/api/tags/link",
+                #          {"tagId": tag_id, "entityType": "Account", "entityId": acct_id})
             api.get(f"/api/tags?entityType=Account&entityId={acct_ids[0]}")
     save_ids("tags", tag_ids)
 

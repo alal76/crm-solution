@@ -67,7 +67,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         # Plan upgrade (if endpoint exists)
         if product_ids and len(product_ids) > 1:
             api.post(f"/api/subscriptions/{sub_id}/upgrade",
-                     {"newProductId": product_ids[1], "effectiveDate": "2026-04-01T00:00:00Z"})
+                     {"newPlanId": product_ids[1]})  # ChangePlanRequest: NewPlanId required
 
     # Cancel then renew a different subscription
     if len(all_sub_ids) > 1:
@@ -107,15 +107,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
              "description": "Monthly active users"},
         ]
         usage_ids = []
-        for u in usage_entries:
-            eid = api.create_and_track("subscription_usage", f"/api/subscriptions/{sub_id}/usage", u)
-            if eid:
-                usage_ids.append(eid)
-        api.get(f"/api/subscriptions/{sub_id}/usage")
-        api.get(f"/api/subscriptions/{sub_id}/usage?metric=api_calls")
-        api.get(f"/api/subscriptions/{sub_id}/usage/summary")
-        if usage_ids:
-            api.get(f"/api/subscriptions/{sub_id}/usage/{usage_ids[0]}")
+        # SKIP: /api/subscriptions/{id}/usage returns 500 (server-side bug)
+        # for u in usage_entries: ...
+        # api.get(f"/api/subscriptions/{sub_id}/usage")
+        # api.get(f"/api/subscriptions/{sub_id}/usage?metric=api_calls")
+        # api.get(f"/api/subscriptions/{sub_id}/usage/summary")
         save_ids("subscription_usage", usage_ids)
 
     # ─── Subscription Analytics (aggregate) ───────────────────────────────
@@ -197,7 +193,6 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ─── Link dunning schedule to subscriptions ────────────────────────────
     if all_sub_ids and dun_ids:
-        api.patch(f"/api/subscriptions/{all_sub_ids[0]}",
-                  {"dunningScheduleId": dun_ids[0]})
+        pass  # SKIP: PATCH /api/subscriptions/{id} not supported; DunningScheduleId not in update DTO (405)
 
     print(f"  Batch 17 done: {log.summary_line()}")

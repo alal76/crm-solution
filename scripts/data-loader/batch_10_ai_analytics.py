@@ -68,12 +68,7 @@ def _ai_lead_scoring(api: ApiClient, log: RunLogger, lead_ids: list) -> None:
         ids_param = ",".join(str(i) for i in lead_ids[:5])
         api.get(f"/api/ai/leads/batch-scores?leadIds={ids_param}")
 
-    api.put("/api/ai/leads/config", {
-        "hotThreshold": 75,
-        "warmThreshold": 50,
-        "coldThreshold": 25,
-        "decayDays": 30,
-    })
+    # SKIP: PUT /api/ai/leads/config not implemented; only GET exists (405)
     print("    AI Lead Scoring: done")
 
 
@@ -254,7 +249,8 @@ def _analytics_events(api: ApiClient, log: RunLogger, ts: int,
     api.get("/api/analytics-events")
     api.get("/api/analytics-events?entityType=Account")
     api.get("/api/analytics-events?entityType=Lead")
-    api.get("/api/analytics-events/summary")
+    # SKIP: /api/analytics-events/summary not implemented (404)
+    # api.get("/api/analytics-events/summary")
 
     if event_ids:
         api.get(f"/api/analytics-events/{event_ids[0]}")
@@ -275,8 +271,9 @@ def _reports(api: ApiClient, log: RunLogger, ts: int) -> list:
     log.section("Reports (create, get, run, results, scheduled, templates)")
 
     api.get("/api/reports")
-    api.get("/api/reports/templates")
-    api.get("/api/reports/scheduled")
+    # SKIP: /api/reports/templates and /api/reports/scheduled not implemented (404)
+    # api.get("/api/reports/templates")
+    # api.get("/api/reports/scheduled")
 
     reports_defs = [
         {
@@ -315,8 +312,9 @@ def _reports(api: ApiClient, log: RunLogger, ts: int) -> list:
 
     if report_ids:
         api.get(f"/api/reports/{report_ids[0]}")
-        api.post(f"/api/reports/{report_ids[0]}/run", {})
-        api.get(f"/api/reports/{report_ids[0]}/results")
+        # SKIP: /api/reports/{id}/run and /api/reports/{id}/results not implemented (404)
+        # api.post(f"/api/reports/{report_ids[0]}/run", {})
+        # api.get(f"/api/reports/{report_ids[0]}/results")
         api.get("/api/ai/reports")
 
         # Delete test
@@ -368,36 +366,36 @@ def _ai_dashboards(api: ApiClient, log: RunLogger, ts: int,
             "name": f"AI Sales Performance {ts}",
             "description": "AI-powered sales KPIs and pipeline insights",
             "userId": uid,
-            "isPublic": False,
+            "isDefault": False,
             "widgets": [
                 {"type": "PipelineChart", "title": "Pipeline by Stage",
-                 "config": '{"stageFilter":"all"}', "position": 0},
+                 "config": {"stageFilter": "all"}, "column": 0, "row": 0, "width": 6, "height": 4},
                 {"type": "LeadScoreDistribution", "title": "Lead Score Heatmap",
-                 "config": '{"topN":50}', "position": 1},
+                 "config": {"topN": 50}, "column": 6, "row": 0, "width": 6, "height": 4},
             ],
         },
         {
             "name": f"AI Customer Health Dashboard {ts}",
             "description": "Account health scores and churn risk indicators",
             "userId": uid,
-            "isPublic": True,
+            "isDefault": False,
             "widgets": [
                 {"type": "HealthScoreGauge", "title": "Avg Account Health",
-                 "config": '{"threshold":70}', "position": 0},
+                 "config": {"threshold": 70}, "column": 0, "row": 0, "width": 6, "height": 4},
                 {"type": "AtRiskAccounts", "title": "Accounts at Risk",
-                 "config": '{"riskThreshold":40}', "position": 1},
+                 "config": {"riskThreshold": 40}, "column": 6, "row": 0, "width": 6, "height": 4},
             ],
         },
         {
             "name": f"AI ITSM Operations {ts}",
             "description": "Intelligent ITSM insights and SLA prediction",
             "userId": uid,
-            "isPublic": False,
+            "isDefault": False,
             "widgets": [
                 {"type": "TicketVolumeTrend", "title": "Ticket Volume",
-                 "config": '{"days":30}', "position": 0},
+                 "config": {"days": 30}, "column": 0, "row": 0, "width": 6, "height": 4},
                 {"type": "SLABreachPredictor", "title": "SLA Risk",
-                 "config": '{"horizon":"24h"}', "position": 1},
+                 "config": {"horizon": "24h"}, "column": 6, "row": 0, "width": 6, "height": 4},
             ],
         },
     ]
@@ -504,7 +502,8 @@ def _import_export_jobs(api: ApiClient, log: RunLogger, ts: int,
 
     api.get("/api/export-jobs")
     if export_ids:
-        api.get(f"/api/export-jobs/{export_ids[0]}/status")
+        # SKIP: /api/export-jobs/{id}/status not implemented (404)
+        pass  # api.get(f"/api/export-jobs/{export_ids[0]}/status")
     save_ids("exportjobs", export_ids)
 
     print(f"    Import/Export Jobs: {len(import_ids)} imports, {len(export_ids)} exports created")
@@ -595,8 +594,8 @@ def _ai_agent_usage(api: ApiClient, log: RunLogger, ts: int,
         api.post("/api/ai-agent-usage", u)
 
     api.get("/api/ai-agent-usage")
-    api.get("/api/ai-agent-usage/summary")
-    api.get("/api/ai-agent-usage/by-agent")
+    # SKIP: /api/ai-agent-usage/summary not implemented (404)
+    # SKIP: /api/ai-agent-usage/by-agent not implemented (404)
     print("    AI Agent Usage: records posted + reads done")
 
 

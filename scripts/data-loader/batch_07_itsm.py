@@ -104,10 +104,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # CreateProblemDto (CRM.Core.DTOs.ITSM) requires shortDescription + priority (ProblemPriority enum)
     # ProblemPriority: Critical=1, High=2, Medium=3, Low=4
     problems = [
-        {"shortDescription": f"Recurring server crashes {ts}", "description": "Memory leak causing periodic crashes",
-         "priority": 2},
-        {"shortDescription": f"Intermittent DB timeouts {ts}", "description": "Database connection pool exhaustion",
-         "priority": 3},
+        {"title": f"Recurring server crashes {ts}", "shortDescription": f"Recurring server crashes {ts}",
+         "description": "Memory leak causing periodic crashes", "priority": 2},
+        {"title": f"Intermittent DB timeouts {ts}", "shortDescription": f"Intermittent DB timeouts {ts}",
+         "description": "Database connection pool exhaustion", "priority": 3},
     ]
     problem_ids = []
     for p in problems:

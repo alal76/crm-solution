@@ -55,16 +55,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
     products = [
         {"name": f"Enterprise License {ts}", "sku": f"ENT-{ts}-001", "price": 99999.00,
          "description": "Enterprise CRM license", "category": "Software",
-         "isActive": True, "type": 0},
+         "isActive": True, "productType": 0},
         {"name": f"Support Plan {ts}", "sku": f"SUP-{ts}-001", "price": 24999.00,
          "description": "Premium support plan", "category": "Services",
-         "isActive": True, "type": 1},
+         "isActive": True, "productType": 1},
         {"name": f"Integration Add-on {ts}", "sku": f"INT-{ts}-001", "price": 4999.00,
          "description": "API integration package", "category": "Add-ons",
-         "isActive": True, "type": 0},
+         "isActive": True, "productType": 0},
         {"name": f"Training Package {ts}", "sku": f"TRN-{ts}-001", "price": 9999.00,
          "description": "On-site training", "category": "Services",
-         "isActive": True, "type": 1},
+         "isActive": True, "productType": 1},
     ]
     product_ids = []
     for p in products:
@@ -76,7 +76,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.get(f"/api/products/{product_ids[0]}")
         api.put(f"/api/products/{product_ids[0]}", {**products[0], "price": 109999.00})
     # Delete test
-    del_p = {"name": f"DELETE-Product-{ts}", "sku": f"DEL-{ts}", "price": 1.00, "category": "Test", "isActive": True, "type": 0}
+    del_p = {"name": f"DELETE-Product-{ts}", "sku": f"DEL-{ts}", "price": 1.00, "category": "Test", "isActive": True, "productType": 0}
     code, body, _ = api.post("/api/products", del_p)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/products/{body['id']}")
