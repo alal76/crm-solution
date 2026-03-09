@@ -314,7 +314,7 @@ CRM Config (/admin/config/crm — already exists)
 
 | ID | Reason |
 |----|--------|
-| ~~AP-059~~ | ✅ **Phase 1+2 Done (2026-03-09)** — Domain model enrichment complete for 6 core entities. All implement `IHasDomainEvents` with behavioral methods, typed domain events, and zero-mock unit tests. **Entities:** ServiceRequest (157 tests), Opportunity (20 tests), Lead (18 tests), Account (12 tests), Contract (16 tests), Incident (15 tests). **Infra:** `DomainEventDispatchInterceptor`, `AuditLogDomainEventForwarder`, 6 event record files. **Phase 3 (opportunistic)** remains ongoing per ADR-011. Branch: `feat/ap-059-domain-enrichment`. ADR: [docs/01-architecture/ADR-011-domain-model-enrichment-strategy.md](01-architecture/ADR-011-domain-model-enrichment-strategy.md) |
+| ~~AP-059~~ | ✅ **Phase 1+2+3 Done (2026-03-09)** — Domain model enrichment complete for 13 entities. All implement `IHasDomainEvents` with behavioral methods, typed domain events, and zero-mock unit tests. **Phase 1+2 Entities:** ServiceRequest (157 tests), Opportunity (20 tests), Lead (18 tests), Account (12 tests), Contract (16 tests), Incident (15 tests). **Phase 3 Entities:** Quote (18 tests), Order (22 tests), Invoice (19 tests), Subscription (16 tests), Campaign (16 tests), SLAPolicy (7 tests), KnowledgeArticle (9 tests). **Infra:** `DomainEventDispatchInterceptor`, `AuditLogDomainEventForwarder`, 13 event record files. **Total: 345 tests.** Branch: `feat/ap-059-domain-enrichment`. ADR: [docs/01-architecture/ADR-011-domain-model-enrichment-strategy.md](01-architecture/ADR-011-domain-model-enrichment-strategy.md) |
 | XMOD-011 | `KnowledgeArticle` entity consolidation — ITSM + General KB versions have separate DbSets and incompatible schemas; needs architectural decision first |}
 
 ---
@@ -735,15 +735,15 @@ CRM Config (/admin/config/crm — already exists)
 
 > These are not sprint tasks but standing instructions. Any developer touching a service method that directly mutates entity state **must** bundle the enrichment in the same PR.
 
-| Entity | Methods to add (when touched) |
-|--------|------------------------------|
-| `Quote` | `Approve()`, `Send()`, `Revoke()` |
-| `Order` | `Confirm()`, `Ship()`, `Cancel()` |
-| `Invoice` | `Send()`, `MarkPaid()`, `Void()` |
-| `Subscription` | `Cancel(reason)`, `Reinstate()` |
-| `Campaign` | `Launch()`, `Pause()`, `Complete()` |
-| `SLAPolicy` | `Activate()`, `Deactivate()` |
-| `KnowledgeBaseArticle` | `Publish()`, `Archive()` — align with existing `KnowledgeBaseService` state machine |
+| Entity | Methods to add (when touched) | Status |
+|--------|------------------------------|--------|
+| `Quote` | `Approve()`, `Send()`, `Revoke()` | ✅ Done (2026-03-09) — 18 tests |
+| `Order` | `Confirm()`, `Ship()`, `Cancel()` | ✅ Done (2026-03-09) — 22 tests |
+| `Invoice` | `Send()`, `MarkPaid()`, `Void()` | ✅ Done (2026-03-09) — 19 tests |
+| `Subscription` | `Cancel(reason)`, `Reinstate()` | ✅ Done (2026-03-09) — 16 tests |
+| `Campaign` | `Launch()`, `Pause()`, `Complete()` | ✅ Done (2026-03-09) — 16 tests |
+| `SLAPolicy` | `Activate()`, `Deactivate()` | ✅ Done (2026-03-09) — 7 tests |
+| `KnowledgeBaseArticle` | `Publish()`, `Archive()` — align with existing `KnowledgeBaseService` state machine | ✅ Done (2026-03-09) — 9 tests |
 
 **Rule from ADR-011 (must be added to code review checklist):** Any new entity with a `Status`, `Stage`, or lifecycle field **must** implement transitions as entity methods from day one. Reviewer blocks PR if direct status assignment found in service code for a new entity type.
 
@@ -763,8 +763,8 @@ CRM Config (/admin/config/crm — already exists)
 | Phase 2C — Contract | 3 tasks | +16 entity tests | 15-20h | ✅ Done (2026-03-09) |
 | Phase 2D — Incident | 3 tasks | +15 entity tests | 12-16h | ✅ Done (2026-03-09) |
 | Phase 2 Gate | 4 checks | — | 1h | ✅ Done (2026-03-09) |
-| Phase 3 | Standing rule | Per entity | Ongoing | 🔵 Ongoing |
-| **Total Phase 1+2** | **46 tasks** | **+238 new tests** | **~111-145h** | **✅ Complete** |
+| Phase 3 | 7 entities | +107 entity tests | 8-12h | ✅ Done (2026-03-09) |
+| **Total Phase 1+2+3** | **53 tasks** | **+345 new tests** | **~119-157h** | **✅ Complete** |
 
 ---
 

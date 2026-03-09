@@ -7,6 +7,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -230,7 +233,7 @@ public enum OrderPriority
 /// Order entity representing a confirmed sales transaction.
 /// Created from accepted Quote, drives Invoice and Fulfillment.
 /// </summary>
-public class Order : BaseEntity
+public class Order : BaseEntity, IHasDomainEvents
 {
     #region Identification
 
@@ -621,6 +624,101 @@ public class Order : BaseEntity
 
     /// <summary>IP address of order submission</summary>
     public string? SourceIpAddress { get; set; }
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>
+    /// Confirms (approves) the order. Throws if already approved, cancelled, or completed.
+    /// </summary>
+    public void Confirm(int confirmedByUserId)
+    {
+        if (Status == OrderStatus.Approved)
+            throw new BusinessRuleException("Order.Confirm", "Order is already confirmed.");
+        if (Status == OrderStatus.Cancelled)
+            throw new BusinessRuleException("Order.Confirm", "Cannot confirm a cancelled order.");
+        if (Status == OrderStatus.Completed)
+            throw new BusinessRuleException("Order.Confirm", "Cannot confirm a completed order.");
+
+        Status = OrderStatus.Approved;
+        ApprovedDate = DateTime.UtcNow;
+        ApprovedById = confirmedByUserId;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new OrderConfirmedEvent(Id, confirmedByUserId, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Marks the order as shipped. Throws if not in a shippable state.
+    /// </summary>
+    public void Ship(string? trackingNumber = null)
+    {
+        if (Status != OrderStatus.Approved && Status != OrderStatus.Processing && Status != OrderStatus.PartiallyFulfilled)
+            throw new BusinessRuleException("Order.Ship", "Order must be Approved, Processing, or PartiallyFulfilled to ship.");
+
+        Status = OrderStatus.Fulfilled;
+        ShippedDate = DateTime.UtcNow;
+        if (trackingNumber != null)
+            TrackingNumber = trackingNumber;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new OrderShippedEvent(Id, trackingNumber, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Cancels the order. Throws if already cancelled, completed, or refunded.
+    /// </summary>
+    public void Cancel(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new BusinessRuleException("Order.Cancel", "Cancellation reason is required.");
+        if (Status == OrderStatus.Cancelled)
+            throw new BusinessRuleException("Order.Cancel", "Order is already cancelled.");
+        if (Status == OrderStatus.Completed)
+            throw new BusinessRuleException("Order.Cancel", "Cannot cancel a completed order.");
+        if (Status == OrderStatus.Refunded)
+            throw new BusinessRuleException("Order.Cancel", "Cannot cancel a refunded order.");
+
+        Status = OrderStatus.Cancelled;
+        CancelledDate = DateTime.UtcNow;
+        CancellationReason = reason;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new OrderCancelledEvent(Id, reason, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Factory method for unit testing — creates an Order with specified status.
+    /// </summary>
+    internal static Order CreateForTesting(
+        OrderStatus status = OrderStatus.Draft)
+    {
+        return new Order
+        {
+            Id = 1,
+            Status = status,
+            Name = "Test Order",
+            OrderNumber = "ORD-TEST-001",
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 
     #endregion
 }

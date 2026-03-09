@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 621,
-  "patch": 1,
+  "minor": 622,
+  "patch": 0,
   "lastUpdate": "2026-03-09",
-  "description": "chore(docs): KB-013/KB-014 verified complete - SelfServiceChatbotService wired to IUnifiedKnowledgeSearchService (7 tests), AIKnowledgeSearchService indexes both ITSM + General KB articles (14 tests). All Tier 4 KB Unified Search items done.",
+  "description": "feat(domain): AP-059 Phase 3 domain enrichment — Quote/Order/Invoice/Subscription/Campaign/SLAPolicy/KnowledgeArticle: IHasDomainEvents, typed events, business methods (Approve/Send/Revoke, Confirm/Ship/Cancel, Send/MarkPaid/Void, Cancel/Reinstate, Launch/Pause/Complete, Activate/Deactivate, Publish/Archive), CreateForTesting factories. 107 zero-mock behavioral tests.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

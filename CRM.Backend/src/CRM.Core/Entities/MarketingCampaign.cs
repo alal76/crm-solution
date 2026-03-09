@@ -5,6 +5,10 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities;
 
@@ -59,7 +63,7 @@ namespace CRM.Core.Entities;
 /// - Campaign → Parent/Child (hierarchy)
 /// - Campaign → User (owner/team)
 /// </summary>
-public class MarketingCampaign : BaseEntity
+public class MarketingCampaign : BaseEntity, IHasDomainEvents
 {
     #region Basic Information
 
@@ -1408,6 +1412,93 @@ public class MarketingCampaign : BaseEntity
     /// Overall engagement rate
     /// </summary>
     public double OverallEngagementRate => Impressions > 0 ? (double)Clicks / Impressions * 100 : 0;
+
+    #endregion
+
+    #region Domain Events
+
+    private readonly List<IDomainEvent> _domainEvents = new();
+
+    /// <inheritdoc />
+    [NotMapped]
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+
+    /// <inheritdoc />
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+
+    /// <inheritdoc />
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+
+    /// <inheritdoc />
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
+    #endregion
+
+    #region Business Methods
+
+    /// <summary>
+    /// Launches (activates) the campaign. Throws if not in a launchable state.
+    /// </summary>
+    public void Launch()
+    {
+        if (Status == CampaignStatus.Active)
+            throw new BusinessRuleException("Campaign.Launch", "Campaign is already active.");
+        if (Status == CampaignStatus.Completed)
+            throw new BusinessRuleException("Campaign.Launch", "Cannot launch a completed campaign.");
+        if (Status == CampaignStatus.Cancelled)
+            throw new BusinessRuleException("Campaign.Launch", "Cannot launch a cancelled campaign.");
+
+        Status = CampaignStatus.Active;
+        StartedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new CampaignLaunchedEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Pauses an active campaign. Throws if not active.
+    /// </summary>
+    public void Pause()
+    {
+        if (Status != CampaignStatus.Active)
+            throw new BusinessRuleException("Campaign.Pause", "Only active campaigns can be paused.");
+
+        Status = CampaignStatus.Paused;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new CampaignPausedEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Completes the campaign. Throws if already completed, cancelled, or still in draft.
+    /// </summary>
+    public void Complete()
+    {
+        if (Status == CampaignStatus.Completed)
+            throw new BusinessRuleException("Campaign.Complete", "Campaign is already completed.");
+        if (Status == CampaignStatus.Cancelled)
+            throw new BusinessRuleException("Campaign.Complete", "Cannot complete a cancelled campaign.");
+        if (Status == CampaignStatus.Draft)
+            throw new BusinessRuleException("Campaign.Complete", "Cannot complete a draft campaign that was never launched.");
+
+        Status = CampaignStatus.Completed;
+        CompletedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new CampaignCompletedEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
+    /// Factory method for unit testing — creates a MarketingCampaign with specified status.
+    /// </summary>
+    internal static MarketingCampaign CreateForTesting(
+        CampaignStatus status = CampaignStatus.Draft)
+    {
+        return new MarketingCampaign
+        {
+            Id = 1,
+            Status = status,
+            Name = "Test Campaign",
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 
     #endregion
 }
