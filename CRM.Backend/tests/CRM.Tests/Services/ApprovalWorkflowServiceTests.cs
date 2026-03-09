@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
+using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -275,7 +276,7 @@ public class ApprovalWorkflowServiceTests : IDisposable
         matrix.Id = 999;
 
         // Act & Assert
-        await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateMatrixAsync(matrix));
+        await Assert.ThrowsAsync<EntityNotFoundException>(() => _service.UpdateMatrixAsync(matrix));
     }
 
     [Fact]
