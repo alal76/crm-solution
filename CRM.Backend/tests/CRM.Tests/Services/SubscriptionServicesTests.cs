@@ -8,6 +8,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using CRM.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -432,6 +433,276 @@ public class SubscriptionMetricsAggregatorTests
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
             new SubscriptionMetricsAggregator(null!, logger.Object));
+    }
+
+    #endregion
+
+    #region GetCohortMRRAsync Tests (SUB-001)
+
+    [Fact]
+    public async Task GetCohortMRRAsync_ShouldReturnZero_WhenNoSubscriptionsExist()
+    {
+        // Arrange
+        var subs = new List<Subscription>();
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetCohortMRRAsync(2025, 6, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(0m, result);
+    }
+
+    [Fact]
+    public async Task GetCohortMRRAsync_ShouldSumMRR_ForActiveSubscriptionsInCohortMonth()
+    {
+        // Arrange — two monthly subs started in June 2025
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 100m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, StartDate = new DateTime(2025, 6, 5, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false },
+            new() { Id = 2, Amount = 200m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, StartDate = new DateTime(2025, 6, 20, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false },
+            new() { Id = 3, Amount = 500m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, StartDate = new DateTime(2025, 7, 1, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false } // Different month
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetCohortMRRAsync(2025, 6, CancellationToken.None);
+
+        // Assert — only June subs: 100 + 200 = 300
+        Assert.Equal(300m, result);
+    }
+
+    [Fact]
+    public async Task GetCohortMRRAsync_ShouldIncludePausedSubscriptions()
+    {
+        // Arrange
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 150m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Paused, StartDate = new DateTime(2025, 3, 10, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false }
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetCohortMRRAsync(2025, 3, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(150m, result);
+    }
+
+    [Fact]
+    public async Task GetCohortMRRAsync_ShouldExcludeCancelledSubscriptions()
+    {
+        // Arrange
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 200m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Cancelled, StartDate = new DateTime(2025, 1, 15, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false }
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetCohortMRRAsync(2025, 1, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(0m, result);
+    }
+
+    [Fact]
+    public async Task GetCohortMRRAsync_ShouldNormalizeQuarterlyToMonthly()
+    {
+        // Arrange — $300/quarter = $100/month MRR
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 300m, BillingCycle = "Quarterly", SubscriptionStatus = SubscriptionStatus.Active, StartDate = new DateTime(2025, 4, 1, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false }
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetCohortMRRAsync(2025, 4, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(100m, result);
+    }
+
+    [Fact]
+    public async Task GetCohortMRRAsync_ShouldNormalizeYearlyToMonthly()
+    {
+        // Arrange — $1200/year = $100/month MRR
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 1200m, BillingCycle = "Yearly", SubscriptionStatus = SubscriptionStatus.Active, StartDate = new DateTime(2025, 1, 15, 0, 0, 0, DateTimeKind.Utc), IsDeleted = false }
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetCohortMRRAsync(2025, 1, CancellationToken.None);
+
+        // Assert
+        Assert.Equal(100m, result);
+    }
+
+    #endregion
+
+    #region GetRevenueBreakdownByBillingCycleAsync Tests (SUB-002)
+
+    [Fact]
+    public async Task GetRevenueBreakdownByBillingCycleAsync_ShouldReturnEmptyList_WhenNoSubscriptions()
+    {
+        // Arrange
+        var subs = new List<Subscription>();
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetRevenueBreakdownByBillingCycleAsync(CancellationToken.None);
+
+        // Assert
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetRevenueBreakdownByBillingCycleAsync_ShouldGroupByBillingCycle()
+    {
+        // Arrange
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 100m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 2, Amount = 200m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 3, Amount = 300m, BillingCycle = "Quarterly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 4, Amount = 1200m, BillingCycle = "Yearly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false }
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetRevenueBreakdownByBillingCycleAsync(CancellationToken.None);
+
+        // Assert — 3 groups
+        Assert.Equal(3, result.Count);
+        Assert.Contains(result, x => x.BillingCycle == "Monthly");
+        Assert.Contains(result, x => x.BillingCycle == "Quarterly");
+        Assert.Contains(result, x => x.BillingCycle == "Yearly");
+    }
+
+    [Fact]
+    public async Task GetRevenueBreakdownByBillingCycleAsync_ShouldCalculateCorrectMRRPerGroup()
+    {
+        // Arrange
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 100m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 2, Amount = 200m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 3, Amount = 300m, BillingCycle = "Quarterly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false } // 300/3 = 100 MRR
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetRevenueBreakdownByBillingCycleAsync(CancellationToken.None);
+
+        // Assert
+        var monthly = result.First(x => x.BillingCycle == "Monthly");
+        Assert.Equal(300m, monthly.MRR);
+        Assert.Equal(3600m, monthly.ARR);
+        Assert.Equal(2, monthly.SubscriptionCount);
+
+        var quarterly = result.First(x => x.BillingCycle == "Quarterly");
+        Assert.Equal(100m, quarterly.MRR);
+        Assert.Equal(1200m, quarterly.ARR);
+        Assert.Equal(1, quarterly.SubscriptionCount);
+    }
+
+    [Fact]
+    public async Task GetRevenueBreakdownByBillingCycleAsync_ShouldExcludeCancelledSubscriptions()
+    {
+        // Arrange
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 100m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 2, Amount = 500m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Cancelled, IsDeleted = false }
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetRevenueBreakdownByBillingCycleAsync(CancellationToken.None);
+
+        // Assert
+        Assert.Single(result);
+        Assert.Equal(100m, result[0].MRR);
+        Assert.Equal(1, result[0].SubscriptionCount);
+    }
+
+    [Fact]
+    public async Task GetRevenueBreakdownByBillingCycleAsync_ShouldOrderByMRRDescending()
+    {
+        // Arrange
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 10m, BillingCycle = "Weekly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 2, Amount = 500m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 3, Amount = 600m, BillingCycle = "Quarterly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 4, Amount = 12000m, BillingCycle = "Yearly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false }
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetRevenueBreakdownByBillingCycleAsync(CancellationToken.None);
+
+        // Assert — ordered: Yearly(1000) > Monthly(500) > Quarterly(200) > Weekly(~43)
+        Assert.Equal(4, result.Count);
+        Assert.Equal("Yearly", result[0].BillingCycle);
+        Assert.Equal("Monthly", result[1].BillingCycle);
+        Assert.Equal("Quarterly", result[2].BillingCycle);
+        Assert.Equal("Weekly", result[3].BillingCycle);
+    }
+
+    [Fact]
+    public async Task GetRevenueBreakdownByBillingCycleAsync_ShouldNormalizeBillingCycleLabels()
+    {
+        // Arrange — mixed casing + "Annual" alias
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 100m, BillingCycle = "monthly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 2, Amount = 300m, BillingCycle = "QUARTERLY", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 3, Amount = 1200m, BillingCycle = "Annual", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false }
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetRevenueBreakdownByBillingCycleAsync(CancellationToken.None);
+
+        // Assert — all normalized
+        var labels = result.Select(x => x.BillingCycle).OrderBy(x => x).ToList();
+        Assert.Equal(new[] { "Monthly", "Quarterly", "Yearly" }, labels);
+    }
+
+    [Fact]
+    public async Task GetRevenueBreakdownByBillingCycleAsync_PercentagesShouldSumTo100()
+    {
+        // Arrange — $100 monthly + $100 MRR from quarterly = 50/50
+        var subs = new List<Subscription>
+        {
+            new() { Id = 1, Amount = 100m, BillingCycle = "Monthly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false },
+            new() { Id = 2, Amount = 300m, BillingCycle = "Quarterly", SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false } // 300/3 = 100 MRR
+        };
+        var mockSubs = MockDbSetFactory.CreateMockDbSet(subs);
+        _mockContext.Setup(c => c.Subscriptions).Returns(mockSubs.Object);
+
+        // Act
+        var result = await _aggregator.GetRevenueBreakdownByBillingCycleAsync(CancellationToken.None);
+
+        // Assert
+        var totalPercentage = result.Sum(x => x.Percentage);
+        Assert.Equal(100m, totalPercentage);
+        Assert.All(result, x => Assert.Equal(50m, x.Percentage));
     }
 
     #endregion

@@ -144,8 +144,8 @@ function WorkflowListPage() {
       if (configData.iconOptions?.length) setIconList(configData.iconOptions);
       if (configData.colorOptions?.length) setColorList(configData.colorOptions);
       setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load workflows');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load workflows');
     } finally {
       setLoading(false);
     }
@@ -209,8 +209,8 @@ function WorkflowListPage() {
       }
       handleCloseDialog();
       loadData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save workflow');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save workflow');
     } finally {
       setSaving(false);
     }
@@ -225,8 +225,8 @@ function WorkflowListPage() {
       setDeleteDialogOpen(false);
       setWorkflowToDelete(null);
       loadData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete workflow');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete workflow');
     } finally {
       setSaving(false);
     }
@@ -245,8 +245,8 @@ function WorkflowListPage() {
       await workflowService.activateWorkflow(workflow.id, draftVersion.id);
       setSuccess('Workflow activated successfully');
       loadData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to activate workflow');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to activate workflow');
     } finally {
       setSaving(false);
     }
@@ -258,8 +258,8 @@ function WorkflowListPage() {
       await workflowService.pauseWorkflow(workflow.id);
       setSuccess('Workflow paused successfully');
       loadData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to pause workflow');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to pause workflow');
     } finally {
       setSaving(false);
     }

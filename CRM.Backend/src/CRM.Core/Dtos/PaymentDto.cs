@@ -104,10 +104,12 @@ public class CreatePaymentDto
 {
     public int? InvoiceId { get; set; }
     
+    // AP-025: AccountId is required and must be a positive integer
     [Required(ErrorMessage = "Account ID is required")]
     [Range(1, int.MaxValue, ErrorMessage = "Account ID must be greater than 0")]
     public int AccountId { get; set; }
 
+    // AP-025: Amount is required and must be a positive monetary value
     [Required(ErrorMessage = "Amount is required")]
     [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Amount must be between 0.01 and 999999999.99")]
     public decimal Amount { get; set; }
@@ -116,6 +118,8 @@ public class CreatePaymentDto
     public PaymentType PaymentType { get; set; } = PaymentType.Payment;
     public Entities.PaymentStatus Status { get; set; } = Entities.PaymentStatus.Pending;
 
+    // AP-025: Scheduled date must be a valid date when provided
+    [DataType(DataType.Date)]
     public DateTime? ScheduledDate { get; set; }
 
     [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
@@ -177,14 +181,17 @@ public class ProcessPaymentDto
     public string? Description { get; set; }
 }
 
-/// <summary>
-/// Process payment request DTO.
-/// Retained for backward compatibility — use <see cref="ProcessPaymentDto"/> instead.
-/// </summary>
-[Obsolete("Use ProcessPaymentDto instead. This class will be removed in a future version.")]
-public class ProcessPaymentRequestDto : ProcessPaymentDto
-{
-}
+// PRA-013: obsolete alias — safe to delete after confirming no external API consumers.
+// No usages found in source or tests; PaymentsController uses its own local ProcessPaymentRequest class.
+// [Obsolete] attribute already present. Commented out as dead code.
+// /// <summary>
+// /// Process payment request DTO.
+// /// Retained for backward compatibility — use <see cref="ProcessPaymentDto"/> instead.
+// /// </summary>
+// [Obsolete("Use ProcessPaymentDto instead. This class will be removed in a future version.")]
+// public class ProcessPaymentRequestDto : ProcessPaymentDto
+// {
+// }
 
 /// <summary>
 /// Refund payment request DTO

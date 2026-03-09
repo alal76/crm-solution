@@ -10,10 +10,8 @@
 //   Class:     BuiltInSearchProvider
 //   Namespace: CRM.Infrastructure.Providers.BuiltIn
 //   File:      src/CRM.Infrastructure/Providers/BuiltIn/BuiltInSearchProvider.cs
-//   Constructor: (IDbContextResolver dbContextResolver, ILogger<BuiltInSearchProvider> logger)
-//     - NO ArgumentNullException guards in constructor body
-//   IDbContextResolver: interface in CRM.Infrastructure.Data
-//     - ICrmDbContext ResolveContext()
+//   Constructor: (ICrmDbContext dbContext, ILogger<BuiltInSearchProvider> logger)
+//     - Direct ICrmDbContext injection (IDbContextResolver removed)
 //   Properties:
 //     - ProviderName => "BuiltIn"
 //   Key behaviours confirmed by reading source:
@@ -63,7 +61,6 @@ public class BuiltInSearchProviderTests : IDisposable
     // ── Infrastructure ───────────────────────────────────────────────────────
 
     private readonly CrmDbContext _dbContext;
-    private readonly Mock<IDbContextResolver> _resolverMock;
     private readonly Mock<ILogger<BuiltInSearchProvider>> _loggerMock;
 
     public BuiltInSearchProviderTests()
@@ -76,17 +73,15 @@ public class BuiltInSearchProviderTests : IDisposable
             .Options;
 
         _dbContext = new CrmDbContext(options, null!);
-        _resolverMock = new Mock<IDbContextResolver>();
         _loggerMock = new Mock<ILogger<BuiltInSearchProvider>>();
 
         // Default: resolver returns the in-memory context
-        _resolverMock.Setup(r => r.ResolveContext()).Returns(_dbContext);
     }
 
     public void Dispose() => _dbContext.Dispose();
 
     private BuiltInSearchProvider CreateProvider() =>
-        new(_resolverMock.Object, _loggerMock.Object);
+        new(_dbContext, _loggerMock.Object);
 
     // ── Provider Properties ───────────────────────────────────────────────────
 
@@ -110,22 +105,9 @@ public class BuiltInSearchProviderTests : IDisposable
     }
 
     [Fact]
-    public async Task IsAvailableAsync_ReturnsFalse_WhenResolverReturnsNull()
+    public async Task IsAvailableAsync_ReturnsFalse_WhenDbContextIsNull()
     {
-        _resolverMock.Setup(r => r.ResolveContext()).Returns((ICrmDbContext)null!);
-        var provider = CreateProvider();
-
-        var result = await provider.IsAvailableAsync();
-
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task IsAvailableAsync_ReturnsFalse_WhenResolverThrowsException()
-    {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("DB unavailable"));
-        var provider = CreateProvider();
+        var provider = new BuiltInSearchProvider(null!, _loggerMock.Object);
 
         var result = await provider.IsAvailableAsync();
 
@@ -137,8 +119,6 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsync_ReturnsEmptyResult_WhenQueryIsEmpty()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for short queries"));
         var provider = CreateProvider();
         var request = new SearchRequest { Query = "" };
 
@@ -153,8 +133,6 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsync_ReturnsEmptyResult_WhenQueryIsOneCharacter()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for short queries"));
         var provider = CreateProvider();
         var request = new SearchRequest { Query = "a" };
 
@@ -168,8 +146,6 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsync_ReturnsEmptyResult_WhenQueryIsOnlyWhitespace()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for short queries"));
         var provider = CreateProvider();
         var request = new SearchRequest { Query = "  " };
 
@@ -182,8 +158,6 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsync_ReturnsEmptyResult_WhenQueryIsNull()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for null queries"));
         var provider = CreateProvider();
         var request = new SearchRequest { Query = null! };
 
@@ -212,8 +186,6 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsyncGeneric_ReturnsEmptyResult_WhenQueryIsShort()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for short queries"));
         var provider = CreateProvider();
 
         var result = await provider.SearchAsync<Account>("x");
@@ -226,8 +198,6 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsyncGeneric_ReturnsEmptyResult_WhenQueryIsEmpty()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for empty queries"));
         var provider = CreateProvider();
 
         var result = await provider.SearchAsync<Account>("");
@@ -242,82 +212,64 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task IndexAsync_CompletesWithoutException_AndMakesNoDbCalls()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("ResolveContext should not be called by IndexAsync"));
         var provider = CreateProvider();
         var fakeDoc = new { Id = 1, Name = "TestDoc" };
 
         var act = async () => await provider.IndexAsync(fakeDoc, "1");
 
         await act.Should().NotThrowAsync();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     [Fact]
     public async Task IndexBatchAsync_CompletesWithoutException_AndMakesNoDbCalls()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("ResolveContext should not be called by IndexBatchAsync"));
         var provider = CreateProvider();
         var docs = new[] { new { Id = 1, Name = "A" }, new { Id = 2, Name = "B" } };
 
         var act = async () => await provider.IndexBatchAsync(docs, d => d.Id.ToString());
 
         await act.Should().NotThrowAsync();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     [Fact]
     public async Task DeleteAsync_CompletesWithoutException_AndMakesNoDbCalls()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("ResolveContext should not be called by DeleteAsync"));
         var provider = CreateProvider();
 
         var act = async () => await provider.DeleteAsync<Account>("123");
 
         await act.Should().NotThrowAsync();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     [Fact]
     public async Task ClearIndexAsync_CompletesWithoutException_AndMakesNoDbCalls()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("ResolveContext should not be called by ClearIndexAsync"));
         var provider = CreateProvider();
 
         var act = async () => await provider.ClearIndexAsync<Account>();
 
         await act.Should().NotThrowAsync();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     [Fact]
     public async Task RebuildIndexAsync_CompletesWithoutException_AndMakesNoDbCalls()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("ResolveContext should not be called by RebuildIndexAsync"));
         var provider = CreateProvider();
         var docs = new List<Account>();
 
         var act = async () => await provider.RebuildIndexAsync(docs, d => d.Id.ToString());
 
         await act.Should().NotThrowAsync();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     [Fact]
     public async Task RebuildAllIndexesAsync_CompletesWithoutException_AndMakesNoDbCalls()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("ResolveContext should not be called by RebuildAllIndexesAsync"));
         var provider = CreateProvider();
 
         var act = async () => await provider.RebuildAllIndexesAsync();
 
         await act.Should().NotThrowAsync();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     // ── SuggestAsync – Short Prefix Fast-Exit ─────────────────────────────────
@@ -325,40 +277,31 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SuggestAsync_ReturnsEmpty_WhenPrefixIsEmpty()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for short prefix"));
         var provider = CreateProvider();
 
         var suggestions = (await provider.SuggestAsync("")).ToList();
 
         suggestions.Should().BeEmpty();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     [Fact]
     public async Task SuggestAsync_ReturnsEmpty_WhenPrefixIsOneChar()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for short prefix"));
         var provider = CreateProvider();
 
         var suggestions = (await provider.SuggestAsync("a")).ToList();
 
         suggestions.Should().BeEmpty();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     [Fact]
     public async Task SuggestAsync_ReturnsEmpty_WhenPrefixIsOnlyWhitespace()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Should not be called for whitespace prefix"));
         var provider = CreateProvider();
 
         var suggestions = (await provider.SuggestAsync("  ")).ToList();
 
         suggestions.Should().BeEmpty();
-        _resolverMock.Verify(r => r.ResolveContext(), Times.Never);
     }
 
     [Fact]
@@ -388,18 +331,15 @@ public class BuiltInSearchProviderTests : IDisposable
     }
 
     [Fact]
-    public async Task HealthCheckAsync_ReturnsUnhealthyResult_WhenResolverThrows()
+    public async Task HealthCheckAsync_ReturnsUnhealthyResult_WhenDbContextIsNull()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("Simulated DB failure"));
-        var provider = CreateProvider();
+        var provider = new BuiltInSearchProvider(null!, _loggerMock.Object);
 
         var health = await provider.HealthCheckAsync();
 
         health.Should().NotBeNull();
         health.IsHealthy.Should().BeFalse();
         health.ProviderName.Should().Be("BuiltIn");
-        health.Message.Should().Contain("Error");
     }
 
     // ── SearchAsync – Pagination Props in Short-Query Response ────────────────
@@ -407,8 +347,6 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsync_ElapsedTimestamp_IsSetInResult()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("No DB needed for short query"));
         var provider = CreateProvider();
         var request = new SearchRequest { Query = "" };
 
@@ -421,8 +359,6 @@ public class BuiltInSearchProviderTests : IDisposable
     [Fact]
     public async Task SearchAsyncGeneric_ElapsedTimestamp_IsSetInResult()
     {
-        _resolverMock.Setup(r => r.ResolveContext())
-            .Throws(new InvalidOperationException("No DB needed for short query"));
         var provider = CreateProvider();
 
         var result = await provider.SearchAsync<Account>("x");

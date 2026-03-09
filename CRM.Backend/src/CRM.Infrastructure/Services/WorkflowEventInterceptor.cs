@@ -9,7 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using CRM.Core.Entities.Workflow;
-using CRM.Core.DTOs.Workflow;
+using CRM.Core.Dtos.Workflow;
 
 namespace CRM.Infrastructure.Services;
 

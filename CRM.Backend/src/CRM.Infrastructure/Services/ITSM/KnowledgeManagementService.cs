@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,18 +15,18 @@ namespace CRM.Infrastructure.Services.ITSM;
 
 public class KnowledgeManagementService : IKnowledgeManagementService
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<KnowledgeManagementService> _logger;
 
-    public KnowledgeManagementService(IDbContextResolver dbContextResolver, ILogger<KnowledgeManagementService> logger)
+    public KnowledgeManagementService(ICrmDbContext dbContext, ILogger<KnowledgeManagementService> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
     public async Task<KnowledgeArticleDto> CreateArticleAsync(CreateKnowledgeArticleDto dto, int createdById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var article = new KnowledgeArticle
         {
@@ -55,7 +54,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<KnowledgeArticleDto?> GetArticleByIdAsync(int articleId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var article = await context.ITSMKnowledgeArticles
             .Include(a => a.Author)
             .FirstOrDefaultAsync(a => a.ArticleId == articleId && !a.IsDeleted);
@@ -71,7 +70,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<IEnumerable<KnowledgeArticleDto>> SearchArticlesAsync(string searchTerm, int pageNumber, int pageSize)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var query = context.ITSMKnowledgeArticles
             .Include(a => a.Author)
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published);
@@ -94,7 +93,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<KnowledgeArticleDto> UpdateArticleAsync(int articleId, CreateKnowledgeArticleDto dto, int modifiedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
 
         if (article == null || article.IsDeleted)
@@ -118,7 +117,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<bool> PublishArticleAsync(int articleId, int publisherId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
 
         if (article == null || article.IsDeleted)
@@ -139,7 +138,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<bool> RetireArticleAsync(int articleId, int modifiedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
 
         if (article == null || article.IsDeleted)
@@ -158,7 +157,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<bool> SubmitFeedbackAsync(int articleId, int? userId, bool isHelpful, string? comment)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var feedback = new ArticleFeedback
         {
@@ -190,7 +189,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<IEnumerable<KnowledgeArticleDto>> GetSuggestedArticlesAsync(string incidentDescription)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var stopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -250,7 +249,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<IEnumerable<KnowledgeArticleDto>> GetPopularArticlesAsync(int count)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var articles = await context.ITSMKnowledgeArticles
             .Include(a => a.Author)
@@ -265,7 +264,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<IEnumerable<KnowledgeArticleDto>> GetRecentArticlesAsync(int count)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var articles = await context.ITSMKnowledgeArticles
             .Include(a => a.Author)
@@ -279,7 +278,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
 
     public async Task<IEnumerable<string>> GetCategoriesAsync()
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var categories = await context.ITSMKnowledgeArticles
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
@@ -335,7 +334,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     /// </summary>
     public async Task<IEnumerable<ArticleVersionDto>> GetArticleVersionsAsync(int articleId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var versions = await context.ArticleVersions
             .Include(v => v.ChangedBy)
@@ -364,7 +363,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
     /// </summary>
     public async Task<KnowledgeArticleDto?> RestoreArticleVersionAsync(int articleId, int versionId, int modifiedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var article = await context.ITSMKnowledgeArticles
             .FirstOrDefaultAsync(a => a.ArticleId == articleId && !a.IsDeleted);

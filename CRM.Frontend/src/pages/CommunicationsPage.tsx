@@ -199,8 +199,8 @@ function CommunicationsPage() {
       setConversations(conversationsRes.data);
       setChannels(channelsRes.data);
       setStats(statsRes.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load communications');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load communications');
     } finally {
       setLoading(false);
     }
@@ -272,8 +272,8 @@ function CommunicationsPage() {
       });
       setSuccess('Message sent successfully');
       fetchMessages();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send message');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to send message');
     }
   };
 

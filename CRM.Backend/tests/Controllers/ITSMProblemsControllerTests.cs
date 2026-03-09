@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using System.Security.Claims;
 using CRM.Api.Controllers;
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using FluentAssertions;

@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using System;
 using System.Threading.Tasks;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;

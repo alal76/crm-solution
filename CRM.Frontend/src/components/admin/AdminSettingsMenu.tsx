@@ -45,6 +45,8 @@ import {
   BugReport as TestIcon,
   ThumbUp as ApprovalIcon,
   Category as EnumIcon,
+  Email as CommunicationsIcon, // UX-CONF-011
+  Extension as ProvidersIcon,  // UX-CONF-011
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -79,8 +81,9 @@ const SECTIONS: MenuSection[] = [
       { id: 'users', label: 'Users', icon: UserIcon, path: '/admin/users' },
       { id: 'groups', label: 'Groups', icon: GroupIcon, path: '/admin/groups' },
       { id: 'approvals', label: 'Approvals', icon: ApprovalIcon, path: '/admin/approvals' },
-      { id: 'security', label: 'Security', icon: SecurityIcon, path: '/admin/security' },
-      { id: 'social-login', label: 'Social Login', icon: SocialLoginIcon, path: '/admin/social-login' },
+      { id: 'security', label: 'Security & SSO', icon: SecurityIcon, path: '/admin/security' }, // UX-CONF-011: SSO merged into Security
+      // UX-CONF-011: social-login moved to /admin/security (SSO tab). Route /admin/social-login now redirects.
+      // { id: 'social-login', label: 'Social Login', icon: SocialLoginIcon, path: '/admin/social-login' },
     ],
   },
   {
@@ -97,11 +100,22 @@ const SECTIONS: MenuSection[] = [
       { id: 'lead-score-rules', label: 'Lead Score Rules', icon: LeadScoreIcon, path: '/admin/lead-score-rules' },
     ],
   },
+  // UX-CONF-011: Added Communications group for channel/notification settings
+  {
+    id: 'communications',
+    title: 'Communications',
+    items: [
+      { id: 'communications-page', label: 'Channel Settings', icon: CommunicationsIcon, path: '/admin/communications' },
+      // /channel-settings (top-level) is proxied here; webhooks & notification providers go to /admin/providers
+    ],
+  },
   {
     id: 'ai-integrations',
     title: 'AI & Integrations',
     items: [
-      { id: 'llm-settings', label: 'AI / LLM Settings', icon: AIIcon, path: '/admin/llm' },
+      // UX-CONF-011: /admin/llm is now redirected to /admin/providers (AI tab). Kept as comment for backwards compat.
+      // { id: 'llm-settings', label: 'AI / LLM Settings', icon: AIIcon, path: '/admin/llm' },
+      { id: 'providers', label: 'Providers', icon: ProvidersIcon, path: '/admin/providers' }, // UX-CONF-011: replaces duplicate LLM link
       { id: 'integrations', label: 'Integrations', icon: IntegrationsIcon, path: '/admin/integrations' },
       { id: 'analytics', label: 'Analytics', icon: AnalyticsIcon, path: '/admin/analytics' },
     ],

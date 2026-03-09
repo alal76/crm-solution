@@ -34,9 +34,9 @@ DEFAULT_CONFIG = {
     "script_format": "unix",
     "seed_data": {
         "users": True,
-        "demo_customers": False,
-        "demo_opportunities": False,
-        "demo_campaigns": False,
+        "demo_customers": False,  # DEPRECATED: renamed to sample_customers
+        "demo_opportunities": False,  # DEPRECATED: renamed to sample_opportunities
+        "demo_campaigns": False,  # DEPRECATED: renamed to sample_campaigns
         "sample_workflows": False,
         "zip_codes": False
     },
@@ -320,9 +320,9 @@ class DeploymentTool:
         
         seed_options = [
             ("users", "Admin User (Required)", True, True),
-            ("demo_customers", "Demo Customers (50 sample customers)", False, False),
-            ("demo_opportunities", "Demo Opportunities (25 sample deals)", False, False),
-            ("demo_campaigns", "Demo Campaigns (10 sample campaigns)", False, False),
+            ("demo_customers", "Sample Customers (50 sample customers)", False, False),
+            ("demo_opportunities", "Sample Opportunities (25 sample deals)", False, False),
+            ("demo_campaigns", "Sample Campaigns (10 sample campaigns)", False, False),
             ("sample_workflows", "Sample Workflows (5 automation templates)", False, False),
             ("zip_codes", "US Zip Codes Database (40,000+ entries)", False, False)
         ]
@@ -821,11 +821,11 @@ docker compose exec -T api dotnet run --seed-admin
 
 '''
         
-        # Add seed data commands
+        # Add seed data commands (sample data — demo database deprecated)
         if self.config['seed_data'].get('demo_customers'):
-            script += 'echo "Seeding demo customers..."\ndocker compose exec -T api dotnet run --seed-customers\n'
+            script += 'echo "Seeding sample customers..."\ndocker compose exec -T api dotnet run --seed-customers\n'
         if self.config['seed_data'].get('demo_opportunities'):
-            script += 'echo "Seeding demo opportunities..."\ndocker compose exec -T api dotnet run --seed-opportunities\n'
+            script += 'echo "Seeding sample opportunities..."\ndocker compose exec -T api dotnet run --seed-opportunities\n'
         if self.config['seed_data'].get('zip_codes'):
             script += 'echo "Seeding zip codes..."\ndocker compose exec -T api dotnet run --seed-zipcodes\n'
         

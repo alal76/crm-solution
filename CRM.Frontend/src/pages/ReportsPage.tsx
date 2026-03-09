@@ -56,7 +56,7 @@ function ReportsPage() {
       const response = await reportService.getReports();
       setReports(response.data || []);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load reports:', err);
       setError('Failed to load reports. The reports module may not be configured yet.');
       setReports([]);
@@ -96,7 +96,7 @@ function ReportsPage() {
       setDesignerOpen(false);
       setEditingReport(undefined);
       await fetchReports();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to save report:', err);
     }
   };
@@ -110,7 +110,7 @@ function ReportsPage() {
 
       const created = await reportService.createReport(buildCreateDto(report));
       await reportService.executeReport(created.data.id);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to run report:', err);
     }
   };
@@ -119,7 +119,7 @@ function ReportsPage() {
     try {
       await reportService.deleteReport(id);
       await fetchReports();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to delete report:', err);
     }
   };

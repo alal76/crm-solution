@@ -94,7 +94,7 @@ function TaskDetailPage() {
         setTask({ ...data, subject: data.subject || data.title || '' });
       })
       .catch(err => {
-        setError(err.response?.data?.message || 'Failed to load task details');
+        setError((err as any).response?.data?.message || 'Failed to load task details');
       })
       .finally(() => setLoading(false));
   }, [id]);

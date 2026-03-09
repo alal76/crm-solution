@@ -298,8 +298,8 @@ const EntitySelect: React.FC<EntitySelectProps> = ({
       onChange({ target: { name, value: newId } });
 
       handleCloseDialog();
-    } catch (err: any) {
-      setDialogError(err.response?.data?.message || err.message || 'Failed to create');
+    } catch (err: unknown) {
+      setDialogError((err as any).response?.data?.message || (err as Error).message || 'Failed to create');
     } finally {
       setSaving(false);
     }

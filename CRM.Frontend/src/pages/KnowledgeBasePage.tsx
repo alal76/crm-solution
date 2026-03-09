@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // KB-017
 import { createSafeHtml } from '../utils/sanitize';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell,
@@ -18,7 +19,7 @@ import {
   Search as SearchIcon, Close as CloseIcon, Refresh as RefreshIcon,
   Article as ArticleIcon, ThumbUp as ThumbUpIcon, ThumbDown as ThumbDownIcon,
   Visibility as ViewIcon, Print as PrintIcon, Category as CategoryIcon,
-  LocalOffer as TagIcon,
+  LocalOffer as TagIcon, AccountTree as CategoryTreeIcon, // KB-017
 } from '@mui/icons-material';
 import { DialogError, ActionButton, TabPanel } from '../components/common';
 import { usePagination } from '../hooks/usePagination';
@@ -169,6 +170,7 @@ function KnowledgeBasePage() {
 
   const dialogApi = useApiState();
   const { hasPermission } = useProfile();
+  const navigate = useNavigate(); // KB-017
 
   // ==================== DATA FETCHING ====================
 
@@ -183,12 +185,12 @@ function KnowledgeBasePage() {
       const response = await apiClient.get('/knowledge/articles');
       setArticles(response.data);
       setError(null);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      if ((err as any).response?.status === 404) {
         setArticles([]);
         setError(null);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch articles');
+        setError((err as any).response?.data?.message || 'Failed to fetch articles');
       }
     } finally {
       setLoading(false);
@@ -199,7 +201,7 @@ function KnowledgeBasePage() {
     try {
       const response = await apiClient.get('/knowledge/categories');
       setCategories(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Categories endpoint might not exist yet
       setCategories([]);
     }
@@ -290,8 +292,8 @@ function KnowledgeBasePage() {
         setSuccessMessage('Article deleted successfully');
         fetchArticles();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete article');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete article');
       }
     }
   };
@@ -389,8 +391,8 @@ function KnowledgeBasePage() {
       setCategoryDialogOpen(false);
       fetchCategories();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save category');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save category');
     }
   };
 
@@ -401,8 +403,8 @@ function KnowledgeBasePage() {
         setSuccessMessage('Category deleted');
         fetchCategories();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete category');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete category');
       }
     }
   };
@@ -446,6 +448,10 @@ function KnowledgeBasePage() {
           <Stack direction="row" spacing={2}>
             <Button variant="outlined" startIcon={<CategoryIcon />} onClick={() => handleOpenCategoryDialog()}>
               Manage Categories
+            </Button>
+            {/* KB-017: Navigate to dedicated category tree management page */}
+            <Button variant="outlined" startIcon={<CategoryTreeIcon />} onClick={() => navigate('/admin/knowledge/categories')}>
+              Category Tree
             </Button>
             <Button variant="outlined" startIcon={<RefreshIcon />} onClick={fetchArticles}>
               Refresh

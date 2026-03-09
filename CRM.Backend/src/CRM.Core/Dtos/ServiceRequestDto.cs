@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities;
 
 namespace CRM.Core.Dtos;
@@ -321,7 +322,11 @@ public class ServiceRequestDto
 
 public class CreateServiceRequestDto
 {
+    [Required(ErrorMessage = "Subject is required")]
+    [StringLength(500, MinimumLength = 1, ErrorMessage = "Subject must be between 1 and 500 characters")]
     public string Subject { get; set; } = string.Empty;
+
+    [StringLength(4000, ErrorMessage = "Description cannot exceed 4000 characters")]
     public string? Description { get; set; }
     public ServiceRequestChannel Channel { get; set; } = ServiceRequestChannel.SelfServicePortal;
     public ServiceRequestPriority Priority { get; set; } = ServiceRequestPriority.Medium;
@@ -337,8 +342,12 @@ public class CreateServiceRequestDto
     // Account & Contact
     public int? AccountId { get; set; }
     public int? ContactId { get; set; }
+    [StringLength(200, ErrorMessage = "Requester name cannot exceed 200 characters")] // AP-027
     public string? RequesterName { get; set; }
+    [EmailAddress(ErrorMessage = "Requester email must be a valid email address")] // AP-027
+    [StringLength(254, ErrorMessage = "Requester email cannot exceed 254 characters")] // AP-027
     public string? RequesterEmail { get; set; }
+    [StringLength(50, ErrorMessage = "Requester phone cannot exceed 50 characters")] // AP-027
     public string? RequesterPhone { get; set; }
 
     // Assignment
@@ -349,9 +358,14 @@ public class CreateServiceRequestDto
     public int? WorkflowId { get; set; }
 
     // Channel-specific
+    [StringLength(200, ErrorMessage = "External reference ID cannot exceed 200 characters")] // AP-027
     public string? ExternalReferenceId { get; set; }
+    [StringLength(50, ErrorMessage = "Source phone number cannot exceed 50 characters")] // AP-027
     public string? SourcePhoneNumber { get; set; }
+    [EmailAddress(ErrorMessage = "Source email address must be a valid email address")] // AP-027
+    [StringLength(254, ErrorMessage = "Source email address cannot exceed 254 characters")] // AP-027
     public string? SourceEmailAddress { get; set; }
+    [StringLength(100, ErrorMessage = "Conversation ID cannot exceed 100 characters")] // AP-027
     public string? ConversationId { get; set; }
 
     // Related entities
@@ -361,12 +375,16 @@ public class CreateServiceRequestDto
 
     // Expedite
     public bool IsExpedited { get; set; }
+    [StringLength(500, ErrorMessage = "Expedite reason cannot exceed 500 characters")] // AP-027
     public string? ExpediteReason { get; set; }
 
     // Additional
+    [StringLength(500, ErrorMessage = "Tags cannot exceed 500 characters")] // AP-027
     public string? Tags { get; set; }
+    [StringLength(4000, ErrorMessage = "Internal notes cannot exceed 4000 characters")] // AP-027
     public string? InternalNotes { get; set; }
     public bool IsVipAccount { get; set; }
+    [Range(typeof(decimal), "0", "10000.00", ErrorMessage = "Estimated effort hours must be between 0 and 10,000")] // AP-027
     public decimal? EstimatedEffortHours { get; set; }
 
     // Custom field values

@@ -45,25 +45,26 @@ public sealed class DunningScheduleDto
 /// <summary>
 /// Payload for creating a new dunning schedule step.
 /// BACK-010: Dunning Schedule CRUD.
+/// AP-026: All required fields and ranges validated via DataAnnotations.
 /// </summary>
 public sealed class CreateDunningScheduleDto
 {
     /// <summary>Descriptive name (required, max 200 chars).</summary>
-    [Required]
+    [Required] // AP-026: Name is required
     [StringLength(200, MinimumLength = 1)]
     public string Name { get; init; } = string.Empty;
 
     /// <summary>Days past invoice due date that trigger this step (must be ≥ 0).</summary>
-    [Range(0, 365)]
+    [Range(0, 365)] // AP-026: DaysOverdue must be 0–365
     public int DaysOverdue { get; init; }
 
     /// <summary>Email subject line (required, max 500 chars).</summary>
-    [Required]
+    [Required] // AP-026: EmailSubject is required
     [StringLength(500, MinimumLength = 1)]
     public string EmailSubject { get; init; } = string.Empty;
 
     /// <summary>Email body template (required, max 10000 chars).</summary>
-    [Required]
+    [Required] // AP-026: EmailBody is required
     [StringLength(10000, MinimumLength = 1)]
     public string EmailBody { get; init; } = string.Empty;
 
@@ -71,7 +72,7 @@ public sealed class CreateDunningScheduleDto
     public bool IsActive { get; init; } = true;
 
     /// <summary>Ordinal position used to sort steps (lower = earlier).</summary>
-    [Range(0, int.MaxValue)]
+    [Range(0, int.MaxValue)] // AP-026: StepOrder must be non-negative
     public int StepOrder { get; init; }
 }
 

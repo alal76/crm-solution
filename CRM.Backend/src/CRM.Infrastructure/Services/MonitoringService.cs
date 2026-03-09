@@ -343,11 +343,19 @@ public class MonitoringService : IMonitoringService
     private readonly HttpClient _httpClient;
     private static readonly DateTime _startTime = DateTime.UtcNow;
 
+    // AP-038: Extracted sub-services
+    private readonly IDatabaseHealthService _databaseHealthService;
+    private readonly IDockerMonitoringService _dockerMonitoringService;
+    private readonly IKubernetesMonitoringService _kubernetesMonitoringService;
+
     public MonitoringService(
         IConfiguration configuration,
         IRedisCacheService cache,
         IOptions<MonitoringOptions> options,
-        ILogger<MonitoringService> logger)
+        ILogger<MonitoringService> logger,
+        IDatabaseHealthService databaseHealthService,
+        IDockerMonitoringService dockerMonitoringService,
+        IKubernetesMonitoringService kubernetesMonitoringService)
     {
         _configuration = configuration;
         _cache = cache;
@@ -357,6 +365,9 @@ public class MonitoringService : IMonitoringService
         {
             Timeout = TimeSpan.FromSeconds(_options.HealthCheckTimeoutSeconds)
         };
+        _databaseHealthService = databaseHealthService;
+        _dockerMonitoringService = dockerMonitoringService;
+        _kubernetesMonitoringService = kubernetesMonitoringService;
     }
 
     public MonitoringOptions GetMonitoringOptions() => _options;
@@ -657,52 +668,9 @@ public class MonitoringService : IMonitoringService
 
     #region Database Metrics
 
+    /// <remarks>AP-038: Delegated to IDatabaseHealthService. Original implementation preserved below.</remarks>
     public async Task<DatabaseMetrics> GetDatabaseMetricsAsync(CancellationToken ct = default)
-    {
-        var provider = ParseDatabaseProvider(_options.DatabaseProvider);
-        var metrics = new DatabaseMetrics
-        {
-            Timestamp = DateTime.UtcNow,
-            Provider = provider,
-            ProviderName = provider.ToString()
-        };
-
-        var connectionString = GetDatabaseConnectionString();
-        var sw = Stopwatch.StartNew();
-
-        try
-        {
-            switch (provider)
-            {
-                case DatabaseProviderType.SqlServer:
-                    metrics = await GetSqlServerMetricsAsync(connectionString, ct);
-                    break;
-                case DatabaseProviderType.MariaDB:
-                case DatabaseProviderType.MySQL:
-                    metrics = await GetMySqlMetricsAsync(connectionString, provider, ct);
-                    break;
-                case DatabaseProviderType.PostgreSQL:
-                    metrics = await GetPostgreSqlMetricsAsync(connectionString, ct);
-                    break;
-                default:
-                    metrics.IsHealthy = false;
-                    break;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to get database metrics");
-            metrics.IsHealthy = false;
-        }
-
-        sw.Stop();
-        if (metrics.ResponseTimeMs == 0)
-        {
-            metrics.ResponseTimeMs = (int)sw.ElapsedMilliseconds;
-        }
-
-        return metrics;
-    }
+        => await _databaseHealthService.GetDatabaseMetricsAsync(ct);
 
     private string GetDatabaseConnectionString()
     {
@@ -1136,7 +1104,13 @@ public class MonitoringService : IMonitoringService
 
     #region Container Monitoring
 
+    /// <remarks>AP-038: Delegated to IDockerMonitoringService. Original implementation preserved below.</remarks>
     public async Task<List<ContainerHealth>> GetContainerHealthAsync(CancellationToken ct = default)
+        => await _dockerMonitoringService.GetContainerHealthAsync(ct);
+
+    // AP-038: Original Docker monitoring implementation preserved for reference.
+    // Now handled by DockerMonitoringService.
+    private async Task<List<ContainerHealth>> GetContainerHealthOriginalAsync(CancellationToken ct = default)
     {
         if (!_options.EnableDockerMonitoring && !File.Exists("/.dockerenv"))
         {
@@ -1234,7 +1208,13 @@ public class MonitoringService : IMonitoringService
 
     #region Kubernetes Monitoring
 
+    /// <remarks>AP-038: Delegated to IKubernetesMonitoringService. Original implementation preserved below.</remarks>
     public async Task<List<PodHealth>> GetPodHealthAsync(CancellationToken ct = default)
+        => await _kubernetesMonitoringService.GetPodHealthAsync(ct);
+
+    // AP-038: Original Kubernetes monitoring implementation preserved for reference.
+    // Now handled by KubernetesMonitoringService.
+    private async Task<List<PodHealth>> GetPodHealthOriginalAsync(CancellationToken ct = default)
     {
         if (!_options.EnableK8sMonitoring &&
             Environment.GetEnvironmentVariable("KUBERNETES_SERVICE_HOST") == null)

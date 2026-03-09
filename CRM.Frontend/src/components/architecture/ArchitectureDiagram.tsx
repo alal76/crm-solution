@@ -211,7 +211,7 @@ const modules: Module[] = [
     description: 'File uploads, webhooks, health checks, and demo data',
     icon: '🔧',
     entities: [],
-    controllers: ['FileUploadController', 'HealthController', 'DemoDataController', 'WebhooksController'],
+    controllers: ['FileUploadController', 'HealthController', 'SampleDataController', 'WebhooksController'],
     frontendPages: [],
   },
   {

@@ -1,0 +1,109 @@
+{
+  "uuid": "crm-mock-env-v1",
+  "lastMigration": 33,
+  "name": "CRM Dev - Social & Accounting Mocks",
+  "endpointPrefix": "",
+  "latency": 50,
+  "port": 3001,
+  "hostname": "0.0.0.0",
+  "routes": [
+    {
+      "uuid": "whatsapp-webhook",
+      "documentation": "Simulates Meta WhatsApp Cloud API inbound message webhook (COMM-001)",
+      "method": "post",
+      "endpoint": "whatsapp/webhook",
+      "responses": [
+        {
+          "uuid": "whatsapp-ok",
+          "body": "{\"messaging_product\":\"whatsapp\",\"contacts\":[{\"input\":\"+1234567890\",\"wa_id\":\"1234567890\"}],\"messages\":[{\"id\":\"mock_msg_id_001\"}]}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Message accepted",
+          "headers": [{"key": "Content-Type", "value": "application/json"}],
+          "bodyType": "INLINE",
+          "default": true
+        }
+      ]
+    },
+    {
+      "uuid": "facebook-webhook",
+      "documentation": "Simulates Facebook Messenger Graph API webhook echo (COMM-002)",
+      "method": "post",
+      "endpoint": "facebook/webhook",
+      "responses": [
+        {
+          "uuid": "fb-ok",
+          "body": "{\"recipient_id\":\"mock_recipient\",\"message_id\":\"mock_fb_msg_001\"}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Message sent",
+          "headers": [{"key": "Content-Type", "value": "application/json"}],
+          "bodyType": "INLINE",
+          "default": true
+        }
+      ]
+    },
+    {
+      "uuid": "twitter-webhook",
+      "documentation": "Simulates Twitter/X Account Activity API CRC check (COMM-003)",
+      "method": "get",
+      "endpoint": "twitter/webhook",
+      "responses": [
+        {
+          "uuid": "twitter-crc",
+          "body": "{\"response_token\":\"sha256=mock_crc_token\"}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "CRC check",
+          "headers": [{"key": "Content-Type", "value": "application/json"}],
+          "bodyType": "INLINE",
+          "default": true
+        }
+      ]
+    },
+    {
+      "uuid": "quickbooks-token",
+      "documentation": "Simulates QuickBooks OAuth2 token endpoint (INT-001)",
+      "method": "post",
+      "endpoint": "quickbooks/oauth/token",
+      "responses": [
+        {
+          "uuid": "qb-token-ok",
+          "body": "{\"access_token\":\"mock_qb_access_token\",\"token_type\":\"Bearer\",\"expires_in\":3600,\"refresh_token\":\"mock_qb_refresh\",\"x_refresh_token_expires_in\":8726400}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Token issued",
+          "headers": [{"key": "Content-Type", "value": "application/json"}],
+          "bodyType": "INLINE",
+          "default": true
+        }
+      ]
+    },
+    {
+      "uuid": "xero-contacts",
+      "documentation": "Simulates Xero Contacts API response (INT-001)",
+      "method": "get",
+      "endpoint": "xero/api.xro/2.0/Contacts",
+      "responses": [
+        {
+          "uuid": "xero-contacts-ok",
+          "body": "{\"Id\":\"mock-req-id\",\"Status\":\"OK\",\"Contacts\":[{\"ContactID\":\"mock-xero-contact-001\",\"Name\":\"CRM Test Contact\",\"EmailAddress\":\"test@crm.local\",\"IsSupplier\":false,\"IsCustomer\":true}]}",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "Contacts list",
+          "headers": [{"key": "Content-Type", "value": "application/json"}],
+          "bodyType": "INLINE",
+          "default": true
+        }
+      ]
+    }
+  ],
+  "rootChildren": [],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {"enabled": false},
+  "cors": true,
+  "headers": [{"key": "Content-Type", "value": "application/json"}],
+  "folders": []
+}

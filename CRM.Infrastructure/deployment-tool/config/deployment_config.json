@@ -9,9 +9,9 @@
   "script_format": "unix",
   "seed_data": {
     "users": true,
-    "demo_customers": false,
-    "demo_opportunities": false,
-    "demo_campaigns": false,
+    "sample_customers": false,
+    "sample_opportunities": false,
+    "sample_campaigns": false,
     "sample_workflows": false,
     "zip_codes": false
   },

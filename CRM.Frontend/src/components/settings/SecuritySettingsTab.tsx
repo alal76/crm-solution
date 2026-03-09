@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getApiUrl } from '../../config/ports';
+import securitySettingsService from '../../services/securitySettingsService';
 import {
   Box,
   Typography,
@@ -49,7 +49,7 @@ interface TwoFactorSetupProps {
 }
 
 interface SetupData {
-  qrCodeUrl: string;
+  qrCode?: string;
   secret: string;
   backupCodes: string[];
 }
@@ -106,8 +106,6 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const [keyFile, setKeyFile] = useState<File | null>(null);
   const [certPassword, setCertPassword] = useState('');
 
-  const apiUrl = getApiUrl();
-
   useEffect(() => {
     loadTwoFactorStatus();
     loadSslStatus();
@@ -117,15 +115,8 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const loadSslStatus = async () => {
     try {
       setSslLoading(true);
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/systemsettings/ssl/status`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setSslStatus(data);
-      }
+      const data = await securitySettingsService.getSslStatus();
+      setSslStatus(data as unknown as NonNullable<typeof sslStatus>);
     } catch (err) {
       console.error('Error loading SSL status:', err);
     } finally {
@@ -135,25 +126,17 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
   const loadQuickAdminLoginStatus = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/systemsettings`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const data = await securitySettingsService.getSecuritySettings();
+      setQuickAdminLoginEnabled(data.quickAdminLoginEnabled ?? true);
+      setPasswordSettings({
+        minPasswordLength: data.minPasswordLength ?? 8,
+        maxPasswordLength: data.maxPasswordLength ?? 128,
+        requireUppercase: data.requireUppercase ?? true,
+        requireLowercase: data.requireLowercase ?? true,
+        requireNumbers: data.requireNumbers ?? true,
+        requireSpecialChars: data.requireSpecialChars ?? false,
+        defaultPasswordExpirationDays: data.defaultPasswordExpirationDays ?? 0,
       });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setQuickAdminLoginEnabled(data.quickAdminLoginEnabled ?? true);
-        // Load password complexity settings
-        setPasswordSettings({
-          minPasswordLength: data.minPasswordLength ?? 8,
-          maxPasswordLength: data.maxPasswordLength ?? 128,
-          requireUppercase: data.requireUppercase ?? true,
-          requireLowercase: data.requireLowercase ?? true,
-          requireNumbers: data.requireNumbers ?? true,
-          requireSpecialChars: data.requireSpecialChars ?? false,
-          defaultPasswordExpirationDays: data.defaultPasswordExpirationDays ?? 0,
-        });
-      }
     } catch (err) {
       console.error('Error loading settings:', err);
     }
@@ -162,26 +145,12 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const handleSavePasswordSettings = async () => {
     setSavingPasswordSettings(true);
     setError(null);
-
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/systemsettings`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(passwordSettings),
-      });
-
-      if (response.ok) {
-        setSuccess('Password complexity settings saved successfully');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to save password settings');
-      }
-    } catch (err) {
-      setError('Failed to save password settings');
+      await securitySettingsService.updateSecuritySettings(passwordSettings);
+      setSuccess('Password complexity settings saved successfully');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as Error).message : 'Failed to save password settings';
+      setError(msg);
     } finally {
       setSavingPasswordSettings(false);
     }
@@ -190,27 +159,13 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const handleToggleQuickAdminLogin = async (enabled: boolean) => {
     setSavingQuickLogin(true);
     setError(null);
-
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/systemsettings`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ quickAdminLoginEnabled: enabled }),
-      });
-
-      if (response.ok) {
-        setQuickAdminLoginEnabled(enabled);
-        setSuccess(enabled ? 'Quick Admin Login enabled' : 'Quick Admin Login disabled');
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to toggle Quick Admin Login');
-      }
-    } catch (err) {
-      setError('Failed to toggle Quick Admin Login');
+      await securitySettingsService.updateSecuritySettings({ quickAdminLoginEnabled: enabled });
+      setQuickAdminLoginEnabled(enabled);
+      setSuccess(enabled ? 'Quick Admin Login enabled' : 'Quick Admin Login disabled');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as Error).message : 'Failed to toggle Quick Admin Login';
+      setError(msg);
     } finally {
       setSavingQuickLogin(false);
     }
@@ -221,47 +176,27 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
       setError('Please select a certificate file');
       return;
     }
-
-    // For PFX files, we don't need a separate key file
     const isPfx = certFile.name.toLowerCase().endsWith('.pfx') || certFile.name.toLowerCase().endsWith('.p12');
     if (!isPfx && !keyFile) {
       setError('Please select both certificate and private key files for CRT/PEM format');
       return;
     }
-
     setUploadingCert(true);
     setError(null);
-
     try {
-      const token = localStorage.getItem('accessToken');
       const formData = new FormData();
       formData.append('certificate', certFile);
-      if (keyFile) {
-        formData.append('privateKey', keyFile);
-      }
-      if (certPassword) {
-        formData.append('password', certPassword);
-      }
-
-      const response = await fetch(`${apiUrl}/systemsettings/ssl/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSuccess(data.message || 'SSL certificate uploaded successfully. Restart the server to apply.');
-        setCertFile(null);
-        setKeyFile(null);
-        setCertPassword('');
-        await loadSslStatus();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to upload certificate');
-      }
-    } catch (err) {
-      setError('Failed to upload SSL certificate');
+      if (keyFile) formData.append('privateKey', keyFile);
+      if (certPassword) formData.append('password', certPassword);
+      const data = await securitySettingsService.uploadSslCertificate(formData);
+      setSuccess(data.message || 'SSL certificate uploaded successfully. Restart the server to apply.');
+      setCertFile(null);
+      setKeyFile(null);
+      setCertPassword('');
+      await loadSslStatus();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as Error).message : 'Failed to upload SSL certificate';
+      setError(msg);
     } finally {
       setUploadingCert(false);
     }
@@ -270,54 +205,27 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const handleToggleHttps = async (enabled: boolean, forceRedirect: boolean = false) => {
     setSslLoading(true);
     setError(null);
-
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/systemsettings/ssl/toggle`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ enabled, forceRedirect }),
-      });
-
-      if (response.ok) {
-        setSuccess(enabled ? 'HTTPS enabled' : 'HTTPS disabled');
-        await loadSslStatus();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to toggle HTTPS');
-      }
-    } catch (err) {
-      setError('Failed to toggle HTTPS');
+      await securitySettingsService.toggleHttps({ enabled, forceRedirect });
+      setSuccess(enabled ? 'HTTPS enabled' : 'HTTPS disabled');
+      await loadSslStatus();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as Error).message : 'Failed to toggle HTTPS';
+      setError(msg);
     } finally {
       setSslLoading(false);
     }
   };
 
   const handleRemoveCertificate = async () => {
-    if (!window.confirm('Are you sure you want to remove the SSL certificate? HTTPS will be disabled.')) {
-      return;
-    }
-
+    if (!window.confirm('Are you sure you want to remove the SSL certificate? HTTPS will be disabled.')) return;
     setSslLoading(true);
     setError(null);
-
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/systemsettings/ssl`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        setSuccess('SSL certificate removed');
-        await loadSslStatus();
-      } else {
-        setError('Failed to remove certificate');
-      }
-    } catch (err) {
+      await securitySettingsService.removeSslCertificate();
+      setSuccess('SSL certificate removed');
+      await loadSslStatus();
+    } catch {
       setError('Failed to remove SSL certificate');
     } finally {
       setSslLoading(false);
@@ -325,37 +233,19 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   };
 
   const handleGenerateSelfSignedCertificate = async () => {
-    if (!window.confirm('Generate a self-signed SSL certificate? This will replace any existing certificate. A server restart will be required.')) {
-      return;
-    }
-
+    if (!window.confirm('Generate a self-signed SSL certificate? This will replace any existing certificate. A server restart will be required.')) return;
     setGeneratingCert(true);
     setError(null);
-
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/systemsettings/ssl/generate`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          commonName: window.location.hostname || 'localhost',
-          validityDays: 365,
-        }),
+      const data = await securitySettingsService.generateSelfSignedCertificate({
+        commonName: window.location.hostname || 'localhost',
+        validityDays: 365,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSuccess(`Self-signed certificate generated successfully. Valid until ${new Date(data.expiresOn).toLocaleDateString()}. Restart the server to apply HTTPS.`);
-        await loadSslStatus();
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to generate certificate');
-      }
-    } catch (err) {
-      setError('Failed to generate self-signed certificate');
+      setSuccess(`Self-signed certificate generated successfully. Valid until ${new Date(data.expiresOn ?? '').toLocaleDateString()}. Restart the server to apply HTTPS.`);
+      await loadSslStatus();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as Error).message : 'Failed to generate self-signed certificate';
+      setError(msg);
     } finally {
       setGeneratingCert(false);
     }
@@ -363,15 +253,9 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
   const loadTwoFactorStatus = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (response.ok) {
-        const userData = JSON.parse(localStorage.getItem('crm_user_data') || '{}');
-        setTwoFactorEnabled(userData.twoFactorEnabled || false);
-      }
+      await securitySettingsService.getSslStatus(); // confirm auth is valid
+      const userData = JSON.parse(localStorage.getItem('crm_user_data') || '{}');
+      setTwoFactorEnabled(userData.twoFactorEnabled || false);
     } catch (err) {
       console.error('Error loading 2FA status:', err);
     } finally {
@@ -382,25 +266,14 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const handleEnableTwoFactor = async () => {
     setSaving(true);
     setError(null);
-    
     try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${apiUrl}/auth/2fa/setup`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setSetupData(data);
-        setSetupDialogOpen(true);
-        setActiveStep(0);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || 'Failed to setup 2FA');
-      }
-    } catch (err) {
-      setError('Failed to setup two-factor authentication');
+      const data = await securitySettingsService.setup2FA();
+      setSetupData(data);
+      setSetupDialogOpen(true);
+      setActiveStep(0);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as Error).message : 'Failed to setup two-factor authentication';
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -408,55 +281,25 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
 
   const handleVerifyAndEnable = async () => {
     if (!setupData || !verificationCode) return;
-    
     setSaving(true);
     setError(null);
-    
     try {
-      const token = localStorage.getItem('accessToken');
-      
-      // First, enable 2FA with the secret
-      const enableResponse = await fetch(`${apiUrl}/auth/2fa/enable`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          secret: setupData.secret,
-          backupCodes: setupData.backupCodes,
-        }),
+      await securitySettingsService.enable2FA({
+        secret: setupData.secret,
+        backupCodes: setupData.backupCodes,
       });
-      
-      if (!enableResponse.ok) {
-        throw new Error('Failed to enable 2FA');
-      }
-      
-      // Verify the code
-      const verifyResponse = await fetch(`${apiUrl}/auth/2fa/verify`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: verificationCode }),
-      });
-      
-      if (verifyResponse.ok) {
+      const verifyResult = await securitySettingsService.verify2FA({ code: verificationCode });
+      if (verifyResult) {
         setTwoFactorEnabled(true);
         setActiveStep(2);
         setSuccess('Two-factor authentication enabled successfully!');
-        
-        // Update stored user data
         const userData = JSON.parse(localStorage.getItem('crm_user_data') || '{}');
         userData.twoFactorEnabled = true;
         localStorage.setItem('crm_user_data', JSON.stringify(userData));
-      } else {
-        const errorData = await verifyResponse.json();
-        setError(errorData.message || 'Invalid verification code');
       }
-    } catch (err) {
-      setError('Failed to verify code');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as Error).message : 'Invalid verification code';
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -465,47 +308,19 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
   const handleDisableTwoFactor = async () => {
     setSaving(true);
     setError(null);
-    
     try {
-      const token = localStorage.getItem('accessToken');
-      
-      // Verify code first
-      const verifyResponse = await fetch(`${apiUrl}/auth/2fa/verify`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code: disableCode }),
-      });
-      
-      if (!verifyResponse.ok) {
-        setError('Invalid verification code');
-        setSaving(false);
-        return;
-      }
-      
-      // Disable 2FA
-      const response = await fetch(`${apiUrl}/auth/2fa/disable`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      
-      if (response.ok) {
-        setTwoFactorEnabled(false);
-        setDisableDialogOpen(false);
-        setDisableCode('');
-        setSuccess('Two-factor authentication disabled');
-        
-        // Update stored user data
-        const userData = JSON.parse(localStorage.getItem('crm_user_data') || '{}');
-        userData.twoFactorEnabled = false;
-        localStorage.setItem('crm_user_data', JSON.stringify(userData));
-      } else {
-        setError('Failed to disable 2FA');
-      }
-    } catch (err) {
-      setError('Failed to disable two-factor authentication');
+      await securitySettingsService.verify2FA({ code: disableCode });
+      await securitySettingsService.disable2FA();
+      setTwoFactorEnabled(false);
+      setDisableDialogOpen(false);
+      setDisableCode('');
+      setSuccess('Two-factor authentication disabled');
+      const userData = JSON.parse(localStorage.getItem('crm_user_data') || '{}');
+      userData.twoFactorEnabled = false;
+      localStorage.setItem('crm_user_data', JSON.stringify(userData));
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? (err as Error).message : 'Invalid verification code';
+      setError(msg);
     } finally {
       setSaving(false);
     }
@@ -1065,7 +880,7 @@ function SecuritySettingsTab({ userId }: TwoFactorSetupProps) {
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
                 <Paper sx={{ p: 2, borderRadius: 2 }}>
-                  <QRCodeSVG value={setupData.qrCodeUrl} size={200} />
+                  <QRCodeSVG value={setupData.qrCode ?? ''} size={200} />
                 </Paper>
               </Box>
               <Typography variant="body2" sx={{ mb: 1 }}>

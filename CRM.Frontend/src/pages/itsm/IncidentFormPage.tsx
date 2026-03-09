@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
+  Alert,
   Box,
   Typography,
   Button,
@@ -12,6 +13,8 @@ import {
 import apiClient from '../../services/apiClient';
 import { ImpactUrgencyMatrix } from '../../components/itsm';
 import type { ImpactLevel, UrgencyLevel } from '../../components/itsm';
+import { incidentFormSchema } from '../../validation/itsmFormSchemas';
+import type { ValidationError } from 'yup';
 
 export const IncidentFormPage: React.FC = () => {
   const navigate = useNavigate();
@@ -24,15 +27,37 @@ export const IncidentFormPage: React.FC = () => {
     categoryId: 0
   });
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const validate = async (): Promise<boolean> => {
+    try {
+      await incidentFormSchema.validate(formData, { abortEarly: false });
+      setErrors({});
+      return true;
+    } catch (err) {
+      const validationError = err as ValidationError;
+      const fieldErrors: Record<string, string> = {};
+      validationError.inner.forEach((e) => {
+        if (e.path) fieldErrors[e.path] = e.message;
+      });
+      setErrors(fieldErrors);
+      return false;
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
+    const isValid = await validate();
+    if (!isValid) return;
+
     setSubmitting(true);
     try {
       await apiClient.post('/incidents', formData);
       navigate('/incidents');
-    } catch (error) {
-      console.error('Failed to create incident', error);
+    } catch (error: unknown) {
+      setSubmitError((error as any)?.response?.data?.message || 'Failed to create incident');
     } finally {
       setSubmitting(false);
     }
@@ -45,6 +70,7 @@ export const IncidentFormPage: React.FC = () => {
       </Typography>
 
       <Paper sx={{ p: 3 }}>
+        {submitError && <Alert severity="error" sx={{ mb: 2 }}>{submitError}</Alert>}
         <Box component="form" onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <TextField
@@ -54,6 +80,8 @@ export const IncidentFormPage: React.FC = () => {
               required
               fullWidth
               placeholder="Briefly describe the issue"
+              error={!!errors.shortDescription}
+              helperText={errors.shortDescription}
             />
 
             <TextField
@@ -64,6 +92,8 @@ export const IncidentFormPage: React.FC = () => {
               rows={4}
               fullWidth
               placeholder="Detailed description..."
+              error={!!errors.description}
+              helperText={errors.description}
             />
 
             <Grid container spacing={2}>
@@ -75,6 +105,8 @@ export const IncidentFormPage: React.FC = () => {
                   onChange={(e) => setFormData({...formData, impact: Number.parseInt(e.target.value)})}
                   required
                   fullWidth
+                  error={!!errors.impact}
+                  helperText={errors.impact}
                 >
                   <MenuItem value={1}>Low</MenuItem>
                   <MenuItem value={2}>Medium</MenuItem>
@@ -89,6 +121,8 @@ export const IncidentFormPage: React.FC = () => {
                   onChange={(e) => setFormData({...formData, urgency: Number.parseInt(e.target.value)})}
                   required
                   fullWidth
+                  error={!!errors.urgency}
+                  helperText={errors.urgency}
                 >
                   <MenuItem value={1}>Low</MenuItem>
                   <MenuItem value={2}>Medium</MenuItem>

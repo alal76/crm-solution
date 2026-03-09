@@ -64,7 +64,7 @@ const LeadScoreHistoryChart: React.FC<Props> = ({ leadId }) => {
       })
       .catch(err => {
         if (mounted) {
-          setError(err?.message ?? 'Failed to load score history');
+          setError((err as Error)?.message ?? 'Failed to load score history');
           setLoading(false);
         }
       });

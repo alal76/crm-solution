@@ -10,6 +10,7 @@ import { render, RenderOptions } from '@testing-library/react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import '@testing-library/jest-dom';
+import type { UserEvent } from '@testing-library/user-event';
 
 // ============================================================================
 // Mock Theme
@@ -398,7 +399,7 @@ export const mockSessionStorage = () => {
 // Form Testing Helpers
 // ============================================================================
 export const fillForm = async (
-  userEvent: any,
+  userEvent: UserEvent,
   fields: Record<string, string>
 ) => {
   for (const [fieldName, value] of Object.entries(fields)) {
@@ -410,7 +411,7 @@ export const fillForm = async (
   }
 };
 
-export const submitForm = async (userEvent: any, buttonText: string = 'Submit') => {
+export const submitForm = async (userEvent: UserEvent, buttonText: string = 'Submit') => {
   const button = document.querySelector(`button[type="submit"]`) || 
                  document.querySelector(`button:contains("${buttonText}")`);
   if (button) {

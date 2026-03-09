@@ -295,8 +295,8 @@ function MasterDataSettingsTab() {
       setLoading(true);
       const response = await apiClient.get('/masterdata/overview');
       setOverview(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load master data overview');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load master data overview');
     } finally {
       setLoading(false);
     }
@@ -309,8 +309,8 @@ function MasterDataSettingsTab() {
       const params = categorySearch ? { search: categorySearch } : {};
       const response = await apiClient.get('/masterdata/lookup-categories', { params });
       setCategories(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load lookup categories');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load lookup categories');
     } finally {
       setCategoriesLoading(false);
     }
@@ -323,8 +323,8 @@ function MasterDataSettingsTab() {
       const params = paletteSearch ? { search: paletteSearch } : {};
       const response = await apiClient.get('/masterdata/color-palettes', { params });
       setPalettes(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load color palettes');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load color palettes');
     } finally {
       setPalettesLoading(false);
     }
@@ -345,9 +345,9 @@ function MasterDataSettingsTab() {
       const response = await apiClient.get('/masterdata/zipcodes', { params });
       setZipCodes(response.data.items || []);
       setZipTotalCount(response.data.totalCount || 0);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load ZIP codes:', err);
-      setError(err.response?.data?.message || 'Failed to load ZIP codes. Please try again.');
+      setError((err as any).response?.data?.message || 'Failed to load ZIP codes. Please try again.');
       setZipCodes([]);
       setZipTotalCount(0);
     } finally {
@@ -399,9 +399,9 @@ function MasterDataSettingsTab() {
     setImportMessage(null);
     try {
       await apiClient.post('/api/zipcodes/import/geonames');
-    } catch (e: any) {
-      if (e.response?.status !== 409) {
-        setImportMessage({ type: 'error', text: e.response?.data?.message || 'Failed to start import.' });
+    } catch (e: unknown) {
+      if ((e as any).response?.status !== 409) {
+        setImportMessage({ type: 'error', text: (e as any).response?.data?.message || 'Failed to start import.' });
         setImportLoading(false);
         return;
       }
@@ -420,9 +420,9 @@ function MasterDataSettingsTab() {
     setImportMessage(null);
     try {
       await apiClient.post(`/api/zipcodes/import/geonames/${cc}`);
-    } catch (e: any) {
-      if (e.response?.status !== 409) {
-        setImportMessage({ type: 'error', text: e.response?.data?.message || 'Failed to start import.' });
+    } catch (e: unknown) {
+      if ((e as any).response?.status !== 409) {
+        setImportMessage({ type: 'error', text: (e as any).response?.data?.message || 'Failed to start import.' });
         setImportLoading(false);
         return;
       }
@@ -455,9 +455,9 @@ function MasterDataSettingsTab() {
       setCsvFile(null);
       if (csvInputRef.current) csvInputRef.current.value = '';
       await loadImportStatus();
-    } catch (e: any) {
+    } catch (e: unknown) {
       setImportLoading(false);
-      setImportMessage({ type: 'error', text: e.response?.data?.message || 'Failed to upload file.' });
+      setImportMessage({ type: 'error', text: (e as any).response?.data?.message || 'Failed to upload file.' });
     }
   }, [csvFile, loadImportStatus, loadOverview]);
 
@@ -490,8 +490,8 @@ function MasterDataSettingsTab() {
       await apiClient.put('/api/masterdata/branding', brandingForm);
       setBrandingMessage({ type: 'success', text: 'Branding saved successfully.' });
       setBranding({ ...brandingForm });
-    } catch (e: any) {
-      setBrandingMessage({ type: 'error', text: e.response?.data?.message || 'Failed to save branding.' });
+    } catch (e: unknown) {
+      setBrandingMessage({ type: 'error', text: (e as any).response?.data?.message || 'Failed to save branding.' });
     } finally {
       setBrandingSaving(false);
     }
@@ -659,8 +659,8 @@ function MasterDataSettingsTab() {
       setNewCategoryDescription('');
       loadCategories();
       loadOverview();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create category');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to create category');
     }
   };
 
@@ -671,8 +671,8 @@ function MasterDataSettingsTab() {
       setSuccess('Category deleted successfully');
       loadCategories();
       loadOverview();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete category');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete category');
     }
   };
 
@@ -691,8 +691,8 @@ function MasterDataSettingsTab() {
       setNewItemCategoryId(0);
       loadCategories();
       loadOverview();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create item');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to create item');
     }
   };
 
@@ -703,8 +703,8 @@ function MasterDataSettingsTab() {
       setSuccess('Item deleted successfully');
       loadCategories();
       loadOverview();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete item');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete item');
     }
   };
 
@@ -721,7 +721,7 @@ function MasterDataSettingsTab() {
       link.click();
       link.remove();
       setSuccess('Export completed successfully');
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError('Failed to export data');
     }
   };

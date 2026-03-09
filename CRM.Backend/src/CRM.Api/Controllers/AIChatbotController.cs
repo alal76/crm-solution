@@ -331,6 +331,28 @@ public class AIChatbotController : CrmControllerBase
         return Ok(new { suggestions = suggestions.Take(5) });
     }
 
+    /// <summary>
+    /// Get chatbot conversation history for the current user.
+    /// </summary>
+    /// <param name="limit">Maximum number of history items to return (default: 50).</param>
+    /// <returns>Recent chatbot conversation history.</returns>
+    /// <response code="200">Returns conversation history.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    [HttpGet("history")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public IActionResult GetHistory([FromQuery] int limit = 50)
+    {
+        // Return empty history — chat history is currently managed client-side.
+        // TODO: Persist chat sessions to DB for server-side history retrieval.
+        return Ok(new
+        {
+            items = Array.Empty<object>(),
+            totalCount = 0,
+            message = "Chat history is managed client-side. Server-side persistence is planned."
+        });
+    }
+
     private async Task<string> LoadDocumentationAsync()
     {
         lock (_cacheLock)

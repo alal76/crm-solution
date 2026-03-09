@@ -57,6 +57,15 @@ interface SocialLoginSettings {
   facebookAppSecret: string;
 }
 
+// Brand colors for OAuth provider icons — per official brand guidelines (AP-056)
+const BRAND_COLORS = {
+  google: '#4285F4',
+  microsoft: '#00A4EF',
+  azure: '#0078D4',
+  linkedin: '#0A66C2',
+  facebook: '#1877F2',
+} as const;
+
 const defaultSettings: SocialLoginSettings = {
   googleAuthEnabled: false,
   googleClientId: '',
@@ -237,7 +246,7 @@ function SocialLoginSettingsTab() {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-            <GoogleIcon sx={{ color: '#4285F4', fontSize: 28 }} />
+            <GoogleIcon sx={{ color: BRAND_COLORS.google, fontSize: 28 }} />
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 Google
@@ -319,7 +328,7 @@ function SocialLoginSettingsTab() {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-            <FaMicrosoft style={{ color: '#00A4EF', fontSize: 24 }} />
+            <FaMicrosoft style={{ color: BRAND_COLORS.microsoft, fontSize: 24 }} />
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 Microsoft Account (Live ID)
@@ -416,7 +425,7 @@ function SocialLoginSettingsTab() {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-            <SiMicrosoftazure style={{ color: '#0078D4', fontSize: 24 }} />
+            <SiMicrosoftazure style={{ color: BRAND_COLORS.azure, fontSize: 24 }} />
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 Azure Active Directory (Entra ID)
@@ -527,7 +536,7 @@ function SocialLoginSettingsTab() {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-            <FaLinkedin style={{ color: '#0A66C2', fontSize: 24 }} />
+            <FaLinkedin style={{ color: BRAND_COLORS.linkedin, fontSize: 24 }} />
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 LinkedIn
@@ -616,7 +625,7 @@ function SocialLoginSettingsTab() {
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-            <FaFacebook style={{ color: '#1877F2', fontSize: 24 }} />
+            <FaFacebook style={{ color: BRAND_COLORS.facebook, fontSize: 24 }} />
             <Box sx={{ flexGrow: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 Facebook

@@ -154,6 +154,11 @@ public class RoslynScriptEngine : ICompiledScriptEngine
     }
 
     /// <inheritdoc/>
+    // PRA-018: Not implemented — post-GA roadmap item. See SPEC-SCRIPT-001.md
+    // RunAsync is a convenience shortcut that compiles + executes in one call.
+    // The Roslyn engine intentionally splits this into CompileAsync + ExecuteAsync
+    // to allow caching compiled assemblies. Full RunAsync support is scheduled
+    // for post-GA when the script caching strategy is finalised.
     public Task<ExecutionResult<TOut>> RunAsync<TIn, TOut>(
         string scriptId,
         TIn input,

@@ -56,8 +56,8 @@ const PortalRegisterPage: React.FC = () => {
     try {
       await portalAuthService.register(form);
       setSuccess(true);
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Registration failed. Please try again.');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message ?? 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

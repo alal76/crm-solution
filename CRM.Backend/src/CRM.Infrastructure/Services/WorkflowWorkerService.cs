@@ -14,7 +14,7 @@
 
 using System.Reflection;
 using System.Text.Json;
-using CRM.Core.DTOs.Workflow;
+using CRM.Core.Dtos.Workflow;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Enums;
 using CRM.Core.Interfaces.Scripting;

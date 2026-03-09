@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,18 +15,18 @@ namespace CRM.Infrastructure.Services.ITSM;
 
 public class ServiceCatalogService : IServiceCatalogService
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<ServiceCatalogService> _logger;
 
-    public ServiceCatalogService(IDbContextResolver dbContextResolver, ILogger<ServiceCatalogService> logger)
+    public ServiceCatalogService(ICrmDbContext dbContext, ILogger<ServiceCatalogService> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
     public async Task<IEnumerable<CatalogItemDto>> GetCatalogItemsAsync(int? categoryId, bool? featuredOnly)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var query = context.CatalogItems
             .Include(c => c.Category)
             .Where(c => !c.IsDeleted && c.IsActive);
@@ -52,7 +51,7 @@ public class ServiceCatalogService : IServiceCatalogService
 
     public async Task<CatalogItemDto?> GetCatalogItemByIdAsync(int itemId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var item = await context.CatalogItems
             .Include(c => c.Category)
             .FirstOrDefaultAsync(c => c.CatalogItemId == itemId && !c.IsDeleted);
@@ -62,7 +61,7 @@ public class ServiceCatalogService : IServiceCatalogService
 
     public async Task<int> CreateCatalogRequestAsync(CreateCatalogRequestDto dto, int requestedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var request = new CatalogRequest
         {
@@ -84,7 +83,7 @@ public class ServiceCatalogService : IServiceCatalogService
 
     public async Task<IEnumerable<CatalogItemDto>> SearchCatalogAsync(string searchTerm)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var items = await context.CatalogItems
             .Include(c => c.Category)
             .Where(c => !c.IsDeleted && c.IsActive &&
@@ -100,7 +99,7 @@ public class ServiceCatalogService : IServiceCatalogService
 
     public async Task<IEnumerable<CatalogRequest>> GetMyRequestsAsync(int userId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         return await context.CatalogRequests
             .Where(r => r.RequestedById == userId && !r.IsDeleted)
             .OrderByDescending(r => r.CreatedAt)
@@ -109,7 +108,7 @@ public class ServiceCatalogService : IServiceCatalogService
 
     public async Task<IEnumerable<CatalogCategoryInfo>> GetCategoriesAsync()
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var categories = await context.CatalogCategories
             .Where(c => !c.IsDeleted && c.IsActive)
             .Select(c => new CatalogCategoryInfo
@@ -128,7 +127,7 @@ public class ServiceCatalogService : IServiceCatalogService
 
     public async Task<int> CreateCatalogRequestForOthersAsync(CreateCatalogRequestForOthersDto dto, int requestedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var request = new CatalogRequest
         {
@@ -151,7 +150,7 @@ public class ServiceCatalogService : IServiceCatalogService
 
     public async Task<CatalogRequest?> GetRequestByIdAsync(int requestId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         return await context.CatalogRequests
             .Include(r => r.CatalogItem)
             .FirstOrDefaultAsync(r => r.RequestId == requestId && !r.IsDeleted);
@@ -159,7 +158,7 @@ public class ServiceCatalogService : IServiceCatalogService
 
     public async Task<bool> CancelRequestAsync(int requestId, int userId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var request = await context.CatalogRequests
             .FirstOrDefaultAsync(r => r.RequestId == requestId && !r.IsDeleted);
 

@@ -23,11 +23,15 @@ public class ContactInfoController : CrmControllerBase
 {
 
     private readonly IContactInfoService _contactInfoService;
+    private readonly IContactInfoValidationService _contactInfoValidationService;
     private const string UserNotAuthenticated = "User not authenticated";
 
-    public ContactInfoController(IContactInfoService contactInfoService)
+    public ContactInfoController(
+        IContactInfoService contactInfoService,
+        IContactInfoValidationService contactInfoValidationService)
     {
         _contactInfoService = contactInfoService;
+        _contactInfoValidationService = contactInfoValidationService;
     }
 
     private int? GetCurrentUserId() // NOSONAR
@@ -705,13 +709,8 @@ public class ContactInfoController : CrmControllerBase
             return BadRequest("Email is required");
         }
 
-        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
-        if (validationService == null)
-        {
-            return StatusCode(500, "Validation service not available");
-        }
-
-        var result = await validationService.ValidateEmailAsync(request.Email);
+        // AP-018: _contactInfoValidationService is constructor-injected; null guard removed
+        var result = await _contactInfoValidationService.ValidateEmailAsync(request.Email);
         return Ok(new ValidateContactInfoResponse
         {
             IsValid = result.IsValid,
@@ -737,14 +736,9 @@ public class ContactInfoController : CrmControllerBase
             return BadRequest("Phone number is required");
         }
 
-        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
-        if (validationService == null)
-        {
-            return StatusCode(500, "Validation service not available");
-        }
-
-        var result = await validationService.ValidatePhoneNumberAsync(request.PhoneNumber, request.CountryCode ?? "US");
-        var formattedPhone = result.IsValid ? validationService.FormatPhoneNumber(request.PhoneNumber, request.CountryCode ?? "US") : null;
+        // AP-018: _contactInfoValidationService is constructor-injected; null guard removed
+        var result = await _contactInfoValidationService.ValidatePhoneNumberAsync(request.PhoneNumber, request.CountryCode ?? "US");
+        var formattedPhone = result.IsValid ? _contactInfoValidationService.FormatPhoneNumber(request.PhoneNumber, request.CountryCode ?? "US") : null;
 
         return Ok(new ValidateContactInfoResponse
         {
@@ -780,15 +774,10 @@ public class ContactInfoController : CrmControllerBase
             return BadRequest($"Invalid platform: {request.Platform}. Valid values: {string.Join(", ", Enum.GetNames<SocialMediaPlatform>())}");
         }
 
-        var validationService = HttpContext.RequestServices.GetService<IContactInfoValidationService>();
-        if (validationService == null)
-        {
-            return StatusCode(500, "Validation service not available");
-        }
-
-        var result = await validationService.ValidateSocialMediaAccountAsync(request.HandleOrUrl, platform);
-        var handle = validationService.ExtractSocialMediaHandle(request.HandleOrUrl, platform);
-        var profileUrl = handle != null ? validationService.GenerateProfileUrl(handle, platform) : null;
+        // AP-018: _contactInfoValidationService is constructor-injected; null guard removed
+        var result = await _contactInfoValidationService.ValidateSocialMediaAccountAsync(request.HandleOrUrl, platform);
+        var handle = _contactInfoValidationService.ExtractSocialMediaHandle(request.HandleOrUrl, platform);
+        var profileUrl = handle != null ? _contactInfoValidationService.GenerateProfileUrl(handle, platform) : null;
 
         return Ok(new ValidateSocialMediaResponse
         {

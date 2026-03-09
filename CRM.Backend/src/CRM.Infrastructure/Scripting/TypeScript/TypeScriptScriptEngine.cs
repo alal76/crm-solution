@@ -137,6 +137,11 @@ public class TypeScriptScriptEngine : ICompiledScriptEngine
     }
 
     /// <inheritdoc/>
+    // PRA-018: Not implemented — post-GA roadmap item. See SPEC-SCRIPT-001.md
+    // RunAsync is a convenience shortcut that compiles + executes in one call.
+    // The TypeScript engine routes execution through the crm-script-runner Node.js
+    // sidecar via HTTP. A unified RunAsync requires additional sidecar API support
+    // for compile-cache keying. Scheduled for post-GA. Use CompileAsync + ExecuteAsync.
     public Task<ExecutionResult<TOut>> RunAsync<TIn, TOut>(
         string scriptId,
         TIn input,

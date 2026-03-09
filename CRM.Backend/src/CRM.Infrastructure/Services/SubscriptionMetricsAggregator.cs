@@ -64,6 +64,30 @@ public interface ISubscriptionMetricsAggregator
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Number of subscriptions that started in the specified month</returns>
     Task<int> GetCohortSubscriptionCountAsync(int year, int month, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Calculate MRR contributed by a specific cohort (subscriptions started in a given month)
+    /// that are still active/paused.
+    /// </summary>
+    Task<decimal> GetCohortMRRAsync(int year, int month, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Get MRR breakdown grouped by billing cycle (Weekly, Monthly, Quarterly, Yearly).
+    /// Returns label, MRR, ARR, subscription count, and percentage for each group.
+    /// </summary>
+    Task<List<BillingCycleBreakdownItem>> GetRevenueBreakdownByBillingCycleAsync(CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// Revenue breakdown item grouped by billing cycle.
+/// </summary>
+public class BillingCycleBreakdownItem
+{
+    public string BillingCycle { get; set; } = string.Empty;
+    public decimal MRR { get; set; }
+    public decimal ARR { get; set; }
+    public int SubscriptionCount { get; set; }
+    public decimal Percentage { get; set; }
 }
 
 /// <summary>
@@ -332,6 +356,78 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
                      s.StartDate.Value >= monthStart &&
                      s.StartDate.Value < monthEnd,
                 cancellationToken);
+    }
+
+    /// <summary>
+    /// Calculate MRR contributed by subscriptions that started in the given month
+    /// and are still active or paused.
+    /// </summary>
+    public async Task<decimal> GetCohortMRRAsync(
+        int year,
+        int month,
+        CancellationToken cancellationToken)
+    {
+        var monthStart = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var monthEnd = monthStart.AddMonths(1);
+
+        var cohortSubscriptions = await _context.Subscriptions
+            .AsNoTracking()
+            .Where(s => !s.IsDeleted &&
+                        s.StartDate.HasValue &&
+                        s.StartDate.Value >= monthStart &&
+                        s.StartDate.Value < monthEnd &&
+                        (s.SubscriptionStatus == SubscriptionStatus.Active ||
+                         s.SubscriptionStatus == SubscriptionStatus.Paused))
+            .ToListAsync(cancellationToken);
+
+        var mrr = cohortSubscriptions.Sum(s => NormalizeToMonthly(s.Amount, s.BillingCycle ?? "Monthly"));
+        return Math.Round(mrr, 2);
+    }
+
+    /// <summary>
+    /// Get revenue breakdown grouped by billing cycle.
+    /// </summary>
+    public async Task<List<BillingCycleBreakdownItem>> GetRevenueBreakdownByBillingCycleAsync(
+        CancellationToken cancellationToken)
+    {
+        var subscriptions = await _context.Subscriptions
+            .AsNoTracking()
+            .Where(s => !s.IsDeleted &&
+                        (s.SubscriptionStatus == SubscriptionStatus.Active ||
+                         s.SubscriptionStatus == SubscriptionStatus.Paused))
+            .ToListAsync(cancellationToken);
+
+        var totalMrr = subscriptions.Sum(s => NormalizeToMonthly(s.Amount, s.BillingCycle ?? "Monthly"));
+
+        var groups = subscriptions
+            .GroupBy(s => NormalizeBillingCycleLabel(s.BillingCycle))
+            .Select(g =>
+            {
+                var groupMrr = Math.Round(g.Sum(s => NormalizeToMonthly(s.Amount, s.BillingCycle ?? "Monthly")), 2);
+                return new BillingCycleBreakdownItem
+                {
+                    BillingCycle = g.Key,
+                    MRR = groupMrr,
+                    ARR = Math.Round(groupMrr * 12, 2),
+                    SubscriptionCount = g.Count(),
+                    Percentage = totalMrr > 0 ? Math.Round(groupMrr / totalMrr * 100, 2) : 0
+                };
+            })
+            .OrderByDescending(x => x.MRR)
+            .ToList();
+
+        return groups;
+    }
+
+    private static string NormalizeBillingCycleLabel(string? billingCycle)
+    {
+        return (billingCycle ?? "Monthly").ToLowerInvariant() switch
+        {
+            "weekly" => "Weekly",
+            "quarterly" => "Quarterly",
+            "yearly" or "annual" => "Yearly",
+            _ => "Monthly"
+        };
     }
 
     /// <summary>

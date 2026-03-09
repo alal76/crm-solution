@@ -73,7 +73,11 @@ const EmailDigestPage: React.FC = () => {
 
   const loadConfig = async () => {
     try {
-      // TODO: Replace with actual API call
+      // PRA-019: TODO — needs backend endpoint before this can be wired.
+      // Proposed: GET /api/users/me/email-digest  → returns EmailDigestConfig
+      //           PUT /api/users/me/email-digest  → saves EmailDigestConfig
+      // Currently no email-digest endpoint exists on UsersController.
+      // Replace these TODOs once the endpoint is added:
       // const data = await userService.getEmailDigestConfig();
       // setConfig(data);
       logger.info('Loading email digest configuration');
@@ -87,7 +91,7 @@ const EmailDigestPage: React.FC = () => {
       setSaving(true);
       setSuccess(false);
       
-      // TODO: Replace with actual API call
+      // PRA-019: TODO — wire to PUT /api/users/me/email-digest once endpoint is implemented.
       // await userService.updateEmailDigestConfig(config);
       
       logger.info('Email digest configuration saved', config);

@@ -59,8 +59,8 @@ export function useDashboardLayout(): UseDashboardLayoutResult {
       .catch((err) => {
         if (!cancelled) {
           // 404 is acceptable – user has no saved layout yet
-          if (err?.response?.status !== 404) {
-            setError(err?.response?.data?.message ?? 'Failed to load dashboard layout');
+          if ((err as any)?.response?.status !== 404) {
+            setError((err as any)?.response?.data?.message ?? 'Failed to load dashboard layout');
           }
         }
       })

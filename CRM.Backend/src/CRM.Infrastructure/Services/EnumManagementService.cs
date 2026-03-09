@@ -7,7 +7,7 @@
 
 // ENUM-BE-006 through ENUM-BE-009: Implementation of IEnumManagementService
 using System.Collections.Concurrent;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;

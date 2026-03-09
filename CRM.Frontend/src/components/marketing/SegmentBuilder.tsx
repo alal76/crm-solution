@@ -166,7 +166,7 @@ export default function SegmentBuilder({ campaignId, initialConfig, onSaved }: S
       setSaved(true);
       onSaved?.(config);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save segment');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to save segment');
     } finally {
       setSaving(false);
     }

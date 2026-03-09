@@ -1,12 +1,82 @@
 # CRM Solution Gaps Remediation Plan
 
 > **Created:** February 8, 2026  
-> **Last Updated:** February 16, 2026  
-> **Status:** CRITICAL BLOCKER IDENTIFIED - System Module test suite blocked by 188 build errors
+> **Last Updated:** March 8, 2026  
+> **Status:** Cross-module debt audit complete — 19 new items (XMOD-001 to XMOD-019) + 52 ITSM items added to MASTER_TODO_LIST
 
 ---
 
-## 🔴 CRITICAL: System Module Test Blocker (February 15, 2026)
+## Current State (March 8, 2026)
+
+| Metric | Value |
+|--------|-------|
+| **Build Status** | ✅ 0 errors, 586 StyleCop warnings |
+| **Test Status** | ✅ 4,818+ passing, 22 skipped (intentional), 0 failures |
+| **ITSM Tests** | ✅ 656 passing, 0 failures, 1 skipped |
+| **BVT Status** | ✅ 118/118 passing |
+| **Phases Complete** | 11 of 11 (System Module blocker resolved) |
+| **Pending Items** | **121** (52 ITSM + 19 cross-module + 50 CDT endpoint) |
+| **ITSM Backend** | ~72% complete (41 enabled services, 20 disabled) |
+| **ITSM Frontend** | ~90% complete (38 pages, 48+ components) |
+
+---
+
+## 🟡 ACTIVE: Cross-Module Technical Debt (March 8, 2026)
+
+**Reference:** [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — Items XMOD-001 to XMOD-019
+
+Extended the ITSM gap patterns (namespace drift, duplicate entities, deprecated IDbContextResolver, disabled files) to ALL modules and found the same debt exists cross-codebase.
+
+| Phase | Items | Description | Status |
+|-------|-------|-------------|--------|
+| Phase 1 | XMOD-001–009 | DTO namespace standardization (13 non-ITSM files: Sales, Workflow, Analytics) | ❌ Pending |
+| Phase 2 | XMOD-010–012 | Duplicate entity consolidation (Dashboard, KnowledgeArticle, ServiceQueue) | ❌ Pending |
+| Phase 3 | XMOD-013–016 | IDbContextResolver in non-ITSM services (BuiltInSearchProvider, AIKnowledgeSearch, SystemSettingsController ×2) | ❌ Pending |
+| Phase 4 | XMOD-017–019 | Disabled service/DI cleanup (RecurringBillingEngine DI gap, archive 9 disabled files) | ❌ Pending |
+
+---
+
+## 🟡 ACTIVE: ITSM Module Gap Remediation (March 8, 2026)
+
+**Reference:** [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — Items ITSM-001 to ITSM-052
+
+### Phase 1: Architecture Cleanup (P0 — ITSM-001 to ITSM-005)
+
+| Item | Description | Status |
+|------|-------------|--------|
+| ITSM-001 | Standardize DTO namespaces (18 files split between `DTOs` and `Dtos`) | ❌ Pending |
+| ITSM-002 | Consolidate duplicate SLAPolicy entity (3 definitions) | ❌ Pending |
+| ITSM-003 | Consolidate duplicate EscalationRule entity (2 definitions) | ❌ Pending |
+| ITSM-004 | Fix skipped webhook integration test | ❌ Pending |
+| ITSM-005 | Archive 10 superseded disabled services | ❌ Pending |
+
+### Phase 2: IDbContextResolver Refactor (P1 — ITSM-006 to ITSM-016)
+
+11 items — Refactor 10 enabled services and clarify Change Management canonical service.
+
+### Phase 3: Disabled Service Enablement (P1/P2 — ITSM-017 to ITSM-030)
+
+14 items — Enable core ITIL services (CAB, AutoClose, ChangeCalendar) and advanced features (AI recommendations, CMDB discovery, assignment rules).
+
+### Phase 4: Feature Completeness (P2 — ITSM-031 to ITSM-035)
+
+5 items — Complete CMDB (55%), Knowledge Base (65%), Service Catalog (70%), SLA enforcement, escalation routing.
+
+### Phase 5: Frontend Gaps (P2 — ITSM-036 to ITSM-042)
+
+7 items — Enum consolidation, API consistency, shared state, missing UIs.
+
+### Phase 6: Test Hardening (P2/P3 — ITSM-043 to ITSM-048)
+
+6 items — RBAC tests, cross-module E2E, negative cases, performance testing.
+
+### Phase 7: Spec Documentation (P2 — ITSM-049 to ITSM-052)
+
+4 items — Create missing SPEC-SD-001 through SPEC-SD-005 files.
+
+---
+
+## 🔴 RESOLVED: System Module Test Blocker (February 15, 2026)
 
 **Issue:** System Module (SYS-001 through SYS-012) test suite cannot execute  
 **Severity:** CRITICAL  
@@ -146,16 +216,17 @@ The following items remain from the remediation effort:
 
 | Priority | Count |
 |----------|-------|
-| 🔴 Critical | 0 |
-| 🟡 Medium | 0 |
-| 🟢 Low | 2 |
-| **Total** | **2** |
+| 🔴 Critical (P0) | 14 (ITSM-001 to ITSM-005, XMOD-001 to XMOD-009) |
+| 🟡 High (P1) | 35 (ITSM-006 to ITSM-030, XMOD-010 to XMOD-019) |
+| 🟡 Medium (P2) | 20 (ITSM-031 to ITSM-048, ITSM-049 to ITSM-052) |
+| 🟢 Low (P3) | 2 (P-AI-05, P-AI-06) + 1 (ITSM-048 perf tests) |
+| **Total Pending** | **52 ITSM + 19 cross-module + 2 AI + 50 CDT = 123** |
 
 ---
 
 ## References
 
-- [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — 142 pending TODO items
+- [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — 121 pending items (ITSM-001 to ITSM-052, XMOD-001 to XMOD-019, EP-001 to EP-069)
 - [11-specifications/INDEX.md](11-specifications/INDEX.md) — 10/40 specs complete
 - [copilot-instructions.md](../.github/copilot-instructions.md)
 - [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — Complete third-party dependency licensing inventory

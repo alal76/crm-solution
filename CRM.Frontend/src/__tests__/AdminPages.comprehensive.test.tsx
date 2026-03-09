@@ -152,7 +152,8 @@ const mockDatabaseSettings = {
   connectionStatus: 'Connected',
   databaseVersion: '10.5.12',
   lastMigration: '20240115_001',
-  useDemoDatabase: false,
+  // DEPRECATED: Demo database removed — single database policy
+  // useDemoDatabase: false,
 };
 
 // ============================================================================
@@ -492,17 +493,19 @@ describe('Admin - Database Settings', () => {
     });
   });
 
-  describe('Demo Mode', () => {
-    it('should display demo mode status', () => {
-      expect(mockDatabaseSettings.useDemoDatabase).toBe(false);
+  describe('Demo Mode (DEPRECATED)', () => {
+    it('should confirm demo database feature is deprecated', () => {
+      // DEPRECATED: Demo database removed — single database policy
+      // The useDemoDatabase flag is no longer active
+      expect(true).toBe(true);
     });
 
-    it('should toggle demo mode', async () => {
-      mockApiClient.put.mockResolvedValue({ data: { useDemoDatabase: true } });
-      await mockApiClient.put('/systemsettings/demo', { useDemoDatabase: true });
-      
-      expect(mockApiClient.put).toHaveBeenCalled();
-    });
+    // DEPRECATED: Demo mode toggle removed — single database policy
+    // it('should toggle demo mode', async () => {
+    //   mockApiClient.put.mockResolvedValue({ data: { useDemoDatabase: true } });
+    //   await mockApiClient.put('/systemsettings/demo', { useDemoDatabase: true });
+    //   expect(mockApiClient.put).toHaveBeenCalled();
+    // });
   });
 
   describe('Migrations', () => {

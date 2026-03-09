@@ -352,4 +352,57 @@ public partial class SystemConfigurationService : ISystemConfigurationService
 
     [GeneratedRegex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled)]
     private static partial Regex EmailRegex();
+
+    // ─── UX-CONF-013: Aggregated Communications Config ──────────────────────
+
+    private const string NotificationChannelFlagsKey = "system.notifications.channels";
+
+    /// <inheritdoc />
+    public async Task<CommunicationsConfigDto> GetCommunicationsConfigAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var response = new CommunicationsConfigDto();
+        DateTime latestUpdate = DateTime.MinValue;
+        string? latestUpdater = null;
+
+        // Reuse SMTP config from the existing key
+        var emailConfig = await _providerConfig.GetConfigurationAsync(EmailSmtpKey, cancellationToken);
+        if (emailConfig != null)
+        {
+            response.EmailServer = DeserializeDto<EmailServerConfigDto>(emailConfig.ConfigurationData);
+            TrackLatestUpdate(emailConfig.UpdatedAt, emailConfig.UpdatedByUserName, ref latestUpdate, ref latestUpdater);
+        }
+
+        // Channel flags (persisted separately)
+        var channelConfig = await _providerConfig.GetConfigurationAsync(NotificationChannelFlagsKey, cancellationToken);
+        if (channelConfig != null)
+        {
+            response.Channels = DeserializeDto<NotificationChannelFlagsDto>(channelConfig.ConfigurationData)
+                                 ?? new NotificationChannelFlagsDto();
+            TrackLatestUpdate(channelConfig.UpdatedAt, channelConfig.UpdatedByUserName, ref latestUpdate, ref latestUpdater);
+        }
+
+        response.LastUpdated = latestUpdate == DateTime.MinValue ? DateTime.UtcNow : latestUpdate;
+        response.UpdatedBy = latestUpdater;
+        return response;
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateCommunicationsConfigAsync(
+        CommunicationsConfigDto config,
+        int userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (config.EmailServer != null)
+        {
+            ValidateEmailConfig(config.EmailServer);
+            var emailData = DtoToDictionary(config.EmailServer);
+            await _providerConfig.UpdateConfigurationAsync(EmailSmtpKey, emailData, userId, cancellationToken);
+        }
+
+        var channelData = DtoToDictionary(config.Channels);
+        await _providerConfig.UpdateConfigurationAsync(NotificationChannelFlagsKey, channelData, userId, cancellationToken);
+
+        _logger.LogInformation("Communications configuration updated by user {UserId}", userId);
+    }
 }

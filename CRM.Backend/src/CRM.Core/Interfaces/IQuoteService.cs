@@ -48,6 +48,11 @@ public interface IQuoteService
     Task<bool> DeleteAsync(int id);
 
     /// <summary>
+    /// Update the status of a quote. Returns the updated quote, or null if not found. // PRA-017
+    /// </summary>
+    Task<Quote?> UpdateStatusAsync(int id, QuoteStatus newStatus); // PRA-017
+
+    /// <summary>
     /// Send quote to account
     /// </summary>
     Task<bool> SendAsync(int id);

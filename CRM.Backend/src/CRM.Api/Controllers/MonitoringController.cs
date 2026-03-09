@@ -589,8 +589,15 @@ public class MonitoringController : CrmControllerBase
     }
 
     /// <summary>
-    /// Get active user sessions
+    /// Get active user sessions.
     /// </summary>
+    /// <remarks>
+    /// PRA-005: STUB — This endpoint approximates active sessions by querying users whose
+    /// <c>LastLoginAt</c> timestamp falls within the last 24 hours. It does NOT reflect real-time
+    /// session state from Redis or an auth token store.  Once a dedicated ISessionStore or
+    /// IDistributedCache-backed session registry is available, wire it here and in
+    /// <see cref="GetActiveSessionsFromDb"/> to return only genuinely active sessions.
+    /// </remarks>
     [HttpGet("sessions")]
     [Authorize(Roles = "Admin")]
     public async Task<ActionResult<List<MonitoringUserSession>>> GetSessions(CancellationToken ct)
@@ -649,6 +656,9 @@ public class MonitoringController : CrmControllerBase
 
     #region Private Methods
 
+    // PRA-005: STUB — Implement actual session query from Redis/IDistributedCache or auth store.
+    // Currently returns users who logged in within the last 24 hours as a best-effort approximation.
+    // Wire to ISessionStore or IDistributedCache to list genuinely active (token-valid) sessions.
     private async Task<List<MonitoringUserSession>> GetActiveSessionsFromDb(CancellationToken ct)
     {
         var recentThreshold = DateTime.UtcNow.AddHours(-24);

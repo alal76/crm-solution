@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 // ENUM-BE-011: Controller for the Configurable Enums feature using IEnumManagementService
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

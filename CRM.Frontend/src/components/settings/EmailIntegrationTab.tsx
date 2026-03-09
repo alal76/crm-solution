@@ -98,8 +98,8 @@ function EmailIntegrationTab() {
       setError(null);
       const response = await apiClient.get('/email/integrations');
       setIntegrations(response.data || []);
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to load email integrations');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to load email integrations');
     } finally {
       setLoading(false);
     }
@@ -114,8 +114,8 @@ function EmailIntegrationTab() {
       } else {
         setError('Authorization URL not returned');
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to initiate OAuth connection');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to initiate OAuth connection');
     }
   };
 
@@ -148,8 +148,8 @@ function EmailIntegrationTab() {
       });
       await loadIntegrations();
       handleCloseImapDialog();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to add IMAP account');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to add IMAP account');
     } finally {
       setSavingImap(false);
     }
@@ -164,8 +164,8 @@ function EmailIntegrationTab() {
         displayName: integration.displayName,
       });
       await loadIntegrations();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to update settings');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to update settings');
     } finally {
       setSavingId(null);
     }
@@ -176,8 +176,8 @@ function EmailIntegrationTab() {
       setSyncingId(integration.id);
       await apiClient.post(`/email/integrations/${integration.id}/sync`);
       await loadIntegrations();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to sync email');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to sync email');
     } finally {
       setSyncingId(null);
     }
@@ -188,8 +188,8 @@ function EmailIntegrationTab() {
       setDisconnectingId(integration.id);
       await apiClient.delete(`/email/integrations/${integration.id}`);
       await loadIntegrations();
-    } catch (err: any) {
-      setError(err?.response?.data?.message || err?.message || 'Failed to disconnect integration');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to disconnect integration');
     } finally {
       setDisconnectingId(null);
     }

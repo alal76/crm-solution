@@ -232,12 +232,12 @@ function PaymentsPage() {
       const response = await apiClient.get('/payments');
       setPayments(response.data);
       setError(null);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err: unknown) {
+      if ((err as any).response?.status === 404) {
         setPayments([]);
         setError(null);
       } else {
-        setError(err.response?.data?.message || 'Failed to fetch payments');
+        setError((err as any).response?.data?.message || 'Failed to fetch payments');
       }
     } finally {
       setLoading(false);
@@ -318,8 +318,8 @@ function PaymentsPage() {
       setSuccessMessage('Payment refunded');
       fetchPayments();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to refund payment');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to refund payment');
     }
   };
 
@@ -332,8 +332,8 @@ function PaymentsPage() {
       setSuccessMessage('Payment voided');
       fetchPayments();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to void payment');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to void payment');
     }
   };
 

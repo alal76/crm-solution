@@ -8,7 +8,7 @@ Covers full CRUD for entities that Batch 07 only read/listed:
   - Service Queues            (/api/servicequeues)
   - Auto-Assignment Rules     (/api/autoassignment/rules)
   - ITSM Escalation Rules     (/api/itsm/escalationrules)
-  - Escalation Analytics      (/api/escalationanalytics — read only)
+  - Escalation Analytics      (/api/escalation-analytics — read only)
   - ITSM Webhooks             (/api/itsm/webhooks — read only)
   - Business Hours Config     (/api/system/business-hours)
 """
@@ -236,9 +236,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ─── Escalation Analytics (read-only) ─────────────────────────────────
     log.section("EscalationAnalytics (read)")
-    api.get("/api/escalationanalytics/summary")
-    api.get("/api/escalationanalytics/dashboard")
-    api.get("/api/escalationanalytics/trends?days=30")
+    api.get("/api/escalation-analytics/summary")
+    api.get("/api/escalation-analytics/dashboard")
+    api.get("/api/escalation-analytics/trends?days=30")
 
     # ─── ITSM Webhooks (read-only) ─────────────────────────────────────────
     log.section("ITSM Webhooks (read)")

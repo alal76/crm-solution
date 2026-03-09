@@ -189,6 +189,42 @@ public class SystemConfigurationController : CrmControllerBase
 
     #endregion
 
+    // UX-CONF-013: Aggregated Communications Config endpoints
+    #region Communications Configuration
+
+    /// <summary>
+    /// Get aggregated communications configuration (SMTP + notification channel flags)
+    /// </summary>
+    [HttpGet("communications")]
+    [ProducesResponseType(typeof(CommunicationsConfigDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CommunicationsConfigDto>> GetCommunicationsConfig(CancellationToken ct)
+    {
+        var config = await _systemConfig.GetCommunicationsConfigAsync(ct);
+        return Ok(config);
+    }
+
+    /// <summary>
+    /// Update communications configuration (SMTP + notification channel flags)
+    /// </summary>
+    [HttpPut("communications")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateCommunicationsConfig([FromBody] CommunicationsConfigDto config, CancellationToken ct)
+    {
+        try
+        {
+            var userId = GetUserId();
+            await _systemConfig.UpdateCommunicationsConfigAsync(config, userId, ct);
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
+    #endregion
+
     #region Helpers
 
     private int GetUserId()

@@ -328,7 +328,7 @@ function DatabaseSettingsTab() {
         fetchStatisticsSchedule();
       } else {
         const err = await response.json();
-        setError(err.message || 'Failed to refresh statistics');
+        setError((err as Error).message || 'Failed to refresh statistics');
       }
     } catch (err) {
       setError('Failed to refresh statistics');
@@ -355,7 +355,7 @@ function DatabaseSettingsTab() {
         setSuccess('Statistics schedule updated successfully');
       } else {
         const err = await response.json();
-        setError(err.message || 'Failed to update statistics schedule');
+        setError((err as Error).message || 'Failed to update statistics schedule');
       }
     } catch (err) {
       setError('Failed to update statistics schedule');
@@ -458,8 +458,8 @@ function DatabaseSettingsTab() {
       });
       const result = await response.json();
       setConnectionTest(result);
-    } catch (err: any) {
-      setConnectionTest({ success: false, message: err.message });
+    } catch (err: unknown) {
+      setConnectionTest({ success: false, message: (err as Error).message });
     } finally {
       setLoading(false);
     }
@@ -491,10 +491,10 @@ function DatabaseSettingsTab() {
       if (result.success) {
         setWizardStep(3); // Go to completion step
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setMigrationResult({ 
         success: false, 
-        errorMessage: err.message,
+        errorMessage: (err as Error).message,
         steps: [],
         startTime: new Date().toISOString()
       });
@@ -532,8 +532,8 @@ function DatabaseSettingsTab() {
       } else {
         throw new Error('Failed to create backup');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -551,8 +551,8 @@ function DatabaseSettingsTab() {
       if (response.ok) {
         setSuccess('Restore initiated successfully');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -575,8 +575,8 @@ function DatabaseSettingsTab() {
       } else {
         throw new Error('Failed to download backup');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     }
   };
 
@@ -601,8 +601,8 @@ function DatabaseSettingsTab() {
       } else {
         throw new Error('Failed to upload backup');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -628,8 +628,8 @@ function DatabaseSettingsTab() {
       } else {
         throw new Error('Failed to restore from uploaded file');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -655,8 +655,8 @@ function DatabaseSettingsTab() {
       } else {
         throw new Error('Failed to create schedule');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -683,8 +683,8 @@ function DatabaseSettingsTab() {
       } else {
         throw new Error('Failed to update schedule');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -701,8 +701,8 @@ function DatabaseSettingsTab() {
         setSuccess('Schedule deleted successfully');
         fetchSchedules();
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     }
   };
 
@@ -719,8 +719,8 @@ function DatabaseSettingsTab() {
       if (response.ok) {
         fetchSchedules();
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     }
   };
 
@@ -736,8 +736,8 @@ function DatabaseSettingsTab() {
         fetchSchedules();
         fetchBackups();
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -756,8 +756,8 @@ function DatabaseSettingsTab() {
       if (response.ok) {
         setSuccess('Backup path updated successfully');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     }
   };
 
@@ -811,8 +811,8 @@ function DatabaseSettingsTab() {
         const result = await response.json();
         setSuccess(`Database optimized: ${result.operations.join(', ')}`);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -828,8 +828,8 @@ function DatabaseSettingsTab() {
       if (response.ok) {
         setSuccess('Indexes rebuilt successfully');
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -847,8 +847,8 @@ function DatabaseSettingsTab() {
         setScriptTitle('Seed Script');
         setScriptDialogOpen(true);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -872,8 +872,8 @@ function DatabaseSettingsTab() {
         setScriptDialogOpen(true);
         setMigrationDialogOpen(false);
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -901,8 +901,8 @@ function DatabaseSettingsTab() {
         setClearDataConfirmation('');
         fetchDatabaseStatus();
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -921,8 +921,8 @@ function DatabaseSettingsTab() {
         setSuccess('Database reseeded successfully');
         fetchDatabaseStatus();
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }

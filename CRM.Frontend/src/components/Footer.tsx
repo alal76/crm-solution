@@ -93,10 +93,10 @@ function Footer() {
             setEnvironment(response.data.environment);
           }
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         debugError('Health check failed:', {
-          message: error.message,
-          status: error.response?.status,
+          message: (error as Error).message,
+          status: (error as any).response?.status,
         });
         setApiStatus({ status: 'down' });
         setDbStatus({ status: 'down' });

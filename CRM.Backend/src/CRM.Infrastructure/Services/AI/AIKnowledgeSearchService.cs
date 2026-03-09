@@ -9,11 +9,12 @@ using CRM.Core.Entities.ITSM;
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
+// KB-014: alias to disambiguate General KB ArticleStatus (Published = 2) from ITSM PublishingState
+using GeneralKbArticleStatus = CRM.Core.Entities.KnowledgeBase.ArticleStatus;
 
 namespace CRM.Infrastructure.Services.AI;
 
@@ -78,7 +79,7 @@ public class SemanticSearchResult
 public class AIKnowledgeSearchService : IAIKnowledgeSearchService
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly IFeatureManager _featureManager;
     private readonly ILogger<AIKnowledgeSearchService> _logger;
 
@@ -93,12 +94,12 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
     /// </summary>
     public AIKnowledgeSearchService(
         IServiceProvider serviceProvider,
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext dbContext,
         IFeatureManager featureManager,
         ILogger<AIKnowledgeSearchService> logger)
     {
         _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-        _dbContextResolver = dbContextResolver ?? throw new ArgumentNullException(nameof(dbContextResolver));
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -139,36 +140,69 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
             return;
         }
 
-        var context = _dbContextResolver.ResolveContext();
-        var article = await context.ITSMKnowledgeArticles
+        var context = _dbContext;
+        var itsmArticle = await context.ITSMKnowledgeArticles
             .FirstOrDefaultAsync(a => a.ArticleId == articleId && !a.IsDeleted, ct);
 
-        if (article == null)
+        if (itsmArticle != null)
         {
-            _logger.LogWarning("Article {ArticleId} not found for indexing", articleId);
+            try
+            {
+                var text = BuildArticleText(itsmArticle);
+                var embeddingResponse = await aiPort.GetEmbeddingAsync(text, cancellationToken: ct);
+
+                if (embeddingResponse.Embedding.Length > 0)
+                {
+                    _embeddingCache[articleId] = embeddingResponse.Embedding;
+                    _metadataCache[articleId] = new ArticleMetadata
+                    {
+                        Title = itsmArticle.Title,
+                        Snippet = GetSnippet(itsmArticle.ArticleBody),
+                        PublishingState = itsmArticle.PublishingState
+                    };
+                    _logger.LogInformation("Indexed ITSM article {ArticleId} with {Dimensions}-dimensional embedding", articleId, embeddingResponse.Embedding.Length);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to index ITSM article {ArticleId}", articleId);
+            }
+
+            return;
+        }
+
+        // KB-014: fall back to General KB when article not found in ITSM
+        var generalArticle = await context.KnowledgeArticles
+            .FirstOrDefaultAsync(a => a.Id == articleId && !a.IsDeleted, ct);
+
+        if (generalArticle == null)
+        {
+            _logger.LogWarning("Article {ArticleId} not found in ITSM or General KB for indexing", articleId);
             return;
         }
 
         try
         {
-            var text = BuildArticleText(article);
+            var cacheId = articleId + 100_000; // KB-014: offset to avoid ID collision with ITSM articles
+            var text = BuildGeneralArticleText(generalArticle);
             var embeddingResponse = await aiPort.GetEmbeddingAsync(text, cancellationToken: ct);
 
             if (embeddingResponse.Embedding.Length > 0)
             {
-                _embeddingCache[articleId] = embeddingResponse.Embedding;
-                _metadataCache[articleId] = new ArticleMetadata
+                _embeddingCache[cacheId] = embeddingResponse.Embedding;
+                _metadataCache[cacheId] = new ArticleMetadata
                 {
-                    Title = article.Title,
-                    Snippet = GetSnippet(article.ArticleBody),
-                    PublishingState = article.PublishingState
+                    Title = generalArticle.Title,
+                    Snippet = GetSnippet(generalArticle.Content),
+                    PublishingState = PublishingState.Published
                 };
-                _logger.LogInformation("Indexed article {ArticleId} with {Dimensions}-dimensional embedding", articleId, embeddingResponse.Embedding.Length);
+                _logger.LogInformation("Indexed General KB article {ArticleId} (cache key {CacheId}) with {Dimensions}-dimensional embedding",
+                    articleId, cacheId, embeddingResponse.Embedding.Length);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to index article {ArticleId}", articleId);
+            _logger.LogError(ex, "Failed to index General KB article {ArticleId}", articleId);
         }
     }
 
@@ -182,69 +216,105 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
             return;
         }
 
-        var context = _dbContextResolver.ResolveContext();
-        var articles = await context.ITSMKnowledgeArticles
+        // KB-014: index both ITSM KB and General KB articles
+        var itsmArticles = await _dbContext.ITSMKnowledgeArticles
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
             .ToListAsync(ct);
 
-        if (articles.Count == 0)
+        var generalArticles = await _dbContext.KnowledgeArticles
+            .Where(a => !a.IsDeleted && a.Status == GeneralKbArticleStatus.Published)
+            .ToListAsync(ct);
+
+        var totalCount = itsmArticles.Count + generalArticles.Count;
+        if (totalCount == 0)
         {
             _logger.LogInformation("No published articles to index");
             return;
         }
 
-        _logger.LogInformation("Reindexing {Count} published articles", articles.Count);
+        _logger.LogInformation(
+            "Reindexing {TotalCount} published articles (ITSM: {ITSMCount}, General: {GeneralCount})",
+            totalCount, itsmArticles.Count, generalArticles.Count);
 
-        var texts = articles.Select(BuildArticleText).ToList();
+        // ---- Index ITSM articles ----
+        await IndexArticleListAsync(
+            aiPort,
+            itsmArticles.Select(a => (a.ArticleId, BuildArticleText(a), a.Title, GetSnippet(a.ArticleBody), (object)a.PublishingState)),
+            ct);
+
+        // ---- Index General KB articles (KB-014) ----
+        await IndexArticleListAsync(
+            aiPort,
+            generalArticles.Select(a => (
+                a.Id + 100_000, // offset to avoid ID collision with ITSM articles in the cache
+                BuildGeneralArticleText(a),
+                a.Title,
+                GetSnippet(a.Content),
+                (object)a.Status)),
+            ct);
+
+        _logger.LogInformation("Successfully reindexed {Count} articles", _embeddingCache.Count);
+    }
+
+    /// <summary>Indexes a list of articles represented as (id, text, title, snippet, state) tuples.</summary>
+    private async Task IndexArticleListAsync(
+        IAIPort aiPort,
+        IEnumerable<(int Id, string Text, string Title, string Snippet, object State)> articles,
+        CancellationToken ct)
+    {
+        var articleList = articles.ToList();
+        if (articleList.Count == 0)
+        {
+            return;
+        }
+
+        var texts = articleList.Select(a => a.Text).ToList();
 
         try
         {
             var batchResponse = await aiPort.GetEmbeddingsAsync(texts, cancellationToken: ct);
 
-            for (var i = 0; i < articles.Count && i < batchResponse.Embeddings.Count; i++)
+            for (var i = 0; i < articleList.Count && i < batchResponse.Embeddings.Count; i++)
             {
-                var article = articles[i];
+                var (id, _, title, snippet, _) = articleList[i];
                 var embedding = batchResponse.Embeddings[i];
 
                 if (embedding.Length > 0)
                 {
-                    _embeddingCache[article.ArticleId] = embedding;
-                    _metadataCache[article.ArticleId] = new ArticleMetadata
+                    _embeddingCache[id] = embedding;
+                    _metadataCache[id] = new ArticleMetadata
                     {
-                        Title = article.Title,
-                        Snippet = GetSnippet(article.ArticleBody),
-                        PublishingState = article.PublishingState
+                        Title = title,
+                        Snippet = snippet,
+                        // PublishingState is ITSM-specific; use a sentinel for General KB
+                        PublishingState = PublishingState.Published
                     };
                 }
             }
-
-            _logger.LogInformation("Successfully reindexed {Count} articles", _embeddingCache.Count);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Batch reindexing failed, attempting individual indexing");
 
-            // Fallback to individual indexing
-            foreach (var article in articles)
+            foreach (var (id, text, title, snippet, _) in articleList)
             {
                 try
                 {
-                    var text = BuildArticleText(article);
                     var response = await aiPort.GetEmbeddingAsync(text, cancellationToken: ct);
                     if (response.Embedding.Length > 0)
                     {
-                        _embeddingCache[article.ArticleId] = response.Embedding;
-                        _metadataCache[article.ArticleId] = new ArticleMetadata
+                        _embeddingCache[id] = response.Embedding;
+                        _metadataCache[id] = new ArticleMetadata
                         {
-                            Title = article.Title,
-                            Snippet = GetSnippet(article.ArticleBody),
-                            PublishingState = article.PublishingState
+                            Title = title,
+                            Snippet = snippet,
+                            PublishingState = PublishingState.Published
                         };
                     }
                 }
                 catch (Exception innerEx)
                 {
-                    _logger.LogWarning(innerEx, "Failed to index article {ArticleId}", article.ArticleId);
+                    _logger.LogWarning(innerEx, "Failed to index article {ArticleId}", id);
                 }
             }
         }
@@ -324,9 +394,9 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
 
     private async Task<IEnumerable<SemanticSearchResult>> KeywordSearchAsync(string query, int maxResults, CancellationToken ct)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
-        var articles = await context.ITSMKnowledgeArticles
+        var itsmArticles = await context.ITSMKnowledgeArticles
             .Where(a => !a.IsDeleted && a.PublishingState == PublishingState.Published)
             .Where(a => a.Title.Contains(query) ||
                         (a.ShortDescription != null && a.ShortDescription.Contains(query)) ||
@@ -335,13 +405,36 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
             .Take(maxResults)
             .ToListAsync(ct);
 
-        return articles.Select(a => new SemanticSearchResult
+        var itsmResults = itsmArticles.Select(a => new SemanticSearchResult
         {
             ArticleId = a.ArticleId,
             Title = a.Title,
             Snippet = GetSnippet(a.ArticleBody),
             RelevanceScore = 0.5 // Default score for keyword matches
-        }).ToList();
+        });
+
+        // KB-014: also search General KB articles and merge with ITSM results
+        var generalArticles = await context.KnowledgeArticles
+            .Where(a => !a.IsDeleted && a.Status == GeneralKbArticleStatus.Published)
+            .Where(a => a.Title.Contains(query) ||
+                        (a.Summary != null && a.Summary.Contains(query)) ||
+                        a.Content.Contains(query))
+            .Take(maxResults)
+            .ToListAsync(ct);
+
+        var generalResults = generalArticles.Select(a => new SemanticSearchResult
+        {
+            ArticleId = a.Id + 100_000, // KB-014: offset to avoid ID collision with ITSM articles
+            Title = a.Title,
+            Snippet = GetSnippet(a.Content),
+            RelevanceScore = 0.5
+        });
+
+        return itsmResults
+            .Concat(generalResults)
+            .OrderByDescending(r => r.RelevanceScore)
+            .Take(maxResults)
+            .ToList();
     }
 
     private static double CosineSimilarity(float[] a, float[] b)
@@ -374,6 +467,18 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
             parts.Add(article.ShortDescription);
         }
         parts.Add(article.ArticleBody);
+        return string.Join(". ", parts);
+    }
+
+    // KB-014: builds indexable text for General KB articles
+    private static string BuildGeneralArticleText(CRM.Core.Entities.KnowledgeBase.KnowledgeArticle article)
+    {
+        var parts = new List<string> { article.Title };
+        if (!string.IsNullOrEmpty(article.Summary))
+        {
+            parts.Add(article.Summary);
+        }
+        parts.Add(article.Content);
         return string.Join(". ", parts);
     }
 

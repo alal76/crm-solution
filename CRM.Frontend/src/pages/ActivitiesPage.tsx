@@ -203,8 +203,8 @@ function ActivitiesPage() {
       const response = await apiClient.get(endpoint);
       setActivities(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch activities');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch activities');
     } finally {
       setLoading(false);
     }

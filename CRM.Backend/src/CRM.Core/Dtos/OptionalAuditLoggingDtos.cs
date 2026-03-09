@@ -42,6 +42,43 @@ namespace CRM.Core.Dtos
     }
 
     /// <summary>
+    /// Represents a single audit event to be enqueued to the Redis Stream (crm:audit:stream)
+    /// and persisted to AuditLogs by AuditLogConsumerHostedService (FLAG-005).
+    /// </summary>
+    public class AuditEvent
+    {
+        /// <summary>User ID who performed the action. Null for system-generated events.</summary>
+        public int? UserId { get; set; }
+
+        /// <summary>Action type (Create, Update, Delete, etc.).</summary>
+        public string Action { get; set; } = string.Empty;
+
+        /// <summary>Entity type affected (Account, Contact, etc.).</summary>
+        public string? EntityType { get; set; }
+
+        /// <summary>ID of the affected entity.</summary>
+        public int? EntityId { get; set; }
+
+        /// <summary>JSON-serialized old values (for update/delete operations).</summary>
+        public string? OldValues { get; set; }
+
+        /// <summary>JSON-serialized new values (for create/update operations).</summary>
+        public string? NewValues { get; set; }
+
+        /// <summary>Optional reason or context for the action.</summary>
+        public string? Reason { get; set; }
+
+        /// <summary>Client IP address.</summary>
+        public string? IpAddress { get; set; }
+
+        /// <summary>Client user-agent string.</summary>
+        public string? UserAgent { get; set; }
+
+        /// <summary>When the action occurred (UTC).</summary>
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    }
+
+    /// <summary>
     /// DTO for audit retention policy.
     /// </summary>
     public class AuditRetentionPolicyDto

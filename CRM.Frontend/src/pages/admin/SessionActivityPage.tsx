@@ -67,7 +67,7 @@ const SessionActivityPage: React.FC = () => {
       setSessions(data.items || data || []);
       setTotalCount(data.totalCount || (data.items?.length ?? 0));
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load sessions';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to load sessions';
       setError(message);
     } finally {
       setLoading(false);

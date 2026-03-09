@@ -120,7 +120,7 @@ apiClient.interceptors.response.use(
       }
     } else if (error.request) {
       const url: string = error.config?.url ?? 'unknown';
-      const isTimeout = error.code === 'ECONNABORTED' || error.message?.includes('timeout');
+      const isTimeout = error.code === 'ECONNABORTED' || (error as Error).message?.includes('timeout');
       debugError(
         isTimeout
           ? `API Timeout — no response from ${url} within ${error.config?.timeout ?? 10000}ms`
@@ -128,7 +128,7 @@ apiClient.interceptors.response.use(
         {
           url,
           code: error.code,
-          message: error.message,
+          message: (error as Error).message,
           hint: 'Check that crm-api container is running. For 502/no-response: verify the API service port, Docker network, and that crm-mariadb is healthy.',
         }
       );
@@ -137,7 +137,7 @@ apiClient.interceptors.response.use(
         'Ensure the crm-api service is running (docker ps | grep crm-api) and accessible on the expected port.'
       );
     } else {
-      debugError('API Request Setup Error:', { message: error.message, code: error.code });
+      debugError('API Request Setup Error:', { message: (error as Error).message, code: error.code });
     }
     
     return Promise.reject(error);

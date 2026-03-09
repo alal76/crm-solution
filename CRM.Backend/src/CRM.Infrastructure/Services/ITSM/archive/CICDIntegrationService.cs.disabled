@@ -1,0 +1,382 @@
+// PRA-015 ARCHIVE NOTE:
+// Disabled: ~February-March 2026 during Phase 8 ITSM Gap Remediation.
+// Reason: Superseded by active reimplementation in Services/ITSM/.
+// Archived here as reference for future feature parity review.
+// Check SOLUTION_GAPS_REMEDIATION_PLAN.md Phase 8 before deleting.
+//
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using CRM.Core.Interfaces.ITSM;
+using Microsoft.Extensions.Logging;
+using ITSMDeploymentType = CRM.Core.Interfaces.ITSM.DeploymentType;
+
+namespace CRM.Infrastructure.Services.ITSM;
+
+/// <summary>
+/// Service for CI/CD pipeline integration with ITSM change management.
+/// </summary>
+public class CICDIntegrationService : ICICDIntegrationService
+{
+    private readonly ILogger<CICDIntegrationService> _logger;
+    private readonly List<PipelineRegistrationDto> _pipelines = new();
+    private readonly List<DeploymentRecord> _deployments = new();
+    private int _nextPipelineId = 1;
+    private int _nextDeploymentId = 1;
+
+    public CICDIntegrationService(ILogger<CICDIntegrationService> logger)
+    {
+        _logger = logger;
+        InitializeDefaultPipelines();
+    }
+
+    private void InitializeDefaultPipelines()
+    {
+        _pipelines.Add(new PipelineRegistrationDto
+        {
+            Id = _nextPipelineId++,
+            Name = "CRM Backend API",
+            Description = "Main backend API deployment pipeline",
+            Platform = CICDPlatform.AzureDevOps,
+            RepositoryUrl = "https://dev.azure.com/company/crm-backend",
+            DefaultBranch = "main",
+            Environments = new List<string> { "dev", "staging", "production" },
+            RequiresApproval = true,
+            ApiKey = GenerateApiKey(),
+            CreatedAt = DateTime.UtcNow.AddDays(-60),
+            LastDeploymentAt = DateTime.UtcNow.AddHours(-6),
+            TotalDeployments = 234,
+            SuccessRate = 96.5
+        });
+
+        _pipelines.Add(new PipelineRegistrationDto
+        {
+            Id = _nextPipelineId++,
+            Name = "CRM Frontend App",
+            Description = "React frontend deployment pipeline",
+            Platform = CICDPlatform.GitHub,
+            RepositoryUrl = "https://github.com/company/crm-frontend",
+            DefaultBranch = "main",
+            Environments = new List<string> { "dev", "staging", "production" },
+            RequiresApproval = true,
+            ApiKey = GenerateApiKey(),
+            CreatedAt = DateTime.UtcNow.AddDays(-45),
+            LastDeploymentAt = DateTime.UtcNow.AddHours(-2),
+            TotalDeployments = 189,
+            SuccessRate = 98.2
+        });
+    }
+
+    /// <inheritdoc />
+    public Task<DeploymentChangeResult> CreateDeploymentChangeAsync(DeploymentChangeRequestDto request)
+    {
+        _logger.LogInformation("Creating deployment change for {PipelineName} build {BuildNumber} to {Environment}",
+            request.PipelineName, request.BuildNumber, request.Environment);
+
+        var deploymentId = _nextDeploymentId++;
+        var changeNumber = $"CHG-{DateTime.UtcNow:yyyyMMdd}-{deploymentId:D4}";
+
+        // Check if auto-approve is allowed
+        var isAutoApproved = request.AutoApprove &&
+            (request.Environment == "dev" || request.DeploymentType == ITSMDeploymentType.Hotfix);
+
+        var deployment = new DeploymentRecord
+        {
+            Id = deploymentId,
+            ChangeNumber = changeNumber,
+            PipelineId = request.PipelineId,
+            PipelineName = request.PipelineName,
+            BuildNumber = request.BuildNumber,
+            CommitHash = request.CommitHash,
+            CommitMessage = request.CommitMessage,
+            Author = request.Author,
+            Branch = request.Branch,
+            Environment = request.Environment,
+            Version = request.Version,
+            Services = request.Services,
+            DeploymentType = request.DeploymentType,
+            Status = isAutoApproved ? "approved" : "pending_approval",
+            IsApproved = isAutoApproved,
+            RequestedAt = DateTime.UtcNow
+        };
+
+        _deployments.Add(deployment);
+
+        _logger.LogInformation("Created change request {ChangeNumber} (Auto-approved: {AutoApproved})",
+            changeNumber, isAutoApproved);
+
+        return Task.FromResult(new DeploymentChangeResult
+        {
+            Success = true,
+            ChangeId = deploymentId,
+            ChangeNumber = changeNumber,
+            Status = deployment.Status,
+            IsApproved = isAutoApproved,
+            Message = isAutoApproved
+                ? "Deployment auto-approved. Ready to proceed."
+                : "Change request created. Awaiting approval."
+        });
+    }
+
+    /// <inheritdoc />
+    public Task<DeploymentChangeResult> UpdateDeploymentStatusAsync(int changeId, DeploymentStatusUpdateDto update)
+    {
+        var deployment = _deployments.FirstOrDefault(d => d.Id == changeId);
+        if (deployment == null)
+        {
+            return Task.FromResult(new DeploymentChangeResult
+            {
+                Success = false,
+                Message = "Deployment not found"
+            });
+        }
+
+        deployment.Status = update.Status;
+
+        switch (update.Status.ToLower())
+        {
+            case "started":
+                deployment.StartedAt = DateTime.UtcNow;
+                break;
+            case "completed":
+                deployment.CompletedAt = update.CompletedAt ?? DateTime.UtcNow;
+                UpdatePipelineStats(deployment.PipelineId, true);
+                break;
+            case "failed":
+                deployment.CompletedAt = update.CompletedAt ?? DateTime.UtcNow;
+                UpdatePipelineStats(deployment.PipelineId, false);
+                break;
+            case "rolled_back":
+                deployment.WasRolledBack = true;
+                deployment.RollbackReason = update.RollbackReason;
+                deployment.CompletedAt = DateTime.UtcNow;
+                break;
+        }
+
+        _logger.LogInformation("Updated deployment {ChangeId} status to {Status}", changeId, update.Status);
+
+        return Task.FromResult(new DeploymentChangeResult
+        {
+            Success = true,
+            ChangeId = changeId,
+            ChangeNumber = deployment.ChangeNumber,
+            Status = deployment.Status,
+            IsApproved = deployment.IsApproved,
+            Message = $"Deployment status updated to {update.Status}"
+        });
+    }
+
+    private void UpdatePipelineStats(string pipelineId, bool success)
+    {
+        var pipeline = _pipelines.FirstOrDefault(p => p.Id.ToString() == pipelineId || p.Name == pipelineId);
+        if (pipeline != null)
+        {
+            pipeline.TotalDeployments++;
+            pipeline.LastDeploymentAt = DateTime.UtcNow;
+            // Simplified success rate update
+            if (success)
+            {
+                pipeline.SuccessRate = Math.Min(100, pipeline.SuccessRate + 0.1);
+            }
+            else
+            {
+                pipeline.SuccessRate = Math.Max(0, pipeline.SuccessRate - 1);
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    public Task<List<DeploymentHistoryDto>> GetDeploymentHistoryAsync(string? environment, DateTime? startDate, DateTime? endDate)
+    {
+        var query = _deployments.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(environment))
+            query = query.Where(d => d.Environment.Equals(environment, StringComparison.OrdinalIgnoreCase));
+
+        if (startDate.HasValue)
+            query = query.Where(d => d.RequestedAt >= startDate.Value);
+
+        if (endDate.HasValue)
+            query = query.Where(d => d.RequestedAt <= endDate.Value);
+
+        var history = query.OrderByDescending(d => d.RequestedAt)
+            .Select(d => new DeploymentHistoryDto
+            {
+                Id = d.Id,
+                ChangeNumber = d.ChangeNumber,
+                PipelineName = d.PipelineName,
+                BuildNumber = d.BuildNumber,
+                Environment = d.Environment,
+                Status = d.Status,
+                Author = d.Author,
+                RequestedAt = d.RequestedAt,
+                StartedAt = d.StartedAt,
+                CompletedAt = d.CompletedAt,
+                Duration = d.StartedAt.HasValue && d.CompletedAt.HasValue
+                    ? d.CompletedAt - d.StartedAt
+                    : null,
+                WasRolledBack = d.WasRolledBack
+            })
+            .ToList();
+
+        return Task.FromResult(history);
+    }
+
+    /// <inheritdoc />
+    public Task<DeploymentValidationResult> ValidateDeploymentAsync(DeploymentValidationRequestDto request)
+    {
+        _logger.LogInformation("Validating deployment to {Environment}", request.Environment);
+
+        var result = new DeploymentValidationResult
+        {
+            IsValid = true,
+            Warnings = new List<string>(),
+            Blockers = new List<string>()
+        };
+
+        // Check for open incidents
+        var openIncidents = new Random().Next(0, 5);
+        result.HasOpenIncidents = openIncidents > 0;
+        result.OpenIncidentCount = openIncidents;
+
+        if (openIncidents > 0 && request.Environment == "production")
+        {
+            result.Warnings.Add($"There are {openIncidents} open P1/P2 incidents");
+        }
+
+        // Check maintenance window
+        var hour = DateTime.UtcNow.Hour;
+        result.IsInMaintenanceWindow = request.Environment == "production" && (hour >= 2 && hour <= 6);
+
+        if (request.Environment == "production" && !result.IsInMaintenanceWindow && request.DeploymentType == ITSMDeploymentType.Standard)
+        {
+            result.Warnings.Add("Deployment is outside the maintenance window (02:00-06:00 UTC)");
+        }
+
+        // Check pending changes
+        var pendingChanges = _deployments.Count(d =>
+            d.Environment == request.Environment &&
+            d.Status == "approved" &&
+            !d.CompletedAt.HasValue);
+        result.HasPendingChanges = pendingChanges > 0;
+        result.PendingChangeCount = pendingChanges;
+
+        if (pendingChanges > 0)
+        {
+            result.Warnings.Add($"There are {pendingChanges} pending approved changes for {request.Environment}");
+        }
+
+        // Emergency/hotfix bypass
+        if (request.DeploymentType == ITSMDeploymentType.Emergency || request.DeploymentType == ITSMDeploymentType.Hotfix)
+        {
+            result.Warnings.Add("Emergency deployment - standard validations bypassed");
+        }
+
+        // Set blockers for critical issues
+        if (openIncidents >= 3 && request.Environment == "production" && request.DeploymentType == ITSMDeploymentType.Standard)
+        {
+            result.Blockers.Add("Too many open critical incidents - deployment blocked");
+            result.IsValid = false;
+        }
+
+        result.Recommendation = result.IsValid
+            ? result.Warnings.Any()
+                ? "Deployment can proceed with caution"
+                : "All checks passed - deployment approved"
+            : "Deployment blocked due to critical issues";
+
+        return Task.FromResult(result);
+    }
+
+    /// <inheritdoc />
+    public Task<PipelineRegistrationDto> RegisterPipelineAsync(RegisterPipelineDto request)
+    {
+        var pipeline = new PipelineRegistrationDto
+        {
+            Id = _nextPipelineId++,
+            Name = request.Name,
+            Description = request.Description,
+            Platform = request.Platform,
+            RepositoryUrl = request.RepositoryUrl,
+            DefaultBranch = request.DefaultBranch,
+            Environments = request.Environments,
+            RequiresApproval = request.RequiresApproval,
+            ApiKey = GenerateApiKey(),
+            CreatedAt = DateTime.UtcNow,
+            TotalDeployments = 0,
+            SuccessRate = 100
+        };
+
+        _pipelines.Add(pipeline);
+        _logger.LogInformation("Registered pipeline {Name} ({Platform})", pipeline.Name, pipeline.Platform);
+
+        return Task.FromResult(pipeline);
+    }
+
+    /// <inheritdoc />
+    public Task<List<PipelineRegistrationDto>> GetPipelinesAsync()
+    {
+        return Task.FromResult(_pipelines.ToList());
+    }
+
+    /// <inheritdoc />
+    public Task<PipelineRegistrationDto?> GetPipelineAsync(int id)
+    {
+        var pipeline = _pipelines.FirstOrDefault(p => p.Id == id);
+        return Task.FromResult(pipeline);
+    }
+
+    /// <inheritdoc />
+    public Task<bool> DeletePipelineAsync(int id)
+    {
+        var pipeline = _pipelines.FirstOrDefault(p => p.Id == id);
+        if (pipeline == null)
+            return Task.FromResult(false);
+
+        _pipelines.Remove(pipeline);
+        _logger.LogInformation("Deleted pipeline {Id}", id);
+        return Task.FromResult(true);
+    }
+
+    private static string GenerateApiKey()
+    {
+        return $"cicd_{Guid.NewGuid():N}";
+    }
+
+    private class DeploymentRecord
+    {
+        public int Id { get; set; }
+        public string ChangeNumber { get; set; } = string.Empty;
+        public string PipelineId { get; set; } = string.Empty;
+        public string PipelineName { get; set; } = string.Empty;
+        public string BuildNumber { get; set; } = string.Empty;
+        public string CommitHash { get; set; } = string.Empty;
+        public string CommitMessage { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public string Branch { get; set; } = string.Empty;
+        public string Environment { get; set; } = string.Empty;
+        public string? Version { get; set; }
+        public List<string> Services { get; set; } = new();
+        public ITSMDeploymentType DeploymentType { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public bool IsApproved { get; set; }
+        public DateTime RequestedAt { get; set; }
+        public DateTime? StartedAt { get; set; }
+        public DateTime? CompletedAt { get; set; }
+        public bool WasRolledBack { get; set; }
+        public string? RollbackReason { get; set; }
+    }
+}

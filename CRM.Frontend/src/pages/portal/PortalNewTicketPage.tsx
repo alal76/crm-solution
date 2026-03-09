@@ -107,8 +107,8 @@ const PortalNewTicketPage: React.FC = () => {
           }
         }
         navigate(`/portal/tickets/${ticket.id}`);
-      } catch (err: any) {
-        setSubmitError(err?.response?.data?.message ?? 'Failed to create ticket. Please try again.');
+      } catch (err: unknown) {
+        setSubmitError((err as any)?.response?.data?.message ?? 'Failed to create ticket. Please try again.');
       }
     },
   });

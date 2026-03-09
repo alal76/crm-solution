@@ -191,7 +191,7 @@ const ScriptNodeEditor: React.FC<ScriptNodeEditorProps> = ({
       setIsValid(result.isValid);
       setDiagnostics(result.diagnostics);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Validation request failed.';
+      const msg = err instanceof Error ? (err as Error).message : 'Validation request failed.';
       setError(msg);
     } finally {
       setValidating(false);
@@ -207,7 +207,7 @@ const ScriptNodeEditor: React.FC<ScriptNodeEditorProps> = ({
       const result = await executeScript({ language, code, variables });
       setRunResult(result);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Execution request failed.';
+      const msg = err instanceof Error ? (err as Error).message : 'Execution request failed.';
       setError(msg);
     } finally {
       setRunning(false);

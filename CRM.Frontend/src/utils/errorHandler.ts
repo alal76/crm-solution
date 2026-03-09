@@ -209,7 +209,7 @@ const interceptFetch = (): void => {
       return response;
     } catch (error) {
       if (config.captureNetworkErrors) {
-        const entry = createLogEntry('network', `Network request failed: ${error instanceof Error ? error.message : String(error)}`, {
+        const entry = createLogEntry('network', `Network request failed: ${error instanceof Error ? (error as Error).message : String(error)}`, {
           stack: error instanceof Error ? error.stack : undefined,
           additionalInfo: {
             url,
@@ -313,7 +313,7 @@ export const logComponentError = (
   componentStack?: string,
   componentName?: string
 ): void => {
-  const entry = createLogEntry('component', error.message, {
+  const entry = createLogEntry('component', (error as Error).message, {
     stack: error.stack,
     componentStack,
     additionalInfo: { componentName },
@@ -450,7 +450,7 @@ export const parseApiError = (error: any, defaultMessage = 'An error occurred'):
 
   if (!error) return result;
 
-  const responseData = error.response?.data || error.data || error;
+  const responseData = (error as any).response?.data || error.data || error;
 
   // Handle .NET ValidationProblemDetails format
   // { "errors": { "fieldName": ["error1", "error2"], "$.jsonPath": ["error"] } }
@@ -537,11 +537,11 @@ export const parseApiError = (error: any, defaultMessage = 'An error occurred'):
   }
 
   // Handle Axios error message
-  if (error.message) {
-    result.message = error.message;
+  if ((error as Error).message) {
+    result.message = (error as Error).message;
     
     // Add HTTP status info if available
-    if (error.response?.status) {
+    if ((error as any).response?.status) {
       const statusText = error.response.statusText || getHttpStatusText(error.response.status);
       result.message = `${statusText}: ${result.message}`;
     }

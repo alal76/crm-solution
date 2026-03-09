@@ -101,9 +101,9 @@ function UserApprovalTab() {
       const statusFilter = tabValue === 0 ? 0 : tabValue === 1 ? 1 : 2;
       const response = await apiClient.get(`/AdminSettings/approval-requests?status=${statusFilter}`);
       setRequests(response.data || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching approval requests:', err);
-      setError(err.response?.data?.error || 'Failed to load approval requests');
+      setError((err as any).response?.data?.error || 'Failed to load approval requests');
     } finally {
       setLoading(false);
     }
@@ -174,9 +174,9 @@ function UserApprovalTab() {
       setApproveDialogOpen(false);
       setSelectedIds([]);
       fetchRequests();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error approving users:', err);
-      setError(err.response?.data?.error || 'Failed to approve user(s)');
+      setError((err as any).response?.data?.error || 'Failed to approve user(s)');
     } finally {
       setProcessing(false);
     }
@@ -202,9 +202,9 @@ function UserApprovalTab() {
       setRejectDialogOpen(false);
       setSelectedIds([]);
       fetchRequests();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error rejecting users:', err);
-      setError(err.response?.data?.error || 'Failed to reject user(s)');
+      setError((err as any).response?.data?.error || 'Failed to reject user(s)');
     } finally {
       setProcessing(false);
     }

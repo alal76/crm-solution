@@ -159,7 +159,7 @@ public class ApiUsersController : CrmControllerBase
         };
 
         _dbContext.Users.Add(user);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         _logger.LogInformation("Created API user {Username} (ID: {UserId}) with key prefix {Prefix}",
             user.Username, user.Id, prefix);
@@ -200,7 +200,7 @@ public class ApiUsersController : CrmControllerBase
         user.ApiKeyLastUsedAt = null;
         user.UpdatedAt = DateTime.UtcNow;
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         _logger.LogInformation("Regenerated API key for user {Username} (ID: {UserId})", user.Username, user.Id);
 
@@ -236,7 +236,7 @@ public class ApiUsersController : CrmControllerBase
         user.ApiKeyPrefix = null;
         user.UpdatedAt = DateTime.UtcNow;
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         _logger.LogInformation("Revoked API key for user {Username} (ID: {UserId})", user.Username, user.Id);
 
@@ -300,7 +300,7 @@ public class ApiUsersController : CrmControllerBase
         user.ApiUserDescription = request.Description;
         user.UpdatedAt = DateTime.UtcNow;
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         // Reload with group name
         var updated = await _dbContext.Users
@@ -331,7 +331,7 @@ public class ApiUsersController : CrmControllerBase
         user.ApiKeyHash = null;
         user.UpdatedAt = DateTime.UtcNow;
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         _logger.LogInformation("Deleted API user {Username} (ID: {UserId})", user.Username, user.Id);
 
@@ -358,7 +358,7 @@ public class ApiUsersController : CrmControllerBase
         user.IsActive = !user.IsActive;
         user.UpdatedAt = DateTime.UtcNow;
 
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
         _logger.LogInformation("Toggled API user status: {Username} (ID: {UserId}) is now {Status}",
             user.Username, user.Id, user.IsActive ? "active" : "inactive");

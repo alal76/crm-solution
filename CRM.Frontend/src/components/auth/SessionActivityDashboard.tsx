@@ -138,9 +138,9 @@ const SessionActivityDashboard: React.FC = () => {
       setRecentLogins(loginsRes.data);
       setLoginStats(statsRes.data);
       setActiveSessions(sessionsRes.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch session data:', err);
-      setError(err.response?.data?.message || 'Failed to load session activity data');
+      setError((err as any).response?.data?.message || 'Failed to load session activity data');
     } finally {
       setLoading(false);
     }
@@ -159,8 +159,8 @@ const SessionActivityDashboard: React.FC = () => {
       setTrustedDevices(devices => devices.filter(d => d.id !== deviceToRevoke.id));
       setRevokeDialogOpen(false);
       setDeviceToRevoke(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to revoke device trust');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to revoke device trust');
     } finally {
       setRevoking(false);
     }

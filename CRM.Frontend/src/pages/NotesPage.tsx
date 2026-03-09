@@ -90,8 +90,8 @@ function NotesPage() {
       const response = await apiClient.get('/notes');
       setNotes(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch notes');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch notes');
     } finally {
       setLoading(false);
     }
@@ -146,8 +146,8 @@ function NotesPage() {
       handleCloseDialog();
       fetchNotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setDialogError(err.response?.data?.message || 'Failed to save note');
+    } catch (err: unknown) {
+      setDialogError((err as any).response?.data?.message || 'Failed to save note');
     }
   };
 
@@ -155,8 +155,8 @@ function NotesPage() {
     try {
       await apiClient.put(`/notes/${id}/toggle-pin`);
       fetchNotes();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to toggle pin');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to toggle pin');
     }
   };
 
@@ -167,8 +167,8 @@ function NotesPage() {
         setSuccessMessage('Note deleted successfully');
         fetchNotes();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete note');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete note');
       }
     }
   };

@@ -9,6 +9,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.RateLimiting;
+using CRM.Api.Infrastructure;
 using CRM.Api.Middleware;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.AI;
@@ -43,6 +44,10 @@ using Microsoft.OpenApi;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load appsettings.Local.json for per-developer overrides (gitignored — API keys, local ports, etc.)
+// This intentionally comes after appsettings.Development.json so local values win.
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Configure Kestrel for HTTPS
 var sslCertPath = builder.Configuration["SSL_CERT_PATH"] ?? Path.Combine(Directory.GetCurrentDirectory(), "ssl", "server.pfx");
@@ -198,6 +203,10 @@ builder.Services.AddSingleton(sp => new { IsRedisEnabled = redisEnabled });
 // Configure monitoring service
 var monitoringConfig = builder.Configuration.GetSection("Monitoring");
 builder.Services.Configure<MonitoringOptions>(monitoringConfig);
+// AP-038: Extracted monitoring sub-services (registered before MonitoringService)
+builder.Services.AddScoped<IDatabaseHealthService, DatabaseHealthService>();
+builder.Services.AddScoped<IDockerMonitoringService, DockerMonitoringService>();
+builder.Services.AddScoped<IKubernetesMonitoringService, KubernetesMonitoringService>();
 builder.Services.AddScoped<IMonitoringService, MonitoringService>();
 Log.Information("Monitoring configured - DeploymentType: {Type}, BuildServer: {Server}",
     monitoringConfig.GetValue<string>("DeploymentType", "docker"),
@@ -426,77 +435,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configure Database
-var databaseProvider = builder.Configuration["DatabaseProvider"] ?? "mariadb";
-// Build connection string from configuration or environment variables
-string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() == "mysql" || databaseProvider.ToLower() == "mariadb"))
-{
-    var dbHost = builder.Configuration["DB_HOST"] ?? builder.Configuration["DbHost"] ?? "mariadb";
-    var dbPort = builder.Configuration["DB_PORT"] ?? "3306";
-    var dbName = builder.Configuration["DB_NAME"] ?? "crm_db";
-    var dbUser = builder.Configuration["DB_USER"] ?? "crm_user";
-    // SECURITY: DB_PASSWORD must be set in production - see SECURITY_BEST_PRACTICES.md
-    var dbPass = builder.Configuration["DB_PASSWORD"] ?? builder.Configuration["DB_PASS"]
-        ?? (builder.Environment.IsDevelopment() ? "crm_pass" : throw new InvalidOperationException("DB_PASSWORD environment variable is required in production"));
-    connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
-}
-
-builder.Services.AddDbContext<CrmDbContext>(options =>
-{
-    switch (databaseProvider.ToLower())
-    {
-        case "postgresql":
-            options.UseNpgsql(connectionString);
-            break;
-        case "oracle":
-            options.UseOracle(connectionString);
-            break;
-        case "mysql":
-        case "mariadb":
-            // Use explicit MariaDB version to avoid connection attempts during startup
-            options.UseMySql(connectionString, new MariaDbServerVersion(new Version(11, 0, 0)));
-            break;
-        case "inmemory":
-            options.UseInMemoryDatabase("crm_test");
-            break;
-        case "sqlserver":
-            options.UseSqlServer(connectionString);
-            break;
-        case "sqlite":
-        default:
-            options.UseSqlite(connectionString ?? "Data Source=crm.db");
-            break;
-    }
-    options.AddInterceptors(new AuditSaveChangesInterceptor());
-});
-
-// Optional: Register CrmReadOnlyDbContext for analytics replica routing
-// Only registered when ConnectionStrings__ReadOnlyConnection is set.
-// Points to crm-mariadb-analytics:3307 with crm_readonly user.
-// See CRM.Infrastructure/Data/CrmReadOnlyDbContext.cs for details.
-var readOnlyConnectionString = builder.Configuration.GetConnectionString("ReadOnlyConnection");
-if (!string.IsNullOrWhiteSpace(readOnlyConnectionString))
-{
-    builder.Services.AddDbContext<CrmReadOnlyDbContext>(options =>
-    {
-        // Always use MariaDB/MySQL for the analytics replica
-        options.UseMySql(
-            readOnlyConnectionString,
-            new MariaDbServerVersion(new Version(11, 0, 0)),
-            mySqlOptions => mySqlOptions.EnableRetryOnFailure(3));
-        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-    });
-    builder.Services.AddScoped<CrmReadOnlyDbContext>();
-}
-
-// Register ICrmDbContext interface with dynamic resolution
-builder.Services.AddScoped<IDbContextResolver, DynamicDbContextResolver>();
-builder.Services.AddScoped<ICrmDbContext>(provider =>
-    provider.GetRequiredService<IDbContextResolver>().ResolveContext());
+// AP-039: Database services (DbContext, ReadOnly replica, ICrmDbContext) extracted to
+// Infrastructure/DatabaseServiceExtensions.cs
+var (connectionString, databaseProvider) = builder.AddDatabaseServices();
 
 // Register Services (backward compatibility)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+// AP-037: Extracted account contact sub-service (registered before AccountService)
+builder.Services.AddScoped<IAccountContactService, AccountContactService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IOpportunityService, OpportunityService>();
@@ -583,8 +529,7 @@ builder.Services.AddScoped<IBrandingConfigService, BrandingConfigService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
-// TEMPORARILY DISABLED - causes model building errors
-// builder.Services.AddHostedService<BackupSchedulerHostedService>();
+builder.Services.AddHostedService<BackupSchedulerHostedService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
 builder.Services.AddScoped<IPreferencesService, PreferencesService>();
@@ -664,6 +609,10 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementService, CR
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementServiceEx, CRM.Infrastructure.Services.ITSM.ChangeManagementServiceEx>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IChangeService, CRM.Infrastructure.Services.ChangeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService, CRM.Infrastructure.Services.ITSM.KnowledgeManagementService>();
+// General Knowledge Base service (CRM.Core.Ports.Input.IKnowledgeBaseService)
+builder.Services.AddScoped<CRM.Core.Ports.Input.IKnowledgeBaseService, CRM.Infrastructure.Services.KnowledgeBaseService>();
+// KB-010/KB-011: Unified Knowledge Search facade (General KB + ITSM KB)
+builder.Services.AddScoped<CRM.Core.Ports.Input.IUnifiedKnowledgeSearchService, CRM.Infrastructure.Services.UnifiedKnowledgeSearchService>();
 // KB search index schema is configured by KnowledgeBaseSearchIndexService on startup
 builder.Services.AddScoped<CRM.Infrastructure.Services.Search.IKnowledgeBaseSearchIndexService, CRM.Infrastructure.Services.Search.KnowledgeBaseSearchIndexService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
@@ -695,6 +644,19 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.I
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
+// ITSM Extended Services — CAB, Calendar, Impact, Article Recommendations
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICABWorkflowService, CRM.Infrastructure.Services.ITSM.CABWorkflowService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IChangeCalendarService, CRM.Infrastructure.Services.ITSM.ChangeCalendarService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IChangeImpactService, CRM.Infrastructure.Services.ITSM.ChangeImpactService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IArticleRecommendationService, CRM.Infrastructure.Services.ITSM.ArticleRecommendationService>();
+// ITSM Advanced Services — Assignment, Catalog, Discovery, Impact Analysis, KCS, Asset Lifecycle
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine, CRM.Infrastructure.Services.ITSM.AssignmentRulesEngine>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICatalogApprovalService, CRM.Infrastructure.Services.ITSM.CatalogApprovalService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICatalogFulfillmentService, CRM.Infrastructure.Services.ITSM.CatalogFulfillmentService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IDiscoveryService, CRM.Infrastructure.Services.ITSM.DiscoveryService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService, CRM.Infrastructure.Services.ITSM.ImpactAnalysisService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IKCSWorkflowService, CRM.Infrastructure.Services.ITSM.KCSWorkflowService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IAssetLifecycleService, CRM.Infrastructure.Services.ITSM.AssetLifecycleService>();
 // Slack/Teams notification channels for ITSM — add when external notification provider is configured
 builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.SlackItsmNotificationService>();
 builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.TeamsItsmNotificationService>();
@@ -706,22 +668,22 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationDispatcher,
     CRM.Infrastructure.Services.ITSM.ItsmNotificationDispatcher>();
 Log.Information("ITSM notification channels registered: Slack, Teams (TODO-SD005-010)");
 // SLA Enforcement Background Service - runs continuously to monitor and enforce SLAs
-// builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>(); // DISABLED for System Module isolation
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>();
 // Auto-close resolved items background service (auto-closes incidents, service requests, changes, problems)
-// builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>(); // DISABLED for System Module isolation
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>();
 // Escalation background service (auto-escalates incidents/service requests based on SLA thresholds)
-// builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>(); // DISABLED for System Module isolation
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
 builder.Services.AddScoped<SampleDataSeederService>();
 // Database Sync BVT Service - runs on startup to ensure db consistency
 builder.Services.AddSingleton<IDatabaseSyncService, DatabaseSyncService>();
-// TEMPORARILY DISABLED - causes model building errors
-// builder.Services.AddHostedService<DatabaseSyncHostedService>();
+builder.Services.AddHostedService<DatabaseSyncHostedService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();
+builder.Services.AddScoped<INormalizationService, NormalizationService>(); // PRA-016
 // Master data - ZIP code / Postal code lookups with caching
 builder.Services.AddScoped<ZipCodeService>();
 builder.Services.AddScoped<IZipCodeService>(sp =>
@@ -773,7 +735,11 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IContractService, ContractService>();
+// PRA-011: Register ContractExpirationJob so Hangfire's DI activator can instantiate it.
+builder.Services.AddTransient<CRM.Infrastructure.Jobs.ContractExpirationJob>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+// AP-022: SubscriptionUsageService — extracted from SubscriptionUsageController fat-controller
+builder.Services.AddScoped<CRM.Core.Interfaces.ISubscriptionUsageService, CRM.Infrastructure.Services.SubscriptionUsageService>();
 // Usage record batching can be enabled via hosted service when high-volume metering is needed
 builder.Services.AddSingleton<CRM.Core.Interfaces.IUsageRecordBatchBuffer,
     CRM.Infrastructure.Services.Billing.UsageRecordBatchBuffer>();
@@ -788,6 +754,8 @@ builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 builder.Services.AddScoped<ICommissionRuleService, CommissionRuleService>();
 builder.Services.AddScoped<IDiscountRuleService, DiscountRuleService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISLAPolicyAdminService, CRM.Infrastructure.Services.ITSM.SLAPolicyAdminService>();
+// AP-021: SLAAnalyticsService — extracted from SLAPoliciesController fat-controller GroupBy analytics
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISLAAnalyticsService, CRM.Infrastructure.Services.ITSM.SLAAnalyticsService>();
 builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>(); // concrete registration
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleService>(sp =>
     sp.GetRequiredService<CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>());
@@ -885,7 +853,7 @@ Log.Information("Commission & Contract Enhancement Services registered: Commissi
 
 // Subscription Billing Services (SPEC-SALES-006)
 // Recurring Billing Engine - background job for hourly subscription billing cycles
-// builder.Services.AddScoped<IRecurringBillingEngine, RecurringBillingEngine>(); // DISABLED for System Module isolation
+builder.Services.AddScoped<IRecurringBillingEngine, RecurringBillingEngine>();
 // Dunning Manager - payment failure recovery with 3-retry escalation (TODO-SALES003-012)
 builder.Services.AddScoped<IDunningManager, DunningManager>();
 // Dunning Scheduler - runs every 4 hours, uses IServiceScopeFactory for scoped IDunningManager (TODO-SALES003-012)
@@ -956,6 +924,9 @@ else
 {
     Log.Warning("Hangfire disabled (Hangfire:Enabled=false) — background jobs will not be processed");
 }
+
+// PRA-004: Workflow field schema service — serves entity/related-entity schemas to WorkflowController.
+builder.Services.AddSingleton<IWorkflowFieldSchemaService, WorkflowFieldSchemaService>();
 
 // Workflow management services
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
@@ -1068,10 +1039,9 @@ builder.Services.AddHostedService<CalendarSyncHostedService>();
 builder.Services.AddHostedService<DuplicateReviewWorkerService>();
 
 // Email Sync Service - IMAP/OAuth sync for unified inbox (G5)
-// TEMPORARILY DISABLED - causes model building errors
-// builder.Services.Configure<EmailSyncOptions>(builder.Configuration.GetSection(EmailSyncOptions.SectionName));
-// builder.Services.AddScoped<IEmailSyncService, EmailSyncService>();
-// builder.Services.AddHostedService<EmailSyncHostedService>();
+builder.Services.Configure<EmailSyncOptions>(builder.Configuration.GetSection(EmailSyncOptions.SectionName));
+builder.Services.AddScoped<IEmailSyncService, EmailSyncService>();
+builder.Services.AddHostedService<EmailSyncHostedService>();
 
 // Landing Page Service - Visual landing page builder (G6)
 builder.Services.AddScoped<ILandingPageService, LandingPageService>();
@@ -1110,6 +1080,9 @@ builder.Services.AddSingleton<CRM.Infrastructure.Services.Saga.ISagaOrchestrator
 builder.Services.AddScoped<CRM.Infrastructure.Services.Messaging.IRedisStreamService, CRM.Infrastructure.Services.Messaging.RedisStreamService>();
 builder.Services.AddScoped<CRM.Infrastructure.Services.Messaging.IDeadLetterQueueService, CRM.Infrastructure.Services.Messaging.DeadLetterQueueService>();
 
+// FLAG-005: Async audit log consumer — reads from crm:audit:stream and batch-writes to AuditLogs table
+builder.Services.AddHostedService<CRM.Infrastructure.Services.Messaging.AuditLogConsumerHostedService>();
+
 // Search Analytics (INFRA-10)
 builder.Services.AddSingleton<CRM.Infrastructure.Services.Search.ISearchAnalyticsService, CRM.Infrastructure.Services.Search.SearchAnalyticsService>();
 
@@ -1122,80 +1095,8 @@ builder.Services.AddScoped<IPartnerPortalService, PartnerPortalService>(); // PO
 // Configurable Enums (ENUM-BE-012)
 builder.Services.AddScoped<IEnumManagementService, EnumManagementService>();
 
-// Configure JWT Authentication
-var jwtSecret = builder.Configuration["Jwt:Secret"];
-if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)
-{
-    // Use a secure default for development only - in production, this should be configured
-    if (builder.Environment.IsDevelopment())
-    {
-        jwtSecret = "development-only-jwt-secret-key-minimum-32-chars";
-        Log.Warning("Using development JWT secret. Configure Jwt:Secret for production.");
-    }
-    else
-    {
-        throw new InvalidOperationException("JWT Secret must be configured in production. Set 'Jwt:Secret' with a secure key at least 32 characters long.");
-    }
-}
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "CRMApp";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "CRMUsers";
-var key = Encoding.UTF8.GetBytes(jwtSecret);
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = "SmartScheme";
-    options.DefaultChallengeScheme = "SmartScheme";
-})
-.AddPolicyScheme("SmartScheme", "Bearer or API Key", options =>
-{
-    options.ForwardDefaultSelector = context =>
-    {
-        // If X-Api-Key header is present, use ApiKey scheme; otherwise use Bearer JWT
-        if (context.Request.Headers.ContainsKey("X-Api-Key"))
-            return CRM.Infrastructure.Authentication.ApiKeyAuthenticationHandler.SchemeName;
-        return "Bearer";
-    };
-})
-.AddJwtBearer("Bearer", options =>
-{
-    // Require HTTPS in production, allow HTTP in development
-    options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
-    options.SaveToken = true;
-
-    options.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = ctx =>
-        {
-            Log.Warning(ctx.Exception, "JWT authentication failed");
-            return Task.CompletedTask;
-        }
-    };
-
-    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = true,
-        ValidIssuer = jwtIssuer,
-        ValidateAudience = true,
-        ValidAudience = jwtAudience,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-})
-.AddScheme<CRM.Infrastructure.Authentication.ApiKeyAuthenticationOptions,
-    CRM.Infrastructure.Authentication.ApiKeyAuthenticationHandler>(
-    CRM.Infrastructure.Authentication.ApiKeyAuthenticationHandler.SchemeName, options => { });
-
-// Add Authorization policies
-// Default policy: Authenticated users only (accepts both Bearer JWT and ApiKey)
-builder.Services.AddAuthorization(options =>
-{
-    // Default policy requires authentication (SmartScheme auto-selects Bearer or ApiKey)
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
+// AP-039: JWT authentication and authorization extracted to Infrastructure/JwtAuthServiceExtensions.cs
+builder.Services.AddJwtAuthServices(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
 
@@ -1217,291 +1118,59 @@ if (hangfireEnabled)
     // Recurring billing/dunning jobs are wired here once RecurringBillingEngine
     // and DunningManager are re-enabled (see SOLUTION_GAPS_REMEDIATION_PLAN.md).
     // IRecurringBillingEngine and IDunningManager are ready for scheduling — enable via feature flag
+
+    // PRA-011: Wire ContractExpirationJob to Hangfire — runs daily at 1:00 AM UTC.
+    // ContractExpirationJob.JobId = "contract-expiration-job"
+    RecurringJob.AddOrUpdate<CRM.Infrastructure.Jobs.ContractExpirationJob>(
+        CRM.Infrastructure.Jobs.ContractExpirationJob.JobId,
+        job => job.ExecuteAsync(CancellationToken.None),
+        CRM.Infrastructure.Jobs.ContractExpirationJob.CronExpression,
+        new Hangfire.RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+    app.Services.RegisterContractExpirationJob();
 }
 
-// ADR-002: Unified EF Core Schema Management
-// IMPORTANT: For MariaDB/MySQL, use scripts/apply-migrations.sh instead of relying
-// on MigrateAsync() at startup. MySQL DDL is auto-committed (not transactional),
-// so partial migration failures leave orphan tables without history records.
-// Set SKIP_DB_MIGRATION=true to skip all migration/schema management at startup.
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
-    var skipMigration = Environment.GetEnvironmentVariable("SKIP_DB_MIGRATION") == "true";
-    if (skipMigration)
-    {
-        Log.Information("SKIP_DB_MIGRATION=true — skipping EF Core schema management");
-    }
-    try
-    {
-        if (!skipMigration)
-        {
-            var useEnsureCreated = Environment.GetEnvironmentVariable("USE_ENSURE_CREATED") == "true";
-            
-            if (!db.Database.IsRelational())
-            {
-                // Non-relational providers (InMemory, etc.) — use EnsureCreated
-                Log.Information("Non-relational provider detected ({Provider}); using EnsureCreated", databaseProvider);
-                await db.Database.EnsureCreatedAsync();
-            }
-            else if (useEnsureCreated)
-            {
-                // Development mode: use EnsureCreated to avoid migration issues
-                Log.Information("USE_ENSURE_CREATED=true — using EnsureCreated for {Provider} (development mode)", databaseProvider);
-                await db.Database.EnsureCreatedAsync();
-            }
-            else
-            {
-                // Check if migrations are pending
-                var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
-                var pendingList = pendingMigrations.ToList();
-                if (pendingList.Count > 0)
-                {
-                    Log.Information("Found {Count} pending migration(s) for {Provider}: {Migrations}",
-                        pendingList.Count, databaseProvider, string.Join(", ", pendingList));
-                    try
-                    {
-                        await db.Database.MigrateAsync();
-                        Log.Information("EF Core migrations applied successfully");
-                    }
-                    catch (Exception migEx)
-                    {
-                        const string migrationErrorMessage =
-                            "MigrateAsync failed. For MariaDB/MySQL, use scripts/apply-migrations.sh "
-                            + "to generate and apply idempotent SQL. MySQL DDL is auto-committed and cannot be "
-                            + "rolled back, causing 'Table already exists' errors on retry after partial failures.";
-                        Log.Error(migEx, migrationErrorMessage);
-                        throw;
-                    }
-                }
-                else
-                {
-                    Log.Information("No pending migrations for {Provider} — database is up to date", databaseProvider);
-                }
-            }
-        }
+// AP-019: Schema management and startup seeding extracted to Infrastructure/DatabaseStartupExtensions.cs.
+// All GetRequiredService/GetService calls are encapsulated in a properly scoped extension method.
+await app.RunStartupSeedingAsync(databaseProvider);
 
-        // Post-migration: check for required tables (only for relational databases)
-        if (db.Database.IsRelational())
-        {
-            var requiredTables = new[] { "UserGroups", "Users", "UserGroupMembers", "Departments", "SystemSettings", "Products", "Accounts", "Contacts", "Quotes", "Commissions" };
-            var missingTables = new List<string>();
-            foreach (var tableName in requiredTables)
-            {
-                var conn = db.Database.GetDbConnection();
-                if (conn.State != System.Data.ConnectionState.Open)
-                    await conn.OpenAsync();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = @tableName";
-                var param = cmd.CreateParameter();
-                param.ParameterName = "@tableName";
-                param.Value = tableName;
-                cmd.Parameters.Add(param);
-                var result = await cmd.ExecuteScalarAsync();
-                var exists = Convert.ToInt32(result) > 0;
-                if (!exists)
-                    missingTables.Add(tableName);
-            }
-            if (missingTables.Count > 0)
-            {
-                Log.Fatal("Database migration incomplete. Missing tables: {MissingTables}. Aborting seeding.", string.Join(", ", missingTables));
-                throw new InvalidOperationException($"Missing tables after migration: {string.Join(", ", missingTables)}");
-            }
-        }
-
-        // DI registration check (basic seeder services only)
-        var diChecks = new[] { typeof(IMasterDataSeederService) };
-        foreach (var serviceType in diChecks)
-        {
-            if (scope.ServiceProvider.GetService(serviceType) == null)
-            {
-                Log.Fatal("Required service not registered in DI: {ServiceName}", serviceType.Name);
-                throw new InvalidOperationException($"Missing DI registration: {serviceType.Name}");
-            }
-        }
-
-        // Seed essential data (SysAdmin group + admin user only)
-        try
-        {
-            await DbSeed.SeedAsync(db);
-            Log.Information("Database setup completed successfully");
-        }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "Error during SysAdmin/admin user seeding");
-            throw;
-        }
-
-        // Seed master data (ZipCodes, ColorPalettes) if not already populated
-        // Skip in test environments to avoid seeding 100k+ ZipCodes into InMemory DB.
-        var skipMasterDataSeeding = string.Equals(
-            Environment.GetEnvironmentVariable("SKIP_MASTER_DATA_SEEDING"),
-            "true",
-            StringComparison.OrdinalIgnoreCase);
-        if (skipMasterDataSeeding)
-        {
-            Log.Information("SKIP_MASTER_DATA_SEEDING=true — skipping master data seeding");
-        }
-        else
-        {
-        try
-        {
-            var masterDataSeeder = scope.ServiceProvider.GetRequiredService<IMasterDataSeederService>();
-            await masterDataSeeder.SeedIfEmptyAsync();
-            var stats = await masterDataSeeder.GetStatsAsync();
-            Log.Information("Master data status: {ZipCodeCount} ZIP codes, {ColorPaletteCount} color palettes",
-                stats.ZipCodeCount, stats.ColorPaletteCount);
-        }
-        catch (Exception masterDataEx)
-        {
-            Log.Error(masterDataEx, "Failed to seed master data");
-            throw;
-        }
-        }
-
-        // Seed module field configurations (optional, non-blocking)
-        // Set FORCE_RESEED_FIELD_CONFIGS=true to delete and re-seed all module field configs on startup
-        try
-        {
-            var coreDataSeeder = scope.ServiceProvider.GetService<ICoreDataSeederService>();
-            if (coreDataSeeder != null)
-            {
-                var forceReseed = Environment.GetEnvironmentVariable("FORCE_RESEED_FIELD_CONFIGS");
-                if (string.Equals(forceReseed, "true", StringComparison.OrdinalIgnoreCase))
-                {
-                    Log.Information("FORCE_RESEED_FIELD_CONFIGS is set — deleting and re-seeding all module field configurations");
-                    await coreDataSeeder.ForceReseedModuleFieldConfigurationsAsync();
-                    Log.Information("Module field configurations force re-seeded successfully");
-                }
-                else
-                {
-                    await coreDataSeeder.SeedModuleFieldConfigurationsAsync();
-                    Log.Information("Module field configurations seeded successfully");
-                }
-            }
-            else
-            {
-                Log.Warning("ICoreDataSeederService not registered — skipping module field config seeding");
-            }
-        }
-        catch (Exception fieldConfigEx)
-        {
-            Log.Warning(fieldConfigEx, "Failed to seed module field configurations (non-fatal)");
-        }
-
-        // NOTE: Sample data seeding is NOT run at startup.
-        // Use the Python test_data_loader.py script or POST /api/admin/seed to populate sample data.
-    }
-    catch (Exception ex)
-    {
-        Log.Fatal(ex, "Error during database setup. Startup aborted.");
-        throw;
-    }
-}
 
 // Configure Middleware
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/openapi/v1.json", "CRM Solution API v2.0.0");
-        c.DocumentTitle = "CRM Solution API Documentation";
-    });
-}
+// AP-032: ErrorHandlingMiddleware MUST be first — catches all unhandled exceptions and maps to HTTP responses
+app.UseMiddleware<ErrorHandlingMiddleware>();
 
-// Only use HTTPS redirect if we have SSL enabled and not in development
-// Skip redirect for health endpoints to allow Kubernetes health checks on HTTP
-var forceHttpsRedirect = builder.Configuration.GetValue<bool>("ForceHttpsRedirect", false);
-if (forceHttpsRedirect && File.Exists(sslCertPath))
-{
-    app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"), appBuilder =>
-    {
-        appBuilder.UseHttpsRedirection();
-    });
-}
-
-// Add security headers to all responses
+// Security headers (HSTS, X-Content-Type-Options, X-Frame-Options, etc.)
 app.UseSecurityHeaders();
 
-// Serve static files from wwwroot (for uploaded files)
-var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
-if (!Directory.Exists(uploadsPath))
-{
-    Directory.CreateDirectory(uploadsPath);
-}
-app.UseStaticFiles(); // Serve from wwwroot
+// HTTPS redirection
+app.UseHttpsRedirection();
 
-// Serve static files from frontend build
-var frontendBuildPath = Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "CRM.Frontend", "build");
-if (Directory.Exists(frontendBuildPath))
-{
-    app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = new PhysicalFileProvider(Path.GetFullPath(frontendBuildPath)) });
-    app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.GetFullPath(frontendBuildPath)) });
-}
-
-// Enable WebSocket support — MUST be before UseRouting() so Kestrel can handle
-// WebSocket upgrade requests from nginx before the routing middleware processes them.
-// Without this, SignalR's WebSocket transport fails with "connection not found on server".
-app.UseWebSockets(new WebSocketOptions
-{
-    KeepAliveInterval = TimeSpan.FromSeconds(15)
-});
-
-app.UseRouting();
-// Use the default CORS policy globally
+// CORS — must be registered before authentication/authorization
 app.UseCors();
-// Apply rate limiting before authentication
-app.UseRateLimiter();
+
+// Rate limiter (feature-flag driven via RateLimiting:EnableEndpointRateLimiting in appsettings)
+if (rateLimitingEnabled)
+{
+    app.UseRateLimiter();
+}
+
+// Authentication and Authorization
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Request instrumentation — after auth so user identity is available in telemetry
+app.UseInstrumentation(verbose: isDevelopment);
+
+// Map API controllers
 app.MapControllers();
 
 // Map SignalR hubs for real-time notifications
-app.MapHub<CRM.Api.Hubs.CrmNotificationHub>("/hubs/notifications");
-app.MapHub<CRM.Api.Hubs.AgentApprovalHub>("/hubs/agent-approvals");
-app.MapHub<CRM.Api.Hubs.SLACountdownHub>("/hubs/sla");
 app.MapHub<CRM.Api.Hubs.DashboardHub>("/hubs/dashboard");
+app.MapHub<CRM.Api.Hubs.CrmNotificationHub>("/hubs/notifications");
+app.MapHub<CRM.Api.Hubs.AgentApprovalHub>("/hubs/agentapproval");
+app.MapHub<CRM.Api.Hubs.SLACountdownHub>("/hubs/slacountdown");
 
-// SPA fallback - serve index.html for unmatched routes (only if frontend build exists)
-if (Directory.Exists(frontendBuildPath))
-{
-    app.MapFallback(context =>
-    {
-        context.Response.ContentType = "text/html";
-        return context.Response.SendFileAsync(Path.Combine(frontendBuildPath, "index.html"));
-    });
-}
+// OpenAPI document endpoint (used by Scalar UI, client code generators, etc.)
+app.MapOpenApi();
 
-// KB Meilisearch index schema initialization runs here when Meilisearch provider is enabled
-try
-{
-    using var startupScope = app.Services.CreateScope();
-    var isSearchEnabled = await startupScope.ServiceProvider
-        .GetRequiredService<Microsoft.FeatureManagement.IFeatureManager>()
-        .IsEnabledAsync(CRM.Core.Features.FeatureFlags.UseExternalSearch);
-    if (isSearchEnabled)
-    {
-        var kbIndexService = startupScope.ServiceProvider
-            .GetService<CRM.Infrastructure.Services.Search.IKnowledgeBaseSearchIndexService>();
-        if (kbIndexService != null)
-        {
-            await kbIndexService.ConfigureIndexAsync();
-            Log.Information("KB Meilisearch search index configured on startup (TODO-SD002-012)");
-        }
-    }
-}
-catch (Exception kbEx)
-{
-    Log.Warning(kbEx, "KB search index configuration on startup failed (non-fatal) — will retry on next article index");
-}
-
-app.Run();
-
-/// <summary>
-/// Partial class declaration for integration test factory configuration.
-/// </summary>
-public partial class Program
-{
-}
+// Start the application
+await app.RunAsync();

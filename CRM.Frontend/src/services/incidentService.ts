@@ -3,36 +3,10 @@
  */
 
 import apiClient from './apiClient';
+import { IncidentStatus, IncidentPriority, IncidentCategory } from '../types/itsm';
 
-// ============================================================================
-// Enums
-// ============================================================================
-
-export enum IncidentStatus {
-  New = 0,
-  InProgress = 1,
-  OnHold = 2,
-  Resolved = 3,
-  Closed = 4,
-  Cancelled = 5,
-  Reopened = 6,
-}
-
-export enum IncidentPriority {
-  Critical = 0,
-  High = 1,
-  Medium = 2,
-  Low = 3,
-  Planning = 4,
-}
-
-export enum IncidentCategory {
-  Hardware = 0,
-  Software = 1,
-  Network = 2,
-  Telecom = 3,
-  Other = 4,
-}
+// Re-export enums from canonical source
+export { IncidentStatus, IncidentPriority, IncidentCategory };
 
 // ============================================================================
 // Interfaces

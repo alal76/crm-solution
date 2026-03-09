@@ -94,12 +94,30 @@ public static class FeatureFlags
     public const string EnableKnowledgeBase = "EnableKnowledgeBase";
 
     /// <summary>
+    /// When true, audit events are enqueued to a Redis Stream (crm:audit:stream) and
+    /// batch-written to the AuditLogs table by AuditLogConsumerHostedService.
+    /// When false (default), the audit logging service is a no-op with zero overhead.
+    /// Configuration key: FeatureManagement:UseOptionalAuditLogging
+    /// Implements FLAG-005.
+    /// </summary>
+    public const string UseOptionalAuditLogging = "UseOptionalAuditLogging";
+
+    /// <summary>
     /// When true, webhook system is enabled and dispatches events to registered endpoints.
     /// Alias for UseWebhooks for consistency with other Enable* flags.
     /// Configuration key: FeatureManagement:EnableWebhooks
     /// Implements TODO-INT001-15.
     /// </summary>
     public const string EnableWebhooks = "EnableWebhooks";
+
+    /// <summary>
+    /// When true, Stripe webhook events sync subscription lifecycle to CRM Subscription entities.
+    /// HandleSubscriptionEventAsync, HandleInvoicePaidAsync, and HandleInvoicePaymentFailedAsync
+    /// call ISubscriptionService.SyncSubscriptionFromStripeAsync when this flag is enabled.
+    /// Configuration key: FeatureManagement:EnableSubscriptionTracking
+    /// Implements FLAG-006.
+    /// </summary>
+    public const string EnableSubscriptionTracking = "EnableSubscriptionTracking";
 
     #endregion
 

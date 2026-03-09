@@ -180,7 +180,7 @@ export default function ImportProgress({
       handleStatus(status);
       setFetchError(null);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to fetch job status';
+      const msg = err instanceof Error ? (err as Error).message : 'Failed to fetch job status';
       setFetchError(msg);
     }
   }, [jobId, handleStatus]);

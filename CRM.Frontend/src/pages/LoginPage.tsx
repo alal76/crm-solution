@@ -390,8 +390,8 @@ const LoginPage: React.FC = () => {
           message?: string;
           code?: string;
         };
-        const status = error.response?.status;
-        const serverMsg = error.response?.data?.message;
+        const status = (error as any).response?.status;
+        const serverMsg = (error as any).response?.data?.message;
         let errorMessage: string;
         if (!error.response && error.request) {
           errorMessage = 'Cannot reach the CRM API to complete Google sign-in. Check that the backend service is running.';
@@ -402,7 +402,7 @@ const LoginPage: React.FC = () => {
         } else if (status === 500) {
           errorMessage = `Server error (500) during Google sign-in${serverMsg ? ': ' + serverMsg : ''}. Please try again.`;
         } else {
-          errorMessage = serverMsg || error.message || 'Google sign-in failed. Please try again.';
+          errorMessage = serverMsg || (error as Error).message || 'Google sign-in failed. Please try again.';
         }
         setError(errorMessage);
         debugError('[LoginPage] Google login error', { status, errorMessage, code: error.code, error });
@@ -501,20 +501,20 @@ const LoginPage: React.FC = () => {
           message?: string;
           code?: string;
         };
-        const status = error.response?.status;
-        const serverMsg = error.response?.data?.message || error.response?.data?.error;
+        const status = (error as any).response?.status;
+        const serverMsg = (error as any).response?.data?.message || (error as any).response?.data?.error;
         let errorMessage: string;
 
         if (!error.response && error.request) {
           // Request made but no response — API unreachable
-          if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+          if (error.code === 'ECONNABORTED' || (error as Error).message?.includes('timeout')) {
             errorMessage = 'Connection timed out. The API server is not responding — please check that the backend service is running.';
           } else {
             errorMessage = 'Cannot reach the CRM API server. The service may be down or unreachable — verify the API container is running and the network is accessible.';
           }
         } else if (!error.response) {
           // Network error before request was sent
-          errorMessage = `Network error: ${error.message || 'Unknown network failure'}. Check your connection and that the CRM API is reachable.`;
+          errorMessage = `Network error: ${(error as Error).message || 'Unknown network failure'}. Check your connection and that the CRM API is reachable.`;
         } else if (status === 400) {
           errorMessage = serverMsg || 'Invalid login request. Please check your email and password format.';
         } else if (status === 401) {
@@ -536,7 +536,7 @@ const LoginPage: React.FC = () => {
         } else if (status) {
           errorMessage = `Login failed with status ${status}${serverMsg ? ': ' + serverMsg : ''}. Please try again or contact support.`;
         } else {
-          errorMessage = error.message || 'An unexpected error occurred. Please try again.';
+          errorMessage = (error as Error).message || 'An unexpected error occurred. Please try again.';
         }
 
         setError(errorMessage);
@@ -578,8 +578,8 @@ const LoginPage: React.FC = () => {
           message?: string;
           code?: string;
         };
-        const status = error.response?.status;
-        const serverMsg = error.response?.data?.message;
+        const status = (error as any).response?.status;
+        const serverMsg = (error as any).response?.data?.message;
         let errorMessage: string;
 
         if (!error.response && error.request) {

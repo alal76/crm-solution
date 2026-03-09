@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.DTOs.ITSM;
+using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,18 +15,18 @@ namespace CRM.Infrastructure.Services.ITSM;
 
 public class CMDBService : ICMDBService
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<CMDBService> _logger;
 
-    public CMDBService(IDbContextResolver dbContextResolver, ILogger<CMDBService> logger)
+    public CMDBService(ICrmDbContext dbContext, ILogger<CMDBService> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
     public async Task<ConfigurationItemDto> CreateCIAsync(CreateCIDto dto, int createdById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var ci = new ConfigurationItem
         {
@@ -53,7 +52,7 @@ public class CMDBService : ICMDBService
 
     public async Task<ConfigurationItemDto?> GetCIByIdAsync(int ciId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var ci = await context.ConfigurationItems
             .Include(c => c.Owner)
             .FirstOrDefaultAsync(c => c.CIId == ciId && !c.IsDeleted);
@@ -63,7 +62,7 @@ public class CMDBService : ICMDBService
 
     public async Task<IEnumerable<ConfigurationItemDto>> SearchCIsAsync(string searchTerm, CIType? type, int pageNumber, int pageSize)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var query = context.ConfigurationItems
             .Include(c => c.Owner)
             .Where(c => !c.IsDeleted);
@@ -91,7 +90,7 @@ public class CMDBService : ICMDBService
 
     public async Task<ConfigurationItemDto> UpdateCIAsync(int ciId, CreateCIDto dto, int modifiedById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var ci = await context.ConfigurationItems.FindAsync(ciId);
 
         if (ci == null || ci.IsDeleted)
@@ -116,7 +115,7 @@ public class CMDBService : ICMDBService
 
     public async Task<bool> CreateRelationshipAsync(int parentCIId, int childCIId, CRM.Core.Entities.ITSM.RelationshipType type, int createdById)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var existing = await context.CIRelationships
             .AnyAsync(r => r.ParentCIId == parentCIId && r.ChildCIId == childCIId && !r.IsDeleted);
@@ -142,7 +141,7 @@ public class CMDBService : ICMDBService
 
     public async Task<IEnumerable<ConfigurationItemDto>> GetRelatedCIsAsync(int ciId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var childIds = await context.CIRelationships
             .Where(r => r.ParentCIId == ciId && !r.IsDeleted)
@@ -166,7 +165,7 @@ public class CMDBService : ICMDBService
 
     public async Task<IEnumerable<string>> GetImpactAnalysisAsync(int ciId)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
         var impacts = new List<string>();
 
         // Get all dependent CIs recursively

@@ -10,7 +10,7 @@ using EscalationType = CRM.Core.Entities.KnowledgeBase.EscalationType;
 using SLAMetricType = CRM.Core.Entities.KnowledgeBase.SLAMetricType;
 using SLAPriority = CRM.Core.Entities.KnowledgeBase.SLAPriority;
 
-namespace CRM.Core.DTOs.ITSM;
+namespace CRM.Core.Dtos.ITSM;
 
 // ============================================================================
 // Incident DTOs
@@ -95,56 +95,7 @@ public class ResolveIncidentDto
     public string ResolutionNotes { get; set; } = string.Empty;
 }
 
-// ============================================================================
-// Problem DTOs
-// ============================================================================
-public class ProblemDto
-{
-    public int Id { get; set; }
-    public int ProblemId { get; set; }
-    public string Number { get; set; } = string.Empty;
-    public string ShortDescription { get; set; } = string.Empty;
-    public string? Description { get; set; }
-    public ProblemPriority Priority { get; set; }
-    public ProblemState State { get; set; }
-    public string? RootCause { get; set; }
-    public string? Workaround { get; set; }
-    public bool KnownError { get; set; }
-    public string? Solution { get; set; }
-    public int? ProblemInvestigatorId { get; set; }
-    public string? ProblemInvestigatorName { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public int RelatedIncidentCount { get; set; }
-}
-
-public class CreateProblemDto
-{
-    [Required]
-    [StringLength(160)]
-    public string ShortDescription { get; set; } = string.Empty;
-
-    public string? Description { get; set; }
-
-    [Required]
-    public ProblemPriority Priority { get; set; }
-
-    public int? CategoryId { get; set; }
-    public List<int>? IncidentIds { get; set; }
-}
-
-public class UpdateProblemDto
-{
-    public string? ShortDescription { get; set; }
-    public string? Description { get; set; }
-    public ProblemState? State { get; set; }
-    public string? RootCause { get; set; }
-    public string? Workaround { get; set; }
-    public string? Solution { get; set; }
-    public string? Resolution { get; set; }
-    public string? ClosureComments { get; set; }
-    public bool? KnownError { get; set; }
-    public int? ProblemInvestigatorId { get; set; }
-}
+// Problem DTOs moved to ProblemDtos.cs (namespace consolidation)
 
 // ============================================================================
 // CMDB DTOs
@@ -288,33 +239,7 @@ public class CreateCatalogRequestDto
     public Dictionary<string, string>? VariableValues { get; set; }
 }
 
-// ============================================================================
-// SLA DTOs
-// ============================================================================
-public class SLAPolicyDto
-{
-    public int SLAPolicyId { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public SLATargetType TargetType { get; set; }
-    public int? P1ResponseMinutes { get; set; }
-    public int? P1ResolutionMinutes { get; set; }
-    public bool UseBusinessHours { get; set; }
-    public bool IsActive { get; set; }
-}
-
-public class SLAInstanceDto
-{
-    public int SLAInstanceId { get; set; }
-    public int TargetId { get; set; }
-    public SLATargetType TargetType { get; set; }
-    public DateTime? ResponseDueAt { get; set; }
-    public DateTime? ResolutionDueAt { get; set; }
-    public bool ResponseBreached { get; set; }
-    public bool ResolutionBreached { get; set; }
-    public SLAState State { get; set; }
-    public int? MinutesUntilResponseBreach { get; set; }
-    public int? MinutesUntilResolutionBreach { get; set; }
-}
+// SLA DTOs moved to SLAPolicyDto.cs (namespace consolidation)
 
 // ============================================================================
 // Filter DTOs
@@ -357,111 +282,8 @@ public class ChangeFilterDto
 }
 
 // ============================================================================
-// Escalation Rule DTOs
-// ============================================================================
-
-/// <summary>
-/// DTO for escalation rule details.
-/// </summary>
-public class EscalationRuleDto
-{
-    public int Id { get; set; }
-    public int SLAPolicyId { get; set; }
-    public string? SLAPolicyName { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public int TriggerAtPercent { get; set; }
-    public SLAMetricType TriggerMetric { get; set; }
-    public bool IsActive { get; set; }
-    public int ExecutionOrder { get; set; }
-    public EscalationType EscalationType { get; set; }
-    public List<string>? EmailRecipients { get; set; }
-    public int? EmailTemplateId { get; set; }
-    public int? ReassignToUserId { get; set; }
-    public string? ReassignToUserName { get; set; }
-    public int? ReassignToTeamId { get; set; }
-    public string? ReassignToTeamName { get; set; }
-    public SLAPriority? NewPriority { get; set; }
-    public string? WebhookUrl { get; set; }
-    public Dictionary<string, object>? ActionConfig { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-}
-
-/// <summary>
-/// DTO for creating an escalation rule.
-/// </summary>
-public class CreateEscalationRuleDto
-{
-    [Required]
-    public int SLAPolicyId { get; set; }
-
-    [Required]
-    [StringLength(200)]
-    public string Name { get; set; } = string.Empty;
-
-    [Range(1, 200)]
-    public int TriggerAtPercent { get; set; } = 100;
-
-    [Required]
-    public SLAMetricType TriggerMetric { get; set; }
-
-    public bool IsActive { get; set; } = true;
-
-    public int ExecutionOrder { get; set; } = 0;
-
-    [Required]
-    public EscalationType EscalationType { get; set; }
-
-    public List<string>? EmailRecipients { get; set; }
-
-    public int? EmailTemplateId { get; set; }
-
-    public int? ReassignToUserId { get; set; }
-
-    public int? ReassignToTeamId { get; set; }
-
-    public SLAPriority? NewPriority { get; set; }
-
-    [Url]
-    public string? WebhookUrl { get; set; }
-
-    public Dictionary<string, object>? ActionConfig { get; set; }
-}
-
-/// <summary>
-/// DTO for updating an escalation rule.
-/// </summary>
-public class UpdateEscalationRuleDto
-{
-    [StringLength(200)]
-    public string? Name { get; set; }
-
-    [Range(1, 200)]
-    public int? TriggerAtPercent { get; set; }
-
-    public SLAMetricType? TriggerMetric { get; set; }
-
-    public bool? IsActive { get; set; }
-
-    public int? ExecutionOrder { get; set; }
-
-    public EscalationType? EscalationType { get; set; }
-
-    public List<string>? EmailRecipients { get; set; }
-
-    public int? EmailTemplateId { get; set; }
-
-    public int? ReassignToUserId { get; set; }
-
-    public int? ReassignToTeamId { get; set; }
-
-    public SLAPriority? NewPriority { get; set; }
-
-    [Url]
-    public string? WebhookUrl { get; set; }
-
-    public Dictionary<string, object>? ActionConfig { get; set; }
-}
+// Escalation Rule DTOs moved to EscalationRuleDto.cs (namespace consolidation)
+// EscalationRuleFilterDto kept here as it's not in the dedicated file.
 
 /// <summary>
 /// Filter DTO for escalation rules.

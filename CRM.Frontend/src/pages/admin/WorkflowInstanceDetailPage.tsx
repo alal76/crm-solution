@@ -59,8 +59,8 @@ const WorkflowInstanceDetailPage: React.FC = () => {
         setInstance(detail);
         setLogs(logEntries);
         setError('');
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to load workflow instance');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to load workflow instance');
       } finally {
         setLoading(false);
       }

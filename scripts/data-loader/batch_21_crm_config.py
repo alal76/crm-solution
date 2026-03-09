@@ -5,12 +5,12 @@ Covers CRM configuration entities not covered by earlier batches:
   - Pipeline Stages     (/api/pipelines + /api/pipeline-stages)
   - Forecast Categories (/api/forecast-categories)
   - Quote Templates     (/api/quote-templates)
-  - Product Categories  (/api/productcategories)
+  - Product Categories  (/api/catalog-categories)
   - Product Services    (/api/products — service type)
   - Price Books         (/api/pricebooks)
   - Territory Config    (/api/territories)
   - Scoring Models      (/api/scoring-models)
-  - Custom Fields       (/api/customfields)
+  - Custom Fields       (/api/custom-fields)
   - Custom Views        (/api/views)
   - Tags                (/api/tags + entity tag links)
 """
@@ -179,20 +179,20 @@ def run(api: ApiClient, log: RunLogger) -> None:
     ]
     pc_ids = []
     for pc in product_categories:
-        eid = api.create_and_track("productcategories", "/api/productcategories", pc)
+        eid = api.create_and_track("productcategories", "/api/catalog-categories", pc)
         if eid:
             pc_ids.append(eid)
-    api.get("/api/productcategories")
+    api.get("/api/catalog-categories")
     if pc_ids:
-        api.get(f"/api/productcategories/{pc_ids[0]}")
-        api.put(f"/api/productcategories/{pc_ids[0]}",
+        api.get(f"/api/catalog-categories/{pc_ids[0]}")
+        api.put(f"/api/catalog-categories/{pc_ids[0]}",
                 {**product_categories[0], "description": "SaaS licenses and cloud subscriptions"})
     # Delete test
     del_pc = {"name": f"DELETE-PC-{ts}", "description": "Temp",
               "isActive": False, "sortOrder": 99}
-    code, body, _ = api.post("/api/productcategories", del_pc)
+    code, body, _ = api.post("/api/catalog-categories", del_pc)
     if body and isinstance(body, dict) and body.get("id"):
-        api.delete(f"/api/productcategories/{body['id']}")
+        api.delete(f"/api/catalog-categories/{body['id']}")
     save_ids("productcategories", pc_ids)
 
     # ─── Service Products ─────────────────────────────────────────────────
@@ -274,7 +274,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/pricebooks")
     if pb_ids:
         api.get(f"/api/pricebooks/{pb_ids[0]}")
-        api.get(f"/api/pricebooks/{pb_ids[0]}/items")
+        api.get(f"/api/price-books/{pb_ids[0]}/items")
         api.put(f"/api/pricebooks/{pb_ids[0]}",
                 {**{k: v for k, v in price_books[0].items() if k not in ("items",)},
                  "description": "Default pricing — updated Q1 2026",
@@ -359,14 +359,14 @@ def run(api: ApiClient, log: RunLogger) -> None:
         payload = {**cf}
         if options:
             payload["options"] = options
-        eid = api.create_and_track("customfields", "/api/customfields", payload)
+        eid = api.create_and_track("customfields", "/api/custom-fields", payload)
         if eid:
             cf_ids.append(eid)
-    api.get("/api/customfields")
-    api.get("/api/customfields?entityType=Account")
+    api.get("/api/custom-fields")
+    api.get("/api/custom-fields?entityType=Account")
     if cf_ids:
-        api.get(f"/api/customfields/{cf_ids[0]}")
-        api.put(f"/api/customfields/{cf_ids[0]}",
+        api.get(f"/api/custom-fields/{cf_ids[0]}")
+        api.put(f"/api/custom-fields/{cf_ids[0]}",
                 {**{k: v for k, v in custom_fields[0].items() if k != "options"},
                  "label": "Customer Tier (Updated)",
                  "options": (cf_options_save[0] or []) + ["Diamond"]})
@@ -374,9 +374,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
     del_cf = {"entityType": "Account", "name": f"DELETE_CF_{ts}",
               "label": "Delete Test", "fieldType": "Text",
               "isRequired": False, "isActive": False, "sortOrder": 99}
-    code, body, _ = api.post("/api/customfields", del_cf)
+    code, body, _ = api.post("/api/custom-fields", del_cf)
     if body and isinstance(body, dict) and body.get("id"):
-        api.delete(f"/api/customfields/{body['id']}")
+        api.delete(f"/api/custom-fields/{body['id']}")
     save_ids("customfields", cf_ids)
 
     # ─── Tags ─────────────────────────────────────────────────────────────

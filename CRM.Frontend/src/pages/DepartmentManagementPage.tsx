@@ -48,8 +48,8 @@ function DepartmentManagementPage() {
       const response = await apiClient.get('/departments');
       setDepartments(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch departments');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch departments');
       console.error('Error fetching departments:', err);
     } finally {
       setLoading(false);
@@ -121,8 +121,8 @@ function DepartmentManagementPage() {
       }
       handleCloseDialog();
       fetchDepartments();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save department');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save department');
       console.error('Error saving department:', err);
     }
   };
@@ -133,8 +133,8 @@ function DepartmentManagementPage() {
         await apiClient.delete(`/departments/${id}`);
         setSuccessMessage('Department deleted successfully');
         fetchDepartments();
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete department');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete department');
         console.error('Error deleting department:', err);
       }
     }

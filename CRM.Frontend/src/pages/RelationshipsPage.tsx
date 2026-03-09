@@ -29,6 +29,7 @@ import relationshipService, {
   InteractionType, InteractionOutcome, HealthImpact, HealthTrend,
   CreateRelationshipTypeRequest, CreateAccountRelationshipRequest, CreateInteractionRequest
 } from '../services/relationshipService';
+import { Account } from '../types'; // PRA-006: shared Account type replaces local Customer interface
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -45,12 +46,13 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-interface Customer {
-  id: number;
-  firstName?: string;
-  lastName?: string;
-  company?: string;
-}
+// PRA-006: replaced with shared Account type from types/ — see import above
+// interface Customer {
+//   id: number;
+//   firstName?: string;
+//   lastName?: string;
+//   company?: string;
+// }
 
 function RelationshipGraph({ nodes, edges }: {
   nodes: RelationshipMapVisualization['nodes'];
@@ -231,7 +233,7 @@ function RelationshipsPage() {
   // Data states
   const [relationshipTypes, setRelationshipTypes] = useState<RelationshipType[]>([]);
   const [relationships, setRelationships] = useState<AccountRelationship[]>([]);
-  const [accounts, setAccounts] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]); // PRA-006
   
   // Dialog states
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
@@ -365,7 +367,7 @@ function RelationshipsPage() {
       setTypeDialogOpen(false);
       fetchData();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save relationship type';
+      const errorMessage = err instanceof Error ? (err as Error).message : 'Failed to save relationship type';
       dialogApi.setError(errorMessage);
     } finally {
       dialogApi.setLoading(false);
@@ -418,7 +420,7 @@ function RelationshipsPage() {
       setRelationshipDialogOpen(false);
       fetchData();
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save relationship';
+      const errorMessage = err instanceof Error ? (err as Error).message : 'Failed to save relationship';
       dialogApi.setError(errorMessage);
     } finally {
       dialogApi.setLoading(false);
@@ -470,7 +472,7 @@ function RelationshipsPage() {
       });
       fetchData(); // Refresh relationships to update last interaction date
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to log interaction';
+      const errorMessage = err instanceof Error ? (err as Error).message : 'Failed to log interaction';
       dialogApi.setError(errorMessage);
     } finally {
       dialogApi.setLoading(false);

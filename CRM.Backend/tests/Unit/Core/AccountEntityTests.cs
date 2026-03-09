@@ -941,47 +941,4 @@ public class AccountEntityTests
 
     #endregion
 
-    #region Backward Compatibility Tests
-
-    public class BackwardCompatibilityTests
-    {
-        [Fact]
-        public void Customer_IsBackwardCompatibleAlias_ForAccount()
-        {
-            // Customer class exists as alias
-#pragma warning disable CS0618 // Intentionally testing obsolete type
-            var customer = new Customer
-            {
-                FirstName = "Test",
-                LastName = "User",
-                Email = "test@example.com",
-                Phone = "555-1234"
-            };
-#pragma warning restore CS0618
-            // Customer inherits from Account, so all Account properties work
-            customer.FirstName.Should().Be("Test");
-            customer.Email.Should().Be("test@example.com");
-        }
-
-        [Fact]
-        public void DeprecatedEnums_ShouldExist_ForBackwardCompatibility()
-        {
-#pragma warning disable CS0618 // Intentionally testing obsolete types
-            // CustomerCategory should match AccountCategory values
-            CustomerCategory.Individual.Should().Be((CustomerCategory)AccountCategory.Individual);
-            CustomerCategory.Organization.Should().Be((CustomerCategory)AccountCategory.Organization);
-
-            // CustomerLifecycleStage should match AccountLifecycleStage values
-            CustomerLifecycleStage.Lead.Should().Be((CustomerLifecycleStage)AccountLifecycleStage.Lead);
-
-            // CustomerType should match AccountType values
-            CustomerType.Enterprise.Should().Be((CustomerType)AccountType.Enterprise);
-
-            // CustomerPriority should match AccountPriority values
-            CustomerPriority.High.Should().Be((CustomerPriority)AccountPriority.High);
-#pragma warning restore CS0618
-        }
-    }
-
-    #endregion
 }

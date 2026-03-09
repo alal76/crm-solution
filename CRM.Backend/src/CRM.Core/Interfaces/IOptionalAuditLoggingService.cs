@@ -102,6 +102,16 @@ public interface IOptionalAuditLoggingService
     #region Utilities
 
     /// <summary>
+    /// Enqueue an audit event to the Redis Stream (crm:audit:stream) for async persistence.
+    /// The AuditLogConsumerHostedService will batch-write events from the stream to the DB.
+    /// Falls back to a direct DB write if Redis is unavailable.
+    /// Implementation of FLAG-005.
+    /// </summary>
+    /// <param name="auditEvent">The audit event to enqueue.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task PublishAuditEventAsync(AuditEvent auditEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Check if audit logging feature is enabled.
     /// Use this before logging to avoid unnecessary operations.
     /// </summary>

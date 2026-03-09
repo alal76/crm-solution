@@ -34,7 +34,7 @@ const RevenueWidget: React.FC = () => {
         if (mounted) setMetrics(data);
       })
       .catch((err) => {
-        if (mounted) setError(err?.message ?? 'Failed to load revenue data');
+        if (mounted) setError((err as Error)?.message ?? 'Failed to load revenue data');
       })
       .finally(() => {
         if (mounted) setLoading(false);

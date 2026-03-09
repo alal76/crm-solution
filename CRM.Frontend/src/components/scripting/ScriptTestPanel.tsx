@@ -169,7 +169,7 @@ const ScriptTestPanel: React.FC<ScriptTestPanelProps> = ({
       setResult(testResult);
       onResultChange?.(testResult);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Unexpected error running script.';
+      const msg = err instanceof Error ? (err as Error).message : 'Unexpected error running script.';
       setRunError(msg);
     } finally {
       setRunning(false);

@@ -210,9 +210,9 @@ const NotesTab: React.FC<NotesTabProps> = ({
         `/notes/entity/${entityType}/${entityId}`
       );
       setNotes(response.data || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load notes:', err);
-      setError(err.response?.data?.message || 'Failed to load notes');
+      setError((err as any).response?.data?.message || 'Failed to load notes');
     } finally {
       setLoading(false);
     }
@@ -275,9 +275,9 @@ const NotesTab: React.FC<NotesTabProps> = ({
       
       await fetchNotes();
       handleCloseDialog();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to save note:', err);
-      setError(err.response?.data?.message || 'Failed to save note');
+      setError((err as any).response?.data?.message || 'Failed to save note');
     } finally {
       setSaving(false);
     }
@@ -291,9 +291,9 @@ const NotesTab: React.FC<NotesTabProps> = ({
       await fetchNotes();
       setDeleteConfirmOpen(false);
       setNoteToDelete(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to delete note:', err);
-      setError(err.response?.data?.message || 'Failed to delete note');
+      setError((err as any).response?.data?.message || 'Failed to delete note');
     }
   };
 

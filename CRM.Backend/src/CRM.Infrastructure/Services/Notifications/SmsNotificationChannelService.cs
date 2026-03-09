@@ -11,20 +11,23 @@ using Microsoft.Extensions.Logging;
 namespace CRM.Infrastructure.Services.Notifications;
 
 /// <summary>
-/// Stub implementation of SMS notification channel.
-/// Uses Twilio as the underlying provider (placeholder).
-/// TODO-SD005-009: SMS escalation notifications via Twilio.
+/// SMS notification channel implementation.
+/// Delegates to ISmsNotificationService (Twilio) when available, falls back to logging stub.
 /// </summary>
 public class SmsNotificationChannelService : ISmsNotificationChannel
 {
     private readonly ILogger<SmsNotificationChannelService> _logger;
+    private readonly ISmsNotificationService? _smsService;
     
     // E.164 format regex: +[country code][subscriber number]
     private static readonly Regex E164Regex = new(@"^\+[1-9]\d{1,14}$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
-    public SmsNotificationChannelService(ILogger<SmsNotificationChannelService> logger)
+    public SmsNotificationChannelService(
+        ILogger<SmsNotificationChannelService> logger,
+        ISmsNotificationService? smsService = null)
     {
         _logger = logger;
+        _smsService = smsService;
     }
 
     /// <inheritdoc />
@@ -44,13 +47,13 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
 
         try
         {
-            // TODO: Replace with actual Twilio SDK integration (TODO-SD005-009) // NOSONAR
-            _logger.LogInformation("SMS stub: Would send to {PhoneNumber}: {Message}", 
-                phoneNumber, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
+            if (_smsService != null)
+            {
+                return await _smsService.SendSmsAsync(phoneNumber, message, cancellationToken);
+            }
 
-            // Simulate async operation
-            await Task.Delay(10, cancellationToken);
-            
+            _logger.LogInformation("SMS (no provider configured): Would send to {PhoneNumber}: {Message}", 
+                phoneNumber, message.Length > 50 ? message[..50] + "..." : message);
             return true;
         }
         catch (Exception ex)
@@ -97,11 +100,9 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
     }
 
     /// <inheritdoc />
-    public Task<int> GetRemainingQuotaAsync(CancellationToken cancellationToken = default)
+    public async Task<int> GetRemainingQuotaAsync(CancellationToken cancellationToken = default)
     {
-        // TODO: Implement Twilio account balance/quota check // NOSONAR
-        // For now, return -1 (unlimited) as this is a stub
-        _logger.LogDebug("SMS quota check - returning unlimited (stub implementation)");
-        return Task.FromResult(-1);
+        _logger.LogDebug("SMS quota check - returning unlimited (quota tracking not implemented)");
+        return await Task.FromResult(-1);
     }
 }

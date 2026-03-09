@@ -753,6 +753,46 @@ public class ApprovalsController : CrmControllerBase
     }
 
     #endregion
+
+    #region Applicable Matrix (EP-051)
+
+    /// <summary>
+    /// Get the applicable approval matrix based on optional filters.
+    /// </summary>
+    /// <param name="entityType">Optional entity type keyword to search in matrix name or description.</param>
+    /// <param name="amount">Optional amount (not currently used for filtering by threshold, reserved for future use).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The applicable approval matrix.</returns>
+    [HttpGet("matrices/applicable")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetApplicableMatrix(
+        [FromQuery] string? entityType = null,
+        [FromQuery] decimal? amount = null,
+        CancellationToken cancellationToken = default)
+    {
+        var matrices = await _approvalService.GetAllMatricesAsync(true, cancellationToken);
+        var matrixList = matrices.ToList();
+
+        if (!string.IsNullOrEmpty(entityType))
+        {
+            matrixList = matrixList
+                .Where(m => (m.Name?.Contains(entityType, StringComparison.OrdinalIgnoreCase) ?? false)
+                          || (m.Description?.Contains(entityType, StringComparison.OrdinalIgnoreCase) ?? false))
+                .ToList();
+        }
+
+        if (matrixList.Count == 0)
+        {
+            return NotFound(new { message = $"No active approval matrix found{(entityType != null ? $" for '{entityType}'" : string.Empty)}" });
+        }
+
+        // Return the highest-priority active matrix
+        var result = matrixList.OrderByDescending(m => m.Priority).First();
+        return Ok(result);
+    }
+
+    #endregion
 }
 
 #region Request DTOs

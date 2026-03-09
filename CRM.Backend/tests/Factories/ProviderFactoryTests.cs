@@ -7,9 +7,11 @@
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Factories;
+using CRM.Infrastructure.Providers.Meilisearch;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
 using Moq;
 using Xunit;
@@ -90,15 +92,19 @@ public class ProviderFactoryTests
     [Fact]
     public void SearchProviderFactory_GetActiveProviderName_WhenExternalEnabled_ReturnsConfiguredProvider()
     {
-        // Arrange
-        _featureManagerMock
-            .Setup(fm => fm.IsEnabledAsync(FeatureFlags.UseExternalSearch))
-            .ReturnsAsync(true);
+        // Arrange — factory reads UseExternalSearch from IConfiguration, not IFeatureManager
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["FeatureManagement:UseExternalSearch"] = "true",
+                ["Providers:Search:Type"] = "Meilisearch"
+            })
+            .Build();
 
         var factory = new SearchProviderFactory(
             _serviceProviderMock.Object,
             _featureManagerMock.Object,
-            _configuration,
+            config,
             _searchLoggerMock.Object);
 
         // Act
@@ -129,6 +135,47 @@ public class ProviderFactoryTests
         activeProvider.Should().Be(ProviderTypes.Search.BuiltIn);
     }
 
+    [Fact]
+    public void SearchProviderFactory_GetProvider_ReturnsMeilisearchProvider_WhenUseExternalSearchEnabled()
+    {
+        // Arrange — separate config with UseExternalSearch=true so the factory routes to Meilisearch
+        var configData = new Dictionary<string, string?>
+        {
+            ["FeatureManagement:UseExternalSearch"] = "true",
+            ["Providers:Search:Type"] = "Meilisearch"
+        };
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(configData)
+            .Build();
+
+        var meilisearchProvider = new MeilisearchProvider(
+            Options.Create(new MeilisearchConfiguration
+            {
+                Url = "http://localhost:7700",
+                ApiKey = "test-master-key",
+                IndexPrefix = "test_"
+            }),
+            new Mock<ILogger<MeilisearchProvider>>().Object);
+
+        // ProviderResolution.ResolveByTypeName resolves by concrete type via IServiceProvider.GetService()
+        _serviceProviderMock
+            .Setup(sp => sp.GetService(typeof(MeilisearchProvider)))
+            .Returns(meilisearchProvider);
+
+        var factory = new SearchProviderFactory(
+            _serviceProviderMock.Object,
+            _featureManagerMock.Object,
+            config,
+            _searchLoggerMock.Object);
+
+        // Act
+        var provider = factory.GetProvider();
+
+        // Assert
+        provider.Should().BeOfType<MeilisearchProvider>();
+        provider.ProviderName.Should().Be("Meilisearch");
+    }
+
     #endregion
 
     #region ChatProviderFactory Tests
@@ -157,15 +204,19 @@ public class ProviderFactoryTests
     [Fact]
     public void ChatProviderFactory_GetActiveProviderName_WhenExternalEnabled_ReturnsConfiguredProvider()
     {
-        // Arrange
-        _featureManagerMock
-            .Setup(fm => fm.IsEnabledAsync(FeatureFlags.UseExternalChat))
-            .ReturnsAsync(true);
+        // Arrange — factory reads UseExternalChat from IConfiguration, not IFeatureManager
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["FeatureManagement:UseExternalChat"] = "true",
+                ["Providers:Chat:Type"] = "Chatwoot"
+            })
+            .Build();
 
         var factory = new ChatProviderFactory(
             _serviceProviderMock.Object,
             _featureManagerMock.Object,
-            _configuration,
+            config,
             _chatLoggerMock.Object);
 
         // Act
@@ -203,15 +254,19 @@ public class ProviderFactoryTests
     [Fact]
     public void NotificationProviderFactory_GetActiveProviderName_WhenExternalEnabled_ReturnsConfiguredProvider()
     {
-        // Arrange
-        _featureManagerMock
-            .Setup(fm => fm.IsEnabledAsync(FeatureFlags.UseExternalNotifications))
-            .ReturnsAsync(true);
+        // Arrange — factory reads UseExternalNotifications from IConfiguration, not IFeatureManager
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["FeatureManagement:UseExternalNotifications"] = "true",
+                ["Providers:Notifications:Type"] = "Novu"
+            })
+            .Build();
 
         var factory = new NotificationProviderFactory(
             _serviceProviderMock.Object,
             _featureManagerMock.Object,
-            _configuration,
+            config,
             _notificationLoggerMock.Object);
 
         // Act
@@ -248,15 +303,19 @@ public class ProviderFactoryTests
     [Fact]
     public void AnalyticsProviderFactory_GetActiveProviderName_WhenExternalEnabled_ReturnsConfiguredProvider()
     {
-        // Arrange
-        _featureManagerMock
-            .Setup(fm => fm.IsEnabledAsync(FeatureFlags.UseExternalAnalytics))
-            .ReturnsAsync(true);
+        // Arrange — factory reads UseExternalAnalytics from IConfiguration, not IFeatureManager
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["FeatureManagement:UseExternalAnalytics"] = "true",
+                ["Providers:Analytics:Type"] = "Superset"
+            })
+            .Build();
 
         var factory = new AnalyticsProviderFactory(
             _serviceProviderMock.Object,
             _featureManagerMock.Object,
-            _configuration,
+            config,
             _analyticsLoggerMock.Object);
 
         // Act

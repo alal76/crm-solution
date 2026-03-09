@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { getApiUrl } from '../config/ports';
+import fileUploadService from '../services/fileUploadService';
 import {
   Box,
   Avatar,
@@ -57,26 +57,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
     setUploading(true);
     try {
-      const token = localStorage.getItem('accessToken');
-      const apiUrl = getApiUrl();
-
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch(`${apiUrl}/fileupload/${uploadEndpoint}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData,
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setPreview(result.url);
-        onImageChange(result.url);
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to upload image');
-      }
+      const result = await fileUploadService.uploadFile(uploadEndpoint, file);
+      setPreview(result.url);
+      onImageChange(result.url);
     } catch (err) {
       console.error('Error uploading image:', err);
       alert('Failed to upload image');
@@ -88,13 +71,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const handleRemove = async () => {
     if (preview && preview.startsWith('/uploads')) {
       try {
-        const token = localStorage.getItem('accessToken');
-        const apiUrl = getApiUrl();
-
-        await fetch(`${apiUrl}/fileupload?path=${encodeURIComponent(preview)}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
+        await fileUploadService.deleteFile(preview);
       } catch (err) {
         console.error('Error deleting image:', err);
       }

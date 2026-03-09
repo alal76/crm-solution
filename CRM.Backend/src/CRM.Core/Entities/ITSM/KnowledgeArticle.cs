@@ -9,13 +9,30 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CRM.Core.Entities.ITSM;
 
+/// <summary>
+/// ITSM-specific knowledge article type.
+/// Used by <see cref="KnowledgeArticle"/> in the ITSM/ServiceDesk module.
+/// NOTE: A separate <c>ArticleType</c> enum exists in <c>CRM.Core.Entities.KnowledgeBase</c>
+/// for the general knowledge base module — do NOT confuse the two.
+/// </summary>
 public enum ArticleType
 {
+    /// <summary>How-to guide</summary>
     HowTo = 1,
+
+    /// <summary>Troubleshooting guide</summary>
     Troubleshooting = 2,
+
+    /// <summary>Frequently asked question</summary>
     FAQ = 3,
+
+    /// <summary>Known error/issue with workaround</summary>
     KnownError = 4,
+
+    /// <summary>Reference/technical documentation</summary>
     Reference = 5,
+
+    /// <summary>Best practice recommendation</summary>
     BestPractice = 6
 }
 

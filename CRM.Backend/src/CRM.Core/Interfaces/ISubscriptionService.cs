@@ -178,6 +178,23 @@ public interface ISubscriptionService
     Task<double> GetChurnRateAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 
     #endregion
+
+    #region Stripe Sync (FLAG-006)
+
+    /// <summary>
+    /// Synchronises a CRM Subscription entity from a Stripe webhook payload.
+    /// Looks up the subscription by ExternalReference (Stripe subscription ID); updates status if found.
+    /// No-op when no local subscription matches the given Stripe ID.
+    /// </summary>
+    /// <param name="stripeSubscriptionId">Stripe subscription ID (sub_...).</param>
+    /// <param name="status">Stripe subscription status string (e.g. "active", "canceled", "past_due").</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SyncSubscriptionFromStripeAsync(
+        string stripeSubscriptionId,
+        string status,
+        CancellationToken cancellationToken = default);
+
+    #endregion
 }
 
 /// <summary>

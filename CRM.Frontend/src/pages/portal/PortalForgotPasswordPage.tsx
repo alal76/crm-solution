@@ -32,8 +32,8 @@ const PortalForgotPasswordPage: React.FC = () => {
     try {
       await portalAuthService.forgotPassword(email);
       setSuccess(true);
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Failed to send reset email. Please check your email address.');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message ?? 'Failed to send reset email. Please check your email address.');
     } finally {
       setLoading(false);
     }

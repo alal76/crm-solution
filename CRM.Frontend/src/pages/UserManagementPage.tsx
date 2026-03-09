@@ -113,8 +113,8 @@ function UserManagementPage() {
       setDepartments(deptRes.data);
       setProfiles(profileRes.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch data');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch data');
       console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
@@ -213,8 +213,8 @@ function UserManagementPage() {
       }
       handleCloseDialog();
       fetchAllData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save user');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save user');
       console.error('Error saving user:', err);
     }
   };
@@ -241,8 +241,8 @@ function UserManagementPage() {
       });
       setSuccessMessage('Password reset successfully');
       handleClosePasswordDialog();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to reset password');
       console.error('Error resetting password:', err);
     }
   };
@@ -253,8 +253,8 @@ function UserManagementPage() {
         await apiClient.delete(`/users/${id}`);
         setSuccessMessage('User deleted successfully');
         fetchAllData();
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete user');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete user');
         console.error('Error deleting user:', err);
       }
     }
@@ -265,8 +265,8 @@ function UserManagementPage() {
       await apiClient.put(`/users/${user.id}`, { ...user, isActive: !(user?.isActive !== false) });
       setSuccessMessage(`User ${!(user?.isActive !== false) ? 'activated' : 'deactivated'} successfully`);
       fetchAllData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update user status');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to update user status');
       console.error('Error updating user:', err);
     }
   };
@@ -299,8 +299,8 @@ function UserManagementPage() {
         : 'Contact unlinked from user');
       handleCloseContactDialog();
       fetchAllData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to link contact');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to link contact');
       console.error('Error linking contact:', err);
     }
   };
@@ -311,8 +311,8 @@ function UserManagementPage() {
         await apiClient.post(`/users/${userId}/unlink-contact`);
         setSuccessMessage('Contact unlinked successfully');
         fetchAllData();
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to unlink contact');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to unlink contact');
         console.error('Error unlinking contact:', err);
       }
     }

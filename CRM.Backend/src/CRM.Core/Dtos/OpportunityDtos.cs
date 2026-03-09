@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace CRM.Core.DTOs
+namespace CRM.Core.Dtos
 {
     /// <summary>
     /// Data Transfer Object for Opportunity.

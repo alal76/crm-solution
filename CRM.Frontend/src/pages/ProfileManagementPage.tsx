@@ -92,8 +92,8 @@ function ProfileManagementPage() {
       setProfiles(profilesRes.data);
       setDepartments(deptsRes.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch data');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch data');
       console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
@@ -183,8 +183,8 @@ function ProfileManagementPage() {
       }
       handleCloseDialog();
       fetchAllData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save profile');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save profile');
       console.error('Error saving profile:', err);
     }
   };
@@ -195,8 +195,8 @@ function ProfileManagementPage() {
         await apiClient.delete(`/user-profiles/${id}`);
         setSuccessMessage('Profile deleted successfully');
         fetchAllData();
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete profile');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete profile');
         console.error('Error deleting profile:', err);
       }
     }

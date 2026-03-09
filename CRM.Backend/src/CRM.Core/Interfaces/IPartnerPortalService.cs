@@ -1,7 +1,6 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 using CRM.Core.Dtos;
-using CRM.Core.DTOs;
 
 namespace CRM.Core.Interfaces;
 

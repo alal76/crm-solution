@@ -93,7 +93,7 @@ export default function EmailSequencesPage() {
       const data = await marketingService.getEmailSequenceDtos();
       setSequences(Array.isArray(data) ? data : []);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load email sequences.');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to load email sequences.');
     } finally {
       setLoading(false);
     }
@@ -151,7 +151,7 @@ export default function EmailSequencesPage() {
       setDialogOpen(false);
       void loadSequences();
     } catch (err: unknown) {
-      setFormError(err instanceof Error ? err.message : 'Failed to save sequence.');
+      setFormError(err instanceof Error ? (err as Error).message : 'Failed to save sequence.');
     } finally {
       setSaving(false);
     }
@@ -167,7 +167,7 @@ export default function EmailSequencesPage() {
       setDeleteTarget(null);
       void loadSequences();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to delete sequence.');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to delete sequence.');
     } finally {
       setDeleting(false);
     }

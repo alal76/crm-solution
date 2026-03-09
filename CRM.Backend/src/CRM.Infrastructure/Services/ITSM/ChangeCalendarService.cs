@@ -4,14 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-#if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
 
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -176,7 +174,7 @@ public class MaintenanceWindow
 /// </summary>
 public class ChangeCalendarService : IChangeCalendarService
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<ChangeCalendarService> _logger;
 
     // Default maintenance windows
@@ -215,16 +213,16 @@ public class ChangeCalendarService : IChangeCalendarService
     };
 
     public ChangeCalendarService(
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext dbContext,
         ILogger<ChangeCalendarService> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _dbContext = dbContext;
         _logger = logger;
     }
 
     public async Task<List<ScheduledChange>> GetScheduledChangesAsync(DateTime startDate, DateTime endDate)
     {
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         var changes = await context.Changes
             .Where(c => c.PlannedStartDate.HasValue &&
@@ -258,7 +256,7 @@ public class ChangeCalendarService : IChangeCalendarService
         DateTime proposedEnd)
     {
         var conflicts = new List<ChangeConflict>();
-        var context = _dbContextResolver.ResolveContext();
+        var context = _dbContext;
 
         // Get the change request details
         var change = await context.Changes
@@ -579,6 +577,3 @@ public class ChangeCalendarService : IChangeCalendarService
         return false;
     }
 }
-
-
-#endif

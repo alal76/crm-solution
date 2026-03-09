@@ -82,6 +82,8 @@ import { DashboardBuilder } from '../components/analytics';
 import { AnalyticsEmbed } from '../components/common';
 import CampaignMetricsWidget from '../components/dashboard/CampaignMetricsWidget';
 import LeadScoreDistributionWidget from '../components/dashboard/LeadScoreDistributionWidget';
+import StatCard from '../components/dashboard/StatCard';
+import type { StatCardProps } from '../components/dashboard/StatCard';
 import { useDashboardRealtime } from '../hooks/useDashboardRealtime';
 
 // Icon mapping for dynamic icons
@@ -125,6 +127,12 @@ const stageColors: Record<number, string> = {
 
 const pieChartColors = ['#06A77D', '#B3261E', '#F57C00', '#0092BC', '#6750A4', '#9C27B0'];
 
+// Design tokens — replaced inline hex literals (AP-055)
+const CHART_SURFACE = '#FFFBFE';   // MD3 surface colour
+const CHART_DIVIDER = '#E0E0E0';   // MD3 outline / divider colour
+const CARD_GRADIENT = 'linear-gradient(135deg, #F5EFF7 0%, #FFFBFE 100%)'; // MD3 surface-variant gradient
+const TOOLTIP_STYLE = { backgroundColor: CHART_SURFACE, border: `1px solid ${CHART_DIVIDER}`, borderRadius: '8px' } as const;
+
 interface WidgetData {
   value?: number | string;
   items?: Opportunity[];
@@ -132,85 +140,7 @@ interface WidgetData {
   trend?: number;
 }
 
-interface StatCardProps {
-  title: string;
-  value: string | number;
-  icon?: React.ElementType;
-  color: string;
-  loading?: boolean;
-  onClick?: () => void;
-  clickable?: boolean;
-  trend?: number;
-  subtitle?: string;
-}
-
-const StatCard = ({ title, value, icon: Icon, color, loading, onClick, clickable, trend, subtitle }: StatCardProps) => (
-  <Card
-    onClick={clickable ? onClick : undefined}
-    sx={{
-      height: '100%',
-      borderRadius: 3,
-      background: 'linear-gradient(135deg, #F5EFF7 0%, #FFFBFE 100%)',
-      border: `2px solid ${color}20`,
-      cursor: clickable ? 'pointer' : 'default',
-      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-      '&:hover': {
-        transform: clickable ? 'translateY(-4px)' : 'none',
-        boxShadow: clickable ? `0px 12px 24px ${color}20` : 1,
-        border: `2px solid ${color}40`,
-      },
-    }}
-  >
-    <CardContent sx={{ position: 'relative', py: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <Box>
-          <Typography color="textSecondary" sx={{ fontSize: '0.875rem', fontWeight: 500, mb: 1 }}>
-            {title}
-            {clickable && (
-              <Typography component="span" sx={{ fontSize: '0.7rem', ml: 1, color: color }}>
-                (Click to view)
-              </Typography>
-            )}
-          </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 700, color: color }}>
-            {loading ? <Skeleton width={80} /> : value}
-          </Typography>
-          {subtitle && (
-            <Typography variant="caption" color="textSecondary">
-              {subtitle}
-            </Typography>
-          )}
-          {trend !== undefined && trend !== 0 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-              {trend > 0 ? (
-                <TrendingUpIcon sx={{ fontSize: 16, color: '#06A77D' }} />
-              ) : (
-                <TrendingDownIcon sx={{ fontSize: 16, color: '#F44336' }} />
-              )}
-              <Typography 
-                variant="caption" 
-                sx={{ color: trend > 0 ? '#06A77D' : '#F44336', fontWeight: 600 }}
-              >
-                {trend > 0 ? '+' : ''}{trend.toFixed(1)}%
-              </Typography>
-            </Box>
-          )}
-        </Box>
-        {Icon && (
-          <Box
-            sx={{
-              p: 1.5,
-              borderRadius: 2,
-              backgroundColor: `${color}15`,
-            }}
-          >
-            <Icon sx={{ fontSize: 32, color }} />
-          </Box>
-        )}
-      </Box>
-    </CardContent>
-  </Card>
-);
+// StatCard extracted to src/components/dashboard/StatCard.tsx (AP-052)
 
 function DashboardPage() {
   const navigate = useNavigate();
@@ -446,7 +376,7 @@ function DashboardPage() {
               subheader={widget.subtitle}
               titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
               subheaderTypographyProps={{ variant: 'caption' }}
-              sx={{ borderBottom: '1px solid #E0E0E0' }}
+              sx={{ borderBottom: `1px solid ${CHART_DIVIDER}` }}
             />
             <CardContent>
               {loading ? (
@@ -461,23 +391,23 @@ function DashboardPage() {
                           <stop offset="95%" stopColor={color} stopOpacity={0.1} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_DIVIDER} />
                       <XAxis dataKey="month" stroke="#79747E" />
                       <YAxis stroke="#79747E" tickFormatter={(v) => formatCurrency(v)} />
                       <RechartsTooltip
                         formatter={(value: number) => [formatCurrency(value), 'Value']}
-                        contentStyle={{ backgroundColor: '#FFFBFE', border: '1px solid #E0E0E0', borderRadius: '8px' }}
+                        contentStyle={TOOLTIP_STYLE}
                       />
                       <Area type="monotone" dataKey="value" stroke={color} fill={`url(#colorArea-${widget.id})`} />
                     </AreaChart>
                   ) : (
                     <LineChart data={data.chartData || []}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_DIVIDER} />
                       <XAxis dataKey="month" stroke="#79747E" />
                       <YAxis stroke="#79747E" tickFormatter={(v) => formatCurrency(v)} />
                       <RechartsTooltip
                         formatter={(value: number) => [formatCurrency(value), 'Value']}
-                        contentStyle={{ backgroundColor: '#FFFBFE', border: '1px solid #E0E0E0', borderRadius: '8px' }}
+                        contentStyle={TOOLTIP_STYLE}
                       />
                       <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={{ fill: color, r: 5 }} />
                     </LineChart>
@@ -497,7 +427,7 @@ function DashboardPage() {
               subheader={widget.subtitle}
               titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
               subheaderTypographyProps={{ variant: 'caption' }}
-              sx={{ borderBottom: '1px solid #E0E0E0' }}
+              sx={{ borderBottom: `1px solid ${CHART_DIVIDER}` }}
             />
             <CardContent>
               {loading ? (
@@ -505,10 +435,10 @@ function DashboardPage() {
               ) : (
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={data.chartData || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                    <CartesianGrid strokeDasharray="3 3" stroke={CHART_DIVIDER} />
                     <XAxis dataKey="name" stroke="#79747E" />
                     <YAxis stroke="#79747E" />
-                    <RechartsTooltip contentStyle={{ backgroundColor: '#FFFBFE', border: '1px solid #E0E0E0', borderRadius: '8px' }} />
+                    <RechartsTooltip contentStyle={TOOLTIP_STYLE} />
                     <Legend />
                     <Bar dataKey="value" name="Value" fill={color} radius={[4, 4, 0, 0]} />
                     <Bar dataKey="count" name="Count" fill="#06A77D" radius={[4, 4, 0, 0]} />
@@ -527,7 +457,7 @@ function DashboardPage() {
               subheader={widget.subtitle}
               titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
               subheaderTypographyProps={{ variant: 'caption' }}
-              sx={{ borderBottom: '1px solid #E0E0E0' }}
+              sx={{ borderBottom: `1px solid ${CHART_DIVIDER}` }}
             />
             <CardContent sx={{ display: 'flex', justifyContent: 'center' }}>
               {loading ? (
@@ -567,7 +497,7 @@ function DashboardPage() {
               subheader={widget.subtitle}
               titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
               subheaderTypographyProps={{ variant: 'caption' }}
-              sx={{ borderBottom: '1px solid #E0E0E0' }}
+              sx={{ borderBottom: `1px solid ${CHART_DIVIDER}` }}
             />
             <CardContent>
               {loading ? (
@@ -595,7 +525,7 @@ function DashboardPage() {
                         p: 2,
                         borderRadius: 2,
                         cursor: canAccessMenu('Opportunities') ? 'pointer' : 'default',
-                        border: '1px solid #E0E0E0',
+                        border: `1px solid ${CHART_DIVIDER}`,
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': canAccessMenu('Opportunities') ? {
                           boxShadow: 2,
@@ -753,7 +683,7 @@ function DashboardPage() {
                 subheader="Last 6 months"
                 titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
                 subheaderTypographyProps={{ variant: 'caption' }}
-                sx={{ borderBottom: '1px solid #E0E0E0' }}
+                sx={{ borderBottom: `1px solid ${CHART_DIVIDER}` }}
               />
               <CardContent>
                 {loading ? (
@@ -761,12 +691,12 @@ function DashboardPage() {
                 ) : (
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E0E0E0" />
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_DIVIDER} />
                       <XAxis dataKey="month" stroke="#79747E" />
                       <YAxis stroke="#79747E" tickFormatter={(v) => formatCurrency(v)} />
                       <RechartsTooltip
                         formatter={(value: number) => [formatCurrency(value), 'Pipeline']}
-                        contentStyle={{ backgroundColor: '#FFFBFE', border: '1px solid #E0E0E0', borderRadius: '8px' }}
+                        contentStyle={TOOLTIP_STYLE}
                       />
                       <Line type="monotone" dataKey="value" stroke="#6750A4" strokeWidth={2} dot={{ fill: '#6750A4', r: 5 }} />
                     </LineChart>
@@ -780,7 +710,7 @@ function DashboardPage() {
               <CardHeader
                 title="Opportunities by Stage"
                 titleTypographyProps={{ variant: 'h6', sx: { fontWeight: 600 } }}
-                sx={{ borderBottom: '1px solid #E0E0E0' }}
+                sx={{ borderBottom: `1px solid ${CHART_DIVIDER}` }}
               />
               <CardContent sx={{ display: 'flex', justifyContent: 'center' }}>
                 {loading ? (

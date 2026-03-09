@@ -136,6 +136,22 @@ public interface ISystemConfigurationService
         string provider,  // 'google', 'microsoft', 'azure', 'linkedin', 'facebook'
         Dictionary<string, string> credentials,
         CancellationToken cancellationToken = default);
+
+    // UX-CONF-013: Aggregated communications config endpoint
+    /// <summary>
+    /// FUNCTIONAL: Get aggregated communications configuration (SMTP + channels).
+    /// TECHNICAL: Delegates to existing email/channel config keys.
+    /// </summary>
+    Task<CommunicationsConfigDto> GetCommunicationsConfigAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// FUNCTIONAL: Update communications configuration (SMTP + channel flags).
+    /// TECHNICAL: Updates email config and channel flags independently.
+    /// </summary>
+    Task UpdateCommunicationsConfigAsync(
+        CommunicationsConfigDto config,
+        int userId,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

@@ -386,8 +386,8 @@ function ServiceRequestsPage() {
       setRequests(response.data.items);
       setTotalCount(response.data.totalCount);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch service requests');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch service requests');
       console.error('Error fetching service requests:', err);
     } finally {
       setLoading(false);
@@ -561,8 +561,8 @@ function ServiceRequestsPage() {
       await serviceRequestService.close(request.id!);
       setSuccessMessage('Service request closed');
       await fetchRequests();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to close service request');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to close service request');
     }
   };
 

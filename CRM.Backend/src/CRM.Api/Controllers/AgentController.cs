@@ -722,4 +722,89 @@ public class AgentController : CrmControllerBase
     }
 
     #endregion
+
+    #region Agent Config & Feedback (EP-020)
+
+    /// <summary>
+    /// Gets configuration for a specific AI agent.
+    /// </summary>
+    /// <param name="agentId">The agent ID.</param>
+    /// <returns>The agent configuration.</returns>
+    [HttpGet("{agentId:int}/config")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAgentConfig(int agentId)
+    {
+        var agent = await _dbContext.AIAgents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
+
+        if (agent is null)
+        {
+            return NotFound($"Agent with ID {agentId} not found.");
+        }
+
+        return Ok(new
+        {
+            agent.Id,
+            agent.Name,
+            agent.DisplayName,
+            agent.AgentType,
+            agent.SystemPrompt,
+            agent.AllowedPlugins,
+            agent.RequiresApproval,
+            agent.ApprovalTier,
+            agent.Temperature,
+            agent.MaxTokens,
+            agent.ModelOverride,
+            agent.IsActive
+        });
+    }
+
+    /// <summary>
+    /// Submits feedback for a specific AI agent.
+    /// </summary>
+    /// <param name="agentId">The agent ID.</param>
+    /// <param name="request">The feedback request containing score and comment.</param>
+    /// <returns>Confirmation of feedback submission.</returns>
+    [HttpPost("{agentId:int}/feedback")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SubmitFeedback(int agentId, [FromBody] RateRequest request)
+    {
+        if (request.Rating < 1 || request.Rating > 5)
+        {
+            return BadRequest("Rating must be between 1 and 5.");
+        }
+
+        var agent = await _dbContext.AIAgents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
+
+        if (agent is null)
+        {
+            return NotFound($"Agent with ID {agentId} not found.");
+        }
+
+        // Find the most recent conversation for this agent and user
+        var userId = GetCurrentUserId();
+        var conversation = await _dbContext.AgentConversations
+            .Where(c => c.AgentId == agentId && c.UserId == userId && !c.IsDeleted)
+            .OrderByDescending(c => c.CreatedAt)
+            .FirstOrDefaultAsync(HttpContext.RequestAborted);
+
+        if (conversation is not null)
+        {
+            await _executionService.RateConversationAsync(
+                conversation.Id, request.Rating, request.Feedback, HttpContext.RequestAborted);
+        }
+
+        _logger.LogInformation("Feedback submitted for agent {AgentId} by user {UserId}: Score={Score}",
+            agentId, userId, request.Rating);
+
+        return Ok(new { Message = "Feedback submitted successfully.", AgentId = agentId, request.Rating });
+    }
+
+    #endregion
 }

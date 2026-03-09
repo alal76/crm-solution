@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - CRM Solution
 
-> **Last Updated:** March 7, 2026  
-> **Current Version:** 0.614.80  
+> **Last Updated:** March 9, 2026  
+> **Current Version:** 0.618.1  
 > **Load this file at the start of every agent session**
 
 Copilot usage
@@ -176,16 +176,16 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 
 | Phase | Priority | Description |
 |-------|----------|-------------|
-| Phase 1 | 🔴 High | ITSM Module Completion (40% → 100%) |
-| Phase 2 | 🔴 High | Missing Services Implementation |
-| Phase 3 | 🟡 Medium | API Controllers Completion |
-| Phase 4 | 🟡 Medium | Frontend Components |
-| Phase 5 | 🟡 Medium | Test Coverage Expansion |
-| Phase 6 | 🟢 Low | Integration & Webhook Enhancements |
-| Phase 7 | 🟢 Low | AI/Analytics Enhancements |
-| Phase 8 | 🟢 Low | Documentation & Polish |
+| Phase 1 | ✅ Done | ITSM Module Foundation (Service Requests, Incidents, SLA, Workflows — 72% backend complete) |
+| Phase 2 | ✅ Done | Missing Services Implementation |
+| Phase 3 | ✅ Done | API Controllers Completion |
+| Phase 4 | ✅ Done | Frontend Components |
+| Phase 5 | ✅ Done | Test Coverage Expansion |
+| Phase 6 | ✅ Done | Integration & Webhook Enhancements |
+| Phase 7 | 🟢 Low | AI/Analytics Enhancements (2 items: Qdrant prod deploy, agent fine-tuning) |
+| Phase 8 | 🟡 Active | ITSM Gap Remediation — 52 items (ITSM-001 to ITSM-052): architecture cleanup, disabled service enablement, frontend gaps, test hardening, spec creation |
 
-**Current Progress:** 99% (Updated February 17, 2026 — see pending test coverage items)
+**Current Progress:** 92% (Updated March 8, 2026 — ITSM deep review added 52 gap items; see MASTER_TODO_LIST.md)
 Keep this plan updated and write back to this file the current status of the remediation efforts as you work through the phases. This will help maintain visibility and ensure we are on track to address all gaps in a timely manner.
 
 ---

@@ -102,7 +102,7 @@ const ApiUsersPage: React.FC = () => {
       const data = await apiUserService.getAll();
       setApiUsers(data);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to load API users';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to load API users';
       setError(message);
     } finally {
       setLoading(false);
@@ -138,7 +138,7 @@ const ApiUsersPage: React.FC = () => {
       setSuccess('API user created successfully. Copy the API key — it will not be shown again.');
       fetchApiUsers();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to create API user';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to create API user';
       setError(message);
     }
   };
@@ -153,7 +153,7 @@ const ApiUsersPage: React.FC = () => {
       setSuccess('API user updated successfully');
       fetchApiUsers();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to update API user';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to update API user';
       setError(message);
     }
   };
@@ -170,7 +170,7 @@ const ApiUsersPage: React.FC = () => {
           setSuccess('API key regenerated. Copy the new key — it will not be shown again.');
           fetchApiUsers();
         } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : 'Failed to regenerate key';
+          const message = err instanceof Error ? (err as Error).message : 'Failed to regenerate key';
           setError(message);
         }
       },
@@ -187,7 +187,7 @@ const ApiUsersPage: React.FC = () => {
           setSuccess('API key revoked and user deactivated');
           fetchApiUsers();
         } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : 'Failed to revoke key';
+          const message = err instanceof Error ? (err as Error).message : 'Failed to revoke key';
           setError(message);
         }
       },
@@ -204,7 +204,7 @@ const ApiUsersPage: React.FC = () => {
           setSuccess('API user deleted');
           fetchApiUsers();
         } catch (err: unknown) {
-          const message = err instanceof Error ? err.message : 'Failed to delete API user';
+          const message = err instanceof Error ? (err as Error).message : 'Failed to delete API user';
           setError(message);
         }
       },
@@ -216,7 +216,7 @@ const ApiUsersPage: React.FC = () => {
       await apiUserService.toggleStatus(user.id);
       fetchApiUsers();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to toggle status';
+      const message = err instanceof Error ? (err as Error).message : 'Failed to toggle status';
       setError(message);
     }
   };

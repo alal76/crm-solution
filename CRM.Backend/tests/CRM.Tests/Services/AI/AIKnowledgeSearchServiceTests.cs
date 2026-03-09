@@ -7,7 +7,6 @@
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.AI;
 using CRM.Tests.Helpers;
 using FluentAssertions;
@@ -16,27 +15,37 @@ using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 using Moq;
 using Xunit;
+// KB-014: alias to avoid name clash with ITSM KnowledgeArticle in the same test class
+using GeneralKbArticle = CRM.Core.Entities.KnowledgeBase.KnowledgeArticle;
+using GeneralKbArticleStatus = CRM.Core.Entities.KnowledgeBase.ArticleStatus;
 
 namespace CRM.Tests.Services.AI;
 
 public class AIKnowledgeSearchServiceTests : ServiceTestFixtureBase<AIKnowledgeSearchService>
 {
-    private readonly Mock<IDbContextResolver> _mockResolver;    private readonly Mock<IFeatureManager> _mockFeatureManager;
+    private readonly Mock<IFeatureManager> _mockFeatureManager;
     private readonly Mock<IServiceProvider> _mockServiceProvider;    private readonly AIKnowledgeSearchService _service;
 
     public AIKnowledgeSearchServiceTests()
     {
-        _mockResolver = new Mock<IDbContextResolver>();        _mockFeatureManager = new Mock<IFeatureManager>();
-        _mockServiceProvider = new Mock<IServiceProvider>();        _mockResolver.Setup(r => r.ResolveContext()).Returns(MockContext.Object);
+        _mockFeatureManager = new Mock<IFeatureManager>();
+        _mockServiceProvider = new Mock<IServiceProvider>();
 
         // Default: AI not available (feature flag off)
         _mockFeatureManager.Setup(f => f.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
         _mockServiceProvider.Setup(sp => sp.GetService(typeof(IFeatureManager))).Returns(_mockFeatureManager.Object);
         _mockServiceProvider.Setup(sp => sp.GetService(typeof(IAIPort))).Returns((IAIPort?)null);
 
+        // KB-014: default empty DbSets so all service code paths have valid mocks;
+        // individual tests override these as needed.
+        MockContext.Setup(c => c.ITSMKnowledgeArticles)
+            .Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>()).Object);
+        MockContext.Setup(c => c.KnowledgeArticles)
+            .Returns(MockDbSetFactory.CreateMockDbSet(new List<GeneralKbArticle>()).Object);
+
         _service = new AIKnowledgeSearchService(
             _mockServiceProvider.Object,
-            _mockResolver.Object,
+            MockContext.Object,
             _mockFeatureManager.Object,
             MockLogger.Object);
     }
@@ -238,6 +247,132 @@ public class AIKnowledgeSearchServiceTests : ServiceTestFixtureBase<AIKnowledgeS
     }
 
     // ========================================================================
+    // KB-014: General KB + combined source tests
+    // ========================================================================
+
+    [Fact]
+    public async Task SemanticSearchAsync_ShouldReturnGeneralKBResults_WhenQueryMatchesGeneralKBOnly()
+    {
+        // Arrange — ITSM has no matches, General KB has one
+        var itsmSet = MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>
+        {
+            CreateArticle(1, "Unrelated ITSM Article", "irrelevant content")
+        });
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(itsmSet.Object);
+
+        var generalSet = MockDbSetFactory.CreateMockDbSet(new List<GeneralKbArticle>
+        {
+            CreateGeneralArticle(1, "Python Best Practices", "Write clean Python code with best practices")
+        });
+        MockContext.Setup(c => c.KnowledgeArticles).Returns(generalSet.Object);
+
+        // Act
+        var results = await _service.SemanticSearchAsync("Python", 10);
+
+        // Assert
+        results.Should().HaveCount(1);
+        results.First().Title.Should().Be("Python Best Practices");
+        results.First().ArticleId.Should().Be(1 + 100_000); // KB-014: General KB offset
+    }
+
+    [Fact]
+    public async Task SemanticSearchAsync_ShouldReturnResultsFromBothSources_WhenBothHaveMatches()
+    {
+        // Arrange — both ITSM and General KB have matching articles
+        var itsmSet = MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>
+        {
+            CreateArticle(1, "ITSM Network Policy", "Network configuration network guide")
+        });
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(itsmSet.Object);
+
+        var generalSet = MockDbSetFactory.CreateMockDbSet(new List<GeneralKbArticle>
+        {
+            CreateGeneralArticle(2, "General Network Setup", "How to set up network connections")
+        });
+        MockContext.Setup(c => c.KnowledgeArticles).Returns(generalSet.Object);
+
+        // Act
+        var results = await _service.SemanticSearchAsync("network", 10);
+
+        // Assert — one ITSM + one General KB result
+        results.Should().HaveCount(2);
+        results.Should().Contain(r => r.ArticleId == 1);           // ITSM article
+        results.Should().Contain(r => r.ArticleId == 2 + 100_000); // General KB article
+    }
+
+    [Fact]
+    public async Task SemanticSearchAsync_ShouldOnlyReturnPublishedGeneralKBArticles_WhenDraftExists()
+    {
+        // Arrange
+        var itsmSet = MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>());
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(itsmSet.Object);
+
+        var generalSet = MockDbSetFactory.CreateMockDbSet(new List<GeneralKbArticle>
+        {
+            CreateGeneralArticle(1, "Published Docker Guide", "Docker deployment docker steps", GeneralKbArticleStatus.Published),
+            CreateGeneralArticle(2, "Draft Docker Notes",   "Docker notes draft",             GeneralKbArticleStatus.Draft)
+        });
+        MockContext.Setup(c => c.KnowledgeArticles).Returns(generalSet.Object);
+
+        // Act
+        var results = await _service.SemanticSearchAsync("Docker", 10);
+
+        // Assert — only the Published article is returned
+        results.Should().HaveCount(1);
+        results.First().Title.Should().Be("Published Docker Guide");
+    }
+
+    [Fact]
+    public async Task SemanticSearchAsync_ShouldReturnEmpty_WhenNeitherITSMNorGeneralKBMatch()
+    {
+        // Arrange
+        var itsmSet = MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>
+        {
+            CreateArticle(1, "Password Reset Guide", "Reset your password")
+        });
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(itsmSet.Object);
+
+        var generalSet = MockDbSetFactory.CreateMockDbSet(new List<GeneralKbArticle>
+        {
+            CreateGeneralArticle(1, "Onboarding Guide", "Welcome to the company")
+        });
+        MockContext.Setup(c => c.KnowledgeArticles).Returns(generalSet.Object);
+
+        // Act
+        var results = await _service.SemanticSearchAsync("kubernetes helm chart", 10);
+
+        // Assert
+        results.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task SemanticSearchAsync_ShouldRespectTopKLimit_AcrossBothSources()
+    {
+        // Arrange — 3 from ITSM + 3 from General KB, limit is 4
+        var itsmSet = MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle>
+        {
+            CreateArticle(1, "ITSM API Guide 1", "api rest endpoint doc"),
+            CreateArticle(2, "ITSM API Guide 2", "api rest endpoint guide"),
+            CreateArticle(3, "ITSM API Guide 3", "api rest endpoint reference")
+        });
+        MockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(itsmSet.Object);
+
+        var generalSet = MockDbSetFactory.CreateMockDbSet(new List<GeneralKbArticle>
+        {
+            CreateGeneralArticle(1, "General API Guide 1", "api integration guide one"),
+            CreateGeneralArticle(2, "General API Guide 2", "api integration guide two"),
+            CreateGeneralArticle(3, "General API Guide 3", "api integration guide three")
+        });
+        MockContext.Setup(c => c.KnowledgeArticles).Returns(generalSet.Object);
+
+        // Act
+        var results = await _service.SemanticSearchAsync("api", 4);
+
+        // Assert — never exceeds the requested limit
+        results.Should().HaveCountLessOrEqualTo(4);
+    }
+
+    // ========================================================================
     // Helpers
     // ========================================================================
 
@@ -259,6 +394,24 @@ public class AIKnowledgeSearchServiceTests : ServiceTestFixtureBase<AIKnowledgeS
             Version = 1,
             ViewCount = 0,
             HelpfulCount = 0
+        };
+    }
+
+    // KB-014: factory for General KB articles
+    private static GeneralKbArticle CreateGeneralArticle(
+        int id,
+        string title,
+        string content,
+        GeneralKbArticleStatus status = GeneralKbArticleStatus.Published)
+    {
+        return new GeneralKbArticle
+        {
+            Id = id,
+            Title = title,
+            Content = content,
+            Summary = title,
+            Status = status,
+            IsDeleted = false
         };
     }
 

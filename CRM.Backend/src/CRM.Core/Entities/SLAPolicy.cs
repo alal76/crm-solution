@@ -66,11 +66,6 @@ public class SLAPolicy : BaseEntity
     /// Business hours configuration ID for this SLA policy
     /// </summary>
     public int? BusinessHoursId { get; set; }
-
-    /// <summary>
-    /// Escalation rules associated with this SLA policy
-    /// </summary>
-    public virtual ICollection<EscalationRule> EscalationRules { get; set; } = new List<EscalationRule>();
 }
 
 /// <summary>

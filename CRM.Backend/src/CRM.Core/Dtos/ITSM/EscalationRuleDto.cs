@@ -4,6 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using CRM.Core.Entities.ITSM;
+using EscalationType = CRM.Core.Entities.KnowledgeBase.EscalationType;
+using SLAMetricType = CRM.Core.Entities.KnowledgeBase.SLAMetricType;
+using SLAPriority = CRM.Core.Entities.KnowledgeBase.SLAPriority;
+
 namespace CRM.Core.Dtos.ITSM;
 
 /// <summary>
@@ -26,6 +31,23 @@ public class EscalationRuleDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    // SLA-based escalation rule properties
+    public int SLAPolicyId { get; set; }
+    public string? SLAPolicyName { get; set; }
+    public int TriggerAtPercent { get; set; }
+    public SLAMetricType TriggerMetric { get; set; }
+    public int ExecutionOrder { get; set; }
+    public EscalationType EscalationType { get; set; }
+    public List<string>? EmailRecipients { get; set; }
+    public int? EmailTemplateId { get; set; }
+    public int? ReassignToUserId { get; set; }
+    public string? ReassignToUserName { get; set; }
+    public int? ReassignToTeamId { get; set; }
+    public string? ReassignToTeamName { get; set; }
+    public SLAPriority? NewPriority { get; set; }
+    public string? WebhookUrl { get; set; }
+    public Dictionary<string, object>? ActionConfig { get; set; }
 }
 
 /// <summary>
@@ -45,6 +67,20 @@ public class CreateEscalationRuleDto
     public int MaxAttempts { get; set; } = 3;
     public int RetryIntervalMinutes { get; set; } = 15;
     public bool IsActive { get; set; } = true;
+
+    // SLA-based escalation rule properties
+    public int SLAPolicyId { get; set; }
+    public int TriggerAtPercent { get; set; } = 100;
+    public SLAMetricType TriggerMetric { get; set; }
+    public int ExecutionOrder { get; set; }
+    public EscalationType EscalationType { get; set; }
+    public List<string>? EmailRecipients { get; set; }
+    public int? EmailTemplateId { get; set; }
+    public int? ReassignToUserId { get; set; }
+    public int? ReassignToTeamId { get; set; }
+    public SLAPriority? NewPriority { get; set; }
+    public string? WebhookUrl { get; set; }
+    public Dictionary<string, object>? ActionConfig { get; set; }
 }
 
 /// <summary>
@@ -64,6 +100,20 @@ public class UpdateEscalationRuleDto
     public int? MaxAttempts { get; set; }
     public int? RetryIntervalMinutes { get; set; }
     public bool? IsActive { get; set; }
+
+    // SLA-based escalation rule properties
+    public int? SLAPolicyId { get; set; }
+    public int? TriggerAtPercent { get; set; }
+    public SLAMetricType? TriggerMetric { get; set; }
+    public int? ExecutionOrder { get; set; }
+    public EscalationType? EscalationType { get; set; }
+    public List<string>? EmailRecipients { get; set; }
+    public int? EmailTemplateId { get; set; }
+    public int? ReassignToUserId { get; set; }
+    public int? ReassignToTeamId { get; set; }
+    public SLAPriority? NewPriority { get; set; }
+    public string? WebhookUrl { get; set; }
+    public Dictionary<string, object>? ActionConfig { get; set; }
 }
 
 /// <summary>

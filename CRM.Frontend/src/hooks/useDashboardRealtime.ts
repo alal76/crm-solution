@@ -82,7 +82,7 @@ export function useDashboardRealtime(accessToken: string | null, dashboardId?: s
         }
       })
       .catch((err: Error) => {
-        console.warn('[useDashboardRealtime] Connection failed:', err.message);
+        console.warn('[useDashboardRealtime] Connection failed:', (err as Error).message);
       });
 
     return () => {

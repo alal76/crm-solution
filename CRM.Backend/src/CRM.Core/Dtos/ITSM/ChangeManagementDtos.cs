@@ -7,7 +7,7 @@
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities.ITSM;
 
-namespace CRM.Core.DTOs.ITSM;
+namespace CRM.Core.Dtos.ITSM;
 
 // ============================================================================
 // Change Management Workflow DTOs

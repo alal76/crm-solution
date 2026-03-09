@@ -120,7 +120,7 @@ export const SignatureVerificationUI: React.FC<SignatureVerificationUIProps> = (
     } catch (err) {
       setTestResult({
         success: false,
-        message: `Test failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        message: `Test failed: ${err instanceof Error ? (err as Error).message : 'Unknown error'}`,
       });
     } finally {
       setTesting(false);

@@ -138,7 +138,7 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({
       const data = await response.json();
       setVersions(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? (err as Error).message : 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -191,7 +191,7 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({
       setShowRestoreDialog(false);
       fetchVersions(); // Refresh the version list
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to restore version');
+      setError(err instanceof Error ? (err as Error).message : 'Failed to restore version');
     } finally {
       setRestoring(false);
     }

@@ -6,7 +6,7 @@ Covers financial entities not fully covered by earlier batches:
   - Order Returns       (/api/orderreturns)
   - Pricing Rules       (/api/pricingrules)
   - Revenue Schedule    (/api/revenue/schedule)
-  - Payment Methods     (/api/paymentmethods)
+  - Payment Methods     (/api/payments)
   - Tax Rates           (/api/taxrates)
   - Tax Rules           (/api/taxrules)
   - Expense Reports     (/api/expenses)
@@ -245,18 +245,18 @@ def run(api: ApiClient, log: RunLogger) -> None:
     pm_ids = []
     for pm in payment_methods:
         payload = {k: v for k, v in pm.items() if v is not None}
-        eid = api.create_and_track("paymentmethods", "/api/paymentmethods", payload)
+        eid = api.create_and_track("paymentmethods", "/api/payments", payload)
         if eid:
             pm_ids.append(eid)
-    api.get("/api/paymentmethods")
+    api.get("/api/payments")
     if pm_ids:
-        api.get(f"/api/paymentmethods/{pm_ids[0]}")
+        api.get(f"/api/payments/{pm_ids[0]}")
     # Delete test
     del_pm = {"name": f"DELETE-PM-{ts}", "type": "CreditCard", "provider": "Test",
               "isDefault": False, "isActive": False}
-    code, body, _ = api.post("/api/paymentmethods", del_pm)
+    code, body, _ = api.post("/api/payments", del_pm)
     if body and isinstance(body, dict) and body.get("id"):
-        api.delete(f"/api/paymentmethods/{body['id']}")
+        api.delete(f"/api/payments/{body['id']}")
     save_ids("paymentmethods", pm_ids)
 
     # ─── Commission Payouts (view) ─────────────────────────────────────────

@@ -10,8 +10,8 @@
 import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../services/apiClient';
 import { debugLog, debugError } from '../utils/debug';
-import { getApiEndpoint } from '../config/ports';
 import { AxiosError } from 'axios';
+import securitySettingsService from '../services/securitySettingsService';
 
 // User interface representing the authenticated user
 export interface AuthUser {
@@ -282,16 +282,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const token = localStorage.getItem('accessToken');
         if (!token) return;
-        
-        const response = await fetch(getApiEndpoint('/systemsettings'), {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.sessionTimeoutMinutes) {
-            setSessionTimeoutMinutes(data.sessionTimeoutMinutes);
-            debugLog('Session timeout fetched', { minutes: data.sessionTimeoutMinutes });
-          }
+        const data = await securitySettingsService.getSecuritySettings();
+        if (data.sessionTimeoutMinutes) {
+          setSessionTimeoutMinutes(data.sessionTimeoutMinutes);
+          debugLog('Session timeout fetched', { minutes: data.sessionTimeoutMinutes });
         }
       } catch (err) {
         debugError('Failed to fetch session timeout', err);

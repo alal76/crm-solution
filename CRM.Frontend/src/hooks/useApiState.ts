@@ -112,9 +112,9 @@ export function useApiState<T = any>(options: UseApiStateOptions = {}) {
     }
     
     // Plain error object
-    if (err.message) {
+    if ((err as Error).message) {
       return {
-        message: err.message,
+        message: (err as Error).message,
         code: err.code,
         status: err.status,
       };
@@ -228,7 +228,7 @@ export function useApiState<T = any>(options: UseApiStateOptions = {}) {
       }
       
       return result;
-    } catch (err: any) {
+    } catch (err: unknown) {
       const errorObj = parseError(err);
       
       setState(prev => ({

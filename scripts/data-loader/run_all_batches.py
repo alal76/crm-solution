@@ -60,6 +60,8 @@ BATCHES = [
     (21, "batch_21_crm_config",          "Pipelines, Forecast, Quote Templates, ProductCat, PriceBooks, Tags"),
     (22, "batch_22_admin_ops",           "Roles, API Keys, Webhooks, Imports, Exports, Admin Config, Alerts"),
     (23, "batch_23_fortune100",          "Fortune 100 Companies — Accounts & Linked Contacts"),
+    (24, "batch_24_itsm_knowledge",        "ITSM Knowledge Base — Extensive Technical Articles"),
+    (25, "batch_25_general_knowledge",     "General Knowledge Base — Sales, Service & Marketing Articles"),
 ]
 
 

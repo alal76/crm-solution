@@ -183,12 +183,9 @@ public static class ContractExpirationJobExtensions
     /// </example>
     public static void RegisterContractExpirationJob(this IServiceProvider serviceProvider)
     {
-        // Hangfire registration stub
-        // RecurringJob.AddOrUpdate<ContractExpirationJob>(
-        //     ContractExpirationJob.JobId,
-        //     job => job.ExecuteAsync(CancellationToken.None),
-        //     ContractExpirationJob.CronExpression);
-
+        // PRA-011: Actual Hangfire RecurringJob.AddOrUpdate registration is done in Program.cs
+        // (Hangfire.Core is not referenced from CRM.Infrastructure).
+        // This helper just logs the successful registration.
         var logger = serviceProvider.GetService<ILogger<ContractExpirationJob>>();
         logger?.LogInformation("Contract expiration job registered (Cron: {Cron})", ContractExpirationJob.CronExpression);
     }

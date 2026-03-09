@@ -151,8 +151,8 @@ const AgentCreatorPage = () => {
       await agentAdminService.createAgent(request);
       setSuccess(true);
       setTimeout(() => navigate('/admin/agents'), 1500);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.response?.data || 'Failed to create agent.';
+    } catch (err: unknown) {
+      const message = (err as any)?.response?.data?.message || (err as any)?.response?.data || 'Failed to create agent.';
       setError(typeof message === 'string' ? message : 'Failed to create agent.');
     } finally {
       setSaving(false);

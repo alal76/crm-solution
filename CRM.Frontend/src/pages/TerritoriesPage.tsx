@@ -121,8 +121,8 @@ const TerritoriesPage = () => {
       // Use first territory's statistics or null if no territories
       const statsArr = statsRes.data || [];
       setStatistics(statsArr.length > 0 ? normalizeStatistics(statsArr[0]) : null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load territories');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to load territories');
     } finally {
       setLoading(false);
     }
@@ -137,7 +137,7 @@ const TerritoriesPage = () => {
     try {
       const res = await territoryService.getRules(selectedTerritory.id);
       setRules(res.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load rules:', err);
     }
   }, [selectedTerritory?.id]);
@@ -151,7 +151,7 @@ const TerritoriesPage = () => {
     try {
       const res = await territoryService.getQuotas(selectedTerritory.id);
       setQuotas(res.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load quotas:', err);
     }
   }, [selectedTerritory?.id]);
@@ -204,8 +204,8 @@ const TerritoriesPage = () => {
       }
       setEditDialog(false);
       loadData();
-    } catch (err: any) {
-      setError(err.message || 'Failed to save territory');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to save territory');
     } finally {
       setSaving(false);
     }
@@ -218,8 +218,8 @@ const TerritoriesPage = () => {
       setSuccessMessage('Territory deleted successfully');
       setDeleteDialog(false);
       loadData();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete territory');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to delete territory');
     }
   };
 
@@ -229,8 +229,8 @@ const TerritoriesPage = () => {
       const res = await territoryService.autoAssignAccounts();
       setSuccessMessage(`Auto-assigned ${res.data.assigned} accounts (${res.data.skipped} skipped)`);
       loadData();
-    } catch (err: any) {
-      setError(err.message || 'Failed to auto-assign accounts');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to auto-assign accounts');
     } finally {
       setLoading(false);
     }

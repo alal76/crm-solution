@@ -1020,6 +1020,144 @@ public class CommissionsController : CrmControllerBase
 
     #endregion
 
+    #region Commission Analytics
+
+    /// <summary>
+    /// Get commission analytics by time period.
+    /// </summary>
+    [HttpGet("analytics/by-period")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAnalyticsByPeriod(
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        CancellationToken cancellationToken = default)
+    {
+        var allCommissions = await _commissionService.GetAllAsync(null, null, cancellationToken);
+        var fromDate = from ?? DateTime.UtcNow.AddMonths(-12);
+        var toDate = to ?? DateTime.UtcNow;
+
+        var filtered = allCommissions
+            .Where(c => c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
+            .ToList();
+
+        var byMonth = filtered
+            .GroupBy(c => new { c.CreatedAt.Year, c.CreatedAt.Month })
+            .Select(g => new
+            {
+                Period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                TotalAmount = g.Sum(c => c.CommissionAmount),
+                Count = g.Count()
+            })
+            .OrderBy(x => x.Period)
+            .ToList();
+
+        return Ok(new { periods = byMonth, totalAmount = filtered.Sum(c => c.CommissionAmount), totalCount = filtered.Count });
+    }
+
+    /// <summary>
+    /// Get commission analytics by sales rep.
+    /// </summary>
+    [HttpGet("analytics/by-rep")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAnalyticsByRep(
+        [FromQuery] DateTime? from = null,
+        [FromQuery] DateTime? to = null,
+        CancellationToken cancellationToken = default)
+    {
+        var allCommissions = await _commissionService.GetAllAsync(null, null, cancellationToken);
+        var fromDate = from ?? DateTime.UtcNow.AddMonths(-12);
+        var toDate = to ?? DateTime.UtcNow;
+
+        var filtered = allCommissions
+            .Where(c => c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
+            .ToList();
+
+        var byRep = filtered
+            .GroupBy(c => c.UserId)
+            .Select(g => new
+            {
+                UserId = g.Key,
+                TotalAmount = g.Sum(c => c.CommissionAmount),
+                Count = g.Count(),
+                AverageAmount = g.Average(c => c.CommissionAmount)
+            })
+            .OrderByDescending(x => x.TotalAmount)
+            .ToList();
+
+        return Ok(new { reps = byRep, totalAmount = filtered.Sum(c => c.CommissionAmount) });
+    }
+
+    /// <summary>
+    /// Get commission analytics overview.
+    /// </summary>
+    [HttpGet("analytics/overview")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAnalyticsOverview(CancellationToken cancellationToken = default)
+    {
+        var allCommissions = await _commissionService.GetAllAsync(null, null, cancellationToken);
+        var thisMonth = allCommissions.Where(c => c.CreatedAt >= new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)).ToList();
+        var lastMonth = allCommissions.Where(c => c.CreatedAt >= new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(-1) && c.CreatedAt < new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1)).ToList();
+
+        return Ok(new
+        {
+            totalCommissions = allCommissions.Count(),
+            totalAmount = allCommissions.Sum(c => c.CommissionAmount),
+            thisMonthAmount = thisMonth.Sum(c => c.CommissionAmount),
+            thisMonthCount = thisMonth.Count,
+            lastMonthAmount = lastMonth.Sum(c => c.CommissionAmount),
+            lastMonthCount = lastMonth.Count,
+            uniqueReps = allCommissions.Select(c => c.UserId).Distinct().Count()
+        });
+    }
+
+    /// <summary>
+    /// Get commission periods.
+    /// </summary>
+    [HttpGet("periods")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPeriods(
+        [FromQuery] int months = 12,
+        CancellationToken cancellationToken = default)
+    {
+        var allCommissions = await _commissionService.GetAllAsync(null, null, cancellationToken);
+        var cutoff = DateTime.UtcNow.AddMonths(-months);
+
+        var periods = allCommissions
+            .Where(c => c.CreatedAt >= cutoff)
+            .GroupBy(c => new { c.CreatedAt.Year, c.CreatedAt.Month })
+            .Select(g => new
+            {
+                Year = g.Key.Year,
+                Month = g.Key.Month,
+                Period = $"{g.Key.Year}-{g.Key.Month:D2}",
+                TotalAmount = g.Sum(c => c.CommissionAmount),
+                Count = g.Count()
+            })
+            .OrderByDescending(x => x.Year)
+            .ThenByDescending(x => x.Month)
+            .ToList();
+
+        return Ok(new { periods });
+    }
+
+    /// <summary>
+    /// Get commission settings/configuration.
+    /// </summary>
+    [HttpGet("settings")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetSettings(CancellationToken cancellationToken = default)
+    {
+        var plans = await _commissionService.GetPlansAsync(null, cancellationToken);
+        return Ok(new
+        {
+            totalPlans = plans.Count(),
+            activePlans = plans.Count(p => p.IsActive),
+            plans = plans.Select(p => new { p.Id, p.Name, p.Code, p.IsActive, p.BaseRate, p.EffectiveStartDate, p.EffectiveEndDate })
+        });
+    }
+
+    #endregion
+
     #region Helpers
 
     private static string GeneratePlanCode(string name)

@@ -108,8 +108,8 @@ const LeadRoutingPage = () => {
     try {
       const res = await leadRoutingService.getAllRules(true);
       setRules(res.data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load routing rules');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to load routing rules');
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,7 @@ const LeadRoutingPage = () => {
     try {
       const res = await leadRoutingService.getStatistics();
       setStatistics(res.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load statistics:', err);
     }
   }, []);
@@ -130,7 +130,7 @@ const LeadRoutingPage = () => {
       setHistory(res.data.items);
       setHistoryTotal(res.data.totalCount);
       setHistoryPage(page);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load history:', err);
     }
   }, []);
@@ -139,7 +139,7 @@ const LeadRoutingPage = () => {
     try {
       const res = await leadRoutingService.getAllUsersWorkload();
       setWorkload(res.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load workload:', err);
     }
   }, []);
@@ -190,8 +190,8 @@ const LeadRoutingPage = () => {
       }
       loadRules();
       setSuccessMessage(`Rule ${rule?.isActive !== false ? 'disabled' : 'enabled'} successfully`);
-    } catch (err: any) {
-      setError(err.message || 'Failed to update rule');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to update rule');
     }
   };
 
@@ -208,8 +208,8 @@ const LeadRoutingPage = () => {
       }
       setEditDialog(false);
       loadRules();
-    } catch (err: any) {
-      setError(err.message || 'Failed to save rule');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to save rule');
     } finally {
       setSaving(false);
     }
@@ -222,8 +222,8 @@ const LeadRoutingPage = () => {
       setSuccessMessage('Rule deleted successfully');
       setDeleteDialog(false);
       loadRules();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete rule');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to delete rule');
     }
   };
 
@@ -232,8 +232,8 @@ const LeadRoutingPage = () => {
       await leadRoutingService.cloneRule(rule.id!, `${rule.name} (Copy)`);
       setSuccessMessage('Rule cloned successfully');
       loadRules();
-    } catch (err: any) {
-      setError(err.message || 'Failed to clone rule');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to clone rule');
     }
   };
 
@@ -244,8 +244,8 @@ const LeadRoutingPage = () => {
       setSuccessMessage(`Routed ${res.data.successCount} leads successfully`);
       loadStatistics();
       loadHistory();
-    } catch (err: any) {
-      setError(err.message || 'Failed to route leads');
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to route leads');
     } finally {
       setLoading(false);
     }

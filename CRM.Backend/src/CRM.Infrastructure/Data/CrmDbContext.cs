@@ -290,6 +290,19 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<OrderReturn> OrderReturns { get; set; }
     public DbSet<CreditNote> CreditNotes { get; set; } // BACK-007: Credit Notes
     public DbSet<DunningSchedule> DunningSchedules { get; set; } // BACK-010: Dunning Schedule CRUD
+
+    // EP-001–015: New controller entities
+    public DbSet<Notification> Notifications { get; set; }
+    public DbSet<NotificationTemplate> NotificationTemplates { get; set; }
+    public DbSet<SavedView> SavedViews { get; set; }
+    public DbSet<ApiKey> ApiKeys { get; set; }
+    public DbSet<TaxRate> TaxRates { get; set; }
+    public DbSet<QuoteTemplate> QuoteTemplates { get; set; }
+    public DbSet<AutomationRule> AutomationRules { get; set; }
+    public DbSet<CustomerSegment> CustomerSegments { get; set; }
+    public DbSet<Event> Events { get; set; }
+    public DbSet<WorkflowAction> WorkflowActions { get; set; }
+    public DbSet<FeaturePlan> FeaturePlans { get; set; }
     public DbSet<CreditMemo> CreditMemos { get; set; }
     public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }
     public DbSet<CreditApplication> CreditApplications { get; set; }
@@ -621,10 +634,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // CRITICAL: Ignore CRM.Core.Entities.EscalationRule to prevent conflict with ITSM.EscalationRule
-        // Both entity types were trying to map to "EscalationRule" table. ITSM version uses "ITSMEscalationRules" instead.
-        modelBuilder.Ignore<CRM.Core.Entities.EscalationRule>();
-
 
         // Use Strategy Pattern for database provider-specific configurations
         var factory = new DatabaseProviderStrategyFactory(_configuration);
@@ -694,12 +703,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
             modelBuilder.Entity(entityType.ClrType).HasQueryFilter(filter);
         }
-
-        // Ignore the deprecated Customer class to prevent TPH discrimination
-        // This is intentional - we need EF Core to ignore the alias class
-#pragma warning disable CS0618 // Type or member is obsolete
-        modelBuilder.Ignore<Customer>();
-#pragma warning restore CS0618
 
         // Configure Account (formerly Customer)
         modelBuilder.Entity<Account>(entity =>

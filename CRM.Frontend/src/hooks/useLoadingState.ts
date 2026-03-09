@@ -44,7 +44,7 @@ export function useLoadingState<T = void>(
         return result;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : 'An unexpected error occurred';
+          err instanceof Error ? (err as Error).message : 'An unexpected error occurred';
         setError(message);
         return undefined;
       } finally {

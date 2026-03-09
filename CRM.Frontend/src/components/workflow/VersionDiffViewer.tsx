@@ -209,8 +209,8 @@ export const VersionDiffViewer: React.FC<VersionDiffViewerProps> = ({
         ]);
         setLeftVersion(left);
         setRightVersion(right);
-      } catch (err: any) {
-        setError(err.message || 'Failed to load versions');
+      } catch (err: unknown) {
+        setError((err as Error).message || 'Failed to load versions');
       } finally {
         setLoading(false);
       }

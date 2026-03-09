@@ -144,7 +144,7 @@ export default function CampaignAnalyticsPage() {
         }
       })
       .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load campaigns.');
+        if (!cancelled) setError(err instanceof Error ? (err as Error).message : 'Failed to load campaigns.');
       })
       .finally(() => {
         if (!cancelled) setLoadingCampaigns(false);

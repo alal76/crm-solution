@@ -54,8 +54,8 @@ const PortalResetPasswordPage: React.FC = () => {
       await portalAuthService.resetPassword(token, newPassword);
       setSuccess(true);
       setTimeout(() => navigate('/portal/login'), 2500);
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Failed to reset password. The link may have expired.');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message ?? 'Failed to reset password. The link may have expired.');
     } finally {
       setLoading(false);
     }

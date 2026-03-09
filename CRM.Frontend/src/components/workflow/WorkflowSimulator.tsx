@@ -295,9 +295,9 @@ const simulateNode = async (
       default:
         step.outputs = { processed: true };
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     step.status = 'failed';
-    step.error = error.message;
+    step.error = (error as Error).message;
   }
 
   return step;
@@ -453,8 +453,8 @@ export const WorkflowSimulator: React.FC<WorkflowSimulatorProps> = ({
         setSteps(result);
         setCurrentStepIndex(result.length - 1);
       }
-    } catch (e: any) {
-      setError(e.message || 'Simulation failed');
+    } catch (e: unknown) {
+      setError((e as Error).message || 'Simulation failed');
     } finally {
       setSimulating(false);
     }

@@ -93,11 +93,11 @@ const AgentAnalyticsPage: React.FC = () => {
       setUsage(usageRes.data);
       setAccuracy(accuracyRes.data);
       setCost(costRes.data);
-    } catch (err: any) {
-      if (err?.response?.status === 500 || err?.response?.status === 503) {
+    } catch (err: unknown) {
+      if ((err as any)?.response?.status === 500 || (err as any)?.response?.status === 503) {
         setError('AI Agent subsystem is not available. Enable it in Administration > Feature Management.');
       } else {
-        setError(err?.response?.data?.message || err?.message || 'Failed to load analytics data');
+        setError((err as any)?.response?.data?.message || (err as Error)?.message || 'Failed to load analytics data');
       }
     } finally {
       setLoading(false);

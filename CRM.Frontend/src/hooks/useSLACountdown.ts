@@ -163,7 +163,7 @@ export function useSLACountdown(serviceRequestId: number): UseSLACountdownResult
     connection.onclose((err) => {
       setIsConnected(false);
       if (err) {
-        setError(`SLA hub connection closed: ${err.message}`);
+        setError(`SLA hub connection closed: ${(err as Error).message}`);
       }
     });
 
@@ -177,7 +177,7 @@ export function useSLACountdown(serviceRequestId: number): UseSLACountdownResult
         // Subscribe to the specific ticket's SLA updates
         await connection.invoke('SubscribeToTicket', serviceRequestId);
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown connection error';
+        const errorMessage = err instanceof Error ? (err as Error).message : 'Unknown connection error';
         setError(`Failed to connect to SLA hub: ${errorMessage}`);
         setIsConnected(false);
       }
@@ -293,7 +293,7 @@ export function useSLADashboardUpdates(): {
         setError(null);
         await connection.invoke('SubscribeToAllSLA');
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Unknown connection error';
+        const errorMessage = err instanceof Error ? (err as Error).message : 'Unknown connection error';
         setError(`Failed to connect to SLA dashboard hub: ${errorMessage}`);
         setIsConnected(false);
       }

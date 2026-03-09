@@ -1,7 +1,7 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 using CRM.Core.Dtos;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -95,5 +95,18 @@ public sealed class PartnerPortalController : CrmControllerBase
     {
         var result = await _partnerPortal.GetResourcesAsync(ct);
         return Ok(result);
+    }
+
+    // ── Leads ────────────────────────────────────────────────────────────
+
+    /// <summary>Returns leads/deals assigned to the current partner.</summary>
+    [HttpGet("leads")]
+    [ProducesResponseType(typeof(IEnumerable<OpportunityDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetLeads(
+        [FromQuery] int? partnerAccountId,
+        CancellationToken ct)
+    {
+        var deals = await _partnerPortal.GetPartnerDealsAsync(partnerAccountId ?? 0, ct);
+        return Ok(deals);
     }
 }

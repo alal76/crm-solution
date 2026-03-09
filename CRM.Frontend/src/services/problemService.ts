@@ -4,37 +4,9 @@
 
 import apiClient from './apiClient';
 
-// ============================================================================
-// Enums
-// ============================================================================
-
-export enum ProblemStatus {
-  Draft = 0,
-  Open = 1,
-  InProgress = 2,
-  OnHold = 3,
-  Resolved = 4,
-  Closed = 5,
-  Cancelled = 6,
-}
-
-export enum ProblemPriority {
-  Critical = 0,
-  High = 1,
-  Medium = 2,
-  Low = 3,
-  Planning = 4,
-}
-
-export enum ProblemCategory {
-  Hardware = 0,
-  Software = 1,
-  Network = 2,
-  Database = 3,
-  Application = 4,
-  Infrastructure = 5,
-  Other = 6,
-}
+// Re-export enums from canonical source
+export { ProblemStatus, ProblemPriority, ProblemCategory } from '../types/itsm';
+import { ProblemStatus, ProblemPriority, ProblemCategory } from '../types/itsm';
 
 // ============================================================================
 // Interfaces

@@ -19,6 +19,7 @@ import {
   Tooltip,
   Chip,
   Stack,
+  Typography,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -83,9 +84,9 @@ const AddressListComponent: React.FC<AddressListComponentProps> = ({
       setDeleteConfirmOpen(false);
       setSelectedAddressToDelete(null);
       onDeleteSuccess?.();
-    } catch (err: any) {
+    } catch (err: unknown) {
       setDeleteError(
-        err?.response?.data?.message || 'Failed to delete address. Please try again.'
+        (err as any)?.response?.data?.message || 'Failed to delete address. Please try again.'
       );
     } finally {
       setDeleting(false);
@@ -106,7 +107,7 @@ const AddressListComponent: React.FC<AddressListComponentProps> = ({
         await addressService.setPrimaryShippingAddress(accountId, address.id);
       }
       onSetPrimaryClick?.(address, type);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`Error setting primary ${type} address:`, err);
     }
   };
@@ -173,11 +174,11 @@ const AddressListComponent: React.FC<AddressListComponentProps> = ({
                 <TableCell>
                   <div>
                     {address.line1}
-                    {address.line2 && <div style={{ fontSize: '0.85em', color: '#666' }}>{address.line2}</div>}
-                    <div style={{ fontSize: '0.85em', color: '#666' }}>
+                    {address.line2 && <Typography variant="caption" display="block" color="text.secondary">{address.line2}</Typography>}
+                    <Typography variant="caption" display="block" color="text.secondary">
                       {address.city}, {address.state} {address.zipCode}
-                    </div>
-                    <div style={{ fontSize: '0.85em', color: '#666' }}>{address.country}</div>
+                    </Typography>
+                    <Typography variant="caption" display="block" color="text.secondary">{address.country}</Typography>
                   </div>
                 </TableCell>
                 <TableCell>{address.addressType}</TableCell>

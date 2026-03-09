@@ -16,7 +16,7 @@ import logger from '../services/logger';
 import { DialogError, DialogSuccess, ActionButton, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
-import { BaseEntity } from '../types';
+import { BaseEntity, Account } from '../types'; // PRA-006: Account added
 import logo from '../assets/logo.png';
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
@@ -140,16 +140,17 @@ interface QuoteForm {
   internalNotes: string;
 }
 
-interface Customer {
-  id: number;
-  firstName: string;
-  lastName: string;
-  company?: string;
-}
+// PRA-006: replaced with shared Account type from types/ — see import above
+// interface Customer {
+//   id: number;
+//   firstName: string;
+//   lastName: string;
+//   company?: string;
+// }
 
 function QuotesPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [accounts, setAccounts] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]); // PRA-006
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -204,8 +205,8 @@ function QuotesPage() {
       const response = await apiClient.get('/quotes');
       setQuotes(response.data);
       setError(null);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to fetch quotes');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to fetch quotes');
     } finally {
       setLoading(false);
     }
@@ -304,8 +305,8 @@ function QuotesPage() {
       setSuccessMessage('Quote sent successfully');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send quote');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to send quote');
     }
   };
 
@@ -315,8 +316,8 @@ function QuotesPage() {
       setSuccessMessage('Quote accepted');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to accept quote');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to accept quote');
     }
   };
 
@@ -326,8 +327,8 @@ function QuotesPage() {
       setSuccessMessage('Quote rejected');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reject quote');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to reject quote');
     }
   };
 
@@ -337,8 +338,8 @@ function QuotesPage() {
       setSuccessMessage('Quote revised - new revision created');
       fetchQuotes();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to revise quote');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to revise quote');
     }
   };
 
@@ -349,8 +350,8 @@ function QuotesPage() {
         setSuccessMessage('Quote deleted successfully');
         fetchQuotes();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete quote');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete quote');
       }
     }
   };

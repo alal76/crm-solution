@@ -494,8 +494,8 @@ function WorkflowDesignerPage() {
         setTransitions(versionData.transitions.map(t => ({ ...t, selected: false })));
       }
       setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load workflow');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load workflow');
     } finally {
       setLoading(false);
     }
@@ -709,8 +709,8 @@ function WorkflowDesignerPage() {
       setSuccess('Node added');
       setHasChanges(true);
       pushHistory(newNodes, transitions);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to add node');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to add node');
     } finally {
       setSaving(false);
     }
@@ -745,8 +745,8 @@ function WorkflowDesignerPage() {
       setSuccess('Connection created');
       setHasChanges(true);
       pushHistory(nodes, newTransitions);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create connection');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to create connection');
     } finally {
       setSaving(false);
     }
@@ -766,8 +766,8 @@ function WorkflowDesignerPage() {
       setSuccess('Node deleted');
       setHasChanges(true);
       pushHistory(newNodes, newTransitions);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete node');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete node');
     } finally {
       setSaving(false);
     }
@@ -785,8 +785,8 @@ function WorkflowDesignerPage() {
       setSuccess('Connection deleted');
       setHasChanges(true);
       pushHistory(nodes, newTransitions);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete connection');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete connection');
     } finally {
       setSaving(false);
     }
@@ -813,8 +813,8 @@ function WorkflowDesignerPage() {
       );
       setSelectedNode(prev => (prev ? { ...prev, [property]: value } : null));
       setHasChanges(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update node');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to update node');
     }
   };
 
@@ -983,8 +983,8 @@ function WorkflowDesignerPage() {
               setSaving(true);
               setSuccess('Workflow saved');
               setHasChanges(false);
-            } catch (err: any) {
-              setError(err.response?.data?.message || 'Failed to save');
+            } catch (err: unknown) {
+              setError((err as any).response?.data?.message || 'Failed to save');
             } finally {
               setSaving(false);
             }
@@ -995,8 +995,8 @@ function WorkflowDesignerPage() {
               await workflowService.activateWorkflow(workflow.id, version.id);
               setVersion(prev => prev ? { ...prev, status: 'Active' } : null);
               setSuccess('Version published successfully');
-            } catch (err: any) {
-              setError(err.response?.data?.message || 'Failed to publish version');
+            } catch (err: unknown) {
+              setError((err as any).response?.data?.message || 'Failed to publish version');
             } finally {
               setSaving(false);
             }
@@ -1007,8 +1007,8 @@ function WorkflowDesignerPage() {
               const cloned = await workflowService.cloneWorkflow(workflow.id);
               setSuccess(`Workflow cloned as "${cloned.name}"`);
               navigate(`/admin/workflows/${cloned.id}/designer`);
-            } catch (err: any) {
-              setError(err.response?.data?.message || 'Failed to clone workflow');
+            } catch (err: unknown) {
+              setError((err as any).response?.data?.message || 'Failed to clone workflow');
             } finally {
               setSaving(false);
             }

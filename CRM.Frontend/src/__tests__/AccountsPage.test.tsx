@@ -64,8 +64,8 @@ describe('AccountsPage Component', () => {
     const mockError = jest.fn().mockRejectedValue(new Error('API Error'));
     try {
       await mockError('/accounts');
-    } catch (error: any) {
-      expect(error.message).toBe('API Error');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('API Error');
     }
   });
 

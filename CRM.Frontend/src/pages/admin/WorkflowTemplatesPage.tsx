@@ -45,8 +45,8 @@ const WorkflowTemplatesPage: React.FC = () => {
       );
       setTemplates(filtered);
       setError('');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load workflow templates');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load workflow templates');
     } finally {
       setLoading(false);
     }
@@ -71,8 +71,8 @@ const WorkflowTemplatesPage: React.FC = () => {
       setName('');
       setEntityType('');
       loadTemplates();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create template');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to create template');
     } finally {
       setLoading(false);
     }

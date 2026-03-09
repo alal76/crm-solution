@@ -7,7 +7,6 @@
 using System;
 using System.Threading.Tasks;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -22,15 +21,15 @@ namespace CRM.Tests.Services.ITSM;
 /// </summary>
 public class BusinessHoursCalculatorTests
 {
-    private readonly Mock<IDbContextResolver> _mockDbContextResolver;
+    private readonly Mock<ICrmDbContext> _mockDbContext;
     private readonly Mock<ILogger<BusinessHoursCalculator>> _mockLogger;
     private readonly BusinessHoursCalculator _calculator;
 
     public BusinessHoursCalculatorTests()
     {
-        _mockDbContextResolver = new Mock<IDbContextResolver>();
+        _mockDbContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<BusinessHoursCalculator>>();
-        _calculator = new BusinessHoursCalculator(_mockDbContextResolver.Object, _mockLogger.Object);
+        _calculator = new BusinessHoursCalculator(_mockDbContext.Object, _mockLogger.Object);
     }
 
     #region AddBusinessMinutesAsync Tests

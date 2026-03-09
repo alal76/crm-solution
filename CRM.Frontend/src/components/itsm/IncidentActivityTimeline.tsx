@@ -62,7 +62,7 @@ export const IncidentActivityTimeline: React.FC<IncidentActivityTimelineProps> =
       await onAddComment(newComment);
       setNewComment('');
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to add comment');
+      setSubmitError(err instanceof Error ? (err as Error).message : 'Failed to add comment');
     } finally {
       setSubmitting(false);
     }

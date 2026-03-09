@@ -24,6 +24,7 @@ public class SignatureProviderFactory : IProviderFactory<ISignaturePort>
     private readonly IFeatureManager _featureManager;
     private readonly IConfiguration _configuration;
     private readonly ILogger<SignatureProviderFactory> _logger;
+    private readonly bool _useExternalProvider;
 
     public SignatureProviderFactory(
         IServiceProvider serviceProvider,
@@ -35,13 +36,14 @@ public class SignatureProviderFactory : IProviderFactory<ISignaturePort>
         _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        // AP-015: Cache feature flag once per request scope; avoids per-call blocking on async flag check
+        _useExternalProvider = _configuration.GetValue<bool>("FeatureManagement:UseExternalSignatures");
     }
 
     /// <inheritdoc />
     public ISignaturePort GetProvider()
     {
-        var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSignatures)
-            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
+        var useExternal = _useExternalProvider;
 
         if (!useExternal)
         {
@@ -102,8 +104,7 @@ public class SignatureProviderFactory : IProviderFactory<ISignaturePort>
     /// <inheritdoc />
     public string GetActiveProviderName()
     {
-        var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSignatures)
-            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
+        var useExternal = _useExternalProvider;
 
         if (!useExternal)
         {

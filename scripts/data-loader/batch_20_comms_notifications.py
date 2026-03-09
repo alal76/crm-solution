@@ -9,7 +9,7 @@ Covers entities not present in earlier batches:
   - Notification Preferences (/api/users/{id}/notification-preferences)
   - Notification Templates   (/api/notification-templates)
   - In-App Notifications     (/api/notifications  — read/mark-read)
-  - Saved Searches           (/api/savedsearches)
+  - Saved Searches           (/api/saved-searches)
 """
 from __future__ import annotations
 import sys, os, time
@@ -286,25 +286,25 @@ def run(api: ApiClient, log: RunLogger) -> None:
     ]
     ss_ids = []
     for s in saved_searches:
-        eid = api.create_and_track("savedsearches", "/api/savedsearches", s)
+        eid = api.create_and_track("savedsearches", "/api/saved-searches", s)
         if eid:
             ss_ids.append(eid)
-    api.get("/api/savedsearches")
-    api.get("/api/savedsearches?entityType=Opportunity")
+    api.get("/api/saved-searches")
+    api.get("/api/saved-searches?entityType=Opportunity")
     if ss_ids:
-        api.get(f"/api/savedsearches/{ss_ids[0]}")
-        api.put(f"/api/savedsearches/{ss_ids[0]}",
+        api.get(f"/api/saved-searches/{ss_ids[0]}")
+        api.put(f"/api/saved-searches/{ss_ids[0]}",
                 {**saved_searches[0],
                  "name": f"My Open Opps > $100k {ts}",
                  "filters": {"stage": ["Proposal", "Negotiation"], "minAmount": 100000}})
         # Execute a saved search
-        api.post(f"/api/savedsearches/{ss_ids[0]}/execute")
+        api.post(f"/api/saved-searches/{ss_ids[0]}/execute")
     # Delete test
     del_ss = {"name": f"DELETE-SS-{ts}", "entityType": "Account",
               "isPublic": False, "filters": {}, "columns": []}
-    code, body, _ = api.post("/api/savedsearches", del_ss)
+    code, body, _ = api.post("/api/saved-searches", del_ss)
     if body and isinstance(body, dict) and body.get("id"):
-        api.delete(f"/api/savedsearches/{body['id']}")
+        api.delete(f"/api/saved-searches/{body['id']}")
     save_ids("savedsearches", ss_ids)
 
     # ─── GDPR Requests ────────────────────────────────────────────────────

@@ -5,7 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Api.Hubs;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Exceptions;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;

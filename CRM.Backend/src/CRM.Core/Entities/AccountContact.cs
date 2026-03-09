@@ -100,29 +100,3 @@ public class AccountContact : BaseEntity
     public Account? Account { get; set; }
     public Contact? Contact { get; set; }
 }
-
-#region Backward Compatibility Aliases
-
-/// <summary>
-/// Backward compatibility alias for CustomerContact - use AccountContact instead
-/// </summary>
-[Obsolete("Use AccountContact instead. CustomerContact is deprecated.")]
-public class CustomerContact : AccountContact { }
-
-/// <summary>Backward compatibility alias</summary>
-[Obsolete("Use AccountContactRole instead")]
-public enum CustomerContactRole
-{
-    Primary = 0,
-    Secondary = 1,
-    Billing = 2,
-    Technical = 3,
-    DecisionMaker = 4,
-    Influencer = 5,
-    EndUser = 6,
-    Executive = 7,
-    Procurement = 8,
-    Other = 9
-}
-
-#endregion

@@ -216,8 +216,8 @@ INSERT INTO SystemSettings (
     DateFormat, TimeFormat, DefaultCurrency, DefaultTimezone, DefaultLanguage,
     -- SSL
     HttpsEnabled, ForceHttpsRedirect,
-    -- Demo
-    UseDemoDatabase, DemoDataSeeded,
+    -- DEPRECATED: Demo database columns removed — single database policy
+    -- UseDemoDatabase, DemoDataSeeded,
     -- Statistics
     StatisticsRefreshEnabled, StatisticsRefreshIntervalMinutes,
     -- Timestamps
@@ -239,8 +239,8 @@ INSERT INTO SystemSettings (
     'MM/dd/yyyy', '12h', 'USD', 'America/New_York', 'en',
     -- SSL
     1, 0,
-    -- Demo
-    0, 0,
+    -- DEPRECATED: Demo database values removed — single database policy
+    -- 0, 0,
     -- Statistics
     1, 60,
     -- Timestamps

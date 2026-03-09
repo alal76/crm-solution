@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { getApiBaseUrl } from '../config/ports';
 import { useAuth } from './AuthContext';
+import brandingConfigService from '../services/brandingConfigService';
+import apiClient from '../services/apiClient';
 
 interface BrandingSettings {
   solutionName?: string;
@@ -52,62 +54,46 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const refreshBranding = useCallback(async () => {
     try {
-      const apiBase = getApiBaseUrl();
-      const token = localStorage.getItem('accessToken');
+      const brandingPromise = brandingConfigService.getCurrent();
 
-      const brandingRequest = fetch(`${apiBase}/api/branding`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        },
-      });
-
-      const systemSettingsRequest = isAuthenticated
-        ? fetch(`${apiBase}/api/systemsettings`, {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          })
+      const systemSettingsPromise = isAuthenticated
+        ? apiClient.get<Record<string, unknown>>('/systemsettings').then(r => r.data)
         : Promise.resolve(null);
 
-      const [brandingResponse, systemSettingsResponse] = await Promise.all([
-        brandingRequest,
-        systemSettingsRequest,
+      const [brandingData, systemSettingsData] = await Promise.all([
+        brandingPromise,
+        systemSettingsPromise,
       ]);
 
       const nextBranding: BrandingSettings = { ...defaultBranding };
 
-      if (systemSettingsResponse && systemSettingsResponse.ok) {
-        const data = await systemSettingsResponse.json();
-        nextBranding.companyName = data.companyName || nextBranding.companyName;
-        nextBranding.companyLogoUrl = data.companyLogoUrl || nextBranding.companyLogoUrl;
-        nextBranding.companyLoginLogoUrl = data.companyLoginLogoUrl || nextBranding.companyLoginLogoUrl;
-        nextBranding.primaryColor = data.primaryColor || nextBranding.primaryColor;
-        nextBranding.secondaryColor = data.secondaryColor || nextBranding.secondaryColor;
-        nextBranding.companyWebsite = data.companyWebsite || nextBranding.companyWebsite;
-        nextBranding.companyEmail = data.companyEmail || nextBranding.companyEmail;
-        nextBranding.companyPhone = data.companyPhone || nextBranding.companyPhone;
+      if (systemSettingsData) {
+        const data = systemSettingsData;
+        nextBranding.companyName = (data.companyName as string) || nextBranding.companyName;
+        nextBranding.companyLogoUrl = (data.companyLogoUrl as string) || nextBranding.companyLogoUrl;
+        nextBranding.companyLoginLogoUrl = (data.companyLoginLogoUrl as string) || nextBranding.companyLoginLogoUrl;
+        nextBranding.primaryColor = (data.primaryColor as string) || nextBranding.primaryColor;
+        nextBranding.secondaryColor = (data.secondaryColor as string) || nextBranding.secondaryColor;
+        nextBranding.companyWebsite = (data.companyWebsite as string) || nextBranding.companyWebsite;
+        nextBranding.companyEmail = (data.companyEmail as string) || nextBranding.companyEmail;
+        nextBranding.companyPhone = (data.companyPhone as string) || nextBranding.companyPhone;
       }
 
-      if (brandingResponse.ok) {
-        const brandingData = await brandingResponse.json();
-        const customLogoUrl = brandingData.customLogoPath || null;
-        const softwareLogoUrl = brandingData.softwareLogoPath || nextBranding.softwareLogoUrl;
-        const isCustomBrandingEnabled = brandingData.isCustomBrandingEnabled ?? true;
-        const brandingLogoUrl = isCustomBrandingEnabled
-          ? (customLogoUrl || softwareLogoUrl)
-          : softwareLogoUrl;
+      const customLogoUrl = brandingData.customLogoPath || null;
+      const softwareLogoUrl = brandingData.softwareLogoPath || nextBranding.softwareLogoUrl;
+      const isCustomBrandingEnabled = brandingData.isCustomBrandingEnabled ?? true;
+      const brandingLogoUrl = isCustomBrandingEnabled
+        ? (customLogoUrl || softwareLogoUrl)
+        : softwareLogoUrl;
 
-        nextBranding.solutionName = brandingData.solutionName || nextBranding.solutionName;
-        nextBranding.customLogoUrl = customLogoUrl;
-        nextBranding.softwareLogoUrl = softwareLogoUrl;
-        nextBranding.brandingLogoUrl = brandingLogoUrl || null;
-        nextBranding.faviconUrl = brandingData.faviconPath || brandingData.faviconDataUrl || null;
-        nextBranding.isCustomBrandingEnabled = isCustomBrandingEnabled;
-        nextBranding.companyName = brandingData.solutionName || nextBranding.companyName;
-        nextBranding.companyLogoUrl = brandingLogoUrl || nextBranding.companyLogoUrl;
-      }
+      nextBranding.solutionName = brandingData.solutionName || nextBranding.solutionName;
+      nextBranding.customLogoUrl = customLogoUrl;
+      nextBranding.softwareLogoUrl = softwareLogoUrl;
+      nextBranding.brandingLogoUrl = brandingLogoUrl || null;
+      nextBranding.faviconUrl = brandingData.faviconPath || brandingData.faviconDataUrl || null;
+      nextBranding.isCustomBrandingEnabled = isCustomBrandingEnabled;
+      nextBranding.companyName = brandingData.solutionName || nextBranding.companyName;
+      nextBranding.companyLogoUrl = brandingLogoUrl || nextBranding.companyLogoUrl;
 
       setBranding(nextBranding);
     } catch (error) {
@@ -119,26 +105,13 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const updateBranding = useCallback(async (settings: Partial<BrandingSettings>) => {
     try {
-      const apiBase = getApiBaseUrl();
-      const token = localStorage.getItem('accessToken');
-      
-      const response = await fetch(`${apiBase}/api/systemsettings`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(settings),
-      });
-
-      if (response.ok) {
-        // Update local state immediately
-        setBranding(prev => ({ ...prev, ...settings }));
-        // Dispatch custom event so other components can refresh
-        window.dispatchEvent(new CustomEvent('brandingUpdated', { detail: settings }));
-        // Re-fetch to ensure we have the latest from server
-        await refreshBranding();
-      }
+      await apiClient.put('/systemsettings', settings);
+      // Update local state immediately
+      setBranding(prev => ({ ...prev, ...settings }));
+      // Dispatch custom event so other components can refresh
+      window.dispatchEvent(new CustomEvent('brandingUpdated', { detail: settings }));
+      // Re-fetch to ensure we have the latest from server
+      await refreshBranding();
     } catch (error) {
       console.error('Failed to update branding settings:', error);
       throw error;

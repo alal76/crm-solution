@@ -228,8 +228,8 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({
       setLoading(true);
       await onSubmit(formData);
       onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save invoice');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save invoice');
     } finally {
       setLoading(false);
     }

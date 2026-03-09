@@ -365,6 +365,66 @@ public class AIAnalyticsController : CrmControllerBase
         var sources = _reportBuilder.GetAvailableSources();
         return Ok(sources);
     }
+
+    // ── 7.6 Account Health & Risk ──────────────────────────────────────────
+
+    /// <summary>Returns accounts flagged as at-risk based on activity and engagement metrics.</summary>
+    [HttpGet("accounts/at-risk")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetAtRiskAccounts([FromQuery] int limit = 20)
+    {
+        return Ok(new { items = Array.Empty<object>(), totalCount = 0, message = "AI at-risk account analysis requires scoring model configuration." });
+    }
+
+    /// <summary>Gets an AI-generated health score for an account.</summary>
+    [HttpGet("accounts/{id:int}/health-score")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetAccountHealthScore(int id)
+    {
+        return Ok(new { accountId = id, healthScore = 0, factors = Array.Empty<object>(), message = "Health score calculation pending AI model integration." });
+    }
+
+    /// <summary>Runs AI analysis on an account.</summary>
+    [HttpPost("accounts/{id:int}/analyze")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult AnalyzeAccount(int id)
+    {
+        return Ok(new { accountId = id, analysis = (object?)null, message = "Account analysis pending AI model integration." });
+    }
+
+    // ── 7.7 Opportunity Intelligence ───────────────────────────────────────
+
+    /// <summary>Returns an AI-generated risk report for all open opportunities.</summary>
+    [HttpGet("opportunities/risk-report")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetOpportunityRiskReport([FromQuery] int limit = 20)
+    {
+        return Ok(new { items = Array.Empty<object>(), totalCount = 0, message = "Opportunity risk report pending AI model integration." });
+    }
+
+    /// <summary>Returns AI-generated recommendations for an opportunity.</summary>
+    [HttpGet("opportunities/{id:int}/recommendations")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetOpportunityRecommendations(int id)
+    {
+        return Ok(new { opportunityId = id, recommendations = Array.Empty<object>(), message = "Recommendations pending AI model integration." });
+    }
+
+    /// <summary>Runs AI analysis on an opportunity.</summary>
+    [HttpPost("opportunities/{id:int}/analyze")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult AnalyzeOpportunity(int id)
+    {
+        return Ok(new { opportunityId = id, analysis = (object?)null, message = "Opportunity analysis pending AI model integration." });
+    }
+
+    /// <summary>Returns AI-estimated win probability for an opportunity.</summary>
+    [HttpPost("opportunities/{id:int}/win-probability")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetWinProbability(int id)
+    {
+        return Ok(new { opportunityId = id, winProbability = 0.0, confidence = 0.0, factors = Array.Empty<object>(), message = "Win probability calculation pending AI model integration." });
+    }
 }
 
 /// <summary>

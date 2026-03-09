@@ -22,6 +22,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ListIcon from '@mui/icons-material/List';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import escalationService, { EscalationRuleDto } from '../../services/escalationService';
+import { EscalationHierarchyViewer } from '../../components/itsm/EscalationHierarchyViewer';
 
 interface PriorityRow {
   priority: string;
@@ -183,6 +184,13 @@ const EscalationDashboardPage: React.FC = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Escalation Hierarchy Visualization */}
+      {!loading && rules.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <EscalationHierarchyViewer rules={rules} title="Escalation Chain" />
+        </Box>
+      )}
 
       {/* Quick Actions */}
       <Paper variant="outlined" sx={{ p: 2, mt: 3 }}>

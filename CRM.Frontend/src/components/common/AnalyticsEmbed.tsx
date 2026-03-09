@@ -116,7 +116,7 @@ const AnalyticsEmbed: React.FC<AnalyticsEmbedProps> = ({
       if (!dashboardId && response.data?.length > 0) {
         setSelectedDashboard(response.data[0].id);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to fetch dashboards:', err);
       // Don't set error - dashboards endpoint might not exist
     }
@@ -147,8 +147,8 @@ const AnalyticsEmbed: React.FC<AnalyticsEmbedProps> = ({
       
       setEmbedData(response.data);
       onLoad?.();
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Failed to load analytics dashboard';
+    } catch (err: unknown) {
+      const errorMessage = (err as any).response?.data?.message || 'Failed to load analytics dashboard';
       setError(errorMessage);
       onError?.(errorMessage);
     } finally {

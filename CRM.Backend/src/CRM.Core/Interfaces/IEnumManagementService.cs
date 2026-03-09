@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 // ENUM-BE-005: Service interface for configurable enum management
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 
 namespace CRM.Core.Interfaces;
 

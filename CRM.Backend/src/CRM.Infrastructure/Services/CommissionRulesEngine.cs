@@ -7,6 +7,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Enums;
+using CRM.Core.Exceptions; // AP-034: typed domain exceptions
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +44,7 @@ public class CommissionRulesEngine : ICommissionRulesEngine
 
         if (opportunity == null)
         {
-            throw new InvalidOperationException($"Opportunity {opportunityId} not found");
+            throw new EntityNotFoundException("Opportunity", opportunityId); // AP-034: replaced InvalidOperationException
         }
 
         var dealAmount = opportunity.Amount;
@@ -120,7 +121,7 @@ public class CommissionRulesEngine : ICommissionRulesEngine
 
         if (rule == null)
         {
-            throw new InvalidOperationException($"Commission rule {ruleId} not found");
+            throw new EntityNotFoundException("CommissionRule", ruleId); // AP-034: replaced InvalidOperationException
         }
 
         // Calculate base commission

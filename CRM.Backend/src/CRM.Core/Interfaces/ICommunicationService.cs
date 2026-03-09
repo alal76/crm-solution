@@ -28,22 +28,22 @@ public interface ICommunicationService
     /// <summary>
     /// Create a new communication channel
     /// </summary>
-    Task<CommunicationChannelDetail> CreateChannelAsync(CommunicationChannelCreateRequest dto);
+    Task<CommunicationChannelDetail> CreateChannelAsync(CommunicationChannelCreateRequest dto, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Update a communication channel
     /// </summary>
-    Task<CommunicationChannelDetail?> UpdateChannelAsync(int id, CommunicationChannelCreateRequest dto);
+    Task<CommunicationChannelDetail?> UpdateChannelAsync(int id, CommunicationChannelCreateRequest dto, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Delete a communication channel
     /// </summary>
-    Task<bool> DeleteChannelAsync(int id);
+    Task<bool> DeleteChannelAsync(int id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Test a channel connection
     /// </summary>
-    Task<bool> TestChannelAsync(int id);
+    Task<bool> TestChannelAsync(int id, CancellationToken cancellationToken = default);
 
     #endregion
 
@@ -67,7 +67,7 @@ public interface ICommunicationService
     /// <summary>
     /// Send a message
     /// </summary>
-    Task<CommunicationMessage> SendMessageAsync(SendMessageRequest request);
+    Task<CommunicationMessage> SendMessageAsync(SendMessageRequest request, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Get conversation thread

@@ -80,8 +80,8 @@ const PortalProfilePage: React.FC = () => {
       const updated = await portalService.updateProfile({ displayName });
       setProfile(updated);
       setProfileSuccess('Profile updated successfully.');
-    } catch (err: any) {
-      setProfileError(err?.response?.data?.message ?? 'Failed to update profile.');
+    } catch (err: unknown) {
+      setProfileError((err as any)?.response?.data?.message ?? 'Failed to update profile.');
     } finally {
       setProfileSaving(false);
     }
@@ -106,8 +106,8 @@ const PortalProfilePage: React.FC = () => {
       setPwCurrent('');
       setPwNew('');
       setPwConfirm('');
-    } catch (err: any) {
-      setPwError(err?.response?.data?.message ?? 'Failed to change password. Check your current password.');
+    } catch (err: unknown) {
+      setPwError((err as any)?.response?.data?.message ?? 'Failed to change password. Check your current password.');
     } finally {
       setPwSaving(false);
     }

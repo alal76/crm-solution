@@ -6,7 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 // ENUM-BE-010: DTOs for the Configurable Enums feature (IEnumManagementService contract)
-namespace CRM.Core.DTOs;
+namespace CRM.Core.Dtos;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Read DTOs

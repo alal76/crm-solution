@@ -302,8 +302,8 @@ function ChannelSettingsPage() {
       } catch {
         setInboxes([]);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load settings');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to load settings');
     } finally {
       setLoading(false);
     }
@@ -405,8 +405,8 @@ function ChannelSettingsPage() {
       }
       setChannelDialogOpen(false);
       fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save channel');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save channel');
     }
   };
 
@@ -416,8 +416,8 @@ function ChannelSettingsPage() {
       await apiClient.delete(`/communications/channels/${id}`);
       setSuccess('Channel deleted successfully');
       fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete channel');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete channel');
     }
   };
 
@@ -428,8 +428,8 @@ function ChannelSettingsPage() {
         isEnabled: !channel.isEnabled,
       });
       setChannels(channels.map(c => c.id === channel.id ? { ...c, isEnabled: !c.isEnabled } : c));
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to toggle channel');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to toggle channel');
     }
   };
 
@@ -474,8 +474,8 @@ function ChannelSettingsPage() {
       }
       setTemplateDialogOpen(false);
       fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save template');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save template');
     }
   };
 
@@ -485,8 +485,8 @@ function ChannelSettingsPage() {
       await apiClient.delete(`/communications/templates/${id}`);
       setSuccess('Template deleted successfully');
       fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete template');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete template');
     }
   };
 
@@ -520,8 +520,8 @@ function ChannelSettingsPage() {
       }
       setSignatureDialogOpen(false);
       fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save signature');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save signature');
     }
   };
 
@@ -553,8 +553,8 @@ function ChannelSettingsPage() {
       }
       setInboxDialogOpen(false);
       fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to save inbox');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to save inbox');
     }
   };
 
@@ -564,8 +564,8 @@ function ChannelSettingsPage() {
       await apiClient.delete(`/communications/inboxes/${id}`);
       setSuccess('Inbox deleted successfully');
       fetchData();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to delete inbox');
+    } catch (err: unknown) {
+      setError((err as any).response?.data?.message || 'Failed to delete inbox');
     }
   };
 

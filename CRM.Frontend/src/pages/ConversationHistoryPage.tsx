@@ -114,9 +114,9 @@ const ConversationHistoryPage = () => {
       // Sort by most recent first
       allConvos.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       setConversations(allConvos);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to load conversations:', err);
-      setError(err?.response?.data?.message || 'Failed to load conversation history.');
+      setError((err as any)?.response?.data?.message || 'Failed to load conversation history.');
     } finally {
       setLoading(false);
     }

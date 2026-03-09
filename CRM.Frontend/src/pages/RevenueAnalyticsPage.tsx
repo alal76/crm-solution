@@ -295,7 +295,7 @@ const RevenueAnalyticsPage: React.FC = () => {
         setMetrics(m);
         setMovements(mv);
       })
-      .catch((err) => setError(err?.message ?? 'Failed to load revenue analytics'))
+      .catch((err) => setError((err as Error)?.message ?? 'Failed to load revenue analytics'))
       .finally(() => setLoading(false));
   }, [fromDate, toDate]);
 

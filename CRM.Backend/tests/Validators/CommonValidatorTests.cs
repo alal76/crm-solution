@@ -8,7 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using FluentAssertions;
 using Moq;

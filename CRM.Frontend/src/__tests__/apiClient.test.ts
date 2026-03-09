@@ -50,8 +50,8 @@ describe('API Client Service', () => {
     try {
       await mockClient.get('/accounts');
       fail('Should have thrown');
-    } catch (error: any) {
-      expect(error.message).toBe('Network error');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('Network error');
     }
   });
 
@@ -71,8 +71,8 @@ describe('API Client Service', () => {
     
     try {
       await mockError('/notfound');
-    } catch (error: any) {
-      expect(error.message).toBe('404 Not Found');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('404 Not Found');
     }
   });
 

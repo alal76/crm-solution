@@ -1,4 +1,4 @@
-#if FALSE // Temporarily disabled - compilation errors - needs fixes for Expression<Func> vs Func and ReturnsAsync signatures
+// PRA-016: Re-enabled - fixed Expression<Func> vs Func and ReturnsAsync issues
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
@@ -20,6 +20,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using CRM.Core.Entities.Workflow; // PRA-016
 
 namespace CRM.Tests.Services;
 
@@ -39,7 +40,7 @@ public class AccountServiceIntegrationTests
     private readonly Mock<IRepository<ContactInfoLink>> _mockContactInfoLinkRepo;
     private readonly Mock<IRepository<Core.Entities.EntityTag>> _mockEntityTagRepo;
     private readonly Mock<IRepository<Core.Entities.CustomField>> _mockCustomFieldRepo;
-    private readonly Mock<NormalizationService> _mockNormalizationService;
+    private readonly Mock<INormalizationService> _mockNormalizationService; // PRA-016: use interface
     private readonly Mock<IEntityEventDispatcher> _mockEventDispatcher;
     private readonly Mock<IPreferencesService> _mockPreferencesService;
     private readonly Mock<IDuplicateDetectionService> _mockDuplicateDetection;
@@ -59,12 +60,31 @@ public class AccountServiceIntegrationTests
         _mockContactInfoLinkRepo = new Mock<IRepository<ContactInfoLink>>();
         _mockEntityTagRepo = new Mock<IRepository<Core.Entities.EntityTag>>();
         _mockCustomFieldRepo = new Mock<IRepository<Core.Entities.CustomField>>();
-        _mockNormalizationService = new Mock<NormalizationService>();
+        _mockNormalizationService = new Mock<INormalizationService>(); // PRA-016
         _mockEventDispatcher = new Mock<IEntityEventDispatcher>();
         _mockPreferencesService = new Mock<IPreferencesService>();
         _mockDuplicateDetection = new Mock<IDuplicateDetectionService>();
         _mockDbContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<AccountService>>();
+
+        // PRA-016: Global setups needed for CreateAccountAsync flow
+        _mockEventDispatcher
+            .Setup(d => d.DispatchEntityEventAsync(
+                It.IsAny<string>(), It.IsAny<int>(), It.IsAny<WorkflowTriggerType>(),
+                It.IsAny<int?>(), It.IsAny<string?>(), It.IsAny<string?>(),
+                It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _mockDbContext
+            .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+        // PRA-016: MapToDto calls GetAddressesAsync; return empty list to avoid null ArgumentNullException
+        _mockContactInfoService
+            .Setup(s => s.GetAddressesAsync(It.IsAny<EntityType>(), It.IsAny<int>()))
+            .ReturnsAsync(new List<LinkedAddressDto>());
+        // PRA-016: MapToDto accesses preferences properties directly; must return non-null
+        _mockPreferencesService
+            .Setup(p => p.GetAccountDefaultsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PreferencesDto());
 
         _service = new AccountService(
             _mockAccountRepo.Object,
@@ -99,7 +119,7 @@ public class AccountServiceIntegrationTests
     {
         // Arrange
         var existingAccount = new Account { Id = 1, Email = "duplicate@test.com" };
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account> { existingAccount });
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
@@ -123,14 +143,14 @@ public class AccountServiceIntegrationTests
     public async Task CreateAccountAsync_WithNullEmail_Succeeds()
     {
         // Arrange
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
         _mockAccountRepo.Setup(r => r.AddAsync(It.IsAny<Account>())).Returns(Task.CompletedTask);
-        _mockAccountRepo.Setup(r => r.SaveAsync()).ReturnsAsync(1);
+        _mockAccountRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask); // PRA-016
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
-        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>()))
-            .Returns(Task.CompletedTask);
+        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PreferencesDto()); // PRA-016: method returns Task<PreferencesDto>
 
         var dto = new CreateAccountDto
         {
@@ -154,14 +174,14 @@ public class AccountServiceIntegrationTests
     public async Task CreateAccountAsync_WithEmptyEmail_Succeeds()
     {
         // Arrange
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
         _mockAccountRepo.Setup(r => r.AddAsync(It.IsAny<Account>())).Returns(Task.CompletedTask);
-        _mockAccountRepo.Setup(r => r.SaveAsync()).ReturnsAsync(1);
+        _mockAccountRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask); // PRA-016
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
-        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>()))
-            .Returns(Task.CompletedTask);
+        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PreferencesDto()); // PRA-016: method returns Task<PreferencesDto>
 
         var dto = new CreateAccountDto
         {
@@ -192,7 +212,7 @@ public class AccountServiceIntegrationTests
     public async Task CreateAccountAsync_WithInvalidPhoneFormat_ThrowsInvalidOperationException(string invalidPhone)
     {
         // Arrange
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
@@ -223,18 +243,18 @@ public class AccountServiceIntegrationTests
     public async Task CreateAccountAsync_WithValidPhoneFormat_Succeeds(string validPhone)
     {
         // Arrange
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
         _mockAccountRepo.Setup(r => r.AddAsync(It.IsAny<Account>())).Returns(Task.CompletedTask);
-        _mockAccountRepo.Setup(r => r.SaveAsync()).ReturnsAsync(1);
+        _mockAccountRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask); // PRA-016
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
-        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>()))
-            .Returns(Task.CompletedTask);
+        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PreferencesDto()); // PRA-016: method returns Task<PreferencesDto>
         _mockContactDetailRepo.Setup(r => r.AddAsync(It.IsAny<ContactDetail>())).Returns(Task.CompletedTask);
-        _mockContactDetailRepo.Setup(r => r.SaveAsync()).ReturnsAsync(1);
+        _mockContactDetailRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask); // PRA-016
         _mockContactInfoLinkRepo.Setup(r => r.AddAsync(It.IsAny<ContactInfoLink>())).Returns(Task.CompletedTask);
-        _mockContactInfoLinkRepo.Setup(r => r.SaveAsync()).ReturnsAsync(1);
+        _mockContactInfoLinkRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask); // PRA-016
 
         var dto = new CreateAccountDto
         {
@@ -258,7 +278,7 @@ public class AccountServiceIntegrationTests
     public async Task CreateAccountAsync_WithInvalidMobilePhoneFormat_ThrowsInvalidOperationException()
     {
         // Arrange
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
@@ -283,7 +303,7 @@ public class AccountServiceIntegrationTests
     public async Task CreateAccountAsync_WithInvalidFaxFormat_ThrowsInvalidOperationException()
     {
         // Arrange
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
@@ -394,7 +414,7 @@ public class AccountServiceIntegrationTests
     public async Task SearchAccountsAsync_WithNullSearchTerm_HandlesGracefully()
     {
         // Arrange
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
 
         // Act - should not throw
@@ -411,7 +431,7 @@ public class AccountServiceIntegrationTests
     public async Task SearchAccountsAsync_WithEmptyString_ReturnsAccounts()
     {
         // Arrange
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
 
         // Act
@@ -433,7 +453,7 @@ public class AccountServiceIntegrationTests
             new Account { Id = 1, FirstName = "Active", IsDeleted = false },
             new Account { Id = 2, FirstName = "Deleted", IsDeleted = true }
         };
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(accounts.Where(a => !a.IsDeleted).ToList());
 
         // Act
@@ -455,7 +475,7 @@ public class AccountServiceIntegrationTests
         {
             new Account { Id = 1, FirstName = "José", LastName = "García", IsDeleted = false }
         };
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(accounts);
 
         // Act
@@ -477,14 +497,14 @@ public class AccountServiceIntegrationTests
     {
         // Arrange
         var longName = new string('A', 500);
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
         _mockAccountRepo.Setup(r => r.AddAsync(It.IsAny<Account>())).Returns(Task.CompletedTask);
-        _mockAccountRepo.Setup(r => r.SaveAsync()).ReturnsAsync(1);
+        _mockAccountRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask); // PRA-016
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
-        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>()))
-            .Returns(Task.CompletedTask);
+        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PreferencesDto()); // PRA-016: method returns Task<PreferencesDto>
 
         var dto = new CreateAccountDto
         {
@@ -508,14 +528,14 @@ public class AccountServiceIntegrationTests
     public async Task CreateAccountAsync_WithNegativeAnnualRevenue_IsAccepted()
     {
         // Arrange - negative might represent debt or losses
-        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<System.Linq.Expressions.Expression<Func<Account, bool>>>()))
+        _mockAccountRepo.Setup(r => r.FindAsync(It.IsAny<Func<Account, bool>>()))
             .ReturnsAsync(new List<Account>());
         _mockAccountRepo.Setup(r => r.AddAsync(It.IsAny<Account>())).Returns(Task.CompletedTask);
-        _mockAccountRepo.Setup(r => r.SaveAsync()).ReturnsAsync(1);
+        _mockAccountRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask); // PRA-016
         _mockDuplicateDetection.Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new DuplicateCheckResult());
-        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>()))
-            .Returns(Task.CompletedTask);
+        _mockPreferencesService.Setup(p => p.UpdateAccountPreferencesAsync(It.IsAny<int>(), It.IsAny<PreferencesDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new PreferencesDto()); // PRA-016: method returns Task<PreferencesDto>
 
         var dto = new CreateAccountDto
         {
@@ -534,4 +554,3 @@ public class AccountServiceIntegrationTests
 
     #endregion
 }
-#endif

@@ -221,7 +221,7 @@ function OpportunitiesPage() {
       setAccounts(acctRes.data);
       setUsers(userRes.data);
       setError(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(getApiErrorMessage(err, 'Failed to fetch data'));
       console.error('Error fetching data:', err);
     } finally {

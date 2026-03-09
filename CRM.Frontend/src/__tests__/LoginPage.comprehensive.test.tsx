@@ -219,8 +219,8 @@ describe('LoginPage - Form Submission', () => {
     
     try {
       await mockLogin('wrong@example.com', 'wrongpassword');
-    } catch (error: any) {
-      expect(error.message).toBe(errorMessage);
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe(errorMessage);
     }
   });
 
@@ -280,8 +280,8 @@ describe('LoginPage - Two-Factor Authentication', () => {
     
     try {
       await mockVerifyTwoFactor('token', '000000');
-    } catch (error: any) {
-      expect(error.message).toBe('Invalid code');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('Invalid code');
     }
   });
 
@@ -319,8 +319,8 @@ describe('LoginPage - OAuth / Social Login', () => {
     
     try {
       await mockGoogleLogin('invalid-token');
-    } catch (error: any) {
-      expect(error.message).toBe('OAuth failed');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('OAuth failed');
     }
   });
 
@@ -384,8 +384,8 @@ describe('LoginPage - Error Handling', () => {
     
     try {
       await mockLogin('test@example.com', 'password');
-    } catch (error: any) {
-      expect(error.message).toBe('Network error');
+    } catch (error: unknown) {
+      expect((error as Error).message).toBe('Network error');
     }
   });
 
@@ -394,8 +394,8 @@ describe('LoginPage - Error Handling', () => {
     
     try {
       await mockLogin('test@example.com', 'password');
-    } catch (error: any) {
-      expect(error.response.status).toBe(500);
+    } catch (error: unknown) {
+      expect((error as any).response.status).toBe(500);
     }
   });
 

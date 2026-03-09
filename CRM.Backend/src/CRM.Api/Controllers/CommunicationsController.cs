@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CRM.Api.Infrastructure;
+using MailKit.Net.Smtp;
+using MimeKit;
+using MessagePriority = CRM.Core.Entities.MessagePriority;
 
 namespace CRM.Api.Controllers;
 
@@ -56,11 +59,13 @@ public class CommunicationsController : CrmControllerBase
 
     private readonly CrmDbContext _context;
     private readonly ILogger<CommunicationsController> _logger;
+    private readonly IConfiguration _configuration;
 
-    public CommunicationsController(CrmDbContext context, ILogger<CommunicationsController> logger)
+    public CommunicationsController(CrmDbContext context, ILogger<CommunicationsController> logger, IConfiguration configuration)
     {
         _context = context;
         _logger = logger;
+        _configuration = configuration;
     }
 
     #region Communication Channels
@@ -618,26 +623,62 @@ public class CommunicationsController : CrmControllerBase
     }
 
     /// <summary>
-    /// Send email via SMTP
+    /// Send email via SMTP using MailKit
     /// </summary>
     private async Task<MessageSendResult> SendEmailAsync(CommunicationChannel channel, CommunicationMessage message)
     {
-        await Task.CompletedTask; // Stub for future async implementation
-
         try
         {
-            if (string.IsNullOrEmpty(channel.SmtpServer) || !channel.SmtpPort.HasValue)
+            var smtpHost = channel.SmtpServer ?? _configuration["Smtp:Host"];
+            var smtpPort = channel.SmtpPort ?? _configuration.GetValue<int?>("Smtp:Port") ?? 587;
+            var smtpUser = channel.SmtpUsername ?? _configuration["Smtp:Username"];
+            var smtpPass = channel.SmtpPassword ?? _configuration["Smtp:Password"];
+            var enableSsl = channel.SmtpUseSsl;
+
+            if (string.IsNullOrEmpty(smtpHost))
             {
                 return new MessageSendResult { Success = false, ErrorMessage = "SMTP not configured" };
             }
 
-            // TODO: Implement SMTP sending via System.Net.Mail or MailKit when production-ready // NOSONAR
-            _logger.LogInformation("Email sent to {ToAddress} via {Server}", message.ToAddress, channel.SmtpServer);
+            var mimeMessage = new MimeMessage();
+            mimeMessage.From.Add(new MailboxAddress(
+                channel.FromName ?? _configuration["Smtp:FromName"] ?? "CRM System",
+                channel.FromEmail ?? _configuration["Smtp:FromEmail"] ?? "noreply@crm.local"));
+            mimeMessage.To.Add(MailboxAddress.Parse(message.ToAddress));
+            mimeMessage.Subject = message.Subject ?? string.Empty;
+
+            var bodyBuilder = new BodyBuilder();
+            if (!string.IsNullOrEmpty(message.HtmlBody))
+            {
+                bodyBuilder.HtmlBody = message.HtmlBody;
+                bodyBuilder.TextBody = message.Body;
+            }
+            else
+            {
+                bodyBuilder.TextBody = message.Body;
+            }
+
+            mimeMessage.Body = bodyBuilder.ToMessageBody();
+
+            using var client = new SmtpClient();
+            await client.ConnectAsync(smtpHost, smtpPort, enableSsl
+                ? MailKit.Security.SecureSocketOptions.StartTls
+                : MailKit.Security.SecureSocketOptions.Auto);
+
+            if (!string.IsNullOrEmpty(smtpUser))
+            {
+                await client.AuthenticateAsync(smtpUser, smtpPass);
+            }
+
+            var response = await client.SendAsync(mimeMessage);
+            await client.DisconnectAsync(true);
+
+            _logger.LogInformation("Email sent to {ToAddress} via {Server}:{Port}", message.ToAddress, smtpHost, smtpPort);
 
             return new MessageSendResult
             {
                 Success = true,
-                ExternalMessageId = $"email_{Guid.NewGuid():N}"
+                ExternalMessageId = mimeMessage.MessageId
             };
         }
         catch (Exception ex)

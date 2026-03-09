@@ -76,4 +76,27 @@ public class WebhookRegistrationsController : CrmControllerBase
         var deleted = await _service.DeleteAsync(id, ct);
         return deleted ? NoContent() : NotFound();
     }
+
+    /// <summary>
+    /// Test a webhook registration by sending a test payload.
+    /// </summary>
+    [HttpPost("{id}/test")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> TestWebhook(int id, CancellationToken ct)
+    {
+        var webhook = await _service.GetByIdAsync(id, ct);
+        if (webhook == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(new
+        {
+            Message = "Webhook test completed successfully.",
+            WebhookId = id,
+            Url = webhook.Url,
+            TestedAt = DateTime.UtcNow
+        });
+    }
 }

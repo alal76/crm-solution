@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.DTOs;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -421,6 +421,53 @@ public class EnumManagementController : CrmControllerBase
     // ─────────────────────────────────────────────────────────────────
     // Private helpers
     // ─────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Get all registered enum types.
+    /// GET /api/enum-management/types
+    /// </summary>
+    [HttpGet("types")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetTypes()
+    {
+        var categories = _context.LookupCategories
+            .AsNoTracking()
+            .Where(c => !c.IsDeleted)
+            .Select(c => new { c.Id, c.Name, c.EntityType, c.PropertyName, c.IsSystemManaged })
+            .OrderBy(c => c.Name);
+
+        return Ok(categories);
+    }
+
+    /// <summary>
+    /// Get enum values by enum name (category name).
+    /// GET /api/enum-management/{enumName}
+    /// </summary>
+    [HttpGet("{enumName}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetEnum(string enumName, CancellationToken ct = default)
+    {
+        var category = await _context.LookupCategories
+            .AsNoTracking()
+            .Include(c => c.Items.Where(i => !i.IsDeleted))
+            .FirstOrDefaultAsync(c => c.Name == enumName && !c.IsDeleted, ct);
+
+        if (category == null)
+        {
+            return NotFound(new { message = $"Enum '{enumName}' not found." });
+        }
+
+        return Ok(new
+        {
+            category.Id,
+            category.Name,
+            category.EntityType,
+            category.PropertyName,
+            Items = category.Items.OrderBy(i => i.SortOrder).ThenBy(i => i.Value)
+                .Select(i => new { i.Id, i.Key, i.Value, i.SortOrder, i.IsActive, i.IsDefault, i.Color, i.Icon })
+        });
+    }
 
     private async Task ClearDefaultFlagAsync(int categoryId, CancellationToken ct)
     {

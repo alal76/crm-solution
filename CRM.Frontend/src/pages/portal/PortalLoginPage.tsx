@@ -44,8 +44,8 @@ const PortalLoginPage: React.FC = () => {
     try {
       await portalAuthService.login({ email, password });
       navigate('/portal/dashboard', { replace: true });
-    } catch (err: any) {
-      setError(err?.response?.data?.message ?? 'Login failed. Please check your credentials.');
+    } catch (err: unknown) {
+      setError((err as any)?.response?.data?.message ?? 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }

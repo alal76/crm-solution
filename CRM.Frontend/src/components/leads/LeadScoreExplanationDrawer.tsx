@@ -101,7 +101,7 @@ const LeadScoreExplanationDrawer: React.FC<Props> = ({ leadId, open, onClose }) 
         setLoading(false);
       })
       .catch(err => {
-        setError(err?.message ?? 'Failed to load score explanation');
+        setError((err as Error)?.message ?? 'Failed to load score explanation');
         setLoading(false);
       });
   }, [open, leadId]);

@@ -120,9 +120,9 @@ const AgentChatPage = () => {
         ]);
         setAgent(agentRes.data);
         setConversations(convRes.data || []);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to load agent data:', err);
-        setError(err?.response?.data?.message || 'Failed to load agent. Please try again.');
+        setError((err as any)?.response?.data?.message || 'Failed to load agent. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -142,7 +142,7 @@ const AgentChatPage = () => {
         try {
           const res = await agentService.getConversation(conversationId);
           setMessages(parseMessages(res.data.messages));
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error('Failed to load conversation:', err);
           setError('Failed to load conversation messages.');
         }
@@ -198,9 +198,9 @@ const AgentChatPage = () => {
       } catch {
         // Non-critical, ignore
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to send message:', err);
-      setError(err?.response?.data?.message || 'Failed to send message. Please try again.');
+      setError((err as any)?.response?.data?.message || 'Failed to send message. Please try again.');
       // Remove optimistic user message on error
       setMessages((prev) => prev.filter((m) => m !== userMsg));
     } finally {
@@ -232,7 +232,7 @@ const AgentChatPage = () => {
       // Refresh conversations
       const convRes = await agentService.getConversations(numericAgentId);
       setConversations(convRes.data || []);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to submit rating:', err);
     } finally {
       setRatingSubmitting(false);

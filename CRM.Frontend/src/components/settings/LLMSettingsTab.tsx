@@ -79,8 +79,8 @@ const LLMSettingsTab: React.FC = () => {
       });
       setProviderEdits({});
       setHasChanges(false);
-    } catch (err: any) {
-      setSnackbar({ open: true, message: `Failed to load settings: ${err?.message || 'Unknown error'}`, severity: 'error' });
+    } catch (err: unknown) {
+      setSnackbar({ open: true, message: `Failed to load settings: ${(err as Error)?.message || 'Unknown error'}`, severity: 'error' });
     } finally {
       setLoading(false);
     }
@@ -153,8 +153,8 @@ const LLMSettingsTab: React.FC = () => {
       setProviderEdits({});
       setHasChanges(false);
       setSnackbar({ open: true, message: 'Settings saved successfully', severity: 'success' });
-    } catch (err: any) {
-      setSnackbar({ open: true, message: `Save failed: ${err?.message || 'Unknown error'}`, severity: 'error' });
+    } catch (err: unknown) {
+      setSnackbar({ open: true, message: `Save failed: ${(err as Error)?.message || 'Unknown error'}`, severity: 'error' });
     } finally {
       setSaving(false);
     }
@@ -168,8 +168,8 @@ const LLMSettingsTab: React.FC = () => {
       await llmSettingsService.resetToDefaults();
       await loadSettings();
       setSnackbar({ open: true, message: 'Settings reset to defaults', severity: 'info' });
-    } catch (err: any) {
-      setSnackbar({ open: true, message: `Reset failed: ${err?.message || 'Unknown error'}`, severity: 'error' });
+    } catch (err: unknown) {
+      setSnackbar({ open: true, message: `Reset failed: ${(err as Error)?.message || 'Unknown error'}`, severity: 'error' });
     } finally {
       setSaving(false);
     }
@@ -186,8 +186,8 @@ const LLMSettingsTab: React.FC = () => {
         message: result.success ? `✓ ${result.message}` : `✗ ${result.message}`,
         severity: result.success ? 'success' : 'error',
       });
-    } catch (err: any) {
-      setSnackbar({ open: true, message: `Test failed: ${err?.message || 'Unknown error'}`, severity: 'error' });
+    } catch (err: unknown) {
+      setSnackbar({ open: true, message: `Test failed: ${(err as Error)?.message || 'Unknown error'}`, severity: 'error' });
     } finally {
       setTestingProvider(null);
     }

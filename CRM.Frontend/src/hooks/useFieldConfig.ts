@@ -71,9 +71,9 @@ export function useFieldConfig(moduleName: string): UseFieldConfigResult {
       }
 
       setFieldConfigs(configs);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(`Error fetching field configurations for ${moduleName}:`, err);
-      setError(err.response?.data?.message || 'Failed to load field configurations');
+      setError((err as any).response?.data?.message || 'Failed to load field configurations');
       setFieldConfigs([]);
     } finally {
       setLoading(false);

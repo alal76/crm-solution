@@ -151,9 +151,9 @@ function ServicesPage() {
       // Use the dedicated /products/services endpoint that filters service-type products
       const response = await apiClient.get<ServiceProduct[]>('/products/services');
       setServices(response.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching services:', err);
-      setError(err.response?.data?.message || 'Failed to fetch services');
+      setError((err as any).response?.data?.message || 'Failed to fetch services');
     } finally {
       setLoading(false);
     }
@@ -231,8 +231,8 @@ function ServicesPage() {
       handleCloseDialog();
       fetchServices();
       setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: any) {
-      setDialogError(err.response?.data?.message || 'Failed to save service');
+    } catch (err: unknown) {
+      setDialogError((err as any).response?.data?.message || 'Failed to save service');
       console.error('Error saving service:', err);
     }
   };
@@ -244,8 +244,8 @@ function ServicesPage() {
         setSuccessMessage('Service deleted successfully');
         fetchServices();
         setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to delete service');
+      } catch (err: unknown) {
+        setError((err as any).response?.data?.message || 'Failed to delete service');
         console.error('Error deleting service:', err);
       }
     }

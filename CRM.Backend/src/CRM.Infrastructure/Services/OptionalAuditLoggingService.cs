@@ -5,7 +5,9 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
+using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services.Messaging;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 
@@ -27,18 +29,24 @@ public class OptionalAuditLoggingService : IOptionalAuditLoggingService
     private readonly IFeatureManager _featureManager;
     private readonly ICrmDbContext _context;
     private readonly ILogger<OptionalAuditLoggingService> _logger;
+    private readonly IRedisStreamService _streamService;
     private bool? _cachedFeatureEnabled;
 
+    internal const string StreamName = "crm:audit:stream";
     private const string FEATURE_FLAG_NAME = "UseOptionalAuditLogging";
 
     public OptionalAuditLoggingService(
         IFeatureManager featureManager,
         ICrmDbContext context,
-        ILogger<OptionalAuditLoggingService> logger)
+        ILogger<OptionalAuditLoggingService> logger,
+        IRedisStreamService streamService)
     {
         _featureManager = featureManager;
         _context = context;
         _logger = logger;
+        _streamService = streamService;
+        // AP-016: Cache feature flag once at construction (per-scope) to remove per-call blocking
+        _cachedFeatureEnabled = featureManager.IsEnabledAsync(FEATURE_FLAG_NAME).GetAwaiter().GetResult(); // NOSONAR S4462 -- called once per scope; sync interface, no async alternative
     }
 
     #region Action Logging
@@ -61,18 +69,97 @@ public class OptionalAuditLoggingService : IOptionalAuditLoggingService
 
         try
         {
-            // In a real implementation, would save to AuditLog table
-            // For now, just log
-            _logger.LogInformation(
-                $"Audit: User {userId} {action} {entityType}#{entityId}. Reason: {reason ?? "(none)"}");
+            var auditEvent = new AuditEvent
+            {
+                UserId = userId,
+                Action = action,
+                EntityType = entityType,
+                EntityId = entityId,
+                OldValues = oldValues,
+                NewValues = newValues,
+                Reason = reason,
+                Timestamp = DateTime.UtcNow
+            };
 
-            return null; // Would return audit log ID if saved
+            await PublishAuditEventAsync(auditEvent, cancellationToken);
+
+            _logger.LogInformation(
+                "Audit event queued: User {UserId} {Action} {EntityType}#{EntityId}",
+                userId, action, entityType, entityId);
+
+            return null; // ID not known yet — consumer will assign it on DB insert
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error logging action for {entityType}#{entityId}");
+            _logger.LogError(ex, "Error logging action for {EntityType}#{EntityId}", entityType, entityId);
             return null;
         }
+    }
+
+    #endregion
+
+    #region Async Queue (FLAG-005)
+
+    /// <inheritdoc />
+    public async Task PublishAuditEventAsync(AuditEvent auditEvent, CancellationToken cancellationToken = default)
+    {
+        if (!await IsEnabledAsync(cancellationToken))
+        {
+            return;
+        }
+
+        try
+        {
+            var data = new Dictionary<string, string>
+            {
+                ["userId"]     = auditEvent.UserId?.ToString() ?? string.Empty,
+                ["action"]     = auditEvent.Action,
+                ["entityType"] = auditEvent.EntityType ?? string.Empty,
+                ["entityId"]   = auditEvent.EntityId?.ToString() ?? string.Empty,
+                ["oldValues"]  = auditEvent.OldValues ?? string.Empty,
+                ["newValues"]  = auditEvent.NewValues ?? string.Empty,
+                ["reason"]     = auditEvent.Reason ?? string.Empty,
+                ["ipAddress"]  = auditEvent.IpAddress ?? string.Empty,
+                ["userAgent"]  = auditEvent.UserAgent ?? string.Empty,
+                ["timestamp"]  = auditEvent.Timestamp.ToString("O")
+            };
+
+            var messageId = await _streamService.PublishAsync(
+                StreamName, "AuditEvent", data, cancellationToken);
+
+            if (string.IsNullOrEmpty(messageId))
+            {
+                // Redis not available — fall back to synchronous DB write
+                _logger.LogWarning("Redis stream unavailable; writing audit event directly to DB");
+                await SaveDirectlyToDbAsync(auditEvent, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error enqueuing audit event to Redis stream; falling back to direct DB write");
+            await SaveDirectlyToDbAsync(auditEvent, cancellationToken);
+        }
+    }
+
+    private async Task SaveDirectlyToDbAsync(AuditEvent auditEvent, CancellationToken cancellationToken)
+    {
+        var auditLog = new AuditLog
+        {
+            UserId = auditEvent.UserId,
+            Action = auditEvent.Action,
+            EntityType = auditEvent.EntityType,
+            EntityId = auditEvent.EntityId,
+            OldValues = auditEvent.OldValues,
+            NewValues = auditEvent.NewValues,
+            Details = auditEvent.Reason,
+            IpAddress = auditEvent.IpAddress,
+            UserAgent = auditEvent.UserAgent,
+            CreatedAt = auditEvent.Timestamp,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _context.AuditLogs.Add(auditLog);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     #endregion
@@ -168,9 +255,8 @@ public class OptionalAuditLoggingService : IOptionalAuditLoggingService
 
     public bool IsEnabled()
     {
-        // Use cached value if available
-        _cachedFeatureEnabled ??= _featureManager.IsEnabledAsync(FEATURE_FLAG_NAME).GetAwaiter().GetResult(); // NOSONAR S4462 -- result is cached after first call; sync interface, no async alternative // NOSONAR S4462 -- result is cached after first call; sync interface, no async alternative
-        return _cachedFeatureEnabled.Value;
+        // Value is always set in constructor (AP-016 fix)
+        return _cachedFeatureEnabled!.Value;
     }
 
     private async Task<bool> IsEnabledAsync(CancellationToken cancellationToken)

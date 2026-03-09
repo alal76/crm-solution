@@ -131,7 +131,7 @@ public class UsersController : CrmControllerBase
                     {
                         user.PrimaryGroupId = request.PrimaryGroupId.Value;
                     }
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
                 }
             }
 
@@ -692,6 +692,101 @@ public class UsersController : CrmControllerBase
             CompactMode = user.CompactMode
         };
     }
+
+    #region Role Management (EP-029)
+
+    /// <summary>
+    /// Get all roles/groups for a specific user.
+    /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <returns>List of groups the user belongs to</returns>
+    /// <response code="200">Returns the user's roles/groups</response>
+    /// <response code="404">If the user is not found</response>
+    [HttpGet("{id}/roles")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserRoles(int id)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+        {
+            return NotFound(new { message = UserNotFoundMessage });
+        }
+
+        var memberships = await _dbContext.UserGroupMembers
+            .AsNoTracking()
+            .Where(m => m.UserId == id)
+            .ToListAsync();
+
+        var groupIds = memberships.Select(m => m.UserGroupId).ToList();
+        var groups = await _dbContext.UserGroups
+            .AsNoTracking()
+            .Where(g => groupIds.Contains(g.Id) && !g.IsDeleted)
+            .ToListAsync();
+
+        var result = groups.Select(g => new
+        {
+            GroupId = g.Id,
+            g.Name,
+            g.Description,
+            JoinedAt = memberships.FirstOrDefault(m => m.UserGroupId == g.Id)?.CreatedAt
+        }).ToList();
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Assign a user to a role/group.
+    /// </summary>
+    /// <param name="id">The user ID</param>
+    /// <param name="roleId">The group/role ID to assign</param>
+    /// <returns>Confirmation of assignment</returns>
+    /// <response code="200">Role assigned successfully</response>
+    /// <response code="404">If the user or role is not found</response>
+    /// <response code="409">If the user is already in this role</response>
+    [HttpPost("{id}/roles/{roleId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AssignRole(int id, int roleId)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null || user.IsDeleted)
+        {
+            return NotFound(new { message = UserNotFoundMessage });
+        }
+
+        var group = await _dbContext.UserGroups
+            .FirstOrDefaultAsync(g => g.Id == roleId && !g.IsDeleted);
+        if (group == null)
+        {
+            return NotFound(new { message = "Role/group not found" });
+        }
+
+        var existingMembership = await _dbContext.UserGroupMembers
+            .AnyAsync(m => m.UserId == id && m.UserGroupId == roleId);
+        if (existingMembership)
+        {
+            return Conflict(new { message = "User is already assigned to this role/group" });
+        }
+
+        var membership = new UserGroupMember
+        {
+            UserId = id,
+            UserGroupId = roleId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.UserGroupMembers.Add(membership);
+        await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
+
+        _logger.LogInformation("User {UserId} assigned to group {GroupId}", id, roleId);
+
+        return Ok(new { Message = "Role assigned successfully.", UserId = id, GroupId = roleId, GroupName = group.Name });
+    }
+
+    #endregion
 }
 
 /// <summary>
