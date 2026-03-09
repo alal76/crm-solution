@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 622,
+  "minor": 623,
   "patch": 0,
   "lastUpdate": "2026-03-09",
-  "description": "feat(domain): AP-059 Phase 3 domain enrichment — Quote/Order/Invoice/Subscription/Campaign/SLAPolicy/KnowledgeArticle: IHasDomainEvents, typed events, business methods (Approve/Send/Revoke, Confirm/Ship/Cancel, Send/MarkPaid/Void, Cancel/Reinstate, Launch/Pause/Complete, Activate/Deactivate, Publish/Archive), CreateForTesting factories. 107 zero-mock behavioral tests.",
+  "description": "feat(wave11): AP-059 merged to main, MailKit NU1902 vuln fix (4.10.0→4.15.1), KB-018 KnowledgeBasePlugin unified search (IUnifiedKnowledgeSearchService delegation + SearchGeneralKBArticlesAsync), KB-019 ITSM KnowledgeArticle domain methods (Publish/SubmitForReview/Approve/Retire + 4 typed events + IHasDomainEvents), INFRA-001 DomainEventPublisher+Interceptor tests. 29 new tests. 12,598 total passing.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
@@ -21,7 +21,8 @@
     }
   },
   "features": [
-    "v0.616.0: FEAT(wave9): MASTER_TODO completion \u2014 SUB-001 cohort MRR (GetCohortMRRAsync), SUB-002 billing cycle breakdown (GetRevenueBreakdownByBillingCycleAsync), COMM-005 MailKit 4.10.0 SMTP in CommunicationsController, COMM-006 Twilio SMS delegation in SmsNotificationChannelService, SVC-001/002/003 hosted services re-enabled, SCRIPT-CTRL-001\u2192004 verified complete, AI-001\u2192006 verified complete (6 heuristic services). 28 new unit tests. 19 of 31 items resolved; remaining 12 blocked on external API credentials/prerequisites",
+    "v0.623.0: FEAT(wave11): AP-059 merged to main (13 entities, 345 tests). SEC-001 MailKit 4.10.0→4.15.1 (NU1902 vuln fix, 32 warnings eliminated). KB-018 KnowledgeBasePlugin unified search (IUnifiedKnowledgeSearchService delegation + SearchGeneralKBArticlesAsync, 3 tests). KB-019 ITSM KnowledgeArticle domain methods (Publish/SubmitForReview/Approve/Retire + 4 typed events + IHasDomainEvents, 18 tests). INFRA-001 DomainEventPublisher+DomainEventDispatchInterceptor tests (8 tests). 12,598 total passing.",
+    "v0.622.0: FEAT(domain): AP-059 Phase 3 domain enrichment — Quote/Order/Invoice/Subscription/Campaign/SLAPolicy/KnowledgeArticle: IHasDomainEvents, typed events, business methods, CreateForTesting factories. 107 zero-mock behavioral tests.", \u2014 SUB-001 cohort MRR (GetCohortMRRAsync), SUB-002 billing cycle breakdown (GetRevenueBreakdownByBillingCycleAsync), COMM-005 MailKit 4.10.0 SMTP in CommunicationsController, COMM-006 Twilio SMS delegation in SmsNotificationChannelService, SVC-001/002/003 hosted services re-enabled, SCRIPT-CTRL-001\u2192004 verified complete, AI-001\u2192006 verified complete (6 heuristic services). 28 new unit tests. 19 of 31 items resolved; remaining 12 blocked on external API credentials/prerequisites",
     "v0.614.64: FEAT(cdt): CDT deploy logging enhancements \u2014 [LEVEL] prefix badges (INFO/ERROR/WARN/OK/CMD) with color coding, [host] tags on log lines, 0.1s throttle; build server selection (local/remote with SSH); profile artifact storage (save_artifacts/load_artifacts/get_artifact + REST endpoints); AES-256-GCM profile encryption (encrypt_data/decrypt_data); encrypted profile push to deployment target; 327 CDT tests",
     "v0.614.63: FIX(ci-cd): Fix CI/CD backend test failures from Sonar async refactoring \u2014 LeadService.DeleteAsync/UpdateAsync now use await DispatchEntityEventAsync; test Verify calls updated in 3 test files (7 total) to match async method signature with CancellationToken",
     "v0.614.62: FIX(frontend): Fix frontend compilation \u2014 add ES2021 to tsconfig lib for replaceAll support; add type annotations for implicit-any in ChangeHistoryTimeline, RelatedIncidentsWidget, WorkflowSimulator, errorHandler",

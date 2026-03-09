@@ -1,9 +1,9 @@
 # CRM Solution — Master TODO List
 
-> **Last Updated:** March 9, 2026 (v0.621.1 — KB-013/KB-014 verified complete: SelfServiceChatbot wired to UnifiedKnowledgeSearch, AIKnowledgeSearchService indexes both ITSM + General KB)
-> **Version:** 0.621.1
+> **Last Updated:** March 9, 2026 (v0.623.0 — Wave 11: AP-059 merged to main, MailKit vulnerability fix, KB unified search plugin, ITSM KA domain methods, DomainEvent infra tests)
+> **Version:** 0.623.0
 > **Active Backlog:** 0 active items — all P0/P1/P2/P3 complete; 2 deferred architectural items remain (XMOD-011, INT-003 blocked)
-> **Build:** ✅ 0 errors (backend + frontend) | **Tests:** ✅ 4,920+ passing, 22 skipped
+> **Build:** ✅ 0 errors (backend + frontend) | **Tests:** ✅ 12,598 passing (5 projects), 44 skipped, 1 pre-existing failure
 
 ---
 
@@ -30,7 +30,8 @@ All items below are fully implemented, tested, and committed.
 | AP-019 through AP-045 Scripting/AI stubs verified | Batch | March 8, 2026 | SCRIPT-CTRL, AI-001→006 all confirmed fully implemented |
 | AP Validation B5 AP-024→027 | 4 | March 8, 2026 | Input validation at API boundary: `[Required]`/`[Range]`/`[EmailAddress]`/`[StringLength]`/`[DataType]` added to `CreateSubscriptionDto`, `CreatePaymentDto`, `CreateDunningScheduleDto`, `CreateServiceRequestDto`. 46 unit tests added. |
 | **MASTER_TODO Bulk Sprint v0.618.0** | **~100** | **March 9, 2026** | P0: AP-004 thread-safety (volatile+Interlocked), AP-015 ProviderFeatureFlagCache hosted service, AP-016 IConfiguration direct read, AP-017 already fixed. P1: PRA-001-005, AP-018-027, KB-001-009 (all pre-impl; 76 tests fixed). P2: PRA-006-008/016-017, AP-028-040, UX-CONF-001-014, KB-010-012. P3: PRA-011/013-015/018-020, AP-039/040. Build: 0 errors, 161 warnings. Tests: 4,900+. |
-| **Total Completed** | **~1099** | | |
+| **Wave 11 v0.623.0** | **4** | **March 9, 2026** | SEC-001: MailKit 4.10.0→4.15.1 (NU1902 vuln fix, 32 warnings eliminated). KB-018: KnowledgeBasePlugin unified search (IUnifiedKnowledgeSearchService delegation + SearchGeneralKBArticlesAsync, 3 tests). KB-019: ITSM KnowledgeArticle domain methods (Publish/SubmitForReview/Approve/Retire + 4 typed events + IHasDomainEvents, 18 tests). INFRA-001: DomainEventPublisher + DomainEventDispatchInterceptor unit tests (8 tests). AP-059 merged to main. Build: 0 errors, 168 warnings. Tests: 12,598 passing. |
+| **Total Completed** | **~1103** | | |
 
 ---
 
@@ -310,12 +311,25 @@ CRM Config (/admin/config/crm — already exists)
 | ~~KB-016~~ | ✅ Done (2026-03-09) — `KnowledgeArticleVersion.cs` identified as orphan (no DbSet/migrations/usages). `ArticleVersion.cs` confirmed authoritative. Orphan entity + orphan DTO marked `[Obsolete]` with XML doc `<remarks>` explaining divergence. Build clean. |
 | ~~KB-017~~ | ✅ Done (2026-03-09) — `KnowledgeCategoryManagementPage.tsx` created (MUI SimpleTreeView v8, Formik+Yup, two-panel layout); route `/admin/knowledge/categories` added in `App.tsx`; "Category Tree" button added to `KnowledgeBasePage`; `KnowledgeCategoryTreeDto` type added to `knowledgeBaseService.ts`. 0 TS errors. |
 
+---
+
+### Wave 11 — Security, KB Unified Search, ITSM Domain Methods, Infra Tests (v0.623.0)
+
+> All 4 items completed. AP-059 feature branch merged to main.
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SEC-001 | P0 | **MailKit NU1902 vulnerability fix** — Updated MailKit from 4.10.0 to 4.15.1 (MimeKit GHSA-g7hc-96xr-gvvx moderate severity). Eliminated 32 NU1902 build warnings. | ✅ Done (2026-03-09) |
+| KB-018 | P1 | **KnowledgeBasePlugin unified search** — Added optional `IUnifiedKnowledgeSearchService?` injection to `KnowledgeBasePlugin.cs`. `SearchArticlesAsync` now delegates to unified search when available (ITSM+General KB), falls back to ITSM-only query when null. Added `SearchGeneralKBArticlesAsync` [KernelFunction]. 3 new tests. | ✅ Done (2026-03-09) |
+| KB-019 | P1 | **ITSM KnowledgeArticle domain methods** — Added `IHasDomainEvents` to ITSM `KnowledgeArticle.cs` with 4 behavioral methods: `Publish(publishedByUserId)`, `SubmitForReview()`, `Approve()`, `Retire(reason)`. Created 4 typed domain events in `ITSMKnowledgeArticleEvents.cs`. Guard clauses enforce state transitions (Draft→Review→Approved→Published; Published→Retired). 18 new tests. | ✅ Done (2026-03-09) |
+| INFRA-001 | P2 | **DomainEventPublisher + DomainEventDispatchInterceptor tests** — Created `DomainEventInfrastructureTests.cs` covering: single/multiple handler dispatch, empty handlers, IEnumerable dispatch, PublishAndClearAsync entity clearing, interceptor pass-through. 8 new tests. | ✅ Done (2026-03-09) |
+
 ### Deferred (will not be addressed this wave)
 
 | ID | Reason |
 |----|--------|
-| ~~AP-059~~ | ✅ **Phase 1+2+3 Done (2026-03-09)** — Domain model enrichment complete for 13 entities. All implement `IHasDomainEvents` with behavioral methods, typed domain events, and zero-mock unit tests. **Phase 1+2 Entities:** ServiceRequest (157 tests), Opportunity (20 tests), Lead (18 tests), Account (12 tests), Contract (16 tests), Incident (15 tests). **Phase 3 Entities:** Quote (18 tests), Order (22 tests), Invoice (19 tests), Subscription (16 tests), Campaign (16 tests), SLAPolicy (7 tests), KnowledgeArticle (9 tests). **Infra:** `DomainEventDispatchInterceptor`, `AuditLogDomainEventForwarder`, 13 event record files. **Total: 345 tests.** Branch: `feat/ap-059-domain-enrichment`. ADR: [docs/01-architecture/ADR-011-domain-model-enrichment-strategy.md](01-architecture/ADR-011-domain-model-enrichment-strategy.md) |
-| XMOD-011 | `KnowledgeArticle` entity consolidation — ITSM + General KB versions have separate DbSets and incompatible schemas; needs architectural decision first |}
+| ~~AP-059~~ | ✅ **Phase 1+2+3 Done & Merged to main (v0.623.0)** — Domain model enrichment complete for 13 entities. All implement `IHasDomainEvents` with behavioral methods, typed domain events, and zero-mock unit tests. **Phase 1+2 Entities:** ServiceRequest (157 tests), Opportunity (20 tests), Lead (18 tests), Account (12 tests), Contract (16 tests), Incident (15 tests). **Phase 3 Entities:** Quote (18 tests), Order (22 tests), Invoice (19 tests), Subscription (16 tests), Campaign (16 tests), SLAPolicy (7 tests), KnowledgeArticle (9 tests). **Infra:** `DomainEventDispatchInterceptor`, `AuditLogDomainEventForwarder`, `DomainEventPublisher` (8 tests), 13 event record files. **Total: 345+29 tests.** Merged: `feat/ap-059-domain-enrichment` → `main` (67 files, 5102 insertions). ADR: [docs/01-architecture/ADR-011-domain-model-enrichment-strategy.md](01-architecture/ADR-011-domain-model-enrichment-strategy.md) |
+| XMOD-011 | `KnowledgeArticle` entity consolidation — **Research complete (v0.623.0):** ITSM + General KB versions have incompatible `ArticleType` enums (ITSM: HowTo=1,FAQ=3 vs KB: HowTo=0,FAQ=1), different PKs (`ArticleId` vs `Id`), different property counts (66 vs 100+). Full table merge would cause data corruption. **Decision: keep separate DbSets.** KB-018 unified search plugin bridges both sources via `IUnifiedKnowledgeSearchService`. |}
 
 ---
 

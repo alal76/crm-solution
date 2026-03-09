@@ -6,6 +6,9 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Events;
+using CRM.Core.Exceptions;
+using CRM.Core.Ports.Output.Events;
 
 namespace CRM.Core.Entities.ITSM;
 
@@ -45,8 +48,14 @@ public enum PublishingState
     Retired = 5
 }
 
-public class KnowledgeArticle
+public class KnowledgeArticle : IHasDomainEvents
 {
+    private readonly List<IDomainEvent> _domainEvents = new();
+    public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
+    public void AddDomainEvent(IDomainEvent domainEvent) => _domainEvents.Add(domainEvent);
+    public void RemoveDomainEvent(IDomainEvent domainEvent) => _domainEvents.Remove(domainEvent);
+    public void ClearDomainEvents() => _domainEvents.Clear();
+
     [Key]
     public int ArticleId { get; set; }
 
@@ -147,6 +156,67 @@ public class KnowledgeArticle
     public ICollection<ArticleFeedback>? Feedback { get; set; }
 
     public ICollection<ArticleAttachment>? Attachments { get; set; }
+
+    // --- Domain Methods (KB-019) ---
+
+    public void Publish(int publishedByUserId)
+    {
+        if (PublishingState != PublishingState.Approved)
+            throw new BusinessRuleException("ITSMKnowledgeArticle.Publish", "Article must be in Approved state to publish.");
+
+        PublishingState = PublishingState.Published;
+        PublishedDate = DateTime.UtcNow;
+        PublishedById = publishedByUserId;
+        ModifiedAt = DateTime.UtcNow;
+        AddDomainEvent(new ITSMKnowledgeArticlePublishedEvent(ArticleId, publishedByUserId, DateTime.UtcNow));
+    }
+
+    public void SubmitForReview()
+    {
+        if (PublishingState != PublishingState.Draft)
+            throw new BusinessRuleException("ITSMKnowledgeArticle.SubmitForReview", "Article must be in Draft state to submit for review.");
+
+        PublishingState = PublishingState.Review;
+        ModifiedAt = DateTime.UtcNow;
+        AddDomainEvent(new ITSMKnowledgeArticleSubmittedForReviewEvent(ArticleId, DateTime.UtcNow));
+    }
+
+    public void Approve()
+    {
+        if (PublishingState != PublishingState.Review)
+            throw new BusinessRuleException("ITSMKnowledgeArticle.Approve", "Article must be in Review state to approve.");
+
+        PublishingState = PublishingState.Approved;
+        ModifiedAt = DateTime.UtcNow;
+        AddDomainEvent(new ITSMKnowledgeArticleApprovedEvent(ArticleId, DateTime.UtcNow));
+    }
+
+    public void Retire(string reason)
+    {
+        if (PublishingState != PublishingState.Published)
+            throw new BusinessRuleException("ITSMKnowledgeArticle.Retire", "Article must be in Published state to retire.");
+        if (string.IsNullOrWhiteSpace(reason))
+            throw new BusinessRuleException("ITSMKnowledgeArticle.Retire", "Retirement reason must not be empty.");
+
+        PublishingState = PublishingState.Retired;
+        ModifiedAt = DateTime.UtcNow;
+        AddDomainEvent(new ITSMKnowledgeArticleRetiredEvent(ArticleId, reason, DateTime.UtcNow));
+    }
+
+    internal static KnowledgeArticle CreateForTesting(PublishingState state = PublishingState.Draft)
+    {
+        return new KnowledgeArticle
+        {
+            ArticleId = 1,
+            Number = "KB-TEST-001",
+            Title = "Test Article",
+            ArticleBody = "Test body content",
+            ArticleType = ArticleType.HowTo,
+            AuthorId = 1,
+            OwnerId = 1,
+            PublishingState = state
+        };
+    }
 }
 
 public class ArticleRelationship
