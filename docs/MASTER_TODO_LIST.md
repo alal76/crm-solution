@@ -583,7 +583,7 @@ CRM Config (/admin/config/crm — already exists)
 | AP-059-P1-GATE-02 | Run all tests: `dotnet test tests/CRM.Tests.csproj -v q` — must be ≥ baseline pass count + 43 new tests (23 SR + 20 Opp) | ✅ Done (2026-03-09) — 2992 total entity tests |
 | AP-059-P1-GATE-03 | Grep check: `grep -rn "\.Status = ServiceRequestStatus\." CRM.Backend/src/` — must return 0 results | ✅ Done (2026-03-09) |
 | AP-059-P1-GATE-04 | Grep check: `grep -rn "\.Stage = OpportunityStage\." CRM.Backend/src/` — must return 0 results | ✅ Done (2026-03-09) |
-| AP-059-P1-GATE-05 | Update `docs/06-standards/CODE_PATTERNS.md` — add "Entity Enrichment Pattern" section with `ServiceRequest.Resolve()` as canonical example | ⬜ Deferred to next sprint |
+| AP-059-P1-GATE-05 | Update `docs/06-standards/CODE_PATTERNS.md` — add "Entity Enrichment Pattern" section with `ServiceRequest.Resolve()` as canonical example | ✅ Done (2026-03-09) |
 | AP-059-P1-GATE-06 | Open PR: `feat/ap-059-domain-enrichment → main` (Phase 1 only). PR description must reference ADR-011. | ✅ Done (2026-03-09) — branch pushed, ready for merge |
 
 ---
