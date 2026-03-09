@@ -260,38 +260,22 @@ def run(api: ApiClient, log: RunLogger) -> None:
          "severity": "Warning"},
     ]
     alert_ids = []
-    for a in alert_rules:
-        eid = api.create_and_track("admin_alert_rules", "/api/admin/alerts", a)
-        if eid:
-            alert_ids.append(eid)
+    # NOTE: AdminDashboardController only exposes GET /api/admin/alerts (no POST endpoint).
+    # Skip create/update/delete operations for alert rules.
     api.get("/api/admin/alerts")
-    if alert_ids:
-        api.get(f"/api/admin/alerts/{alert_ids[0]}")
-        api.put(f"/api/admin/alerts/{alert_ids[0]}",
-                {**alert_rules[0], "threshold": 3.0,
-                 "description": "Updated — alert at 3% error rate"})
-    # Delete test
-    del_a = {"name": f"DELETE-ALERT-{ts}", "description": "Temp",
-             "metric": "Test", "threshold": 100, "operator": "greaterThan",
-             "isActive": False, "notifyEmails": [], "severity": "Info"}
-    code, body, _ = api.post("/api/admin/alerts", del_a)
-    if body and isinstance(body, dict) and body.get("id"):
-        api.delete(f"/api/admin/alerts/{body['id']}")
     save_ids("admin_alert_rules", alert_ids)
 
     # ─── Data Retention Policies ──────────────────────────────────────────
+    # Controller expects a single POST with {policies: [{entity, retentionDays, action}]}
     log.section("DataRetention Policies")
     api.get("/api/admin/data-retention")
-    retention_policies = [
-        {"entityType": "AuditLog", "retentionDays": 365,
-         "archiveEnabled": True, "description": "Keep audit logs for 1 year"},
-        {"entityType": "DeletedRecord", "retentionDays": 90,
-         "archiveEnabled": False, "description": "Keep soft-deleted records for 90 days"},
-        {"entityType": "EmailLog", "retentionDays": 180,
-         "archiveEnabled": True, "description": "Keep email logs for 6 months"},
-    ]
-    for rp in retention_policies:
-        api.post("/api/admin/data-retention", rp)
+    api.post("/api/admin/data-retention", {
+        "policies": [
+            {"entity": "AuditLog", "retentionDays": 365, "action": "Archive"},
+            {"entity": "DeletedRecord", "retentionDays": 90, "action": "Delete"},
+            {"entity": "EmailLog", "retentionDays": 180, "action": "Archive"},
+        ]
+    })
     api.get("/api/admin/data-retention")
 
     # ─── Backup Status (read-only) ─────────────────────────────────────────
@@ -303,11 +287,12 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ─── Feature Plans ────────────────────────────────────────────────────
     log.section("FeaturePlans (read/write)")
     api.get("/api/featureplans")
+    # FeatureFlagManagementController: PUT /api/feature-flags/{name}
+    # (not PUT /api/admin/features/{name} which is GET-only FeaturesController)
     api.get("/api/admin/features")
-    # Toggle a non-critical feature flag for test
-    api.put("/api/admin/features/EnableKnowledgeBase",
+    api.put("/api/feature-flags/EnableKnowledgeBase",
             {"enabled": True, "reason": "Data loader enablement test"})
-    api.put("/api/admin/features/EnableITSM",
+    api.put("/api/feature-flags/EnableITSM",
             {"enabled": True, "reason": "Data loader enablement test"})
     api.get("/api/admin/features")
 

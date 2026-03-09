@@ -417,6 +417,7 @@ def _approval_matrices(api: ApiClient, log: RunLogger, ts: int) -> list:
         api.get(f"/api/approvals/matrices/{matrix_ids[0]}")
         api.put(f"/api/approvals/matrices/{matrix_ids[0]}", {
             **matrices[0],
+            "id": matrix_ids[0],
             "description": "Updated: multi-level approval for quotes above $10k",
         })
         api.get("/api/approvals/matrices/applicable?entityType=Quote&amount=75000")
@@ -469,6 +470,7 @@ def _approval_groups(api: ApiClient, log: RunLogger, ts: int,
     if group_ids:
         api.put(f"/api/approvals/groups/{group_ids[0]}", {
             **groups[0],
+            "id": group_ids[0],
             "description": "Updated: Finance approvers including treasury team",
         })
         extra_g = {"name": f"Temp Group Delete {ts}", "isActive": False}
@@ -501,17 +503,12 @@ def _approval_requests(api: ApiClient, log: RunLogger, ts: int,
     approver_id = user_ids[0] if user_ids else 1
     request_ids = []
 
+    # ApprovalsController: POST /api/approvals/submit/{quoteId} takes quoteId in URL,
+    # {justification} in body. No POST /api/approvals/requests endpoint exists.
     for i, qid in enumerate(quote_ids[:3]):
-        payload = {k: v for k, v in {
-            "entityType": "Quote",
-            "entityId": qid,
-            "matrixId": matrix_ids[0] if matrix_ids else None,
-            "requestedBy": approver_id,
-            "amount": (i + 1) * 30000,
-            "notes": f"Approval request for quote #{qid} — batch {ts}",
-        }.items() if v is not None}
+        payload = {"justification": f"Approval request for quote #{qid} (batch {ts})"}
         eid = api.create_and_track("approvalrequests",
-                                   "/api/approvals/requests", payload)
+                                   f"/api/approvals/submit/{qid}", payload)
         if eid:
             request_ids.append(eid)
 
@@ -598,8 +595,9 @@ def _automation_rules(api: ApiClient, log: RunLogger, ts: int,
             "description": "Updated: assign web + chat leads to inside sales",
             "conditions": '[{"field":"Source","operator":"in","value":"Web,Chat"}]',
         })
-        api.patch(f"/api/automation/rules/{rule_ids[0]}", {"isActive": False})
-        api.patch(f"/api/automation/rules/{rule_ids[0]}", {"isActive": True})
+        # AutomationRulesController has no PATCH — use PUT with full body or specific activate/deactivate endpoints
+        api.put(f"/api/automation/rules/{rule_ids[0]}/deactivate", {})
+        api.put(f"/api/automation/rules/{rule_ids[0]}/activate", {})
 
         extra_r = {
             "name": f"Temp Automation Rule Delete {ts}",
@@ -622,7 +620,7 @@ def _automation_rules(api: ApiClient, log: RunLogger, ts: int,
 
 def _workflow_analytics(api: ApiClient, log: RunLogger) -> None:
     log.section("Workflow Analytics (read-only)")
-    api.get("/api/workflows/analytics")
+    api.get("/api/workflows/analytics/execution-stats")
     api.get("/api/workflows/analytics/execution-stats")
     api.get("/api/workflows/adoption-metrics")
     api.get("/api/workflows/definitions/stats")

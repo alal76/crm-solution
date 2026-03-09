@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 623,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-03-09",
-  "description": "feat(wave11): AP-059 merged to main, MailKit NU1902 vuln fix (4.10.0→4.15.1), KB-018 KnowledgeBasePlugin unified search (IUnifiedKnowledgeSearchService delegation + SearchGeneralKBArticlesAsync), KB-019 ITSM KnowledgeArticle domain methods (Publish/SubmitForReview/Approve/Retire + 4 typed events + IHasDomainEvents), INFRA-001 DomainEventPublisher+Interceptor tests. 29 new tests. 12,598 total passing.",
+  "description": "fix: schema migration AddMissingColumnsV0623 (IsActive + domain enrichment columns), data loader batch script fixes (25/25 batches passing: billingCycle Annual→Yearly, agents integer IDs, lineItems KeyError fix, batch_07/09/10/17/18/19/20/22/24/25 payload corrections), copyright headers across backend files",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

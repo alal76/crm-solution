@@ -63,7 +63,8 @@ public class TestResultsController : CrmControllerBase
     public async Task<IActionResult> GetResultsBySession(string sessionId)
     {
         // S2083: Sanitize sessionId to prevent path traversal - only allow alphanumeric, hyphens, underscores (max 64 chars)
-        if (string.IsNullOrWhiteSpace(sessionId) || !System.Text.RegularExpressions.Regex.IsMatch(sessionId, @"^[a-zA-Z0-9_-]{1,64}$", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromMilliseconds(100))) // NOSONAR - S6444: bounded character-class regex [a-zA-Z0-9_-]{1,64} has no catastrophic backtracking; timeout is belt-and-suspenders
+        // NOSONAR - S6444: bounded character-class regex [a-zA-Z0-9_-]{1,64} has no catastrophic backtracking; timeout is belt-and-suspenders
+        if (string.IsNullOrWhiteSpace(sessionId) || !System.Text.RegularExpressions.Regex.IsMatch(sessionId, @"^[a-zA-Z0-9_-]{1,64}$", System.Text.RegularExpressions.RegexOptions.None, TimeSpan.FromMilliseconds(100)))
         {
             return BadRequest(new { message = "Invalid session ID format" });
         }

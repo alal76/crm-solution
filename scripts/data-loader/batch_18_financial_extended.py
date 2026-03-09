@@ -29,33 +29,30 @@ def run(api: ApiClient, log: RunLogger) -> None:
     user_ids = load_ids("users")
 
     # ─── Credit Memos ─────────────────────────────────────────────────────
+    # CreditMemo entity: CurrencyCode (not currency), Reason (CreditMemoReason int enum:
+    #   0=Return, 1=BillingError, 2=PriceAdjustment, 4=ServiceCredit, 5=DuplicateCharge)
+    # Auto-generated: CreditMemoNumber (do not send "number"), CreditMemoDate (do not send "issueDate")
     log.section("CreditMemos CRUD")
     credit_memos = [
         {"accountId": acct_ids[0] if acct_ids else 1,
-         "number": f"CM-{ts}-001", "status": 0,
-         "issueDate": "2026-02-15T00:00:00Z",
-         "amount": 1500.00, "currency": "USD",
-         "reason": "Product returned by customer",
+         "amount": 1500.00, "currencyCode": "USD",
+         "reason": 0,  # Return
          "description": "Full credit for returned Enterprise license",
          "lineItems": [
              {"description": "Enterprise License Refund", "quantity": 1,
               "unitPrice": 1500.00, "total": 1500.00}
          ]},
         {"accountId": acct_ids[1] if len(acct_ids) > 1 else 1,
-         "number": f"CM-{ts}-002", "status": 0,
-         "issueDate": "2026-02-20T00:00:00Z",
-         "amount": 500.00, "currency": "USD",
-         "reason": "Service SLA breach compensation",
+         "amount": 500.00, "currencyCode": "USD",
+         "reason": 4,  # ServiceCredit
          "description": "Credit for SLA breach in January",
          "lineItems": [
              {"description": "SLA Compensation", "quantity": 1,
               "unitPrice": 500.00, "total": 500.00}
          ]},
         {"accountId": acct_ids[2] if len(acct_ids) > 2 else 1,
-         "number": f"CM-{ts}-003", "status": 0,
-         "issueDate": "2026-03-01T00:00:00Z",
-         "amount": 2500.00, "currency": "USD",
-         "reason": "Billing error correction",
+         "amount": 2500.00, "currencyCode": "USD",
+         "reason": 5,  # DuplicateCharge
          "description": "Credit for double-billing error in February",
          "lineItems": [
              {"description": "Duplicate Charge Refund - Month 1", "quantity": 1,
@@ -65,9 +62,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
          ]},
     ]
     cm_ids = []
+    first_cm_line_items = credit_memos[0].get("lineItems", []) if credit_memos else []
     for cm in credit_memos:
-        line_items = cm.pop("lineItems", [])
-        payload = {**cm, "lineItems": line_items}
+        payload = dict(cm)  # shallow copy to avoid mutating original
         eid = api.create_and_track("creditmemos", "/api/creditmemos", payload)
         if eid:
             cm_ids.append(eid)
@@ -75,19 +72,18 @@ def run(api: ApiClient, log: RunLogger) -> None:
     if cm_ids:
         api.get(f"/api/creditmemos/{cm_ids[0]}")
         api.get(f"/api/creditmemos/by-number/CM-{ts}-001")
+        first_cm = {k: v for k, v in credit_memos[0].items() if k != "lineItems"}
         api.put(f"/api/creditmemos/{cm_ids[0]}",
-                {**{k: v for k, v in credit_memos[0].items() if k != "lineItems"},
+                {**first_cm,
                  "reason": "Product returned — full refund approved",
-                 "lineItems": credit_memos[0]["lineItems"]})
+                 "lineItems": first_cm_line_items})
         # Void a credit memo
         api.post(f"/api/creditmemos/{cm_ids[0]}/void",
                  {"reason": "Void for testing purposes"})
     # Delete test
     del_cm = {"accountId": acct_ids[0] if acct_ids else 1,
-              "number": f"CM-DEL-{ts}", "status": 0,
-              "issueDate": "2026-01-01T00:00:00Z",
-              "amount": 1.00, "currency": "USD",
-              "reason": "Delete test", "lineItems": []}
+              "amount": 1.00, "currencyCode": "USD",
+              "reason": 0, "lineItems": []}
     code, body, _ = api.post("/api/creditmemos", del_cm)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/creditmemos/{body['id']}")
@@ -96,81 +92,89 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ─── Order Returns ─────────────────────────────────────────────────────
     log.section("OrderReturns CRUD")
     if order_ids:
+        # CreateOrderReturnDto: OrderId, Reason(int), ReasonDescription?, Notes, RefundAmount,
+        #   RestockingFee, ShippingRefund, LineItems[{OrderLineItemId, ProductId, Quantity, Reason?}]
+        # OrderReturnReason: 0=Defective, 1=WrongItem, 2=NotAsDescribed, 3=ChangedMind, 7=Other
         returns = [
-            {"orderId": order_ids[0], "status": 0,
-             "requestedDate": "2026-02-10T00:00:00Z",
-             "reason": "Defective product",
-             "returnType": 0,  # Refund
-             "refundAmount": 2500.00, "notes": "Customer reported hardware defect",
+            {"orderId": order_ids[0],
+             "reason": 0,  # Defective
+             "reasonDescription": "Customer reported hardware defect",
+             "refundAmount": 2500.00, "restockingFee": 0.0, "shippingRefund": 0.0,
+             "notes": "Hardware unit arrived with physical damage",
              "lineItems": [
-                 {"orderLineItemId": None, "productId": None,
-                  "description": "Defective hardware unit", "quantity": 1,
-                  "unitPrice": 2500.00, "total": 2500.00}
+                 {"orderLineItemId": 0, "productId": 0, "quantity": 1,
+                  "reason": "Defective hardware unit"}
              ]},
-            {"orderId": order_ids[1] if len(order_ids) > 1 else order_ids[0], "status": 0,
-             "requestedDate": "2026-02-15T00:00:00Z",
-             "reason": "Wrong item shipped",
-             "returnType": 1,  # Replacement
-             "refundAmount": 0, "notes": "Replaced with correct item",
+            {"orderId": order_ids[1] if len(order_ids) > 1 else order_ids[0],
+             "reason": 1,  # WrongItem
+             "reasonDescription": "Wrong item shipped",
+             "refundAmount": 0.0, "restockingFee": 0.0, "shippingRefund": 0.0,
+             "notes": "Replaced with correct item",
              "lineItems": [
-                 {"orderLineItemId": None, "productId": None,
-                  "description": "Wrong model returned", "quantity": 1,
-                  "unitPrice": 3200.00, "total": 3200.00}
+                 {"orderLineItemId": 0, "productId": 0, "quantity": 1,
+                  "reason": "Wrong model returned"}
              ]},
         ]
         ret_ids = []
         for r in returns:
-            line_items = r.pop("lineItems", [])
-            payload = {**r, "lineItems": line_items}
-            eid = api.create_and_track("orderreturns", "/api/orderreturns", payload)
+            eid = api.create_and_track("orderreturns", "/api/orderreturns", r)
             if eid:
                 ret_ids.append(eid)
         api.get("/api/orderreturns")
         if ret_ids:
             api.get(f"/api/orderreturns/{ret_ids[0]}")
-            api.put(f"/api/orderreturns/{ret_ids[0]}",
-                    {**{k: v for k, v in returns[0].items() if k not in ("lineItems",)},
-                     "notes": "Defect confirmed — full refund authorized",
-                     "lineItems": returns[0]["lineItems"]})
+            # UpdateOrderReturnDto: Status(int), Notes, RefundAmount, RestockingFee, ShippingRefund, ...
+            api.put(f"/api/orderreturns/{ret_ids[0]}", {
+                "status": 1,  # Approved
+                "notes": "Defect confirmed — full refund authorized",
+                "refundAmount": 2500.00,
+                "restockingFee": 0.0,
+                "shippingRefund": 25.00,
+            })
             api.post(f"/api/orderreturns/{ret_ids[0]}/approve",
                      {"approvedBy": user_ids[0] if user_ids else 1,
                       "notes": "Approved after inspection"})
         # Delete test
-        del_r = {"orderId": order_ids[0], "status": 0,
-                 "requestedDate": "2026-01-01T00:00:00Z",
-                 "reason": "Test delete", "returnType": 0,
-                 "refundAmount": 0.01, "lineItems": []}
+        del_r = {"orderId": order_ids[0], "reason": 7, "refundAmount": 0.01,
+                 "restockingFee": 0.0, "shippingRefund": 0.0, "lineItems": []}
         code, body, _ = api.post("/api/orderreturns", del_r)
         if body and isinstance(body, dict) and body.get("id"):
             api.delete(f"/api/orderreturns/{body['id']}")
         save_ids("orderreturns", ret_ids)
 
     # ─── Pricing Rules ────────────────────────────────────────────────────
+    # CreatePricingRuleDto: Name, RuleType(int), DiscountMethod(int), DiscountValue, MinQuantity, Priority, ...
+    # PricingRuleType: 0=VolumeDiscount, 1=CustomerSpecific, 2=ContractPrice, 3=Promotional, ...
+    # DiscountMethod:  0=PercentOff, 1=AmountOff, 2=FixedPrice
     log.section("PricingRules CRUD")
     pricing_rules = [
         {"name": f"Volume Discount 10+ {ts}",
          "description": "10% off when ordering 10+ units",
-         "ruleType": "VolumeDiscount", "isActive": True,
-         "discountType": "Percentage", "discountValue": 10.0,
-         "conditions": {"minQuantity": 10},
+         "ruleType": 0,  # VolumeDiscount
+         "isActive": True,
+         "discountMethod": 0,  # PercentOff
+         "discountValue": 10.0, "minQuantity": 10,
          "priority": 10},
         {"name": f"Annual Plan Discount {ts}",
          "description": "20% off for annual billing",
-         "ruleType": "BillingCycle", "isActive": True,
-         "discountType": "Percentage", "discountValue": 20.0,
-         "conditions": {"billingCycle": "Annual"},
+         "ruleType": 3,  # Promotional
+         "isActive": True,
+         "discountMethod": 0,  # PercentOff
+         "discountValue": 20.0,
          "priority": 20},
-        {"name": f"Enterprise Fixed Discount {ts}",
+        {"name": f"Enterprise Customer Discount {ts}",
          "description": "$5000 discount for enterprise accounts",
-         "ruleType": "AccountTier", "isActive": True,
-         "discountType": "Fixed", "discountValue": 5000.0,
-         "conditions": {"accountTier": "Enterprise"},
+         "ruleType": 1,  # CustomerSpecific
+         "isActive": True,
+         "discountMethod": 1,  # AmountOff
+         "discountValue": 5000.0,
          "priority": 5},
         {"name": f"Loyalty Discount 2yr {ts}",
          "description": "5% off for customers with 2+ years",
-         "ruleType": "Loyalty", "isActive": True,
-         "discountType": "Percentage", "discountValue": 5.0,
-         "conditions": {"minYears": 2},
+         "ruleType": 1,  # CustomerSpecific
+         "isActive": True,
+         "discountMethod": 0,  # PercentOff
+         "discountValue": 5.0,
          "priority": 30},
     ]
     pr_ids = []
@@ -187,8 +191,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
                  "description": "Updated — 12% off for 10+ units"})
     # Delete test
     del_p = {"name": f"DELETE-PR-{ts}", "description": "Temp",
-             "ruleType": "Manual", "isActive": False,
-             "discountType": "Percentage", "discountValue": 0, "priority": 99}
+             "ruleType": 0, "isActive": False,
+             "discountMethod": 0, "discountValue": 0, "priority": 99}
     code, body, _ = api.post("/api/pricingrules", del_p)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/pricingrules/{body['id']}")
@@ -226,38 +230,39 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.delete(f"/api/taxrates/{body['id']}")
     save_ids("taxrates", tax_ids)
 
-    # ─── Payment Methods ──────────────────────────────────────────────────
-    log.section("PaymentMethods CRUD")
-    payment_methods = [
-        {"name": f"Corporate Visa {ts}",
-         "type": "CreditCard", "provider": "Stripe",
-         "isDefault": False, "isActive": True,
-         "maskedNumber": "****4242", "expiryMonth": 12, "expiryYear": 2027,
-         "cardholderName": "ACME Corp",
-         "accountId": acct_ids[0] if acct_ids else None},
-        {"name": f"ACH Bank Transfer {ts}",
-         "type": "BankTransfer", "provider": "ACH",
-         "isDefault": False, "isActive": True,
-         "bankName": "Chase Bank",
-         "routingNumber": "****5678", "accountNumber": "****9012",
-         "accountId": acct_ids[0] if acct_ids else None},
+    # ─── Payments (transactions) ──────────────────────────────────────────
+    # /api/payments uses CreatePaymentDto: AccountId[Required], Amount[Required],
+    #   PaymentMethod(int: 0=CreditCard, 2=BankTransfer), PaymentType(int: 0=Payment),
+    #   Description, InvoiceId (optional)
+    log.section("Payments CRUD")
+    payments = [
+        {"accountId": acct_ids[0] if acct_ids else 1,
+         "amount": 19999.00, "paymentMethod": 0,  # CreditCard
+         "paymentType": 0,  # Payment
+         "description": f"Annual Enterprise subscription payment {ts}",
+         "invoiceId": invoice_ids[0] if invoice_ids else None},
+        {"accountId": acct_ids[1] if len(acct_ids) > 1 else 1,
+         "amount": 999.00, "paymentMethod": 2,  # BankTransfer
+         "paymentType": 0,  # Payment
+         "description": f"Monthly Starter plan payment {ts}"},
     ]
     pm_ids = []
-    for pm in payment_methods:
+    for pm in payments:
         payload = {k: v for k, v in pm.items() if v is not None}
-        eid = api.create_and_track("paymentmethods", "/api/payments", payload)
+        eid = api.create_and_track("payments", "/api/payments", payload)
         if eid:
             pm_ids.append(eid)
     api.get("/api/payments")
     if pm_ids:
         api.get(f"/api/payments/{pm_ids[0]}")
     # Delete test
-    del_pm = {"name": f"DELETE-PM-{ts}", "type": "CreditCard", "provider": "Test",
-              "isDefault": False, "isActive": False}
+    del_pm = {"accountId": acct_ids[0] if acct_ids else 1,
+              "amount": 0.01, "paymentMethod": 0, "paymentType": 0,
+              "description": f"DELETE-PM-{ts}"}
     code, body, _ = api.post("/api/payments", del_pm)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/payments/{body['id']}")
-    save_ids("paymentmethods", pm_ids)
+    save_ids("payments", pm_ids)
 
     # ─── Commission Payouts (view) ─────────────────────────────────────────
     log.section("Commissions Analytics (read)")

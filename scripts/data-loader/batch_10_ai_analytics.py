@@ -25,24 +25,22 @@ def _sk_agents(api: ApiClient, log: RunLogger, ts: int,
         log.log("  SKIP: /api/agents returned 404 — UseExternalAI flag off")
         return
 
-    agent_ids = [
-        "lead-scoring", "support-triage", "sales-coach", "sentiment-analysis",
-        "account-health", "contract-analysis", "opportunity-advisor",
-        "churn-predictor", "campaign-optimizer", "knowledge-assistant",
-        "financial-insights", "competitor-intelligence",
-    ]
+    # Use integer IDs from the agents list (route uses {agentId:int})
+    agent_ids = []
+    if code == 200 and isinstance(body, (list, dict)):
+        items = body if isinstance(body, list) else body.get("items", body.get("data", []))
+        if isinstance(items, list):
+            agent_ids = [a["id"] for a in items if "id" in a]
+    if not agent_ids:
+        log.log("  SKIP: No agents returned from /api/agents — SK agents not seeded or AI disabled")
+        return
 
-    for agent_id in agent_ids:
-        api.get(f"/api/agents/{agent_id}/config")
+    for agent_id in agent_ids[:3]:  # Test with first 3 agents
+        api.get(f"/api/agents/{agent_id}/conversations")
         api.post(f"/api/agents/{agent_id}/chat", {
-            "message": f"Give me a brief summary relevant to {agent_id.replace('-', ' ')}",
+            "message": "Give me a brief summary relevant to this agent",
             "userId": user_ids[0] if user_ids else 1,
             "sessionId": f"test-session-{ts}",
-        })
-        api.post(f"/api/agents/{agent_id}/feedback", {
-            "rating": 4,
-            "comment": f"Automated feedback test for {agent_id} — batch {ts}",
-            "userId": user_ids[0] if user_ids else 1,
         })
 
     api.get("/api/agents/analytics/usage")
@@ -123,11 +121,12 @@ def _ai_email(api: ApiClient, log: RunLogger) -> None:
     for sample in samples:
         api.post("/api/ai/email/analyze", sample)
 
+    # EmailGenerateRequest: Prompt (required), Tone (optional string)
     api.post("/api/ai/email/generate", {
-        "context": "Follow-up after demo — prospect interested but concerned about price",
+        "prompt": "Write a professional follow-up email after a product demo. "
+                  "The prospect, John Smith at Enterprise Corp, is interested but concerned about price. "
+                  "Emphasize ROI and mention flexible pricing options.",
         "tone": "Professional",
-        "recipientName": "John Smith",
-        "recipientCompany": "Enterprise Corp",
     })
 
     api.post("/api/ai/email/summarize", {
@@ -193,11 +192,9 @@ def _llm_endpoints(api: ApiClient, log: RunLogger) -> None:
         "temperature": 0.7,
     })
 
+    # LlmChatRequest: Message (single string), not messages array
     api.post("/api/llm/chat", {
-        "messages": [
-            {"role": "system", "content": "You are a helpful CRM assistant."},
-            {"role": "user", "content": "What is the best way to qualify a sales lead?"},
-        ],
+        "message": "What is the best way to qualify a sales lead?",
         "maxTokens": 300,
         "temperature": 0.5,
     })

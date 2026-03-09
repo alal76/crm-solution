@@ -4,39 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-//
-// Read-Only DbContext for analytics replica — routes SELECT queries to read replica when configured
-// Connects to crm-mariadb-analytics (port 3307) instead of primary.
-// All queries automatically use AsNoTracking — no writes are possible.
-//
-// Registration (Program.cs — only when ReadOnlyConnection env var is present):
-//
-//   var readOnlyConn = builder.Configuration.GetConnectionString("ReadOnlyConnection");
-//   if (!string.IsNullOrEmpty(readOnlyConn))
-//   {
-//       builder.Services.AddDbContext<CrmReadOnlyDbContext>(options =>
-//           options.UseMySql(readOnlyConn, ServerVersion.AutoDetect(readOnlyConn)));
-//   }
-//
-// Usage in services (inject CrmReadOnlyDbContext for analytics queries):
-//
-//   public class AnalyticsService
-//   {
-//       private readonly CrmReadOnlyDbContext _readOnlyDb;
-//       public AnalyticsService(CrmReadOnlyDbContext readOnlyDb)
-//           => _readOnlyDb = readOnlyDb;
-//
-//       public Task<int> GetOpportunityCountAsync()
-//           => _readOnlyDb.Opportunities.CountAsync();
-//   }
-//
-// Connection string (appsettings.json):
-//   "ConnectionStrings": {
-//     "ReadOnlyConnection": "Server=crm-mariadb-analytics;Port=3307;
-//                            Database=crm_db;User=crm_readonly;
-//                            Password=ReadOnlyPass@Dev2024;"
-//   }
-
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;

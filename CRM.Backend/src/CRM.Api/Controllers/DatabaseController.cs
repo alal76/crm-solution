@@ -833,7 +833,8 @@ Then restart the API container:
                     }
 
                     // Table names from information_schema are safe to use
-                    foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
+                    // NOSONAR S4158 - populated by ExecuteReaderAsync above
+                    foreach (var table in tables)
                     {
                         // Validate table name contains only safe characters
                         if (!IsValidIdentifier(table))
@@ -1118,7 +1119,8 @@ Then restart the API container:
                         }
                     }
 
-                    foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
+                    // NOSONAR S4158 - populated by ExecuteReaderAsync above
+                    foreach (var table in tables)
                     {
                         // Validate table name
                         if (!IsValidIdentifier(table))

@@ -174,7 +174,8 @@ public class RiskAssessmentService : IRiskAssessmentService
 
         // Check unusual login time
         var hour = request.Timestamp.Hour;
-        if (hour >= 0 && hour < 6) // Late night/early morning
+        // Late night/early morning
+        if (hour >= 0 && hour < 6)
         {
             factors.Add(new RiskFactor
             {

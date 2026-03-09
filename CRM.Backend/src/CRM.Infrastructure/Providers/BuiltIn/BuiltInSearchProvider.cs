@@ -892,12 +892,12 @@ public class BuiltInSearchProvider : ISearchPort
             {
                 // Wrap each match with <mark> tags, preserving the original casing
                 // from the field (not the query) so highlights look natural.
+                var regexOptions = System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant;
                 var highlightedText = System.Text.RegularExpressions.Regex.Replace(
                     field,
                     System.Text.RegularExpressions.Regex.Escape(query),
                     m => $"<mark>{m.Value}</mark>",
-                    System.Text.RegularExpressions.RegexOptions.IgnoreCase
-                    | System.Text.RegularExpressions.RegexOptions.CultureInvariant,
+                    regexOptions,
                     TimeSpan.FromSeconds(1));
                 highlights[$"field_{i}"] = highlightedText;
             }

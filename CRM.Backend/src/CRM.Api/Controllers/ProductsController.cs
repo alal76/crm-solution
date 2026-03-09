@@ -56,7 +56,9 @@ public class ProductsController : CrmControllerBase
             var products = await _productService.GetAllProductsAsync();
             return Ok(products);
         }
-        catch (Exception ex) // NOSONAR
+
+        // NOSONAR
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -85,7 +87,9 @@ public class ProductsController : CrmControllerBase
             }
             return Ok(product);
         }
-        catch (Exception ex) // NOSONAR
+
+        // NOSONAR
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -108,7 +112,9 @@ public class ProductsController : CrmControllerBase
             var products = await _productService.GetProductsByCategoryAsync(category);
             return Ok(products);
         }
-        catch (Exception ex) // NOSONAR
+
+        // NOSONAR
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -131,7 +137,9 @@ public class ProductsController : CrmControllerBase
             var products = await _productService.GetProductsByTypeAsync(type);
             return Ok(products);
         }
-        catch (Exception ex) // NOSONAR
+
+        // NOSONAR
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -197,7 +205,9 @@ public class ProductsController : CrmControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -236,7 +246,9 @@ public class ProductsController : CrmControllerBase
 
             return NoContent();
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -266,7 +278,9 @@ public class ProductsController : CrmControllerBase
 
             return NoContent();
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }

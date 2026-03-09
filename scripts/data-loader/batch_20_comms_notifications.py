@@ -159,9 +159,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         for i, eid in enumerate(entity_id_list[:2]):
             comment = {
                 "entityType": entity_type, "entityId": eid,
-                "body": f"Comment #{i+1} on {entity_type} #{eid} — added by data loader batch 20",
-                "isInternal": i % 2 == 0,  # Alternate internal/public
-                "visibility": "Team" if i % 2 == 0 else "Public",
+                "content": f"Comment #{i+1} on {entity_type} #{eid} — added by data loader batch 20",
             }
             cid = api.create_and_track("comments", "/api/comments", comment)
             if cid:
@@ -169,14 +167,13 @@ def run(api: ApiClient, log: RunLogger) -> None:
                 # Reply to first comment
                 if i == 0:
                     api.post(f"/api/comments/{cid}/reply",
-                             {"body": f"Reply to comment on {entity_type} #{eid}",
-                              "isInternal": False})
+                             {"content": f"Reply to comment on {entity_type} #{eid}"})
                     api.get(f"/api/comments/{cid}/thread")
     api.get(f"/api/comments?entityType=Account&entityId={acct_ids[0]}" if acct_ids else "/api/comments")
     if comment_ids:
         api.get(f"/api/comments/{comment_ids[0]}")
         api.put(f"/api/comments/{comment_ids[-1]}",
-                {"body": "Updated comment body — edited by data loader", "isInternal": True})
+                {"content": "Updated comment body — edited by data loader"})
         # Delete last comment
         api.delete(f"/api/comments/{comment_ids[-1]}")
     save_ids("comments", comment_ids[:-1] if len(comment_ids) > 1 else comment_ids)
@@ -184,24 +181,27 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ─── Notification Preferences ─────────────────────────────────────────
     log.section("NotificationPreferences CRUD")
     if user_ids:
+        # NotificationChannel enum: 0=Email, 1=InApp, 2=Push, 3=Sms
+        # Controller expects: List<NotificationPreferenceDto>
+        # DTO: {entityType, eventType, channel (int), isEnabled}
+        _notif_map = [
+            ("ServiceRequest", "Assigned",   [(0, True),  (1, True),  (2, False), (3, False)]),
+            ("Opportunity",    "Won",         [(0, True),  (1, True),  (2, True),  (3, False)]),
+            ("Lead",           "Created",     [(0, True),  (1, True),  (2, False), (3, False)]),
+            ("Contract",       "Expiring",    [(0, True),  (1, True),  (2, False), (3, True)]),
+            ("Payment",        "Failed",      [(0, True),  (1, True),  (2, True),  (3, True)]),
+            ("Task",           "Overdue",     [(0, False), (1, True),  (2, True),  (3, False)]),
+        ]
         for uid in user_ids[:3]:
-            prefs = {
-                "userId": uid,
-                "preferences": [
-                    {"notificationType": "ServiceRequestAssigned",
-                     "email": True, "inApp": True, "push": False, "sms": False},
-                    {"notificationType": "OpportunityWon",
-                     "email": True, "inApp": True, "push": True, "sms": False},
-                    {"notificationType": "NewLead",
-                     "email": True, "inApp": True, "push": False, "sms": False},
-                    {"notificationType": "ContractExpiring",
-                     "email": True, "inApp": True, "push": False, "sms": True},
-                    {"notificationType": "PaymentFailed",
-                     "email": True, "inApp": True, "push": True, "sms": True},
-                    {"notificationType": "TaskOverdue",
-                     "email": False, "inApp": True, "push": True, "sms": False},
-                ]
-            }
+            prefs = []
+            for entity_type, event_type, channels in _notif_map:
+                for channel_val, enabled in channels:
+                    prefs.append({
+                        "entityType": entity_type,
+                        "eventType": event_type,
+                        "channel": channel_val,
+                        "isEnabled": enabled,
+                    })
             api.get(f"/api/users/{uid}/notification-preferences")
             api.put(f"/api/users/{uid}/notification-preferences", prefs)
             api.get(f"/api/users/{uid}/notification-preferences")
@@ -310,25 +310,22 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ─── GDPR Requests ────────────────────────────────────────────────────
     log.section("GDPR Requests")
     if contact_ids:
+        # GdprController: POST /api/gdpr/export-request (no POST /api/gdpr/requests — that is GET only)
         gdpr_requests = [
-            {"contactId": contact_ids[0], "requestType": "Access",
-             "requestedAt": "2026-02-01T00:00:00Z",
-             "requesterEmail": f"gdpr-test-{ts}@example.com",
-             "notes": "Data access request from data loader test", "status": "Pending"},
-            {"contactId": contact_ids[1] if len(contact_ids) > 1 else contact_ids[0],
-             "requestType": "Erasure",
-             "requestedAt": "2026-02-05T00:00:00Z",
-             "requesterEmail": f"gdpr-erasure-{ts}@example.com",
-             "notes": "Right to be forgotten test", "status": "Pending"},
+            {"subjectType": "Contact", "subjectId": contact_ids[0],
+             "requestedBy": f"gdpr-test-{ts}@example.com"},
+            {"subjectType": "Contact",
+             "subjectId": contact_ids[1] if len(contact_ids) > 1 else contact_ids[0],
+             "requestedBy": f"gdpr-erasure-{ts}@example.com"},
         ]
         gdpr_ids = []
         for g in gdpr_requests:
-            eid = api.create_and_track("gdpr_requests", "/api/gdpr/requests", g)
+            eid = api.create_and_track("gdpr_requests", "/api/gdpr/export-request", g)
             if eid:
                 gdpr_ids.append(eid)
         api.get("/api/gdpr/requests")
         if gdpr_ids:
-            api.get(f"/api/gdpr/requests/{gdpr_ids[0]}")
+            api.get(f"/api/gdpr/export/{gdpr_ids[0]}")
         save_ids("gdpr_requests", gdpr_ids)
 
     print(f"  Batch 20 done: {log.summary_line()}")

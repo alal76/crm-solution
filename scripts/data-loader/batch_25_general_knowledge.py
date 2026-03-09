@@ -1083,16 +1083,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("KB — Verification Queries")
     if general_kb_available:
         api.get("/api/knowledge")
-        api.get("/api/knowledge/search?query=sales+playbook")
-        api.get("/api/knowledge/search?query=marketing+campaign")
-        api.get("/api/knowledge/search?query=customer+onboarding")
+        api.get("/api/knowledge/search?searchTerm=sales+playbook")
+        api.get("/api/knowledge/search?searchTerm=marketing+campaign")
+        api.get("/api/knowledge/search?searchTerm=customer+onboarding")
     else:
         # Verify via ITSM KB search
-        api.get("/api/itsm/knowledge/search?query=sales+playbook")
-        api.get("/api/itsm/knowledge/search?query=marketing+campaign")
-        api.get("/api/itsm/knowledge/search?query=customer+onboarding")
-        api.get("/api/itsm/knowledge/search?query=objection+handling")
-        api.get("/api/itsm/knowledge/search?query=brand+guidelines")
+        api.get("/api/itsm/knowledge/search?searchTerm=sales+playbook")
+        api.get("/api/itsm/knowledge/search?searchTerm=marketing+campaign")
+        api.get("/api/itsm/knowledge/search?searchTerm=customer+onboarding")
+        api.get("/api/itsm/knowledge/search?searchTerm=objection+handling")
+        api.get("/api/itsm/knowledge/search?searchTerm=brand+guidelines")
 
     # Publish a subset of articles
     if not general_kb_available and article_ids:

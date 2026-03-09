@@ -24,32 +24,23 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ─── Create additional subscriptions (full lifecycle) ─────────────────
     log.section("Create Additional Subscriptions (full lifecycle)")
+    # CreateSubscriptionDto: accountId, amount, billingCycle, billingStartDate, productId, isAutoRenewal
     new_subs = [
         {"accountId": acct_ids[0] if acct_ids else 1,
-         "name": f"Annual Enterprise Plan {ts}",
-         "status": 0, "startDate": "2026-01-01T00:00:00Z",
-         "renewalDate": "2027-01-01T00:00:00Z",
-         "monthlyAmount": 19999, "billingCycle": "Annual",
-         "description": "Enterprise annual subscription",
+         "amount": 19999, "billingCycle": "Yearly",
+         "billingStartDate": "2026-01-01T00:00:00Z",
          "productId": product_ids[0] if product_ids else None,
-         "seats": 50, "autoRenew": True},
+         "isAutoRenewal": True},
         {"accountId": acct_ids[1] if len(acct_ids) > 1 else 1,
-         "name": f"Monthly Starter Plan {ts}",
-         "status": 0, "startDate": "2026-02-01T00:00:00Z",
-         "renewalDate": "2026-03-01T00:00:00Z",
-         "monthlyAmount": 999, "billingCycle": "Monthly",
-         "description": "Starter monthly subscription",
+         "amount": 999, "billingCycle": "Monthly",
+         "billingStartDate": "2026-02-01T00:00:00Z",
          "productId": product_ids[1] if len(product_ids) > 1 else None,
-         "seats": 5, "autoRenew": True},
+         "isAutoRenewal": True},
         {"accountId": acct_ids[2] if len(acct_ids) > 2 else 1,
-         "name": f"Trial Subscription {ts}",
-         "status": 6,  # Trial
-         "startDate": "2026-03-01T00:00:00Z",
-         "renewalDate": "2026-03-31T00:00:00Z",
-         "monthlyAmount": 0, "billingCycle": "Monthly",
-         "description": "30-day trial account",
+         "amount": 0, "billingCycle": "Monthly",
+         "billingStartDate": "2026-03-01T00:00:00Z",
          "productId": product_ids[0] if product_ids else None,
-         "seats": 10, "autoRenew": False},
+         "isAutoRenewal": False},
     ]
     new_sub_ids = list(sub_ids)  # Start with existing subs
     for s in new_subs:
@@ -151,50 +142,55 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/revenue/reactivation")
 
     # ─── Dunning Schedules ────────────────────────────────────────────────
+    # CreateDunningScheduleDto: Name, DaysOverdue, EmailSubject, EmailBody, IsActive, StepOrder
+    # Each "step" is a separate record — POST each step individually.
     log.section("DunningSchedules CRUD")
-    dunning_schedules = [
-        {"name": f"Standard Dunning {ts}",
-         "description": "Standard payment failure recovery sequence",
-         "isActive": True, "currency": "USD",
-         "steps": [
-             {"dayOffset": 1, "action": "Email", "subject": "Payment Failed",
-              "body": "Your payment failed. Please update your payment method."},
-             {"dayOffset": 7, "action": "Email", "subject": "Second Reminder",
-              "body": "Your account is past due. Please update billing."},
-             {"dayOffset": 14, "action": "Email", "subject": "Final Warning",
-              "body": "Your account will be suspended in 3 days."},
-             {"dayOffset": 17, "action": "Suspend",
-              "subject": None, "body": None},
-         ]},
-        {"name": f"Premium Dunning {ts}",
-         "description": "Enterprise account dunning with phone follow-up",
-         "isActive": True, "currency": "USD",
-         "steps": [
-             {"dayOffset": 1, "action": "Email", "subject": "Action Required",
-              "body": "Payment failed. Please update your billing details."},
-             {"dayOffset": 3, "action": "Phone", "subject": None, "body": None},
-             {"dayOffset": 10, "action": "Email", "subject": "Account at Risk",
-              "body": "Your account is at risk of suspension."},
-             {"dayOffset": 21, "action": "Suspend", "subject": None, "body": None},
-         ]},
+    dunning_step_data = [
+        {"scheduleName": f"Standard Dunning {ts}", "steps": [
+            {"daysOverdue": 1, "emailSubject": "Payment Failed",
+             "emailBody": "Your payment failed. Please update your payment method.", "stepOrder": 0},
+            {"daysOverdue": 7, "emailSubject": "Second Reminder",
+             "emailBody": "Your account is past due. Please update billing.", "stepOrder": 1},
+            {"daysOverdue": 14, "emailSubject": "Final Warning",
+             "emailBody": "Your account will be suspended in 3 days.", "stepOrder": 2},
+        ]},
+        {"scheduleName": f"Premium Dunning {ts}", "steps": [
+            {"daysOverdue": 1, "emailSubject": "Action Required",
+             "emailBody": "Payment failed. Please update your billing details.", "stepOrder": 0},
+            {"daysOverdue": 10, "emailSubject": "Account at Risk",
+             "emailBody": "Your account is at risk of suspension.", "stepOrder": 1},
+        ]},
     ]
     dun_ids = []
-    for d in dunning_schedules:
-        steps = d.pop("steps", [])
-        payload = {**d, "steps": steps}
-        eid = api.create_and_track("dunning_schedules", "/api/dunning-schedules", payload)
-        if eid:
-            dun_ids.append(eid)
+    for schedule in dunning_step_data:
+        sched_name = schedule["scheduleName"]
+        for step in schedule["steps"]:
+            payload = {
+                "name": sched_name,
+                "daysOverdue": step["daysOverdue"],
+                "emailSubject": step["emailSubject"],
+                "emailBody": step["emailBody"],
+                "isActive": True,
+                "stepOrder": step["stepOrder"],
+            }
+            eid = api.create_and_track("dunning_schedules", "/api/dunning-schedules", payload)
+            if eid:
+                dun_ids.append(eid)
     api.get("/api/dunning-schedules")
     if dun_ids:
         api.get(f"/api/dunning-schedules/{dun_ids[0]}")
-        api.put(f"/api/dunning-schedules/{dun_ids[0]}",
-                {**{k: v for k, v in dunning_schedules[0].items() if k != "steps"},
-                 "description": "Updated standard dunning schedule",
-                 "steps": dunning_schedules[0]["steps"]})
+        api.put(f"/api/dunning-schedules/{dun_ids[0]}", {
+            "name": f"Standard Dunning {ts}",
+            "daysOverdue": 1,
+            "emailSubject": "Payment Failed - Updated",
+            "emailBody": "Your payment failed. Please update your payment method.",
+            "isActive": True,
+            "stepOrder": 0,
+        })
     # Delete test
-    del_d = {"name": f"DELETE-DUN-{ts}", "description": "Temp", "isActive": False, "currency": "USD", "steps": []}
-    code, body, _ = api.post("/api/dunning-schedules", del_d)
+    del_payload = {"name": f"DELETE-DUN-{ts}", "daysOverdue": 99, "emailSubject": "Del",
+                   "emailBody": "Del", "isActive": False, "stepOrder": 99}
+    code, body, _ = api.post("/api/dunning-schedules", del_payload)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/dunning-schedules/{body['id']}")
     save_ids("dunning_schedules", dun_ids)

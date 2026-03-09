@@ -64,7 +64,8 @@ public class OpportunitiesController : CrmControllerBase
             var dtos = opportunities.Select(MapToDto).ToList();
             return Ok(dtos);
         }
-        catch (Exception ex) // NOSONAR
+        // NOSONAR
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving open opportunities");
             return StatusCode(500, new { message = ex.Message });
@@ -94,7 +95,8 @@ public class OpportunitiesController : CrmControllerBase
             }
             return Ok(MapToDto(opportunity));
         }
-        catch (Exception ex) // NOSONAR
+        // NOSONAR
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving opportunity {Id}", id);
             return StatusCode(500, new { message = ex.Message });
@@ -119,7 +121,8 @@ public class OpportunitiesController : CrmControllerBase
             var dtos = opportunities.Select(MapToDto).ToList();
             return Ok(dtos);
         }
-        catch (Exception ex) // NOSONAR
+        // NOSONAR
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving opportunities for account {AccountId}", accountId);
             return StatusCode(500, new { message = ex.Message });
@@ -144,7 +147,8 @@ public class OpportunitiesController : CrmControllerBase
             var dtos = opportunities.Select(MapToDto).ToList();
             return Ok(dtos);
         }
-        catch (Exception ex) // NOSONAR
+        // NOSONAR
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving opportunities for customer {CustomerId}", customerId);
             return StatusCode(500, new { message = ex.Message });
@@ -167,7 +171,8 @@ public class OpportunitiesController : CrmControllerBase
             var totalPipeline = await _opportunityService.GetTotalPipelineAsync();
             return Ok(new { totalPipeline });
         }
-        catch (Exception ex) // NOSONAR
+        // NOSONAR
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving total pipeline");
             return StatusCode(500, new { message = ex.Message });
@@ -217,7 +222,8 @@ public class OpportunitiesController : CrmControllerBase
         {
             return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -273,7 +279,9 @@ public class OpportunitiesController : CrmControllerBase
 
             return NoContent();
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -963,7 +971,9 @@ public class OpportunitiesController : CrmControllerBase
 
             return NoContent();
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }

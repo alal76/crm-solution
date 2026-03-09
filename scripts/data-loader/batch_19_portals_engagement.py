@@ -15,6 +15,7 @@ Covers entities not present in earlier batches:
   - Customer Segments      (/api/customer-segments)
 """
 from __future__ import annotations
+import json
 import sys, os, time
 sys.path.insert(0, os.path.dirname(__file__))
 from loader_utils import ApiClient, RunLogger, save_ids, load_ids
@@ -64,72 +65,66 @@ def run(api: ApiClient, log: RunLogger) -> None:
             save_ids("partner_deals", [deal_id])
 
     # ─── Web-to-Lead Forms ────────────────────────────────────────────────
+    # WebToLeadForm entity: FieldsJson (string?), NotifyEmails (string?), IsActive (bool)
+    # Must serialize field arrays / email arrays to JSON strings
     log.section("WebToLeadForms CRUD")
+    form1_fields = [
+        {"name": "firstName", "label": "First Name", "type": "text",
+         "required": True, "sortOrder": 1},
+        {"name": "lastName", "label": "Last Name", "type": "text",
+         "required": True, "sortOrder": 2},
+        {"name": "email", "label": "Email", "type": "email",
+         "required": True, "sortOrder": 3},
+        {"name": "company", "label": "Company", "type": "text",
+         "required": False, "sortOrder": 4},
+        {"name": "message", "label": "Message", "type": "textarea",
+         "required": False, "sortOrder": 5},
+    ]
+    form2_fields = [
+        {"name": "firstName", "label": "First Name", "type": "text",
+         "required": True, "sortOrder": 1},
+        {"name": "email", "label": "Business Email", "type": "email",
+         "required": True, "sortOrder": 2},
+        {"name": "phone", "label": "Phone", "type": "tel",
+         "required": False, "sortOrder": 3},
+        {"name": "company", "label": "Company", "type": "text",
+         "required": True, "sortOrder": 4},
+    ]
     wtl_forms = [
         {"name": f"Contact Us Form {ts}",
          "description": "Main website contact form",
-         "status": 0,  # Draft
-         "fields": [
-             {"name": "firstName", "label": "First Name", "type": "text",
-              "required": True, "sortOrder": 1},
-             {"name": "lastName", "label": "Last Name", "type": "text",
-              "required": True, "sortOrder": 2},
-             {"name": "email", "label": "Email", "type": "email",
-              "required": True, "sortOrder": 3},
-             {"name": "company", "label": "Company", "type": "text",
-              "required": False, "sortOrder": 4},
-             {"name": "message", "label": "Message", "type": "textarea",
-              "required": False, "sortOrder": 5},
-         ],
+         "isActive": False,
+         "fieldsJson": json.dumps(form1_fields),
          "redirectUrl": "https://example.com/thank-you",
-         "emailNotification": True,
-         "notifyEmails": ["sales@example.com"],
-         "autoresponderEnabled": True,
-         "autoresponderSubject": "Thanks for contacting us",
-         "autoresponderBody": "We'll be in touch within 24 hours."},
+         "notifyEmails": json.dumps(["sales@example.com"])},
         {"name": f"Demo Request Form {ts}",
          "description": "Product demo request form",
-         "status": 0,
-         "fields": [
-             {"name": "firstName", "label": "First Name", "type": "text",
-              "required": True, "sortOrder": 1},
-             {"name": "email", "label": "Business Email", "type": "email",
-              "required": True, "sortOrder": 2},
-             {"name": "phone", "label": "Phone", "type": "tel",
-              "required": False, "sortOrder": 3},
-             {"name": "company", "label": "Company", "type": "text",
-              "required": True, "sortOrder": 4},
-             {"name": "teamSize", "label": "Team Size", "type": "select",
-              "required": False, "sortOrder": 5,
-              "options": ["1-10", "11-50", "51-200", "200+"]},
-         ],
+         "isActive": False,
+         "fieldsJson": json.dumps(form2_fields),
          "redirectUrl": "https://example.com/demo-confirmed",
-         "emailNotification": True,
-         "notifyEmails": ["demo@example.com"]},
+         "notifyEmails": json.dumps(["demo@example.com"])},
     ]
     wtl_ids = []
     for f in wtl_forms:
-        fields = f.pop("fields", [])
-        payload = {**f, "fields": fields}
-        eid = api.create_and_track("webtoleadforms", "/api/webtoleadforms", payload)
+        eid = api.create_and_track("webtoleadforms", "/api/webtoleadforms", f)
         if eid:
             wtl_ids.append(eid)
     api.get("/api/webtoleadforms")
     if wtl_ids:
         api.get(f"/api/webtoleadforms/{wtl_ids[0]}")
-        api.put(f"/api/webtoleadforms/{wtl_ids[0]}",
-                {**{k: v for k, v in wtl_forms[0].items() if k not in ("fields",)},
-                 "status": 1,  # Published
-                 "description": "Published contact form",
-                 "fields": wtl_forms[0]["fields"]})
-        # Test submit a form
+        api.put(f"/api/webtoleadforms/{wtl_ids[0]}", {
+            **wtl_forms[0],
+            "isActive": True,
+            "description": "Published contact form",
+        })
         api.post(f"/api/webtoleadforms/{wtl_ids[0]}/submit",
                  {"firstName": "Test", "lastName": "Submitter",
                   "email": f"test-submit-{ts}@example.com",
                   "company": "Test Corp", "message": "Test submission from data loader"})
         api.get(f"/api/webtoleadforms/{wtl_ids[0]}/submissions")
     # Delete test
-    del_f = {"name": f"DELETE-WTL-{ts}", "description": "Temp", "status": 0, "fields": []}
+    del_f = {"name": f"DELETE-WTL-{ts}", "description": "Temp", "isActive": False,
+             "fieldsJson": "[]", "notifyEmails": "[]"}
     code, body, _ = api.post("/api/webtoleadforms", del_f)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/webtoleadforms/{body['id']}")
@@ -226,15 +221,15 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ─── Event Attendees ──────────────────────────────────────────────────
     log.section("EventAttendees CRUD")
+    # Event entity: Title (not name), StartDate (not eventDate)
+    # Remove: isVirtual, maxAttendees, isActive (not in entity or controller DTO)
     events = [
-        {"name": f"CRM User Conference {ts}", "description": "Annual user conference",
-         "eventDate": "2026-05-15T09:00:00Z", "endDate": "2026-05-17T17:00:00Z",
-         "location": "San Francisco, CA", "isVirtual": False,
-         "maxAttendees": 500, "isActive": True},
-        {"name": f"Quarterly Webinar {ts}", "description": "Q2 Product Roadmap Webinar",
-         "eventDate": "2026-04-20T14:00:00Z", "endDate": "2026-04-20T15:30:00Z",
-         "location": "Online", "isVirtual": True,
-         "maxAttendees": 1000, "isActive": True},
+        {"title": f"CRM User Conference {ts}", "description": "Annual user conference",
+         "startDate": "2026-05-15T09:00:00Z", "endDate": "2026-05-17T17:00:00Z",
+         "location": "San Francisco, CA"},
+        {"title": f"Quarterly Webinar {ts}", "description": "Q2 Product Roadmap Webinar",
+         "startDate": "2026-04-20T14:00:00Z", "endDate": "2026-04-20T15:30:00Z",
+         "location": "Online"},
     ]
     event_ids = []
     for e in events:

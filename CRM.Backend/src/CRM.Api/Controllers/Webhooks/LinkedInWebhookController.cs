@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-// COMM-004: Inbound only. Outbound messaging deferred to production (requires LinkedIn Sales Navigator).
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;

@@ -26,14 +26,14 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Service Requests ----
     log.section("ServiceRequests CRUD")
     requests = [
-        {"title": f"Cannot login to CRM {ts}", "description": "User reports login failure",
-         "priority": 2, "status": 0, "type": "Bug",
+        {"subject": f"Cannot login to CRM {ts}", "description": "User reports login failure",
+         "priority": 2,
          "contactId": contact_ids[0] if contact_ids else None,
          "accountId": acct_ids[0] if acct_ids else None},
-        {"title": f"Feature request: Export to PDF {ts}", "description": "Need PDF export for reports",
-         "priority": 1, "status": 0, "type": "FeatureRequest"},
-        {"title": f"Performance issue on dashboard {ts}", "description": "Dashboard loading slowly",
-         "priority": 3, "status": 0, "type": "Bug",
+        {"subject": f"Feature request: Export to PDF {ts}", "description": "Need PDF export for reports",
+         "priority": 1},
+        {"subject": f"Performance issue on dashboard {ts}", "description": "Dashboard loading slowly",
+         "priority": 3,
          "accountId": acct_ids[1] if len(acct_ids) > 1 else None},
     ]
     sr_ids = []
@@ -48,7 +48,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.put(f"/api/servicerequests/{sr_ids[0]}", {**requests[0], "status": 2,
                                                        "description": "Investigating login issue"})
     # Delete test
-    del_sr = {"title": f"DELETE-SR-{ts}", "description": "To be deleted", "priority": 0, "status": 0, "type": "Bug"}
+    del_sr = {"subject": f"DELETE-SR-{ts}", "description": "To be deleted", "priority": 0}
     code, body, _ = api.post("/api/servicerequests", del_sr)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/servicerequests/{body['id']}")

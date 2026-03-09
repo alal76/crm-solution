@@ -224,7 +224,8 @@ public class LeadsController : CrmControllerBase
                 leadId
             });
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }

@@ -87,7 +87,8 @@ public sealed class BatchProcessorService<T> : IBatchProcessor<T>
                         _logger.LogWarning(ex, "BatchProcessor [{BatchId}] item error", batchId);
                         lock (errors)
                         {
-                            if (errors.Count < 500)        // cap to avoid memory blow-up
+                            // cap to avoid memory blow-up
+                            if (errors.Count < 500)
                             {
                                 errors.Add(message);
                             }

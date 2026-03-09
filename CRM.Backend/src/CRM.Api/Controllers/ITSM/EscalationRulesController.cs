@@ -122,7 +122,8 @@ public class EscalationRulesController : CrmControllerBase
             var rule = await _escalationRuleService.CreateAsync(dto, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = rule.Id }, rule);
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }

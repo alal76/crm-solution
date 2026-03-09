@@ -180,7 +180,8 @@ public class PayloadChunkingService : IPayloadChunkingService
                     items.Add(element.GetRawText());
                 }
 
-                if (items.Count <= 1) // NOSONAR - array with 0 or 1 items cannot be split into chunks
+                // NOSONAR - array with 0 or 1 items cannot be split into chunks
+                if (items.Count <= 1)
                 {
                     return false;
                 }

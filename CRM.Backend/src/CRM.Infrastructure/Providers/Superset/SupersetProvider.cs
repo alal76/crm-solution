@@ -26,7 +26,6 @@ public class SupersetProvider : IAnalyticsPort
     private readonly ILogger<SupersetProvider> _logger;
 
     private string? _accessToken;
-    private string? _csrfToken;
     private DateTime _tokenExpiresAt = DateTime.MinValue;
 
     private static readonly JsonSerializerOptions JsonOptions = new()

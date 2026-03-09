@@ -661,9 +661,8 @@ public class CommunicationsController : CrmControllerBase
             mimeMessage.Body = bodyBuilder.ToMessageBody();
 
             using var client = new SmtpClient();
-            await client.ConnectAsync(smtpHost, smtpPort, enableSsl
-                ? MailKit.Security.SecureSocketOptions.StartTls
-                : MailKit.Security.SecureSocketOptions.Auto);
+            var smtpSocketOptions = enableSsl ? MailKit.Security.SecureSocketOptions.StartTls : MailKit.Security.SecureSocketOptions.Auto;
+            await client.ConnectAsync(smtpHost, smtpPort, smtpSocketOptions);
 
             if (!string.IsNullOrEmpty(smtpUser))
             {

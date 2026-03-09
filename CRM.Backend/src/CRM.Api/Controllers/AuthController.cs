@@ -131,7 +131,9 @@ public class AuthController : CrmControllerBase
             _logger.LogWarning($"Registration validation failed: {ex.Message}");
             return BadRequest(new { message = ex.Message });
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }
@@ -560,7 +562,8 @@ public class AuthController : CrmControllerBase
 
             // Verify user is admin
             var userRoleClaim = User.FindFirst("role");
-            if (userRoleClaim?.Value != "0") // 0 = Admin role
+            // 0 = Admin role
+            if (userRoleClaim?.Value != "0")
             {
                 return Forbid();
             }
@@ -636,7 +639,9 @@ public class AuthController : CrmControllerBase
             var requirements = await _authenticationService.GetPasswordRequirementsAsync();
             return Ok(requirements);
         }
-        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+
+        // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        catch (Exception ex)
         {
             return StatusCode(500, new { message = ex.Message });
         }

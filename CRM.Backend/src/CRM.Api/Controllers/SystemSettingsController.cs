@@ -63,7 +63,8 @@ public class SystemSettingsController : CrmControllerBase
             var settings = await _settingsService.GetSettingsAsync();
             return Ok(settings);
         }
-        catch (Exception ex) // NOSONAR
+        // NOSONAR
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving system settings");
             return StatusCode(500, new { message = ex.Message });
@@ -82,7 +83,8 @@ public class SystemSettingsController : CrmControllerBase
             var moduleStatus = await _settingsService.GetModuleStatusAsync();
             return Ok(moduleStatus);
         }
-        catch (Exception ex) // NOSONAR
+        // NOSONAR
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving module status");
             return StatusCode(500, new { message = ex.Message });
@@ -117,7 +119,8 @@ public class SystemSettingsController : CrmControllerBase
 
             return Ok(settings);
         }
-        catch (Exception ex) // NOSONAR
+        // NOSONAR
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating system settings");
             return StatusCode(500, new { message = ex.Message });

@@ -794,7 +794,8 @@ Analyze the sentiment and return JSON format:
                 {
                     emotionsDict[prop.Name] = prop.Value.GetDouble();
                 }
-                if (emotionsDict.Count > 0) // NOSONAR S2583 - populated by EnumerateObject foreach above
+                // NOSONAR S2583 - populated by EnumerateObject foreach above
+                if (emotionsDict.Count > 0)
                 {
                     emotions = emotionsDict;
                 }

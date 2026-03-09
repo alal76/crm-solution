@@ -854,7 +854,8 @@ Return only the JSON object, nothing else.";
                         emotionsDict[prop.Name] = value;
                     }
                 }
-                if (emotionsDict.Count > 0) // NOSONAR S2583 - populated by EnumerateObject foreach above
+                // NOSONAR S2583 - populated by EnumerateObject foreach above
+                if (emotionsDict.Count > 0)
                 {
                     emotions = emotionsDict;
                 }
