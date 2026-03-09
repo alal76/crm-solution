@@ -1,9 +1,9 @@
 # CRM Solution — Master TODO List
 
-> **Last Updated:** March 9, 2026 (v0.618.1 — KB-015/016/017 completed; AP-059 analyzed)
-> **Version:** 0.618.1
-> **Active Backlog:** 0 active items — all P0/P1/P2/P3 complete; 2 deferred architectural items remain
-> **Build:** ✅ 0 errors (backend + frontend) | **Tests:** ✅ 4,920+ passing, 22 skipped
+> **Last Updated:** March 9, 2026 (v0.619.0 — KB-013/014 completed; FLAG-001/003/004/005/006 completed)
+> **Version:** 0.619.0
+> **Active Backlog:** 0 P0/P1 items; 8 P2 external integrations (COMM/INT items) remain; 2 deferred
+> **Build:** ✅ 0 errors (backend + frontend) | **Tests:** ✅ 4,960+ passing
 
 ---
 
@@ -255,12 +255,12 @@ CRM Config (/admin/config/crm — already exists)
 
 | ID | Feature | Original Blocker | Dev/Sandbox Option | Status |
 |----|---------|------------------|--------------------|--------|
-| FLAG-001 | Enable `EnableCustomerPortal` | SMTP credentials | **Mailpit** Docker container on port 1025/8025 — already in `docker-compose.providers.yml --profile dev-tools`. Set `Smtp:Host=crm-mailpit`, `Smtp:Port=1025`, `EnableSsl=false` in `appsettings.Local.json` | ✅ Unblocked |
+| FLAG-001 | `EnableCustomerPortal` | SMTP credentials | ✅ **Done (2026-03-09)** — Flag already enabled in dev; fixed broken `${...}` SMTP host/port literals in `appsettings.Development.json` to use `localhost:1025`; Mailpit already in providers.yml; all 10 portal page components + routes confirmed active | ✅ Unblocked |
 | FLAG-002 | Enable `EnablePartnerPortal` | Partner dashboard FE not built | No external service needed — blocker is FE code | — FE work only |
-| FLAG-003 | Enable `NewSearchExperience` | Meilisearch not configured | **Meilisearch** already in `docker-compose.providers.yml` as `crm-meilisearch:7700`. Set `UseExternalSearch=true` + `Providers:Search:Type=Meilisearch` in `appsettings.Local.json` | ✅ Unblocked |
-| FLAG-004 | AIAssistant floating chat widget | SK agent endpoint + FE widget | **Ollama** in `docker-compose.ollama.yml` (local LLM). **Groq free tier** at `console.groq.com` (llama-3.3-70b, no billing required). Blocker is FE widget build, not provider | ✅ Unblocked |
-| FLAG-005 | `UseOptionalAuditLogging` extended audit | Async queue + log rotation | **Redis** (`crm-redis`) already in the db stack — use Redis Streams as the async queue. **RabbitMQ** in `docker-compose.rabbitmq.yml` if preferred. Log rotation via Serilog rolling file sink already configured | ✅ Unblocked |
-| FLAG-006 | `Stripe.EnableSubscriptionTracking` | Stripe account + webhook | **stripe-mock** (`crm-stripe-mock:12111`) in `docker-compose.providers.yml --profile dev-tools`. Use any `sk_test_*` key. For real test mode, get free Stripe test API keys at `dashboard.stripe.com` (no charges, test cards only) | ✅ Unblocked |
+| FLAG-003 | Enable `NewSearchExperience` | Meilisearch not configured | ✅ **Done (2026-03-09)** — `UseExternalSearch` set to `true` in `appsettings.Development.json`; Providers:Search already configured (Type=Meilisearch, localhost:7700, ApiKey=masterKey, IndexPrefix=crm_dev_); `SearchProviderFactory` test added for Meilisearch selection | ✅ Unblocked |
+| FLAG-004 | AIAssistant floating chat widget | SK agent endpoint + FE widget | ✅ **Done (2026-03-09)** — Verified complete: `AIAssistant=true` in dev; `ContextFlyout.tsx` Fab widget mounted in App.tsx after Routes; routes via `POST /api/agents/{id}/chat` (SK) or `POST /api/ai/chatbot/message` fallback; Groq provider configured | ✅ Unblocked |
+| FLAG-005 | `UseOptionalAuditLogging` extended audit | Async queue + log rotation | ✅ **Done (2026-03-09)** — `UseOptionalAuditLogging=true` in dev; `PublishAuditEventAsync` enqueues to Redis Stream `crm:audit:stream`; `AuditLogConsumerHostedService` (BackgroundService) XREADGROUP batch-writes to DB with XACK; 11 unit tests added | ✅ Unblocked |
+| FLAG-006 | `Stripe.EnableSubscriptionTracking` | Stripe account + webhook | ✅ **Done (2026-03-09)** — `EnableSubscriptionTracking` flag added + enabled in dev; `SyncSubscriptionFromStripeAsync` added to ISubscriptionService + impl; `StripeWebhookController` wired to sync subscriptions when flag enabled; stripe-mock already in providers.yml (port 12111); 3 new webhook controller tests | ✅ Unblocked |
 | COMM-001 | WhatsApp Business API | Meta Business API credentials | **Twilio WhatsApp Sandbox**: free at `console.twilio.com` → Messaging → Try WhatsApp — no WhatsApp Business account needed. **Mockoon** (`crm-mockoon:3001`) in providers.yml simulates inbound webhook payloads for automated tests | 🆓 Free Sandbox |
 | COMM-002 | Facebook Messenger | Facebook Graph API credentials | Free **Meta Developer account** at `developers.facebook.com`. Create a test app + test Facebook Page — webhooks and send-API work without approval. **Mockoon** simulates Graph API responses for unit/integration tests | 🆓 Free Sandbox |
 | COMM-003 | Twitter/X API v2 DM | X API Basic tier ($100/month) | **Mockoon** mock server can simulate X API v2 responses for inbound webhook testing. Outbound DMs require paid tier — defer real credentials to production. Suggest deprioritising until viable free tier exists | ⚠️ Partial (mock only) |
@@ -287,8 +287,8 @@ CRM Config (/admin/config/crm — already exists)
 | ~~KB-010~~ | ✅ Create `IUnifiedKnowledgeSearchService` — `SearchAsync(query, maxResults, source?, ct)` + `IndexAllAsync`; `KnowledgeSource` enum (General/ITSM); `UnifiedKnowledgeSearchResultDto` | — |
 | ~~KB-011~~ | ✅ Implement `UnifiedKnowledgeSearchService` — parallel queries on both DbSets; merge by relevance score; optional source filter | KB-010 |
 | ~~KB-012~~ | ✅ Add `GET /api/knowledge/search` unified search endpoint + DI registration in Program.cs; 11/11 unit tests passing | KB-011 |
-| KB-013 | Wire `SelfServiceChatbotService` to `IUnifiedKnowledgeSearchService` — replace hardcoded mock articles | KB-011 |
-| KB-014 | Extend `AIKnowledgeSearchService` to index `KnowledgeArticles` (General KB) alongside existing `ITSMKnowledgeArticles` | KB-010 |
+| ~~KB-013~~ | ✅ Done (2026-03-09) — `SelfServiceChatbotService` wired to `IUnifiedKnowledgeSearchService`; `SearchKnowledgeAsync` and `GenerateResponseAsync` pass `KnowledgeSource.All` + CancellationToken; 7 unit tests added | KB-011 |
+| ~~KB-014~~ | ✅ Done (2026-03-09) — `AIKnowledgeSearchService.KeywordSearchAsync` extended to query `context.KnowledgeArticles` (General KB) in parallel with ITSM articles; `IndexArticleAsync` falls back to General KB by Id+100_000 offset; 5 new tests (14 total) | KB-010 |
 
 ---
 
@@ -314,8 +314,457 @@ CRM Config (/admin/config/crm — already exists)
 
 | ID | Reason |
 |----|--------|
-| AP-059 | **Anemic domain model** — 245 entities are pure POCOs; IDomainEvent infra exists but unused. Impact analyzed (2026-03-09): MODERATE-HIGH long-term risk, LOW immediate bug risk. Incremental Phase 1 (ServiceRequest + Opportunity enrichment, ~40-60h) recommended for next sprint after GA. Full report: [docs/investigations/AP-059-anemic-domain-model-impact.md](investigations/AP-059-anemic-domain-model-impact.md) |
+| AP-059 | **Anemic domain model** — 245 entities are pure POCOs; IDomainEvent infra exists but unused. Impact analyzed (2026-03-09): MODERATE-HIGH long-term risk, LOW immediate bug risk. **ADR-011 accepted** — Incremental phased enrichment strategy. Phase 1: ServiceRequest + Opportunity (~40-60h, post-GA Sprint 1). Phase 2: Lead + Account + Contract + Incident (~80-120h, Sprint 2). Phase 3: opportunistic (~22 remaining entities, ongoing). ADR: [docs/01-architecture/ADR-011-domain-model-enrichment-strategy.md](01-architecture/ADR-011-domain-model-enrichment-strategy.md) · Plan: [docs/11-specifications/SPEC-ARCH-001-DomainEnrichmentPlan.md](11-specifications/SPEC-ARCH-001-DomainEnrichmentPlan.md) · **Full task breakdown: Section 4 below.** |
 | XMOD-011 | `KnowledgeArticle` entity consolidation — ITSM + General KB versions have separate DbSets and incompatible schemas; needs architectural decision first |}
+
+---
+
+## Section 4 — AP-059: Domain Model Enrichment Task Breakdown
+
+> **Branch Strategy:** All AP-059 work is isolated on branch `feat/ap-059-domain-enrichment`.  
+> **PRs:** One PR per phase (Phase 1A, Phase 1B, shared infra). Phase 2 gets its own PRs per entity.  
+> **Never merge AP-059 work into a feature branch mid-sprint** — keep the ADR branch segregated until each phase is complete and all tests pass.  
+> **ADR:** [docs/01-architecture/ADR-011-domain-model-enrichment-strategy.md](01-architecture/ADR-011-domain-model-enrichment-strategy.md)  
+> **Spec:** [docs/11-specifications/SPEC-ARCH-001-DomainEnrichmentPlan.md](11-specifications/SPEC-ARCH-001-DomainEnrichmentPlan.md)
+
+---
+
+### Branch Setup (Do Once)
+
+| Task | Command / Action | Status |
+|------|-----------------|--------|
+| AP-059-BRANCH-01 | `git checkout main && git pull && git checkout -b feat/ap-059-domain-enrichment` | ⬜ Not started |
+| AP-059-BRANCH-02 | Confirm build baseline: `cd CRM.Backend && dotnet build CRM.sln -v q 2>&1 \| grep -E "error\|Build"` — must show 0 errors before any changes | ⬜ Not started |
+| AP-059-BRANCH-03 | Confirm test baseline: `dotnet test tests/CRM.Tests.csproj -v q 2>&1 \| tail -5` — record pass count as baseline | ⬜ Not started |
+
+---
+
+### Shared Infrastructure (ship with Phase 1A PR)
+
+> These tasks are prerequisites for all entity enrichments. Implement first, test compiles, then proceed to entity work.
+
+#### AP-059-INFRA-01 — Verify `IHasDomainEvents` call-site pattern
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Core/Ports/Output/Events/IEventBus.cs` |
+| Action | Read lines 81-105. Confirm `IHasDomainEvents` exposes: `IReadOnlyCollection<IDomainEvent> DomainEvents`, `void AddDomainEvent(IDomainEvent)`, `void RemoveDomainEvent(IDomainEvent)`, `void ClearDomainEvents()`. **No changes needed** — document confirmed interface in SPEC-ARCH-001. |
+| Acceptance | Interface confirmed; implementation pattern documented |
+| Status | ⬜ Not started |
+
+#### AP-059-INFRA-02 — Create typed domain event records for Phase 1
+
+| Detail | Value |
+|--------|-------|
+| **New File** | `CRM.Core/Entities/Events/ServiceRequestEvents.cs` |
+| Namespace | `CRM.Core.Entities.Events` |
+| Records to create | `ServiceRequestResolvedEvent(int ServiceRequestId, string ResolutionSummary, DateTime ResolvedAt)`, `ServiceRequestClosedEvent(int ServiceRequestId, string? CloseNotes, DateTime ClosedAt)`, `ServiceRequestEscalatedEvent(int ServiceRequestId, int EscalationLevel, string Reason)`, `ServiceRequestAssignedEvent(int ServiceRequestId, int AssigneeId)`, `ServiceRequestReopenedEvent(int ServiceRequestId, string Reason)` |
+| Base type | Each inherits `DomainEventBase` (already in `IEventBus.cs` line 45) |
+| **New File** | `CRM.Core/Entities/Events/OpportunityEvents.cs` |
+| Records to create | `OpportunityStageChangedEvent(int OpportunityId, OpportunityStage OldStage, OpportunityStage NewStage, int Probability)`, `OpportunityClosedEvent(int OpportunityId, OpportunityStage FinalStage, string? Reason, int? CompetitorId)`, `OpportunityRevenueUpdatedEvent(int OpportunityId, decimal Amount, DateTime ExpectedCloseDate)` |
+| Acceptance | Both files compile; all records sealed and `record` type (not class) |
+| Status | ⬜ Not started |
+
+#### AP-059-INFRA-03 — Create `AuditLogDomainEventForwarder`
+
+| Detail | Value |
+|--------|-------|
+| **New File** | `CRM.Infrastructure/Handlers/AuditLogDomainEventForwarder.cs` |
+| Namespace | `CRM.Infrastructure.Handlers` |
+| Purpose | Minimum viable handler so all Phase 1 events have a registered handler; logs event type + aggregate ID at `Information` level via `ILogger`. Implements `IDomainEventHandler<T>` for all 8 Phase 1 event types (5 SR + 3 Opp). |
+| DI registration | Add to `AddItsmServices()` in `CRM.Api/Infrastructure/ItsmServiceExtensions.cs` (created by AP-039): register `AuditLogDomainEventForwarder` as scoped; bind each `IDomainEventHandler<T>` to it. |
+| Acceptance | Compiles; DI resolution of `IDomainEventHandler<ServiceRequestResolvedEvent>` succeeds in integration test |
+| Status | ⬜ Not started |
+
+#### AP-059-INFRA-04 — Create `DomainEventDispatchInterceptor` (optional but recommended)
+
+| Detail | Value |
+|--------|-------|
+| **New File** | `CRM.Infrastructure/Data/Interceptors/DomainEventDispatchInterceptor.cs` |
+| Base type | `SaveChangesInterceptor` (EF Core) |
+| Logic | After `SavedChangesAsync`: iterate `ChangeTracker.Entries<IHasDomainEvents>`, call `_publisher.PublishAndClearAsync(entity, ct)` for each |
+| DI registration | In `AddDatabaseServices()` — `services.AddScoped<DomainEventDispatchInterceptor>()`, add to `AddDbContext` options via `AddInterceptors` |
+| Impact | Once registered, service methods no longer need manual `PublishAndClearAsync` calls — the interceptor handles dispatch automatically after `SaveChangesAsync` |
+| Acceptance | Integration test: save enriched entity → interceptor fires → handler receives event |
+| Status | ⬜ Not started |
+
+---
+
+### Phase 1A — `ServiceRequest` Entity Enrichment
+
+> **Branch:** `feat/ap-059-domain-enrichment`  
+> **Target Files:** `ServiceRequest.cs`, new events file, `ServiceRequestService.cs`, new tests  
+> **Key Enum:** `ServiceRequestStatus` — `New=0, Open=1, InProgress=2, Escalated=5, Resolved=6, Closed=7, Cancelled=8`  
+> **Existing computed props to preserve:** `IsOpen`, `IsResolutionSlaAtRisk`, `TimeToResolutionHours`
+
+#### AP-059-P1A-01 — Implement `IHasDomainEvents` on `ServiceRequest`
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Core/Entities/ServiceRequest.cs` |
+| Changes | 1. Add `IHasDomainEvents` to class declaration. 2. Add private `List<IDomainEvent> _domainEvents = new()`. 3. Implement `DomainEvents`, `AddDomainEvent`, `RemoveDomainEvent`, `ClearDomainEvents`. 4. Narrow `Status` setter to `private set` (was public). |
+| Using | Add `using CRM.Core.Ports.Output.Events;` |
+| Risk | Narrowing `Status` to `private set` **will break** any code that does `sr.Status = ...` directly. These must be found and fixed (see AP-059-P1A-06). |
+| Acceptance | Compiles; grep for `\.Status = ` in all service/controller files returns zero hits for `ServiceRequest` after fix |
+| Status | ⬜ Not started |
+
+#### AP-059-P1A-02 — Add `Resolve()` method to `ServiceRequest`
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Core/Entities/ServiceRequest.cs` |
+| Method signature | `public void Resolve(string resolutionSummary, ResolutionCode code, string? rootCause = null)` |
+| Guard clauses | Throw `BusinessRuleException("Cannot resolve a closed service request.")` if `Status == Closed`. Throw `BusinessRuleException("Service request is already resolved.")` if `Status == Resolved`. |
+| State mutations | `Status = Resolved`, `ResolutionSummary = resolutionSummary`, `ResolutionCode = code`, `RootCause = rootCause`, `ResolvedDate = DateTime.UtcNow`, `UpdatedAt = DateTime.UtcNow` |
+| Domain event | `AddDomainEvent(new ServiceRequestResolvedEvent(Id, resolutionSummary, ResolvedDate!.Value))` |
+| SLA breach | If `ResolutionDueDate.HasValue && ResolvedDate > ResolutionDueDate` → set `IsResolutionSlaBreached = true` (or equivalent field on entity — verify field name from `ServiceRequest.cs`) |
+| Status | ⬜ Not started |
+
+#### AP-059-P1A-03 — Add `Close()` method to `ServiceRequest`
+
+| Detail | Value |
+|--------|-------|
+| Method signature | `public void Close(string? closeNotes = null)` |
+| Guard clauses | Throw `BusinessRuleException("Service request must be resolved before closing.")` if `Status != Resolved` |
+| State mutations | `Status = Closed`, `ClosedDate = DateTime.UtcNow`, `Notes = closeNotes ?? Notes`, `UpdatedAt = DateTime.UtcNow` |
+| Domain event | `AddDomainEvent(new ServiceRequestClosedEvent(Id, closeNotes, ClosedDate!.Value))` |
+| Status | ⬜ Not started |
+
+#### AP-059-P1A-04 — Add `Escalate()` method to `ServiceRequest`
+
+| Detail | Value |
+|--------|-------|
+| Method signature | `public void Escalate(int escalationLevel, string reason)` |
+| Guard clauses | Throw `BusinessRuleException("Cannot escalate a closed service request.")` if `Status == Closed`. Throw `BusinessRuleException("Cannot escalate a resolved service request.")` if `Status == Resolved`. Throw `BusinessRuleException("Escalation level must be positive.")` if `escalationLevel <= 0`. |
+| State mutations | `Status = Escalated`, `EscalationLevel = escalationLevel` (verify field name), `EscalationReason = reason` (verify field name), `UpdatedAt = DateTime.UtcNow` |
+| Domain event | `AddDomainEvent(new ServiceRequestEscalatedEvent(Id, escalationLevel, reason))` |
+| Status | ⬜ Not started |
+
+#### AP-059-P1A-05 — Add `Assign()` and `Reopen()` to `ServiceRequest`
+
+| Detail | Value |
+|--------|-------|
+| `Assign` signature | `public void Assign(int assigneeId)` |
+| `Assign` guards | Throw `BusinessRuleException("Assignee ID must be positive.")` if `assigneeId <= 0`. Throw `BusinessRuleException("Cannot assign a closed service request.")` if `Status == Closed`. |
+| `Assign` mutations | `AssignedToId = assigneeId` (verify field name), `UpdatedAt = DateTime.UtcNow` |
+| `Assign` event | `AddDomainEvent(new ServiceRequestAssignedEvent(Id, assigneeId))` |
+| `Reopen` signature | `public void Reopen(string reason)` |
+| `Reopen` guards | Throw `BusinessRuleException("Only closed service requests can be reopened.")` if `Status != Closed`. |
+| `Reopen` mutations | `Status = Open`, `UpdatedAt = DateTime.UtcNow` |
+| `Reopen` event | `AddDomainEvent(new ServiceRequestReopenedEvent(Id, reason))` |
+| Status | ⬜ Not started |
+
+#### AP-059-P1A-06 — Update `ServiceRequestService` to delegate to entity methods
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Infrastructure/Services/ITSM/ServiceRequestService.cs` |
+| Action | Search for all direct `Status =` assignments on `ServiceRequest` entities. Replace each with the corresponding entity method call. Specifically: `ResolveServiceRequestAsync` → `sr.Resolve(...)`, `CloseServiceRequestAsync` → `sr.Close(...)`, `EscalateServiceRequestAsync` → `sr.Escalate(...)`, `AssignServiceRequestAsync` → `sr.Assign(...)`. Inject `IDomainEventPublisher` into constructor if INFRA-04 interceptor is not used. |
+| Acceptance | `grep -n "\.Status = ServiceRequestStatus\." ServiceRequestService.cs` returns zero hits |
+| Status | ⬜ Not started |
+
+#### AP-059-P1A-07 — Unit tests: `ServiceRequest` entity behavioral tests (new file)
+
+| Detail | Value |
+|--------|-------|
+| **New File** | `CRM.Backend/tests/Unit/Core/ServiceRequestEntityTests.cs` |
+| Namespace | `CRM.Tests.Unit.Core` |
+| Zero mocks | All tests instantiate `ServiceRequest` directly — no `Mock<>` |
+| Tests — `Resolve()` | (1) `Resolve_ShouldSetStatusToResolved_WhenStatusIsOpen` (2) `Resolve_ShouldSetResolvedDate_WhenCalled` (3) `Resolve_ShouldRaiseServiceRequestResolvedEvent` (4) `Resolve_ShouldThrowBusinessRuleException_WhenStatusIsClosed` (5) `Resolve_ShouldThrowBusinessRuleException_WhenAlreadyResolved` (6) `Resolve_ShouldDetectSLABreach_WhenResolvedAfterDueDate` |
+| Tests — `Close()` | (7) `Close_ShouldSetStatusToClosed_WhenStatusIsResolved` (8) `Close_ShouldRaiseServiceRequestClosedEvent` (9) `Close_ShouldThrowBusinessRuleException_WhenStatusIsNotResolved` |
+| Tests — `Escalate()` | (10) `Escalate_ShouldSetStatusToEscalated_WhenStatusIsOpen` (11) `Escalate_ShouldRaiseServiceRequestEscalatedEvent` (12) `Escalate_ShouldThrowBusinessRuleException_WhenStatusIsClosed` (13) `Escalate_ShouldThrowBusinessRuleException_WhenStatusIsResolved` |
+| Tests — `Assign()` | (14) `Assign_ShouldSetAssigneeId_WhenValid` (15) `Assign_ShouldRaiseServiceRequestAssignedEvent` (16) `Assign_ShouldThrowBusinessRuleException_WhenAssigneeIdIsZero` (17) `Assign_ShouldThrowBusinessRuleException_WhenStatusIsClosed` |
+| Tests — `Reopen()` | (18) `Reopen_ShouldSetStatusToOpen_WhenStatusIsClosed` (19) `Reopen_ShouldRaiseServiceRequestReopenedEvent` (20) `Reopen_ShouldThrowBusinessRuleException_WhenStatusIsNotClosed` |
+| Tests — existing computed props | (21) `IsOpen_ShouldReturnFalse_WhenStatusIsClosed` (22) `IsOpen_ShouldReturnFalse_WhenStatusIsResolved` (23) `IsOpen_ShouldReturnTrue_WhenStatusIsOpen` |
+| **Minimum:** | 23 tests; all must pass with zero service mocks |
+| Status | ⬜ Not started |
+
+#### AP-059-P1A-08 — Update `ServiceRequestServiceTests` to verify delegation
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Backend/tests/Services/ServiceRequestServiceTests.cs` (or equivalent path) |
+| Action | For each state-changing test: update to assert the entity's `Status` property changed to the expected value (use real `ServiceRequest` entity, not a mock). Remove any tests that directly assert `sr.Status = SomeValue` was set via `SetupSet` — these are no longer valid. Verify `SaveChangesAsync` still called exactly once. |
+| New test pattern | Arrange: real entity at known status. Act: call service method. Assert: entity status changed + `SaveChangesAsync` Times.Once |
+| Status | ⬜ Not started |
+
+---
+
+### Phase 1B — `Opportunity` Entity Enrichment
+
+> **Branch:** `feat/ap-059-domain-enrichment` (same branch as 1A)  
+> **Target Files:** `Opportunity.cs`, new events file, `OpportunityService.cs`, new tests  
+> **Key Enum:** `OpportunityStage` — `Discovery=0, Qualification=1, Proposal=2, Negotiation=3, ClosedWon=4, ClosedLost=5`  
+> **Key field:** `StageProbabilityDefaults` static dict currently in `OpportunityService.cs` at line 146 — moves to entity
+
+#### AP-059-P1B-01 — Implement `IHasDomainEvents` on `Opportunity`
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Core/Entities/Opportunity.cs` |
+| Changes | Same pattern as 1A-01: add `IHasDomainEvents`, private events list, interface impl, narrow `Stage` setter to `private set` and `Probability` to `private set`. |
+| Risk | Narrowing `Stage` to `private set` will break direct assignments. Find with: `grep -rn "\.Stage = OpportunityStage\." CRM.Backend/src/` |
+| Status | ⬜ Not started |
+
+#### AP-059-P1B-02 — Move `StageProbabilityDefaults` dict from service to entity
+
+| Detail | Value |
+|--------|-------|
+| File — Remove from | `CRM.Infrastructure/Services/OpportunityService.cs` line 146 (remove `public static readonly IReadOnlyDictionary<OpportunityStage, int> StageProbabilityDefaults`) |
+| File — Add to | `CRM.Core/Entities/Opportunity.cs` — add as `public static readonly IReadOnlyDictionary<OpportunityStage, int> StageProbabilityDefaults` at the top of the class |
+| Update callers | Any code that references `OpportunityService.StageProbabilityDefaults` must change to `Opportunity.StageProbabilityDefaults`. Find with: `grep -rn "OpportunityService\.StageProbabilityDefaults" CRM.Backend/` |
+| Status | ⬜ Not started |
+
+#### AP-059-P1B-03 — Add `TransitionToStage()` method to `Opportunity`
+
+| Detail | Value |
+|--------|-------|
+| Method signature | `public void TransitionToStage(OpportunityStage newStage, int? customProbability = null)` |
+| Guard clauses | Throw `BusinessRuleException("Cannot change stage of a closed opportunity.")` if `Stage == ClosedWon \|\| Stage == ClosedLost`. |
+| State mutations | `var oldStage = Stage; Stage = newStage; Probability = customProbability ?? StageProbabilityDefaults.GetValueOrDefault(newStage, Probability); UpdatedAt = DateTime.UtcNow` |
+| Domain event | `AddDomainEvent(new OpportunityStageChangedEvent(Id, oldStage, newStage, Probability))` |
+| Status | ⬜ Not started |
+
+#### AP-059-P1B-04 — Add `Close()` method to `Opportunity`
+
+| Detail | Value |
+|--------|-------|
+| Method signature | `public void Close(OpportunityStage wonOrLost, string? reason = null, int? competitorId = null)` |
+| Guard clauses | Throw `ArgumentException` if `wonOrLost != ClosedWon && wonOrLost != ClosedLost`. Throw `BusinessRuleException("Opportunity is already closed.")` if `Stage == ClosedWon \|\| Stage == ClosedLost`. |
+| State mutations | `TransitionToStage(wonOrLost)` (reuse — sets probability to 100 or 0), `CloseReason = reason` (verify field name), `LostToCompetitorId = competitorId` (verify field name), `ClosedDate = DateTime.UtcNow`, `UpdatedAt = DateTime.UtcNow` |
+| Domain event | Raised by `TransitionToStage` call + `AddDomainEvent(new OpportunityClosedEvent(Id, wonOrLost, reason, competitorId))` |
+| Status | ⬜ Not started |
+
+#### AP-059-P1B-05 — Add `UpdateExpectedRevenue()` to `Opportunity`
+
+| Detail | Value |
+|--------|-------|
+| Method signature | `public void UpdateExpectedRevenue(decimal amount, DateTime expectedCloseDate)` |
+| Guard clauses | Throw `BusinessRuleException("Revenue amount cannot be negative.")` if `amount < 0`. Throw `BusinessRuleException("Expected close date cannot be in the past.")` if `expectedCloseDate.Date < DateTime.UtcNow.Date`. |
+| State mutations | `Amount = amount` (verify field name — check entity), `ExpectedCloseDate = expectedCloseDate`, `UpdatedAt = DateTime.UtcNow` |
+| Domain event | `AddDomainEvent(new OpportunityRevenueUpdatedEvent(Id, amount, expectedCloseDate))` |
+| Status | ⬜ Not started |
+
+#### AP-059-P1B-06 — Update `OpportunityService` to delegate to entity methods
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Infrastructure/Services/OpportunityService.cs` |
+| Action | Replace direct `Stage =` and `Probability =` assignments on `Opportunity` entities with `TransitionToStage()`, `Close()`, `UpdateExpectedRevenue()` calls. Remove `StageProbabilityDefaults` static dict (moved to entity in 1B-02). |
+| Acceptance | `grep -n "\.Stage = OpportunityStage\." OpportunityService.cs` returns zero hits |
+| Status | ⬜ Not started |
+
+#### AP-059-P1B-07 — Unit tests: `Opportunity` entity behavioral tests (new file)
+
+| Detail | Value |
+|--------|-------|
+| **New File** | `CRM.Backend/tests/Unit/Core/OpportunityEntityTests.cs` |
+| Tests — `TransitionToStage()` | (1) `TransitionToStage_ShouldUpdateStageAndProbability_WhenValidTransition` (2) `TransitionToStage_ShouldUseCustomProbability_WhenProvided` (3) `TransitionToStage_ShouldUseStageProbabilityDefault_WhenNoCustomProbability` (4) `TransitionToStage_ShouldRaiseOpportunityStageChangedEvent` (5) `TransitionToStage_ShouldThrowBusinessRuleException_WhenAlreadyClosedWon` (6) `TransitionToStage_ShouldThrowBusinessRuleException_WhenAlreadyClosedLost` |
+| Tests — `Close()` | (7) `Close_ShouldSetStageToClosedWon_WhenWon` (8) `Close_ShouldSetProbabilityTo100_WhenWon` (9) `Close_ShouldSetStageToClosedLost_WhenLost` (10) `Close_ShouldSetProbabilityTo0_WhenLost` (11) `Close_ShouldRaiseOpportunityClosedEvent` (12) `Close_ShouldThrowBusinessRuleException_WhenAlreadyClosed` (13) `Close_ShouldThrowArgumentException_WhenInvalidFinalStage` |
+| Tests — `UpdateExpectedRevenue()` | (14) `UpdateExpectedRevenue_ShouldUpdateAmount_WhenValid` (15) `UpdateExpectedRevenue_ShouldRaiseOpportunityRevenueUpdatedEvent` (16) `UpdateExpectedRevenue_ShouldThrowBusinessRuleException_WhenAmountIsNegative` (17) `UpdateExpectedRevenue_ShouldThrowBusinessRuleException_WhenDateIsInPast` |
+| Tests — `StageProbabilityDefaults` | (18) `StageProbabilityDefaults_ShouldContain6Entries` (19) `StageProbabilityDefaults_ClosedWon_ShouldBe100` (20) `StageProbabilityDefaults_ClosedLost_ShouldBe0` |
+| **Minimum:** | 20 tests; all zero-mock |
+| Status | ⬜ Not started |
+
+#### AP-059-P1B-08 — Update `OpportunityServiceTests` to verify delegation
+
+| Detail | Value |
+|--------|-------|
+| Action | Same pattern as 1A-08: update state-changing tests to use real `Opportunity` entity; assert entity state after service call; remove mock-set assertions for `Stage`/`Probability`. |
+| Status | ⬜ Not started |
+
+---
+
+### Phase 1 — Completion Gate
+
+| Task | Action | Status |
+|------|--------|--------|
+| AP-059-P1-GATE-01 | Run full build: `cd CRM.Backend && dotnet build CRM.sln -v q` — must be 0 errors | ⬜ Not started |
+| AP-059-P1-GATE-02 | Run all tests: `dotnet test tests/CRM.Tests.csproj -v q` — must be ≥ baseline pass count + 43 new tests (23 SR + 20 Opp) | ⬜ Not started |
+| AP-059-P1-GATE-03 | Grep check: `grep -rn "\.Status = ServiceRequestStatus\." CRM.Backend/src/` — must return 0 results | ⬜ Not started |
+| AP-059-P1-GATE-04 | Grep check: `grep -rn "\.Stage = OpportunityStage\." CRM.Backend/src/` — must return 0 results | ⬜ Not started |
+| AP-059-P1-GATE-05 | Update `docs/06-standards/CODE_PATTERNS.md` — add "Entity Enrichment Pattern" section with `ServiceRequest.Resolve()` as canonical example | ⬜ Not started |
+| AP-059-P1-GATE-06 | Open PR: `feat/ap-059-domain-enrichment → main` (Phase 1 only). PR description must reference ADR-011. | ⬜ Not started |
+
+---
+
+### Phase 2A — `Lead` Entity Enrichment
+
+> **Branch:** `feat/ap-059-phase2` (new branch from main after Phase 1 merged)  
+> **Key Enum:** `LeadLifecycleStatus` — `New=0, Working=1, Qualified=3, Disqualified=4, Converted=5` (note: 2 is missing — verify)  
+> **Key field:** `OwnerId` (int?)
+
+#### AP-059-P2A-01 — Implement `IHasDomainEvents` on `Lead`
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Core/Entities/Lead.cs` |
+| Changes | Add `IHasDomainEvents`, private events list, interface impl, narrow `Status` setter to `private set` |
+| Status | ⬜ Not started |
+
+#### AP-059-P2A-02 — Create `CRM.Core/Entities/Events/LeadEvents.cs`
+
+| Records | `LeadConvertedEvent(int LeadId, int AccountId, string OpportunityTitle, DateTime ConvertedAt)`, `LeadDisqualifiedEvent(int LeadId, string Reason, DateTime DisqualifiedAt)`, `LeadQualifiedEvent(int LeadId, int Score, DateTime QualifiedAt)`, `LeadAssignedEvent(int LeadId, int OwnerId)` |
+|---------|---|
+| Status | ⬜ Not started |
+
+#### AP-059-P2A-03 — Add behavioral methods to `Lead`
+
+| Method | Guards | Mutations | Event |
+|--------|--------|-----------|-------|
+| `ConvertToOpportunity(int accountId, string opportunityTitle)` | Status ≠ Converted; Status ≠ Disqualified; accountId > 0; title not empty | Status = Converted; IsConverted = true (if field exists); ConvertedDate = UtcNow | `LeadConvertedEvent` |
+| `Disqualify(string reason)` | Status ≠ Disqualified; Status ≠ Converted; reason not empty | Status = Disqualified; DisqualifiedReason = reason (verify field) | `LeadDisqualifiedEvent` |
+| `Qualify(int score)` | Status ∈ {New, Working}; score ≥ 0 and ≤ 100 | Status = Qualified; LeadScore = score | `LeadQualifiedEvent` |
+| `Assign(int ownerId)` | ownerId > 0; Status ≠ Converted | OwnerId = ownerId | `LeadAssignedEvent` |
+| Status | ⬜ Not started |||||
+
+#### AP-059-P2A-04 — Update `LeadService` to delegate + unit tests
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Infrastructure/Services/LeadService.cs` |
+| Action | Replace direct status mutations with entity method calls, especially `ConvertAsync` (lines 203-240 per investigation report). |
+| **New test file** | `CRM.Backend/tests/Unit/Core/LeadEntityTests.cs` — minimum 18 tests (4 method × happy path + guard variants + event assertion) |
+| Status | ⬜ Not started |
+
+---
+
+### Phase 2B — `Account` Entity Enrichment
+
+> **Key Enum:** `AccountLifecycleStage` — `Other=0, Lead=1, Opportunity=2, Active=3, AtRisk=4, Churned=5, WinBack=6`
+
+#### AP-059-P2B-01 — Implement `IHasDomainEvents` on `Account`; create `AccountEvents.cs`
+
+| Events | `AccountLifecycleChangedEvent(int AccountId, AccountLifecycleStage OldStage, AccountLifecycleStage NewStage)`, `AccountPrimaryContactSetEvent(int AccountId, int ContactId)`, `AccountDeactivatedEvent(int AccountId, string Reason, DateTime DeactivatedAt)` |
+|--------|---|
+| Status | ⬜ Not started |
+
+#### AP-059-P2B-02 — Add behavioral methods to `Account`
+
+| Method | Guards | Mutations | Event |
+|--------|--------|-----------|-------|
+| `ChangeLifecycleStage(AccountLifecycleStage newStage, string? reason = null)` | newStage is valid enum value; not already deactivated (IsDeleted) | LifecycleStage = newStage | `AccountLifecycleChangedEvent` |
+| `SetPrimaryContact(int contactId)` | contactId > 0 | PrimaryContactId = contactId (verify field name) | `AccountPrimaryContactSetEvent` |
+| `Deactivate(string reason)` | IsDeleted == false; reason not empty | IsDeleted = true (soft delete); LifecycleStage = Churned | `AccountDeactivatedEvent` |
+| Status | ⬜ Not started |||||
+
+#### AP-059-P2B-03 — Update `AccountService` + unit tests
+
+| Detail | Value |
+|--------|-------|
+| Coordination | `Account.cs` is targeted by ADR-005 (large file). Coordinate: do enrichment additions in a dedicated commit, keep it reviewable separately from ADR-005 refactoring commits. |
+| **New test file** | `CRM.Backend/tests/Unit/Core/AccountEntityTests.cs` — note: existing file covers entity property tests. Add new `AccountBehaviouralTests` class within the same file or a new file. Minimum 12 tests. |
+| Status | ⬜ Not started |
+
+---
+
+### Phase 2C — `Contract` Entity Enrichment
+
+> **Key Enum:** `ContractStatus` — `Draft=0, PendingApproval=1, Approved=2, Active=3, Expired=4, Terminated=5, Renewed=6, OnHold=7`
+
+#### AP-059-P2C-01 — Implement `IHasDomainEvents` on `Contract`; create `ContractEvents.cs`
+
+| Events | `ContractApprovedEvent(int ContractId, int ApprovedByUserId, DateTime ApprovedAt)`, `ContractRenewedEvent(int ContractId, DateTime NewEndDate)`, `ContractTerminatedEvent(int ContractId, string Reason, int TerminatedByUserId, DateTime TerminatedAt)`, `ContractExpiredEvent(int ContractId, DateTime ExpiredAt)` |
+|--------|---|
+| Status | ⬜ Not started |
+
+#### AP-059-P2C-02 — Add behavioral methods to `Contract`
+
+| Method | Guards | Mutations | Event |
+|--------|--------|-----------|-------|
+| `Approve(int approvedByUserId)` | Status == PendingApproval; approvedByUserId > 0 | Status = Approved; ApprovedByUserId = value; ApprovedDate = UtcNow (verify field names) | `ContractApprovedEvent` |
+| `Renew(DateTime newEndDate, string? terms = null)` | Status == Active; newEndDate > EndDate | Status = Renewed; EndDate = newEndDate; Terms = terms ?? Terms | `ContractRenewedEvent` |
+| `Terminate(string reason, int terminatedByUserId)` | Status ∈ {Active, PendingApproval, Approved}; reason not empty | Status = Terminated; TerminationReason = reason; TerminatedByUserId = value; TerminatedDate = UtcNow (verify fields) | `ContractTerminatedEvent` |
+| `Expire()` | Status == Active; automated — called by `ContractExpirationJob` | Status = Expired; ExpiredDate = UtcNow | `ContractExpiredEvent` |
+| Status | ⬜ Not started |||||
+
+#### AP-059-P2C-03 — Update `ContractService` + `ContractExpirationJob` + unit tests
+
+| Detail | Value |
+|--------|-------|
+| PRA-011 connection | `ContractExpirationJob` was registered in DI as part of PRA-011. Update it to call `contract.Expire()` instead of direct status assignment. |
+| **New test file** | `CRM.Backend/tests/Unit/Core/ContractEntityTests.cs` — minimum 16 tests |
+| Status | ⬜ Not started |
+
+---
+
+### Phase 2D — `Incident` Entity Enrichment (SLA Parity Fix)
+
+> **Key Enum:** `IncidentState` — `New=1, Assigned=2, InProgress=3, OnHold=4, Resolved=5, Closed=6, Cancelled=7`  
+> **State field:** `State` (not Status — type `IncidentState`)  
+> **SLA parity:** The critical deliverable — SLA breach detection must match `ServiceRequest.Resolve()` logic exactly.
+
+#### AP-059-P2D-01 — Implement `IHasDomainEvents` on `Incident`; create `IncidentEvents.cs`
+
+| Events | `IncidentResolvedEvent(int IncidentId, string ResolutionSummary, DateTime ResolvedAt, bool SlaBreach)`, `IncidentClosedEvent(int IncidentId, string? Notes, DateTime ClosedAt)`, `IncidentEscalatedEvent(int IncidentId, int EscalationLevel, string Reason)` |
+|--------|---|
+| Status | ⬜ Not started |
+
+#### AP-059-P2D-02 — Add behavioral methods to `Incident`
+
+| Method | Guards | Mutations | Event |
+|--------|--------|-----------|-------|
+| `Resolve(string resolutionSummary, ResolutionCode code, string? rootCause = null)` | State ≠ Closed; State ≠ Resolved (IncidentState.Closed, IncidentState.Resolved); resolutionSummary not empty | State = Resolved; ResolutionSummary = value; ResolutionCode = code; RootCause = rootCause; ResolvedAt = UtcNow (verify field names) | `IncidentResolvedEvent(Id, resolutionSummary, ResolvedAt, slaBreached)` where `slaBreached = ResolutionDue.HasValue && ResolvedAt > ResolutionDue` — **must match ServiceRequest.Resolve() SLA logic exactly** |
+| `Close(string? notes = null)` | State == Resolved | State = Closed; ClosedAt = UtcNow; Notes = notes | `IncidentClosedEvent` |
+| `Escalate(int escalationLevel, string reason)` | State ≠ Closed; State ≠ Resolved; escalationLevel > 0 | State = InProgress (or Assigned — check IncidentService); escalation fields set | `IncidentEscalatedEvent` |
+| Status | ⬜ Not started |||||
+
+#### AP-059-P2D-03 — Update `IncidentService` + unit tests (SLA parity test mandatory)
+
+| Detail | Value |
+|--------|-------|
+| File | `CRM.Infrastructure/Services/ITSM/IncidentService.cs` |
+| **Critical test** | `Resolve_ShouldDetectSLABreach_WhenResolvedAfterDueDate` — verifies the `IncidentResolvedEvent.SlaBreach == true` flag matches `ServiceRequest` behavior. This is the regression test that prevents future divergence. |
+| **New test file** | `CRM.Backend/tests/Unit/Core/IncidentEntityTests.cs` — minimum 15 tests |
+| Status | ⬜ Not started |
+
+---
+
+### Phase 2 — Completion Gate
+
+| Task | Action | Status |
+|------|--------|--------|
+| AP-059-P2-GATE-01 | Full build: 0 errors | ⬜ Not started |
+| AP-059-P2-GATE-02 | All tests pass; net new ≥ 61 tests (18 Lead + 12 Account + 16 Contract + 15 Incident) | ⬜ Not started |
+| AP-059-P2-GATE-03 | SLA parity: `ServiceRequest.Resolve()` and `Incident.Resolve()` SLA breach logic is identical — verified by code review checklist | ⬜ Not started |
+| AP-059-P2-GATE-04 | Open PR: `feat/ap-059-phase2 → main`. Must reference ADR-011 + SPEC-ARCH-001. | ⬜ Not started |
+
+---
+
+### Phase 3 — Opportunistic Enrichment (No Sprint — Ongoing)
+
+> These are not sprint tasks but standing instructions. Any developer touching a service method that directly mutates entity state **must** bundle the enrichment in the same PR.
+
+| Entity | Methods to add (when touched) |
+|--------|------------------------------|
+| `Quote` | `Approve()`, `Send()`, `Revoke()` |
+| `Order` | `Confirm()`, `Ship()`, `Cancel()` |
+| `Invoice` | `Send()`, `MarkPaid()`, `Void()` |
+| `Subscription` | `Cancel(reason)`, `Reinstate()` |
+| `Campaign` | `Launch()`, `Pause()`, `Complete()` |
+| `SLAPolicy` | `Activate()`, `Deactivate()` |
+| `KnowledgeBaseArticle` | `Publish()`, `Archive()` — align with existing `KnowledgeBaseService` state machine |
+
+**Rule from ADR-011 (must be added to code review checklist):** Any new entity with a `Status`, `Stage`, or lifecycle field **must** implement transitions as entity methods from day one. Reviewer blocks PR if direct status assignment found in service code for a new entity type.
+
+---
+
+### AP-059 Summary Status
+
+| Phase | Items | Tests | Est. Effort | Status |
+|-------|-------|-------|-------------|--------|
+| Branch setup | 3 tasks | — | 0.5h | ⬜ Not started |
+| Shared infra | 4 tasks | +integration test | 6-8h | ⬜ Not started |
+| Phase 1A — ServiceRequest | 8 tasks | +23 entity tests | 20-28h | ⬜ Not started |
+| Phase 1B — Opportunity | 8 tasks | +20 entity tests | 18-22h | ⬜ Not started |
+| Phase 1 Gate | 6 checks | — | 1h | ⬜ Not started |
+| Phase 2A — Lead | 4 tasks | +18 entity tests | 20-25h | ⬜ Not started |
+| Phase 2B — Account | 3 tasks | +12 entity tests | 18-22h | ⬜ Not started |
+| Phase 2C — Contract | 3 tasks | +16 entity tests | 15-20h | ⬜ Not started |
+| Phase 2D — Incident | 3 tasks | +15 entity tests | 12-16h | ⬜ Not started |
+| Phase 2 Gate | 4 checks | — | 1h | ⬜ Not started |
+| Phase 3 | Standing rule | Per entity | Ongoing | 🔵 Ongoing |
+| **Total Phase 1+2** | **46 tasks** | **+104 new tests** | **~111-145h** | |
 
 ---
 

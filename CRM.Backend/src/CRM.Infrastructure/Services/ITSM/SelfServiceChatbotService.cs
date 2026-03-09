@@ -95,7 +95,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         });
 
         // Process intent and generate response
-        var response = await GenerateResponseAsync(message.Message, session); // KB-013: await async KB search
+        var response = await GenerateResponseAsync(message.Message, session, CancellationToken.None); // KB-013: CT propagated to KB search
 
         // Record bot response
         session.Messages.Add(new ChatMessageDto
@@ -110,7 +110,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         return response; // KB-013: return directly (GenerateResponseAsync is now async)
     }
 
-    private async Task<ChatbotResponseDto> GenerateResponseAsync(string userMessage, ChatSessionData session) // KB-013: made async for live KB search
+    private async Task<ChatbotResponseDto> GenerateResponseAsync(string userMessage, ChatSessionData session, CancellationToken ct = default) // KB-013: CT propagated to all KB SearchAsync calls
     {
         var lowerMessage = userMessage.ToLower();
         var response = new ChatbotResponseDto { SessionId = session.SessionId };
@@ -137,7 +137,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         {
             response.Message = "I can help you with password issues! Here are some options:";
             response.Type = ResponseType.KnowledgeResults;
-            var pwdResults = await _knowledgeSearch.SearchAsync(userMessage, 5); // KB-013: live KB search replaces hardcoded mock articles
+            var pwdResults = await _knowledgeSearch.SearchAsync(userMessage, 5, KnowledgeSource.All, ct); // KB-013: live KB search replaces hardcoded mock articles
             response.KnowledgeResults = pwdResults.Select(r => new KnowledgeSearchResultDto
             {
                 ArticleId = r.Id, Title = r.Title, Summary = r.Summary,
@@ -155,7 +155,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         {
             response.Message = "Here's some information about VPN and remote connectivity:";
             response.Type = ResponseType.KnowledgeResults;
-            var vpnResults = await _knowledgeSearch.SearchAsync(userMessage, 5); // KB-013: live KB search replaces hardcoded mock articles
+            var vpnResults = await _knowledgeSearch.SearchAsync(userMessage, 5, KnowledgeSource.All, ct); // KB-013: live KB search replaces hardcoded mock articles
             response.KnowledgeResults = vpnResults.Select(r => new KnowledgeSearchResultDto
             {
                 ArticleId = r.Id, Title = r.Title, Summary = r.Summary,
@@ -173,7 +173,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
         {
             response.Message = "I understand you're experiencing performance issues. Let me help!";
             response.Type = ResponseType.KnowledgeResults;
-            var perfResults = await _knowledgeSearch.SearchAsync(userMessage, 5); // KB-013: live KB search replaces hardcoded mock articles
+            var perfResults = await _knowledgeSearch.SearchAsync(userMessage, 5, KnowledgeSource.All, ct); // KB-013: live KB search replaces hardcoded mock articles
             response.KnowledgeResults = perfResults.Select(r => new KnowledgeSearchResultDto
             {
                 ArticleId = r.Id, Title = r.Title, Summary = r.Summary,
@@ -324,7 +324,7 @@ public class SelfServiceChatbotService : ISelfServiceChatbotService
     public async Task<List<KnowledgeSearchResultDto>> SearchKnowledgeAsync(string query)
     {
         // KB-013: replaced hardcoded mock results with live unified KB search
-        var results = await _knowledgeSearch.SearchAsync(query, maxResults: 5);
+        var results = await _knowledgeSearch.SearchAsync(query, maxResults: 5, ct: CancellationToken.None);
         return results.Select(r => new KnowledgeSearchResultDto
         {
             ArticleId = r.Id,

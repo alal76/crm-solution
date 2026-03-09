@@ -594,8 +594,85 @@ Log.Information("DataValidatorService registered (import field validation for ac
 builder.Services.AddScoped(typeof(CRM.Core.Ports.Input.IBatchProcessor<>), typeof(CRM.Infrastructure.Services.BatchProcessorService<>));
 Log.Information("BatchProcessorService<T> registered as open-generic scoped (import/export batch processing)");
 
-// AP-039: ITSM services extracted to Infrastructure/ItsmServiceExtensions.cs
-builder.Services.AddItsmServices(builder.Configuration);
+// ITSM Services - IT Service Management (Incident, Problem, Change, CMDB, Knowledge, SLA)
+// PHASE 1: Core critical services re-enabled (Feb 16, 2026)
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IBusinessHoursCalculator, CRM.Infrastructure.Services.ITSM.BusinessHoursCalculator>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IIncidentService, CRM.Infrastructure.Services.ITSM.IncidentService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISLAService, CRM.Infrastructure.Services.ITSM.SLAService>();
+Log.Information("ITSM Phase 1 Tier-1 Services registered: BusinessHoursCalculator, IncidentService, SLAService");
+
+// PHASE 2-4: Additional ITSM services - pending implementation
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IProblemManagementService, CRM.Infrastructure.Services.ITSM.ProblemManagementService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IProblemService, CRM.Infrastructure.Services.ITSM.ProblemService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICMDBService, CRM.Infrastructure.Services.ITSM.CMDBService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementService, CRM.Infrastructure.Services.ITSM.ChangeManagementService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementServiceEx, CRM.Infrastructure.Services.ITSM.ChangeManagementServiceEx>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IChangeService, CRM.Infrastructure.Services.ChangeService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService, CRM.Infrastructure.Services.ITSM.KnowledgeManagementService>();
+// General Knowledge Base service (CRM.Core.Ports.Input.IKnowledgeBaseService)
+builder.Services.AddScoped<CRM.Core.Ports.Input.IKnowledgeBaseService, CRM.Infrastructure.Services.KnowledgeBaseService>();
+// KB-010/KB-011: Unified Knowledge Search facade (General KB + ITSM KB)
+builder.Services.AddScoped<CRM.Core.Ports.Input.IUnifiedKnowledgeSearchService, CRM.Infrastructure.Services.UnifiedKnowledgeSearchService>();
+// KB search index schema is configured by KnowledgeBaseSearchIndexService on startup
+builder.Services.AddScoped<CRM.Infrastructure.Services.Search.IKnowledgeBaseSearchIndexService, CRM.Infrastructure.Services.Search.KnowledgeBaseSearchIndexService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
+// IEscalationRulePolicyService is the SLA-focused service (renamed from IEscalationRuleService)
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRulePolicyService, CRM.Infrastructure.Services.ITSM.EscalationRuleService>(); // Renamed from IEscalationRuleService
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationPolicyService, CRM.Infrastructure.Services.ITSM.EscalationPolicyService>();
+// ITSM Escalation Analytics (TODO-SD005-011)
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationAnalyticsService, CRM.Infrastructure.Services.ITSM.EscalationAnalyticsService>();
+// SMS Notification Service (TODO-SD005-009) — use Twilio when config present, else built-in stub
+var twilioAccountSid = builder.Configuration["Providers:Notifications:Twilio:AccountSid"];
+if (!string.IsNullOrWhiteSpace(twilioAccountSid))
+{
+    builder.Services.Configure<CRM.Infrastructure.Providers.Twilio.TwilioConfiguration>(
+        builder.Configuration.GetSection(CRM.Infrastructure.Providers.Twilio.TwilioConfiguration.SectionName));
+    builder.Services.AddScoped<CRM.Core.Interfaces.Notifications.ISmsNotificationService,
+        CRM.Infrastructure.Providers.Twilio.TwilioSmsService>();
+    Log.Information("SMS notification service: TwilioSmsService");
+}
+else
+{
+    builder.Services.AddScoped<CRM.Core.Interfaces.Notifications.ISmsNotificationService,
+        CRM.Infrastructure.Services.Notifications.SmsNotificationService>();
+    Log.Information("SMS notification service: SmsNotificationService (stub)");
+}
+// ITSM Phase 4 - Advanced Automation & Integration Services
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IWebhookNotificationService, CRM.Infrastructure.Services.ITSM.WebhookNotificationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEmailToTicketService, CRM.Infrastructure.Services.ITSM.EmailToTicketService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.Infrastructure.Services.ITSM.ITSMDashboardService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
+// ITSM Extended Services — CAB, Calendar, Impact, Article Recommendations
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICABWorkflowService, CRM.Infrastructure.Services.ITSM.CABWorkflowService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IChangeCalendarService, CRM.Infrastructure.Services.ITSM.ChangeCalendarService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IChangeImpactService, CRM.Infrastructure.Services.ITSM.ChangeImpactService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IArticleRecommendationService, CRM.Infrastructure.Services.ITSM.ArticleRecommendationService>();
+// ITSM Advanced Services — Assignment, Catalog, Discovery, Impact Analysis, KCS, Asset Lifecycle
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine, CRM.Infrastructure.Services.ITSM.AssignmentRulesEngine>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICatalogApprovalService, CRM.Infrastructure.Services.ITSM.CatalogApprovalService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.ICatalogFulfillmentService, CRM.Infrastructure.Services.ITSM.CatalogFulfillmentService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IDiscoveryService, CRM.Infrastructure.Services.ITSM.DiscoveryService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService, CRM.Infrastructure.Services.ITSM.ImpactAnalysisService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IKCSWorkflowService, CRM.Infrastructure.Services.ITSM.KCSWorkflowService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.IAssetLifecycleService, CRM.Infrastructure.Services.ITSM.AssetLifecycleService>();
+// Slack/Teams notification channels for ITSM — add when external notification provider is configured
+builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.SlackItsmNotificationService>();
+builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.TeamsItsmNotificationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationChannel>(sp =>
+    sp.GetRequiredService<CRM.Infrastructure.Services.ITSM.SlackItsmNotificationService>());
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationChannel>(sp =>
+    sp.GetRequiredService<CRM.Infrastructure.Services.ITSM.TeamsItsmNotificationService>());
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationDispatcher,
+    CRM.Infrastructure.Services.ITSM.ItsmNotificationDispatcher>();
+Log.Information("ITSM notification channels registered: Slack, Teams (TODO-SD005-010)");
+// SLA Enforcement Background Service - runs continuously to monitor and enforce SLAs
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>();
+// Auto-close resolved items background service (auto-closes incidents, service requests, changes, problems)
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>();
+// Escalation background service (auto-escalates incidents/service requests based on SLA thresholds)
+builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>();
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
@@ -880,7 +957,6 @@ builder.Services.AddHttpClient<ILLMService, LLMService>();
 builder.Services.AddSingleton<IResilienceService, ResilienceService>();
 
 // Phase 7 services - AI/Analytics Enhancements (KB search, Lead scoring, Opportunity scoring, Dashboards, Reports)
-builder.Services.AddScoped<IUnifiedKnowledgeSearchService, UnifiedKnowledgeSearchService>(); // KB-010/KB-011/KB-012
 builder.Services.AddScoped<IAIKnowledgeSearchService, AIKnowledgeSearchService>();
 builder.Services.AddScoped<IAILeadScoringService, AILeadScoringService>();
 // FEAT-AISCORING: Lead Score History service
@@ -1003,6 +1079,9 @@ builder.Services.AddSingleton<CRM.Infrastructure.Services.Saga.ISagaOrchestrator
 // Messaging Infrastructure - Redis Streams & Dead Letter Queue (INFRA-06/07)
 builder.Services.AddScoped<CRM.Infrastructure.Services.Messaging.IRedisStreamService, CRM.Infrastructure.Services.Messaging.RedisStreamService>();
 builder.Services.AddScoped<CRM.Infrastructure.Services.Messaging.IDeadLetterQueueService, CRM.Infrastructure.Services.Messaging.DeadLetterQueueService>();
+
+// FLAG-005: Async audit log consumer — reads from crm:audit:stream and batch-writes to AuditLogs table
+builder.Services.AddHostedService<CRM.Infrastructure.Services.Messaging.AuditLogConsumerHostedService>();
 
 // Search Analytics (INFRA-10)
 builder.Services.AddSingleton<CRM.Infrastructure.Services.Search.ISearchAnalyticsService, CRM.Infrastructure.Services.Search.SearchAnalyticsService>();

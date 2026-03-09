@@ -8,12 +8,14 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using CRM.Core.Entities;
+using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Providers.Stripe;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.Webhooks;
@@ -30,17 +32,23 @@ public class StripeWebhookController : CrmControllerBase
     private readonly StripeConfiguration _config;
     private readonly IPaymentService _paymentService;
     private readonly IActivityService _activityService;
+    private readonly ISubscriptionService _subscriptionService;
+    private readonly IFeatureManager _featureManager;
     private readonly ILogger<StripeWebhookController> _logger;
 
     public StripeWebhookController(
         IOptions<StripeConfiguration> config,
         IPaymentService paymentService,
         IActivityService activityService,
+        ISubscriptionService subscriptionService,
+        IFeatureManager featureManager,
         ILogger<StripeWebhookController> logger)
     {
         _config = config?.Value ?? throw new ArgumentNullException(nameof(config));
         _paymentService = paymentService ?? throw new ArgumentNullException(nameof(paymentService));
         _activityService = activityService ?? throw new ArgumentNullException(nameof(activityService));
+        _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
+        _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -231,6 +239,7 @@ public class StripeWebhookController : CrmControllerBase
 
             // Invoice events (for subscriptions)
             case "invoice.paid":
+            case "invoice.payment_succeeded":
                 await HandleInvoicePaidAsync(stripeEvent, cancellationToken);
                 break;
             case "invoice.payment_failed":
@@ -529,6 +538,13 @@ public class StripeWebhookController : CrmControllerBase
             invoiceId,
             stripeEvent,
             cancellationToken);
+
+        // FLAG-006: sync subscription status to Active when payment succeeds
+        if (!string.IsNullOrWhiteSpace(subscriptionId) &&
+            await _featureManager.IsEnabledAsync(FeatureFlags.EnableSubscriptionTracking))
+        {
+            await _subscriptionService.SyncSubscriptionFromStripeAsync(subscriptionId, "active", cancellationToken);
+        }
     }
 
     private async Task HandleInvoicePaymentFailedAsync(StripeWebhookEvent stripeEvent, CancellationToken cancellationToken)
@@ -547,6 +563,13 @@ public class StripeWebhookController : CrmControllerBase
             invoiceId,
             stripeEvent,
             cancellationToken);
+
+        // FLAG-006: sync subscription status to past_due when payment fails
+        if (!string.IsNullOrWhiteSpace(subscriptionId) &&
+            await _featureManager.IsEnabledAsync(FeatureFlags.EnableSubscriptionTracking))
+        {
+            await _subscriptionService.SyncSubscriptionFromStripeAsync(subscriptionId, "past_due", cancellationToken);
+        }
     }
 
     private async Task HandleSubscriptionEventAsync(StripeWebhookEvent stripeEvent, CancellationToken cancellationToken)
@@ -573,6 +596,16 @@ public class StripeWebhookController : CrmControllerBase
             subscriptionId,
             stripeEvent,
             cancellationToken);
+
+        // FLAG-006: sync subscription lifecycle to CRM entity when tracking is enabled
+        if (!string.IsNullOrWhiteSpace(subscriptionId) &&
+            await _featureManager.IsEnabledAsync(FeatureFlags.EnableSubscriptionTracking))
+        {
+            var stripeStatus = stripeEvent.Type == "customer.subscription.deleted"
+                ? "canceled"
+                : (status ?? "active");
+            await _subscriptionService.SyncSubscriptionFromStripeAsync(subscriptionId, stripeStatus, cancellationToken);
+        }
     }
 
     #endregion

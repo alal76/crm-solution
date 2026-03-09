@@ -930,6 +930,68 @@ public class SubscriptionService : ISubscriptionService
 
     #endregion
 
+    #region Stripe Sync (FLAG-006)
+
+    /// <inheritdoc/>
+    public async Task SyncSubscriptionFromStripeAsync(
+        string stripeSubscriptionId,
+        string status,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(stripeSubscriptionId))
+        {
+            return;
+        }
+
+        var mappedStatus = MapStripeStatus(status);
+
+        var existing = await _context.Subscriptions
+            .FirstOrDefaultAsync(
+                s => s.ExternalReference == stripeSubscriptionId && !s.IsDeleted,
+                cancellationToken);
+
+        if (existing == null)
+        {
+            _logger.LogDebug(
+                "No local subscription found for Stripe ID {StripeId}; skipping sync",
+                stripeSubscriptionId);
+            return;
+        }
+
+        existing.SubscriptionStatus = mappedStatus;
+        existing.IsActive = mappedStatus is SubscriptionStatus.Active or SubscriptionStatus.Trial;
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        if (mappedStatus == SubscriptionStatus.Cancelled && existing.CancelledAt == null)
+        {
+            existing.CancelledAt = DateTime.UtcNow;
+        }
+
+        _context.Subscriptions.Update(existing);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Synced Stripe subscription {StripeId}: status updated to {Status} (id={LocalId})",
+            stripeSubscriptionId,
+            mappedStatus,
+            existing.Id);
+    }
+
+    private static SubscriptionStatus MapStripeStatus(string? stripeStatus) =>
+        stripeStatus?.ToLowerInvariant() switch
+        {
+            "active" => SubscriptionStatus.Active,
+            "trialing" => SubscriptionStatus.Trial,
+            "paused" => SubscriptionStatus.Paused,
+            "past_due" => SubscriptionStatus.Suspended,
+            "canceled" or "cancelled" => SubscriptionStatus.Cancelled,
+            "unpaid" => SubscriptionStatus.Suspended,
+            "incomplete_expired" => SubscriptionStatus.Expired,
+            _ => SubscriptionStatus.Active
+        };
+
+    #endregion
+
     #region Helpers
 
     private static string NormalizeBillingCycle(string? billingCycle)

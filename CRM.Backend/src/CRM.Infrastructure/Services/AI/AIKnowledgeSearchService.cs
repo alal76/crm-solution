@@ -167,35 +167,37 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
             {
                 _logger.LogError(ex, "Failed to index ITSM article {ArticleId}", articleId);
             }
+
             return;
         }
 
-        // KB-014: also index General KB articles when ITSM article not found
+        // KB-014: fall back to General KB when article not found in ITSM
         var generalArticle = await context.KnowledgeArticles
             .FirstOrDefaultAsync(a => a.Id == articleId && !a.IsDeleted, ct);
 
         if (generalArticle == null)
         {
-            _logger.LogWarning("Article {ArticleId} not found in either ITSM or General KB", articleId);
+            _logger.LogWarning("Article {ArticleId} not found in ITSM or General KB for indexing", articleId);
             return;
         }
 
         try
         {
-            var generalText = BuildGeneralArticleText(generalArticle);
-            var generalEmbeddingResponse = await aiPort.GetEmbeddingAsync(generalText, cancellationToken: ct);
+            var cacheId = articleId + 100_000; // KB-014: offset to avoid ID collision with ITSM articles
+            var text = BuildGeneralArticleText(generalArticle);
+            var embeddingResponse = await aiPort.GetEmbeddingAsync(text, cancellationToken: ct);
 
-            if (generalEmbeddingResponse.Embedding.Length > 0)
+            if (embeddingResponse.Embedding.Length > 0)
             {
-                var cacheId = articleId + 100_000; // KB-014: offset to avoid ID collision with ITSM articles in the cache
-                _embeddingCache[cacheId] = generalEmbeddingResponse.Embedding;
+                _embeddingCache[cacheId] = embeddingResponse.Embedding;
                 _metadataCache[cacheId] = new ArticleMetadata
                 {
                     Title = generalArticle.Title,
                     Snippet = GetSnippet(generalArticle.Content),
                     PublishingState = PublishingState.Published
                 };
-                _logger.LogInformation("Indexed General KB article {ArticleId} (cacheId={CacheId}) with {Dimensions}-dimensional embedding", articleId, cacheId, generalEmbeddingResponse.Embedding.Length);
+                _logger.LogInformation("Indexed General KB article {ArticleId} (cache key {CacheId}) with {Dimensions}-dimensional embedding",
+                    articleId, cacheId, embeddingResponse.Embedding.Length);
             }
         }
         catch (Exception ex)
@@ -411,25 +413,25 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
             RelevanceScore = 0.5 // Default score for keyword matches
         });
 
-        // KB-014: also search General KB articles in keyword fallback
+        // KB-014: also search General KB articles and merge with ITSM results
         var generalArticles = await context.KnowledgeArticles
             .Where(a => !a.IsDeleted && a.Status == GeneralKbArticleStatus.Published)
             .Where(a => a.Title.Contains(query) ||
                         (a.Summary != null && a.Summary.Contains(query)) ||
                         a.Content.Contains(query))
-            .OrderByDescending(a => a.ViewCount)
             .Take(maxResults)
             .ToListAsync(ct);
 
         var generalResults = generalArticles.Select(a => new SemanticSearchResult
         {
-            ArticleId = a.Id + 100_000, // KB-014: offset to match ReindexAllAsync cache key convention
+            ArticleId = a.Id + 100_000, // KB-014: offset to avoid ID collision with ITSM articles
             Title = a.Title,
             Snippet = GetSnippet(a.Content),
             RelevanceScore = 0.5
         });
 
-        return itsmResults.Concat(generalResults)
+        return itsmResults
+            .Concat(generalResults)
             .OrderByDescending(r => r.RelevanceScore)
             .Take(maxResults)
             .ToList();
