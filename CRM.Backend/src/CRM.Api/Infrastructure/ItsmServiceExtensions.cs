@@ -118,6 +118,68 @@ internal static class ItsmServiceExtensions
         // Escalation background service (auto-escalates incidents/service requests based on SLA thresholds)
         services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>();
 
+        // AP-059: Domain event handlers — audit log forwarder for all 22 Phase 1 event types
+        // Register the forwarder once; then bind each event type to the same singleton instance.
+        services.AddScoped<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>();
+
+        // Service Request events
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ServiceRequestResolvedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ServiceRequestClosedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ServiceRequestEscalatedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ServiceRequestAssignedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ServiceRequestReopenedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+
+        // Opportunity events
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.OpportunityStageChangedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.OpportunityClosedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.OpportunityRevenueUpdatedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+
+        // Lead events
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.LeadConvertedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.LeadDisqualifiedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.LeadQualifiedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.LeadAssignedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+
+        // Account events
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.AccountLifecycleChangedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.AccountPrimaryContactSetEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.AccountDeactivatedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+
+        // Contract events
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ContractApprovedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ContractRenewedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ContractTerminatedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.ContractExpiredEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+
+        // Incident events
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.IncidentResolvedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.IncidentClosedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+        services.AddScoped<CRM.Core.Ports.Output.Events.IDomainEventHandler<CRM.Core.Entities.Events.IncidentEscalatedEvent>>(
+            sp => sp.GetRequiredService<CRM.Infrastructure.Handlers.AuditLogDomainEventForwarder>());
+
+        Log.Information("AP-059: Domain event handlers registered (AuditLogDomainEventForwarder, 22 event types)");
+
         return services;
     }
 }
