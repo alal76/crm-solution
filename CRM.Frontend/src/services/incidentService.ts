@@ -3,10 +3,10 @@
  */
 
 import apiClient from './apiClient';
+import { IncidentStatus, IncidentPriority, IncidentCategory } from '../types/itsm';
 
 // Re-export enums from canonical source
-export { IncidentStatus, IncidentPriority, IncidentCategory } from '../types/itsm';
-import { IncidentStatus, IncidentPriority, IncidentCategory } from '../types/itsm';
+export { IncidentStatus, IncidentPriority, IncidentCategory };
 
 // ============================================================================
 // Interfaces
