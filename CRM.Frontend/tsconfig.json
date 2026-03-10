@@ -15,8 +15,6 @@
     "moduleResolution": "node",
     "jsx": "react-jsx",
     "resolveJsonModule": true,
-    "declaration": true,
-    "declarationMap": true,
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",

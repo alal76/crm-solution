@@ -172,7 +172,7 @@ const simulateWorkflow = async (
 
   while (currentNode && steps.length < maxSteps) {
     // Capture current node for use in closures within this iteration
-    const nodeForThisIteration = currentNode;
+    const nodeForThisIteration: WorkflowNode = currentNode;
     
     await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing time
 
@@ -184,9 +184,9 @@ const simulateWorkflow = async (
     }
 
     // Find next node based on transitions
-    const outgoingTransitions = transitions
-      .filter(t => t.sourceNodeId === nodeForThisIteration.id)
-      .sort((a, b) => (a.priority || 100) - (b.priority || 100));
+    const outgoingTransitions: WorkflowTransition[] = transitions
+      .filter((t: WorkflowTransition) => t.sourceNodeId === nodeForThisIteration.id)
+      .sort((a: WorkflowTransition, b: WorkflowTransition) => (a.priority || 100) - (b.priority || 100));
 
     let nextTransition: WorkflowTransition | undefined;
     for (const trans of outgoingTransitions) {
