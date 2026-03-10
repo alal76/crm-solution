@@ -127,4 +127,118 @@ public class ReportServiceTests : ServiceTestFixtureBase<ReportService>
         result.Data.Should().ContainSingle();
         result.Data[0]["industry"].Should().Be("Tech");
     }
+
+    // ── Additional tests added for TCOV-017 ──────────────────────────────
+
+    [Fact]
+    public async Task GetAllAsync_ShouldReturnAllNonDeletedReports()
+    {
+        var reports = new List<ReportDefinitionEntity>
+        {
+            new() { Id = 10, Name = "R1", IsDeleted = false, DataSource = ReportDataSource.Accounts, Status = ReportStatus.Active, ColumnsJson = "[]", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new() { Id = 11, Name = "R2", IsDeleted = true,  DataSource = ReportDataSource.Accounts, Status = ReportStatus.Active, ColumnsJson = "[]", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+        };
+        SetupDbSets(reportDefinitions: reports);
+
+        var result = await _service.GetAllAsync();
+
+        result.Should().HaveCount(1);
+        result.First().Name.Should().Be("R1");
+    }
+
+    [Fact]
+    public async Task GetByCategoryAsync_ShouldReturnFilteredReports()
+    {
+        var reports = new List<ReportDefinitionEntity>
+        {
+            new() { Id = 20, Name = "Sales", Category = "Sales", IsDeleted = false, DataSource = ReportDataSource.Opportunities, Status = ReportStatus.Active, ColumnsJson = "[]", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new() { Id = 21, Name = "HR",    Category = "HR",    IsDeleted = false, DataSource = ReportDataSource.Accounts, Status = ReportStatus.Active, ColumnsJson = "[]", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+        };
+        SetupDbSets(reportDefinitions: reports);
+
+        var result = await _service.GetByCategoryAsync("Sales");
+
+        result.Should().HaveCount(1);
+        result.First().Category.Should().Be("Sales");
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnReport_WhenExists()
+    {
+        var reports = new List<ReportDefinitionEntity>
+        {
+            new() { Id = 30, Name = "Single", IsDeleted = false, DataSource = ReportDataSource.Accounts, Status = ReportStatus.Active, ColumnsJson = "[]", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+        };
+        SetupDbSets(reportDefinitions: reports);
+
+        var result = await _service.GetByIdAsync(30);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(30);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnNull_WhenNotFound()
+    {
+        SetupDbSets(reportDefinitions: new List<ReportDefinitionEntity>());
+
+        var result = await _service.GetByIdAsync(999);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnFalse_WhenReportNotFound()
+    {
+        SetupDbSets(reportDefinitions: new List<ReportDefinitionEntity>());
+
+        var result = await _service.DeleteAsync(999);
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task GetFoldersAsync_ShouldReturnEmpty_WhenNoFolders()
+    {
+        var mockFolders = MockDbSetFactory.CreateMockDbSet(new List<ReportFolder>());
+        MockContext.Setup(c => c.ReportFolders).Returns(mockFolders.Object);
+        SetupDbSets();
+
+        var result = await _service.GetFoldersAsync();
+
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AddToFavoritesAsync_ShouldReturnTrue()
+    {
+        var result = await _service.AddToFavoritesAsync(100, 42);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RemoveFromFavoritesAsync_ShouldReturnTrue()
+    {
+        // Add first so there's something to remove
+        await _service.AddToFavoritesAsync(100, 42);
+
+        var result = await _service.RemoveFromFavoritesAsync(100, 42);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task GetStandardReportsAsync_ShouldReturnOnlyStandardReports()
+    {
+        var reports = new List<ReportDefinitionEntity>
+        {
+            new() { Id = 50, Name = "S1", CreatedByUserId = 0, IsDeleted = false, DataSource = ReportDataSource.Accounts, Status = ReportStatus.Active, ColumnsJson = "[]", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new() { Id = 51, Name = "C1", CreatedByUserId = 1, IsDeleted = false, DataSource = ReportDataSource.Accounts, Status = ReportStatus.Active, ColumnsJson = "[]", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+        };
+        SetupDbSets(reportDefinitions: reports);
+
+        var result = await _service.GetStandardReportsAsync();
+
+        result.Should().HaveCount(1);
+        result.First().Name.Should().Be("S1");
+    }
 }

@@ -374,3 +374,81 @@ public class EmailTemplateServiceTests : ServiceTestFixtureBase<EmailTemplateSer
         _templates.First(t => t.Id == 1).Slug.Should().Be("welcomeemail");
     }
 }
+
+// TCOV-036-EXPANDED
+// Additional tests appended to expand coverage
+
+/// <summary>Additional coverage tests for EmailTemplateService (TCOV-036 expansion).</summary>
+public class EmailTemplateServiceExpandedTests : ServiceTestFixtureBase<EmailTemplateService>
+{
+    private readonly EmailTemplateService _service;
+    private readonly List<EmailTemplate> _templates;
+    private readonly List<EmailTemplateVersion> _versions;
+
+    public EmailTemplateServiceExpandedTests()
+    {
+        _templates = new List<EmailTemplate>();
+        _versions = new List<EmailTemplateVersion>();
+
+        var mockTemplates = MockDbSetFactory.CreateMockDbSet(_templates);
+        mockTemplates.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
+            .Returns<object[], CancellationToken>((keys, _) =>
+            {
+                var id = keys.FirstOrDefault();
+                return ValueTask.FromResult(_templates.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
+            });
+        var mockVersions = MockDbSetFactory.CreateMockDbSet(_versions);
+
+        MockContext.Setup(c => c.EmailTemplates).Returns(mockTemplates.Object);
+        MockContext.Setup(c => c.EmailTemplateVersions).Returns(mockVersions.Object);
+        MockContext.Setup(c => c.Accounts).Returns(MockDbSetFactory.CreateMockDbSet(new List<CRM.Core.Entities.Account>()).Object);
+        MockContext.Setup(c => c.Contacts).Returns(MockDbSetFactory.CreateMockDbSet(new List<CRM.Core.Models.Contact>()).Object);
+        MockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(new List<CRM.Core.Entities.Opportunity>()).Object);
+        MockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        _service = new EmailTemplateService(MockContext.Object, MockLogger.Object);
+    }
+
+    [Fact]
+    public async Task GetByNameAsync_ShouldReturnNull_WhenNotFound()
+    {
+        var result = await _service.GetByNameAsync("nonexistent");
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetBySlugAsync_ShouldReturnNull_WhenNotFound()
+    {
+        var result = await _service.GetBySlugAsync("no-slug");
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldReturnOnlyActiveTemplates_WhenIsActiveFilterApplied()
+    {
+        _templates.AddRange(new[]
+        {
+            new EmailTemplate { Id = 1, Name = "Active", IsActive = true, IsDeleted = false },
+            new EmailTemplate { Id = 2, Name = "Inactive", IsActive = false, IsDeleted = false }
+        });
+
+        var result = (await _service.GetAllAsync(isActive: true)).ToList();
+        result.Should().HaveCount(1);
+        result[0].Name.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldThrow_WhenTemplateNotFound()
+    {
+        var template = new EmailTemplate { Id = 999, Name = "Ghost", IsDeleted = false };
+        Func<Task> act = () => _service.UpdateAsync(template);
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnFalse_WhenTemplateIsNotFoundAtAll()
+    {
+        var result = await _service.DeleteAsync(9999);
+        result.Should().BeFalse();
+    }
+}

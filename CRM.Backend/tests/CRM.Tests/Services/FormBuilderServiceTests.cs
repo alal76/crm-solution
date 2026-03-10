@@ -688,4 +688,84 @@ public class FormBuilderServiceTests : IDisposable
     }
 
     #endregion
+
+    // ── Additional tests added for TCOV-024 ──────────────────────────────
+
+    [Fact]
+    public async Task GetAllFormsAsync_ShouldReturnOnlyPublishedForms_WhenFilteredByStatus()
+    {
+        // Arrange – add one Published and one Draft form
+        var published = CreateTestForm("Published Form", FormStatus.Published);
+        await _dbContext.FormDefinitions.AddAsync(published);
+        var draft = CreateTestForm("Draft Form", FormStatus.Draft);
+        await _dbContext.FormDefinitions.AddAsync(draft);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetAllFormsAsync(status: FormStatus.Published);
+
+        // Assert
+        result.Should().ContainSingle();
+        result.First().Name.Should().Be("Published Form");
+    }
+
+    [Fact]
+    public async Task GetFormByKeyAsync_ShouldReturnForm_WhenKeyExists()
+    {
+        // Arrange
+        var form = CreateTestForm("Key Form");
+        form.FormKey = "unique-key-abc";
+        await _dbContext.FormDefinitions.AddAsync(form);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetFormByKeyAsync("unique-key-abc");
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.FormKey.Should().Be("unique-key-abc");
+    }
+
+    [Fact]
+    public async Task GetFormByKeyAsync_ShouldReturnNull_WhenKeyNotFound()
+    {
+        var result = await _service.GetFormByKeyAsync("nonexistent-key-zzz");
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task CreateFormAsync_ShouldSetCreatedAt()
+    {
+        // Arrange
+        var form = CreateTestForm("Time Form");
+        form.FormKey = string.Empty; // let service generate
+
+        // Act
+        var before = DateTime.UtcNow.AddSeconds(-1);
+        var result = await _service.CreateFormAsync(form);
+        var after = DateTime.UtcNow.AddSeconds(1);
+
+        // Assert
+        result.CreatedAt.Should().BeAfter(before);
+        result.CreatedAt.Should().BeBefore(after);
+    }
+
+    [Fact]
+    public async Task GetAllFormsAsync_ShouldNotReturnDeletedForms()
+    {
+        // Arrange
+        var deleted = CreateTestForm("Deleted Form");
+        deleted.IsDeleted = true;
+        await _dbContext.FormDefinitions.AddAsync(deleted);
+        var active = CreateTestForm("Active Form");
+        await _dbContext.FormDefinitions.AddAsync(active);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _service.GetAllFormsAsync();
+
+        // Assert
+        result.Should().ContainSingle();
+        result.First().Name.Should().Be("Active Form");
+    }
 }

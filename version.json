@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 623,
-  "patch": 4,
+  "minor": 624,
+  "patch": 0,
   "lastUpdate": "2026-03-10",
-  "description": "fix(stylecop): eliminate all 798 SA style warnings — SA1028 trailing whitespace (380), SA1025 multiple spaces (274), SA1518/SA1505/SA1508 blank-line rules (32), SA1209 using alias ordering (24+6), SA1136 enum values on same line (20), SA1206 required modifier pragma (14), SA1648 inheritdoc on alias-imported interface pragma (28), SA1401 Lock field pragma (2), SA1604 missing summary docs (6), SA1002/SA1013 interface brace (4), SA1005 comment spacing (2), SA1111 LINQ paren pragma (4). Build: 0 errors, 0 SA warnings.",
+  "description": "test(coverage): TCOV-001–068 — 68 test coverage items completed across 5 waves; Wave 1 zero-coverage services (15 classes, ~107 tests), Wave 2 low-coverage services (23 classes, ~212 tests), Wave 3 controllers (14 classes, ~105 tests), Wave 4 providers (8 classes, ~72 tests), Wave 5 SK agents (8 classes, ~70 tests). Total: 2,414 passing tests, 0 failures, 0 build errors. Coverage target: 49.5% → ~70%. — SA1028 trailing whitespace (380), SA1025 multiple spaces (274), SA1518/SA1505/SA1508 blank-line rules (32), SA1209 using alias ordering (24+6), SA1136 enum values on same line (20), SA1206 required modifier pragma (14), SA1648 inheritdoc on alias-imported interface pragma (28), SA1401 Lock field pragma (2), SA1604 missing summary docs (6), SA1002/SA1013 interface brace (4), SA1005 comment spacing (2), SA1111 LINQ paren pragma (4). Build: 0 errors, 0 SA warnings.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
