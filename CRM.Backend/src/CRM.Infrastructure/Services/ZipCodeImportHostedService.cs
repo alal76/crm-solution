@@ -352,17 +352,17 @@ public class ZipCodeImportHostedService : BackgroundService
                     if (cancellationToken.IsCancellationRequested) break;
                     var cr = await importService.ImportCountryFromGeoNamesAsync(cc, cancellationToken);
                     totalImported += cr.RecordsImported;
-                    totalSkipped  += cr.RecordsSkipped;
+                    totalSkipped += cr.RecordsSkipped;
                     if (!cr.Success && !string.IsNullOrEmpty(cr.ErrorMessage))
                         errors.Add($"{cc}: {cr.ErrorMessage}");
                 }
                 result = new ZipCodeImportResult
                 {
-                    Success          = errors.Count == 0,
-                    RecordsImported  = totalImported,
-                    RecordsSkipped   = totalSkipped,
-                    ErrorMessage     = errors.Count > 0 ? string.Join("; ", errors) : null,
-                    Source           = $"GeoNames ({string.Join(", ", _options.CountryCodes)})"
+                    Success = errors.Count == 0,
+                    RecordsImported = totalImported,
+                    RecordsSkipped = totalSkipped,
+                    ErrorMessage = errors.Count > 0 ? string.Join("; ", errors) : null,
+                    Source = $"GeoNames ({string.Join(", ", _options.CountryCodes)})"
                 };
                 break;
 

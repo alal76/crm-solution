@@ -103,7 +103,7 @@ public class PaymentDto
 public class CreatePaymentDto
 {
     public int? InvoiceId { get; set; }
-    
+
     // AP-025: AccountId is required and must be a positive integer
     [Required(ErrorMessage = "Account ID is required")]
     [Range(1, int.MaxValue, ErrorMessage = "Account ID must be greater than 0")]
@@ -113,7 +113,7 @@ public class CreatePaymentDto
     [Required(ErrorMessage = "Amount is required")]
     [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Amount must be between 0.01 and 999999999.99")]
     public decimal Amount { get; set; }
-    
+
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
     public PaymentType PaymentType { get; set; } = PaymentType.Payment;
     public Entities.PaymentStatus Status { get; set; } = Entities.PaymentStatus.Pending;
@@ -165,7 +165,7 @@ public class ProcessPaymentDto
     [Required(ErrorMessage = "Amount is required")]
     [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Amount must be between 0.01 and 999999999.99")]
     public decimal Amount { get; set; }
-    
+
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
 
     /// <summary>
@@ -176,7 +176,7 @@ public class ProcessPaymentDto
 
     [StringLength(100, ErrorMessage = "Authorization code cannot exceed 100 characters")]
     public string? AuthorizationCode { get; set; }
-    
+
     [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters")]
     public string? Description { get; set; }
 }
@@ -200,7 +200,7 @@ public class RefundPaymentRequestDto
 {
     [Range(typeof(decimal), "0.01", "999999999.99", ErrorMessage = "Refund amount must be between 0.01 and 999999999.99")]
     public decimal? RefundAmount { get; set; }
-    
+
     [Required(ErrorMessage = "Reason is required")]
     [StringLength(500, MinimumLength = 10, ErrorMessage = "Reason must be between 10 and 500 characters")]
     public string Reason { get; set; } = string.Empty;

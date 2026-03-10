@@ -33,7 +33,7 @@ public class CompetitorService : ICompetitorService
         {
             query = query.Where(c => c.IsActive);
         }
-        
+
         return await query.OrderBy(c => c.Name).ToListAsync(cancellationToken);
     }
 
@@ -149,7 +149,7 @@ public class CompetitorService : ICompetitorService
         var term = searchTerm.ToLower();
         return await _dbContext.Competitors
             .Where(c => !c.IsDeleted && c.IsActive)
-            .Where(c => c.Name.ToLower().Contains(term) || 
+            .Where(c => c.Name.ToLower().Contains(term) ||
                        (c.Description != null && c.Description.ToLower().Contains(term)))
             .OrderBy(c => c.Name)
             .Take(20)

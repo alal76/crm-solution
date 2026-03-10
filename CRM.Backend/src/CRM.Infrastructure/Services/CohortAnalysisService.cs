@@ -280,8 +280,8 @@ var customers = await _context.Accounts
                 {
                     var nextPeriod = currentPeriod.AddMonths(1);
                     var activeInPeriod = activities
-                        .Where(a => cohortCustomers.Contains(a.EntityId) && 
-                                    a.ActivityDate >= currentPeriod && 
+                        .Where(a => cohortCustomers.Contains(a.EntityId) &&
+                                    a.ActivityDate >= currentPeriod &&
                                     a.ActivityDate < nextPeriod)
                         .Select(a => a.EntityId)
                         .Distinct()

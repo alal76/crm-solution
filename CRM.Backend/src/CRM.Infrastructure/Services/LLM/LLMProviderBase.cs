@@ -15,10 +15,10 @@ namespace CRM.Infrastructure.Services.LLM;
 /// </summary>
 public abstract class LLMProviderBase : ILLMProvider
 {
-    protected readonly LLMProviderOptions Options;
-    protected readonly HttpClient HttpClient;
-    protected readonly ILLMSettingsService? SettingsService;
-    protected readonly ILogger Logger;
+    protected LLMProviderOptions Options { get; }
+    protected HttpClient HttpClient { get; }
+    protected ILLMSettingsService? SettingsService { get; }
+    protected ILogger Logger { get; }
 
     protected LLMProviderBase(
         LLMProviderOptions options,

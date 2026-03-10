@@ -17,28 +17,28 @@ public enum OpportunityTeamRole
 {
     /// <summary>Account Executive - primary owner</summary>
     AccountExecutive = 0,
-    
+
     /// <summary>Sales Development Representative</summary>
     SDR = 1,
-    
+
     /// <summary>Sales Engineer / Solution Architect</summary>
     SalesEngineer = 2,
-    
+
     /// <summary>Account Manager</summary>
     AccountManager = 3,
-    
+
     /// <summary>Sales Manager / Overlay</summary>
     SalesManager = 4,
-    
+
     /// <summary>Partner representative</summary>
     Partner = 5,
-    
+
     /// <summary>Executive sponsor</summary>
     ExecutiveSponsor = 6,
-    
+
     /// <summary>Customer Success</summary>
     CustomerSuccess = 7,
-    
+
     /// <summary>Other role</summary>
     Other = 99
 }
@@ -53,51 +53,51 @@ public class OpportunityTeamMember : BaseEntity
 {
     /// <summary>Opportunity ID</summary>
     public int OpportunityId { get; set; }
-    
+
     /// <summary>User ID of the team member</summary>
     public int UserId { get; set; }
-    
+
     /// <summary>Role in the opportunity</summary>
     public OpportunityTeamRole Role { get; set; } = OpportunityTeamRole.Other;
-    
+
     /// <summary>Commission split percentage (0-100)</summary>
     [Range(0, 100)]
     [Column(TypeName = "decimal(5,2)")]
     public decimal SplitPercentage { get; set; } = 0;
-    
+
     /// <summary>Whether this is the primary owner</summary>
     public bool IsPrimary { get; set; } = false;
-    
+
     /// <summary>Date added to opportunity</summary>
     public DateTime DateAdded { get; set; } = DateTime.UtcNow;
-    
+
     /// <summary>Date removed from opportunity (if applicable)</summary>
     public DateTime? DateRemoved { get; set; }
-    
+
     /// <summary>Reason for involvement</summary>
     [MaxLength(500)]
     public string? Reason { get; set; }
-    
+
     /// <summary>Notes about this team member's contribution</summary>
     [MaxLength(2000)]
     public string? Notes { get; set; }
-    
+
     /// <summary>Commission plan to use for this team member (overrides default)</summary>
     public int? CommissionPlanId { get; set; }
-    
+
     #region Navigation Properties
-    
+
     /// <summary>Opportunity navigation</summary>
     [ForeignKey("OpportunityId")]
     public virtual Opportunity Opportunity { get; set; } = null!;
-    
+
     /// <summary>User navigation</summary>
     [ForeignKey("UserId")]
     public virtual User User { get; set; } = null!;
-    
+
     /// <summary>Commission plan navigation</summary>
     [ForeignKey("CommissionPlanId")]
     public virtual CommissionPlan? CommissionPlan { get; set; }
-    
+
     #endregion
 }

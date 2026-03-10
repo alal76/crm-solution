@@ -135,8 +135,8 @@ public class ConditionEvaluator
         return op switch
         {
             "AND" => children.All(c => EvaluateNode(c, request)),
-            "OR"  => children.Any(c => EvaluateNode(c, request)),
-            _     => throw new InvalidOperationException($"Unknown logical operator: {node.Operator}")
+            "OR" => children.Any(c => EvaluateNode(c, request)),
+            _ => throw new InvalidOperationException($"Unknown logical operator: {node.Operator}")
         };
     }
 
@@ -153,11 +153,11 @@ public class ConditionEvaluator
 
         return node.Field.ToLowerInvariant() switch
         {
-            "priority"   => ComparePriority(request.Priority, op, rawValue),
-            "status"     => CompareStatus(request.Status, op, rawValue),
+            "priority" => ComparePriority(request.Priority, op, rawValue),
+            "status" => CompareStatus(request.Status, op, rawValue),
             "categoryid" => CompareInt(request.CategoryId, op, rawValue),
-            "duedate"    => CompareDate(request.DueDate, op, rawValue),
-            "subject"    => CompareString(request.Subject, op, rawValue),
+            "duedate" => CompareDate(request.DueDate, op, rawValue),
+            "subject" => CompareString(request.Subject, op, rawValue),
             _ => throw new InvalidOperationException($"Unknown field: {node.Field}")
         };
     }
@@ -183,13 +183,13 @@ public class ConditionEvaluator
 
         return op switch
         {
-            "eq"  => actual == expected,
-            "ne"  => actual != expected,
-            "gt"  => (int)actual > (int)expected,
-            "lt"  => (int)actual < (int)expected,
+            "eq" => actual == expected,
+            "ne" => actual != expected,
+            "gt" => (int)actual > (int)expected,
+            "lt" => (int)actual < (int)expected,
             "gte" => (int)actual >= (int)expected,
             "lte" => (int)actual <= (int)expected,
-            _     => throw new InvalidOperationException($"Unsupported op '{op}' for Priority")
+            _ => throw new InvalidOperationException($"Unsupported op '{op}' for Priority")
         };
     }
 
@@ -211,7 +211,7 @@ public class ConditionEvaluator
         {
             "eq" => actual == expected,
             "ne" => actual != expected,
-            _    => throw new InvalidOperationException($"Unsupported op '{op}' for Status")
+            _ => throw new InvalidOperationException($"Unsupported op '{op}' for Status")
         };
     }
 
@@ -224,13 +224,13 @@ public class ConditionEvaluator
 
         return op switch
         {
-            "eq"  => actual == expected,
-            "ne"  => actual != expected,
-            "gt"  => actual.HasValue && actual.Value > expected,
-            "lt"  => actual.HasValue && actual.Value < expected,
+            "eq" => actual == expected,
+            "ne" => actual != expected,
+            "gt" => actual.HasValue && actual.Value > expected,
+            "lt" => actual.HasValue && actual.Value < expected,
             "gte" => actual.HasValue && actual.Value >= expected,
             "lte" => actual.HasValue && actual.Value <= expected,
-            _     => throw new InvalidOperationException($"Unsupported op '{op}' for integer field")
+            _ => throw new InvalidOperationException($"Unsupported op '{op}' for integer field")
         };
     }
 
@@ -243,13 +243,13 @@ public class ConditionEvaluator
 
         return op switch
         {
-            "eq"  => actual.HasValue && actual.Value.Date == expected.Date,
-            "ne"  => !actual.HasValue || actual.Value.Date != expected.Date,
-            "gt"  => actual.HasValue && actual.Value > expected,
-            "lt"  => actual.HasValue && actual.Value < expected,
+            "eq" => actual.HasValue && actual.Value.Date == expected.Date,
+            "ne" => !actual.HasValue || actual.Value.Date != expected.Date,
+            "gt" => actual.HasValue && actual.Value > expected,
+            "lt" => actual.HasValue && actual.Value < expected,
             "gte" => actual.HasValue && actual.Value >= expected,
             "lte" => actual.HasValue && actual.Value <= expected,
-            _     => throw new InvalidOperationException($"Unsupported op '{op}' for date field")
+            _ => throw new InvalidOperationException($"Unsupported op '{op}' for date field")
         };
     }
 
@@ -257,10 +257,10 @@ public class ConditionEvaluator
     {
         return op switch
         {
-            "eq"       => string.Equals(actual, rawValue, StringComparison.OrdinalIgnoreCase),
-            "ne"       => !string.Equals(actual, rawValue, StringComparison.OrdinalIgnoreCase),
+            "eq" => string.Equals(actual, rawValue, StringComparison.OrdinalIgnoreCase),
+            "ne" => !string.Equals(actual, rawValue, StringComparison.OrdinalIgnoreCase),
             "contains" => actual?.Contains(rawValue, StringComparison.OrdinalIgnoreCase) == true,
-            _          => throw new InvalidOperationException($"Unsupported op '{op}' for string field")
+            _ => throw new InvalidOperationException($"Unsupported op '{op}' for string field")
         };
     }
 }

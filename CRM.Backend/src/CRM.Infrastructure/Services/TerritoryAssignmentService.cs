@@ -40,7 +40,7 @@ public class TerritoryAssignmentService : ITerritoryAssignmentService
         lead.Region = territory.Name;
 
         await _dbContext.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Assigned lead {LeadId} to territory {TerritoryId} (owner: {OwnerId})", 
+        _logger.LogInformation("Assigned lead {LeadId} to territory {TerritoryId} (owner: {OwnerId})",
             lead.Id, territory.Id, territory.OwnerUserId);
 
         return territory.OwnerUserId;

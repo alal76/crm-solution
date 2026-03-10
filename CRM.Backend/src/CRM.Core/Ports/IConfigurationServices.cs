@@ -12,7 +12,7 @@ namespace CRM.Core.Ports;
 /// <summary>
 /// Port interface for provider configuration management.
 /// Hexagonal Architecture: Primary/Driving Port.
-/// 
+///
 /// Allows the application core to manage provider configurations
 /// (AI, integrations, email, etc.) without knowing implementation details.
 /// </summary>

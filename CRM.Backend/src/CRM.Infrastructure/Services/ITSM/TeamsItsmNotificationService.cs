@@ -52,9 +52,9 @@ public sealed class TeamsItsmNotificationService : IItsmNotificationChannel
         var themeColor = urgency.ToUpperInvariant() switch
         {
             "CRITICAL" => "FF0000",
-            "HIGH"     => "FF6600",
-            "MEDIUM"   => "FFC300",
-            _          => "0076D7"
+            "HIGH" => "FF6600",
+            "MEDIUM" => "FFC300",
+            _ => "0076D7"
         };
 
         var ticketRef = serviceRequestId.HasValue ? $" (SR#{serviceRequestId})" : string.Empty;

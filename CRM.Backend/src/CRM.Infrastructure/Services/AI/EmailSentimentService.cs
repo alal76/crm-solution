@@ -82,9 +82,9 @@ public class EmailSentimentService : IEmailSentimentService
 
         var category = score switch
         {
-            > 0.1  => SentimentCategory.Positive,
+            > 0.1 => SentimentCategory.Positive,
             < -0.1 => SentimentCategory.Negative,
-            _      => SentimentCategory.Neutral
+            _ => SentimentCategory.Neutral
         };
 
         _logger.LogDebug(

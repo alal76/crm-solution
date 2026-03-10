@@ -112,16 +112,16 @@ public class OptionalAuditLoggingService : IOptionalAuditLoggingService
         {
             var data = new Dictionary<string, string>
             {
-                ["userId"]     = auditEvent.UserId?.ToString() ?? string.Empty,
-                ["action"]     = auditEvent.Action,
+                ["userId"] = auditEvent.UserId?.ToString() ?? string.Empty,
+                ["action"] = auditEvent.Action,
                 ["entityType"] = auditEvent.EntityType ?? string.Empty,
-                ["entityId"]   = auditEvent.EntityId?.ToString() ?? string.Empty,
-                ["oldValues"]  = auditEvent.OldValues ?? string.Empty,
-                ["newValues"]  = auditEvent.NewValues ?? string.Empty,
-                ["reason"]     = auditEvent.Reason ?? string.Empty,
-                ["ipAddress"]  = auditEvent.IpAddress ?? string.Empty,
-                ["userAgent"]  = auditEvent.UserAgent ?? string.Empty,
-                ["timestamp"]  = auditEvent.Timestamp.ToString("O")
+                ["entityId"] = auditEvent.EntityId?.ToString() ?? string.Empty,
+                ["oldValues"] = auditEvent.OldValues ?? string.Empty,
+                ["newValues"] = auditEvent.NewValues ?? string.Empty,
+                ["reason"] = auditEvent.Reason ?? string.Empty,
+                ["ipAddress"] = auditEvent.IpAddress ?? string.Empty,
+                ["userAgent"] = auditEvent.UserAgent ?? string.Empty,
+                ["timestamp"] = auditEvent.Timestamp.ToString("O")
             };
 
             var messageId = await _streamService.PublishAsync(

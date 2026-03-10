@@ -287,7 +287,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         _dbContext.Opportunities.Add(cloned);
         await _dbContext.SaveChangesAsync(ct);
 
-        _logger.LogInformation("Cloned opportunity {OriginalId} to {ClonedId}: {Name}", 
+        _logger.LogInformation("Cloned opportunity {OriginalId} to {ClonedId}: {Name}",
             opportunityId, cloned.Id, cloned.Name);
 
         // Clone products if requested
@@ -419,7 +419,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         _dbContext.OpportunityTeamMembers.Add(member);
         await _dbContext.SaveChangesAsync(ct);
 
-        _logger.LogInformation("Added team member {UserId} to opportunity {OpportunityId} with role {Role}", 
+        _logger.LogInformation("Added team member {UserId} to opportunity {OpportunityId} with role {Role}",
             member.UserId, opportunityId, member.Role);
 
         return member;
@@ -517,7 +517,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         _dbContext.OpportunityCompetitors.Add(competitor);
         await _dbContext.SaveChangesAsync(ct);
 
-        _logger.LogInformation("Added competitor {CompetitorId} to opportunity {OpportunityId}", 
+        _logger.LogInformation("Added competitor {CompetitorId} to opportunity {OpportunityId}",
             competitor.CompetitorId, opportunityId);
 
         return competitor;
@@ -638,5 +638,4 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             AsOf = DateTime.UtcNow
         };
     }
-
 }

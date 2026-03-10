@@ -20,12 +20,12 @@ public class RevenueForecastService : IRevenueForecastService
     // Stage probability weights for weighted pipeline calculation
     private static readonly Dictionary<OpportunityStage, double> StageProbabilities = new()
     {
-        [OpportunityStage.Discovery]    = 0.10,
+        [OpportunityStage.Discovery] = 0.10,
         [OpportunityStage.Qualification] = 0.25,
-        [OpportunityStage.Proposal]     = 0.50,
-        [OpportunityStage.Negotiation]  = 0.75,
-        [OpportunityStage.ClosedWon]    = 1.00,
-        [OpportunityStage.ClosedLost]   = 0.00
+        [OpportunityStage.Proposal] = 0.50,
+        [OpportunityStage.Negotiation] = 0.75,
+        [OpportunityStage.ClosedWon] = 1.00,
+        [OpportunityStage.ClosedLost] = 0.00
     };
 
     private readonly ICrmDbContext _db;

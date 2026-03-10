@@ -9,8 +9,8 @@ using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using DtoCommissionTier = CRM.Core.Dtos.CommissionTierDto;
 using CRM.Core.Ports.Input;
+using DtoCommissionTier = CRM.Core.Dtos.CommissionTierDto;
 
 namespace CRM.Infrastructure.Services;
 

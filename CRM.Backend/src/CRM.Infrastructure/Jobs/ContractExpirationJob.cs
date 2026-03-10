@@ -47,7 +47,7 @@ public class ContractExpirationJob
         try
         {
             var now = DateTime.UtcNow.Date;
-            
+
             // Find active contracts that have passed their end date
             var expiredContracts = await context.Contracts
                 .Where(c => !c.IsDeleted)

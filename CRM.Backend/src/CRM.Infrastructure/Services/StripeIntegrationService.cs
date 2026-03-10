@@ -105,7 +105,7 @@ public class StripeIntegrationService
     {
         try
         {
-            _logger.LogInformation("Creating charge: Amount={Amount}, Token={TokenPrefix}...", 
+            _logger.LogInformation("Creating charge: Amount={Amount}, Token={TokenPrefix}...",
                 amount, token.Length > 8 ? token.Substring(0, 8) : token);
 
             // Validate inputs

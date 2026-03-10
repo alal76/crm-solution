@@ -123,7 +123,9 @@ public class WebhookCircuitBreaker : IWebhookCircuitBreaker
     /// </summary>
     private sealed class CircuitInfo
     {
+#pragma warning disable SA1401 // Readonly lock field — cannot be property (locking semantics)
         public readonly object Lock = new();
+#pragma warning restore SA1401
         public int ConsecutiveFailures { get; set; }
         public WebhookCircuitState State { get; set; } = WebhookCircuitState.Closed;
         public DateTime? LastFailureUtc { get; set; }

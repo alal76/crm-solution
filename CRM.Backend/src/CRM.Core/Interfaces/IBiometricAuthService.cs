@@ -88,7 +88,7 @@ public class BiometricAuthResult
 /// <summary>
 /// Service interface for platform biometric authentication (WebAuthn with platform authenticator).
 /// TODO-AUTH-010: Platform Biometric Authentication
-/// 
+///
 /// Uses WebAuthn with authenticatorAttachment: 'platform' for fingerprint, Face ID, Windows Hello, etc.
 /// </summary>
 public interface IBiometricAuthService

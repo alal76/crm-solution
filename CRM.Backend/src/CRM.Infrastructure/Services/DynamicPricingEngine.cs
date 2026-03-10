@@ -168,7 +168,7 @@ public class DynamicPricingEngine : IDynamicPricingEngine
         foreach (var item in lineItems)
         {
             var result = await CalculatePriceAsync(item.ProductId, item.Quantity, accountId, priceBookId, cancellationToken);
-            
+
             // Override base price if specified
             if (item.BasePrice.HasValue)
             {
@@ -176,15 +176,15 @@ public class DynamicPricingEngine : IDynamicPricingEngine
                 result.UnitPrice = item.BasePrice.Value - result.DiscountAmount;
                 result.ExtendedPrice = result.UnitPrice * item.Quantity;
             }
-            
+
             results.Add(result);
         }
         return results;
     }
 
     public async Task<IEnumerable<PricingRule>> GetApplicableRulesAsync(
-        int productId, 
-        int? accountId = null, 
+        int productId,
+        int? accountId = null,
         CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
@@ -198,6 +198,7 @@ public class DynamicPricingEngine : IDynamicPricingEngine
             .ToListAsync(cancellationToken);
 
         // Filter by product applicability
+#pragma warning disable SA1111 // closing paren on method-chain continuation line
         return rules.Where(r =>
             r.AppliesToAllProducts ||
             (!string.IsNullOrEmpty(r.ProductIds) && r.ProductIds.Contains(productIdStr))
@@ -205,6 +206,7 @@ public class DynamicPricingEngine : IDynamicPricingEngine
             string.IsNullOrEmpty(r.AccountIds) ||
             r.AccountIds.Contains(accountIdStr)
         ).OrderBy(r => r.Priority);
+#pragma warning restore SA1111
     }
 
     private class VolumeTier

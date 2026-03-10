@@ -146,7 +146,7 @@ public class LeadCaptureService : ILeadCaptureService
             // Increment submission count
             tokenData.SubmissionCount++;
 
-            _logger.LogInformation("Lead captured from web form '{FormName}': Lead ID {LeadId}", 
+            _logger.LogInformation("Lead captured from web form '{FormName}': Lead ID {LeadId}",
                 tokenData.FormName, leadId);
 
             return new LeadCaptureResult

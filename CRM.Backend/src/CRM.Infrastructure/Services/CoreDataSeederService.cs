@@ -9,9 +9,8 @@ using CRM.Core.Entities.Workflow;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
-using SocialPlatform = CRM.Core.Models.SocialMediaPlatform;
 using CRM.Core.Models;
+using SocialPlatform = CRM.Core.Models.SocialMediaPlatform;
 
 namespace CRM.Infrastructure.Services;
 

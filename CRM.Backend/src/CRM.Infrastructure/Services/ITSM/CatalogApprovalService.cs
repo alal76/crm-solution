@@ -719,5 +719,3 @@ public class CatalogApprovalService : ICatalogApprovalService
         };
     }
 }
-
-

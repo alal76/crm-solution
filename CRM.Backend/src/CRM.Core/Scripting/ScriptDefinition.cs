@@ -17,8 +17,8 @@ public record ScriptDefinition
     public ScriptKind Kind { get; init; }
     public ScriptRuntime Runtime { get; init; }
     public string Source { get; init; } = string.Empty;
-    public string? InputSchema { get; init; }   // JSON Schema string
-    public string? OutputSchema { get; init; }  // JSON Schema string
+    public string? InputSchema { get; init; } // JSON Schema string
+    public string? OutputSchema { get; init; } // JSON Schema string
     public IReadOnlyList<ScriptPermission> Permissions { get; init; } = Array.Empty<ScriptPermission>();
     public IReadOnlyList<string> RequiredSecrets { get; init; } = Array.Empty<string>();
     public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(30);

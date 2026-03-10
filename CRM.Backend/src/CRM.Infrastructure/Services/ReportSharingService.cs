@@ -66,7 +66,7 @@ public class ReportSharingService : IReportSharingService
             foreach (var userId in usersToShare)
             {
                 var existingShare = existingShares.FirstOrDefault(s => s.UserId == userId);
-                
+
                 if (existingShare != null)
                 {
                     // Update existing share

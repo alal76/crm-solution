@@ -7,11 +7,11 @@
 
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ISlackIntegrationService = CRM.Core.Ports.Input.ISlackIntegrationService;
 using SlackNotificationResult = CRM.Core.Ports.Input.SlackNotificationResult;
 using CrmSlackNotification = CRM.Core.Ports.Input.CrmSlackNotification;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services.Integrations;
 

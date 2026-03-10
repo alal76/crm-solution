@@ -177,7 +177,7 @@ public class SessionManagerService : ISessionManager
     {
         var activeSessions = await _dbContext.UserSessions
             .Where(s => s.UserId == userId && !s.IsRevoked && s.ExpiresAt > DateTime.UtcNow)
-            .OrderBy(s => s.LastActivityAt)   // oldest first
+            .OrderBy(s => s.LastActivityAt) // oldest first
             .ToListAsync(cancellationToken);
 
         if (activeSessions.Count < _maxSessions) return;

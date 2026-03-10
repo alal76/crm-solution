@@ -5,13 +5,14 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using IMarketingSyncService = CRM.Core.Ports.Input.IMarketingSyncService;
 using MarketingSyncResult = CRM.Core.Ports.Input.MarketingSyncResult;
 using MarketingImportResult = CRM.Core.Ports.Input.MarketingImportResult;
 using MarketingList = CRM.Core.Ports.Input.MarketingList;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
+#pragma warning disable SA1648 // inheritdoc used on interface-implementing member; interface resolved via alias
 namespace CRM.Infrastructure.Services.Integrations;
 
 /// <summary>
@@ -153,5 +154,4 @@ public class MarketingSyncService : IMarketingSyncService
         _logger.LogWarning("ImportSubscribersAsLeadsAsync not implemented - requires marketing platform API");
         return Task.FromResult(new MarketingImportResult { TotalImported = 0 });
     }
-
 }

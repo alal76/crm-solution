@@ -15,13 +15,14 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Models;
+
 // Type aliases to disambiguate from ReportBuilderService.ReportDefinition
 using ReportDefinitionEntity = CRM.Core.Entities.Reports.ReportDefinition;
 using ReportEntityDataSource = CRM.Core.Entities.Reports.ReportDataSource;
 using ReportExecutionEntity = CRM.Core.Entities.Reports.ReportExecution;
 using ReportFolderEntity = CRM.Core.Entities.Reports.ReportFolder;
 using ReportScheduleEntity = CRM.Core.Entities.Reports.ReportSchedule;
-using CRM.Core.Models;
 
 
 namespace CRM.Infrastructure.Services;

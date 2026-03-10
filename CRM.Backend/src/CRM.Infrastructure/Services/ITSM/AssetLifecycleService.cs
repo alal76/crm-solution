@@ -851,5 +851,3 @@ public class AssetLifecycleService : IAssetLifecycleService
         return Math.Max(0, acquisitionCost - depreciation);
     }
 }
-
-

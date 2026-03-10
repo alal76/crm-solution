@@ -27,7 +27,7 @@ public class ContractExportService : IContractExportService
     private readonly IContractService _contractService;
 
     public ContractExportService(
-        ICrmDbContext context, 
+        ICrmDbContext context,
         ILogger<ContractExportService> logger,
         IContractService contractService)
     {
@@ -196,7 +196,7 @@ public class ContractExportService : IContractExportService
 
         // For bulk export, create a combined file
         var sb = new StringBuilder();
-        
+
         if (format.ToUpperInvariant() == "EXCEL" || format.ToUpperInvariant() == "XLSX")
         {
             sb.AppendLine("Contract Number,Name,Status,Type,Account,Start Date,End Date,Value");

@@ -18,37 +18,37 @@ public enum LeadSourceChannel
 {
     /// <summary>Paid search advertising</summary>
     PaidSearch = 0,
-    
+
     /// <summary>Organic search results</summary>
     OrganicSearch = 1,
-    
+
     /// <summary>Social media channels</summary>
     Social = 2,
-    
+
     /// <summary>Email marketing</summary>
     Email = 3,
-    
+
     /// <summary>Direct website visit</summary>
     Direct = 4,
-    
+
     /// <summary>Partner or affiliate referral</summary>
     Partner = 5,
-    
+
     /// <summary>Customer referral</summary>
     Referral = 6,
-    
+
     /// <summary>Events and webinars</summary>
     Event = 7,
-    
+
     /// <summary>Content marketing</summary>
     Content = 8,
-    
+
     /// <summary>Display advertising</summary>
     Display = 9,
-    
+
     /// <summary>Offline channels</summary>
     Offline = 10,
-    
+
     /// <summary>Other or unknown</summary>
     Other = 99
 }
@@ -65,49 +65,49 @@ public class LeadSourceEntity : BaseEntity
     [Required]
     [MaxLength(255)]
     public string Name { get; set; } = string.Empty;
-    
+
     /// <summary>Unique source code for identification</summary>
     [MaxLength(50)]
     public string? Code { get; set; }
-    
+
     /// <summary>Description of the lead source</summary>
     [MaxLength(1000)]
     public string? Description { get; set; }
-    
+
     /// <summary>Source channel category</summary>
     public LeadSourceChannel Channel { get; set; } = LeadSourceChannel.Other;
-    
+
     /// <summary>Medium (e.g., cpc, email, social)</summary>
     [MaxLength(100)]
     public string? Medium { get; set; }
-    
+
     /// <summary>Campaign name or ID</summary>
     [MaxLength(255)]
     public string? CampaignName { get; set; }
-    
+
     /// <summary>Cost per lead (for paid sources)</summary>
     [Column(TypeName = "decimal(18,2)")]
     public decimal? CostPerLead { get; set; }
-    
+
     /// <summary>Total spend on this source</summary>
     [Column(TypeName = "decimal(18,2)")]
     public decimal? TotalSpend { get; set; }
-    
+
     /// <summary>Whether this source is currently active</summary>
     public bool IsActive { get; set; } = true;
-    
+
     /// <summary>External tracking URL or UTM parameters</summary>
     [MaxLength(500)]
     public string? TrackingUrl { get; set; }
-    
+
     /// <summary>Integration platform ID (e.g., Google Ads account ID)</summary>
     [MaxLength(100)]
     public string? ExternalPlatformId { get; set; }
-    
+
     #region Navigation Properties
-    
+
     /// <summary>Leads from this source</summary>
     public virtual ICollection<Lead> Leads { get; set; } = new List<Lead>();
-    
+
     #endregion
 }

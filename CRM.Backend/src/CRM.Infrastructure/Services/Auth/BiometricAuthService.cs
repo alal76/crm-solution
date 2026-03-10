@@ -17,7 +17,7 @@ namespace CRM.Infrastructure.Services.Auth;
 /// <summary>
 /// Platform biometric authentication service implementation.
 /// TODO-AUTH-010: Platform Biometric Authentication
-/// 
+///
 /// Uses WebAuthn with authenticatorAttachment: 'platform' for fingerprint, Face ID, Windows Hello, etc.
 /// Delegates to WebAuthnService for low-level operations but filters for platform credentials.
 /// </summary>
@@ -71,8 +71,8 @@ public class BiometricAuthService : IBiometricAuthService
             RelyingPartyName = _options.RelyingPartyName,
             UserId = user.Id.ToString(),
             UserName = user.Email,
-            UserDisplayName = !string.IsNullOrEmpty(user.FirstName) 
-                ? $"{user.FirstName} {user.LastName}".Trim() 
+            UserDisplayName = !string.IsNullOrEmpty(user.FirstName)
+                ? $"{user.FirstName} {user.LastName}".Trim()
                 : user.Email,
             AttestationConveyance = _options.AttestationConveyance,
             AuthenticatorAttachment = "platform", // Key for biometric: platform authenticator only
@@ -157,9 +157,9 @@ public class BiometricAuthService : IBiometricAuthService
 
             if (credential == null)
             {
-                return new BiometricAuthResult 
-                { 
-                    Success = false, 
+                return new BiometricAuthResult
+                {
+                    Success = false,
                     Error = "Credential not found",
                     ErrorCode = "credential_not_found"
                 };
@@ -185,9 +185,9 @@ public class BiometricAuthService : IBiometricAuthService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating biometric authentication");
-            return new BiometricAuthResult 
-            { 
-                Success = false, 
+            return new BiometricAuthResult
+            {
+                Success = false,
                 Error = ex.Message,
                 ErrorCode = "validation_error"
             };

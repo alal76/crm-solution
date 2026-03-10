@@ -940,5 +940,3 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
             workflow.WorkflowId, workflow.ServiceRequestNumber);
     }
 }
-
-

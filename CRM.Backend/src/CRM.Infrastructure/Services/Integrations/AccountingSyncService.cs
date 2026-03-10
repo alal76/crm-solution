@@ -5,12 +5,12 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using IAccountingSyncService = CRM.Core.Ports.Input.IAccountingSyncService;
 using AccountingSyncResult = CRM.Core.Ports.Input.AccountingSyncResult;
 using AccountingSyncStatus = CRM.Core.Ports.Input.AccountingSyncStatus;
 using AccountingBatchSyncResult = CRM.Core.Ports.Input.AccountingBatchSyncResult;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services.Integrations;
 

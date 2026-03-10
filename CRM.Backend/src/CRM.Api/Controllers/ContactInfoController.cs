@@ -21,7 +21,6 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class ContactInfoController : CrmControllerBase
 {
-
     private readonly IContactInfoService _contactInfoService;
     private readonly IContactInfoValidationService _contactInfoValidationService;
     private const string UserNotAuthenticated = "User not authenticated";

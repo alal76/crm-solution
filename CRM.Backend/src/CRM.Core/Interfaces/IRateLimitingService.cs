@@ -102,7 +102,7 @@ public class EndpointUsageStats
 /// <summary>
 /// Service interface for application-level rate limiting.
 /// TODO-SYS005-002: Rate Limiting Service
-/// 
+///
 /// Provides per-user, per-endpoint rate limiting with configurable quotas.
 /// Supports both in-memory and Redis-backed implementations.
 /// </summary>

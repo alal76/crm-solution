@@ -7,6 +7,8 @@
 
 using System.Text;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ITeamsIntegrationService = CRM.Core.Ports.Input.ITeamsIntegrationService;
 using TeamsNotificationResult = CRM.Core.Ports.Input.TeamsNotificationResult;
 using AdaptiveCardPayload = CRM.Core.Ports.Input.AdaptiveCardPayload;
@@ -15,8 +17,6 @@ using CrmTeamsNotification = CRM.Core.Ports.Input.CrmTeamsNotification;
 using NotificationPriority = CRM.Core.Ports.Input.NotificationPriority;
 using TeamsChannelConfig = CRM.Core.Ports.Input.TeamsChannelConfig;
 using TeamsChannelConfigResult = CRM.Core.Ports.Input.TeamsChannelConfigResult;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services.Integrations;
 

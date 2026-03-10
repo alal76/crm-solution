@@ -20,7 +20,6 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class StagesController : CrmControllerBase
 {
-
     public StagesController()
     {
     }

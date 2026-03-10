@@ -5,6 +5,8 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ILinkedInSalesNavService = CRM.Core.Ports.Input.ILinkedInSalesNavService;
 using LinkedInSearchQuery = CRM.Core.Ports.Input.LinkedInSearchQuery;
 using LinkedInSearchResult = CRM.Core.Ports.Input.LinkedInSearchResult;
@@ -12,9 +14,8 @@ using LinkedInProfile = CRM.Core.Ports.Input.LinkedInProfile;
 using LinkedInEnrichResult = CRM.Core.Ports.Input.LinkedInEnrichResult;
 using LinkedInImportResult = CRM.Core.Ports.Input.LinkedInImportResult;
 using LinkedInActivity = CRM.Core.Ports.Input.LinkedInActivity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
+#pragma warning disable SA1648 // inheritdoc used on interface-implementing member; interface resolved via alias
 namespace CRM.Infrastructure.Services.Integrations;
 
 /// <summary>
@@ -139,5 +140,4 @@ public class LinkedInSalesNavService : ILinkedInSalesNavService
         _logger.LogWarning("GetRecentActivitiesAsync not implemented - requires LinkedIn Sales Navigator API");
         return Task.FromResult<IReadOnlyList<LinkedInActivity>>(new List<LinkedInActivity>());
     }
-
 }

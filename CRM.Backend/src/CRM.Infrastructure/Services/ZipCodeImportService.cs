@@ -494,18 +494,18 @@ public class ZipCodeImportService : IZipCodeImportService
 
         static string? NullIfEmpty(string s) => string.IsNullOrWhiteSpace(s) ? null : s;
 
-        var idxCountry     = GetIdx("COUNTRY");
-        var idxPostal      = GetIdx("POSTAL_CODE", "POSTALCODE", "ZIP", "ZIP_CODE");
-        var idxCity        = GetIdx("CITY", "PLACE_NAME", "PLACENAME");
-        var idxState       = GetIdx("STATE", "ADMIN_NAME1");
-        var idxStateCode   = GetIdx("SHORT_STATE", "STATE_CODE");
-        var idxCounty      = GetIdx("COUNTY", "ADMIN_NAME2");
-        var idxCountyCode  = GetIdx("SHORT_COUNTY", "COUNTY_CODE");
-        var idxCommunity   = GetIdx("COMMUNITY", "ADMIN_NAME3");
-        var idxCommCode    = GetIdx("SHORT_COMMUNITY", "COMMUNITY_CODE");
-        var idxLat         = GetIdx("LATITUDE", "LAT");
-        var idxLon         = GetIdx("LONGITUDE", "LON", "LNG");
-        var idxAccuracy    = GetIdx("ACCURACY");
+        var idxCountry = GetIdx("COUNTRY");
+        var idxPostal = GetIdx("POSTAL_CODE", "POSTALCODE", "ZIP", "ZIP_CODE");
+        var idxCity = GetIdx("CITY", "PLACE_NAME", "PLACENAME");
+        var idxState = GetIdx("STATE", "ADMIN_NAME1");
+        var idxStateCode = GetIdx("SHORT_STATE", "STATE_CODE");
+        var idxCounty = GetIdx("COUNTY", "ADMIN_NAME2");
+        var idxCountyCode = GetIdx("SHORT_COUNTY", "COUNTY_CODE");
+        var idxCommunity = GetIdx("COMMUNITY", "ADMIN_NAME3");
+        var idxCommCode = GetIdx("SHORT_COMMUNITY", "COMMUNITY_CODE");
+        var idxLat = GetIdx("LATITUDE", "LAT");
+        var idxLon = GetIdx("LONGITUDE", "LON", "LNG");
+        var idxAccuracy = GetIdx("ACCURACY");
 
         string? line;
         while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
@@ -519,7 +519,7 @@ public class ZipCodeImportService : IZipCodeImportService
                 idx >= 0 && idx < parts.Count ? parts[idx].Trim() : "";
 
             var postalCode = GetField(idxPostal);
-            var city       = GetField(idxCity);
+            var city = GetField(idxCity);
 
             if (string.IsNullOrWhiteSpace(postalCode) || string.IsNullOrWhiteSpace(city))
             {
@@ -540,20 +540,20 @@ public class ZipCodeImportService : IZipCodeImportService
 
             records.Add(new ZipCode
             {
-                Country      = string.IsNullOrWhiteSpace(countryName) ? GetCountryName(countryCode) : countryName,
-                CountryCode  = countryCode,
-                PostalCode   = postalCode,
-                City         = city,
-                State        = NullIfEmpty(GetField(idxState)),
-                StateCode    = NullIfEmpty(GetField(idxStateCode)),
-                County       = NullIfEmpty(GetField(idxCounty)),
-                CountyCode   = NullIfEmpty(GetField(idxCountyCode)),
-                Community    = NullIfEmpty(GetField(idxCommunity)),
+                Country = string.IsNullOrWhiteSpace(countryName) ? GetCountryName(countryCode) : countryName,
+                CountryCode = countryCode,
+                PostalCode = postalCode,
+                City = city,
+                State = NullIfEmpty(GetField(idxState)),
+                StateCode = NullIfEmpty(GetField(idxStateCode)),
+                County = NullIfEmpty(GetField(idxCounty)),
+                CountyCode = NullIfEmpty(GetField(idxCountyCode)),
+                Community = NullIfEmpty(GetField(idxCommunity)),
                 CommunityCode = NullIfEmpty(GetField(idxCommCode)),
-                Latitude     = latitude,
-                Longitude    = longitude,
-                Accuracy     = accuracy > 0 ? accuracy : 1,
-                IsActive     = true
+                Latitude = latitude,
+                Longitude = longitude,
+                Accuracy = accuracy > 0 ? accuracy : 1,
+                IsActive = true
             });
         }
 

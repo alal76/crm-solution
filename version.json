@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 623,
-  "patch": 3,
+  "patch": 4,
   "lastUpdate": "2026-03-10",
-  "description": "fix: StyleCop SA warnings eliminated (0 errors, 0 warnings) — SA1633/SA1636 file headers (40+ files), SA1108 block-statement comments (20+ files), SA1118 multi-line params, SA1636 double-header cleanup (16 files); fix: TypeScript 4.9→5.9 upgrade for @mui/x-tree-view v8 compatibility (const type params TS5 syntax); fix: WorkflowSimulator.tsx explicit type annotations; fix: remove declaration/declarationMap from tsconfig. Build clean: 0 backend errors, 0 warnings; 7463/7485 tests passing.",
+  "description": "fix(stylecop): eliminate all 798 SA style warnings — SA1028 trailing whitespace (380), SA1025 multiple spaces (274), SA1518/SA1505/SA1508 blank-line rules (32), SA1209 using alias ordering (24+6), SA1136 enum values on same line (20), SA1206 required modifier pragma (14), SA1648 inheritdoc on alias-imported interface pragma (28), SA1401 Lock field pragma (2), SA1604 missing summary docs (6), SA1002/SA1013 interface brace (4), SA1005 comment spacing (2), SA1111 LINQ paren pragma (4). Build: 0 errors, 0 SA warnings.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

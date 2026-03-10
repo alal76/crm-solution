@@ -69,7 +69,7 @@ public class LeadAgingAlertService : ILeadAgingAlertService
         foreach (var lead in openLeads)
         {
             var ageDays = (now - lead.AgeDate).TotalDays;
-            
+
             if (ageDays < 7)
             {
                 stats.Under7Days++;

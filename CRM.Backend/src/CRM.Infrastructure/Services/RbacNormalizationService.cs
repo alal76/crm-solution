@@ -88,7 +88,7 @@ public class RbacNormalizationService : IRbacNormalizationService
             foreach (var navItem in navConfig)
             {
                 var navKey = navItem.Key?.ToLowerInvariant() ?? string.Empty;
-                
+
                 if (!NavigationPermissionMap.TryGetValue(navKey, out var permissionFlags))
                 {
                     continue;
@@ -101,7 +101,7 @@ public class RbacNormalizationService : IRbacNormalizationService
                 if (!string.IsNullOrEmpty(navItem.RequiredRoles))
                 {
                     var requiredRoles = navItem.RequiredRoles.Split(',', StringSplitOptions.RemoveEmptyEntries);
-                    var groupHasRole = requiredRoles.Any(r => 
+                    var groupHasRole = requiredRoles.Any(r =>
                         r.Trim().Equals(group.Name, StringComparison.OrdinalIgnoreCase) ||
                         (r.Trim().Equals("Admin", StringComparison.OrdinalIgnoreCase) && group.IsSystemAdmin));
 
@@ -215,7 +215,7 @@ public class RbacNormalizationService : IRbacNormalizationService
     {
         var property = typeof(CRM.Core.Entities.UserGroup).GetProperty(propertyName);
         if (property == null) return false;
-        
+
         var value = property.GetValue(group);
         return value is bool boolValue && boolValue;
     }

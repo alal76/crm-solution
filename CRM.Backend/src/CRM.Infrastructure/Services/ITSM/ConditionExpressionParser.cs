@@ -247,7 +247,7 @@ public class ConditionExpressionParser : IConditionExpressionParser
         while (index < tokens.Count)
         {
             var token = tokens[index].ToUpperInvariant();
-            
+
             if (token == "OR")
             {
                 index++;
@@ -300,10 +300,10 @@ public class ConditionExpressionParser : IConditionExpressionParser
         {
             index++;
             var inner = ParseExpression(tokens, ref index);
-            
+
             if (index >= tokens.Count || tokens[index] != ")")
                 throw new ArgumentException("Missing closing parenthesis");
-            
+
             index++;
             return inner;
         }
@@ -383,7 +383,7 @@ public class ConditionExpressionParser : IConditionExpressionParser
         {
             var amount = int.Parse(timeMatch.Groups[1].Value);
             var unit = timeMatch.Groups[2].Value.ToLowerInvariant();
-            
+
             // Convert to minutes for consistent comparison
             return unit switch
             {

@@ -834,5 +834,3 @@ public class ImpactAnalysisService : IImpactAnalysisService
         return recommendations;
     }
 }
-
-

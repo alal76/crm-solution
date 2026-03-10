@@ -155,8 +155,24 @@ public class SagaStepState
     public string? ErrorMessage { get; set; }
 }
 
-public enum SagaStatus { Pending, Running, Completed, Failed, Compensating, Compensated }
-public enum SagaStepStatus { Pending, Running, Completed, Failed, Compensated, Skipped }
+public enum SagaStatus
+{
+    Pending,
+    Running,
+    Completed,
+    Failed,
+    Compensating,
+    Compensated,
+}
+public enum SagaStepStatus
+{
+    Pending,
+    Running,
+    Completed,
+    Failed,
+    Compensated,
+    Skipped,
+}
 
 /// <summary>
 /// Orchestrates distributed transactions using the saga pattern.

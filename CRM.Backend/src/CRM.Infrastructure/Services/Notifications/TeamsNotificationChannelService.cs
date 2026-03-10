@@ -70,7 +70,7 @@ public class TeamsNotificationChannelService : ITeamsNotificationChannel
             {
                 var client = _httpClientFactory.CreateClient("TeamsWebhook");
                 var response = await client.PostAsJsonAsync(webhookUrl, messageCard, cancellationToken);
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     _logger.LogInformation("Teams message sent successfully: {Title}", title);
@@ -103,7 +103,7 @@ public class TeamsNotificationChannelService : ITeamsNotificationChannel
         // This is a placeholder for future implementation
 
         _logger.LogWarning("Teams direct messaging requires Graph API integration (not implemented)");
-        _logger.LogInformation("Teams stub: Would send DM to {Email}: {Message}", 
+        _logger.LogInformation("Teams stub: Would send DM to {Email}: {Message}",
             userEmail, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
 
         await Task.Delay(10, cancellationToken);

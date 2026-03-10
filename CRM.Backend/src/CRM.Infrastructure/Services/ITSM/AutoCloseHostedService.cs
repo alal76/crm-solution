@@ -269,5 +269,3 @@ public class AutoCloseOptions
     /// </summary>
     public int CheckIntervalMinutes { get; set; } = 60;
 }
-
-

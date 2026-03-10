@@ -33,7 +33,7 @@ public class OktaSsoService : IOktaSsoService
         _logger = logger;
         _options = options.Value;
         _httpClient = httpClientFactory.CreateClient("OktaSso");
-        
+
         // Only set BaseAddress if Domain is configured
         if (!string.IsNullOrWhiteSpace(_options.Domain))
         {
@@ -58,7 +58,7 @@ public class OktaSsoService : IOktaSsoService
     public string GetAuthorizationUrl(string state, string codeChallenge)
     {
         ValidateConfiguration();
-        
+
         var authServer = _options.AuthorizationServerId;
         var baseUrl = $"https://{_options.Domain}/oauth2/{authServer}/v1/authorize";
 
@@ -86,7 +86,7 @@ public class OktaSsoService : IOktaSsoService
         CancellationToken cancellationToken = default)
     {
         ValidateConfiguration();
-        
+
         var authServer = _options.AuthorizationServerId;
         var tokenEndpoint = $"oauth2/{authServer}/v1/token";
 

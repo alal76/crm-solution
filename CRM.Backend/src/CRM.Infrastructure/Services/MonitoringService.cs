@@ -668,6 +668,7 @@ public class MonitoringService : IMonitoringService
 
     #region Database Metrics
 
+    /// <summary>Gets database metrics. Delegated to IDatabaseHealthService (AP-038).</summary>
     /// <remarks>AP-038: Delegated to IDatabaseHealthService. Original implementation preserved below.</remarks>
     public async Task<DatabaseMetrics> GetDatabaseMetricsAsync(CancellationToken ct = default)
         => await _databaseHealthService.GetDatabaseMetricsAsync(ct);
@@ -1104,6 +1105,7 @@ public class MonitoringService : IMonitoringService
 
     #region Container Monitoring
 
+    /// <summary>Gets container health. Delegated to IDockerMonitoringService (AP-038).</summary>
     /// <remarks>AP-038: Delegated to IDockerMonitoringService. Original implementation preserved below.</remarks>
     public async Task<List<ContainerHealth>> GetContainerHealthAsync(CancellationToken ct = default)
         => await _dockerMonitoringService.GetContainerHealthAsync(ct);
@@ -1208,6 +1210,7 @@ public class MonitoringService : IMonitoringService
 
     #region Kubernetes Monitoring
 
+    /// <summary>Gets Kubernetes pod health. Delegated to IKubernetesMonitoringService (AP-038).</summary>
     /// <remarks>AP-038: Delegated to IKubernetesMonitoringService. Original implementation preserved below.</remarks>
     public async Task<List<PodHealth>> GetPodHealthAsync(CancellationToken ct = default)
         => await _kubernetesMonitoringService.GetPodHealthAsync(ct);

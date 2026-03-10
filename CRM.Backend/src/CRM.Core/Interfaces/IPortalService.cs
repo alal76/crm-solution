@@ -40,4 +40,5 @@ public interface IPortalService
     Task<IEnumerable<PortalAttachmentDto>> GetAttachmentsAsync(int ticketId, int portalUserId, CancellationToken ct = default);
 
     // ── Cancel (PORTAL-023) ──────────────────────────────────────────────────────────
-    Task CancelTicketAsync(int ticketId, int portalUserId, CancellationToken ct = default);}
+    Task CancelTicketAsync(int ticketId, int portalUserId, CancellationToken ct = default);
+}

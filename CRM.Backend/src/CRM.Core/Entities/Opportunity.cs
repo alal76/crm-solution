@@ -6,10 +6,10 @@
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using ContactModel = CRM.Core.Models.Contact;
 using CRM.Core.Entities.Events;
 using CRM.Core.Exceptions;
 using CRM.Core.Ports.Output.Events;
+using ContactModel = CRM.Core.Models.Contact;
 
 namespace CRM.Core.Entities;
 
@@ -167,12 +167,12 @@ public class Opportunity : BaseEntity, IHasDomainEvents
     public static readonly IReadOnlyDictionary<OpportunityStage, int> StageProbabilityDefaults =
         new Dictionary<OpportunityStage, int>
         {
-            { OpportunityStage.Discovery,      10 },
-            { OpportunityStage.Qualification,  25 },
-            { OpportunityStage.Proposal,       50 },
-            { OpportunityStage.Negotiation,    75 },
-            { OpportunityStage.ClosedWon,     100 },
-            { OpportunityStage.ClosedLost,      0 },
+            { OpportunityStage.Discovery, 10 },
+            { OpportunityStage.Qualification, 25 },
+            { OpportunityStage.Proposal, 50 },
+            { OpportunityStage.Negotiation, 75 },
+            { OpportunityStage.ClosedWon, 100 },
+            { OpportunityStage.ClosedLost, 0 },
         };
 
     #endregion
@@ -188,9 +188,9 @@ public class Opportunity : BaseEntity, IHasDomainEvents
             throw new BusinessRuleException("OpportunityStageTransition", $"Stage {newStage} is not valid for transition. Use Close() instead.");
 
         var oldStage = Stage;
-        Stage       = newStage;
+        Stage = newStage;
         Probability = probability ?? StageProbabilityDefaults[newStage];
-        UpdatedAt   = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
 
         _domainEvents.Add(new OpportunityStageChangedEvent(Id, oldStage, newStage, Probability));
     }
@@ -203,10 +203,10 @@ public class Opportunity : BaseEntity, IHasDomainEvents
         if (closeStage != OpportunityStage.ClosedWon && closeStage != OpportunityStage.ClosedLost)
             throw new BusinessRuleException("OpportunityClose", "Close stage must be ClosedWon or ClosedLost.");
 
-        Stage       = closeStage;
+        Stage = closeStage;
         Probability = closeStage == OpportunityStage.ClosedWon ? 100 : 0;
-        ClosedDate  = DateTime.UtcNow;
-        UpdatedAt   = DateTime.UtcNow;
+        ClosedDate = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
         if (reason != null) LossReason = reason;
 
         _domainEvents.Add(new OpportunityClosedEvent(Id, closeStage, reason, CompetitorWinnerId));
@@ -218,9 +218,9 @@ public class Opportunity : BaseEntity, IHasDomainEvents
         if (amount < 0)
             throw new BusinessRuleException("OpportunityRevenue", "Amount cannot be negative.");
 
-        Amount            = amount;
+        Amount = amount;
         ExpectedCloseDate = expectedCloseDate;
-        UpdatedAt         = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
 
         _domainEvents.Add(new OpportunityRevenueUpdatedEvent(Id, amount, expectedCloseDate));
     }

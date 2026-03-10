@@ -1044,5 +1044,3 @@ public class KCSWorkflowService : IKCSWorkflowService
         public DateTime FlaggedAt { get; set; }
     }
 }
-
-

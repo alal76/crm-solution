@@ -117,7 +117,7 @@ public class OrderReturnService : IOrderReturnService
         _context.OrderReturns.Add(orderReturn);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Order return created: {ReturnNumber} for order {OrderId}", 
+        _logger.LogInformation("Order return created: {ReturnNumber} for order {OrderId}",
             orderReturn.ReturnNumber, dto.OrderId);
 
         return orderReturn;
@@ -132,7 +132,7 @@ public class OrderReturnService : IOrderReturnService
         }
 
         orderReturn.Status = (OrderReturnStatus)dto.Status;
-        
+
         if (!string.IsNullOrEmpty(dto.Notes))
         {
             orderReturn.Notes = dto.Notes;

@@ -246,7 +246,7 @@ public class QuoteService : IQuoteService
     }
 
     /// <inheritdoc />
-    public async Task<bool> SendAsync(int id)    {
+    public async Task<bool> SendAsync(int id) {
         _logger.LogDebug("Sending quote: {QuoteId}", id);
 
         var quote = await _context.Quotes

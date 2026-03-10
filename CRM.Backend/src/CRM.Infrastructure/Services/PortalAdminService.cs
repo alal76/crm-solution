@@ -52,14 +52,14 @@ public class PortalAdminService : IPortalAdminService
             _db.PortalConfigs.Add(config);
         }
 
-        if (dto.IsEnabled.HasValue)          config.IsEnabled          = dto.IsEnabled.Value;
+        if (dto.IsEnabled.HasValue) config.IsEnabled = dto.IsEnabled.Value;
         if (dto.AllowSelfRegistration.HasValue) config.AllowSelfRegistration = dto.AllowSelfRegistration.Value;
-        if (dto.WelcomeMessage  != null)     config.WelcomeMessage     = dto.WelcomeMessage;
-        if (dto.SupportEmail    != null)     config.SupportEmail       = dto.SupportEmail;
-        if (dto.LogoUrl         != null)     config.LogoUrl            = dto.LogoUrl;
-        if (dto.PrimaryColor    != null)     config.PrimaryColor       = dto.PrimaryColor;
-        if (dto.PortalTitle     != null)     config.PortalTitle        = dto.PortalTitle;
-        if (dto.AllowedDomains  != null)     config.AllowedDomains     = dto.AllowedDomains;
+        if (dto.WelcomeMessage != null) config.WelcomeMessage = dto.WelcomeMessage;
+        if (dto.SupportEmail != null) config.SupportEmail = dto.SupportEmail;
+        if (dto.LogoUrl != null) config.LogoUrl = dto.LogoUrl;
+        if (dto.PrimaryColor != null) config.PrimaryColor = dto.PrimaryColor;
+        if (dto.PortalTitle != null) config.PortalTitle = dto.PortalTitle;
+        if (dto.AllowedDomains != null) config.AllowedDomains = dto.AllowedDomains;
 
         config.UpdatedAt = now;
         await _db.SaveChangesAsync(ct);

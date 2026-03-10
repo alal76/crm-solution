@@ -148,38 +148,38 @@ public class CreateContactRequest
     [Required(ErrorMessage = "First name is required")]
     [StringLength(100, MinimumLength = 1, ErrorMessage = "First name must be between 1 and 100 characters")]
     public string FirstName { get; set; } = string.Empty;
-    
+
     [Required(ErrorMessage = "Last name is required")]
     [StringLength(100, MinimumLength = 1, ErrorMessage = "Last name must be between 1 and 100 characters")]
     public string LastName { get; set; } = string.Empty;
-    
+
     [StringLength(100)]
     public string? MiddleName { get; set; }
 
     [EmailAddress(ErrorMessage = "Invalid email format for primary email")]
     [StringLength(200)]
     public string? EmailPrimary { get; set; }
-    
+
     [EmailAddress(ErrorMessage = "Invalid email format for secondary email")]
     [StringLength(200)]
     public string? EmailSecondary { get; set; }
-    
+
     [EmailAddress(ErrorMessage = "Invalid email format for work email")]
     [StringLength(200)]
     public string? EmailWork { get; set; }
-    
+
     [Phone(ErrorMessage = "Invalid phone format")]
     [StringLength(50)]
     public string? PhonePrimary { get; set; }
-    
+
     [Phone(ErrorMessage = "Invalid phone format")]
     [StringLength(50)]
     public string? PhoneSecondary { get; set; }
-    
+
     [Phone(ErrorMessage = "Invalid phone format")]
     [StringLength(50)]
     public string? PhoneWork { get; set; }
-    
+
     [StringLength(500)]
     public string? Address { get; set; }
     public string? City { get; set; }
@@ -212,23 +212,23 @@ public class CreateContactRequest
     public string? Suffix { get; set; }
     public string? Nickname { get; set; }
     public string? Gender { get; set; }
-    
+
     [Phone(ErrorMessage = "Invalid phone format for mobile")]
     [StringLength(50)]
     public string? PhoneMobile { get; set; }
-    
+
     [Phone(ErrorMessage = "Invalid phone format for fax")]
     [StringLength(50)]
     public string? PhoneFax { get; set; }
-    
+
     [Url(ErrorMessage = "Invalid URL format for website")]
     [StringLength(500)]
     public string? Website { get; set; }
-    
+
     [Url(ErrorMessage = "Invalid URL format for LinkedIn")]
     [StringLength(500)]
     public string? LinkedInUrl { get; set; }
-    
+
     [StringLength(100)]
     [RegularExpression(@"^@?[a-zA-Z0-9_]{1,15}$", ErrorMessage = "Invalid Twitter handle format")]
     public string? TwitterHandle { get; set; }
@@ -237,11 +237,11 @@ public class CreateContactRequest
     [Url(ErrorMessage = "Invalid URL format for Facebook")]
     [StringLength(500)]
     public string? FacebookUrl { get; set; }
-    
+
     [StringLength(100)]
     [RegularExpression(@"^@?[a-zA-Z0-9._]{1,30}$", ErrorMessage = "Invalid Instagram handle format")]
     public string? InstagramHandle { get; set; }
-    
+
     [Url(ErrorMessage = "Invalid URL format for blog")]
     [StringLength(500)]
     public string? BlogUrl { get; set; }
@@ -373,12 +373,12 @@ public class AddSocialMediaRequest
     [Required(ErrorMessage = "Platform is required")]
     [StringLength(50, MinimumLength = 2, ErrorMessage = "Platform must be between 2 and 50 characters")]
     public string Platform { get; set; } = string.Empty;
-    
+
     [Required(ErrorMessage = "URL is required")]
     [Url(ErrorMessage = "Invalid URL format")]
     [StringLength(500, ErrorMessage = "URL cannot exceed 500 characters")]
     public string Url { get; set; } = string.Empty;
-    
+
     [StringLength(100)]
     public string? Handle { get; set; }
 }

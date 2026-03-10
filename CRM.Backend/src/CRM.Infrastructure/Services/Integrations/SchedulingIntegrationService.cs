@@ -5,15 +5,16 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using ISchedulingIntegrationService = CRM.Core.Ports.Input.ISchedulingIntegrationService;
 using SchedulingLink = CRM.Core.Ports.Input.SchedulingLink;
 using CreateSchedulingLinkRequest = CRM.Core.Ports.Input.CreateSchedulingLinkRequest;
 using ScheduledMeeting = CRM.Core.Ports.Input.ScheduledMeeting;
 using SchedulingWebhookEvent = CRM.Core.Ports.Input.SchedulingWebhookEvent;
 using SchedulingEventResult = CRM.Core.Ports.Input.SchedulingEventResult;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
+#pragma warning disable SA1648 // inheritdoc used on interface-implementing member; interface resolved via alias
 namespace CRM.Infrastructure.Services.Integrations;
 
 /// <summary>
@@ -175,5 +176,4 @@ public class SchedulingIntegrationService : ISchedulingIntegrationService
         _logger.LogWarning("ProcessWebhookEventAsync not implemented - requires scheduling platform API");
         return Task.FromResult(SchedulingEventResult.Failed("Not implemented"));
     }
-
 }

@@ -6,13 +6,13 @@
 // See the LICENSE file in the root directory for full terms.
 
 using System.Text.RegularExpressions;
+using CRM.Core.Ports.Input;
 
 // Alias to disambiguate from CRM.Core.Interfaces.ValidationResult
 using DataValidationResult = CRM.Core.Ports.Input.ValidationResult;
 
 // Alias to disambiguate FieldValidationError from CRM.Core.Interfaces.FieldValidationError
 using FieldValidationError = CRM.Core.Ports.Input.FieldValidationError;
-using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
@@ -47,53 +47,53 @@ public sealed partial class DataValidatorService : IDataValidator
         {
             ["accounts"] =
             [
-                new FieldValidationRule { Field = "Name",        Required = true,  MaxLength = 200 },
-                new FieldValidationRule { Field = "Industry",    Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "Website",     Required = false, MaxLength = 500 },
-                new FieldValidationRule { Field = "Phone",       Required = false, Format = "phone", MaxLength = 50 },
-                new FieldValidationRule { Field = "Email",       Required = false, Format = "email", MaxLength = 200 },
-                new FieldValidationRule { Field = "Address",     Required = false, MaxLength = 300 },
-                new FieldValidationRule { Field = "City",        Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "State",       Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "Country",     Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "PostalCode",  Required = false, MaxLength = 20 },
+                new FieldValidationRule { Field = "Name", Required = true, MaxLength = 200 },
+                new FieldValidationRule { Field = "Industry", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "Website", Required = false, MaxLength = 500 },
+                new FieldValidationRule { Field = "Phone", Required = false, Format = "phone", MaxLength = 50 },
+                new FieldValidationRule { Field = "Email", Required = false, Format = "email", MaxLength = 200 },
+                new FieldValidationRule { Field = "Address", Required = false, MaxLength = 300 },
+                new FieldValidationRule { Field = "City", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "State", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "Country", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "PostalCode", Required = false, MaxLength = 20 },
             ],
             ["contacts"] =
             [
-                new FieldValidationRule { Field = "FirstName",   Required = true,  MaxLength = 100 },
-                new FieldValidationRule { Field = "LastName",    Required = true,  MaxLength = 100 },
-                new FieldValidationRule { Field = "Email",       Required = true,  Format = "email", MaxLength = 200 },
-                new FieldValidationRule { Field = "Phone",       Required = false, Format = "phone", MaxLength = 50  },
-                new FieldValidationRule { Field = "Title",       Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "Department",  Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "FirstName", Required = true, MaxLength = 100 },
+                new FieldValidationRule { Field = "LastName", Required = true, MaxLength = 100 },
+                new FieldValidationRule { Field = "Email", Required = true, Format = "email", MaxLength = 200 },
+                new FieldValidationRule { Field = "Phone", Required = false, Format = "phone", MaxLength = 50 },
+                new FieldValidationRule { Field = "Title", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "Department", Required = false, MaxLength = 100 },
                 new FieldValidationRule { Field = "AccountName", Required = false, MaxLength = 200 },
-                new FieldValidationRule { Field = "Address",     Required = false, MaxLength = 300 },
-                new FieldValidationRule { Field = "City",        Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "State",       Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "Country",     Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "Address", Required = false, MaxLength = 300 },
+                new FieldValidationRule { Field = "City", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "State", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "Country", Required = false, MaxLength = 100 },
             ],
             ["leads"] =
             [
-                new FieldValidationRule { Field = "FirstName",   Required = true,  MaxLength = 100 },
-                new FieldValidationRule { Field = "LastName",    Required = true,  MaxLength = 100 },
-                new FieldValidationRule { Field = "Email",       Required = true,  Format = "email", MaxLength = 200 },
-                new FieldValidationRule { Field = "Phone",       Required = false, Format = "phone", MaxLength = 50  },
-                new FieldValidationRule { Field = "Company",     Required = false, MaxLength = 200 },
-                new FieldValidationRule { Field = "Title",       Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "Source",      Required = false, MaxLength = 100 },
-                new FieldValidationRule { Field = "Status",      Required = false, MaxLength = 50  },
-                new FieldValidationRule { Field = "Industry",    Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "FirstName", Required = true, MaxLength = 100 },
+                new FieldValidationRule { Field = "LastName", Required = true, MaxLength = 100 },
+                new FieldValidationRule { Field = "Email", Required = true, Format = "email", MaxLength = 200 },
+                new FieldValidationRule { Field = "Phone", Required = false, Format = "phone", MaxLength = 50 },
+                new FieldValidationRule { Field = "Company", Required = false, MaxLength = 200 },
+                new FieldValidationRule { Field = "Title", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "Source", Required = false, MaxLength = 100 },
+                new FieldValidationRule { Field = "Status", Required = false, MaxLength = 50 },
+                new FieldValidationRule { Field = "Industry", Required = false, MaxLength = 100 },
             ],
             ["opportunities"] =
             [
-                new FieldValidationRule { Field = "Name",        Required = true,  MaxLength = 200 },
+                new FieldValidationRule { Field = "Name", Required = true, MaxLength = 200 },
                 new FieldValidationRule { Field = "AccountName", Required = false, MaxLength = 200 },
-                new FieldValidationRule { Field = "Stage",       Required = true,  MaxLength = 100 },
-                new FieldValidationRule { Field = "Amount",      Required = false, Format = null   },
-                new FieldValidationRule { Field = "CloseDate",   Required = true,  Format = "date" },
-                new FieldValidationRule { Field = "Probability", Required = false, Format = null   },
+                new FieldValidationRule { Field = "Stage", Required = true, MaxLength = 100 },
+                new FieldValidationRule { Field = "Amount", Required = false, Format = null },
+                new FieldValidationRule { Field = "CloseDate", Required = true, Format = "date" },
+                new FieldValidationRule { Field = "Probability", Required = false, Format = null },
                 new FieldValidationRule { Field = "Description", Required = false, MaxLength = 2000 },
-                new FieldValidationRule { Field = "Type",        Required = false, MaxLength = 100  },
+                new FieldValidationRule { Field = "Type", Required = false, MaxLength = 100 },
             ],
         };
 

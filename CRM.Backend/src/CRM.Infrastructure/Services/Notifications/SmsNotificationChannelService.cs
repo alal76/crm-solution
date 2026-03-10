@@ -18,7 +18,7 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
 {
     private readonly ILogger<SmsNotificationChannelService> _logger;
     private readonly ISmsNotificationService? _smsService;
-    
+
     // E.164 format regex: +[country code][subscriber number]
     private static readonly Regex E164Regex = new(@"^\+[1-9]\d{1,14}$", RegexOptions.Compiled, TimeSpan.FromSeconds(1));
 
@@ -52,7 +52,7 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
                 return await _smsService.SendSmsAsync(phoneNumber, message, cancellationToken);
             }
 
-            _logger.LogInformation("SMS (no provider configured): Would send to {PhoneNumber}: {Message}", 
+            _logger.LogInformation("SMS (no provider configured): Would send to {PhoneNumber}: {Message}",
                 phoneNumber, message.Length > 50 ? message[..50] + "..." : message);
             return true;
         }
@@ -65,8 +65,8 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
 
     /// <inheritdoc />
     public async Task<Dictionary<string, bool>> SendBulkSmsAsync(
-        IEnumerable<string> phoneNumbers, 
-        string message, 
+        IEnumerable<string> phoneNumbers,
+        string message,
         CancellationToken cancellationToken = default)
     {
         var results = new Dictionary<string, bool>();
@@ -82,7 +82,7 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
             results[phoneNumber] = success;
         }
 
-        _logger.LogInformation("Bulk SMS completed: {Success}/{Total} successful", 
+        _logger.LogInformation("Bulk SMS completed: {Success}/{Total} successful",
             results.Values.Count(v => v), results.Count);
 
         return results;

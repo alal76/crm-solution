@@ -131,7 +131,7 @@ public class DealRiskService : IDealRiskService
             >= 70 => DealRiskLevel.Critical,
             >= 45 => DealRiskLevel.High,
             >= 20 => DealRiskLevel.Medium,
-            _     => DealRiskLevel.Low
+            _ => DealRiskLevel.Low
         };
 
         _logger.LogDebug("Deal risk for opportunity {Id}: score={Score}, level={Level}",

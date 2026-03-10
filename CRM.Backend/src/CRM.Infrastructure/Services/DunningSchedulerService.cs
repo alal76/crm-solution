@@ -57,7 +57,7 @@ public class DunningSchedulerService : BackgroundService
         // Default scheduled times: every 4 hours (6 runs/day) UTC
         _scheduledTimes = new[]
         {
-            TimeSpan.FromHours(0),  //  0:00 UTC (midnight)
+            TimeSpan.FromHours(0),  // 0:00 UTC (midnight)
             TimeSpan.FromHours(4),  //  4:00 UTC
             TimeSpan.FromHours(8),  //  8:00 UTC
             TimeSpan.FromHours(12), // 12:00 UTC (noon)

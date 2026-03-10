@@ -18,10 +18,10 @@ public class EmailServerConfigDto
     public string FromEmail { get; set; } = null!;
     public string FromName { get; set; } = null!;
     public string? Username { get; set; }
-    public string? Password { get; set; }  // Sensitive
+    public string? Password { get; set; } // Sensitive
     public bool IsConfigured { get; set; }
     public DateTime? LastTested { get; set; }
-    public string? ConnectionStatus { get; set; }  // 'connected', 'disconnected', 'error'
+    public string? ConnectionStatus { get; set; } // 'connected', 'disconnected', 'error'
     public string? TestError { get; set; }
 }
 
@@ -30,13 +30,13 @@ public class EmailServerConfigDto
 /// </summary>
 public class TwoFactorConfigDto
 {
-    public string Provider { get; set; } = "disabled";  // 'email', 'sms', 'totp', 'disabled'
+    public string Provider { get; set; } = "disabled"; // 'email', 'sms', 'totp', 'disabled'
     public bool Required { get; set; }
-    public string? SmsProvider { get; set; }  // 'twilio', 'nexmo'
-    public string? TwilioAccountSid { get; set; }  // Sensitive
-    public string? TwilioAuthToken { get; set; }   // Sensitive
+    public string? SmsProvider { get; set; } // 'twilio', 'nexmo'
+    public string? TwilioAccountSid { get; set; } // Sensitive
+    public string? TwilioAuthToken { get; set; } // Sensitive
     public string? TwilioFromNumber { get; set; }
-    public string? Issuer { get; set; }  // For TOTP identification
+    public string? Issuer { get; set; } // For TOTP identification
 }
 
 /// <summary>
@@ -46,7 +46,7 @@ public class GoogleOAuthDto
 {
     public bool Enabled { get; set; }
     public string? ClientId { get; set; }
-    public string? ClientSecret { get; set; }  // Sensitive
+    public string? ClientSecret { get; set; } // Sensitive
 }
 
 /// <summary>
@@ -56,7 +56,7 @@ public class MicrosoftOAuthDto
 {
     public bool Enabled { get; set; }
     public string? ClientId { get; set; }
-    public string? ClientSecret { get; set; }  // Sensitive
+    public string? ClientSecret { get; set; } // Sensitive
     public string? TenantId { get; set; }
 }
 
@@ -67,7 +67,7 @@ public class AzureAdDto
 {
     public bool Enabled { get; set; }
     public string? ClientId { get; set; }
-    public string? ClientSecret { get; set; }  // Sensitive
+    public string? ClientSecret { get; set; } // Sensitive
     public string? TenantId { get; set; }
     public string? Authority { get; set; }
 }
@@ -79,7 +79,7 @@ public class LinkedInOAuthDto
 {
     public bool Enabled { get; set; }
     public string? ClientId { get; set; }
-    public string? ClientSecret { get; set; }  // Sensitive
+    public string? ClientSecret { get; set; } // Sensitive
 }
 
 /// <summary>
@@ -89,7 +89,7 @@ public class FacebookOAuthDto
 {
     public bool Enabled { get; set; }
     public string? AppId { get; set; }
-    public string? AppSecret { get; set; }  // Sensitive
+    public string? AppSecret { get; set; } // Sensitive
 }
 
 /// <summary>
@@ -109,11 +109,11 @@ public class SocialLoginConfigDto
 /// </summary>
 public class AIProviderConfigDto
 {
-    public string Provider { get; set; } = null!;  // 'openai', 'azure', 'ollama', 'anthropic', 'bedrock', etc.
+    public string Provider { get; set; } = null!; // 'openai', 'azure', 'ollama', 'anthropic', 'bedrock', etc.
     public bool Enabled { get; set; }
-    public string? ApiKey { get; set; }            // Sensitive
+    public string? ApiKey { get; set; } // Sensitive
     public string? ApiUrl { get; set; }
-    public string? OrganizationId { get; set; }    // OpenAI org ID
+    public string? OrganizationId { get; set; } // OpenAI org ID
     public string? Model { get; set; }
     public double? Temperature { get; set; }
     public int? MaxTokens { get; set; }
@@ -128,12 +128,12 @@ public class AIProviderConfigDto
 /// </summary>
 public class IntegrationConfigDto
 {
-    public string Type { get; set; } = null!;      // 'search', 'chat', 'notifications', 'analytics', 'signatures', 'workflows'
-    public string Provider { get; set; } = null!;  // 'meilisearch', 'chatwoot', 'novu', etc.
+    public string Type { get; set; } = null!; // 'search', 'chat', 'notifications', 'analytics', 'signatures', 'workflows'
+    public string Provider { get; set; } = null!; // 'meilisearch', 'chatwoot', 'novu', etc.
     public bool Enabled { get; set; }
     public bool UseBuiltIn { get; set; }
     public Dictionary<string, object>? Configuration { get; set; }
-    public Dictionary<string, string>? Credentials { get; set; }  // Sensitive - masked in response
+    public Dictionary<string, string>? Credentials { get; set; } // Sensitive - masked in response
     public string? TestEndpoint { get; set; }
     public DateTime? LastTested { get; set; }
     public string? ConnectionStatus { get; set; }
@@ -150,7 +150,7 @@ public class WorkerConfigDto
     public int JobTimeoutMinutes { get; set; } = 30;
     public int RetryAttempts { get; set; } = 3;
     public int RetryDelaySeconds { get; set; } = 60;
-    public string? ScheduleExpression { get; set; }  // Cron expression
+    public string? ScheduleExpression { get; set; } // Cron expression
 }
 
 /// <summary>
@@ -186,7 +186,7 @@ public class ConfigurationChangeLogDto
     public string ConfigurationKey { get; set; } = null!;
     public string? OldValue { get; set; }
     public string? NewValue { get; set; }
-    public string ChangeType { get; set; } = null!;  // 'created', 'updated', 'deleted'
+    public string ChangeType { get; set; } = null!; // 'created', 'updated', 'deleted'
     public DateTime ChangedAt { get; set; }
     public string? ChangedByUserName { get; set; }
     public string? IpAddress { get; set; }
@@ -269,7 +269,7 @@ public class ProviderConfigurationDto
     public string ConfigurationKey { get; set; } = null!;
     public string ConfigurationType { get; set; } = null!;
     public string? ProviderName { get; set; }
-    public string ConfigurationData { get; set; } = null!;  // Already decrypted by service
+    public string ConfigurationData { get; set; } = null!; // Already decrypted by service
     public bool IsEncrypted { get; set; }
     public bool IsActive { get; set; }
     public bool CanBeDisabledAtRuntime { get; set; }

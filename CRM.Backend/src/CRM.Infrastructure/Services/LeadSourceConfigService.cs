@@ -129,7 +129,7 @@ public class LeadSourceConfigService : ILeadSourceConfigService
             .CountAsync(ct);
 
         var totalCost = leadCount * source.CostPerLead.Value;
-        
+
         // Simple ROI: (conversions / cost) * 100
         // A more sophisticated calculation would factor in opportunity values
         if (totalCost == 0) return 0;

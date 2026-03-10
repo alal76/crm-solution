@@ -19,13 +19,13 @@ public class AgentMessage
 {
     public string MessageId { get; init; } = Guid.NewGuid().ToString("N");
     public string FromAgentId { get; init; } = string.Empty;
-    public string ToAgentId { get; init; } = string.Empty;  // empty = broadcast
+    public string ToAgentId { get; init; } = string.Empty; // empty = broadcast
     public string SessionId { get; init; } = string.Empty;
     public string MessageType { get; init; } = string.Empty; // "task", "result", "status", "broadcast"
-    public string Payload { get; init; } = string.Empty;     // JSON payload
+    public string Payload { get; init; } = string.Empty; // JSON payload
     public DateTime SentAt { get; init; } = DateTime.UtcNow;
-    public int Priority { get; init; } = 0;                  // higher = more urgent
-    public string? CorrelationId { get; init; }              // trace multi-step exchanges
+    public int Priority { get; init; } = 0; // higher = more urgent
+    public string? CorrelationId { get; init; } // trace multi-step exchanges
 }
 
 public interface IAgentMessageBus

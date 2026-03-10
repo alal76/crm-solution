@@ -73,13 +73,13 @@ public class SlackNotificationChannelService : ISlackNotificationChannel
                 }
 
                 var responseText = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogWarning("Slack webhook returned {StatusCode}: {Response}", 
+                _logger.LogWarning("Slack webhook returned {StatusCode}: {Response}",
                     response.StatusCode, responseText);
                 return false;
             }
 
             // Stub mode
-            _logger.LogInformation("Slack stub: Would send message to webhook: {Message}", 
+            _logger.LogInformation("Slack stub: Would send message to webhook: {Message}",
                 message.Length > 50 ? message.Substring(0, 50) + "..." : message);
             await Task.Delay(10, cancellationToken);
             return true;
@@ -137,7 +137,7 @@ public class SlackNotificationChannelService : ISlackNotificationChannel
                 return response.IsSuccessStatusCode;
             }
 
-            _logger.LogInformation("Slack stub: Would send rich message with {Count} attachments", 
+            _logger.LogInformation("Slack stub: Would send rich message with {Count} attachments",
                 attachmentsList.Count);
             await Task.Delay(10, cancellationToken);
             return true;

@@ -15,7 +15,7 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Service for managing admin configurations (Sales and Service Desk settings)
-/// 
+///
 /// HEXAGONAL ARCHITECTURE:
 /// - Implements IAdminConfigurationService (primary/driving port)
 /// - Uses ICrmDbContext (secondary/driven port)

@@ -21,7 +21,6 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class ServiceRequestSettingsController : CrmControllerBase
 {
-
     private readonly IServiceRequestCategoryService _categoryService;
     private readonly IServiceRequestSubcategoryService _subcategoryService;
     private readonly IServiceRequestCustomFieldService _customFieldService;

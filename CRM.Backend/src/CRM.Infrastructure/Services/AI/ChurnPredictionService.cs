@@ -111,7 +111,7 @@ public class ChurnPredictionService : IChurnPredictionService
         {
             >= 0.7 => ChurnRiskLevel.High,
             >= 0.4 => ChurnRiskLevel.Medium,
-            _      => ChurnRiskLevel.Low
+            _ => ChurnRiskLevel.Low
         };
 
         var recommendations = BuildRecommendations(riskLevel, factors);

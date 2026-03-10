@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+#pragma warning disable SA1206 // C# 11 'required' modifier is not supported by this StyleCop version
 namespace CRM.Core.Scripting;
 
 /// <summary>

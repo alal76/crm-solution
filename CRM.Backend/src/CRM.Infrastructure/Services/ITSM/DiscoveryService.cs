@@ -733,5 +733,3 @@ public class DiscoveryService : IDiscoveryService
         };
     }
 }
-
-

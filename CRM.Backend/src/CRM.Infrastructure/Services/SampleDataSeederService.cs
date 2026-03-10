@@ -200,16 +200,16 @@ public class SampleDataSeederService
         // Flag says seeded — verify minimum data counts to guard against stale flags
         // left over from a previous failed/partial seed run.
         var accountCount = await dbContext.Accounts.CountAsync();
-        var leadCount    = await dbContext.Leads.CountAsync();
-        var oppCount     = await dbContext.Opportunities.CountAsync();
+        var leadCount = await dbContext.Leads.CountAsync();
+        var oppCount = await dbContext.Opportunities.CountAsync();
 
-        const int MinAccounts     = 50;
-        const int MinLeads        = 50;
+        const int MinAccounts = 50;
+        const int MinLeads = 50;
         const int MinOpportunities = 50;
 
         return accountCount >= MinAccounts
-            && leadCount    >= MinLeads
-            && oppCount     >= MinOpportunities;
+            && leadCount >= MinLeads
+            && oppCount >= MinOpportunities;
     }
 
     /// <summary>
@@ -1510,7 +1510,7 @@ public class SampleDataSeederService
                 LastName = lastName,
                 Email = $"{firstName.ToLower()}.{lastName.ToLower()}{i + 70}@email.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
-                Territory = States[cityIndex],  // Use Territory field for state-like info
+                Territory = States[cityIndex], // Use Territory field for state-like info
                 Region = "USA",
                 AccountType = AccountType.Individual,
                 Priority = (AccountPriority)_random.Next(0, 3),
@@ -1899,7 +1899,7 @@ public class SampleDataStats
 public class SeedStepResult
 {
     public string Step { get; set; } = string.Empty;
-    public string Status { get; set; } = "pending";  // pending | seeded | skipped | failed
+    public string Status { get; set; } = "pending"; // pending | seeded | skipped | failed
     public string Message { get; set; } = string.Empty;
     public double DurationMs { get; set; }
 }

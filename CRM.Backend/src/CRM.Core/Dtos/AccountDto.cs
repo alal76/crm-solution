@@ -261,11 +261,11 @@ public class CreateAccountDto
     [EmailAddress(ErrorMessage = "Invalid email format")]
     [StringLength(200, ErrorMessage = "Email cannot exceed 200 characters")]
     public string Email { get; set; } = string.Empty;
-    
+
     [EmailAddress(ErrorMessage = "Invalid email format")]
     [StringLength(200)]
     public string? SecondaryEmail { get; set; }
-    
+
     [Required(ErrorMessage = "Phone is required")]
     [Phone(ErrorMessage = "Invalid phone format")]
     [StringLength(50, ErrorMessage = "Phone cannot exceed 50 characters")]
