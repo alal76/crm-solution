@@ -371,7 +371,9 @@ namespace CRM.Infrastructure.Services.Authentication
             var result = new StringBuilder();
             for (int i = 0; i < bits.Length; i += 5)
             {
-                int chunk = i + 5 > bits.Length ? int.Parse(bits.ToString(i, bits.Length - i).PadRight(5, '0'), System.Globalization.NumberStyles.AllowLeadingWhite) : int.Parse(bits.ToString(i, 5), System.Globalization.NumberStyles.AllowLeadingWhite);
+                // Parse 5-bit chunk as binary (base 2), not decimal
+                string segment = bits.ToString(i, Math.Min(5, bits.Length - i)).PadRight(5, '0');
+                int chunk = Convert.ToInt32(segment, 2);
                 result.Append(alphabet[chunk]);
             }
 

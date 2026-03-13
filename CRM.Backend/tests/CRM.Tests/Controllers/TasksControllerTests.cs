@@ -1,0 +1,131 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+// TCOV2-D05 — TasksController unit tests
+using System.Security.Claims;
+using CRM.Api.Controllers;
+using CRM.Core.Entities;
+using CRM.Infrastructure.Data;
+using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services;
+using FluentAssertions;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+
+namespace CRM.Tests.Controllers;
+
+/// <summary>
+/// Unit tests for TasksController (TCOV2-D05).
+/// TasksController uses CrmDbContext directly, so EF InMemory is used.
+/// NormalizationService (constructor-arg) is created with a mock ICrmDbContext.
+/// [Authorize] attribute present; not exercised here.
+/// </summary>
+public class TasksControllerTests : IDisposable
+{
+    private readonly CrmDbContext _dbContext;
+    private readonly TasksController _controller;
+
+    public TasksControllerTests()
+    {
+        var options = new DbContextOptionsBuilder<CrmDbContext>()
+            .UseInMemoryDatabase($"TasksTest_{Guid.NewGuid()}")
+            .Options;
+        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        _dbContext = new CrmDbContext(options, config);
+
+        var mockCrmDb = new Mock<ICrmDbContext>();
+        var normalization = new NormalizationService(mockCrmDb.Object);
+        var logger = new Mock<ILogger<TasksController>>();
+
+        _controller = new TasksController(_dbContext, logger.Object, normalization);
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[] { new Claim(ClaimTypes.NameIdentifier, "1") }, "TestAuth"))
+            }
+        };
+    }
+
+    public void Dispose() => _dbContext.Dispose();
+
+    private static CrmTask MakeTask(int id = 0) => new()
+    {
+        Subject = $"Task {(id > 0 ? id.ToString() : "New")}",
+        Status = CrmTaskStatus.NotStarted,
+        Priority = CrmTaskPriority.Normal,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow
+    };
+
+    // ── GetTasks ─────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetTasks_ShouldReturnOk_WhenNoTasks()
+    {
+        var result = await _controller.GetTasks();
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetTasks_ShouldReturnOk_WithTasksInDatabase()
+    {
+        // Arrange
+        _dbContext.CrmTasks.Add(MakeTask());
+        _dbContext.CrmTasks.Add(MakeTask());
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _controller.GetTasks();
+
+        // Assert
+        var ok = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().NotBeNull();
+    }
+
+    // ── GetTask ──────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetTask_ShouldReturnNotFound_WhenTaskDoesNotExist()
+    {
+        var result = await _controller.GetTask(9999);
+
+        result.Result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task GetTask_ShouldReturnOk_WhenTaskExists()
+    {
+        // Arrange
+        var task = MakeTask();
+        _dbContext.CrmTasks.Add(task);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _controller.GetTask(task.Id);
+
+        // Assert
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    // ── GetTasks with filter ─────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetTasks_ShouldReturnOk_FilteredByStatus()
+    {
+        var task = MakeTask();
+        task.Status = CrmTaskStatus.InProgress;
+        _dbContext.CrmTasks.Add(task);
+        await _dbContext.SaveChangesAsync();
+
+        var result = await _controller.GetTasks(status: CrmTaskStatus.InProgress);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+}
