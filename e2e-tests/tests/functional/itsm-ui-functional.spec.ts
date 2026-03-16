@@ -13,26 +13,11 @@
  * - Self-Service Chatbot UI
  */
 
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
-
-// Helper function to login
-async function login(page: Page) {
-  await page.goto(`${baseUrl}/login`);
-  await page.fill('input[name="email"]', 'admin@crm-solution.com');
-  await page.fill('input[name="password"]', 'Admin123!');
-  await page.click('button[type="submit"]');
-  await page.waitForURL('**/dashboard', { timeout: 10000 }).catch(() => {
-    // Login may redirect elsewhere, continue with test
-  });
-}
+const baseUrl = process.env.BASE_URL || 'http://192.168.0.9';
 
 test.describe('ITSM Webhooks UI', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('FUNUI001 - Navigate to webhooks page', async ({ page }) => {
     await page.goto(`${baseUrl}/itsm/webhooks`);
     
@@ -74,10 +59,6 @@ test.describe('ITSM Webhooks UI', () => {
 });
 
 test.describe('ITSM Email-to-Ticket UI', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('FUNUI010 - Navigate to email configuration page', async ({ page }) => {
     await page.goto(`${baseUrl}/itsm/email`);
     
@@ -110,9 +91,6 @@ test.describe('ITSM Email-to-Ticket UI', () => {
 });
 
 test.describe('ITSM Dashboard UI', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
 
   test('FUNUI020 - Navigate to ITSM dashboard', async ({ page }) => {
     await page.goto(`${baseUrl}/itsm/dashboard`);
@@ -182,10 +160,6 @@ test.describe('ITSM Dashboard UI', () => {
 });
 
 test.describe('ITSM Monitoring Integration UI', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('FUNUI030 - Navigate to monitoring integration page', async ({ page }) => {
     await page.goto(`${baseUrl}/itsm/monitoring`);
     
@@ -227,10 +201,6 @@ test.describe('ITSM Monitoring Integration UI', () => {
 });
 
 test.describe('ITSM CI/CD Integration UI', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('FUNUI040 - Navigate to CI/CD integration page', async ({ page }) => {
     await page.goto(`${baseUrl}/itsm/cicd`);
     
@@ -276,10 +246,6 @@ test.describe('ITSM CI/CD Integration UI', () => {
 });
 
 test.describe('ITSM Self-Service Chatbot UI', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('FUNUI050 - Navigate to chatbot page', async ({ page }) => {
     await page.goto(`${baseUrl}/itsm/chatbot`);
     
@@ -400,7 +366,6 @@ test.describe('ITSM Self-Service Chatbot UI', () => {
 
 test.describe('ITSM Navigation & Access Control', () => {
   test('FUNUI060 - ITSM menu navigation structure', async ({ page }) => {
-    await login(page);
     await page.goto(`${baseUrl}/itsm`);
     
     // Check for ITSM navigation menu
@@ -427,10 +392,6 @@ test.describe('ITSM Navigation & Access Control', () => {
 });
 
 test.describe('ITSM Error Handling', () => {
-  test.beforeEach(async ({ page }) => {
-    await login(page);
-  });
-
   test('FUNUI070 - Handle 404 pages gracefully', async ({ page }) => {
     await page.goto(`${baseUrl}/itsm/nonexistent-page`);
     

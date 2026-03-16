@@ -572,9 +572,9 @@ function ieImportPayload(jsonStr: string, filename = 'import.json') {
 function threeUniqueAccounts(): string {
   const ts = `${Date.now()}${Math.floor(Math.random() * 9999)}`;
   return JSON.stringify([
-    { category: 'Individual', firstName: `ImportA_${ts}`, lastName: 'Test', company: `IE Corp A ${ts}`, email: `ie_a_${ts}@e2e.local`, phone: '+15550001001' },
-    { category: 'Individual', firstName: `ImportB_${ts}`, lastName: 'Test', company: `IE Corp B ${ts}`, email: `ie_b_${ts}@e2e.local`, phone: '+15550001002' },
-    { category: 'Individual', firstName: `ImportC_${ts}`, lastName: 'Test', company: `IE Corp C ${ts}`, email: `ie_c_${ts}@e2e.local`, phone: '+15550001003' },
+    { category: 0, firstName: `ImportA_${ts}`, lastName: 'Test', company: `IE Corp A ${ts}`, email: `ie_a_${ts}@e2e.local`, phone: '+15550001001' },
+    { category: 0, firstName: `ImportB_${ts}`, lastName: 'Test', company: `IE Corp B ${ts}`, email: `ie_b_${ts}@e2e.local`, phone: '+15550001002' },
+    { category: 0, firstName: `ImportC_${ts}`, lastName: 'Test', company: `IE Corp C ${ts}`, email: `ie_c_${ts}@e2e.local`, phone: '+15550001003' },
   ]);
 }
 

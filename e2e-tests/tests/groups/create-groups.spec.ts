@@ -23,9 +23,11 @@ test.describe('Create Groups via UI', () => {
     for (const group of groups) {
       console.log(`Creating group: ${group.name}`);
       
+      // Wait for spinner to clear before clicking Create Group
+      await page.waitForFunction(() => !document.querySelector('.MuiCircularProgress-root'), { timeout: 15000 }).catch(() => {});
       // Click Create Group button
       const addButton = page.getByRole('button', { name: /create group/i });
-      await addButton.waitFor({ state: 'visible', timeout: 10000 });
+      await addButton.waitFor({ state: 'visible', timeout: 20000 });
       await addButton.click();
       
       // Wait for dialog

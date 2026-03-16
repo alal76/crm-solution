@@ -18,7 +18,16 @@ type TestFixtures = {
 
 export const test = base.extend<TestFixtures>({
   authenticatedPage: async ({ page }, use) => {
-    // Page is already authenticated via storage state
+    // Verify auth is still valid (handles session expiry in long full-suite runs)
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {});
+    if (page.url().includes('/login')) {
+      // Session expired - re-authenticate
+      await page.fill('input[type="email"], input[type="text"]', 'admin@crm.local');
+      await page.fill('input[type="password"]', 'Admin@123');
+      await page.click('button[type="submit"]');
+      await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 20000 }).catch(() => {});
+    }
     await use(page);
   },
   

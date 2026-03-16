@@ -4,7 +4,7 @@
 
 import { test, expect, Page } from '@playwright/test';
 
-const BASE_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
 
 test.describe('ITSM Core UI Functional Tests', () => {
 
