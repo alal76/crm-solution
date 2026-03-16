@@ -6,7 +6,7 @@
 |-------|-------|
 | **ADR ID** | ADR-004 |
 | **Title** | Semantic Kernel Integration for Agentic AI Capabilities |
-| **Status** | PROPOSED |
+| **Status** | ACCEPTED |
 | **Date** | 2026-02-18 |
 | **Decision Makers** | Architecture Team, Product Leadership |
 | **Consulted** | Development Team, AI/ML Team, Operations |
@@ -872,7 +872,7 @@ public class AgentApprovalRequest : BaseEntity
 | 6 | **Plugin security** | Medium | High | Read/write separation, approval tiers, audit logging of all actions |
 | 7 | **User trust** | Medium | High | Transparent reasoning display, easy override/undo, gradual rollout |
 | 8 | **Migration to Agent Framework** | Low | Low | SK is the foundation of Agent Framework; smooth migration path |
-| 9 | **.NET 10 upgrade interaction** | Low | Low | SK 1.x targets `net8.0`/`netstandard2.0`, runs on .NET 10 via TFM compat. Recommended sequence: complete SK Phase 0-1 on .NET 8, then upgrade to .NET 10 before Phases 2-3. See [SK-INTEGRATION-PLAN.md §15](SK-INTEGRATION-PLAN.md#15-net-10-upgrade-sequencing). |
+| 9 | **.NET 10 upgrade interaction** | Low | Low | Resolved. Runtime baseline is now .NET 10; SK compatibility validated on the current platform. See [SK-INTEGRATION-PLAN.md §15](SK-INTEGRATION-PLAN.md#15-net-10-upgrade-sequencing). |
 
 ---
 

@@ -434,7 +434,7 @@ CRM.Backend/src/CRM.Api/Program.cs (updated)
 
 ## Specification Reference
 
-See [SPEC-SYS-002-Authentication.md](../11-11-11-specifications/SPEC-SYS-002-Authentication.md) for complete technical 11-specifications.
+See [SPEC-SYS-002-Authentication.md](../11-specifications/SPEC-SYS-002-Authentication.md) for complete technical 11-specifications.
 
 ---
 

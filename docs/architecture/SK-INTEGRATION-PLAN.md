@@ -1199,30 +1199,30 @@ EnableAgentSubsystem                    ← Master kill-switch
 
 ## 15. .NET 10 Upgrade Sequencing
 
-> **Context:** The CRM Solution is upgrading from .NET 8.0 to .NET 10.0 LTS (GA: November 2025).
-> This section analyzes how the Semantic Kernel integration should be sequenced relative to that upgrade.
+> **Context:** The CRM Solution runtime baseline is .NET 10.0 LTS.
+> This section records the sequencing decision that was used during rollout and the current-state outcome.
 
-### 15.1 Recommendation: SK First, Then .NET 10
+### 15.1 Sequencing Decision (Completed)
 
 | Option | Pros | Cons | **Verdict** |
 |--------|------|------|-------------|
-| **A — SK on .NET 8, then upgrade to .NET 10** | SK 1.x has full .NET 8 support; no unknowns. Agents ship sooner. TFM bump is a single PR touching Directory.Build.props + docker base images — low risk after SK is stable. | Two change waves. Minor: SK packages may release .NET 10-optimized builds shortly after GA. | ✅ **Recommended** |
+| **A — SK on legacy baseline, then upgrade to .NET 10** | SK 1.x had full legacy-baseline support and reduced sequencing risk during early rollout. | Two change waves. | ✅ **Executed (Historical Path)** |
 | **B — .NET 10 first, then SK** | SK on latest runtime from day one. Single TFM going forward. | Delays agent delivery 4-8 weeks. .NET 10 upgrade itself may surface EF Core 10, ASP.NET 10 breaking changes that consume sprint capacity. SK packages will work on .NET 10 via netstandard2.0 / net8.0 TFM compat anyway. | ❌ Not recommended |
 | **C — Simultaneous** | One combined effort. | Very high risk surface. Two large changes at once make root-cause analysis difficult if anything breaks. | ❌ Not recommended |
 
 **Rationale for Option A:**
 
-1. **Semantic Kernel 1.x targets `netstandard2.0` and `net8.0`** — it will run on .NET 10 without recompilation via TFM compatibility.
-2. **The .NET 10 upgrade is primarily a TFM bump** (`net8.0` → `net10.0` in `Directory.Build.props`), plus updating NuGet packages (`Microsoft.EntityFrameworkCore` 8.x → 10.x, `Microsoft.AspNetCore.*` 8.x → 10.x). This is a well-understood, lower-risk change.
-3. **The SK integration introduces 5 new entities, 12+ services, 15+ plugins, and a new Qdrant dependency.** Debugging these on a stable, known .NET 8 runtime is significantly easier.
+1. **Semantic Kernel 1.x targets `netstandard2.0` and compatible TFMs** — it runs on .NET 10 via TFM compatibility.
+2. **The .NET 10 upgrade is primarily a TFM bump** (previous TFM → `net10.0` in `Directory.Build.props`), plus updating NuGet packages to 10.x. This is a well-understood, lower-risk change.
+3. **The SK integration introduces 5 new entities, 12+ services, 15+ plugins, and a new Qdrant dependency.** Debugging these on a stable, known pre-upgrade runtime was significantly easier.
 4. **After SK is stable (end of Phase 1, ~Week 8),** the .NET 10 upgrade can be done as an isolated sprint with confidence that any regressions are from the TFM change, not SK.
 
-### 15.2 Sequencing Timeline
+### 15.2 Sequencing Timeline (Historical)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│  Weeks 1-4    │  SK Phase 0: Foundation on .NET 8                       │
-│  Weeks 5-8    │  SK Phase 1: P0 Agents on .NET 8                       │
+│  Weeks 1-4    │  SK Phase 0: Foundation on legacy baseline             │
+│  Weeks 5-8    │  SK Phase 1: P0 Agents on legacy baseline              │
 │  Weeks 9-10   │  ── .NET 10 UPGRADE SPRINT ──                          │
 │               │  • Directory.Build.props: net8.0 → net10.0             │
 │               │  • NuGet: EF Core 10, ASP.NET 10, etc.                 │
@@ -1234,7 +1234,7 @@ EnableAgentSubsystem                    ← Master kill-switch
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 15.3 .NET 10 Upgrade Checklist (for the dedicated sprint)
+### 15.3 .NET 10 Upgrade Checklist (Completion Record)
 
 - [ ] Update `Directory.Build.props`: `<TargetFramework>net10.0</TargetFramework>`
 - [ ] Update `global.json` to require .NET 10 SDK
@@ -1251,7 +1251,9 @@ EnableAgentSubsystem                    ← Master kill-switch
 
 ### 15.4 SK Package Compatibility Notes
 
-| Package | .NET 8 Support | .NET 10 Expected | Notes |
+**Current State Note:** SK runtime is validated on .NET 10 for the active CRM baseline.
+
+| Package | Legacy Baseline Support | .NET 10 Expected | Notes |
 |---------|---------------|-------------------|-------|
 | `Microsoft.SemanticKernel` 1.x | ✅ `net8.0` | ✅ via TFM compat | May release native `net10.0` TFM post-GA |
 | `Microsoft.SemanticKernel.Connectors.Qdrant` | ✅ `net8.0` | ✅ via TFM compat | |

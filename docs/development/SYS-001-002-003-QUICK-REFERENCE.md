@@ -194,9 +194,9 @@ Before going to production:
 | SYS-001-002-003-IMPLEMENTATION-REPORT.md | Comprehensive status report |
 | SYS-001-002-003-RESOLUTION-PLAN.md | Detailed issue resolution guide |
 | SYS-001-002-003-FINAL-STATUS.md | Final approval & deployment checklist |
-| docs/11-11-11-specifications/SPEC-SYS-001-*.md | User Management specification |
-| docs/11-11-11-specifications/SPEC-SYS-002-*.md | Authentication specification |
-| docs/11-11-11-specifications/SPEC-SYS-003-*.md | Group Management specification |
+| docs/11-specifications/SPEC-SYS-001-*.md | User Management specification |
+| docs/11-specifications/SPEC-SYS-002-*.md | Authentication specification |
+| docs/11-specifications/SPEC-SYS-003-*.md | Group Management specification |
 
 ---
 
@@ -240,5 +240,5 @@ The system implements enterprise-grade user management, authentication, and grou
 
 ---
 
-**Last Updated:** February 15, 2026  
+**Last Updated:** March 16, 2026  
 **Status:** APPROVED FOR PRODUCTION

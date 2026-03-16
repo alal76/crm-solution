@@ -2,11 +2,11 @@
 
 > **Created:** 2026-02-18  
 > **ADR Reference:** [ADR-003-Runtime-Platform-Evaluation.md](ADR-003-Runtime-Platform-Evaluation.md)  
-> **Current Platform:** .NET 8.0 (EOL Nov 10, 2026)  
+> **Current Platform:** .NET 10.0 LTS  
 > **Target Platform:** .NET 10.0 LTS (GA Nov 11, 2025 · EOL Nov 14, 2028)  
 > **Estimated Duration:** 5 working days (parallelized from ~10 sequential days)
-> **Status:** In Progress — execution started 2026-02-14  
-> **Last Updated:** 2026-02-14
+> **Status:** Completed — .NET 10 baseline active  
+> **Last Updated:** 2026-03-16
 
 ---
 
@@ -31,7 +31,7 @@
 | 2026-02-14 | WS-D | Updated 8 Dockerfiles to .NET 10 base images | ✅ COMPLETE |
 | 2026-02-14 | WS-D | Updated CI/CD workflows to .NET 10 SDK | ✅ COMPLETE |
 | 2026-02-14 | Docs | Updated 37+ documentation files with .NET 10 references | ✅ COMPLETE |
-| 2026-02-14 | Docs | Bumped version.json to 2.0.0 | ✅ COMPLETE |
+| 2026-02-14 | Docs | Updated version baseline metadata as part of upgrade wave | ✅ COMPLETE |
 | 2026-02-14 | Git | All 70 files committed to dotnet10-upgrade branch | ✅ COMPLETE |
 | 2026-02-14 | Gate 1 | Build verification (CRM.sln + CRM.Microservices.sln) | ✅ COMPLETE |
 | 2026-02-14 | WS-E | Test suite validation (6,685 passing, 8 skipped) | ✅ COMPLETE |
@@ -72,7 +72,7 @@
 
 ## 1. Executive Summary
 
-This plan upgrades the entire CRM Solution from .NET 8.0 to .NET 10.0 LTS across **15 projects, 8 Dockerfiles, 1 CI/CD pipeline, and ~38 NuGet packages**. The work is organized into **6 parallel workstreams** executing over **5 days**, collapsing ~10 days of sequential work through aggressive parallelization.
+This plan documents the completed upgrade of the CRM Solution from the previous runtime baseline to .NET 10.0 LTS across **15 projects, 8 Dockerfiles, 1 CI/CD pipeline, and ~38 NuGet packages**. The work was organized into **6 parallel workstreams** executed over **5 days**, collapsing ~10 days of sequential work through aggressive parallelization.
 
 ### Why .NET 10?
 
@@ -111,9 +111,9 @@ All inherit `<TargetFramework>net8.0</TargetFramework>` from `Directory.Build.pr
 |---|---------|----------|----------------|
 | 1 | `src/CRM.Api/CRM.Api.csproj` | Monolith | 17+ (Swashbuckle, AspNetCoreRateLimit, JWT, EF Core, Serilog, etc.) |
 | 2 | `src/CRM.Core/CRM.Core.csproj` | Both | 1 (Microsoft.Extensions.Configuration.Abstractions) |
-| 3 | `src/CRM.Infrastructure/CRM.Infrastructure.csproj` | Both | 20+ (EF Core 8.0.11, Pomelo 8.0.0, Npgsql 8.0.11, Oracle, Redis, etc.) |
+| 3 | `src/CRM.Infrastructure/CRM.Infrastructure.csproj` | Both | 20+ (pre-upgrade EF Core/Pomelo/Npgsql/Oracle/Redis package set) |
 | 4 | `src/CRM.DatabaseSeeder/CRM.DatabaseSeeder.csproj` | Monolith | 5 (already at 9.0.0 for some) |
-| 5 | `src/Services/CRM.ServiceDefaults/CRM.ServiceDefaults.csproj` | Microservices | 6 (Swashbuckle 6.5.0, EF Core 8.0.11, Pomelo 8.0.2) |
+| 5 | `src/Services/CRM.ServiceDefaults/CRM.ServiceDefaults.csproj` | Microservices | 6 (Swashbuckle, pre-upgrade EF Core/Pomelo package set) |
 | 6 | `src/Services/CRM.Gateway/CRM.Gateway.csproj` | Microservices | 5 (Yarp 2.1.0, AspNetCoreRateLimit 5.0.0) |
 | 7 | `src/Services/CRM.Identity/CRM.Identity.csproj` | Microservices | Project refs only |
 | 8 | `src/Services/CRM.CustomerService/CRM.CustomerService.csproj` | Microservices | Project refs only |
@@ -262,7 +262,7 @@ All inherit `<TargetFramework>net8.0</TargetFramework>` from `Directory.Build.pr
 - Rewrite Swagger config in `ServiceDefaults/ServiceExtensions.cs` (lines 116, 160-161)
 - Preserve: JWT Bearer auth scheme in OpenAPI spec, XML comments, API versioning
 
-**Before (.NET 8 — Swashbuckle):**
+**Before (pre-upgrade baseline — Swashbuckle):**
 ```csharp
 using Microsoft.OpenApi.Models;
 builder.Services.AddEndpointsApiExplorer();
@@ -319,7 +319,7 @@ if (app.Environment.IsDevelopment())
 - Rewrite ~50 lines of rate limiting config (lines 140-200) → built-in `AddRateLimiter()`
 - Preserve: Per-endpoint rules, configurable limits from `appsettings.json`, 429 response
 
-**Before (.NET 8 — AspNetCoreRateLimit):**
+**Before (pre-upgrade baseline — AspNetCoreRateLimit):**
 ```csharp
 using AspNetCoreRateLimit;
 builder.Services.Configure<IpRateLimitOptions>(options => {
@@ -376,7 +376,7 @@ app.UseRateLimiter();
 
 **Named Query Filter Adoption:**
 ```csharp
-// Before (.NET 8): Anonymous filter, hard to override
+// Before (pre-upgrade baseline): Anonymous filter, hard to override
 modelBuilder.Entity<Account>().HasQueryFilter(e => !e.IsDeleted);
 
 // After (.NET 10): Named filter, selectively ignorable
@@ -698,7 +698,7 @@ Complete list of every file modified, organized by workstream.
 
 | # | File | Change |
 |---|------|--------|
-| 37 | `SOLUTION_CONTEXT.md` | Update ".NET 8.0" → ".NET 10.0", package versions |
+| 37 | `SOLUTION_CONTEXT.md` | Update runtime references to ".NET 10.0", package versions |
 | 38 | `.github/copilot-instructions.md` | Update "ASP.NET Core 8.0" → "10.0" |
 | 39 | `ARCHITECTURE_OVERVIEW.md` | Update technology versions |
 | 40 | `version.json` | Bump to 2.0.0 |
@@ -760,7 +760,7 @@ These must be resolved **before Day 1 PM (Step 1)**.
 **Level 1 — Git revert (instant):**
 ```bash
 git revert <upgrade-commit-sha>    # Revert all changes
-dotnet restore && dotnet build     # Back to .NET 8
+dotnet restore && dotnet build     # Back to previous baseline
 ```
 
 **Level 2 — Branch switch (instant):**
@@ -771,7 +771,7 @@ docker buildx build ... -t crm-api:latest -f docker/Dockerfile.backend .
 
 **Level 3 — Cached images (instant):**
 ```bash
-# Previous .NET 8 Docker images remain on server until pruned
+# Previous pre-upgrade Docker images remain on server until pruned
 docker run -d --name crm-api crm-api:previous-tag
 ```
 

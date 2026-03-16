@@ -420,7 +420,7 @@ Before moving to next phase, ensure:
 
 📁 **Implementation Plan:** P0_P1_CRITICAL_SERVICES_IMPLEMENTATION_PLAN.md  
 📁 **Phase 1-2 Completion:** docs/legacy/summary/P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md  
-📁 **Specifications:** docs/11-11-11-specifications/SPEC-ITSM-*.md, SPEC-SALES-*.md  
+📁 **Specifications:** docs/11-specifications/SPEC-ITSM-*.md, docs/11-specifications/SPEC-SALES-*.md  
 📁 **Architecture:** docs/SOLUTION_CONTEXT.md, ARCHITECTURE_OVERVIEW.md  
 
 ---
@@ -440,5 +440,5 @@ Before moving to next phase, ensure:
 
 ---
 
-**Last Updated:** February 16, 2026  
+**Last Updated:** March 16, 2026  
 **Next Review:** After Phase 3 completion

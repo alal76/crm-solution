@@ -1,6 +1,6 @@
 # ADR-003: Runtime Platform Evaluation — .NET 10, Go, or Java
 
-> **Status:** Proposed  
+> **Status:** Accepted  
 > **Date:** 2026-02-18  
 > **Decision Makers:** Architecture Team  
 > **Supersedes:** None  
@@ -12,7 +12,7 @@
 
 ### 1.1 Trigger
 
-The CRM backend runs on **.NET 10.0 (LTS)**, which reaches **end-of-support on November 14, 2028**. This ADR documents the evaluation that led to the .NET 10 LTS upgrade.
+The CRM backend runs on **.NET 10.0 (LTS)**, which reaches **end-of-support on November 14, 2028**. This ADR records the completed evaluation and decision that led to the .NET 10 LTS baseline.
 
 | Option | Version | Type | Support Ends |
 |--------|---------|------|--------------|
@@ -454,7 +454,7 @@ The decision is **overwhelmingly clear** based on the evidence:
 
 2. **.NET 10 is already released and LTS.** The upgrade is a version bump, not a migration.
 
-3. **.NET 8 end-of-support (Nov 2026) creates urgency** — but only for a version bump, not a platform change.
+3. **Pre-upgrade platform end-of-support risk created urgency** — and was resolved through a version bump rather than a platform rewrite.
 
 4. **Go is architecturally unsuitable** for this workload. Enterprise CRUD applications with complex ORM requirements, 171 database tables, and pluggable provider architectures are not Go's strength. Go excels at infrastructure tooling, network services, and CLI tools — not business applications with rich domain models.
 
@@ -493,7 +493,7 @@ cd CRM.Backend && dotnet build 2>&1 | grep "error CS"
 # Fix any breaking API changes (typically <20 call sites)
 ```
 
-Common .NET 8 → 10 breaking changes to check:
+Common pre-upgrade → .NET 10 breaking changes to check:
 - Obsolete API removals
 - Default serialization behavior changes
 - Auth middleware ordering changes
@@ -876,7 +876,7 @@ Before committing to the .NET 10 upgrade, verify:
 
 ### Positive
 
-- **.NET 8 EOL risk eliminated** — 3 years of LTS support secured through November 2028
+- **Pre-upgrade EOL risk eliminated** — 3 years of LTS support secured through November 2028
 - **Zero feature development freeze** — upgrade takes days, not months
 - **10-20% API throughput improvement** — JIT compiler, GC, and stack allocation optimizations with zero code changes
 - **8-20% GC pause reduction on ARM** — Arm64 write-barrier optimization benefits Azure ARM VMs and AWS Graviton
