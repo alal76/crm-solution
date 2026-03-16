@@ -1,6 +1,6 @@
 # Design Documentation
 
-> **Last Updated:** February 1, 2026 | **Version:** 1.7.28
+> **Last Updated:** March 2026 | **Version:** 0.625.0
 
 This document covers UI/UX design patterns, data models, entity relationships, and system workflows.
 

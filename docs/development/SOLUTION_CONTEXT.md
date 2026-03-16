@@ -1,7 +1,7 @@
 # CRM Solution - Complete Context Reference
 
-> **Last Updated:** February 1, 2026  
-> **Purpose:** Provide comprehensive context for AI assistants and developers to understand the solution without re-studying the codebase.
+> **Last Updated:** March 16, 2026  
+> **Purpose:** Provide comprehensive context for AI assistants and developers to understand the solution and current runtime scope without re-studying the codebase.
 
 ---
 
@@ -33,11 +33,13 @@
 
 ### What is this?
 A full-stack CRM (Customer Relationship Management) application with:
+- **Primary runtime architecture:** Modular monolith (API + SPA) with optional OSS pluggable provider stack
 - **Backend:** ASP.NET Core 10.0 Web API with Entity Framework Core
 - **Frontend:** React 18 with TypeScript and Material-UI (MUI)
-- **Database:** MariaDB (primary), SQL Server (supported), PostgreSQL (supported)
+- **Database:** MariaDB (primary, single database policy `crm_db`)
 - **Caching:** Redis
-- **Infrastructure:** Docker, Kubernetes
+- **Provider stack (optional):** Meilisearch, Chatwoot, Novu, Superset, DocuSeal, n8n, Ollama
+- **Infrastructure:** Docker Compose (primary), Kubernetes manifests available
 
 ### Repository Structure
 ```

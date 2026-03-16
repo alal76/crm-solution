@@ -1,8 +1,8 @@
 # ITSM User Guide
 
 > **CRM Solution - IT Service Management Module**  
-> **Last Updated:** February 25, 2026  
-> **Version:** 0.587.0
+> **Last Updated:** March 2026  
+> **Version:** 0.625.0
 
 ## Overview
 

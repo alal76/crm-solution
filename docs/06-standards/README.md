@@ -1,6 +1,6 @@
 # Coding Standards & Conventions
 
-> **Last Updated:** February 1, 2026 | **Version:** 1.7.28
+> **Last Updated:** March 2026 | **Version:** 0.625.0
 
 ---
 

@@ -1,6 +1,6 @@
 # CRM Solution - Documentation Hub
 
-> **Version:** 1.7.28 | **Release:** Pre-Release | **Last Updated:** February 1, 2026
+> **Version:** 0.625.0 | **Release:** Active Development | **Last Updated:** March 2026
 
 ---
 
@@ -22,8 +22,8 @@ This documentation provides complete coverage of the CRM Solution from architect
 | [🚀 Deployment](08-deployment/README.md) | Docker, Kubernetes, CI/CD | DevOps, Ops |
 | [📋 Operations](09-operations/README.md) | Monitoring, maintenance, runbooks | Ops, Support |
 | [🔍 Traceability](10-traceability/README.md) | Feature-to-code mapping | All Teams |
-| [🧾 Specifications](11-11-11-specifications/INDEX.md) | Feature specs and templates | All Teams |
-| [🧭 Enhancements](12-%20Enhancements%20planned) | Future enhancements backlog | Product, Leads |
+| [🧾 Specifications](11-specifications/INDEX.md) | Feature specs and templates | All Teams |
+| [🧭 Enhancements](12-%20Enhancements%20planned/) | Future enhancements backlog | Product, Leads |
 
 ---
 
@@ -57,7 +57,7 @@ This file provides:
 | **Frontend** | React + TypeScript + Material-UI | React 18, MUI 5 |
 | **Backend** | ASP.NET Core Web API | .NET 10.0 |
 | **Database** | MariaDB (primary), SQL Server, PostgreSQL | MariaDB 10.11+ |
-| **ORM** | Entity Framework Core | EF Core 8 |
+| **ORM** | Entity Framework Core | EF Core 10 |
 | **Real-time** | SignalR | ASP.NET SignalR |
 | **Caching** | Redis | Redis 7+ |
 | **Container** | Docker + Kubernetes | Docker 24+, K8s 1.28+ |

@@ -1,6 +1,6 @@
 # Backend Documentation
 
-> **Last Updated:** February 1, 2026 | **Version:** 1.7.28
+> **Last Updated:** March 2026 | **Version:** 0.625.0
 
 ---
 
@@ -173,7 +173,7 @@ public class User : BaseEntity
     public bool TwoFactorEnabled { get; set; }
     public string? TwoFactorSecret { get; set; }
     
-    // Password Management (New in 1.7.28)
+    // Password Management
     public DateTime? PasswordLastChangedAt { get; set; }
     public bool MustResetPassword { get; set; }
     public bool PasswordNeverSet { get; set; }
@@ -366,7 +366,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 3. **Protected Requests:** `Authorization: Bearer {accessToken}`
 4. **Refresh:** `POST /api/auth/refresh` with refresh token
 
-### 6.3 Password Management (New in 1.7.28)
+### 6.3 Password Management
 
 **Password Setup Flow:**
 ```

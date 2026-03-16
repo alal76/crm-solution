@@ -69,12 +69,12 @@ The CRM solution is a mature enterprise application with:
 | Controllers | 35+ API controllers |
 | Frontend Pages | 50+ React components |
 | Database Tables | 95 tables (single schema) |
-| Architecture | Microservices with shared database |
+| Architecture | Modular monolith (primary) with optional microservices path |
 
 ### 1.2 Technology Stack
 
 ```
-Backend:    .NET 8, Entity Framework Core, ASP.NET Core
+Backend:    .NET 10, Entity Framework Core, ASP.NET Core
 Frontend:   React 18, TypeScript, Material-UI
 Database:   MariaDB/MySQL (primary), SQL Server/PostgreSQL (supported)
 Gateway:    YARP Reverse Proxy

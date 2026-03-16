@@ -1,7 +1,7 @@
 # CRM Solution - Documentation
 
-**Version:** 0.0.25  
-**Last Updated:** February 2026
+**Version:** 0.625.0  
+**Last Updated:** March 2026
 
 Welcome to the CRM Solution documentation. This directory contains comprehensive documentation for developers, administrators, and users.
 
@@ -23,8 +23,8 @@ docs/
 ├── 08-deployment/                    # Deployment guides
 ├── 09-operations/                    # Operations & runbooks
 ├── 10-traceability/                  # Feature traceability
-├── 11-11-11-specifications/                # Feature specs and templates
-├── 12- Enhancements planned/         # Future enhancements backlog
+├── 11-specifications/                # Feature specs and templates
+├── 12-enhancements/                  # Future enhancements backlog
 ├── development/                      # Architecture, build, infra, DB
 ├── status/                           # Status, reports, checklists
 ├── summary/                          # Summaries and executive reports
@@ -61,7 +61,7 @@ docs/
 | Document | Description |
 |----------|-------------|
 | [SOLUTION_CONTEXT.md](development/SOLUTION_CONTEXT.md) | Feature and module overview |
-| [11-11-11-specifications/INDEX.md](11-11-11-specifications/INDEX.md) | Feature 11-specifications |
+| [11-specifications/INDEX.md](11-specifications/INDEX.md) | Feature specifications |
 
 ### Testing
 | Document | Description |
@@ -87,7 +87,7 @@ docs/
 
 ### Database Schema
 
-The CRM database contains **89 tables** organized into domains:
+The CRM database contains **~95 tables** organized into domains:
 
 | Domain | Tables | Description |
 |--------|--------|-------------|
@@ -103,8 +103,8 @@ The CRM database contains **89 tables** organized into domains:
 
 | Mode | Description |
 |------|-------------|
-| **Monolith** | Single API deployment, simpler operations |
-| **Microservices** | 8 independent services, scalable |
+| **Monolith (Primary)** | Main production baseline with pluggable providers |
+| **Microservices (Optional)** | Available for domain extraction and scale-out scenarios |
 
 ---
 
@@ -167,7 +167,7 @@ These files are located in the repository root:
 | [README.md](../README.md) | Main project README |
 | [ARCHITECTURE_OVERVIEW.md](development/ARCHITECTURE_OVERVIEW.md) | System architecture |
 | [MICROSERVICES_ARCHITECTURE.md](development/MICROSERVICES_ARCHITECTURE.md) | Microservices details |
-| [TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md) | Test documentation |
+| [TESTING_SUMMARY.md](test/TESTING_SUMMARY.md) | Test documentation |
 | [CONTACT_INFO_MIGRATION_PLAN.md](development/CONTACT_INFO_MIGRATION_PLAN.md) | Data migration |
 
 ---
@@ -177,7 +177,7 @@ These files are located in the repository root:
 1. Read [DEVELOPMENT.md](DEVELOPMENT.md) for coding standards
 2. Check [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md) for feature status
 3. Follow the branching strategy in [VERSIONING.md](VERSIONING.md)
-4. Write tests as documented in [testing/TESTING_GUIDE.md](testing/TESTING_GUIDE.md)
+4. Write tests as documented in [07-testing/README.md](07-testing/README.md)
 
 ---
 

@@ -13,14 +13,14 @@ test.describe('Script Registry', () => {
   test.beforeEach(async ({ page }) => {
     // Login as admin before each test
     await page.goto('/login');
-    await page.fill('[data-testid="email"]', 'admin@crm.local');
-    await page.fill('[data-testid="password"]', 'Admin@123');
-    await page.click('[data-testid="login-button"]');
-    await page.waitForURL('**/dashboard**', { timeout: 15_000 });
+    await page.fill('input[name="email"], input[type="email"]', 'admin@crm.local');
+    await page.fill('input[name="password"], input[type="password"]', 'Admin@123');
+    await page.click('button[type="submit"]');
+    await page.waitForURL(url => !url.pathname.includes('/login'), { timeout: 15_000 });
   });
 
   test('should navigate to script registry page without error', async ({ page }) => {
-    await page.goto('/admin/scripts');
+    await page.goto('/admin/scripting/plugins');
 
     await expect(page).not.toHaveURL(/error|exception/);
     // Page should load — look for any heading mentioning "script"
@@ -31,7 +31,7 @@ test.describe('Script Registry', () => {
   });
 
   test('should display script list or empty state', async ({ page }) => {
-    await page.goto('/admin/scripts');
+    await page.goto('/admin/scripting/plugins');
 
     // The page must not redirect to an unhandled error
     await expect(page).not.toHaveURL(/\/500|\/error|exception/);

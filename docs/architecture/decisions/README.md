@@ -1,59 +1,55 @@
-# Architecture Decision Records (ADR)
+# Architecture Decision Records (Decisions Subfolder)
 
-This directory contains Architecture Decision Records (ADRs) for the CRM Solution project.
+## Purpose
 
-## What is an ADR?
+This folder stores architecture decision records for focused initiatives and legacy decision streams.
 
-An Architecture Decision Record (ADR) is a document that captures an important architectural decision made along with its context and consequences.
+For main platform ADRs, use docs/architecture/ADR-001..ADR-005 as the primary source.
+
+## Current Position (March 2026)
+
+- Primary architecture baseline is documented in docs/development/ARCHITECTURE_OVERVIEW.md.
+- Monolith runtime with pluggable provider stack is the active production baseline.
+- Microservices remain an optional evolution path.
 
 ## ADR Format
 
-Each ADR follows this template:
+Each ADR should include:
 
-```markdown
-# ADR-XXX: Title
+1. Title and identifier
+2. Status
+3. Context
+4. Decision
+5. Consequences
+6. Supersession notes when applicable
 
-## Status
-[Proposed | Accepted | Deprecated | Superseded by ADR-YYY]
+## ADR Index in This Folder
 
-## Context
-What is the issue that we're seeing that is motivating this decision or change?
+- 001-coding-standards-enforcement.md
+- 002-security-headers-middleware.md
+- 003-microservices-architecture.md
+- 004-architecture-review-remediation.md
 
-## Decision
-What is the change that we're proposing and/or doing?
+## Status Guidance
 
-## Consequences
-What becomes easier or more difficult to do because of this change?
-```
+Use one of:
+- Proposed
+- Accepted
+- Deprecated
+- Superseded
 
-## ADR Index
+When an ADR is superseded, include a clear pointer to the replacing ADR.
 
-| ADR | Title | Status | Date |
-|-----|-------|--------|------|
-| [001](001-coding-standards-enforcement.md) | Coding Standards Enforcement | Accepted | 2026-02-02 |
-| [002](002-security-headers-middleware.md) | Security Headers Middleware | Accepted | 2026-02-02 |
-| [003](003-microservices-architecture.md) | Microservices Architecture | Accepted | 2026-02-02 |
-| [004](004-architecture-review-remediation.md) | Architecture Review & Remediation | Accepted | 2026-02-02 |
+## Authoring Rules
 
-## Guidelines for New ADRs
+- Keep decisions concise and traceable.
+- Reference concrete runtime behavior, not assumptions.
+- Align decision statements with current deployment baseline docs.
+- Update related architecture index files when adding or changing ADRs.
 
-1. **Numbering**: Use sequential three-digit numbers (001, 002, 003...)
-2. **File naming**: `XXX-short-title-with-dashes.md`
-3. **Keep it concise**: Focus on the key points
-4. **Include context**: Explain why this decision was needed
-5. **Document consequences**: Both positive and negative
-6. **Update status**: Keep ADR status current
+## Cross References
 
-## When to Write an ADR
-
-Write an ADR when you:
-- Make a significant architectural decision
-- Choose between multiple viable options
-- Change an existing architectural pattern
-- Introduce a new technology or framework
-- Deprecate a current approach
-
-## References
-
-- [ADR GitHub Organization](https://adr.github.io/)
-- [Documenting Architecture Decisions - Michael Nygard](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
+- docs/01-architecture/README.md
+- docs/development/ARCHITECTURE_OVERVIEW.md
+- docs/architecture/CLOUD_DEPLOYMENT_ARCHITECTURE.md
+- docs/architecture/KUBERNETES_ARCHITECTURE.md

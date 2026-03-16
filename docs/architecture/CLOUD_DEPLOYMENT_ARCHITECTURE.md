@@ -1,349 +1,136 @@
 # Cloud Deployment Architecture
 
-## Overview
+## Scope and Intent
 
-The CRM Solution includes a comprehensive cloud deployment management system that allows administrators to:
+This document describes the current cloud and server deployment architecture for CRM Solution as of March 2026.
 
-1. **Configure Cloud Providers** - Set up multiple cloud providers (AWS, Azure, GCP, Kubernetes, Docker, On-Premise)
-2. **Manage Deployments** - Create and manage deployment configurations
-3. **Trigger Deployments** - Build and deploy applications to configured targets
-4. **Track Build Attempts** - View history of all deployment attempts with logs
-5. **Monitor Health** - Run on-demand health checks and view health history
+Primary deployment model in active use:
+- Containerized monolith runtime (frontend + api + data + optional OSS providers)
+- Environment-driven configuration with Docker Compose
+- Optional Kubernetes path for selected environments
 
-## Architecture Diagram
-
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          CLOUD DEPLOYMENT SYSTEM                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                      │
-     ┌────────────────────────────────┼────────────────────────────────┐
-     │                                │                                │
-     ▼                                ▼                                ▼
-┌──────────────┐            ┌──────────────┐            ┌──────────────┐
-│   Frontend   │            │   Backend    │            │   Database   │
-│  React UI    │──────────▶│   .NET API   │──────────▶│   MariaDB    │
-│              │            │              │            │              │
-│ Dashboard    │            │ CloudDeploy- │            │ CloudProviders│
-│ Build Status │            │ ment Service │            │ Deployments  │
-│ Health Check │            │              │            │ Attempts     │
-│ Logs Viewer  │            │ Controller   │            │ HealthLogs   │
-└──────────────┘            └──────────────┘            └──────────────┘
-                                   │
-         ┌─────────────────────────┼─────────────────────────┐
-         │                         │                         │
-         ▼                         ▼                         ▼
-   ┌───────────┐           ┌───────────┐           ┌───────────┐
-   │ Kubernetes│           │  Docker   │           │   Cloud   │
-   │  kubectl  │           │  CLI      │           │   APIs    │
-   │           │           │           │           │ AWS/Azure │
-   └───────────┘           └───────────┘           └───────────┘
-```
-
-## Database Schema
-
-### CloudProvider Entity
-
-Stores cloud provider configurations and credentials.
+## Current Runtime Topology
 
 ```
-┌────────────────────────────────────────┐
-│            CloudProvider               │
-├────────────────────────────────────────┤
-│ Id              INT (PK)               │
-│ Name            VARCHAR(200)           │
-│ ProviderType    ENUM(AWS, Azure,       │
-│                 GoogleCloud, etc.)     │
-│ Description     VARCHAR(1000)          │
-│ AccessKeyId     VARCHAR(500)           │
-│ SecretAccessKey VARCHAR(2000)          │
-│ TenantId        VARCHAR(200)           │
-│ SubscriptionId  VARCHAR(200)           │
-│ ProjectId       VARCHAR(200)           │
-│ Region          VARCHAR(100)           │
-│ Endpoint        VARCHAR(500)           │
-│ Configuration   TEXT (JSON)            │
-│ IsActive        BOOLEAN                │
-│ IsDefault       BOOLEAN                │
-│ CreatedAt       DATETIME               │
-│ UpdatedAt       DATETIME               │
-│ IsDeleted       BOOLEAN                │
-└────────────────────────────────────────┘
+Internet / Internal Users
+        |
+        v
+   crm-frontend (port 80)
+        |
+        v
+     crm-api (port 5000)
+        |
+        +--> MariaDB (crm_db)
+        +--> Redis
+        +--> Provider endpoints (Meilisearch, Chatwoot, Novu, Superset, DocuSeal, n8n, Ollama)
 ```
 
-### CloudDeployment Entity
+## Deployment Targets
 
-Stores deployment configurations and status.
+Supported target classes:
+- On-prem Linux hosts (current dominant operational model)
+- Cloud VM targets (AWS/Azure/GCP IaaS)
+- Kubernetes clusters (for orchestrated environments)
 
-```
-┌────────────────────────────────────────┐
-│           CloudDeployment              │
-├────────────────────────────────────────┤
-│ Id              INT (PK)               │
-│ Name            VARCHAR(200)           │
-│ Description     VARCHAR(1000)          │
-│ CloudProviderId INT (FK)               │
-│ ClusterName     VARCHAR(200)           │
-│ Namespace       VARCHAR(100)           │
-│ ResourceGroup   VARCHAR(200)           │
-│ VpcId           VARCHAR(100)           │
-│ SubnetIds       VARCHAR(500)           │
-│ BackendImage    VARCHAR(500)           │
-│ FrontendImage   VARCHAR(500)           │
-│ DatabaseImage   VARCHAR(500)           │
-│ BackendVersion  VARCHAR(50)            │
-│ FrontendVersion VARCHAR(50)            │
-│ FrontendUrl     VARCHAR(500)           │
-│ ApiUrl          VARCHAR(500)           │
-│ DatabaseHost    VARCHAR(200)           │
-│ DatabasePort    INT                    │
-│ SslEnabled      BOOLEAN                │
-│ SslCertificateArn VARCHAR(500)         │
-│ DomainName      VARCHAR(300)           │
-│ CpuUnits        INT                    │
-│ MemoryMb        INT                    │
-│ Replicas        INT                    │
-│ Status          ENUM(Pending,          │
-│                 Provisioning,          │
-│                 Building, Deploying,   │
-│                 Running, Stopped,      │
-│                 Failed, Terminated)    │
-│ HealthStatus    ENUM(Unknown, Healthy, │
-│                 Degraded, Unhealthy,   │
-│                 Offline)               │
-│ LastHealthCheck DATETIME               │
-│ DeployedAt      DATETIME               │
-│ LastError       VARCHAR(2000)          │
-│ EnvironmentVariables TEXT (JSON)       │
-│ ResourceConfiguration TEXT (JSON)      │
-│ CreatedAt       DATETIME               │
-│ UpdatedAt       DATETIME               │
-│ IsDeleted       BOOLEAN                │
-└────────────────────────────────────────┘
-```
+The same application artifacts can be deployed to these targets with environment-specific compose/manifests and secrets.
 
-### DeploymentAttempt Entity
+## Current Operational Reality
 
-Tracks individual build and deployment attempts.
+- Monolith runtime is the production baseline.
+- Microservices deployment is available but not the default support path.
+- Provider stack can be enabled per environment via feature flags and provider type config.
+- Health checks must be interpreted by service type (HTTP app vs worker process).
 
-```
-┌────────────────────────────────────────┐
-│          DeploymentAttempt             │
-├────────────────────────────────────────┤
-│ Id              INT (PK)               │
-│ CloudDeploymentId INT (FK)             │
-│ AttemptNumber   VARCHAR(50)            │
-│ Status          ENUM(...)              │
-│ GitCommitHash   VARCHAR(100)           │
-│ GitBranch       VARCHAR(200)           │
-│ BuildNumber     VARCHAR(50)            │
-│ BackendImageTag VARCHAR(100)           │
-│ FrontendImageTag VARCHAR(100)          │
-│ StartedAt       DATETIME               │
-│ CompletedAt     DATETIME               │
-│ DurationSeconds INT                    │
-│ BuildLog        LONGTEXT               │
-│ DeployLog       LONGTEXT               │
-│ ErrorMessage    VARCHAR(2000)          │
-│ ErrorStackTrace TEXT                   │
-│ TriggeredByUserId INT                  │
-│ TriggerType     VARCHAR(50)            │
-│ CreatedAt       DATETIME               │
-│ UpdatedAt       DATETIME               │
-│ IsDeleted       BOOLEAN                │
-└────────────────────────────────────────┘
-```
+## Configuration Model
 
-### HealthCheckLog Entity
+### 1) Core configuration
 
-Records health check history.
+- ASPNETCORE_ENVIRONMENT
+- ConnectionStrings__DefaultConnection
+- Jwt__*
+- Redis__*
+- FeatureManagement__*
+- Providers__* (category, endpoint, credentials)
 
-```
-┌────────────────────────────────────────┐
-│           HealthCheckLog               │
-├────────────────────────────────────────┤
-│ Id              INT (PK)               │
-│ CloudDeploymentId INT (FK)             │
-│ Status          ENUM(...)              │
-│ CheckedAt       DATETIME               │
-│ ApiHealthy      BOOLEAN                │
-│ FrontendHealthy BOOLEAN                │
-│ DatabaseHealthy BOOLEAN                │
-│ ApiResponseTimeMs INT                  │
-│ FrontendResponseTimeMs INT             │
-│ DatabaseResponseTimeMs INT             │
-│ ApiResponse     VARCHAR(1000)          │
-│ FrontendResponse VARCHAR(1000)         │
-│ DatabaseResponse VARCHAR(1000)         │
-│ ErrorDetails    VARCHAR(2000)          │
-│ CreatedAt       DATETIME               │
-│ UpdatedAt       DATETIME               │
-│ IsDeleted       BOOLEAN                │
-└────────────────────────────────────────┘
-```
+### 2) Provider configuration categories
 
-## API Endpoints
+- Search
+- Chat
+- Notifications
+- Analytics
+- Signatures
+- Integrations
+- AI
 
-### Cloud Providers
+### 3) Secrets
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/clouddeployment/providers` | List all providers |
-| GET | `/api/clouddeployment/providers/{id}` | Get provider by ID |
-| POST | `/api/clouddeployment/providers` | Create provider |
-| PUT | `/api/clouddeployment/providers/{id}` | Update provider |
-| DELETE | `/api/clouddeployment/providers/{id}` | Delete provider |
-| POST | `/api/clouddeployment/providers/test` | Test connection |
-| GET | `/api/clouddeployment/providers/{id}/resources/{type}` | Get resources |
+Secrets are environment-bound and injected via deployment configuration.
+No secrets should be hard-coded in source.
 
-### Deployments
+## Deployment Pipeline Pattern
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/clouddeployment/deployments` | List deployments |
-| GET | `/api/clouddeployment/deployments/{id}` | Get deployment |
-| POST | `/api/clouddeployment/deployments` | Create deployment |
-| PUT | `/api/clouddeployment/deployments/{id}` | Update deployment |
-| DELETE | `/api/clouddeployment/deployments/{id}` | Delete deployment |
-| POST | `/api/clouddeployment/deployments/{id}/deploy` | Trigger deployment |
-| POST | `/api/clouddeployment/deployments/{id}/stop` | Stop deployment |
-| POST | `/api/clouddeployment/deployments/{id}/restart` | Restart deployment |
-| POST | `/api/clouddeployment/deployments/{id}/scale` | Scale replicas |
+Typical deployment sequence:
 
-### Deployment Attempts
+1. Build backend and frontend images.
+2. Tag images by version and latest strategy.
+3. Push or transfer images to target runtime.
+4. Apply compose or Kubernetes manifests with target env file.
+5. Run startup/migration checks.
+6. Run health verification and endpoint checks.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/clouddeployment/deployments/{id}/attempts` | List attempts |
-| GET | `/api/clouddeployment/attempts/{id}` | Get attempt |
-| GET | `/api/clouddeployment/attempts/{id}/logs` | Get attempt logs |
+## Failure Domains and Recovery
 
-### Health Checks
+### API startup/migrations
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/clouddeployment/deployments/{id}/health-check` | Run health check |
-| GET | `/api/clouddeployment/deployments/{id}/health-history` | Get history |
-| GET | `/api/clouddeployment/health` | Get all health status |
+Risk:
+- schema drift or migration history mismatch can block startup.
 
-### Dashboard
+Recovery:
+- align EF migration history and schema under controlled workflow.
+- rerun startup after drift correction.
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/clouddeployment/dashboard` | Get dashboard summary |
+### Provider startup
 
-## Frontend UI
+Risk:
+- third-party container requires first-run initialization
+- missing provider environment variables
 
-The deployment management UI is available in **Settings → Deployment & Hosting** and includes:
+Recovery:
+- run service-specific bootstrap (for example chat/superset init)
+- verify endpoint behavior instead of relying on generic root paths only.
 
-### Dashboard Tab
-- Summary cards (providers, deployments, healthy, failed counts)
-- Active deployments table with status, health, and actions
-- Quick actions: Deploy, Stop, Restart, Health Check
+### Disk pressure
 
-### Build Attempts Tab
-- Filterable list of all build/deployment attempts
-- Status, timing, git info, and image tags
-- View logs button for each attempt
-- Error messages displayed inline
+Risk:
+- image accumulation can block rollout.
 
-### Health Checks Tab
-- Select deployment and run health check on demand
-- Visual health result showing API, Frontend, Database status
-- Response times for each component
-- Health check history table
+Recovery:
+- remove obsolete runtime images before pulling new versions.
+- keep deployment hosts under monitored disk usage thresholds.
 
-### Credentials Tab
-- Configure provider credentials (AWS, Azure, GCP, On-Premise)
-- Secure credential storage with visibility toggle
-- Validation testing
+## Network and Ports (Typical Full Stack)
 
-### Scripts Tab
-- Generate deployment scripts (Docker Compose, Kubernetes, Terraform, Shell)
-- Download or copy generated scripts
+- Frontend: 80
+- API: 5000
+- Meilisearch: 7700
+- n8n: 5678
+- Superset: 8088
+- Chatwoot: 3003
+- Novu API: 3000
+- DocuSeal: 3004
+- Ollama: 11434
 
-### Replicate Tab
-- Data replication between environments
-- Selective sync (database, settings, users, customizations)
+## Governance Constraints
 
-## Supported Cloud Providers
+- EF Core model/migrations are source of truth for schema changes.
+- Single database policy remains active for CRM runtime.
+- DTO contracts must stay aligned with API output.
+- Architecture docs and spec plans should be updated with material platform/runtime changes.
 
-| Provider | Type | Features |
-|----------|------|----------|
-| AWS | Cloud | EC2, ECS, EKS, RDS |
-| Azure | Cloud | ACI, AKS, Azure SQL |
-| Google Cloud | Cloud | GKE, Cloud SQL |
-| DigitalOcean | Cloud | Kubernetes, Droplets |
-| Kubernetes | Self-hosted | kubectl integration |
-| Docker | Local | Docker Compose |
-| On-Premise | Self-hosted | SSH-based deployment |
+## Related Documents
 
-## Deployment Flow
-
-```
-1. User triggers deployment
-   │
-   ▼
-2. Create DeploymentAttempt (status: Building)
-   │
-   ▼
-3. Execute provider-specific deployment
-   │
-   ├── Kubernetes: kubectl set image, rollout
-   ├── Docker: docker compose up -d
-   └── Cloud: Use respective SDK
-   │
-   ▼
-4. Update status (Running or Failed)
-   │
-   ▼
-5. Store endpoints (FrontendUrl, ApiUrl)
-   │
-   ▼
-6. Log completion time and duration
-```
-
-## Health Check Flow
-
-```
-1. Trigger health check for deployment
-   │
-   ▼
-2. Check API health endpoint
-   ├── GET {apiUrl}/health
-   └── Record response time
-   │
-   ▼
-3. Check Frontend availability
-   ├── GET {frontendUrl}
-   └── Record response time
-   │
-   ▼
-4. Check Database health
-   ├── GET {apiUrl}/health/database
-   └── Record response time
-   │
-   ▼
-5. Calculate overall status
-   ├── All healthy → Healthy
-   ├── Some healthy → Degraded
-   └── None healthy → Unhealthy
-   │
-   ▼
-6. Save HealthCheckLog and update deployment
-```
-
-## Security Considerations
-
-1. **Credentials Encryption**: Provider credentials should be encrypted at rest
-2. **Role-Based Access**: Only Admin users can access deployment features
-3. **Audit Logging**: All deployment actions are logged with user ID
-4. **Secret Management**: Use environment variables for sensitive data
-5. **Network Security**: Ensure proper VPC/network configuration
-
-## Related Documentation
-
-- [HEXAGONAL_ARCHITECTURE.md](HEXAGONAL_ARCHITECTURE.md) - Overall architecture
-- [KUBERNETES_ARCHITECTURE.md](KUBERNETES_ARCHITECTURE.md) - Kubernetes deployment details
-- [DATABASE_CONFIGURATION.md](DATABASE_CONFIGURATION.md) - Database setup
-- [DEPLOYMENT_GUIDE.md](../deployment/README.md) - Deployment instructions
+- docs/development/ARCHITECTURE_OVERVIEW.md
+- docs/development/MICROSERVICES_ARCHITECTURE.md
+- docs/development/SOLUTION_CONTEXT.md
+- docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md
+- docs/architecture/ADR-002-EF-Core-Schema-Management.md

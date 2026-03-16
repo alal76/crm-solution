@@ -1,6 +1,6 @@
 # API Reference
 
-> **Last Updated:** February 1, 2026 | **Base URL:** `/api`
+> **Last Updated:** March 2026 | **Base URL:** `/api`
 
 ---
 

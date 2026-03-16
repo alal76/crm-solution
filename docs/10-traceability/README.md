@@ -1,6 +1,6 @@
 # Feature Traceability Matrix
 
-> **Last Updated:** February 1, 2026 | **Version:** 1.7.28
+> **Last Updated:** March 2026 | **Version:** 0.625.0
 
 This document provides end-to-end traceability from business functionality to implementation code, enabling complete understanding of how features are implemented across the stack.
 
@@ -407,7 +407,7 @@ User login with JWT tokens, refresh tokens, and session management.
 
 ---
 
-### 7.2 Password Management (New in 1.7.28)
+### 7.2 Password Management
 
 #### Business Description
 Password complexity settings, expiration policies, and first-time setup.

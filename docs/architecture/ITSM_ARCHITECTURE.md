@@ -1,6 +1,6 @@
 # ITSM Module - Architecture Overview
 
-> **Last Updated:** February 2026  
+> **Last Updated:** March 2026  
 > **Module Status:** Core services implemented, Advanced services deferred  
 > **ADR Reference:** N/A (built as extension of Service Desk module)
 

@@ -112,7 +112,7 @@ test.describe('Service Requests - Create', () => {
       await page.locator('[role="option"]:has-text("Feature")').first().click();
     }
     
-    await page.locator('button[type="submit"], button:has-text("Save")').first().click();
+    await page.locator('button[type="submit"], button:has-text("Save"), button:has-text("Create")').first().click();
     await page.waitForTimeout(2000);
   });
 
@@ -132,7 +132,7 @@ test.describe('Service Requests - Create', () => {
       await page.locator('[role="option"]:has-text("Critical")').first().click();
     }
     
-    await page.locator('button[type="submit"], button:has-text("Save")').first().click();
+    await page.locator('button[type="submit"], button:has-text("Save"), button:has-text("Create")').first().click();
     await page.waitForTimeout(2000);
   });
 

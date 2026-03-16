@@ -1,6 +1,6 @@
 # Deployment Documentation
 
-> **Last Updated:** February 1, 2026 | **Version:** 1.7.28
+> **Last Updated:** March 2026 | **Version:** 0.625.0
 
 Complete deployment guide covering Docker, Kubernetes, build scripts, and environment configuration.
 
@@ -23,8 +23,8 @@ Complete deployment guide covering Docker, Kubernetes, build scripts, and enviro
 
 | Option | Description | Best For |
 |--------|-------------|----------|
-| **Monolith** | Single API + Frontend | Development, Small teams |
-| **Microservices** | Separate services per domain | Production, Scale |
+| **Monolith (Primary)** | Single API + Frontend with pluggable OSS providers | Development and production baseline |
+| **Microservices (Optional)** | Separate services per domain | Targeted scale-out and domain extraction |
 | **Hybrid** | Core monolith + specific microservices | Migration path |
 
 ### 1.2 Deployment Targets

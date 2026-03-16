@@ -11,9 +11,9 @@
 
 export const TEST_USERS = {
   admin: {
-    email: 'test_admin@crm-test.local',
-    password: 'TestAdmin@123@#',
-    firstName: 'Test',
+    email: 'admin@crm.local',
+    password: 'Admin@123',
+    firstName: 'System',
     lastName: 'Administrator',
     role: 'Administrator',
   },

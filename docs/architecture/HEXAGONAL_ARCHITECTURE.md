@@ -1,229 +1,87 @@
-# Hexagonal Architecture - CRM Solution
+# Hexagonal Architecture in CRM Solution
 
-## Overview
+## Scope
 
-The CRM Solution has been refactored to follow the Hexagonal Architecture (Ports and Adapters) pattern. This document explains the architecture and how to work with it.
+This document describes how Hexagonal Architecture is currently applied in CRM Solution as of March 2026.
 
-## Architecture Diagram
+## Practical Position
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              EXTERNAL ACTORS                                     │
-│                     (Users, Frontend, External Systems)                          │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          PRIMARY ADAPTERS (Driving)                              │
-│                                                                                  │
-│   ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐          │
-│   │  API Controllers  │  │   CLI Commands    │  │   Background Jobs │          │
-│   └───────────────────┘  └───────────────────┘  └───────────────────┘          │
-│                                                                                  │
-│   Controllers/  - REST API endpoints that handle HTTP requests                   │
-│   These call INPUT PORTS to trigger application use cases                        │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          INPUT PORTS (Driving Ports)                             │
-│                                                                                  │
-│   Core/Ports/Input/IInputPorts.cs                                               │
-│                                                                                  │
-│   ICustomerInputPort    - Customer CRUD and management                           │
-│   IContactInputPort     - Contact management                                     │
-│   IOpportunityInputPort - Sales pipeline operations                              │
-│   IProductInputPort     - Product catalog management                             │
-│   ICampaignInputPort    - Marketing campaign operations                          │
-│   IAuthInputPort        - Authentication and authorization                       │
-│   IUserInputPort        - User management                                        │
-│   IUserGroupInputPort   - Group/permission management                            │
-│   ISystemSettingsInputPort - System configuration                                │
-│   IServiceRequestInputPort - Service request handling                            │
-│   IAccountInputPort     - Account management                                     │
-│   IDatabaseBackupInputPort - Database operations                                 │
-│   ICloudDeploymentInputPort - Cloud deployment management                        │
-│                                                                                  │
-│   These extend existing I*Service interfaces for backward compatibility          │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          APPLICATION SERVICES                                    │
-│                                                                                  │
-│   Infrastructure/Services/                                                       │
-│                                                                                  │
-│   CustomerService        implements ICustomerInputPort, ICustomerService         │
-│   ContactsService        implements IContactInputPort, IContactsService          │
-│   OpportunityService     implements IOpportunityInputPort, IOpportunityService   │
-│   ProductService         implements IProductInputPort, IProductService           │
-│   MarketingCampaignService implements ICampaignInputPort, IMarketingCampaignService │
-│   AuthenticationService  implements IAuthInputPort, IAuthenticationService       │
-│   UserService            implements IUserInputPort, IUserService                 │
-│   UserGroupService       implements IUserGroupInputPort, IUserGroupService       │
-│   SystemSettingsService  implements ISystemSettingsInputPort, ISystemSettingsService │
-│   ServiceRequestService  implements IServiceRequestInputPort, IServiceRequestService │
-│   AccountService         implements IAccountInputPort, IAccountService           │
-│   DatabaseBackupService  implements IDatabaseBackupInputPort, IDatabaseBackupService │
-│   CloudDeploymentService implements ICloudDeploymentService (manages providers,  │
-│                          deployments, build attempts, and health checks)          │
-│                                                                                  │
-│   Services contain business logic and use OUTPUT PORTS for data access           │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          OUTPUT PORTS (Driven Ports)                             │
-│                                                                                  │
-│   Core/Ports/Output/IOutputPorts.cs                                             │
-│                                                                                  │
-│   Repository Ports:                                                              │
-│   IRepositoryPort<T>     - Generic CRUD operations for entities                  │
-│   ICustomerRepositoryPort - Customer-specific queries                            │
-│   IOpportunityRepositoryPort - Opportunity-specific queries                      │
-│   IProductRepositoryPort  - Product-specific queries                             │
-│   ICampaignRepositoryPort - Campaign-specific queries                            │
-│   IUserRepositoryPort     - User-specific queries                                │
-│   IUserGroupRepositoryPort - Group-specific queries                              │
-│                                                                                  │
-│   External Service Ports:                                                        │
-│   ITokenPort             - JWT token generation/validation                       │
-│   IPasswordPort          - Password hashing/verification                         │
-│   IEmailPort             - Email sending operations                              │
-│   IExternalApiPort       - External HTTP API calls                               │
-│   IFileStoragePort       - File storage operations                               │
-│   ICachePort             - Caching operations                                    │
-│   ITotpPort              - Two-factor authentication                             │
-│   IUnitOfWorkPort        - Transaction coordination                              │
-│   ICloudProviderPort     - Cloud provider integrations (AWS, Azure, GCP, K8s)   │
-│   IDeploymentPort        - Deployment orchestration                              │
-│   IHealthCheckPort       - Health monitoring                                     │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          SECONDARY ADAPTERS (Driven)                             │
-│                                                                                  │
-│   Infrastructure/Repositories/                                                   │
-│   Repository<T>          - Generic repository implementation                     │
-│                                                                                  │
-│   Infrastructure/Data/                                                           │
-│   CrmDbContext           - Entity Framework database context                     │
-│                                                                                  │
-│   Infrastructure/Services/                                                       │
-│   JwtTokenService        - JWT token implementation                              │
-│   TotpService            - TOTP implementation                                   │
-│                                                                                  │
-│   These implement OUTPUT PORTS and handle external integrations                   │
-└─────────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      ▼
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                          EXTERNAL SYSTEMS                                        │
-│                                                                                  │
-│   ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐          │
-│   │     Database      │  │   Email Server    │  │   File Storage    │          │
-│   │  (MariaDB/MySQL)  │  │     (SMTP)        │  │  (Local/Cloud)    │          │
-│   └───────────────────┘  └───────────────────┘  └───────────────────┘          │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+The application is not a pure hexagon end-to-end. Instead, it uses a pragmatic hybrid:
 
-## Project Structure
+- layered modular monolith for core runtime
+- ports and adapters at integration boundaries
+- provider factories to resolve runtime implementations
+
+This gives integration flexibility without forcing full domain isolation refactors in every module.
+
+## Where Hexagonal Patterns Are Strongest
+
+### 1) Provider Abstractions
+
+Ports in Core define capability contracts (search, chat, notifications, analytics, signatures, integrations, AI).
+
+Adapters in Infrastructure implement these ports (BuiltIn and external provider variants).
+
+Factories choose adapters from configuration and feature flags.
+
+### 2) External Service Boundaries
+
+Infrastructure services encapsulate calls to external products and APIs.
+
+Application code depends on contracts, not vendor SDK surfaces.
+
+### 3) Configuration-Driven Swapping
+
+At runtime, providers can be switched through configuration with minimal consumer changes.
+
+## Core Flow
 
 ```
-CRM.Backend/
-├── src/
-│   ├── CRM.Core/                      # Domain Layer
-│   │   ├── Entities/                  # Domain entities
-│   │   ├── Dtos/                      # Data Transfer Objects
-│   │   ├── Interfaces/                # Service interfaces (legacy)
-│   │   ├── Models/                    # Domain models
-│   │   └── Ports/                     # Hexagonal ports
-│   │       ├── Input/                 # Driving ports (use cases)
-│   │       │   └── IInputPorts.cs
-│   │       └── Output/                # Driven ports (external)
-│   │           └── IOutputPorts.cs
-│   │
-│   ├── CRM.Infrastructure/            # Infrastructure Layer
-│   │   ├── Data/                      # Database context
-│   │   ├── Repositories/              # Repository implementations
-│   │   └── Services/                  # Service implementations
-│   │
-│   └── CRM.Api/                       # Presentation Layer
-│       ├── Controllers/               # API controllers (primary adapters)
-│       └── Program.cs                 # DI configuration
-│
-└── tests/                             # Test projects
+Controller/Application Service
+    -> Port Interface (Core)
+    -> Factory Resolution (Infrastructure)
+    -> Concrete Adapter (Infrastructure)
+    -> External System
 ```
 
-## Key Principles
+## Current Benefits
 
-### 1. Dependency Rule
-Dependencies flow inward. External layers depend on inner layers, never the reverse.
+- reduced vendor lock-in at capability boundaries
+- easier mocking and contract-level testing
+- safer phased rollout of external integrations
+- fallback paths via BuiltIn providers
 
-```
-Controllers → Input Ports → Services → Output Ports → Repositories
-```
+## Current Limitations
 
-### 2. Port Interfaces
-- **Input Ports**: Define what the application *can do* (use cases)
-- **Output Ports**: Define what the application *needs* (dependencies)
+- not every legacy service path is fully port-first
+- some modules still have mixed concerns between app and infrastructure logic
+- shared database model creates coupling independent of port boundaries
 
-### 3. Adapter Pattern
-- **Primary Adapters**: Drive the application (Controllers, CLI)
-- **Secondary Adapters**: Are driven by the application (Repositories, Email)
+## Coding Guidance
 
-### 4. Backward Compatibility
-Input ports extend existing service interfaces:
-```csharp
-public interface ICustomerInputPort : ICustomerService { }
-```
+- new external capability work should start with a Core port contract
+- avoid direct controller-to-vendor coupling
+- keep DTO contracts stable at API boundary
+- register adapters in one place and validate fallback behavior
 
-This allows gradual migration from `ICustomerService` to `ICustomerInputPort`.
+## Testing Guidance
 
-## DI Registration
+- unit test adapters against port contract behavior
+- integration test provider selection and fallback
+- validate failure isolation for each provider channel
 
-Both legacy and hexagonal interfaces are registered:
+## Migration Guidance
 
-```csharp
-// Legacy registration (backward compatibility)
-builder.Services.AddScoped<ICustomerService, CustomerService>();
+When refactoring legacy paths:
 
-// Hexagonal registration (new code)
-builder.Services.AddScoped<ICustomerInputPort, CustomerService>();
-```
+1. define or refine port interface
+2. map existing service behavior into adapter implementation
+3. add factory resolution path
+4. update consumers to contract-driven usage
+5. add tests for default and external provider paths
 
-## Usage in Controllers
+## Related Documents
 
-**Legacy approach:**
-```csharp
-public class CustomersController(ICustomerService customerService)
-```
-
-**Hexagonal approach:**
-```csharp
-public class CustomersController(ICustomerInputPort customerPort)
-```
-
-## Benefits
-
-1. **Testability**: Easy to mock ports for unit testing
-2. **Flexibility**: Swap implementations without changing domain logic
-3. **Maintainability**: Clear boundaries between layers
-4. **Scalability**: Easy to add new adapters (CLI, GraphQL, etc.)
-
-## Migration Path
-
-1. ✅ Define Input Ports (extend existing interfaces)
-2. ✅ Define Output Ports (repository and service ports)
-3. ✅ Update services to implement Input Ports
-4. ✅ Register Input Ports in DI
-5. ⏳ Gradually update controllers to use Input Ports
-6. ⏳ Implement specialized Output Port adapters as needed
-7. ⏳ Add Output Port implementations for external services
-
-## Related Documentation
-
-- [IMPLEMENTATION_SUMMARY.md](../IMPLEMENTATION_SUMMARY.md) - Overall implementation details
-- [CONTACTS_IMPLEMENTATION.md](../features/CONTACTS_IMPLEMENTATION.md) - Contact module details
-- [TESTING_GUIDE.md](../testing/TESTING_GUIDE.md) - Testing approach
+- docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md
+- docs/architecture/PLUGGABLE_ARCHITECTURE_IMPLEMENTATION_TRACKER.md
+- docs/development/ARCHITECTURE_OVERVIEW.md
