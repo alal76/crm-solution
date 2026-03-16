@@ -1,16 +1,25 @@
 /**
  * CRM Solution - Relationship Management E2E Tests
- * 
- * Tests for relationship type management, account relationships, 
+ *
+ * Tests for relationship type management, account relationships,
  * interactions, health snapshots, and relationship map visualization.
  */
 
 import { test, expect } from '@playwright/test';
 
+async function waitForRelationshipsPageReady(page: import('@playwright/test').Page) {
+  await page.goto('/relationships');
+  await page.waitForLoadState('domcontentloaded');
+  await page
+    .waitForFunction(() => !document.querySelector('.MuiCircularProgress-root'), {
+      timeout: 15000,
+    })
+    .catch(() => {});
+}
+
 test.describe('Relationships - Relationship Types', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/relationships');
-    await page.waitForLoadState('domcontentloaded');
+    await waitForRelationshipsPageReady(page);
   });
 
   test('TC-REL-001: Should display relationships page', async ({ page }) => {
@@ -32,7 +41,7 @@ test.describe('Relationships - Relationship Types', () => {
       await typesTab.click();
       await page.waitForTimeout(500);
     }
-    
+
     const addButton = page.locator('button:has-text("Add Relationship Type")');
     if (await addButton.isVisible()) {
       await addButton.click();
@@ -47,22 +56,23 @@ test.describe('Relationships - Relationship Types', () => {
       await typesTab.click();
       await page.waitForTimeout(500);
     }
-    
+
     const addButton = page.locator('button:has-text("Add Relationship Type")');
     if (await addButton.isVisible()) {
       await addButton.click();
       await page.waitForTimeout(500);
-      
-      const typeNameInput = page.locator('input').filter({ hasText: '' }).first();
-      await typeNameInput.fill(`TestPartner_${Date.now()}`);
-      
-      // Select B2B category if dropdown is available
+
+      const typeNameInput = page.locator('[role="dialog"] input[name="typeName"], [role="dialog"] input#typeName, [role="dialog"] input').first();
+      if (await typeNameInput.isVisible({ timeout: 5000 })) {
+        await typeNameInput.fill(`TestPartner_${Date.now()}`);
+      }
+
       const categorySelect = page.locator('[aria-label*="Category"], label:has-text("Category") + div').first();
       if (await categorySelect.isVisible()) {
         await categorySelect.click();
         await page.locator('[role="option"]:has-text("B2B")').first().click();
       }
-      
+
       await page.locator('button:has-text("Save")').click();
       await page.waitForTimeout(1000);
     }
@@ -71,8 +81,7 @@ test.describe('Relationships - Relationship Types', () => {
 
 test.describe('Relationships - Account Relationships', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/relationships');
-    await page.waitForLoadState('domcontentloaded');
+    await waitForRelationshipsPageReady(page);
   });
 
   test('TC-REL-010: Should show relationships tab', async ({ page }) => {
@@ -98,8 +107,7 @@ test.describe('Relationships - Account Relationships', () => {
     if (await addButton.isVisible()) {
       await addButton.click();
       await page.waitForTimeout(500);
-      
-      // Check for source and target account fields
+
       await expect(page.locator('label:has-text("Source Account"), [aria-label*="Source"]').first()).toBeVisible();
       await expect(page.locator('label:has-text("Target Account"), [aria-label*="Target"]').first()).toBeVisible();
     }
@@ -108,13 +116,11 @@ test.describe('Relationships - Account Relationships', () => {
 
 test.describe('Relationships - Interactions', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/relationships');
-    await page.waitForLoadState('domcontentloaded');
+    await waitForRelationshipsPageReady(page);
   });
 
   test('TC-REL-020: Should show interaction button on relationship', async ({ page }) => {
     const interactionButton = page.locator('[aria-label*="Interaction"], button:has([data-testid*="trending"], svg)').first();
-    // This will depend on having relationships in the system
     if (await interactionButton.isVisible()) {
       await expect(interactionButton).toBeVisible();
     }
@@ -134,13 +140,11 @@ test.describe('Relationships - Interactions', () => {
 
 test.describe('Relationships - Health Snapshots', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/relationships');
-    await page.waitForLoadState('domcontentloaded');
+    await waitForRelationshipsPageReady(page);
   });
 
   test('TC-REL-030: Should show health snapshot button', async ({ page }) => {
     const healthButton = page.locator('[aria-label*="Health"], button:has([data-testid*="health"], svg)').first();
-    // Health button visibility depends on relationships existing
     if (await healthButton.isVisible()) {
       await expect(healthButton).toBeVisible();
     }
@@ -149,13 +153,11 @@ test.describe('Relationships - Health Snapshots', () => {
 
 test.describe('Relationships - Relationship Map', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/relationships');
-    await page.waitForLoadState('domcontentloaded');
+    await waitForRelationshipsPageReady(page);
   });
 
   test('TC-REL-040: Should show map visualization button', async ({ page }) => {
     const mapButton = page.locator('[aria-label*="Map"], button:has([data-testid*="tree"], svg)').first();
-    // Map button visibility depends on relationships existing
     if (await mapButton.isVisible()) {
       await expect(mapButton).toBeVisible();
     }

@@ -12,6 +12,7 @@ const API_URL = BASE_URL.includes(':5000') ? BASE_URL : `${BASE_URL.replace(':80
 
 let authToken: string;
 let createdInvoiceId: number;
+let testAccountId: number = 1;
 
 test.describe('Invoice Workflows', () => {
   test.describe.configure({ mode: 'serial' });
@@ -24,6 +25,18 @@ test.describe('Invoice Workflows', () => {
     const data = await response.json();
     authToken = data.accessToken;
     expect(authToken).toBeTruthy();
+
+    // Fetch an existing account ID for use in invoice creation
+    const acctResp = await request.get(`${API_URL}/api/accounts?page=1&pageSize=1`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    if (acctResp.ok()) {
+      const acctData = await acctResp.json();
+      const items = Array.isArray(acctData) ? acctData : (acctData.items ?? acctData.data ?? []);
+      if (items.length > 0) {
+        testAccountId = items[0].id ?? 1;
+      }
+    }
   });
 
   // --------------------------------------------------------------------------
@@ -55,29 +68,29 @@ test.describe('Invoice Workflows', () => {
     const dueDate = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0];
 
     const payload = {
-      invoiceNumber: `INV-E2E-${now}`,
-      title: `TEST Invoice ${now}`,
+      accountId: testAccountId,
       invoiceDate,
       dueDate,
-      status: 'Draft',
-      currency: 'USD',
+      status: 0, // Draft = 0
+      currencyCode: 'USD',
       notes: 'E2E test invoice',
       lineItems: [
         {
           description: 'E2E Test Service',
           quantity: 2,
           unitPrice: 500.00,
-          totalPrice: 1000.00,
+          discountAmount: 0,
+          taxAmount: 0,
         },
         {
           description: 'E2E Support Hours',
           quantity: 5,
           unitPrice: 150.00,
-          totalPrice: 750.00,
+          discountAmount: 0,
+          taxAmount: 0,
         },
       ],
       subtotal: 1750.00,
-      totalAmount: 1750.00,
     };
 
     const response = await request.post(`${API_URL}/api/invoices`, {

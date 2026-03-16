@@ -13,21 +13,23 @@ import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 
 const SLA_BASE_URL = '/itsm/sla-policies';
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
+const _BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
+const API_BASE_URL = _BASE_URL.includes(':5000') ? _BASE_URL : `${_BASE_URL.replace(':80', '')}:5000`;
 
 test.describe('SLA Policies E2E Tests', () => {
   const timestamp = Date.now();
 
   test.beforeEach(async ({ authenticatedPage }) => {
     await authenticatedPage.goto(SLA_BASE_URL);
-    await authenticatedPage.waitForLoadState('networkidle');
+    await authenticatedPage.waitForLoadState('domcontentloaded');
+    await authenticatedPage.waitForTimeout(800);
   });
 
   test('SLA-001: View SLA policies list', async ({ authenticatedPage }) => {
     const page = authenticatedPage;
 
     // Wait for the page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
 
     // Check that we're on the SLA policies page or redirected
     const url = page.url();
@@ -110,7 +112,7 @@ test.describe('SLA Policies E2E Tests', () => {
     const page = authenticatedPage;
 
     // Wait for policy list to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
 
     // Click on first policy row
     const firstRow = page.locator('table tbody tr, .MuiDataGrid-row').first();
@@ -149,7 +151,8 @@ test.describe('SLA Policies E2E Tests', () => {
 
     // Navigate to service requests
     await page.goto('/itsm/service-requests');
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(800);
 
     // Look for SLA status badge or timer
     const slaIndicator = page.locator(

@@ -11,6 +11,7 @@ const API_URL = BASE_URL.includes(':5000') ? BASE_URL : `${BASE_URL.replace(':80
 
 let authToken: string;
 let createdContractId: number;
+let testAccountId: number = 1;
 
 const futureDate = (daysFromNow: number): string => {
   const d = new Date();
@@ -29,6 +30,18 @@ test.describe('Contracts', () => {
     const data = await response.json();
     authToken = data.accessToken;
     expect(authToken).toBeTruthy();
+
+    // Fetch an existing account ID for use in contract creation
+    const acctResp = await request.get(`${API_URL}/api/accounts?page=1&pageSize=1`, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    if (acctResp.ok()) {
+      const acctData = await acctResp.json();
+      const items = Array.isArray(acctData) ? acctData : (acctData.items ?? acctData.data ?? []);
+      if (items.length > 0) {
+        testAccountId = items[0].id ?? 1;
+      }
+    }
   });
 
   // --------------------------------------------------------------------------
@@ -56,15 +69,13 @@ test.describe('Contracts', () => {
 
   test('should create a new contract', async ({ request }) => {
     const payload = {
-      title: `TEST_Contract_${Date.now()}`,
+      name: `TEST_Contract_${Date.now()}`,
       description: 'E2E test contract for service agreement',
-      contractNumber: `CN-E2E-${Date.now()}`,
+      accountId: testAccountId,
       startDate: futureDate(1),
       endDate: futureDate(365),
-      value: 50000,
-      currency: 'USD',
-      status: 'Draft',
-      contractType: 'Service',
+      totalValue: 50000,
+      contractType: 0, // Service = 0
     };
 
     const response = await request.post(`${API_URL}/api/contracts`, {

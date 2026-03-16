@@ -14,7 +14,8 @@ import { test, expect } from '../fixtures';
 import type { Page } from '@playwright/test';
 
 const KB_BASE_URL = '/itsm/knowledge';
-const API_BASE_URL = process.env.API_BASE_URL || 'http://localhost:5000';
+const _BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
+const API_BASE_URL = _BASE_URL.includes(':5000') ? _BASE_URL : `${_BASE_URL.replace(':80', '')}:5000`;
 
 test.describe('Knowledge Base E2E Tests', () => {
   let createdArticleId: number | null = null;
@@ -23,7 +24,8 @@ test.describe('Knowledge Base E2E Tests', () => {
   test.beforeEach(async ({ authenticatedPage }) => {
     // Ensure we're on the knowledge base page
     await authenticatedPage.goto(KB_BASE_URL);
-    await authenticatedPage.waitForLoadState('networkidle');
+    await authenticatedPage.waitForLoadState('domcontentloaded');
+    await authenticatedPage.waitForTimeout(800);
   });
 
   test('KB-001: Create a new knowledge article', async ({ authenticatedPage }) => {
@@ -114,7 +116,7 @@ Created at: ${new Date().toISOString()}
     const page = authenticatedPage;
 
     // Wait for article list to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
 
     // Try to click on the first article in the list
     const firstArticle = page.locator('table tbody tr, .article-card, .MuiDataGrid-row, [data-testid="article-item"]').first();
@@ -142,7 +144,7 @@ Created at: ${new Date().toISOString()}
     const page = authenticatedPage;
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
 
     // Click on first article
     const firstArticle = page.locator('table tbody tr, .article-card, .MuiDataGrid-row').first();
