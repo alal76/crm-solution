@@ -9,6 +9,7 @@ import { test as setup, expect } from '@playwright/test';
 import { TEST_USERS } from './test-data';
 import path from 'path';
 import fs from 'fs';
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from '../testConfig';
 
 const authFile = path.join(__dirname, '../test-results/.auth/user.json');
 
@@ -23,11 +24,11 @@ setup('authenticate', async ({ page }) => {
   await page.goto('/login');
   
   // Wait for page to load
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded');
   
   // Use environment credentials or defaults
-  const username = process.env.TEST_USERNAME || TEST_USERS.existingAdmin.email;
-  const password = process.env.TEST_PASSWORD || TEST_USERS.existingAdmin.password;
+  const username = process.env.TEST_USERNAME || ADMIN_EMAIL || TEST_USERS.existingAdmin.email;
+  const password = process.env.TEST_PASSWORD || ADMIN_PASSWORD || TEST_USERS.existingAdmin.password;
   
   console.log(`🔐 Attempting login with: ${username}`);
   
@@ -55,7 +56,7 @@ setup('authenticate', async ({ page }) => {
   await page.screenshot({ path: 'test-results/login-filled.png' });
   
   // Click the submit button
-  const loginButton = page.locator('button[type="submit"]').first();
+  const loginButton = page.locator('button[type="submit"], button:has-text("Sign In"), button:has-text("Login")').first();
   await loginButton.click();
   
   // Wait for response

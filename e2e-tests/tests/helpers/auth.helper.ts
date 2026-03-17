@@ -7,8 +7,7 @@
  */
 
 import { Page } from '@playwright/test';
-
-const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
+import { ADMIN_EMAIL, ADMIN_PASSWORD, apiUrl } from '../../testConfig';
 
 /**
  * Log in as the admin user via the main CRM login page.
@@ -29,8 +28,8 @@ export async function loginAsAdmin(page: Page): Promise<void> {
     'button[type="submit"], button:has-text("Sign In"), button:has-text("Login")'
   ).first();
 
-  await emailInput.fill(process.env.ADMIN_EMAIL || 'admin@crm.local');
-  await passwordInput.fill(process.env.ADMIN_PASSWORD || 'Admin@123');
+  await emailInput.fill(ADMIN_EMAIL);
+  await passwordInput.fill(ADMIN_PASSWORD);
   await submitBtn.click();
 
   // Wait for redirect away from login page
@@ -84,16 +83,12 @@ export async function logout(page: Page): Promise<void> {
  * Useful for setting up API request tests without a browser.
  */
 export async function getAdminToken(): Promise<string> {
-  const apiUrl = BASE_URL.includes(':5000')
-    ? BASE_URL
-    : `${BASE_URL.replace(':80', '')}:5000`;
-
-  const response = await fetch(`${apiUrl}/api/auth/login`, {
+  const response = await fetch(apiUrl('/api/auth/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      email: process.env.ADMIN_EMAIL || 'admin@crm.local',
-      password: process.env.ADMIN_PASSWORD || 'Admin@123',
+      email: ADMIN_EMAIL,
+      password: ADMIN_PASSWORD,
     }),
   });
 

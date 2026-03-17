@@ -59,7 +59,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-001
   test('TC-INV-001: Navigate to /invoices and verify page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const heading = page.locator('h1, h2, h3, [class*="title"], [class*="heading"]').filter({ hasText: /invoice/i });
     await expect(heading.first()).toBeVisible({ timeout: 10000 });
@@ -70,7 +70,7 @@ test.describe('Sales Module – Invoices', () => {
   test('TC-INV-002: Create an invoice', async ({ page }) => {
     createdInvoiceName = `TEST_INV_${ts()}`;
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await openAddDialog(page);
 
@@ -102,7 +102,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-003
   test('TC-INV-003: View invoice details', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(async () => {
       await page.locator('a[href*="/invoices/"]').first().click().catch(() => {});
@@ -118,7 +118,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-004
   test('TC-INV-004: Edit invoice – update notes', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const editBtn = page.locator('button[aria-label*="edit"], button:has-text("Edit")').first();
     const editVisible = await editBtn.isVisible({ timeout: 3000 }).catch(() => false);
@@ -144,7 +144,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-005
   test('TC-INV-005: Send invoice (if button available)', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(() => {});
     await page.waitForURL(/\/invoices\/\d+/, { timeout: 4000 }).catch(() => {});
@@ -163,7 +163,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-006
   test('TC-INV-006: Mark invoice as paid', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(() => {});
     await page.waitForURL(/\/invoices\/\d+/, { timeout: 4000 }).catch(() => {});
@@ -182,7 +182,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-007
   test('TC-INV-007: Generate PDF (if available)', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(() => {});
     await page.waitForURL(/\/invoices\/\d+/, { timeout: 4000 }).catch(() => {});
@@ -204,7 +204,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-008
   test('TC-INV-008: Filter invoices by status', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const statusFilter = page.locator('[aria-label*="status"], button:has-text("Status"), select[name*="status"], [class*="filter"]').first();
     const filterVisible = await statusFilter.isVisible({ timeout: 3000 }).catch(() => false);
@@ -221,7 +221,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-009
   test('TC-INV-009: Search invoices', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const searchInput = page.locator('input[placeholder*="Search"], input[type="search"], [aria-label*="search"] input').first();
     const searchVisible = await searchInput.isVisible({ timeout: 4000 }).catch(() => false);
@@ -238,7 +238,7 @@ test.describe('Sales Module – Invoices', () => {
   // TC-INV-010
   test('TC-INV-010: Delete an invoice', async ({ page }) => {
     await page.goto(`${BASE_URL}/invoices`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const rows = page.locator('.MuiDataGrid-row, tbody tr');
     const rowCount = await rows.count().catch(() => 0);
@@ -259,7 +259,7 @@ test.describe('Sales Module – Payments', () => {
   // TC-PAY-001
   test('TC-PAY-001: Navigate to /payments and verify page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const heading = page.locator('h1, h2, h3, [class*="title"]').filter({ hasText: /payment/i });
     await expect(heading.first()).toBeVisible({ timeout: 10000 });
@@ -269,7 +269,7 @@ test.describe('Sales Module – Payments', () => {
   // TC-PAY-002
   test('TC-PAY-002: Create a payment', async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await openAddDialog(page);
 
@@ -308,7 +308,7 @@ test.describe('Sales Module – Payments', () => {
   // TC-PAY-003
   test('TC-PAY-003: View payment details', async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(async () => {
       await page.locator('a[href*="/payments/"]').first().click().catch(() => {});
@@ -324,7 +324,7 @@ test.describe('Sales Module – Payments', () => {
   // TC-PAY-004
   test('TC-PAY-004: Edit payment – update reference/notes', async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const editBtn = page.locator('button[aria-label*="edit"], button:has-text("Edit")').first();
     const editVisible = await editBtn.isVisible({ timeout: 3000 }).catch(() => false);
@@ -349,7 +349,7 @@ test.describe('Sales Module – Payments', () => {
   // TC-PAY-005
   test('TC-PAY-005: Refund payment (if button available)', async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(() => {});
     await page.waitForURL(/\/payments\/\d+/, { timeout: 4000 }).catch(() => {});
@@ -368,7 +368,7 @@ test.describe('Sales Module – Payments', () => {
   // TC-PAY-006
   test('TC-PAY-006: Filter payments by status', async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const statusFilter = page.locator('[aria-label*="status"], button:has-text("Status"), select[name*="status"]').first();
     const filterVisible = await statusFilter.isVisible({ timeout: 3000 }).catch(() => false);
@@ -385,7 +385,7 @@ test.describe('Sales Module – Payments', () => {
   // TC-PAY-007
   test('TC-PAY-007: Search payments', async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const searchInput = page.locator('input[placeholder*="Search"], input[type="search"], [aria-label*="search"] input').first();
     const searchVisible = await searchInput.isVisible({ timeout: 4000 }).catch(() => false);
@@ -402,7 +402,7 @@ test.describe('Sales Module – Payments', () => {
   // TC-PAY-008
   test('TC-PAY-008: Delete a payment', async ({ page }) => {
     await page.goto(`${BASE_URL}/payments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const rows = page.locator('.MuiDataGrid-row, tbody tr');
     const rowCount = await rows.count().catch(() => 0);
@@ -426,7 +426,7 @@ test.describe('Sales Module – Contracts', () => {
   // TC-CON-C-001
   test('TC-CON-C-001: Navigate to /contracts and verify page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/contracts`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const heading = page.locator('h1, h2, h3, [class*="title"]').filter({ hasText: /contract/i });
     await expect(heading.first()).toBeVisible({ timeout: 10000 });
@@ -437,7 +437,7 @@ test.describe('Sales Module – Contracts', () => {
   test('TC-CON-C-002: Create a contract', async ({ page }) => {
     createdContractName = `TEST_Contract_${ts()}`;
     await page.goto(`${BASE_URL}/contracts`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await openAddDialog(page);
 
@@ -480,7 +480,7 @@ test.describe('Sales Module – Contracts', () => {
   // TC-CON-C-003
   test('TC-CON-C-003: View contract details', async ({ page }) => {
     await page.goto(`${BASE_URL}/contracts`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(async () => {
       await page.locator('a[href*="/contracts/"]').first().click().catch(() => {});
@@ -496,12 +496,12 @@ test.describe('Sales Module – Contracts', () => {
   test('TC-CON-C-004: Contract detail tabs – Overview, Terms, Documents, Signatures', async ({ page }) => {
     if (!contractDetailUrl) {
       await page.goto(`${BASE_URL}/contracts`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(() => {});
       await page.waitForURL(/\/contracts\/\d+/, { timeout: 5000 }).catch(() => {});
     } else {
       await page.goto(contractDetailUrl);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
 
     const tabs = ['Overview', 'Terms', 'Documents', 'Signatures'];
@@ -523,7 +523,7 @@ test.describe('Sales Module – Contracts', () => {
   // TC-CON-C-005
   test('TC-CON-C-005: Edit contract – update terms/value', async ({ page }) => {
     await page.goto(`${BASE_URL}/contracts`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const editBtn = page.locator('button[aria-label*="edit"], button:has-text("Edit")').first();
     const editVisible = await editBtn.isVisible({ timeout: 3000 }).catch(() => false);
@@ -554,12 +554,12 @@ test.describe('Sales Module – Contracts', () => {
   test('TC-CON-C-006: Upload document to contract (if upload button exists)', async ({ page }) => {
     if (!contractDetailUrl) {
       await page.goto(`${BASE_URL}/contracts`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(() => {});
       await page.waitForURL(/\/contracts\/\d+/, { timeout: 5000 }).catch(() => {});
     } else {
       await page.goto(contractDetailUrl);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
 
     const docsTab = page.locator('[role="tab"]:has-text("Documents"), a:has-text("Documents")').first();
@@ -588,12 +588,12 @@ test.describe('Sales Module – Contracts', () => {
   test('TC-CON-C-007: Request signature (if e-signature button exists)', async ({ page }) => {
     if (!contractDetailUrl) {
       await page.goto(`${BASE_URL}/contracts`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await page.locator('.MuiDataGrid-row, tbody tr').first().click().catch(() => {});
       await page.waitForURL(/\/contracts\/\d+/, { timeout: 5000 }).catch(() => {});
     } else {
       await page.goto(contractDetailUrl);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
 
     const sigTab = page.locator('[role="tab"]:has-text("Signature"), a:has-text("Signatures")').first();
@@ -616,7 +616,7 @@ test.describe('Sales Module – Contracts', () => {
   // TC-CON-C-008
   test('TC-CON-C-008: Filter contracts by status and type', async ({ page }) => {
     await page.goto(`${BASE_URL}/contracts`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const statusFilter = page.locator('[aria-label*="status"], button:has-text("Status"), select[name*="status"]').first();
     const filterVisible = await statusFilter.isVisible({ timeout: 3000 }).catch(() => false);
@@ -633,7 +633,7 @@ test.describe('Sales Module – Contracts', () => {
   // TC-CON-C-009
   test('TC-CON-C-009: Search contracts', async ({ page }) => {
     await page.goto(`${BASE_URL}/contracts`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const searchInput = page.locator('input[placeholder*="Search"], input[type="search"], [aria-label*="search"] input').first();
     const searchVisible = await searchInput.isVisible({ timeout: 4000 }).catch(() => false);
@@ -650,7 +650,7 @@ test.describe('Sales Module – Contracts', () => {
   // TC-CON-C-010
   test('TC-CON-C-010: Delete a contract', async ({ page }) => {
     await page.goto(`${BASE_URL}/contracts`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const rows = page.locator('.MuiDataGrid-row, tbody tr');
     const rowCount = await rows.count().catch(() => 0);
@@ -671,7 +671,7 @@ test.describe('Sales Module – Commissions', () => {
   // TC-COMM-001
   test('TC-COMM-001: Navigate to /commissions and verify page loads with tabs', async ({ page }) => {
     await page.goto(`${BASE_URL}/commissions`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const heading = page.locator('h1, h2, h3, [class*="title"]').filter({ hasText: /commission/i });
     await expect(heading.first()).toBeVisible({ timeout: 10000 });
@@ -683,7 +683,7 @@ test.describe('Sales Module – Commissions', () => {
   // TC-COMM-002
   test('TC-COMM-002: Navigate commission sub-tabs (Overview, Plans, Statements, Leaderboard)', async ({ page }) => {
     await page.goto(`${BASE_URL}/commissions`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const subTabs = ['Overview', 'Plans', 'Statements', 'Leaderboard'];
     for (const tabName of subTabs) {
@@ -702,7 +702,7 @@ test.describe('Sales Module – Commissions', () => {
           Leaderboard: '/commissions/leaderboard',
         };
         await page.goto(`${BASE_URL}${tabPaths[tabName]}`).catch(() => {});
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
         console.warn(`TC-COMM-002: Tab "${tabName}" not found inline, navigated directly`);
       }
       await expect(page.locator('main, [class*="content"]').first()).toBeVisible({ timeout: 5000 });
@@ -712,7 +712,7 @@ test.describe('Sales Module – Commissions', () => {
   // TC-COMM-003
   test('TC-COMM-003: View commission plans', async ({ page }) => {
     await page.goto(`${BASE_URL}/commissions/plans`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const plansTab = page.locator('[role="tab"]:has-text("Plans"), a:has-text("Plans")').first();
     const tabVisible = await plansTab.isVisible({ timeout: 3000 }).catch(() => false);
@@ -724,7 +724,7 @@ test.describe('Sales Module – Commissions', () => {
   // TC-COMM-004
   test('TC-COMM-004: Create a commission plan (if button available)', async ({ page }) => {
     await page.goto(`${BASE_URL}/commissions/plans`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const addBtn = page.locator('button:has-text("Add Plan"), button:has-text("Create Plan"), button:has-text("Add"), button:has-text("New"), [aria-label="add"]').first();
     const addVisible = await addBtn.isVisible({ timeout: 4000 }).catch(() => false);
@@ -754,7 +754,7 @@ test.describe('Sales Module – Commissions', () => {
   // TC-COMM-005
   test('TC-COMM-005: View commission statements', async ({ page }) => {
     await page.goto(`${BASE_URL}/commissions/statements`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const stmtTab = page.locator('[role="tab"]:has-text("Statement"), a:has-text("Statement")').first();
     const tabVisible = await stmtTab.isVisible({ timeout: 3000 }).catch(() => false);
@@ -766,7 +766,7 @@ test.describe('Sales Module – Commissions', () => {
   // TC-COMM-006
   test('TC-COMM-006: Navigate to /teams and verify teams page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/teams`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
 
     const heading = page.locator('h1, h2, h3, [class*="title"]').filter({ hasText: /team/i });
     await expect(heading.first()).toBeVisible({ timeout: 10000 });

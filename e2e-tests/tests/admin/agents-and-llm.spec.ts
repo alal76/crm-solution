@@ -39,7 +39,8 @@ let createdAgentName = '';
 test.describe('AI Agent Directory', () => {
   test('TC-AGT-001: Agent Directory page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/agents`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(1000);
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, table, .MuiDataGrid-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     // Check for agent cards or list
@@ -49,8 +50,9 @@ test.describe('AI Agent Directory', () => {
 
   test('TC-AGT-002: View agent details - click first agent card', async ({ page }) => {
     await page.goto(`${BASE_URL}/agents`);
-    await page.waitForLoadState('networkidle');
-    const agentCard = page.locator('.MuiCard-root, [class*="agent"], tr:not(:first-child)').first();
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(1000);
+    const agentCard = page.locator('[class*="agent-card"], [class*="agentCard"], .MuiCard-root, tr:not(:first-child)').first();
     const cardVisible = await agentCard.isVisible().catch(() => false);
     if (!cardVisible) { test.skip(); return; }
     await agentCard.click().catch(() => {});
@@ -72,7 +74,8 @@ test.describe('AI Agent Directory', () => {
       await page.goto(`${BASE_URL}/agents/${firstAgentId}/chat`);
     } else {
       await page.goto(`${BASE_URL}/agents`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
+      await page.waitForTimeout(1000);
       const chatBtn = page.locator('button:has-text("Chat"), a:has-text("Chat"), [aria-label*="chat"]').first();
       if (await chatBtn.isVisible().catch(() => false)) {
         await chatBtn.click().catch(() => {});
@@ -81,7 +84,8 @@ test.describe('AI Agent Directory', () => {
         test.skip(); return;
       }
     }
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(1000);
     const chatInput = page.locator('input[placeholder*="message"], textarea[placeholder*="message"], [contenteditable="true"], input[placeholder*="Ask"], textarea[placeholder*="Ask"]').first();
     const inputVisible = await chatInput.isVisible().catch(() => false);
     if (!inputVisible) { test.skip(); return; }
@@ -104,9 +108,9 @@ test.describe('AI Agent Directory', () => {
 
   test('TC-AGT-004: Conversation history page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/agents/conversations`);
-    await page.waitForLoadState('networkidle');
-    const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root, .MuiCard-root, text=/no conversation|empty/i').first();
-    await expect(content).toBeVisible({ timeout: 10000 });
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(1000);
+    await expect(page.getByText(/conversation history|resume past ai agent conversations/i).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-AGT-005: Search agents', async ({ page }) => {

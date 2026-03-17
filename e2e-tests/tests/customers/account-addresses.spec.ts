@@ -1,14 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { ADMIN_EMAIL, ADMIN_PASSWORD, appUrl } from '../../testConfig';
 
 /**
  * E2E Tests for Account Address Management
  * Covers: Navigation, CRUD operations, validation, API integration
  * TODO-CRM008-004: Add account address E2E tests
  */
-
-const BASE_URL = process.env.BASE_URL || 'http://localhost:5000';
-const ADMIN_EMAIL = 'admin@crm.local';
-const ADMIN_PASSWORD = 'Admin@123';
 
 test.describe('Account Address Management E2E', () => {
   let authToken: string;
@@ -20,7 +17,7 @@ test.describe('Account Address Management E2E', () => {
 
     try {
       // Navigate to login page
-      await page.goto(`${BASE_URL}/login`, { waitUntil: 'networkidle' });
+      await page.goto(appUrl('/login'), { waitUntil: 'domcontentloaded' });
 
       // Fill login form
       await page.locator('input[name="email"]').fill(ADMIN_EMAIL);
@@ -30,7 +27,7 @@ test.describe('Account Address Management E2E', () => {
       await page.locator('button[type="submit"]:has-text("Sign In")').click();
 
       // Wait for navigation to dashboard
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
       await expect(page).toHaveURL(/.*dashboard/);
 
       // Extract auth token from localStorage
@@ -46,12 +43,12 @@ test.describe('Account Address Management E2E', () => {
   test.describe('Navigation & Display', () => {
     test('Should open customer and navigate to addresses panel', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts`, { waitUntil: 'networkidle' });
+      await page.goto(appUrl('/accounts'), { waitUntil: 'domcontentloaded' });
 
       // Act: Click on first account in list
       const firstAccountLink = page.locator('[data-testid="account-list-item"]').first();
       await firstAccountLink.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert: Verify account details page loaded
       await expect(page).toHaveURL(/.*\/accounts\/\d+/);
@@ -67,12 +64,12 @@ test.describe('Account Address Management E2E', () => {
 
     test('Should show multiple addresses in account overview', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts`, { waitUntil: 'networkidle' });
+      await page.goto(appUrl('/accounts'), { waitUntil: 'domcontentloaded' });
 
       // Act: Open account with multiple addresses
       const accountWithAddresses = page.locator('[data-testid="account-list-item"]').first();
       await accountWithAddresses.click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Act: Navigate to addresses tab
       await page.locator('[data-testid="tab-addresses"]').click();
@@ -92,7 +89,7 @@ test.describe('Account Address Management E2E', () => {
   test.describe('Create Address', () => {
     test('Should add new address with all fields', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-testid="tab-addresses"]').click();
 
       // Act: Click add address button
@@ -110,7 +107,7 @@ test.describe('Account Address Management E2E', () => {
 
       // Submit form
       await page.locator('[data-testid="btn-save-address"]').click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert: Verify address added to list
       const newAddress = page.locator('[data-testid="address-card"]:has-text("123 Business Park Drive")');
@@ -123,7 +120,7 @@ test.describe('Account Address Management E2E', () => {
 
     test('Should validate required fields (line1, city)', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-testid="tab-addresses"]').click();
       await page.locator('[data-testid="btn-add-address"]').click();
       await page.waitForLoadState('domcontentloaded');
@@ -144,7 +141,7 @@ test.describe('Account Address Management E2E', () => {
 
     test('Should show error for invalid phone format in profile', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-testid="tab-addresses"]').click();
       await page.locator('[data-testid="btn-add-address"]').click();
 
@@ -165,7 +162,7 @@ test.describe('Account Address Management E2E', () => {
   test.describe('Update Address', () => {
     test('Should edit existing address', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-testid="tab-addresses"]').click();
 
       // Act: Click edit button on first address
@@ -185,7 +182,7 @@ test.describe('Account Address Management E2E', () => {
 
       // Submit changes
       await page.locator('[data-testid="btn-save-address"]').click();
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
 
       // Assert: Verify address updated in list
       const updatedAddress = page.locator('[data-testid="address-card"]:has-text("456 Updated Avenue")');
@@ -200,7 +197,7 @@ test.describe('Account Address Management E2E', () => {
   test.describe('Primary Address', () => {
     test('Should mark address as primary', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-testid="tab-addresses"]').click();
 
       // Act: Find a non-primary address and click "Make Primary"
@@ -211,7 +208,7 @@ test.describe('Account Address Management E2E', () => {
       // Check if button is visible
       if (await makePrimaryButton.isVisible()) {
         await makePrimaryButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Assert: Verify primary indicator updated
         const primaryBadge = secondAddress.locator('[data-testid="badge-primary"]');
@@ -228,7 +225,7 @@ test.describe('Account Address Management E2E', () => {
   test.describe('Delete Address', () => {
     test('Should delete address with confirmation', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-testid="tab-addresses"]').click();
 
       // Get initial address count
@@ -246,7 +243,7 @@ test.describe('Account Address Management E2E', () => {
         const confirmButton = page.locator('[data-testid="btn-confirm-delete"]');
         await expect(confirmButton).toBeVisible();
         await confirmButton.click();
-        await page.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
 
         // Assert: Verify address removed from list
         const addressCardsAfter = page.locator('[data-testid="address-card"]');
@@ -270,7 +267,7 @@ test.describe('Account Address Management E2E', () => {
         response => response.url().includes(`/api/contactinfos/entity/Account/${accountId}`) && response.status() === 200
       );
 
-      await page.goto(`${BASE_URL}/accounts/${accountId}`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/${accountId}`, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-testid="tab-addresses"]').click();
 
       const response = await responsePromise;
@@ -287,10 +284,10 @@ test.describe('Account Address Management E2E', () => {
 
       try {
         // Navigate both pages to same account
-        await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+        await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
         await page.locator('[data-testid="tab-addresses"]').click();
 
-        await page2.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+        await page2.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
         await page2.locator('[data-testid="tab-addresses"]').click();
 
         // Act: Make concurrent updates from both pages
@@ -309,11 +306,11 @@ test.describe('Account Address Management E2E', () => {
         await page2.locator('[data-testid="btn-save-address"]').click();
 
         // Wait for both to complete
-        await page.waitForLoadState('networkidle');
-        await page2.waitForLoadState('networkidle');
+        await page.waitForLoadState('domcontentloaded');
+        await page2.waitForLoadState('domcontentloaded');
 
         // Assert: Verify both addresses exist
-        await page.reload({ waitUntil: 'networkidle' });
+        await page.reload({ waitUntil: 'domcontentloaded' });
         const addressCards = page.locator('[data-testid="address-card"]');
         const count = await addressCards.count();
         expect(count).toBeGreaterThanOrEqual(2);
@@ -329,7 +326,7 @@ test.describe('Account Address Management E2E', () => {
       const invalidAccountId = 999999;
 
       // Act
-      await page.goto(`${BASE_URL}/accounts/${invalidAccountId}`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/${invalidAccountId}`, { waitUntil: 'domcontentloaded' });
 
       // Assert: Verify error message displayed
       const errorMessage = page.locator('[data-testid="error-message"]');
@@ -348,7 +345,7 @@ test.describe('Account Address Management E2E', () => {
 
       // Act: Navigate to accounts page
       await page.goto(`${BASE_URL}/accounts`, { 
-        waitUntil: 'networkidle',
+        waitUntil: 'domcontentloaded',
         timeout: timeout
       }).catch(() => {
         // Expected to potentially timeout in offline scenario
@@ -363,7 +360,7 @@ test.describe('Account Address Management E2E', () => {
   test.describe('Accessibility & Responsiveness', () => {
     test('Should be keyboard navigable for address form', async ({ page }) => {
       // Arrange
-      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'networkidle' });
+      await page.goto(`${BASE_URL}/accounts/1`, { waitUntil: 'domcontentloaded' });
       await page.locator('[data-testid="tab-addresses"]').click();
       await page.locator('[data-testid="btn-add-address"]').click();
 

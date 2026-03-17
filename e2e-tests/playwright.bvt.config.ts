@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { defineConfig } from '@playwright/test';
+import { API_BASE_URL } from './testConfig';
 
 /**
  * BVT-only Playwright config — no browser auth setup needed.
@@ -12,7 +13,7 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   use: {
-    baseURL: process.env.BASE_URL || 'http://192.168.0.9:5000',
+    baseURL: API_BASE_URL,
   },
   timeout: 60000,
   expect: { timeout: 10000 },

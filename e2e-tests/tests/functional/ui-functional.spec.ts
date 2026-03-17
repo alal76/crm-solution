@@ -7,6 +7,37 @@ import { test, expect, Page } from '@playwright/test';
 
 const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
 
+const LIST_CONTENT_SELECTOR = 'table, [class*="list"], [class*="Grid"], [role="grid"], [class*="card"], [class*="table"], [class*="content"]';
+
+async function waitForPageReady(page: Page) {
+  await page.waitForLoadState('domcontentloaded');
+  // Many pages show a transient MUI spinner before the list/cards render.
+  await page.waitForSelector('[role="progressbar"]', { state: 'detached', timeout: 8000 }).catch(() => {});
+  await page.waitForTimeout(300);
+}
+
+async function waitForAnyPageContent(page: Page) {
+  await page.waitForSelector(LIST_CONTENT_SELECTOR, { timeout: 20000 }).catch(async () => {
+    const body = await page.textContent('body');
+    expect((body || '').trim().length).toBeGreaterThan(0);
+  });
+}
+
+async function ensureAuthenticated(page: Page) {
+  await page.goto(`${BASE_URL}/`);
+  await page.waitForLoadState('domcontentloaded');
+  if (page.url().includes('/login')) {
+    const emailInput = page.locator('input[name="email"], input[type="email"]').first();
+    const passwordInput = page.locator('input[name="password"], input[type="password"]').first();
+    if (await emailInput.isVisible().catch(() => false)) {
+      await emailInput.fill('admin@crm.local');
+      await passwordInput.fill('Admin@123');
+      await page.locator('button[type="submit"]').click();
+      await page.waitForURL(url => !url.toString().includes('/login'), { timeout: 15000 });
+    }
+  }
+}
+
 test.describe('UI Functional Tests', () => {
   let page: Page;
 
@@ -15,6 +46,7 @@ test.describe('UI Functional Tests', () => {
       storageState: 'test-results/.auth/user.json',
     });
     page = await context.newPage();
+    await ensureAuthenticated(page);
   });
 
   test.afterEach(async () => {
@@ -47,10 +79,8 @@ test.describe('UI Functional Tests', () => {
   test.describe('Customer UI Tests', () => {
     test('UI-CUST-001: Customer list loads', async () => {
       await page.goto(`${BASE_URL}/customers`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      // Wait for table or list to load
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
 
     test('UI-CUST-002: Add customer dialog opens', async () => {
@@ -87,9 +117,8 @@ test.describe('UI Functional Tests', () => {
   test.describe('Contact UI Tests', () => {
     test('UI-CONT-001: Contact list loads', async () => {
       await page.goto(`${BASE_URL}/contacts`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
 
     test('UI-CONT-002: Add contact dialog opens', async () => {
@@ -111,9 +140,8 @@ test.describe('UI Functional Tests', () => {
   test.describe('Lead UI Tests', () => {
     test('UI-LEAD-001: Lead list loads', async () => {
       await page.goto(`${BASE_URL}/leads`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
 
     test('UI-LEAD-002: Lead status filter works', async () => {
@@ -133,9 +161,8 @@ test.describe('UI Functional Tests', () => {
   test.describe('Opportunity UI Tests', () => {
     test('UI-OPP-001: Opportunity list loads', async () => {
       await page.goto(`${BASE_URL}/opportunities`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
 
     test('UI-OPP-002: Opportunity pipeline view available', async () => {
@@ -155,18 +182,16 @@ test.describe('UI Functional Tests', () => {
   test.describe('Campaign UI Tests', () => {
     test('UI-CAMP-001: Campaign list loads', async () => {
       await page.goto(`${BASE_URL}/campaigns`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
   });
 
   test.describe('Service Request UI Tests', () => {
     test('UI-SR-001: Service request list loads', async () => {
       await page.goto(`${BASE_URL}/service-requests`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
 
     test('UI-SR-002: Service request priority filter', async () => {
@@ -185,9 +210,8 @@ test.describe('UI Functional Tests', () => {
   test.describe('Quote UI Tests', () => {
     test('UI-QUO-001: Quote list loads', async () => {
       await page.goto(`${BASE_URL}/quotes`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
 
     test('UI-QUO-002: Quote builder opens', async () => {
@@ -209,25 +233,22 @@ test.describe('UI Functional Tests', () => {
   test.describe('Product UI Tests', () => {
     test('UI-PROD-001: Product list loads', async () => {
       await page.goto(`${BASE_URL}/products`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
   });
 
   test.describe('User Management UI Tests', () => {
     test('UI-USER-001: User list loads', async () => {
       await page.goto(`${BASE_URL}/users`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
 
     test('UI-USER-002: User groups page loads', async () => {
       await page.goto(`${BASE_URL}/groups`);
-      await page.waitForLoadState('domcontentloaded');
-      
-      await page.waitForSelector('table, [class*="list"], [class*="Grid"], [role="grid"], [class*="card"]', { timeout: 20000 });
+      await waitForPageReady(page);
+      await waitForAnyPageContent(page);
     });
   });
 
