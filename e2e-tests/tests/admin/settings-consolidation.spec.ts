@@ -8,10 +8,11 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
+import { WEB_BASE_URL } from '../../testConfig';
 
 test.describe.configure({ mode: 'serial' });
 
-const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
+const BASE_URL = WEB_BASE_URL;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@crm.local';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Admin@123';
 
@@ -125,7 +126,9 @@ test.describe('UX-CONF-014: Settings Consolidation — Navigation', () => {
 
     const heading = page.locator('h1, h2, h3, h4').filter({ hasText: /security/i }).first();
     const container = page.locator('.MuiCard-root, .MuiPaper-root, form').first();
-    await expect(heading.or(container)).toBeVisible({ timeout: 10000 });
+    const headingVisible = await heading.isVisible({ timeout: 10000 }).catch(() => false);
+    const containerVisible = await container.isVisible({ timeout: 10000 }).catch(() => false);
+    expect(headingVisible || containerVisible).toBeTruthy();
   });
 
   // TC-CONF-008: Communications SMTP form fields are visible

@@ -1,8 +1,9 @@
 import { test, expect, Page } from '@playwright/test';
+import { WEB_BASE_URL } from '../../testConfig';
 
 test.describe.configure({ mode: 'serial' });
 
-const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
+const BASE_URL = WEB_BASE_URL;
 function ts(): string { return Date.now().toString().slice(-6); }
 
 async function waitForSuccess(page: Page) {
@@ -35,7 +36,7 @@ async function saveSettings(page: Page) {
 test.describe('System Configuration', () => {
   test('TC-ADM-001: System Configuration page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/config/system`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const heading = page.locator('h1, h2, h3, h4, h5, h6').filter({ hasText: /system|config|settings/i }).first();
     const formSection = page.locator('form, .MuiCard-root, .MuiPaper-root').first();
     await expect(heading.or(formSection)).toBeVisible({ timeout: 10000 });
@@ -43,7 +44,7 @@ test.describe('System Configuration', () => {
 
   test('TC-ADM-002: System config tabs/sections', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/config/system`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const tabs = page.locator('[role="tab"]');
     const tabCount = await tabs.count();
     if (tabCount > 0) {
@@ -62,7 +63,7 @@ test.describe('System Configuration', () => {
 
   test('TC-ADM-003: Update company name in system config', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/config/system`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const companyField = page.locator(
       'input[name*="company"], input[placeholder*="company"], input[id*="company"], input[label*="company"]'
     ).first();
@@ -86,7 +87,7 @@ test.describe('System Configuration', () => {
 
   test('TC-ADM-004: Email settings fields visible', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/config/system`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Try clicking Email tab
     await clickTab(page, 'Email');
     await page.locator('button:has-text("Email"), a:has-text("Email")').first().click({ timeout: 3000 }).catch(() => {});
@@ -106,14 +107,14 @@ test.describe('System Configuration', () => {
 
   test('TC-ADM-005: CRM Configuration page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/config/crm`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, form').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-006: CRM config sections - click through tabs', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/config/crm`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const tabs = page.locator('[role="tab"]');
     const tabCount = await tabs.count();
     for (let i = 0; i < Math.min(tabCount, 5); i++) {
@@ -125,14 +126,14 @@ test.describe('System Configuration', () => {
 
   test('TC-ADM-007: Feature Management page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/features`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiSwitch-root, [role="switch"]').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-008: Toggle a feature flag', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/features`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const toggle = page.locator('.MuiSwitch-root, input[type="checkbox"][role="switch"], [role="switch"]').first();
     const toggleVisible = await toggle.isVisible().catch(() => false);
     if (!toggleVisible) { test.skip(); return; }
@@ -150,7 +151,7 @@ test.describe('System Configuration', () => {
 
   test('TC-ADM-009: Security Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/security`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, form').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     // Check for password policy or 2FA or session settings text
@@ -160,7 +161,7 @@ test.describe('System Configuration', () => {
 
   test('TC-ADM-010: Branding page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/branding`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, form').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     const brandingContent = page.locator('text=/brand|logo|color|company/i').first();
@@ -178,7 +179,7 @@ test.describe('User and Access Management', () => {
 
   test('TC-ADM-011: User Management page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/users`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
@@ -188,18 +189,32 @@ test.describe('User and Access Management', () => {
     createdUserEmail = `testuser_${suffix}@crm-test.local`;
     createdUserName = `User_${suffix}`;
     await page.goto(`${BASE_URL}/admin/users`);
-    await page.waitForLoadState('networkidle');
-    await openDialog(page);
-    const dialog = page.locator('[role="dialog"]');
-    const dialogVisible = await dialog.isVisible().catch(() => false);
-    if (!dialogVisible) {
-      // Try navigating to create page
+    await page.waitForLoadState('domcontentloaded');
+    const createAction = page.locator('button:has-text("Add"), button:has-text("Add User"), button:has-text("Create"), button:has-text("New")').first();
+    const createActionVisible = await createAction.isVisible().catch(() => false);
+    if (createActionVisible) {
+      await createAction.click();
+      await page.waitForTimeout(500);
+    } else {
       await page.goto(`${BASE_URL}/admin/users/new`);
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('domcontentloaded');
     }
-    await page.locator('input[name*="firstName"], input[placeholder*="First"]').first().fill('TEST').catch(() => {});
-    await page.locator('input[name*="lastName"], input[placeholder*="Last"]').first().fill(createdUserName).catch(() => {});
-    await page.locator('input[name*="email"], input[type="email"]').first().fill(createdUserEmail).catch(() => {});
+
+    const firstNameInput = page.locator('input[name*="firstName"], input[placeholder*="First"]').first();
+    const lastNameInput = page.locator('input[name*="lastName"], input[placeholder*="Last"]').first();
+    const emailInput = page.locator('input[name*="email"], input[type="email"]').first();
+
+    await expect(firstNameInput.or(emailInput)).toBeVisible({ timeout: 10000 });
+
+    if (await firstNameInput.isVisible().catch(() => false)) {
+      await firstNameInput.fill('TEST');
+    }
+    if (await lastNameInput.isVisible().catch(() => false)) {
+      await lastNameInput.fill(createdUserName);
+    }
+    if (await emailInput.isVisible().catch(() => false)) {
+      await emailInput.fill(createdUserEmail);
+    }
     // Role selector
     const roleSelect = page.locator('[aria-label*="role"], [name*="role"], select[name*="role"]').first();
     const roleVisible = await roleSelect.isVisible().catch(() => false);
@@ -207,13 +222,15 @@ test.describe('User and Access Management', () => {
       await roleSelect.click().catch(() => {});
       await page.locator('[role="option"]:has-text("User"), [data-value="User"]').first().click({ timeout: 3000 }).catch(() => {});
     }
-    await submit(page);
+    const submitButton = page.locator('[role="dialog"] button:has-text("Save"), [role="dialog"] button:has-text("Create"), button[type="submit"]:visible').first();
+    await expect(submitButton).toBeVisible({ timeout: 10000 });
+    await submitButton.click();
     await waitForSuccess(page);
   });
 
   test('TC-ADM-013: Edit user - find test user, update role', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/users`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     if (!createdUserEmail) { test.skip(); return; }
     const userRow = page.locator(`tr, .MuiDataGrid-row`).filter({ hasText: createdUserEmail }).first();
     const rowVisible = await userRow.isVisible().catch(() => false);
@@ -234,7 +251,7 @@ test.describe('User and Access Management', () => {
 
   test('TC-ADM-014: Deactivate/activate user', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/users`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     if (!createdUserEmail) { test.skip(); return; }
     const userRow = page.locator(`tr, .MuiDataGrid-row`).filter({ hasText: createdUserEmail }).first();
     const rowVisible = await userRow.isVisible().catch(() => false);
@@ -251,24 +268,42 @@ test.describe('User and Access Management', () => {
 
   test('TC-ADM-015: Group Management page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/groups`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-016: Create a user group', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/groups`);
-    await page.waitForLoadState('networkidle');
-    await openDialog(page);
-    await page.locator('input[name*="name"], input[placeholder*="Name"], input[placeholder*="Group"]').first().fill(`TEST_Group_${ts()}`).catch(() => {});
-    await page.locator('textarea[name*="description"], input[name*="description"]').first().fill('E2E test group').catch(() => {});
-    await submit(page);
+    await page.waitForLoadState('domcontentloaded');
+    const createAction = page.locator('button:has-text("Add"), button:has-text("Create"), button:has-text("New"), button:has-text("Add Group")').first();
+    const createVisible = await createAction.isVisible().catch(() => false);
+    if (createVisible) {
+      await createAction.click();
+      await page.waitForTimeout(500);
+    } else {
+      await page.goto(`${BASE_URL}/admin/groups/new`);
+      await page.waitForLoadState('domcontentloaded');
+    }
+
+    const nameInput = page.locator('input[name*="name"], input[placeholder*="Name"], input[placeholder*="Group"]').first();
+    const descInput = page.locator('textarea[name*="description"], input[name*="description"]').first();
+    await expect(nameInput).toBeVisible({ timeout: 10000 });
+
+    await nameInput.fill(`TEST_Group_${ts()}`);
+    if (await descInput.isVisible().catch(() => false)) {
+      await descInput.fill('E2E test group');
+    }
+
+    const submitButton = page.locator('[role="dialog"] button:has-text("Save"), [role="dialog"] button:has-text("Create"), button[type="submit"]:visible').first();
+    await expect(submitButton).toBeVisible({ timeout: 10000 });
+    await submitButton.click();
     await waitForSuccess(page);
   });
 
   test('TC-ADM-017: Add user to group', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/groups`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const testGroup = page.locator('tr, .MuiDataGrid-row').filter({ hasText: /TEST_Group/ }).first();
     const groupVisible = await testGroup.isVisible().catch(() => false);
     if (!groupVisible) { test.skip(); return; }
@@ -289,14 +324,14 @@ test.describe('User and Access Management', () => {
 
   test('TC-ADM-018: User Approval page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/approvals`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root, .MuiCard-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-019: Main user management page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/users`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     const createBtn = page.locator('button:has-text("Create"), button:has-text("Add"), button:has-text("New")').first();
@@ -305,7 +340,7 @@ test.describe('User and Access Management', () => {
 
   test('TC-ADM-020: Create a department', async ({ page }) => {
     await page.goto(`${BASE_URL}/departments`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     await openDialog(page);
@@ -323,7 +358,7 @@ test.describe('User and Access Management', () => {
 test.describe('Admin Settings Pages', () => {
   test('TC-ADM-021: Business Hours page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/business-hours`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     const dayLabel = page.locator('text=/monday|tuesday|wednesday|thursday|friday/i').first();
@@ -332,14 +367,14 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-022: Master Data Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/master-data`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, table').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-023: Create a master data entry', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/master-data`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const addBtn = page.locator('button:has-text("Add"), button:has-text("Create"), button:has-text("New")').first();
     const addVisible = await addBtn.isVisible().catch(() => false);
     if (!addVisible) { test.skip(); return; }
@@ -352,7 +387,7 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-024: Module Field Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/modules`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, table').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     const moduleList = page.locator('text=/accounts|contacts|leads|opportunities/i').first();
@@ -361,7 +396,7 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-025: Custom fields for Accounts module', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/modules`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Try clicking Accounts if available
     const accountsItem = page.locator('text=/accounts/i, [data-module="accounts"]').first();
     const itemVisible = await accountsItem.isVisible().catch(() => false);
@@ -375,28 +410,28 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-026: Dashboard Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/dashboards`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-027: Navigation Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/navigation`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-028: Duplicate Rules page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/duplicate-rules`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, table, .MuiDataGrid-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-029: Create duplicate rule', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/duplicate-rules`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await openDialog(page);
     const dialog = page.locator('[role="dialog"]');
     const dialogVisible = await dialog.isVisible().catch(() => false);
@@ -432,14 +467,14 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-030: Lead Score Rules page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/lead-score-rules`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, table, .MuiDataGrid-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-031: Create lead score rule', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/lead-score-rules`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     await openDialog(page);
     const dialog = page.locator('[role="dialog"]');
     const dialogVisible = await dialog.isVisible().catch(() => false);
@@ -469,7 +504,7 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-032: Social Login Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/social-login`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     const oauthContent = page.locator('text=/google|microsoft|github|oauth/i').first();
@@ -478,35 +513,35 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-033: Monitoring Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/monitoring`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-034: Worker Operations page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/workers`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, table').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-035: Deployment Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/deployment`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-036: Database Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/database-settings`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-037: Integrations Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/integrations`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     const integrationContent = page.locator('text=/integration|slack|webhook|zapier/i').first();
@@ -515,14 +550,14 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-038: Analytics Settings page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/analytics`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-039: Sales Config page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/settings/sales`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, form').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     const salesContent = page.locator('text=/commission|quota|deal|pipeline|stage/i').first();
@@ -531,7 +566,7 @@ test.describe('Admin Settings Pages', () => {
 
   test('TC-ADM-040: Service Desk Config page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/settings/service-desk`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, form').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
@@ -544,28 +579,28 @@ test.describe('Admin Settings Pages', () => {
 test.describe('API and Security', () => {
   test('TC-ADM-041: Audit Logging page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/audit`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root, .MuiCard-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-042: Session Activity page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/sessions`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root, .MuiCard-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-043: API Users page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/api-users`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, table, .MuiDataGrid-root, .MuiCard-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-044: Create API user/key', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/api-users`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const addBtn = page.locator('button:has-text("Add"), button:has-text("Create"), button:has-text("New"), button:has-text("+ New")').first();
     const addVisible = await addBtn.isVisible().catch(() => false);
     if (!addVisible) { test.skip(); return; }
@@ -584,14 +619,14 @@ test.describe('API and Security', () => {
 
   test('TC-ADM-045: UI Customization page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/ui-customization`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root, form').first();
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
   test('TC-ADM-046: API Documentation page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/api-docs`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     // Could be Swagger or a docs page
     const content = page.locator('h1, h2, h3, .swagger-ui, .MuiCard-root, iframe').first();
     await expect(content).toBeVisible({ timeout: 15000 });
@@ -599,7 +634,7 @@ test.describe('API and Security', () => {
 
   test('TC-ADM-047: Providers page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/providers`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const content = page.locator('h1, h2, h3, h4, .MuiCard-root, .MuiPaper-root').first();
     await expect(content).toBeVisible({ timeout: 10000 });
     // Check provider categories
@@ -612,7 +647,7 @@ test.describe('API and Security', () => {
 
   test('TC-ADM-048: Provider configuration form', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/providers`);
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const configBtn = page.locator('button:has-text("Configure"), button:has-text("Settings"), button:has-text("Edit")').first();
     const btnVisible = await configBtn.isVisible().catch(() => false);
     if (!btnVisible) {

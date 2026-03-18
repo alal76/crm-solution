@@ -4,9 +4,10 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
+import { WEB_BASE_URL } from '../../testConfig';
 import * as fs from 'fs';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost';
+const BASE_URL = WEB_BASE_URL;
 const LOG_FILE = 'test-results/microsoft-ui-activity.log';
 
 // Activity logger

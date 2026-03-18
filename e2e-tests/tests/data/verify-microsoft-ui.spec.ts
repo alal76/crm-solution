@@ -4,8 +4,9 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { WEB_BASE_URL } from '../../testConfig';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost';
+const BASE_URL = WEB_BASE_URL;
 
 test.describe('Verify Microsoft Account UI Display', () => {
   

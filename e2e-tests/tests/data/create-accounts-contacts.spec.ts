@@ -4,8 +4,9 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { WEB_BASE_URL, ADMIN_EMAIL, ADMIN_PASSWORD } from '../../testConfig';
 
-const BASE_URL = process.env.BASE_URL || 'http://localhost';
+const BASE_URL = WEB_BASE_URL;
 const API_URL = process.env.API_URL || (BASE_URL === 'http://localhost' ? 'http://localhost:5000' : BASE_URL);
 
 // Account data with industry variety

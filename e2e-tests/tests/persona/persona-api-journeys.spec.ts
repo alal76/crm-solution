@@ -11,8 +11,9 @@
  */
 
 import { test, expect, APIRequestContext } from '@playwright/test';
+import { WEB_BASE_URL } from '../../testConfig';
 
-const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
+const BASE_URL = WEB_BASE_URL;
 const API_URL = `${BASE_URL.replace(':80', '')}:5000`;
 
 // Shared auth tokens for different personas

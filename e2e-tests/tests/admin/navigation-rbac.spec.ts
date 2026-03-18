@@ -8,8 +8,9 @@
 
 import { test, expect } from '@playwright/test';
 import { TEST_USERS } from '../test-data';
+import { WEB_BASE_URL } from '../../testConfig';
 
-const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
+const BASE_URL = WEB_BASE_URL;
 
 // ---------------------------------------------------------------------------
 // Helpers

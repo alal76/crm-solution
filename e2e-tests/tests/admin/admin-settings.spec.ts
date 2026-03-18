@@ -152,10 +152,24 @@ test.describe('Admin Settings', () => {
       await page.waitForLoadState('domcontentloaded');
       await page.waitForTimeout(1000);
       
-      // Find a setting that can be changed
-      const settingInput = page.locator('input[type="text"]:not([readonly])').first();
-      
-      if (await settingInput.isVisible()) {
+      // Find a visible editable setting field (avoid hidden/autocomplete search controls).
+      const editableInputs = page.locator('input[type="text"]:visible:not([readonly])');
+      const editableCount = await editableInputs.count();
+      let settingInput = editableInputs.first();
+
+      for (let i = 0; i < editableCount; i++) {
+        const candidate = editableInputs.nth(i);
+        const name = (await candidate.getAttribute('name')) || '';
+        const id = (await candidate.getAttribute('id')) || '';
+        const placeholder = (await candidate.getAttribute('placeholder')) || '';
+        const meta = `${name} ${id} ${placeholder}`.toLowerCase();
+        if (!meta.includes('search')) {
+          settingInput = candidate;
+          break;
+        }
+      }
+
+      if (editableCount > 0) {
         const testValue = `TestValue_${randomString(6)}`;
         
         // Save original value
@@ -302,9 +316,10 @@ test.describe('Admin Settings', () => {
         const checkedAfter = await toggle.isChecked();
         expect(checkedAfter).not.toBe(checkedBefore);
       } else {
-        // Page loaded but no toggle visible — still a pass for smoke
-        const settingsContent = page.locator('main, .page-content, [data-testid="settings-content"]');
-        await expect(settingsContent.first()).toBeVisible({ timeout: 5000 });
+        // Fallback: verify the page is reachable and not an error shell.
+        const body = page.locator('body');
+        await expect(body).toBeVisible({ timeout: 5000 });
+        await expect(body).not.toContainText(/error|not found|forbidden|unauthorized/i, { timeout: 5000 });
       }
     });
 

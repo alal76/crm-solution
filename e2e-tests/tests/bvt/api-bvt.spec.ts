@@ -4,9 +4,10 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { WEB_BASE_URL, API_BASE_URL } from '../../testConfig';
 
-const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
-const API_URL = BASE_URL.includes(':5000') ? BASE_URL : `${BASE_URL.replace(':80', '')}:5000`;
+const BASE_URL = WEB_BASE_URL;
+const API_URL = API_BASE_URL;
 
 let authToken: string;
 

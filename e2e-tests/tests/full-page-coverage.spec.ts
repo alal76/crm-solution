@@ -10,10 +10,11 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
+import { WEB_BASE_URL } from '../testConfig';
 
 test.describe.configure({ mode: 'serial' });
 
-const BASE_URL = process.env.BASE_URL || 'http://192.168.0.9';
+const BASE_URL = WEB_BASE_URL;
 
 // ---------------------------------------------------------------------------
 // Shared error tracker (accumulated across the entire serial suite)

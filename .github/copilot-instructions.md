@@ -1401,6 +1401,37 @@ cd CRM.Backend && dotnet test --collect:"XPlat Code Coverage"
 cd e2e-tests && npx playwright test
 ```
 On every first build and deploy after merging code to mail - run the github cicd script and select the option to run all tests. This will help ensure that all tests are passing and that the new code is properly integrated with the existing codebase. Fix issues as needed and repeat until all tests pass successfully. Github CICD should be kept clean on the main branch to ensure stability.
+
+### 10.4 E2E UI Element Availability (MANDATORY)
+
+**UI Button and Control Availability Rule:**
+
+Playwright E2E tests follow a strict rule regarding UI element availability:
+
+- **Missing buttons or controls = Test Failure** (NOT skip)
+- If a button that a test needs (e.g., "Submit", "Save", "Create", "Add") is not visible or not available in the DOM, the test **must fail**.
+- Tests should **never silently skip** when required UI controls are missing.
+- Skipping should only occur when a feature/route is genuinely not implemented in this environment (use `test.skip()` with clear reasoning).
+- **Exception:** Routes or features that are conditionally disabled via feature flags or not deployed may be skipped if the route itself does not load; the test should still fail if the UI loads but required controls are missing.
+
+**Pattern for availability checks:**
+```typescript
+// ❌ WRONG - silently skips when button is unavailable
+const button = page.locator('button:has-text("Submit")');
+if (await button.isVisible().catch(() => false)) {
+  await button.click();
+} else {
+  test.skip(); // WRONG: Hide the missing button
+}
+
+// ✅ CORRECT - fails clearly when button is unavailable
+const button = page.locator('button:has-text("Submit")');
+await expect(button).toBeVisible(); // Fails if not found
+await button.click();
+```
+
+**Rationale:** Missing UI controls indicate either a test defect (wrong selector, timing issue) or a code defect (control not rendering). Both must be surfaced immediately via test failure, not hidden by skip logic.
+
 ---
 
 ## 11. Documentation References
