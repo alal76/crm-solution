@@ -16,10 +16,19 @@ function getAddContactButton(page: any) {
 
 /** Re-authenticate via the login form if the page redirected to /login. */
 async function reAuthIfNeeded(page: any) {
-  // Wait briefly for any client-side redirect to settle
-  await page.waitForTimeout(500);
+  // Wait for URL to settle — may redirect to /login if token is invalid/expired
+  try {
+    await page.waitForURL(
+      (url: URL) => url.toString().includes('/login') || !url.toString().includes('/login'),
+      { timeout: 3000 }
+    );
+  } catch { /* timeout is fine */ }
   if (!page.url().includes('/login')) return;
-  await page.locator('input[type="email"], [placeholder*="company"], input[aria-label*="email" i]').first().fill('admin@crm.local');
+  // Re-login using the email/username field (MUI TextField, type="email")
+  const emailInput = page.locator('input[type="email"]').first();
+  const emailInputAlt = page.locator('input[type="text"]').first();
+  const field = await emailInput.isVisible().catch(() => false) ? emailInput : emailInputAlt;
+  await field.fill('admin@crm.local');
   await page.locator('input[type="password"]').first().fill('Admin@123');
   await page.locator('button[type="submit"]').first().click();
   await page.waitForURL((url: URL) => !url.toString().includes('/login'), { timeout: 20000 }).catch(() => {});
