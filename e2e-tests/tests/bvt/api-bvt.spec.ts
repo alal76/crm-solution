@@ -15,12 +15,24 @@ test.describe('BVT - Build Verification Tests', () => {
   test.describe.configure({ mode: 'serial' });
   
   test.beforeAll(async ({ request }) => {
-    const response = await request.post(`${API_URL}/api/auth/login`, {
-      data: { email: 'admin@crm.local', password: 'Admin@123' }
-    });
-    expect(response.ok()).toBeTruthy();
-    const data = await response.json();
-    authToken = data.accessToken;
+    // Retry up to 4 times with 20-second backoff to handle rate-limiting (5 req/min on /api/auth/login)
+    // after the authentication test suite runs many login attempts before BVT.
+    let lastStatus = 0;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (attempt > 0) {
+        await new Promise(r => setTimeout(r, 20000)); // wait 20s between retries
+      }
+      const response = await request.post(`${API_URL}/api/auth/login`, {
+        data: { email: 'admin@crm.local', password: 'Admin@123' }
+      });
+      lastStatus = response.status();
+      if (response.ok()) {
+        const data = await response.json();
+        authToken = data.accessToken;
+        break;
+      }
+    }
+    expect(authToken, `BVT beforeAll login failed after retries (last HTTP status: ${lastStatus})`).toBeTruthy();
   });
 
   test.describe('BVT-01: Authentication Critical Path', () => {
@@ -102,8 +114,10 @@ test.describe('BVT - Build Verification Tests', () => {
         headers: { 'Authorization': `Bearer ${authToken}` }
       });
       expect(response.ok()).toBeTruthy();
-      const customers = await response.json();
-      expect(Array.isArray(customers)).toBeTruthy();
+      const payload = await response.json();
+      const isArrayPayload = Array.isArray(payload);
+      const isPagedPayload = payload && typeof payload === 'object' && Array.isArray(payload.items);
+      expect(isArrayPayload || isPagedPayload).toBeTruthy();
     });
 
     test('BVT-02-005: Delete customer', async ({ request }) => {

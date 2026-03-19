@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 625,
-  "patch": 0,
-  "lastUpdate": "2026-03-11",
-  "description": "test(coverage): TCOV2 Waves A–E — 47 items implemented. Wave A (9 services): AccountService, ContactsService, OpportunitiesService, TaskService, WorkflowService, QuoteService, AccountContactService, AuditLogService, ConversationService — 91 tests. Wave B (8 billing/revenue services): StripeIntegrationService, CommissionRulesEngine, RevenueAnalyticsService, SalesForecastService, ContractService, CurrencyService, TerritoryAssignmentService, SatisfactionService — 77 tests. Wave C (6 ITSM services): ChangeManagementService, ServiceCatalogService, SLAAnalyticsService, CABWorkflowService, KnowledgeBaseService, AssetLifecycleService — 51 tests. Wave D (15 controllers): AccountsController, ContactsController, OpportunitiesController, UsersController, TasksController, ReportsController, CampaignsController, KnowledgeBaseController, AnalyticsController, TerritoriesController, SalesForecastsController, CommissionsController, OrdersController, AuditLogsController + 1 pre-existing — ~85 tests. Wave E (8 infrastructure services): DomainEventPublisher, WebhookAnalyticsService, TotpService, DeadLetterQueueService, BusinessHoursCalculator, ZipCodeService, CampaignExecutionService, AccountingSyncService — 66 tests. Total: 2,785 passing, 0 failures, 5 pre-existing skips. Bugs caught+fixed: QuoteStatus.Sent→Shared, IRepository.FindAsync signature, TotpService.Base32Encode binary parsing, EF InMemory required-FK inner-join seeding.",
+  "patch": 1,
+  "lastUpdate": "2026-03-19",
+  "description": "fix(frontend,e2e): stabilize Lead Score Rules creation by gating field selection on async field catalog readiness, align Playwright admin scenarios to implemented field labels (Lead Source, Email Domain), and add formal lead score rules specification.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
@@ -12,8 +12,8 @@
       "lastUpdate": "2026-03-09"
     },
     "frontend": {
-      "version": "0.618.1",
-      "lastUpdate": "2026-03-09"
+      "version": "0.618.2",
+      "lastUpdate": "2026-03-19"
     },
     "cdt": {
       "version": "0.614.64",

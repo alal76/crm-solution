@@ -14,8 +14,10 @@ import { TEST_USERS } from '../test-data';
 // ---------------------------------------------------------------------------
 
 async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/login');
+  // If already authenticated (not on login page), skip
+  await page.goto('/reports');
   await page.waitForLoadState('domcontentloaded');
+  if (!page.url().includes('/login')) return;
 
   const emailInput = page.locator('input[name="email"], input[type="email"]').first();
   const passwordInput = page.locator('input[name="password"], input[type="password"]').first();

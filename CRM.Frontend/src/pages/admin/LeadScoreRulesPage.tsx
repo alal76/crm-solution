@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogActions,
   FormControl,
+  FormHelperText,
   InputLabel,
   Select,
   MenuItem,
@@ -159,6 +160,7 @@ const LeadScoreRulesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [rules, setRules] = useState<LeadScoreRule[]>([]);
   const [fields, setFields] = useState<FieldDefinition[]>([]);
+  const [fieldsLoading, setFieldsLoading] = useState(true);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -206,10 +208,13 @@ const LeadScoreRulesPage: React.FC = () => {
 
   const fetchFields = useCallback(async () => {
     try {
+      setFieldsLoading(true);
       const response = await api.get('/admin/leadscoreRules/fields');
       setFields(response.data);
     } catch (err) {
       console.error('Failed to load fields:', err);
+    } finally {
+      setFieldsLoading(false);
     }
   }, []);
 
@@ -227,6 +232,11 @@ const LeadScoreRulesPage: React.FC = () => {
     fetchFields();
     fetchStats();
   }, [fetchRules, fetchFields, fetchStats]);
+
+  const requiresFieldSelection = formData.ruleType !== LeadScoreRuleType.Decay;
+  const canSaveRule =
+    formData.name.trim().length > 0 &&
+    (!requiresFieldSelection || (!fieldsLoading && formData.fieldName.trim().length > 0));
 
   // Handlers
   const handleOpenDialog = (rule?: LeadScoreRule) => {
@@ -280,6 +290,15 @@ const LeadScoreRulesPage: React.FC = () => {
   };
 
   const handleSaveRule = async () => {
+    if (!canSaveRule) {
+      setError(
+        requiresFieldSelection && fieldsLoading
+          ? 'Lead score fields are still loading. Please wait a moment and try again.'
+          : 'Rule Name and Field are required for this rule type.'
+      );
+      return;
+    }
+
     try {
       const payload = {
         name: formData.name,
@@ -525,12 +544,16 @@ const LeadScoreRulesPage: React.FC = () => {
                     <Select
                       value={formData.fieldName}
                       label="Field"
+                      disabled={fieldsLoading || fields.length === 0}
                       onChange={(e) => setFormData({ ...formData, fieldName: e.target.value })}
                     >
+                      {fieldsLoading && <MenuItem disabled>Loading fields...</MenuItem>}
+                      {!fieldsLoading && fields.length === 0 && <MenuItem disabled>No fields available</MenuItem>}
                       {fields.map(f => (
                         <MenuItem key={f.name} value={f.name}>{f.displayName}</MenuItem>
                       ))}
                     </Select>
+                    {fieldsLoading && <FormHelperText>Loading available scoring fields...</FormHelperText>}
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -684,7 +707,7 @@ const LeadScoreRulesPage: React.FC = () => {
           <Button
             variant="contained"
             onClick={handleSaveRule}
-            disabled={!formData.name}
+            disabled={!canSaveRule}
           >
             {editingRule ? 'Update' : 'Create'}
           </Button>

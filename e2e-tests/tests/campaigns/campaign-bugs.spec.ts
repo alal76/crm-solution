@@ -10,6 +10,13 @@ test.describe('Campaign Bug Hunt', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/campaigns');
     await page.waitForLoadState('domcontentloaded');
+    // Re-authenticate if redirected to login (auth state can expire after many tests)
+    if (page.url().includes('/login')) {
+      await page.locator('input[type="email"], input[name="email"]').first().fill('admin@crm.local');
+      await page.locator('input[type="password"], input[name="password"]').first().fill('Admin@123');
+      await page.locator('button[type="submit"]').first().click();
+      await page.waitForURL((url: URL) => !url.toString().includes('/login'), { timeout: 20000 }).catch(() => {});
+    }
     // Wait for page to fully load
     await page.waitForTimeout(1000);
   });

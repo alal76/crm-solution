@@ -12,7 +12,15 @@ test.describe('Admin - Users Management', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/admin/users');
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(1000);  // Allow page to stabilize
+    // Wait for page to finish loading API data (not just DOM)
+    // The page shows a loading spinner initially — wait for it to disappear
+    // or for actual interactive content to appear
+    await page.waitForSelector('[role="progressbar"]', { state: 'hidden', timeout: 15000 }).catch(() => {});
+    await expect.poll(async () => {
+      const hasButton = await page.locator('button:has-text("Add"), button:has-text("Add User"), button:has-text("Create")').first().isVisible().catch(() => false);
+      const hasTable = await page.locator('table, .MuiDataGrid-root, [role="grid"]').first().isVisible().catch(() => false);
+      return hasButton || hasTable;
+    }, { timeout: 20000 }).toBeTruthy();
   });
 
   test('TC-ADMIN-001: Should display users list', async ({ page }) => {

@@ -11,6 +11,13 @@ async function waitForSuccess(page: Page) {
 }
 
 async function openDialog(page: Page) {
+  // Re-auth guard: if on login page, authenticate first
+  if (page.url().includes('/login')) {
+    await page.locator('input[type="email"], input[name="email"]').first().fill('admin@crm.local');
+    await page.locator('input[type="password"], input[name="password"]').first().fill('Admin@123');
+    await page.locator('button[type="submit"]').first().click();
+    await page.waitForURL((url: URL) => !url.toString().includes('/login'), { timeout: 20000 }).catch(() => {});
+  }
   await page.locator('button:has-text("Add"), button:has-text("Create"), button:has-text("New"), button:has-text("+ New")').first().click({ timeout: 10000 });
   await page.locator('[role="dialog"]').waitFor({ timeout: 5000 }).catch(() => {});
 }
@@ -432,31 +439,42 @@ test.describe('Duplicate Detection Rules', () => {
   test('TC-DUP-002: Create duplicate detection rule for Account email', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/duplicate-rules`);
     await page.waitForLoadState('domcontentloaded');
+    const accountRulesTab = page.getByRole('tab', { name: /account rules/i }).first();
+    if (await accountRulesTab.isVisible().catch(() => false)) {
+      await accountRulesTab.click();
+    }
     await openDialog(page);
     const dialog = page.locator('[role="dialog"]');
-    const dialogVisible = await dialog.isVisible().catch(() => false);
-    if (!dialogVisible) { test.skip(); return; }
-    // Name
-    await dialog.locator('input[name*="name"], input[placeholder*="Name"]').first().fill(`TEST_DUP_EMAIL_${ts()}`).catch(() => {});
-    // Entity
-    const entitySelect = dialog.locator('[name*="entity"], [aria-label*="entity"]').first();
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+
+    const nameInput = dialog.getByRole('textbox', { name: /rule name/i }).first();
+    await expect(nameInput).toBeVisible({ timeout: 10000 });
+    await nameInput.fill(`TEST_DUP_EMAIL_${ts()}`);
+
+    const entitySelect = dialog.locator('[role="combobox"]').first();
     if (await entitySelect.isVisible().catch(() => false)) {
-      await entitySelect.click().catch(() => {});
-      await page.locator('[role="option"]:has-text("Account"), [data-value="Account"]').first().click({ timeout: 3000 }).catch(() => {});
+      await entitySelect.click();
+      const entityOption = page.locator('[role="option"]:has-text("Account"), [data-value="Account"], li:has-text("Account")').first();
+      await expect(entityOption).toBeVisible({ timeout: 5000 });
+      await entityOption.click();
     }
-    // Field
-    const fieldSelect = dialog.locator('[name*="field"], [aria-label*="field"]').first();
+
+    const addFieldButton = dialog.getByRole('button', { name: /add field/i }).first();
+    await expect(addFieldButton).toBeVisible({ timeout: 5000 });
+    await addFieldButton.click();
+
+    const fieldSelect = dialog.locator('[role="combobox"]').nth(1);
     if (await fieldSelect.isVisible().catch(() => false)) {
-      await fieldSelect.click().catch(() => {});
-      await page.locator('[role="option"]:has-text("Email")').first().click({ timeout: 3000 }).catch(() => {});
+      await fieldSelect.click();
+      const fieldOption = page.locator('[role="option"]:has-text("Email"), li:has-text("Email")').first();
+      await expect(fieldOption).toBeVisible({ timeout: 5000 });
+      await fieldOption.click();
     }
-    // MatchType
-    const matchSelect = dialog.locator('[name*="match"], [aria-label*="match"]').first();
-    if (await matchSelect.isVisible().catch(() => false)) {
-      await matchSelect.click().catch(() => {});
-      await page.locator('[role="option"]:has-text("Exact")').first().click({ timeout: 3000 }).catch(() => {});
-    }
-    await submit(page);
+
+    const submitButton = dialog.getByRole('button', { name: /create rule|create|save/i }).first();
+    await expect(submitButton).toBeVisible({ timeout: 10000 });
+    await expect(submitButton).toBeEnabled({ timeout: 10000 });
+    await submitButton.click();
     await waitForSuccess(page);
   });
 
@@ -523,22 +541,42 @@ test.describe('Duplicate Detection Rules', () => {
   test('TC-DUP-007: Create rule for Contact email duplicates', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/duplicate-rules`);
     await page.waitForLoadState('domcontentloaded');
+    const contactRulesTab = page.getByRole('tab', { name: /contact rules/i }).first();
+    if (await contactRulesTab.isVisible().catch(() => false)) {
+      await contactRulesTab.click();
+    }
     await openDialog(page);
     const dialog = page.locator('[role="dialog"]');
-    const dialogVisible = await dialog.isVisible().catch(() => false);
-    if (!dialogVisible) { test.skip(); return; }
-    await dialog.locator('input[name*="name"], input[placeholder*="Name"]').first().fill(`TEST_DUP_CONTACT_${ts()}`).catch(() => {});
-    const entitySelect = dialog.locator('[name*="entity"], [aria-label*="entity"]').first();
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+
+    const nameInput = dialog.getByRole('textbox', { name: /rule name/i }).first();
+    await expect(nameInput).toBeVisible({ timeout: 10000 });
+    await nameInput.fill(`TEST_DUP_CONTACT_${ts()}`);
+
+    const entitySelect = dialog.locator('[role="combobox"]').first();
     if (await entitySelect.isVisible().catch(() => false)) {
-      await entitySelect.click().catch(() => {});
-      await page.locator('[role="option"]:has-text("Contact"), [data-value="Contact"]').first().click({ timeout: 3000 }).catch(() => {});
+      await entitySelect.click();
+      const entityOption = page.locator('[role="option"]:has-text("Contact"), [data-value="Contact"], li:has-text("Contact")').first();
+      await expect(entityOption).toBeVisible({ timeout: 5000 });
+      await entityOption.click();
     }
-    const fieldSelect = dialog.locator('[name*="field"], [aria-label*="field"]').first();
+
+    const addFieldButton = dialog.getByRole('button', { name: /add field/i }).first();
+    await expect(addFieldButton).toBeVisible({ timeout: 5000 });
+    await addFieldButton.click();
+
+    const fieldSelect = dialog.locator('[role="combobox"]').nth(1);
     if (await fieldSelect.isVisible().catch(() => false)) {
-      await fieldSelect.click().catch(() => {});
-      await page.locator('[role="option"]:has-text("Email")').first().click({ timeout: 3000 }).catch(() => {});
+      await fieldSelect.click();
+      const fieldOption = page.locator('[role="option"]:has-text("Email"), li:has-text("Email")').first();
+      await expect(fieldOption).toBeVisible({ timeout: 5000 });
+      await fieldOption.click();
     }
-    await submit(page);
+
+    const submitButton = dialog.getByRole('button', { name: /create rule|create|save/i }).first();
+    await expect(submitButton).toBeVisible({ timeout: 10000 });
+    await expect(submitButton).toBeEnabled({ timeout: 10000 });
+    await submitButton.click();
     await waitForSuccess(page);
   });
 
@@ -580,46 +618,81 @@ test.describe('Lead Score Rules', () => {
     await expect(content).toBeVisible({ timeout: 10000 });
   });
 
-  test('TC-LSR-002: Create lead score rule - Source=Web, Score=10', async ({ page }) => {
+  test('TC-LSR-002: Create lead score rule - Lead Source=Web, Score=10', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/lead-score-rules`);
     await page.waitForLoadState('domcontentloaded');
     await openDialog(page);
     const dialog = page.locator('[role="dialog"]');
-    const dialogVisible = await dialog.isVisible().catch(() => false);
-    if (!dialogVisible) { test.skip(); return; }
-    await dialog.locator('input[name*="name"], input[placeholder*="Name"]').first().fill(`TEST_SCORE_${ts()}`).catch(() => {});
-    const fieldSelect = dialog.locator('[name*="field"], [aria-label*="field"]').first();
-    if (await fieldSelect.isVisible().catch(() => false)) {
-      await fieldSelect.click().catch(() => {});
-      await page.locator('[role="option"]:has-text("Source")').first().click({ timeout: 3000 }).catch(() => {});
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+
+    const nameInput = dialog.getByRole('textbox', { name: /rule name/i }).first();
+    await expect(nameInput).toBeVisible({ timeout: 10000 });
+    await nameInput.fill(`TEST_SCORE_${ts()}`);
+
+    const fieldCombobox = dialog.locator('[role="combobox"]').nth(1);
+    await expect(fieldCombobox).toBeVisible({ timeout: 10000 });
+    await expect(fieldCombobox).toBeEnabled({ timeout: 10000 });
+    await fieldCombobox.click();
+
+    const sourceOption = page.getByRole('option', { name: /lead source/i }).first();
+    await expect(sourceOption).toBeVisible({ timeout: 10000 });
+    await sourceOption.click();
+
+    const valueInput = dialog.getByRole('textbox', { name: /^value$/i }).first();
+    await expect(valueInput).toBeVisible({ timeout: 10000 });
+    await valueInput.fill('Web');
+
+    const scoreInput = dialog.getByRole('spinbutton', { name: /score impact/i }).first();
+    if (await scoreInput.isVisible().catch(() => false)) {
+      await scoreInput.fill('10');
     }
-    await dialog.locator('input[name*="value"], input[placeholder*="Value"]').first().fill('Web').catch(() => {});
-    await dialog.locator('input[name*="score"], input[type="number"]').first().fill('10').catch(() => {});
+
     const activeToggle = dialog.locator('.MuiSwitch-root').first();
     if (await activeToggle.isVisible().catch(() => false)) {
       const checked = await activeToggle.isChecked().catch(() => false);
-      if (!checked) await activeToggle.click().catch(() => {});
+      if (!checked) await activeToggle.click();
     }
-    await submit(page);
+
+    const createButton = dialog.getByRole('button', { name: /create|save/i }).first();
+    await expect(createButton).toBeVisible({ timeout: 10000 });
+    await expect(createButton).toBeEnabled({ timeout: 10000 });
+    await createButton.click();
     await waitForSuccess(page);
   });
 
-  test('TC-LSR-003: Create another rule - Email verified, Score=20', async ({ page }) => {
+  test('TC-LSR-003: Create another rule - Email Domain=example.com, Score=20', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/lead-score-rules`);
     await page.waitForLoadState('domcontentloaded');
     await openDialog(page);
     const dialog = page.locator('[role="dialog"]');
-    const dialogVisible = await dialog.isVisible().catch(() => false);
-    if (!dialogVisible) { test.skip(); return; }
-    await dialog.locator('input[name*="name"], input[placeholder*="Name"]').first().fill(`TEST_SCORE_EMAIL_${ts()}`).catch(() => {});
-    const fieldSelect = dialog.locator('[name*="field"], [aria-label*="field"]').first();
-    if (await fieldSelect.isVisible().catch(() => false)) {
-      await fieldSelect.click().catch(() => {});
-      await page.locator('[role="option"]:has-text("Email")').first().click({ timeout: 3000 }).catch(() => {});
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+
+    const nameInput = dialog.getByRole('textbox', { name: /rule name/i }).first();
+    await expect(nameInput).toBeVisible({ timeout: 10000 });
+    await nameInput.fill(`TEST_SCORE_EMAIL_${ts()}`);
+
+    const fieldCombobox = dialog.locator('[role="combobox"]').nth(1);
+    await expect(fieldCombobox).toBeVisible({ timeout: 10000 });
+    await expect(fieldCombobox).toBeEnabled({ timeout: 10000 });
+    await fieldCombobox.click();
+
+    const emailOption = page.getByRole('option', { name: /email domain/i }).first();
+    await expect(emailOption).toBeVisible({ timeout: 10000 });
+    await emailOption.click();
+
+    const valueInput = dialog.getByRole('textbox', { name: /^value$/i }).first();
+    await expect(valueInput).toBeVisible({ timeout: 10000 });
+    await valueInput.fill('example.com');
+
+    const scoreInput = dialog.getByRole('spinbutton', { name: /score impact/i }).first();
+    if (await scoreInput.isVisible().catch(() => false)) {
+      await scoreInput.fill('20');
     }
-    await dialog.locator('input[name*="value"], input[placeholder*="Value"]').first().fill('verified').catch(() => {});
-    await dialog.locator('input[name*="score"], input[type="number"]').first().fill('20').catch(() => {});
-    await submit(page);
+
+    const createButton = dialog.getByRole('button', { name: /create|save/i }).first();
+    await expect(createButton).toBeVisible({ timeout: 10000 });
+    await expect(createButton).toBeEnabled({ timeout: 10000 });
+    await createButton.click();
     await waitForSuccess(page);
   });
 
@@ -736,9 +809,16 @@ test.describe('Approvals', () => {
     if (await pendingTab.isVisible().catch(() => false)) {
       await pendingTab.click().catch(() => {});
       await page.waitForTimeout(500);
+      const selected = await pendingTab.getAttribute('aria-selected').catch(() => null);
+      if (selected !== null) {
+        expect(selected).toBe('true');
+      }
     }
-    const content = page.locator('table, .MuiDataGrid-root, .MuiCard-root, text=/no pending|empty/i').first();
-    await expect(content).toBeVisible({ timeout: 8000 });
+
+    const table = page.locator('table').first();
+    await expect(table).toBeVisible({ timeout: 8000 });
+    const pendingRegion = page.locator('tbody, .MuiTableBody-root, .MuiTablePagination-root').first();
+    await expect(pendingRegion).toBeVisible({ timeout: 8000 });
   });
 
   test('TC-APR-003: Approve an item', async ({ page }) => {
@@ -943,13 +1023,25 @@ test.describe('Business Rules and Configuration', () => {
   test('TC-BRC-004: Create service request category/definition', async ({ page }) => {
     await page.goto(`${BASE_URL}/admin/service-requests`);
     await page.waitForLoadState('domcontentloaded');
-    await openDialog(page);
+
+    const addCategoryButton = page.getByRole('button', { name: /add category/i }).first();
+    await expect(addCategoryButton).toBeVisible({ timeout: 10000 });
+    await addCategoryButton.click();
+
     const dialog = page.locator('[role="dialog"]');
-    const dialogVisible = await dialog.isVisible().catch(() => false);
-    if (!dialogVisible) { test.skip(); return; }
-    await dialog.locator('input[name*="name"], input[placeholder*="Name"]').first().fill(`TEST_SRDef_${ts()}`).catch(() => {});
-    await dialog.locator('textarea[name*="description"], input[name*="description"]').first().fill('E2E test SR definition').catch(() => {});
-    await submit(page);
+    await expect(dialog).toBeVisible({ timeout: 10000 });
+
+    const nameInput = dialog.getByRole('textbox', { name: /^name$/i }).first();
+    await expect(nameInput).toBeVisible({ timeout: 10000 });
+    await nameInput.fill(`TEST_SRDef_${ts()}`);
+
+    const descriptionInput = dialog.getByRole('textbox', { name: /description/i }).first();
+    await expect(descriptionInput).toBeVisible({ timeout: 10000 });
+    await descriptionInput.fill('E2E test SR definition');
+
+    const createButton = dialog.getByRole('button', { name: /create|save/i }).first();
+    await expect(createButton).toBeVisible({ timeout: 10000 });
+    await createButton.click();
     await waitForSuccess(page);
   });
 

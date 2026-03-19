@@ -14,29 +14,55 @@ function getAddContactButton(page: any) {
   ).first();
 }
 
+/** Re-authenticate via the login form if the page redirected to /login. */
+async function reAuthIfNeeded(page: any) {
+  // Wait briefly for any client-side redirect to settle
+  await page.waitForTimeout(500);
+  if (!page.url().includes('/login')) return;
+  await page.locator('input[type="email"], [placeholder*="company"], input[aria-label*="email" i]').first().fill('admin@crm.local');
+  await page.locator('input[type="password"]').first().fill('Admin@123');
+  await page.locator('button[type="submit"]').first().click();
+  await page.waitForURL((url: URL) => !url.toString().includes('/login'), { timeout: 20000 }).catch(() => {});
+}
+
 test.describe('Contacts - List View', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/contacts', { timeout: 30000 });
     await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
+    await reAuthIfNeeded(page);
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.waitForTimeout(500);
+
+    // Wait until at least one stable contacts-page landmark is present.
+    await expect
+      .poll(async () => {
+        const hasHeader = await page.getByRole('heading', { name: /contacts/i }).first().isVisible().catch(() => false);
+        const hasAddButton = await getAddContactButton(page).isVisible().catch(() => false);
+        const hasGrid = await page.locator('.MuiTable-root, .MuiDataGrid-root, table, [role="grid"]').first().isVisible().catch(() => false);
+        const hasEmptyState = await page.getByText(/no contacts|add contact/i).first().isVisible().catch(() => false);
+        return hasHeader || hasAddButton || hasGrid || hasEmptyState;
+      }, { timeout: 15000 })
+      .toBeTruthy();
   });
 
   test('TC-CONT-001: Should display contacts list page', async ({ page }) => {
-    // More flexible title detection - look for contacts or table
-    const hasTitle = await page.locator('h1, h2, .page-title').filter({ hasText: /contact/i }).isVisible().catch(() => false);
+    const hasHeader = await page.getByRole('heading', { name: /contacts/i }).first().isVisible().catch(() => false);
     const hasGrid = await page.locator('.MuiTable-root, .MuiDataGrid-root, table, [role="grid"]').first().isVisible().catch(() => false);
-    const hasBodyContent = await page.locator('body').textContent().then(text => /contact/i.test(text || '')).catch(() => false);
-    expect(hasTitle || hasGrid || hasBodyContent).toBeTruthy();
+    const hasEmptyState = await page.getByText(/no contacts|add contact/i).first().isVisible().catch(() => false);
+    expect(hasHeader || hasGrid || hasEmptyState).toBeTruthy();
+
     const grid = new DataGridHelper(page);
     await grid.waitForLoad();
   });
 
   test('TC-CONT-002: Should have Add Contact button', async ({ page }) => {
     const addButton = getAddContactButton(page);
-    const visible = await addButton.isVisible().catch(() => false);
-    const bodyHasCreateText = await page.locator('body').textContent().then(text => /add contact|new contact|contact/i.test(text || '')).catch(() => false);
-    expect(visible || bodyHasCreateText).toBeTruthy();
+    await expect
+      .poll(async () => {
+        const visible = await addButton.isVisible().catch(() => false);
+        const hasEmptyStateAction = await page.getByText(/add contact/i).first().isVisible().catch(() => false);
+        return visible || hasEmptyStateAction;
+      }, { timeout: 15000 })
+      .toBeTruthy();
   });
 
   test('TC-CONT-003: Should search contacts', async ({ page }) => {
@@ -64,6 +90,7 @@ test.describe('Contacts - Create', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/contacts', { timeout: 30000 });
     await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
+    await reAuthIfNeeded(page);
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(500);
   });
