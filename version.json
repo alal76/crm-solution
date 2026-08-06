@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 625,
-  "patch": 7,
+  "patch": 8,
   "lastUpdate": "2026-08-06",
-  "description": "chore(payments): mark PaymentTokenizationService [Obsolete] -- dead, PCI-risky, superseded by Stripe (REV-STUB-010)",
+  "description": "fix(crm): MergeService self-merge guard + missing SaveChangesAsync data-integrity bug (REV-DOC-005 partial)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

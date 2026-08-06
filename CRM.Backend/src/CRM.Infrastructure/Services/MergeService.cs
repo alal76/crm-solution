@@ -108,6 +108,7 @@ public class MergeService : IMergeService
                 result.RelatedRecordsRelinked += relinkCount;
             }
 
+            await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             result.Success = true;
 
@@ -400,6 +401,12 @@ public class MergeService : IMergeService
         if (!masterExists)
         {
             return (false, $"Master record {request.MasterRecordId} not found");
+        }
+
+        // Validate the master record is not also listed as a record to merge (self-merge guard)
+        if (request.RecordsToMerge.Contains(request.MasterRecordId))
+        {
+            return (false, $"Master record {request.MasterRecordId} cannot also appear in the list of records to merge");
         }
 
         // Validate records to merge
