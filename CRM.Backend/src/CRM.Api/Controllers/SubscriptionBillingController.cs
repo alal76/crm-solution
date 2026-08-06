@@ -32,6 +32,7 @@ public class SubscriptionBillingController : CrmControllerBase
     private readonly ISubscriptionService _subscriptionService;
     private readonly IInvoiceService _invoiceService;
     private readonly IPaymentService _paymentService;
+    private readonly IDunningManager _dunningManager;
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<SubscriptionBillingController> _logger;
 
@@ -39,12 +40,14 @@ public class SubscriptionBillingController : CrmControllerBase
         ISubscriptionService subscriptionService,
         IInvoiceService invoiceService,
         IPaymentService paymentService,
+        IDunningManager dunningManager,
         ICrmDbContext dbContext,
         ILogger<SubscriptionBillingController> logger)
     {
         _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
         _invoiceService = invoiceService ?? throw new ArgumentNullException(nameof(invoiceService));
         _paymentService = paymentService ?? throw new ArgumentNullException(nameof(paymentService));
+        _dunningManager = dunningManager ?? throw new ArgumentNullException(nameof(dunningManager));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
@@ -383,7 +386,9 @@ public class SubscriptionBillingController : CrmControllerBase
     /// <summary>
     /// Retry a failed payment in dunning.
     /// POST /api/subscriptions/{subscriptionId}/billing/retry-dunning
-    /// TODO: Implement full retry logic via IDunningManager once that service is enabled.
+    /// Delegates to IDunningManager.RetryFailedPaymentAsync, which owns the grace-period
+    /// check, escalation-level logic (Soft/Escalated/Final/Exhausted), and subscription
+    /// pause/cancel side effects.
     /// </summary>
     [HttpPost("retry-dunning")]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
@@ -419,24 +424,31 @@ public class SubscriptionBillingController : CrmControllerBase
                 return NotFound($"No active dunning record found for subscription {subscriptionId}");
             }
 
-            // TODO: Wire to IDunningManager.RetryAsync(dunning.Id, cancellationToken) once enabled // NOSONAR
-            // For now, mark the next retry date as now to trigger the background processor
-            dunning.NextRetryDate = DateTime.UtcNow;
-            dunning.RetryAttempt++;
-            dunning.UpdatedAt = DateTime.UtcNow;
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            // Resolve the failed payment backing this dunning record.
+            var payment = await _dbContext.Payments
+                .Where(p => p.InvoiceId == dunning.InvoiceId && p.Status == PaymentStatus.Failed && !p.IsDeleted)
+                .OrderByDescending(p => p.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (payment == null)
+            {
+                return NotFound($"No failed payment found for dunning record {dunning.Id} on subscription {subscriptionId}");
+            }
+
+            // Delegate the actual retry/escalation workflow to IDunningManager.
+            var retryResult = await _dunningManager.RetryFailedPaymentAsync(payment.Id, cancellationToken);
 
             _logger.LogInformation(
-                "Dunning retry queued for subscription {SubscriptionId}, attempt {Attempt}",
-                subscriptionId, dunning.RetryAttempt);
+                "Dunning retry processed via IDunningManager for subscription {SubscriptionId}, payment {PaymentId}, attempt {Attempt}, status {Status}",
+                subscriptionId, payment.Id, retryResult.AttemptNumber, retryResult.Status);
 
             return Accepted(new RetryDunningResponse
             {
                 DunningRecordId = dunning.Id,
                 SubscriptionId = subscriptionId,
-                RetryAttempt = dunning.RetryAttempt,
-                NextRetryDate = dunning.NextRetryDate,
-                Status = "Queued"
+                RetryAttempt = retryResult.AttemptNumber,
+                NextRetryDate = retryResult.NextRetryDate,
+                Status = retryResult.Status
             });
         }
         catch (Exception ex)
@@ -711,7 +723,7 @@ public class SubscriptionBillingController : CrmControllerBase
         public int DunningRecordId { get; set; }
         public int SubscriptionId { get; set; }
         public int RetryAttempt { get; set; }
-        public DateTime NextRetryDate { get; set; }
+        public DateTime? NextRetryDate { get; set; }
         public string Status { get; set; } = string.Empty;
     }
 

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 625,
-  "patch": 5,
+  "patch": 6,
   "lastUpdate": "2026-08-06",
-  "description": "feat(integrations): wire TwilioCallLoggingService to real Twilio Call resource API (REV-STUB-001)",
+  "description": "fix(billing): wire SubscriptionBillingController dunning retry to real IDunningManager (REV-STUB-012/013 partial)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
