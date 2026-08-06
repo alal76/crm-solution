@@ -310,6 +310,7 @@ public interface ICrmDbContext
     DbSet<UICustomization> UICustomizations { get; }
     DbSet<DashboardCustomization> DashboardCustomizations { get; }
     DbSet<PerformanceMetric> PerformanceMetrics { get; }
+    DbSet<FeatureFlag> FeatureFlags { get; }
     DbSet<FeatureFlagAuditLog> FeatureFlagAuditLogs { get; }
 
     // Integration & Webhooks

@@ -24,21 +24,24 @@ namespace CRM.Tests.Services;
 /// Feature Flags panel save action must actually persist toggles (not just log
 /// an audit entry) so that a subsequent read reflects the change.
 /// </summary>
-public class FeatureFlagManagementServiceTests
+public class FeatureFlagManagementServicePersistenceTests
 {
     private readonly Mock<ICrmDbContext> _mockDbContext;
     private readonly Mock<IFeatureManager> _mockFeatureManager;
-    private readonly Mock<IConfiguration> _mockConfiguration;
+    private readonly IConfiguration _configuration;
     private readonly Mock<ILogger<FeatureFlagManagementService>> _mockLogger;
     private readonly List<FeatureFlag> _featureFlags;
     private readonly List<FeatureFlagAuditLog> _auditLogs;
     private readonly FeatureFlagManagementService _service;
 
-    public FeatureFlagManagementServiceTests()
+    public FeatureFlagManagementServicePersistenceTests()
     {
         _mockDbContext = new Mock<ICrmDbContext>();
         _mockFeatureManager = new Mock<IFeatureManager>();
-        _mockConfiguration = new Mock<IConfiguration>();
+        // A bare Mock<IConfiguration> NREs inside ConfigurationBinder.GetValue (it calls
+        // .GetSection() internally, which an unconfigured mock returns null for) -- use a
+        // real, empty configuration instance instead, matching this repo's established pattern.
+        _configuration = new ConfigurationBuilder().AddInMemoryCollection().Build();
         _mockLogger = new Mock<ILogger<FeatureFlagManagementService>>();
 
         _featureFlags = new List<FeatureFlag>();
@@ -59,7 +62,7 @@ public class FeatureFlagManagementServiceTests
         _service = new FeatureFlagManagementService(
             _mockDbContext.Object,
             _mockFeatureManager.Object,
-            _mockConfiguration.Object,
+            _configuration,
             _mockLogger.Object);
     }
 

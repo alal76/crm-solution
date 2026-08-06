@@ -30,7 +30,15 @@ public class FeatureFlagManagementServiceTests : ServiceTestFixtureBase<FeatureF
     {
         _mockDbContext = new Mock<ICrmDbContext>();
         _mockFeatureManager = new Mock<IFeatureManager>();
-        _mockConfiguration = new Mock<IConfiguration>();        // Setup mock configuration to return proper values for GetValue extension methods
+        _mockConfiguration = new Mock<IConfiguration>();
+
+        // GetAllFlagsAsync/UpdateFlagAsync check for a persisted override (REV-FE-005) before
+        // falling back to IFeatureManager -- an empty set means no override, matching the
+        // previous appsettings-only behavior this test class already expects.
+        var emptyFeatureFlagSet = MockDbSetFactory.CreateMockDbSet(new List<FeatureFlag>());
+        _mockDbContext.Setup(c => c.FeatureFlags).Returns(emptyFeatureFlagSet.Object);
+
+        // Setup mock configuration to return proper values for GetValue extension methods
         // Return null for rollout percentages/targeting so defaults are used
         // Return "BuiltIn" only for provider type sections (Providers:{category}:Type)
         _mockConfiguration.Setup(c => c.GetSection(It.Is<string>(k => k.StartsWith("Providers:") && k.EndsWith(":Type"))))

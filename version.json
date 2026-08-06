@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 626,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-08-06",
-  "description": "docs: sync MASTER_TODO_LIST.md with tech-debt-cleanup-aug2026 results -- 9 Section 2A items fixed, Section 2B (19 new findings + remediation plan) added",
+  "description": "fix(admin): FeatureFlagManagementService actually persists flag toggles + FeatureFlagsPanel wired to real API (REV-FE-005)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

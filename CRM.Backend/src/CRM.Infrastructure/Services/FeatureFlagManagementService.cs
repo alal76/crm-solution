@@ -56,12 +56,13 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
 
         foreach (var flag in moduleFlags)
         {
+            var persistedOverride = _dbContext.FeatureFlags.FirstOrDefault(f => f.Key == flag.Name);
             flags.Add(new FeatureFlagDto
             {
                 Name = flag.Name,
                 DisplayName = flag.Display,
                 Description = $"Enable/disable {flag.Display}",
-                Enabled = await _featureManager.IsEnabledAsync(flag.Name),
+                Enabled = persistedOverride != null ? persistedOverride.IsEnabled : await _featureManager.IsEnabledAsync(flag.Name),
                 Category = flag.Category,
                 RequiresRestart = true,
                 RolloutPercentage = 100
@@ -145,6 +146,23 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
         try
         {
             var oldValue = (await _featureManager.IsEnabledAsync(flagName)).ToString();
+
+            // Persist the override so GetAllFlagsAsync/GetFlagAsync reflect it immediately,
+            // instead of relying solely on the (restart-required) appsettings-backed IFeatureManager.
+            var existing = _dbContext.FeatureFlags.FirstOrDefault(f => f.Key == flagName);
+            if (existing != null)
+            {
+                existing.IsEnabled = dto.Enabled;
+            }
+            else
+            {
+                _dbContext.FeatureFlags.Add(new FeatureFlag
+                {
+                    Key = flagName,
+                    DisplayName = dto.Name ?? flagName,
+                    IsEnabled = dto.Enabled
+                });
+            }
 
             // Log to audit trail
             var auditLog = new FeatureFlagAuditLog
