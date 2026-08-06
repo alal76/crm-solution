@@ -1058,7 +1058,8 @@ ${cdtResults.map(b => `<div class="batch">
                   <Box sx={{ bgcolor: 'action.hover', borderRadius: 1, p: 1.5, mb: 1 }}>
                     <Typography variant="caption" sx={{ fontFamily: 'monospace', display: 'block', mb: 0.5 }}>
                       <LinkIcon sx={{ fontSize: 12, mr: 0.5, verticalAlign: 'middle' }} />
-                      {`http://${baseUrl}:${resource.port}${resource.path || ''}`} // NOSONAR - S5332 - http:// URL built from runtime baseUrl variable for local monitoring access
+                      {/* NOSONAR - S5332 - http:// URL built from runtime baseUrl variable for local monitoring access */}
+                      {`http://${baseUrl}:${resource.port}${resource.path || ''}`}
                     </Typography>
                     {resource.credentials && Object.keys(resource.credentials).length > 0 && (
                       <>
