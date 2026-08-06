@@ -1,10 +1,10 @@
 # CRM Solution — Master TODO List
 
-> **Last Updated:** August 6, 2026
+> **Last Updated:** August 6, 2026 (full end-to-end review — see [Section 2A](#section-2a--engineering-review-findings-august-6-2026))
 > **Version:** 0.625.0
 > **Single Source of Truth:** This file is the canonical backlog, gap register, remediation plan, and execution tracker for the repository. All active TODOs, gaps, remediation work, and implementation priorities should be recorded here.
-> **Active Backlog:** 1 blocked (INT-003) + 1 deferred by architectural decision (XMOD-011)
-> **Build:** ✅ 0 errors, 0 SA warnings (backend + frontend) | **Tests:** ✅ 2,785 passing in CRM.Tests (0 failures) | **Coverage:** ~70% (TCOV-001–068 done), TCOV2 Waves A–E complete (v0.625.0) | **Next:** Measure actual % with reportgenerator
+> **Active Backlog:** 1 blocked (INT-003) + 1 deferred by architectural decision (XMOD-011) + **27 newly identified in the August 6, 2026 review** (see Section 2A)
+> **Build:** ✅ 0 backend build errors | ⚠️ **255 live StyleCop SA warnings** (286 total incl. 31 non-SA) — the "0 SA warnings" claim below of v0.623.4 has regressed, not currently true (verified by running `dotnet build` directly, Aug 6 2026) | ⚠️ Frontend `tsc --noEmit` is clean (0 errors) and `npm run build` succeeds locally, but **fails under `CI=true`** on 1 ESLint error (REV-BUILD-002) | **Tests:** ✅ 2,785 passing in CRM.Tests, 0 failures, 5 skipped (verified by running `dotnet test` directly, Aug 6 2026 — matches doc) | **Coverage:** ~70% (TCOV-001–068 done), TCOV2 Waves A–E complete (v0.625.0) — ⚠️ spot-check found the ✅ markers are honest about file-exists/passes but overstate method-level completeness (REV-DOC-005) | **Next:** Measure actual % with reportgenerator
 > **Completed Work Archive:** See [docs/DONE_LOG.md](DONE_LOG.md)
 
 ---
@@ -86,6 +86,70 @@ All items below are fully implemented, tested, and committed.
 ### ⚠️ Known Pre-Existing Test Failure
 
 *None — all previously noted failures investigated and confirmed resolved as of v0.623.4 (March 10, 2026).*
+
+---
+
+## Section 2A — Engineering Review Findings (August 6, 2026)
+
+> **Methodology:** Independent full-solution verification against this document's claims. Six parallel review passes: (1) ran `dotnet build` + `dotnet test` directly rather than trusting the status line, (2) ran `tsc --noEmit` + `npm run build` (including `CI=true`) on the frontend, (3) verified INT-003/XMOD-011 against actual code and searched for spec-ID drift, (4) grepped the full backend+frontend source for TODO/FIXME/NotImplementedException/stub patterns not represented in Section 2, (5) spot-checked 5 entities' Entity→DTO→FE-type alignment against [FIELD_GAP_REMEDIATION_PLAN.md](FIELD_GAP_REMEDIATION_PLAN.md), (6) spot-checked 10 TCOV/TCOV2 ✅ items by reading the actual test files and re-running them. Findings below are net-new — i.e. not already represented by INT-003/XMOD-011 above. All are additive to the backlog; nothing here required a code change to produce (docs only, per review scope).
+
+**Build/quality status corrections:**
+
+| ID | Description | Evidence |
+|----|---|---|
+| REV-BUILD-001 | "0 SA warnings" is false. 255 live StyleCop warnings today (SA1028 trailing-whitespace ×107, SA1636 file-header mismatch ×100, SA1134 ×20, SA1013 ×17, plus SA1306/SA1508/SA1633/SA1518/SA1506/SA1400/SA1209/SA1108 ×1–3 each = 286 warnings total incl. 31 non-SA). The v0.623.4 "0 SA warnings" entry (Section 1) was true at the time; warnings have reaccumulated since. | `dotnet build CRM.sln`, Aug 6 2026 |
+| REV-BUILD-002 | Frontend production build fails under `CI=true` (the default for virtually every hosted CI runner) on one ESLint error: a `// NOSONAR` comment placed directly in JSX children instead of inside `{/* */}`. `tsc --noEmit` itself is clean (0 errors) — this is a lint-as-error issue, not a type error. One-line fix. | `CRM.Frontend/src/pages/admin/MonitoringDashboard.tsx:1061` (`react/jsx-no-comment-textnodes`) |
+
+**Untracked stub/incomplete integrations (P1/P2 — real code, not represented as open work anywhere in Section 2):**
+
+| ID | Description |
+|----|---|
+| REV-STUB-001 | `TwilioCallLoggingService` — stub; no real Twilio SDK calls (`Services/Integrations/TwilioCallLoggingService.cs:19`) |
+| REV-STUB-002 | `AccountingSyncService` — QuickBooks/Xero sync all return "not yet implemented" (`Services/Integrations/AccountingSyncService.cs:47,58,69,100`) |
+| REV-STUB-003 | `MarketingSyncService` — Mailchimp/HubSpot contact/segment/campaign sync all stubbed "not yet implemented" (`Services/Integrations/MarketingSyncService.cs:49,63,77,93`) |
+| REV-STUB-004 | `LinkedInSalesNavService` messaging path and `CommunicationService` LinkedIn delivery are stubs separate from INT-003's Sales Navigator scope (`Services/Integrations/LinkedInSalesNavService.cs:22,82`; `Services/CommunicationService.cs:753`) |
+| REV-STUB-005 | `SchedulingIntegrationService` — stub implementation (`Services/Integrations/SchedulingIntegrationService.cs:21`) |
+| REV-STUB-006 | `CloudDeploymentService` — AWS/Azure/GCP/DigitalOcean connection tests all "not yet implemented" (`Services/CloudDeploymentService.cs:652,1230,1241,1252,1262`) |
+| REV-STUB-007 | `GeoLocationService` — GeoIP lookup returns mock data only (`Services/Auth/GeoLocationService.cs:36,52,82,94`, tagged TODO-AUTH-024) |
+| REV-STUB-008 | `PythonScriptEngine.IsAvailable => false` — Python scripting entirely non-functional pending pythonnet integration (`Infrastructure/Scripting/PythonScriptEngine.cs:16-30`) |
+| REV-STUB-009 | `SlackNotificationService`, `TeamsNotificationService`, `TeamsNotificationChannelService`, `SmsNotificationService` — all explicitly stub, log only, no real send (`Services/Notifications/*.cs`) |
+| REV-STUB-010 | `PaymentTokenizationService` — "simulates tokenization," not production-safe (`Services/PaymentTokenizationService.cs:16`) |
+| REV-STUB-011 | `CampaignExecutionService.cs:877` — "Stub implementation - returns basic success result" |
+| REV-STUB-012 | `SubscriptionBillingController` dunning retry endpoint not wired to `IDunningManager.RetryAsync`; fakes a retry timestamp (`Controllers/SubscriptionBillingController.cs:386,422`) |
+| REV-STUB-013 | Recurring billing / dunning Hangfire jobs not actually scheduled in `Program.cs:1141-1143`; `DunningManager.cs.disabled` / `RecurringBillingEngine.cs.disabled` in `Services/archive/` correspond to this unwired flow |
+| REV-STUB-014 | 29 archived `.cs.disabled` files under `Services/archive/` and `Services/ITSM/archive/` — most appear superseded by active reimplementations; re-confirm each is genuinely dead before next cleanup pass, don't assume |
+
+**Untracked non-functional frontend UI (P2 — not represented as open work anywhere in Section 2):**
+
+| ID | Description |
+|----|---|
+| REV-FE-001 | `AccountMergeDialog.tsx` / `AccountHierarchyTree.tsx` referenced but don't exist — exports commented out (`components/crm/accounts/index.ts:6-15`) |
+| REV-FE-002 | `EmailDigestPage.tsx` entirely non-functional — no backend endpoint; load/save/preview all no-op (`pages/EmailDigestPage.tsx:76-109`) |
+| REV-FE-003 | `ReportTemplatesPage.tsx` not wired to a backend API (`pages/ReportTemplatesPage.tsx:155`) |
+| REV-FE-004 | `InvoiceDetailsPage.tsx` PDF download not implemented (`pages/InvoiceDetailsPage.tsx:168`) |
+| REV-FE-005 | `FeatureFlagsPanel.tsx` save is a no-op, doesn't call the API (`components/admin/FeatureFlagsPanel.tsx:75`) |
+| REV-FE-006 | `IntegrationsSettingsPage.tsx` integration cards are stub placeholders (`pages/admin/IntegrationsSettingsPage.tsx:226`) |
+| REV-FE-007 | `ReportDesigner.tsx` per-filter inline validation not implemented, TODO-AI005-FE-006 (`components/analytics/ReportDesigner.tsx:337,344,684`) |
+| REV-FE-008 | `Navigation.tsx` drag-and-drop category reordering not persisted/applied, TODO-SYS007-003, 4 locations (`components/Navigation.tsx:160,868,969,1122`) |
+
+**Field/DTO contract gaps (violates the mandatory Field Gap Audit policy in [copilot-instructions.md](../.github/copilot-instructions.md) §1.1 — not represented in [FIELD_GAP_REMEDIATION_PLAN.md](FIELD_GAP_REMEDIATION_PLAN.md)):**
+
+| ID | Description |
+|----|---|
+| REV-FGAP-001 | `OpportunityDto` (and frontend `Opportunity` type) silently drops 6 entity fields used by business logic — `ForecastCategory`, `LossReasonCategory`, `LossReason`, `CompetitorWinnerId`, `WinLossNotes`, `ClosedDate`. Confirmed dropped at `CRM.Api/Controllers/OpportunitiesController.cs:395` (`MapToDto`). |
+| REV-FGAP-002 | `CrmTaskDto` is missing 5 fields the frontend `CrmTask` type already declares — `TaskType`, `StartDate`, `EstimatedMinutes`, `AccountId`, `OpportunityId` — so they resolve to `undefined` at runtime today. (Distinct from, and smaller than, the 15-field CrmTask gap FIELD_GAP_REMEDIATION_PLAN.md still lists — most of that list is already fixed; see REV-DOC-003.) |
+
+**Documentation drift:**
+
+| ID | Description |
+|----|---|
+| REV-DOC-001 | 13 SPEC IDs cited in this document's TCOV/TCOV2 tables have no matching file in `docs/11-specifications/` and aren't filed elsewhere in `docs/`: `SPEC-CRM-002`, `-003`, `-004`, `-005`; `SPEC-SD-004`, `SPEC-SD-006`; `SPEC-SLS-002` through `-007`; `SPEC-WRK-001`. The services/controllers they'd cover were implemented and tested (Wave A/B/D) but the spec-first policy in copilot-instructions.md §"Before Writing Code" was not followed for them. |
+| REV-DOC-002 | `docs/11-specifications/INDEX.md`'s table omitted 7 of the 15 spec files that exist on disk (`SPEC-ARCH-001`, `SPEC-ARCH-002`, `SPEC-INF-001`, `SPEC-SD-001`, `SPEC-SD-002`, `SPEC-SD-003`, `SPEC-SD-005`). **Fixed as part of this review** — INDEX.md now lists all 15. |
+| REV-DOC-003 | `FIELD_GAP_REMEDIATION_PLAN.md` (last full audit 2026-02-21) is stale in both directions: its documented gaps for Contact (38 fields), most of CrmTask's 15-field DTO list, Account DTO (37 fields), and Campaign frontend (~90 fields) are already closed in code but still shown as open; conversely it doesn't mention REV-FGAP-001/002 above. Only 5 of its 16 entities (Account, Contact, Opportunity, CrmTask, Campaign) were re-verified in this review — the other 9 (User, Lead, Quote, Order, Invoice, Payment, Contract, Activity, ServiceRequest) still reflect the Feb 21 audit and haven't been re-checked. **Dashboard corrected for the 5 re-verified entities as part of this review; full re-audit of the remaining 9 is still open.** |
+| REV-DOC-004 | INT-003 (LinkedIn Sales Navigator) wording overstates the gap. A full port interface, DI-registered service, and controller endpoints already exist — `ILinkedInSalesNavService`, `LinkedInSalesNavService` (`Services/Integrations/`), `IntegrationsController` `GET /linkedin/profile` + `POST /linkedin/enrich/contact/{id}`. Every method is an intentional stub returning `LinkedInEnrichResult.Failed(..., "not configured")`, consistent with the doc's functional conclusion (blocked pending the $1,600+/yr license) — but "no dev/sandbox alternative" undersells that the integration surface is already built and only needs real API wiring once licensed. |
+| REV-DOC-005 | TCOV/TCOV2 ✅ markers are honest about file-exists/passes (10-item spot-check: all files found, all tests passed, no fabricated or wrong-class tests) but overstate method-level completeness. Confirmed gaps: `MergeService` — the actual `MergeRecordsAsync`/`UnmergeRecordsAsync`/`PreviewMergeAsync` merge logic has **zero** test coverage (only history/lookup methods are tested); `AccountService` covers 3 of 24 public methods; `LeadsController` covers 5 of 16 endpoints; `WorkflowController` covers ~6 of 24 endpoints; `AllenAIService` covers 5 of 17 methods. Treat "✅" in Section 3/3B as "a test file exists and passes," not "the class is thoroughly covered." |
+
+**Recommended next actions:** triage REV-STUB-* and REV-FE-* into the phased plan (most are P1/P2 — high-value but non-blocking stubs), assign REV-FGAP-001/002 to whoever owns the Field Gap Audit process next, create-or-retire the 13 dangling spec IDs in REV-DOC-001, and schedule the remaining 9-entity FIELD_GAP_REMEDIATION_PLAN.md re-audit (REV-DOC-003) alongside the next contract-alignment pass.
 
 ---
 

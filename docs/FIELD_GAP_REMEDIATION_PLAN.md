@@ -3,6 +3,14 @@
 **Updated:** 2026-02-21
 **Status:** Active — Post-Session 9 Comprehensive Re-Audit
 
+> ⚠️ **2026-08-06 correction:** This document's own "Final Verdict" below (2026-02-22, "No gaps, mismatches, or serialization issues remain") is **not accurate**. An independent Aug 6, 2026 review re-verified 5 of the 16 entities (Account, Contact, Opportunity, CrmTask, Campaign) against current code and found:
+> - **Opportunity is not fully aligned** despite the "✅ Fully aligned" claim below — `OpportunityDto` is missing 6 fields the entity and business logic actually use (`ForecastCategory`, `LossReasonCategory`, `LossReason`, `CompetitorWinnerId`, `WinLossNotes`, `ClosedDate`). See REV-FGAP-001 in [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md).
+> - **CrmTask still has a real gap**, just a smaller one than the 15 fields listed below — `TaskType`, `StartDate`, `EstimatedMinutes`, `AccountId`, `OpportunityId` are missing from `CrmTaskDto` even though the frontend type already expects them (they resolve `undefined` at runtime). See REV-FGAP-002 in MASTER_TODO_LIST.md.
+> - Account, Contact, and Campaign's DTO/FE-type gaps described below (37, 38, and ~90 fields respectively) **are** now closed, confirming those three "✅ Fully aligned" claims.
+> - The other 9 entities in this document (User, Lead, Quote, Order, Invoice, Payment, Contract, Activity, ServiceRequest) were **not** re-checked in the Aug 6 review — their "✅ Fully aligned" status below is unverified, not confirmed false. Treat it as unknown until a full re-audit runs.
+>
+> **Lesson:** a "no gaps remain" verdict in this file has gone stale before without anyone catching it. Don't take the Final Verdict section at face value — re-verify against code before relying on it.
+
 ## Context
 
 > **Note:** the legacy "Customers" module has been consolidated into the modern "Accounts" module. All code references to "Customers" should be commented out or removed and tests updated accordingly. This change fixes recent unit test failures and simplifies the UI configuration.
@@ -16,22 +24,24 @@ Sessions 1–9 completed a full remediation pass across all 16 entities. All pre
 
 ## Coverage Dashboard
 
-| Entity | DTO | FE Type | FE UI | Priority |
-|--------|-----|---------|-------|----------|
-| Account | ⚠️ Partial | ⚠️ Partial | ❌ Major gaps | P2 |
-| Contact | ✅ Complete | ✅ Complete | ✅ Complete | P1 |
-| User | ⚠️ Partial | ⚠️ Partial | ⚠️ Partial | P3 |
-| Lead | ✅ Complete | ✅ Complete | ⚠️ Minor | P3 |
-| Opportunity | ✅ Complete | ✅ Complete | ⚠️ Minor | P3 |
-| Quote | ✅ Complete | ✅ Complete | ⚠️ Minor | P2 |
-| Order | ✅ Complete | ✅ Complete | ⚠️ Minor | P2 |
-| Invoice | ⚠️ Missing computed | ⚠️ Partial | ⚠️ Partial | P2 |
-| Payment | ⚠️ Missing fraud fields | ⚠️ Partial | ⚠️ Partial | P2 |
-| Contract | ⚠️ Missing computed | ✅ Complete | ✅ Complete | P3 |
-| Activity | ✅ Complete | ✅ Complete | ⚠️ Minor | P3 |
-| CrmTask | ❌ Major gaps | ✅ Complete | ✅ Complete | P1 |
-| ServiceRequest | ✅ Complete | ✅ Complete | ✅ Complete | P1 |
-| Campaign | ✅ Complete | ✅ Complete | ⚠️ Partial | P1 |
+> **Verified column** added 2026-08-06: `✅ Re-verified` = confirmed against current code in the Aug 6 review; `❓ Unverified` = last checked 2026-02-21/22, not re-checked since.
+
+| Entity | DTO | FE Type | FE UI | Priority | Verified (2026-08-06) |
+|--------|-----|---------|-------|----------|------------------------|
+| Account | ✅ Complete | ⚠️ Partial (~37 fields, e.g. LifetimeValue/MRR/ARR/PartnerTier, not on FE type) | ❌ Major gaps | P2 | ✅ Re-verified — gap moved from DTO to FE type |
+| Contact | ✅ Complete | ✅ Complete | ✅ Complete | P1 | ✅ Re-verified — confirmed complete |
+| User | ⚠️ Partial | ⚠️ Partial | ⚠️ Partial | P3 | ❓ Unverified |
+| Lead | ✅ Complete | ✅ Complete | ⚠️ Minor | P3 | ❓ Unverified |
+| Opportunity | ❌ Missing 6 fields (see REV-FGAP-001) | ❌ Missing same 6 fields | ⚠️ Minor | **P1** | ✅ Re-verified — "Fully aligned" claim below is false |
+| Quote | ✅ Complete | ✅ Complete | ⚠️ Minor | P2 | ❓ Unverified |
+| Order | ✅ Complete | ✅ Complete | ⚠️ Minor | P2 | ❓ Unverified |
+| Invoice | ⚠️ Missing computed | ⚠️ Partial | ⚠️ Partial | P2 | ❓ Unverified |
+| Payment | ⚠️ Missing fraud fields | ⚠️ Partial | ⚠️ Partial | P2 | ❓ Unverified |
+| Contract | ⚠️ Missing computed | ✅ Complete | ✅ Complete | P3 | ❓ Unverified |
+| Activity | ✅ Complete | ✅ Complete | ⚠️ Minor | P3 | ❓ Unverified |
+| CrmTask | ⚠️ Missing 5 fields (see REV-FGAP-002 — smaller than the 15 listed below, most already fixed) | ✅ Complete (has fields DTO lacks) | ✅ Complete | **P1** | ✅ Re-verified — real gap remains, different shape than documented |
+| ServiceRequest | ✅ Complete | ✅ Complete | ✅ Complete | P1 | ❓ Unverified |
+| Campaign | ✅ Complete | ✅ Complete | ⚠️ Partial | P1 | ✅ Re-verified — confirmed complete (DTO ~205 fields, FE type aligned) |
 
 ---
 
@@ -719,10 +729,9 @@ Performed a full-stack audit across all layers: Database schema, Backend Entity,
 - **Status:** ✅ Fully aligned
 
 ### Opportunity
-- All fields present and types consistent. Computed fields (WeightedAmount, IsOpen, IsWon) exposed as read-only in UI.
-- Enum mapping correct.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- Computed fields (WeightedAmount, IsOpen, IsWon) and enum mapping confirmed correct.
+- **2026-08-06 correction:** this "Fully aligned" claim was false. `OpportunityDto` and the frontend `Opportunity` type are both missing `ForecastCategory`, `LossReasonCategory`, `LossReason`, `CompetitorWinnerId`, `WinLossNotes`, `ClosedDate` — all present on the entity and used by `Close()`/`GetForecastSummaryAsync`. Confirmed dropped at `OpportunitiesController.cs:395` (`MapToDto`). Tracked as REV-FGAP-001.
+- **Status:** ❌ Not fully aligned — 6-field DTO/FE-type gap open
 
 ### Quote
 - All 13 backend statuses mapped to FE enum. Address, terms, and approval fields present in DTO, FE type, and UI form.
@@ -757,9 +766,9 @@ Performed a full-stack audit across all layers: Database schema, Backend Entity,
 - **Status:** ✅ Fully aligned
 
 ### CrmTask
-- All 15 previously missing fields present in DTO, FE type, and UI form. Subject/Title intentional rename documented.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- Most of the original 15 missing fields are now present in DTO, FE type, and UI form. Subject/Title intentional rename documented.
+- **2026-08-06 correction:** this "Fully aligned" claim was false. `CrmTaskDto` is still missing `TaskType`, `StartDate`, `EstimatedMinutes`, `AccountId`, `OpportunityId` — none of which were on the original 15-field list above, meaning they were introduced (or missed) after the 2026-02-22 audit. The frontend `CrmTask` type already declares all 5, so they silently resolve to `undefined` at runtime today. Tracked as REV-FGAP-002.
+- **Status:** ⚠️ Not fully aligned — 5-field DTO gap open (smaller than, and different from, the original list)
 
 ### ServiceRequest
 - Expedite fields and 21 gap fields present in Entity, DTO, FE type, and UI form. Subject/title naming clarified.
@@ -792,10 +801,13 @@ Performed a full-stack audit across all layers: Database schema, Backend Entity,
 - **Status:** ✅ Fully aligned
 
 ## Final Verdict
-**All entities and fields are fully aligned across DB, backend, DTO, API, frontend types, UI forms, and tests. No gaps, mismatches, or serialization issues remain. Enum mapping, naming, and contract superset checks are complete. Documentation and feature specs are up to date.**
+
+~~All entities and fields are fully aligned across DB, backend, DTO, API, frontend types, UI forms, and tests. No gaps, mismatches, or serialization issues remain. Enum mapping, naming, and contract superset checks are complete. Documentation and feature specs are up to date.~~
+
+**2026-08-06: This verdict was false and should not be trusted going forward without re-verification.** An independent review re-checked 5 of these 16 entities against current code and found Opportunity and CrmTask both had real, undocumented DTO gaps (see the correction banner at the top of this file, and REV-FGAP-001/002 in [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md)). The other 11 entities' "fully aligned" status in this section is unverified, not disproven — but given this section was wrong for 2 of the 5 entities actually checked (40% miss rate on the sample), it should not be read as authoritative until a full 16-entity re-audit runs.
 
 ---
-**Comprehensive audit completed: 2026-02-22. No further remediation required.**
+**Comprehensive audit completed: 2026-02-22. Superseded in part by the 2026-08-06 review above — see correction banner at the top of this document.**
 ---
 
 ### Example Code Snippets
