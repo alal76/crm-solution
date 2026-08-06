@@ -4,11 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+
 // Unit Tests: IntercomProvider
 // HTTP Pattern: IntercomProvider injects HttpClient, so tests use TestHttpMessageHandler
 // to intercept HTTP calls without making real network requests. The constructor sets
 // BaseAddress, Authorization, Accept, and Intercom-Version headers.
-//
 // Verified method signatures from source:
 //   IntercomProvider(HttpClient, IOptions<IntercomConfiguration>, ILogger<IntercomProvider>)
 //   ProviderName → "Intercom"

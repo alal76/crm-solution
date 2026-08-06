@@ -18,7 +18,7 @@ namespace CRM.Tests.Dtos
 {
     /// <summary>
     /// Validation tests for Invoice DTOs.
-    /// 
+    ///
     /// IMPORTANT NOTE: The InvoiceDto classes (InvoiceDto, CreateInvoiceDto, UpdateInvoiceDto, etc.)
     /// currently do NOT have DataAnnotation validation attributes applied.
     /// These tests validate business logic constraints that SHOULD be enforced.

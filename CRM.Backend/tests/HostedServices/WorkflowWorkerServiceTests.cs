@@ -38,12 +38,12 @@ public class WorkflowWorkerServiceTests
         _mockHttpClientFactory
             .Setup(f => f.CreateClient(It.IsAny<string>()))
             .Returns(new HttpClient());
-        
+
         // Create a mock JintScriptEngine
         var mockJintEngine = new Mock<IScriptEngine>();
         mockJintEngine.Setup(e => e.Language).Returns(ScriptLanguage.JavaScript);
         mockJintEngine.Setup(e => e.IsAvailable).Returns(true);
-        
+
         // Initialize ScriptEngineFactory with mock engines and separate factory logger mock
         var mockFactoryLogger = new Mock<ILogger<ScriptEngineFactory>>();
         var mockEngines = new List<IScriptEngine> { mockJintEngine.Object };

@@ -73,7 +73,7 @@ namespace CRM.Tests.Validators
         public void ValidateModuleName_ShouldThrow_WhenCustomModuleAndAllowCustomFalse(string moduleName)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.ValidateModuleName(moduleName, allowCustom: false));
 
             Assert.Contains("not recognized", exception.Message);
@@ -87,7 +87,7 @@ namespace CRM.Tests.Validators
         public void ValidateModuleName_ShouldThrow_WhenNull()
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.ValidateModuleName(null));
 
             Assert.Contains("required", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -103,7 +103,7 @@ namespace CRM.Tests.Validators
         public void ValidateModuleName_ShouldThrow_WhenEmptyOrWhitespace(string moduleName)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.ValidateModuleName(moduleName));
 
             Assert.Contains("required", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -119,7 +119,7 @@ namespace CRM.Tests.Validators
             var longModuleName = new string('A', 101);
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.ValidateModuleName(longModuleName));
 
             Assert.Contains("too long", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -135,7 +135,7 @@ namespace CRM.Tests.Validators
             var maxLengthModuleName = new string('A', 100);
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.ValidateModuleName(maxLengthModuleName));
 
             Assert.Null(exception);
@@ -151,7 +151,7 @@ namespace CRM.Tests.Validators
         public void ValidateModuleName_ShouldNotThrow_WhenCaseVariesForDefaultModules(string moduleName)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.ValidateModuleName(moduleName, allowCustom: false));
 
             Assert.Null(exception);
@@ -172,7 +172,7 @@ namespace CRM.Tests.Validators
         public void ValidateNavigationKey_ShouldNotThrow_WhenValidKey(string key)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.ValidateNavigationKey(key));
 
             Assert.Null(exception);
@@ -185,7 +185,7 @@ namespace CRM.Tests.Validators
         public void ValidateNavigationKey_ShouldThrow_WhenNull()
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.ValidateNavigationKey(null));
 
             Assert.Contains("required", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -201,7 +201,7 @@ namespace CRM.Tests.Validators
         public void ValidateNavigationKey_ShouldThrow_WhenEmptyOrWhitespace(string key)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.ValidateNavigationKey(key));
 
             Assert.Contains("required", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -217,7 +217,7 @@ namespace CRM.Tests.Validators
             var customFieldName = "Menu Item ID";
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.ValidateNavigationKey("", customFieldName));
 
             Assert.Contains(customFieldName, exception.Message);
@@ -230,7 +230,7 @@ namespace CRM.Tests.Validators
         public void ValidateNavigationKey_ShouldUseDefaultFieldName_WhenNotSpecified()
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.ValidateNavigationKey(""));
 
             Assert.Contains("Navigation key", exception.Message);
@@ -250,7 +250,7 @@ namespace CRM.Tests.Validators
             var keys = new List<string> { "alpha", "beta", "gamma", "delta" };
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.EnsureUniqueKeys(keys, "Test Key"));
 
             Assert.Null(exception);
@@ -266,7 +266,7 @@ namespace CRM.Tests.Validators
             var keys = new List<string> { "alpha", "beta", "alpha" };
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.EnsureUniqueKeys(keys, "Test Key"));
 
             Assert.Contains("unique", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -283,7 +283,7 @@ namespace CRM.Tests.Validators
             var keys = new List<string> { "Alpha", "beta", "ALPHA", "gamma" };
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.EnsureUniqueKeys(keys, "MenuItem Key"));
 
             Assert.Contains("unique", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -300,7 +300,7 @@ namespace CRM.Tests.Validators
             var keys = new List<string> { "alpha", "beta", "alpha", "gamma", "beta" };
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.EnsureUniqueKeys(keys, "Widget Key"));
 
             Assert.Contains("alpha", exception.Message);
@@ -317,7 +317,7 @@ namespace CRM.Tests.Validators
             var keys = new List<string> { "alpha", "", "beta", null, "gamma", "  " };
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.EnsureUniqueKeys(keys, "Key"));
 
             Assert.Null(exception);
@@ -333,7 +333,7 @@ namespace CRM.Tests.Validators
             var keys = new List<string>();
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.EnsureUniqueKeys(keys, "Key"));
 
             Assert.Null(exception);
@@ -350,7 +350,7 @@ namespace CRM.Tests.Validators
             var fieldName = "Dashboard Widget ID";
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.EnsureUniqueKeys(keys, fieldName));
 
             Assert.Contains(fieldName, exception.Message);
@@ -376,7 +376,7 @@ namespace CRM.Tests.Validators
             };
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, "Item Order"));
 
             Assert.Null(exception);
@@ -397,7 +397,7 @@ namespace CRM.Tests.Validators
             };
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, "MenuItem Order"));
 
             Assert.Contains("non-negative", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -421,7 +421,7 @@ namespace CRM.Tests.Validators
             };
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, "Order"));
 
             Assert.Contains("item2", exception.Message);
@@ -443,7 +443,7 @@ namespace CRM.Tests.Validators
             };
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, "Order"));
 
             Assert.Null(exception);
@@ -459,7 +459,7 @@ namespace CRM.Tests.Validators
             var items = new List<(string Id, int Order)>();
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, "Order"));
 
             Assert.Null(exception);
@@ -479,7 +479,7 @@ namespace CRM.Tests.Validators
             var fieldName = "Widget Display Order";
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, fieldName));
 
             Assert.Contains(fieldName, exception.Message);
@@ -500,7 +500,7 @@ namespace CRM.Tests.Validators
             };
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, "Order"));
 
             Assert.Null(exception);
@@ -523,7 +523,7 @@ namespace CRM.Tests.Validators
             };
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 UiConfigurationValidator.EnsureNonNegativeOrders(items, "Order"));
 
             Assert.Contains("bad-x", exception.Message);

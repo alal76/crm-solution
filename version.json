@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 625,
-  "patch": 8,
+  "patch": 9,
   "lastUpdate": "2026-08-06",
-  "description": "fix(crm): MergeService self-merge guard + missing SaveChangesAsync data-integrity bug (REV-DOC-005 partial)",
+  "description": "style(backend): bulk StyleCop SA warning cleanup, 255 to 9 live SA warnings (REV-BUILD-001 partial)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

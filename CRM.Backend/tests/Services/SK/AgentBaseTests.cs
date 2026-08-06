@@ -1,6 +1,10 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
+
 // Unit tests for all CRM Semantic Kernel Agent implementations.
 // Tests verify agent properties, null guards, and base lifecycle hooks.
 // No LLM calls are made — Kernel is created via Kernel.CreateBuilder().Build().

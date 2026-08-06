@@ -676,7 +676,7 @@ namespace CRM.Tests.Dtos
             // Expansion = +10%
             // Contraction = -5%
             // NRR = 95 + 10 - 5 = 100%
-            
+
             var dto = new SubscriptionMetricsDto
             {
                 GRR = 95.0m,
@@ -687,7 +687,7 @@ namespace CRM.Tests.Dtos
             };
 
             // Assert NRR is calculated including expansion/contraction
-            Assert.True(dto.NRR >= dto.GRR || dto.NRR < dto.GRR, 
+            Assert.True(dto.NRR >= dto.GRR || dto.NRR < dto.GRR,
                 "NRR can be higher (with expansion) or lower (with contraction) than GRR");
         }
 
@@ -696,7 +696,7 @@ namespace CRM.Tests.Dtos
         {
             // Business rule relationship: GRR = 100% - ChurnRate (approximately)
             // If 5% churn, GRR should be ~95%
-            
+
             var dto = new SubscriptionMetricsDto
             {
                 ChurnRate = 5.0m,
@@ -910,7 +910,7 @@ namespace CRM.Tests.Dtos
 
             // Assert
             Assert.Empty(results);
-            
+
             // Business validations
             var clvToCacRatio = dto.CLV / dto.CAC;
             Assert.True(clvToCacRatio > 3.0m, "Healthy SaaS should have CLV/CAC > 3:1");
@@ -944,7 +944,7 @@ namespace CRM.Tests.Dtos
 
             // Assert - Still valid data, but poor business metrics
             Assert.Empty(results);
-            
+
             // Business warning indicators
             var clvToCacRatio = dto.CLV / dto.CAC;
             Assert.True(clvToCacRatio < 3.0m, "This subscription has poor unit economics");

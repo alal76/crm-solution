@@ -778,7 +778,7 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
             TicketNumber = "SR-2026-001",
             Subject = "Network connectivity outage in office", Priority = ServiceRequestPriority.High,
             IsDeleted = false,
-            CreatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.New);
+            CreatedAt = DateTime.UtcNow }.WithStatus(ServiceRequestStatus.New);
         _dbContext.ServiceRequests.Add(ticket);
         await _dbContext.SaveChangesAsync();
 
@@ -1058,14 +1058,14 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
                 TicketNumber = "SR-META-001",
                 Subject = "Metadata facet urgent ticket",
                 Priority = ServiceRequestPriority.High, IsDeleted = false,
-                CreatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.New),
+                CreatedAt = DateTime.UtcNow }.WithStatus(ServiceRequestStatus.New),
             new ServiceRequest
             {
                 Id = 2,
                 TicketNumber = "SR-META-002",
                 Subject = "Metadata facet normal ticket",
                 Priority = ServiceRequestPriority.Medium, IsDeleted = false,
-                CreatedAt = DateTime.UtcNow}.WithStatus(ServiceRequestStatus.InProgress));
+                CreatedAt = DateTime.UtcNow }.WithStatus(ServiceRequestStatus.InProgress));
         await _dbContext.SaveChangesAsync();
 
         var request = new SearchRequest

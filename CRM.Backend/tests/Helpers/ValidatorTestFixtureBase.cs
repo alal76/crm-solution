@@ -47,7 +47,7 @@ namespace CRM.Tests.Helpers
             setup?.Invoke(model);
             var result = ValidateModel(model);
             Xunit.Assert.NotEmpty(result);
-            Xunit.Assert.Contains(result, e => 
+            Xunit.Assert.Contains(result, e =>
                 e.ErrorMessage != null && e.ErrorMessage.Contains(expectedErrorKey, System.StringComparison.OrdinalIgnoreCase));
         }
 
@@ -63,7 +63,7 @@ namespace CRM.Tests.Helpers
             setup?.Invoke(model);
             var result = ValidateModel(model);
             Xunit.Assert.NotEmpty(result);
-            Xunit.Assert.Contains(result, e => 
+            Xunit.Assert.Contains(result, e =>
                 e.MemberNames != null && System.Linq.Enumerable.Contains(e.MemberNames, propertyName));
         }
 

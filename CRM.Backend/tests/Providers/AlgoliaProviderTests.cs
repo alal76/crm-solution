@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+
 // Unit Tests: AlgoliaProvider
 // SDK Decision: AlgoliaProvider uses the Algolia .NET SDK (SearchClient) created internally.
 // IsAvailableAsync is SYNCHRONOUS (_client != null check) — no HTTP is made.

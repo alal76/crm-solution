@@ -73,10 +73,12 @@ public sealed class SKPluginTests
         return (new LeadPlugin(svc.Object, new Mock<ILogger<LeadPlugin>>().Object), svc);
     }
 
-    [Fact] public void LeadPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void LeadPlugin_PluginName_IsNotNullOrEmpty()
         => MakeLeadPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void LeadPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void LeadPlugin_Description_IsNotNullOrEmpty()
         => MakeLeadPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -156,10 +158,12 @@ public sealed class SKPluginTests
         return (new AccountPlugin(svc.Object, db.Object, new Mock<ILogger<AccountPlugin>>().Object), svc);
     }
 
-    [Fact] public void AccountPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void AccountPlugin_PluginName_IsNotNullOrEmpty()
         => MakeAccountPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void AccountPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void AccountPlugin_Description_IsNotNullOrEmpty()
         => MakeAccountPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -217,10 +221,12 @@ public sealed class SKPluginTests
         return (new ContactPlugin(svc.Object, db.Object, new Mock<ILogger<ContactPlugin>>().Object), svc);
     }
 
-    [Fact] public void ContactPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void ContactPlugin_PluginName_IsNotNullOrEmpty()
         => MakeContactPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void ContactPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void ContactPlugin_Description_IsNotNullOrEmpty()
         => MakeContactPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -270,10 +276,12 @@ public sealed class SKPluginTests
         return (new QuotePlugin(svc.Object, new Mock<ILogger<QuotePlugin>>().Object), svc);
     }
 
-    [Fact] public void QuotePlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void QuotePlugin_PluginName_IsNotNullOrEmpty()
         => MakeQuotePlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void QuotePlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void QuotePlugin_Description_IsNotNullOrEmpty()
         => MakeQuotePlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -315,10 +323,12 @@ public sealed class SKPluginTests
         return (new SearchPlugin(port.Object, new Mock<ILogger<SearchPlugin>>().Object), port);
     }
 
-    [Fact] public void SearchPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void SearchPlugin_PluginName_IsNotNullOrEmpty()
         => MakeSearchPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void SearchPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void SearchPlugin_Description_IsNotNullOrEmpty()
         => MakeSearchPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -374,10 +384,12 @@ public sealed class SKPluginTests
         return (new ServiceRequestPlugin(svc.Object, db.Object, new Mock<ILogger<ServiceRequestPlugin>>().Object), svc);
     }
 
-    [Fact] public void ServiceRequestPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void ServiceRequestPlugin_PluginName_IsNotNullOrEmpty()
         => MakeSRPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void ServiceRequestPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void ServiceRequestPlugin_Description_IsNotNullOrEmpty()
         => MakeSRPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -418,10 +430,12 @@ public sealed class SKPluginTests
         return (new OpportunityPlugin(svc.Object, db.Object, new Mock<ILogger<OpportunityPlugin>>().Object), svc);
     }
 
-    [Fact] public void OpportunityPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void OpportunityPlugin_PluginName_IsNotNullOrEmpty()
         => MakeOppPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void OpportunityPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void OpportunityPlugin_Description_IsNotNullOrEmpty()
         => MakeOppPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -464,10 +478,12 @@ public sealed class SKPluginTests
         return (new CalendarPlugin(svc.Object, new Mock<ILogger<CalendarPlugin>>().Object), svc);
     }
 
-    [Fact] public void CalendarPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void CalendarPlugin_PluginName_IsNotNullOrEmpty()
         => MakeCalendarPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void CalendarPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void CalendarPlugin_Description_IsNotNullOrEmpty()
         => MakeCalendarPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -534,10 +550,12 @@ public sealed class SKPluginTests
         return (new ContractPlugin(svc.Object, new Mock<ILogger<ContractPlugin>>().Object), svc);
     }
 
-    [Fact] public void ContractPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void ContractPlugin_PluginName_IsNotNullOrEmpty()
         => MakeContractPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void ContractPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void ContractPlugin_Description_IsNotNullOrEmpty()
         => MakeContractPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]
@@ -586,10 +604,12 @@ public sealed class SKPluginTests
         return (new EmailPlugin(emailSvc.Object, notifPort.Object, new Mock<ILogger<EmailPlugin>>().Object), emailSvc);
     }
 
-    [Fact] public void EmailPlugin_PluginName_IsNotNullOrEmpty()
+    [Fact]
+    public void EmailPlugin_PluginName_IsNotNullOrEmpty()
         => MakeEmailPlugin().plugin.PluginName.Should().NotBeNullOrEmpty();
 
-    [Fact] public void EmailPlugin_Description_IsNotNullOrEmpty()
+    [Fact]
+    public void EmailPlugin_Description_IsNotNullOrEmpty()
         => MakeEmailPlugin().plugin.Description.Should().NotBeNullOrEmpty();
 
     [Fact]

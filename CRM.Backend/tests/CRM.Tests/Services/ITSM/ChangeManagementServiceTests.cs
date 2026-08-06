@@ -1,10 +1,13 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
-using ApprovalStatus = CRM.Core.Entities.ITSM.ApprovalStatus;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
 using FluentAssertions;
@@ -12,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using ApprovalStatus = CRM.Core.Entities.ITSM.ApprovalStatus;
 
 namespace CRM.Tests.Services.ITSM;
 

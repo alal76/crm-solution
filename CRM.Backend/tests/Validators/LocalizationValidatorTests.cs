@@ -16,7 +16,7 @@ namespace CRM.Tests.Validators
     /// <summary>
     /// Comprehensive unit tests for <see cref="LocalizationValidator"/>.
     /// Tests validation of timezone identifiers, currency codes, and language tags.
-    /// 
+    ///
     /// Related: TODO-SYS005-003: Localization settings validation
     /// </summary>
     public class LocalizationValidatorTests
@@ -37,7 +37,7 @@ namespace CRM.Tests.Validators
         public void ValidateTimezone_ShouldNotThrow_WhenValidWindowsTimezone(string timezone)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateTimezone(timezone));
 
             Assert.Null(exception);
@@ -58,7 +58,7 @@ namespace CRM.Tests.Validators
         public void ValidateTimezone_ShouldNotThrow_WhenValidIanaTimezone(string timezone)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateTimezone(timezone));
 
             Assert.Null(exception);
@@ -71,7 +71,7 @@ namespace CRM.Tests.Validators
         public void ValidateTimezone_ShouldNotThrow_WhenGMT()
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateTimezone("GMT"));
 
             Assert.Null(exception);
@@ -84,7 +84,7 @@ namespace CRM.Tests.Validators
         public void ValidateTimezone_ShouldThrow_WhenNull()
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateTimezone(null));
 
             Assert.Contains("cannot be empty", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -100,7 +100,7 @@ namespace CRM.Tests.Validators
         public void ValidateTimezone_ShouldThrow_WhenEmptyOrWhitespace(string timezone)
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateTimezone(timezone));
 
             Assert.Contains("cannot be empty", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -117,7 +117,7 @@ namespace CRM.Tests.Validators
         public void ValidateTimezone_ShouldThrow_WhenInvalidTimezone(string timezone)
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateTimezone(timezone));
 
             Assert.Contains("Invalid timezone", exception.Message);
@@ -133,7 +133,7 @@ namespace CRM.Tests.Validators
             var invalidTimezone = "BadTimezone";
 
             // Act
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateTimezone(invalidTimezone));
 
             // Assert
@@ -162,7 +162,7 @@ namespace CRM.Tests.Validators
         public void ValidateCurrency_ShouldNotThrow_WhenValidCurrencyCode(string currency)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateCurrency(currency));
 
             Assert.Null(exception);
@@ -180,7 +180,7 @@ namespace CRM.Tests.Validators
         public void ValidateCurrency_ShouldBeCaseInsensitive(string currency)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateCurrency(currency));
 
             Assert.Null(exception);
@@ -193,7 +193,7 @@ namespace CRM.Tests.Validators
         public void ValidateCurrency_ShouldThrow_WhenNull()
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateCurrency(null));
 
             Assert.Contains("cannot be empty", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -209,7 +209,7 @@ namespace CRM.Tests.Validators
         public void ValidateCurrency_ShouldThrow_WhenEmptyOrWhitespace(string currency)
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateCurrency(currency));
 
             Assert.Contains("cannot be empty", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -227,7 +227,7 @@ namespace CRM.Tests.Validators
         public void ValidateCurrency_ShouldThrow_WhenInvalidCurrencyCode(string currency)
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateCurrency(currency));
 
             Assert.Contains("Invalid currency", exception.Message);
@@ -243,7 +243,7 @@ namespace CRM.Tests.Validators
             var invalidCurrency = "XXX";
 
             // Act
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateCurrency(invalidCurrency));
 
             // Assert
@@ -268,7 +268,7 @@ namespace CRM.Tests.Validators
         public void ValidateCurrency_ShouldNotThrow_WhenLessCommonButValidCurrency(string currency)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateCurrency(currency));
 
             Assert.Null(exception);
@@ -293,7 +293,7 @@ namespace CRM.Tests.Validators
         public void ValidateLanguage_ShouldNotThrow_WhenValidLanguageTag(string language)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateLanguage(language));
 
             Assert.Null(exception);
@@ -311,7 +311,7 @@ namespace CRM.Tests.Validators
         public void ValidateLanguage_ShouldBeCaseInsensitive(string language)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateLanguage(language));
 
             Assert.Null(exception);
@@ -324,7 +324,7 @@ namespace CRM.Tests.Validators
         public void ValidateLanguage_ShouldThrow_WhenNull()
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateLanguage(null));
 
             Assert.Contains("cannot be empty", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -340,7 +340,7 @@ namespace CRM.Tests.Validators
         public void ValidateLanguage_ShouldThrow_WhenEmptyOrWhitespace(string language)
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateLanguage(language));
 
             Assert.Contains("cannot be empty", exception.Message, StringComparison.OrdinalIgnoreCase);
@@ -357,7 +357,7 @@ namespace CRM.Tests.Validators
         public void ValidateLanguage_ShouldThrow_WhenInvalidLanguageCode(string language)
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateLanguage(language));
 
             Assert.Contains("Invalid language", exception.Message);
@@ -373,7 +373,7 @@ namespace CRM.Tests.Validators
             var invalidLanguage = "invalid";
 
             // Act
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 LocalizationValidator.ValidateLanguage(invalidLanguage));
 
             // Assert
@@ -394,7 +394,7 @@ namespace CRM.Tests.Validators
         public void ValidateLanguage_ShouldNotThrow_WhenEnglishVariants(string language)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateLanguage(language));
 
             Assert.Null(exception);
@@ -416,7 +416,7 @@ namespace CRM.Tests.Validators
         public void ValidateLanguage_ShouldNotThrow_WhenRegionalVariants(string language)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 LocalizationValidator.ValidateLanguage(language));
 
             Assert.Null(exception);
@@ -657,7 +657,7 @@ namespace CRM.Tests.Validators
             // Assert - all should validate successfully
             foreach (var timezone in timezones.Take(10)) // Test first 10 for performance
             {
-                var exception = Record.Exception(() => 
+                var exception = Record.Exception(() =>
                     LocalizationValidator.ValidateTimezone(timezone));
                 Assert.Null(exception);
             }

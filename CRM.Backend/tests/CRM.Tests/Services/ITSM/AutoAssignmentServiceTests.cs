@@ -191,7 +191,7 @@ public class AutoAssignmentServiceTests : IDisposable
             Priority = ServiceRequestPriority.Medium,
             Channel = ServiceRequestChannel.Email,
             CreatedAt = DateTime.UtcNow,
-            IsDeleted = false}.WithStatus(ServiceRequestStatus.InProgress));
+            IsDeleted = false }.WithStatus(ServiceRequestStatus.InProgress));
         await _dbContext.SaveChangesAsync();
 
         // Act
@@ -226,7 +226,7 @@ public class AutoAssignmentServiceTests : IDisposable
             Priority = ServiceRequestPriority.Medium,
             Channel = ServiceRequestChannel.Email,
             CreatedAt = DateTime.UtcNow,
-            IsDeleted = false}.WithStatus(ServiceRequestStatus.Closed));
+            IsDeleted = false }.WithStatus(ServiceRequestStatus.Closed));
         _dbContext.ServiceRequests.Add(new ServiceRequest
         {
             TicketNumber = "SR-OPEN-1",
@@ -234,7 +234,7 @@ public class AutoAssignmentServiceTests : IDisposable
             Priority = ServiceRequestPriority.Medium,
             Channel = ServiceRequestChannel.Email,
             CreatedAt = DateTime.UtcNow,
-            IsDeleted = false}.WithStatus(ServiceRequestStatus.InProgress));
+            IsDeleted = false }.WithStatus(ServiceRequestStatus.InProgress));
         await _dbContext.SaveChangesAsync();
 
         // Act
@@ -338,7 +338,7 @@ public class AutoAssignmentServiceTests : IDisposable
             Priority = ServiceRequestPriority.High,
             Channel = ServiceRequestChannel.Email,
             CreatedAt = DateTime.UtcNow,
-            IsDeleted = false}.WithStatus(ServiceRequestStatus.InProgress));
+            IsDeleted = false }.WithStatus(ServiceRequestStatus.InProgress));
         await _dbContext.SaveChangesAsync();
 
         var sr = await SeedServiceRequestAsync(priority: ServiceRequestPriority.High);

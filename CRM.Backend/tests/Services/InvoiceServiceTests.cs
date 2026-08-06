@@ -1369,7 +1369,7 @@ public class InvoiceServiceTests : ServiceTestFixtureBase<InvoiceService>
         // Act & Assert - Step 2: Send
         var sent = await _service.SendInvoiceAsync(1);
         // Note: SendInvoiceAsync might fail if invoice is not approved
-        
+
         // Act & Assert - Step 3: Mark as Paid
         var paid = await _service.MarkAsPaidAsync(1);
         paid.Should().NotBeNull();

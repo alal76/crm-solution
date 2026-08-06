@@ -14,7 +14,7 @@ namespace CRM.Tests.Validators
     /// <summary>
     /// Comprehensive unit tests for <see cref="WorkerControlStateValidator"/>.
     /// Tests validation of worker names and control states for background worker management.
-    /// 
+    ///
     /// Related: TODO-ARCH-013-004: Validate WorkerControlState values in API
     /// </summary>
     public class WorkerControlStateValidatorTests
@@ -35,7 +35,7 @@ namespace CRM.Tests.Validators
         public void Validate_ShouldNotThrow_WhenWorkerNameAndStateAreValid(string workerName, string state)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 WorkerControlStateValidator.Validate(workerName, state));
 
             Assert.Null(exception);
@@ -54,7 +54,7 @@ namespace CRM.Tests.Validators
             var validWorkerName = "RecurringBillingWorker";
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 WorkerControlStateValidator.Validate(validWorkerName, state));
 
             Assert.Null(exception);
@@ -74,7 +74,7 @@ namespace CRM.Tests.Validators
             var validState = "Running";
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 WorkerControlStateValidator.Validate(workerName, validState));
 
             Assert.Null(exception);
@@ -94,7 +94,7 @@ namespace CRM.Tests.Validators
             var validWorkerName = "RecurringBillingWorker";
 
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 WorkerControlStateValidator.Validate(validWorkerName, state));
 
             Assert.Null(exception);
@@ -114,7 +114,7 @@ namespace CRM.Tests.Validators
             var validState = "Running";
 
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 WorkerControlStateValidator.Validate(unknownWorker, validState));
 
             Assert.Contains("Unknown worker name", exception.Message);
@@ -136,7 +136,7 @@ namespace CRM.Tests.Validators
             var validWorkerName = "DunningWorker";
 
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 WorkerControlStateValidator.Validate(validWorkerName, invalidState));
 
             Assert.Contains("Unknown worker state", exception.Message);
@@ -154,7 +154,7 @@ namespace CRM.Tests.Validators
             var validState = "Running";
 
             // Act
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 WorkerControlStateValidator.Validate(unknownWorker, validState));
 
             // Assert - verify all known worker names are mentioned
@@ -176,7 +176,7 @@ namespace CRM.Tests.Validators
             var invalidState = "InvalidState";
 
             // Act
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 WorkerControlStateValidator.Validate(validWorkerName, invalidState));
 
             // Assert - verify all known states are mentioned
@@ -196,7 +196,7 @@ namespace CRM.Tests.Validators
             var invalidState = "InvalidState";
 
             // Act & Assert - expects worker name to be validated first
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 WorkerControlStateValidator.Validate(unknownWorker, invalidState));
 
             Assert.Contains("Unknown worker name", exception.Message);
@@ -216,7 +216,7 @@ namespace CRM.Tests.Validators
         public void ValidateState_ShouldNotThrow_WhenStateIsValid(string state)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 WorkerControlStateValidator.ValidateState(state));
 
             Assert.Null(exception);
@@ -233,7 +233,7 @@ namespace CRM.Tests.Validators
         public void ValidateState_ShouldBeCaseInsensitive(string state)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 WorkerControlStateValidator.ValidateState(state));
 
             Assert.Null(exception);
@@ -252,7 +252,7 @@ namespace CRM.Tests.Validators
         public void ValidateState_ShouldThrowValidationException_WhenStateIsInvalid(string invalidState)
         {
             // Act & Assert
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 WorkerControlStateValidator.ValidateState(invalidState));
 
             Assert.Contains("Unknown worker state", exception.Message);
@@ -269,7 +269,7 @@ namespace CRM.Tests.Validators
             var invalidState = "InvalidState";
 
             // Act
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 WorkerControlStateValidator.ValidateState(invalidState));
 
             // Assert
@@ -288,7 +288,7 @@ namespace CRM.Tests.Validators
             var invalidState = "InvalidState";
 
             // Act
-            var exception = Assert.Throws<ValidationException>(() => 
+            var exception = Assert.Throws<ValidationException>(() =>
                 WorkerControlStateValidator.ValidateState(invalidState));
 
             // Assert - should not contain worker names

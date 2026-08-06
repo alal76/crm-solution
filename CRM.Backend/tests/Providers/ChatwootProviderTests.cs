@@ -4,11 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+
 // Unit Tests: ChatwootProvider
 // HTTP Pattern: ChatwootProvider injects HttpClient, so tests use TestHttpMessageHandler
 // to intercept HTTP calls without making real network requests. The constructor sets
 // BaseAddress and headers on the injected HttpClient.
-//
 // Verified method signatures from source:
 //   ChatwootProvider(HttpClient, IOptions<ChatwootConfiguration>, ILogger<ChatwootProvider>)
 //   ProviderName → "Chatwoot"

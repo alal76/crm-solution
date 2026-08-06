@@ -49,12 +49,12 @@ public abstract class ServiceTestFixtureBase<TService> where TService : class
     {
         var queryable = data.AsQueryable();
         var mockSet = new Mock<DbSet<TEntity>>();
-        
+
         mockSet.As<IQueryable<TEntity>>().Setup(m => m.Provider).Returns(queryable.Provider);
         mockSet.As<IQueryable<TEntity>>().Setup(m => m.Expression).Returns(queryable.Expression);
         mockSet.As<IQueryable<TEntity>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
         mockSet.As<IQueryable<TEntity>>().Setup(m => m.GetEnumerator()).Returns(queryable.GetEnumerator());
-        
+
         return mockSet;
     }
 

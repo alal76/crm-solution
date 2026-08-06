@@ -36,7 +36,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenValid6DigitHex(string color)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Null(exception);
@@ -56,7 +56,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenValid3DigitHex(string color)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Null(exception);
@@ -74,7 +74,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenLowercaseHex(string color)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Null(exception);
@@ -92,7 +92,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenMixedCaseHex(string color)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Null(exception);
@@ -109,7 +109,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenHexWithWhitespace(string color)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Null(exception);
@@ -126,7 +126,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenNull()
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(null, "Test Color"));
 
             Assert.Null(exception);
@@ -142,7 +142,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenEmptyOrWhitespace(string color)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Null(exception);
@@ -163,7 +163,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenMissingHashPrefix(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -182,7 +182,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenInvalidLength(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -200,7 +200,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenNonHexCharacters(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -217,7 +217,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenSpecialCharacters(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -233,7 +233,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenRgbFormat(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -251,7 +251,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenColorName(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -272,7 +272,7 @@ namespace CRM.Tests.Validators
             var fieldName = "Primary Brand Color";
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(invalidColor, fieldName));
 
             Assert.Contains(fieldName, exception.Message);
@@ -289,7 +289,7 @@ namespace CRM.Tests.Validators
             var fieldName = "Background Color";
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(invalidColor, fieldName));
 
             Assert.Contains("#6750A4", exception.Message);
@@ -310,7 +310,7 @@ namespace CRM.Tests.Validators
             var invalidColor = "notahexcolor";
 
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(invalidColor, fieldName));
 
             Assert.Contains(fieldName, exception.Message);
@@ -330,7 +330,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenMultipleHashSymbols(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -345,7 +345,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenHashNotAtStart(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -361,7 +361,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenWhitespaceInside(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -377,7 +377,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_When8DigitHex(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -395,7 +395,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenCommonMaterialColors(string color)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Theme Color"));
 
             Assert.Null(exception);
@@ -410,7 +410,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenUrlEncoded(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -426,7 +426,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldThrow_WhenUnicodeCharacters(string color)
         {
             // Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => 
+            var exception = Assert.Throws<ArgumentException>(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Contains("Invalid", exception.Message);
@@ -443,7 +443,7 @@ namespace CRM.Tests.Validators
         public void ValidateHexColor_ShouldNotThrow_WhenBoundaryColors(string color)
         {
             // Act & Assert
-            var exception = Record.Exception(() => 
+            var exception = Record.Exception(() =>
                 ThemeColorValidator.ValidateHexColor(color, "Test Color"));
 
             Assert.Null(exception);

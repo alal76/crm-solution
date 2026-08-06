@@ -18,7 +18,7 @@ namespace CRM.Tests.Dtos
 {
     /// <summary>
     /// Validation tests for Contract DTOs.
-    /// 
+    ///
     /// IMPORTANT NOTE: The ContractDto classes (ContractDto, CreateContractDto, UpdateContractDto, etc.)
     /// currently do NOT have DataAnnotation validation attributes applied.
     /// These tests validate business logic constraints that SHOULD be enforced.
@@ -786,7 +786,7 @@ namespace CRM.Tests.Dtos
             var daysUntilExpiry = (dto.EndDate - DateTime.UtcNow).Days;
 
             // Assert
-            Assert.True(daysUntilExpiry > dto.RenewalNoticeDays, 
+            Assert.True(daysUntilExpiry > dto.RenewalNoticeDays,
                 "Should still have time to send renewal notice");
         }
 
@@ -803,7 +803,7 @@ namespace CRM.Tests.Dtos
             };
 
             // Act & Assert
-            Assert.True(dto.ActivatedDate > dto.SignedDate, 
+            Assert.True(dto.ActivatedDate > dto.SignedDate,
                 "Contract should be activated after signing");
         }
 

@@ -630,4 +630,3 @@ public class SubscriptionValidationTests : ServiceTestFixtureBase<SubscriptionSe
         property!.PropertyType.Should().Be(typeof(byte[]));
     }
 }
-
