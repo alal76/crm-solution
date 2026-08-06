@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 626,
-  "patch": 7,
+  "minor": 627,
+  "patch": 0,
   "lastUpdate": "2026-08-06",
-  "description": "docs: complete FIELD_GAP_REMEDIATION_PLAN.md re-audit -- 9 of 16 entities had real gaps (REV-DOC-003 closed)",
+  "description": "docs: sync MASTER_TODO_LIST.md with round-2 tech-debt-cleanup-aug2026 results -- 13 more items fixed, REV-DOC-003 closed",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
