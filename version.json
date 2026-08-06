@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 625,
-  "patch": 4,
+  "patch": 5,
   "lastUpdate": "2026-08-06",
-  "description": "feat(notifications): wire generic Slack/Teams services to real Incoming Webhooks (REV-STUB-009)",
+  "description": "feat(integrations): wire TwilioCallLoggingService to real Twilio Call resource API (REV-STUB-001)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
