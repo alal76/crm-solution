@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 626,
-  "patch": 5,
+  "patch": 6,
   "lastUpdate": "2026-08-06",
-  "description": "chore(di): register Slack/Teams/Twilio notification services in DI (REM-ORPHAN-005 partial)",
+  "description": "feat(admin): IntegrationsSettingsPage shows real provider health status (REV-FE-006)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

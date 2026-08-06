@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Card,
@@ -14,9 +14,9 @@ import {
 import {
   Hub as IntegrationsIcon,
   OpenInNew as ExternalLinkIcon,
-  CheckCircle as ActiveIcon,
   Settings as ConfigIcon,
 } from '@mui/icons-material';
+import { providerHealthService, ProviderHealthReport, HealthProviderCategory } from '../../services/providerHealthService';
 
 /**
  * IntegrationsSettingsPage - Manage integration platforms and connected services.
@@ -25,10 +25,55 @@ import {
  *   - Business Apps: Meilisearch, Ollama, Chatwoot, Novu, DocuSeal, Apache Superset
  *   - Stubbed cards: QuickBooks, Mailchimp, Calendly, LinkedIn
  *
+ * REV-FE-006: Status chips reflect real provider health from GET /api/health/providers
+ * instead of static placeholder labels.
  * Provider connection status is managed in Admin > Providers (ProvidersPage).
  * This page provides quick-access launch links and status summaries.
  */
 const IntegrationsSettingsPage: React.FC = () => {
+  const [healthReport, setHealthReport] = useState<ProviderHealthReport | null>(null);
+  const [healthLoading, setHealthLoading] = useState(true);
+  const [healthError, setHealthError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const report = await providerHealthService.getProviderHealth();
+        if (!cancelled) {
+          setHealthReport(report);
+        }
+      } catch {
+        if (!cancelled) {
+          setHealthError(true);
+        }
+      } finally {
+        if (!cancelled) {
+          setHealthLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const providerStatusLabel = (category: HealthProviderCategory, providerName: string): string => {
+    if (healthLoading) return 'Checking…';
+    if (healthError || !healthReport) return 'Status unavailable';
+    const status = healthReport.providers[category];
+    if (!status) return 'Status unavailable';
+    if (status.activeProvider?.toLowerCase() !== providerName.toLowerCase()) return 'Not active';
+    return status.isHealthy ? 'Healthy' : 'Unreachable';
+  };
+
+  const ProviderStatusChip: React.FC<{ category: HealthProviderCategory; providerName: string }> = ({ category, providerName }) => {
+    const label = providerStatusLabel(category, providerName);
+    const color: 'default' | 'success' | 'error' | 'warning' =
+      label === 'Healthy' ? 'success' : label === 'Unreachable' ? 'error' : label === 'Checking…' ? 'default' : 'warning';
+    return <Chip label={label} color={color} size="small" />;
+  };
+
   const hostname = window.location.hostname;
   // NOSONAR - S5332 - http:// URLs constructed from runtime hostname for local dev integration access
   const n8nUrl = process.env.REACT_APP_N8N_URL || `http://${hostname}:5678`;
@@ -71,7 +116,7 @@ const IntegrationsSettingsPage: React.FC = () => {
                   onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }}
                 />
                 <Typography variant="h6" sx={{ flexGrow: 1 }}>n8n (Self-Hosted)</Typography>
-                <Chip icon={<ActiveIcon />} label="Available" color="success" size="small" />
+                <ProviderStatusChip category="Integrations" providerName="n8n" />
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Open-source workflow automation. Connect the CRM to hundreds of apps with visual workflows.
@@ -97,7 +142,7 @@ const IntegrationsSettingsPage: React.FC = () => {
                   onError={(e: React.SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }}
                 />
                 <Typography variant="h6" sx={{ flexGrow: 1 }}>Zapier (Cloud)</Typography>
-                <Chip label="Optional" color="default" size="small" />
+                <ProviderStatusChip category="Integrations" providerName="Zapier" />
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Cloud automation platform. Connect the CRM via webhooks to thousands of apps.
@@ -125,7 +170,10 @@ const IntegrationsSettingsPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Full-text search engine. Provides instant, typo-tolerant search across all CRM records.
               </Typography>
-              <Chip label="Search Provider" size="small" color="primary" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ mb: 2 }}>
+                <Chip label="Search Provider" size="small" color="primary" variant="outlined" sx={{ mr: 1 }} />
+                <ProviderStatusChip category="Search" providerName="Meilisearch" />
+              </Box>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={meilisearchUrl} target="_blank" rel="noopener noreferrer">Open</Button>
                 <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
@@ -142,7 +190,10 @@ const IntegrationsSettingsPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Local LLM inference engine. Run AI models (Llama, Mistral, CodeLlama) privately on your infrastructure.
               </Typography>
-              <Chip label="AI Provider" size="small" color="secondary" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ mb: 2 }}>
+                <Chip label="AI Provider" size="small" color="secondary" variant="outlined" sx={{ mr: 1 }} />
+                <ProviderStatusChip category="AI" providerName="Ollama" />
+              </Box>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={ollamaUrl} target="_blank" rel="noopener noreferrer">Open</Button>
                 <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
@@ -159,7 +210,10 @@ const IntegrationsSettingsPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Customer messaging platform. Live chat, email, social inbox in one place.
               </Typography>
-              <Chip label="Chat Provider" size="small" color="info" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ mb: 2 }}>
+                <Chip label="Chat Provider" size="small" color="info" variant="outlined" sx={{ mr: 1 }} />
+                <ProviderStatusChip category="Chat" providerName="Chatwoot" />
+              </Box>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={chatwootUrl} target="_blank" rel="noopener noreferrer">Open</Button>
                 <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
@@ -176,7 +230,10 @@ const IntegrationsSettingsPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Multi-channel notification infrastructure. Send in-app, email, SMS, and push notifications.
               </Typography>
-              <Chip label="Notifications Provider" size="small" color="warning" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ mb: 2 }}>
+                <Chip label="Notifications Provider" size="small" color="warning" variant="outlined" sx={{ mr: 1 }} />
+                <ProviderStatusChip category="Notifications" providerName="Novu" />
+              </Box>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={novuUrl} target="_blank" rel="noopener noreferrer">Open</Button>
                 <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
@@ -193,7 +250,10 @@ const IntegrationsSettingsPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 E-signature workflows. Send contracts and documents for digital signatures.
               </Typography>
-              <Chip label="Signatures Provider" size="small" color="success" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ mb: 2 }}>
+                <Chip label="Signatures Provider" size="small" color="success" variant="outlined" sx={{ mr: 1 }} />
+                <ProviderStatusChip category="Signatures" providerName="DocuSeal" />
+              </Box>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={docusealUrl} target="_blank" rel="noopener noreferrer">Open</Button>
                 <Button variant="outlined" size="small" href="/admin/providers" component={Link}>Configure</Button>
@@ -210,7 +270,10 @@ const IntegrationsSettingsPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Business intelligence & data visualization. Interactive dashboards and SQL Lab.
               </Typography>
-              <Chip label="Analytics Provider" size="small" color="primary" variant="outlined" sx={{ mb: 2, mr: 1 }} />
+              <Box sx={{ mb: 2 }}>
+                <Chip label="Analytics Provider" size="small" color="primary" variant="outlined" sx={{ mr: 1 }} />
+                <ProviderStatusChip category="Analytics" providerName="Superset" />
+              </Box>
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" size="small" startIcon={<ExternalLinkIcon />} component={Link} href={supersetUrl} target="_blank" rel="noopener noreferrer">Open</Button>
                 <Button variant="outlined" size="small" href="/admin/analytics" component={Link}>Analytics Settings</Button>
