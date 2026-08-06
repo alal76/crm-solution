@@ -23,11 +23,15 @@ namespace CRM.Tests.Controllers;
 
 /// <summary>
 /// Unit tests for QuotesController.
-/// Uses an in-memory database since QuotesController directly accesses CrmDbContext.
-/// Tests quote lifecycle endpoints including CRUD, acceptance, and rejection.
+/// REM-TESTFAKE-001 / REM-ORPHAN-004: the controller now delegates its CRUD/lifecycle
+/// operations to IQuoteService, so these tests mock that interface (Moq Verify) rather than
+/// exercising a real DbContext directly. CrmDbContext/NormalizationService are still
+/// constructed (backed by an empty in-memory database) purely to satisfy the controller's
+/// constructor, since the quote line-item endpoints have no service layer yet.
 /// </summary>
 public class QuotesControllerTests : IDisposable
 {
+    private readonly Mock<IQuoteService> _mockQuoteService;
     private readonly CrmDbContext _context;
     private readonly Mock<ILogger<QuotesController>> _mockLogger;
     private readonly NormalizationService _normalizationService;
@@ -42,14 +46,16 @@ public class QuotesControllerTests : IDisposable
         var mockConfig = new Mock<IConfiguration>();
         _context = new CrmDbContext(options, mockConfig.Object);
         _normalizationService = new NormalizationService(_context);
+        _mockQuoteService = new Mock<IQuoteService>();
         _mockLogger = new Mock<ILogger<QuotesController>>();
         var mockPdfService = new Mock<IPdfGenerationService>();
-        _controller = new QuotesController(_context, _mockLogger.Object, _normalizationService, mockPdfService.Object);
+        _controller = new QuotesController(_mockQuoteService.Object, _context, _mockLogger.Object, _normalizationService, mockPdfService.Object);
     }
 
-    private static Quote CreateQuote(int accountId = 10, QuoteStatus status = QuoteStatus.Draft) => new()
+    private static Quote CreateQuote(int id = 1, int accountId = 10, QuoteStatus status = QuoteStatus.Draft) => new()
     {
-        QuoteNumber = $"Q-{DateTime.UtcNow.Year}-{new Random().Next(1, 99999):D5}",
+        Id = id,
+        QuoteNumber = $"Q-{DateTime.UtcNow.Year}-{id:D5}",
         Name = "Test Quote",
         Status = status,
         AccountId = accountId,
@@ -66,8 +72,8 @@ public class QuotesControllerTests : IDisposable
     public async Task GetQuotes_WithNoFilters_ReturnsOkWithAllQuotes()
     {
         // Arrange
-        _context.Quotes.AddRange(CreateQuote(), CreateQuote());
-        await _context.SaveChangesAsync();
+        _mockQuoteService.Setup(s => s.GetQuotesAsync(null, null, null, null))
+            .ReturnsAsync(new List<Quote> { CreateQuote(1), CreateQuote(2) });
 
         // Act
         var result = await _controller.GetQuotes();
@@ -79,11 +85,11 @@ public class QuotesControllerTests : IDisposable
     }
 
     [Fact]
-    public async Task GetQuotes_WithAccountIdFilter_ReturnsOnlyMatchingQuotes()
+    public async Task GetQuotes_WithAccountIdFilter_PassesFilterToService()
     {
         // Arrange
-        _context.Quotes.AddRange(CreateQuote(accountId: 10), CreateQuote(accountId: 20));
-        await _context.SaveChangesAsync();
+        _mockQuoteService.Setup(s => s.GetQuotesAsync(10, null, null, null))
+            .ReturnsAsync(new List<Quote> { CreateQuote(1, accountId: 10) });
 
         // Act
         var result = await _controller.GetQuotes(accountId: 10);
@@ -93,6 +99,7 @@ public class QuotesControllerTests : IDisposable
         var quotes = okResult.Value.Should().BeAssignableTo<IEnumerable<QuoteDto>>().Subject;
         quotes.Should().HaveCount(1);
         quotes.First().AccountId.Should().Be(10);
+        _mockQuoteService.Verify(s => s.GetQuotesAsync(10, null, null, null), Times.Once);
     }
 
     #endregion
@@ -103,23 +110,25 @@ public class QuotesControllerTests : IDisposable
     public async Task GetQuote_WithValidId_ReturnsOkWithQuoteDto()
     {
         // Arrange
-        var quote = CreateQuote();
-        _context.Quotes.Add(quote);
-        await _context.SaveChangesAsync();
+        var quote = CreateQuote(1);
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(quote);
 
         // Act
-        var result = await _controller.GetQuote(quote.Id);
+        var result = await _controller.GetQuote(1);
 
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var dto = okResult.Value.Should().BeOfType<QuoteDto>().Subject;
-        dto.Id.Should().Be(quote.Id);
+        dto.Id.Should().Be(1);
         dto.Title.Should().Be("Test Quote");
     }
 
     [Fact]
     public async Task GetQuote_WithNonExistentId_ReturnsNotFound()
     {
+        // Arrange
+        _mockQuoteService.Setup(s => s.GetByIdAsync(999)).ReturnsAsync((Quote?)null);
+
         // Act
         var result = await _controller.GetQuote(999);
 
@@ -135,10 +144,11 @@ public class QuotesControllerTests : IDisposable
     public async Task CreateQuote_WithValidQuote_ReturnsCreatedAtAction()
     {
         // Arrange
-        var quote = CreateQuote();
+        var created = CreateQuote(1);
+        _mockQuoteService.Setup(s => s.CreateAsync(It.IsAny<Quote>())).ReturnsAsync(created);
 
         // Act
-        var result = await _controller.CreateQuote(quote);
+        var result = await _controller.CreateQuote(new Quote { Name = "Test Quote", AccountId = 10, Subtotal = 1000m });
 
         // Assert
         var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
@@ -146,23 +156,87 @@ public class QuotesControllerTests : IDisposable
         createdResult.StatusCode.Should().Be(201);
         var dto = createdResult.Value.Should().BeOfType<QuoteDto>().Subject;
         dto.Title.Should().Be("Test Quote");
+        _mockQuoteService.Verify(s => s.CreateAsync(It.IsAny<Quote>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateQuote_WithoutQuoteNumber_GeneratesQuoteNumber()
+    public async Task CreateQuote_DelegatesQuoteNumberGeneration_ToService()
     {
-        // Arrange
-        var quote = CreateQuote();
-        quote.QuoteNumber = string.Empty; // Simulate missing quote number
+        // Arrange: the controller no longer generates quote numbers itself -
+        // IQuoteService.CreateAsync is responsible for that when QuoteNumber is empty.
+        var created = CreateQuote(1);
+        created.QuoteNumber = "Q2602-0001";
+        _mockQuoteService.Setup(s => s.CreateAsync(It.IsAny<Quote>())).ReturnsAsync(created);
 
         // Act
-        var result = await _controller.CreateQuote(quote);
+        var result = await _controller.CreateQuote(new Quote { Name = "Test Quote", AccountId = 10, QuoteNumber = string.Empty });
 
         // Assert
         var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
         var dto = createdResult.Value.Should().BeOfType<QuoteDto>().Subject;
-        dto.QuoteNumber.Should().NotBeNullOrEmpty();
-        dto.QuoteNumber.Should().StartWith($"Q-{DateTime.UtcNow.Year}-");
+        dto.QuoteNumber.Should().Be("Q2602-0001");
+    }
+
+    #endregion
+
+    #region UpdateQuote Tests
+
+    [Fact]
+    public async Task UpdateQuote_WithIdMismatch_ReturnsBadRequest()
+    {
+        var result = await _controller.UpdateQuote(1, new Quote { Id = 2 });
+
+        result.Should().BeOfType<BadRequestResult>();
+    }
+
+    [Fact]
+    public async Task UpdateQuote_OnAcceptedQuote_ReturnsBadRequest()
+    {
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Accepted));
+
+        var result = await _controller.UpdateQuote(1, new Quote { Id = 1 });
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _mockQuoteService.Verify(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<Quote>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateQuote_WithValidData_ReturnsNoContent()
+    {
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Draft));
+        _mockQuoteService.Setup(s => s.UpdateAsync(1, It.IsAny<Quote>())).ReturnsAsync(true);
+
+        var result = await _controller.UpdateQuote(1, new Quote { Id = 1, Name = "Updated" });
+
+        result.Should().BeOfType<NoContentResult>();
+        _mockQuoteService.Verify(s => s.UpdateAsync(1, It.Is<Quote>(q => q.Name == "Updated")), Times.Once);
+    }
+
+    #endregion
+
+    #region DeleteQuote Tests
+
+    [Fact]
+    public async Task DeleteQuote_OnDraftQuote_ReturnsNoContent()
+    {
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Draft));
+        _mockQuoteService.Setup(s => s.DeleteAsync(1)).ReturnsAsync(true);
+
+        var result = await _controller.DeleteQuote(1);
+
+        result.Should().BeOfType<NoContentResult>();
+        _mockQuoteService.Verify(s => s.DeleteAsync(1), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteQuote_OnNonDraftQuote_ReturnsBadRequest()
+    {
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Shared));
+
+        var result = await _controller.DeleteQuote(1);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+        _mockQuoteService.Verify(s => s.DeleteAsync(It.IsAny<int>()), Times.Never);
     }
 
     #endregion
@@ -173,12 +247,11 @@ public class QuotesControllerTests : IDisposable
     public async Task AcceptQuote_WithValidId_ReturnsOkWithAcceptedStatus()
     {
         // Arrange
-        var quote = CreateQuote(status: QuoteStatus.Shared);
-        _context.Quotes.Add(quote);
-        await _context.SaveChangesAsync();
+        _mockQuoteService.Setup(s => s.AcceptAsync(1)).ReturnsAsync(true);
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Accepted));
 
         // Act
-        var result = await _controller.AcceptQuote(quote.Id, null);
+        var result = await _controller.AcceptQuote(1, null);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -189,11 +262,30 @@ public class QuotesControllerTests : IDisposable
     [Fact]
     public async Task AcceptQuote_WithNonExistentId_ReturnsNotFound()
     {
+        // Arrange
+        _mockQuoteService.Setup(s => s.AcceptAsync(999)).ReturnsAsync(false);
+
         // Act
         var result = await _controller.AcceptQuote(999, null);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task AcceptQuote_WithSignatureRequest_CallsUpdateAsync()
+    {
+        // Arrange
+        _mockQuoteService.Setup(s => s.AcceptAsync(1)).ReturnsAsync(true);
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Accepted));
+        _mockQuoteService.Setup(s => s.UpdateAsync(1, It.IsAny<Quote>())).ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.AcceptQuote(1, new AcceptQuoteRequest { IsSigned = true, SignedBy = "Jane Doe" });
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+        _mockQuoteService.Verify(s => s.UpdateAsync(1, It.Is<Quote>(q => q.IsSigned && q.SignedBy == "Jane Doe")), Times.Once);
     }
 
     #endregion
@@ -204,29 +296,103 @@ public class QuotesControllerTests : IDisposable
     public async Task RejectQuote_WithValidId_ReturnsOkWithRejectedStatus()
     {
         // Arrange
-        var quote = CreateQuote(status: QuoteStatus.Shared);
-        _context.Quotes.Add(quote);
-        await _context.SaveChangesAsync();
+        _mockQuoteService.Setup(s => s.RejectAsync(1, "Price too high")).ReturnsAsync(true);
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Rejected));
 
         var request = new RejectQuoteRequest { Reason = "Price too high" };
 
         // Act
-        var result = await _controller.RejectQuote(quote.Id, request);
+        var result = await _controller.RejectQuote(1, request);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var dto = okResult.Value.Should().BeOfType<QuoteDto>().Subject;
         dto.Status.Should().Be((int)QuoteStatus.Rejected);
+        _mockQuoteService.Verify(s => s.RejectAsync(1, "Price too high"), Times.Once);
     }
 
     [Fact]
     public async Task RejectQuote_WithNonExistentId_ReturnsNotFound()
     {
+        // Arrange
+        _mockQuoteService.Setup(s => s.RejectAsync(999, null)).ReturnsAsync(false);
+
         // Act
         var result = await _controller.RejectQuote(999, null);
 
         // Assert
         result.Should().BeOfType<NotFoundResult>();
+    }
+
+    #endregion
+
+    #region SendQuote / MarkViewed / CreateRevision Tests
+
+    [Fact]
+    public async Task SendQuote_WithValidId_ReturnsOk_AndCallsSendAsync()
+    {
+        _mockQuoteService.Setup(s => s.SendAsync(1)).ReturnsAsync(true);
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Shared));
+
+        var result = await _controller.SendQuote(1);
+
+        result.Should().BeOfType<OkObjectResult>();
+        _mockQuoteService.Verify(s => s.SendAsync(1), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendQuote_WithNonExistentId_ReturnsNotFound()
+    {
+        _mockQuoteService.Setup(s => s.SendAsync(999)).ReturnsAsync(false);
+
+        var result = await _controller.SendQuote(999);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task MarkViewed_WithValidId_ReturnsOk()
+    {
+        _mockQuoteService.Setup(s => s.MarkViewedAsync(1)).ReturnsAsync(CreateQuote(1, status: QuoteStatus.Viewed));
+
+        var result = await _controller.MarkViewed(1);
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = okResult.Value.Should().BeOfType<QuoteDto>().Subject;
+        dto.Status.Should().Be((int)QuoteStatus.Viewed);
+    }
+
+    [Fact]
+    public async Task MarkViewed_WithNonExistentId_ReturnsNotFound()
+    {
+        _mockQuoteService.Setup(s => s.MarkViewedAsync(999)).ReturnsAsync((Quote?)null);
+
+        var result = await _controller.MarkViewed(999);
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task CreateRevision_WithValidId_ReturnsCreatedAtAction()
+    {
+        _mockQuoteService.Setup(s => s.CreateRevisionAsync(1)).ReturnsAsync(CreateQuote(2, status: QuoteStatus.Draft));
+
+        var result = await _controller.CreateRevision(1);
+
+        var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
+        createdResult.ActionName.Should().Be(nameof(QuotesController.GetQuote));
+        _mockQuoteService.Verify(s => s.CreateRevisionAsync(1), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateRevision_WithNonExistentId_ReturnsNotFound()
+    {
+        _mockQuoteService.Setup(s => s.CreateRevisionAsync(999))
+            .ThrowsAsync(new InvalidOperationException("Quote with ID 999 not found"));
+
+        var result = await _controller.CreateRevision(999);
+
+        result.Result.Should().BeOfType<NotFoundResult>();
     }
 
     #endregion

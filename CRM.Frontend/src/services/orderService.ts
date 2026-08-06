@@ -1,22 +1,12 @@
 import apiClient from './apiClient';
+import { OrderStatus } from '../types/sales';
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
-export enum OrderStatus {
-  Draft = 0,
-  PendingApproval = 1,
-  Approved = 2,
-  Processing = 3,
-  PartiallyFulfilled = 4,
-  Fulfilled = 5,
-  Delivered = 6,
-  Completed = 7,
-  Cancelled = 8,
-  Returned = 9,
-  Refunded = 10,
-  OnHold = 11,
-  ActionRequired = 12,
-}
+// OrderStatus is the single source of truth (types/sales.ts), matching
+// backend CRM.Core.Entities.OrderStatus. Re-exported here so existing
+// imports from this service keep working.
+export { OrderStatus };
 
 // ─── Interfaces ──────────────────────────────────────────────────────────────
 

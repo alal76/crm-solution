@@ -88,7 +88,7 @@ export const ContractDetailsPage: React.FC = () => {
         setLoading(true);
         const response = await contractService.getById(Number.parseInt(id, 10));
         setContract(response.data);
-        setRenewalValue(response.data.value || 0);
+        setRenewalValue(response.data.totalValue || 0);
         
         // Load documents
         try {
@@ -112,10 +112,13 @@ export const ContractDetailsPage: React.FC = () => {
 
   const handleRenewContract = async () => {
     if (!contract) return;
-    
+
     try {
       setSubmitting(true);
-      await contractService.renew(contract.id, renewalMonths, renewalValue);
+      const newStartDate = contract.endDate;
+      const newEndDate = new Date(contract.endDate);
+      newEndDate.setMonth(newEndDate.getMonth() + renewalMonths);
+      await contractService.renew(contract.id, newStartDate, newEndDate.toISOString(), renewalValue);
       setRenewDialogOpen(false);
       // Reload contract
       const response = await contractService.getById(contract.id);
@@ -264,16 +267,16 @@ export const ContractDetailsPage: React.FC = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
           <Box>
             <Typography variant="h4" gutterBottom>
-              {contract.title || `Contract ${contract.contractNumber}`}
+              {contract.name || `Contract ${contract.contractNumber}`}
             </Typography>
             <Typography color="textSecondary" gutterBottom>
-              Account: {contract.account?.company || contract.accountId}
+              Account: {contract.accountName || contract.accountId}
             </Typography>
           </Box>
           <Stack direction="row" spacing={1} alignItems="center">
             <Chip
-              label={getStatusLabel(contract.contractStatus)}
-              color={getStatusColor(contract.contractStatus)}
+              label={getStatusLabel(contract.status)}
+              color={getStatusColor(contract.status)}
               variant="outlined"
             />
             <Chip
@@ -335,7 +338,7 @@ export const ContractDetailsPage: React.FC = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body2" color="textSecondary">Value</Typography>
-                  <Typography variant="h6" color="primary">{formatCurrency(contract.value)}</Typography>
+                  <Typography variant="h6" color="primary">{formatCurrency(contract.totalValue)}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body2" color="textSecondary">Billing Frequency</Typography>
@@ -375,20 +378,16 @@ export const ContractDetailsPage: React.FC = () => {
                     </Grid>
                   </>
                 )}
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">Termination Notice (Days)</Typography>
-                  <Typography variant="body1">{contract.terminationNoticeDays || 'N/A'}</Typography>
-                </Grid>
                 <Grid item xs={12}>
                   <Typography variant="body2" color="textSecondary">Contract Terms</Typography>
                   <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                    {contract.terms || 'Standard terms and conditions apply'}
+                    {contract.termsAndConditions || 'Standard terms and conditions apply'}
                   </Typography>
                 </Grid>
-                {contract.notes && (
+                {contract.specialConditions && (
                   <Grid item xs={12}>
-                    <Typography variant="body2" color="textSecondary">Notes</Typography>
-                    <Typography variant="body1">{contract.notes}</Typography>
+                    <Typography variant="body2" color="textSecondary">Special Conditions</Typography>
+                    <Typography variant="body1">{contract.specialConditions}</Typography>
                   </Grid>
                 )}
               </Grid>
@@ -435,8 +434,8 @@ export const ContractDetailsPage: React.FC = () => {
                 <Box>
                   <Typography variant="body2" color="textSecondary">Current Status</Typography>
                   <Chip
-                    label={getStatusLabel(contract.contractStatus)}
-                    color={getStatusColor(contract.contractStatus)}
+                    label={getStatusLabel(contract.status)}
+                    color={getStatusColor(contract.status)}
                     sx={{ mt: 1 }}
                   />
                 </Box>
@@ -484,7 +483,7 @@ export const ContractDetailsPage: React.FC = () => {
                 >
                   Print
                 </Button>
-                {contract.contractStatus === ContractStatus.PendingApproval && (
+                {contract.status === ContractStatus.PendingApproval && (
                   <Button
                     variant="contained"
                     color="success"
@@ -496,7 +495,7 @@ export const ContractDetailsPage: React.FC = () => {
                     Approve Contract
                   </Button>
                 )}
-                {contract.contractStatus === ContractStatus.Approved && (
+                {contract.status === ContractStatus.Approved && (
                   <Button
                     variant="contained"
                     color="primary"
@@ -508,8 +507,8 @@ export const ContractDetailsPage: React.FC = () => {
                     Activate Contract
                   </Button>
                 )}
-                {(contract.contractStatus === ContractStatus.Active || 
-                  contract.contractStatus === ContractStatus.Expired) && (
+                {(contract.status === ContractStatus.Active || 
+                  contract.status === ContractStatus.Expired) && (
                   <Button
                     variant="contained"
                     color="primary"
@@ -520,7 +519,7 @@ export const ContractDetailsPage: React.FC = () => {
                     Renew Contract
                   </Button>
                 )}
-                {contract.contractStatus === ContractStatus.Active && (
+                {contract.status === ContractStatus.Active && (
                   <Button
                     variant="outlined"
                     color="error"
@@ -551,12 +550,12 @@ export const ContractDetailsPage: React.FC = () => {
               <Stack spacing={2}>
                 <Box>
                   <Typography variant="body2" color="textSecondary">Account</Typography>
-                  <Typography variant="body1">{contract.account?.company || 'N/A'}</Typography>
+                  <Typography variant="body1">{contract.accountName || 'N/A'}</Typography>
                 </Box>
                 {contract.contactId && (
                   <Box>
                     <Typography variant="body2" color="textSecondary">Contact</Typography>
-                    <Typography variant="body1">{contract.contactId}</Typography>
+                    <Typography variant="body1">{contract.contactName || contract.contactId}</Typography>
                   </Box>
                 )}
                 {contract.parentContractId && (
@@ -568,18 +567,6 @@ export const ContractDetailsPage: React.FC = () => {
                       onClick={() => navigate(`/contracts/${contract.parentContractId}`)}
                     >
                       View Parent
-                    </Button>
-                  </Box>
-                )}
-                {contract.originalContractId && (
-                  <Box>
-                    <Typography variant="body2" color="textSecondary">Original Contract</Typography>
-                    <Button
-                      size="small"
-                      startIcon={<LinkIcon />}
-                      onClick={() => navigate(`/contracts/${contract.originalContractId}`)}
-                    >
-                      View Original
                     </Button>
                   </Box>
                 )}

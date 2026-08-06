@@ -25,20 +25,20 @@ describe('QuoteStatus mappings', () => {
 });
 
 describe('OrderStatus numeric enum completeness', () => {
-  it('contains every status defined in the numeric enum', () => {
+  it('contains every status defined in the numeric enum, matching backend CRM.Core.Entities.OrderStatus', () => {
     // compile-time presence check against actual numeric enum
     expect(OrderStatus.Draft).toBe(0);
-    expect(OrderStatus.Submitted).toBe(1);
-    expect(OrderStatus.Pending).toBe(2);
+    expect(OrderStatus.PendingApproval).toBe(1);
+    expect(OrderStatus.Approved).toBe(2);
     expect(OrderStatus.Processing).toBe(3);
-    expect(OrderStatus.Approved).toBe(4);
-    expect(OrderStatus.OnHold).toBe(5);
-    expect(OrderStatus.Shipped).toBe(6);
-    expect(OrderStatus.Delivered).toBe(7);
-    expect(OrderStatus.Completed).toBe(8);
-    expect(OrderStatus.Cancelled).toBe(9);
+    expect(OrderStatus.PartiallyFulfilled).toBe(4);
+    expect(OrderStatus.Fulfilled).toBe(5);
+    expect(OrderStatus.Delivered).toBe(6);
+    expect(OrderStatus.Completed).toBe(7);
+    expect(OrderStatus.Cancelled).toBe(8);
+    expect(OrderStatus.Returned).toBe(9);
     expect(OrderStatus.Refunded).toBe(10);
-    expect(OrderStatus.Returned).toBe(11);
+    expect(OrderStatus.OnHold).toBe(11);
     expect(OrderStatus.ActionRequired).toBe(12);
   });
 });

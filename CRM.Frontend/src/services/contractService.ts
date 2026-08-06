@@ -4,67 +4,18 @@
  * Endpoints map to CRM.Api/Controllers/ContractsController.cs
  */
 import apiClient from './apiClient';
+import { Contract, ContractStatus, ContractType } from '../types/sales';
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export enum ContractStatus {
-  Draft = 0,
-  PendingApproval = 1,
-  Approved = 2,
-  Active = 3,
-  Expired = 4,
-  Terminated = 5,
-  Renewed = 6,
-  OnHold = 7,
-}
-
-export enum ContractType {
-  Service = 0,
-  License = 1,
-  Subscription = 2,
-  Support = 3,
-  Maintenance = 4,
-  NDA = 5,
-  Master = 6,
-  Amendment = 7,
-  Other = 8,
-}
-
-export interface Contract {
-  id: number;
-  contractNumber?: string;
-  title?: string;
-  description?: string;
-  accountId: number;
-  account?: { id: number; company?: string; email?: string };
-  contactId?: number;
-  contractType: ContractType;
-  contractStatus: ContractStatus;
-  startDate?: string;
-  endDate?: string;
-  value?: number;
-  currency?: string;
-  billingFrequency?: string;
-  paymentTerms?: string;
-  autoRenew?: boolean;
-  renewalTermMonths?: number;
-  renewalNoticeDays?: number;
-  terminationNoticeDays?: number;
-  parentContractId?: number;
-  originalContractId?: number;
-  signedDate?: string;
-  signedBy?: string;
-  isSigned?: boolean;
-  isExpiringSoon?: boolean;
-  daysUntilExpiration?: number;
-  notes?: string;
-  terms?: string;
-  ownerId?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
+// Contract, ContractStatus and ContractType are the single source of truth
+// (types/sales.ts), kept in sync with backend CRM.Core.Dtos.ContractDto and
+// CRM.Core.Entities.ContractStatus / ContractType. Re-exported here so
+// existing imports from this service keep working.
+export { ContractStatus, ContractType };
+export type { Contract };
 
 export interface ContractCreateRequest {
   title: string;
@@ -241,8 +192,9 @@ const contractService = {
     apiClient.post<Contract>(`/contracts/${id}/expire`, {}),
 
   // Renewal
-  renew: (id: number, newTermMonths?: number, newValue?: number) =>
-    apiClient.post<Contract>(`/contracts/${id}/renew`, { newTermMonths, newValue }),
+  // Field names must match backend RenewContractRequest (NewStartDate/NewEndDate/NewValue).
+  renew: (id: number, newStartDate?: string, newEndDate?: string, newValue?: number) =>
+    apiClient.post<Contract>(`/contracts/${id}/renew`, { newStartDate, newEndDate, newValue }),
 
   getDueForRenewal: (withinDays: number = 30) =>
     apiClient.get<Contract[]>(`/contracts/due-for-renewal?withinDays=${withinDays}`),
@@ -259,10 +211,10 @@ const contractService = {
 
   // Signatures
   sendForSignature: (id: number, signers: ContractSigner[]) =>
-    apiClient.post<{ success: boolean }>(`/contracts/${id}/signature`, { signers }),
+    apiClient.post<{ success: boolean }>(`/contracts/${id}/send-for-signature`, { signers }),
 
   getSignatureStatus: (id: number) =>
-    apiClient.get<ContractSignatureStatus>(`/contracts/${id}/signature`),
+    apiClient.get<ContractSignatureStatus>(`/contracts/${id}/signature-status`),
 
   // Documents
   getDocuments: (id: number) =>

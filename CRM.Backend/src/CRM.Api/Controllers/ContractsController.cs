@@ -385,7 +385,12 @@ public class ContractsController : CrmControllerBase
             return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
         }
 
-        var renewed = await _contractService.InitiateRenewalAsync(id, cancellationToken);
+        var renewed = await _contractService.InitiateRenewalAsync(
+            id,
+            request?.NewStartDate,
+            request?.NewEndDate,
+            request?.NewValue,
+            cancellationToken);
         _logger.LogInformation("Contract {ContractId} renewal initiated, new contract {NewContractId}", id, renewed.Id);
 
         return Ok(MapToDto(renewed));

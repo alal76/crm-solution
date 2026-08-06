@@ -334,7 +334,12 @@ public class ContractService : IContractService
 
     #region Renewal
 
-    public async Task<Contract> InitiateRenewalAsync(int contractId, CancellationToken cancellationToken = default)
+    public async Task<Contract> InitiateRenewalAsync(
+        int contractId,
+        DateTime? newStartDate = null,
+        DateTime? newEndDate = null,
+        decimal? newValue = null,
+        CancellationToken cancellationToken = default)
     {
         var contract = await GetByIdAsync(contractId, cancellationToken);
         if (contract == null)
@@ -343,6 +348,22 @@ public class ContractService : IContractService
         }
 
         contract.RenewalInitiatedAt = DateTime.UtcNow;
+
+        // Apply the requested renewal terms, if provided, to the contract being renewed.
+        if (newStartDate.HasValue)
+        {
+            contract.StartDate = newStartDate.Value;
+        }
+
+        if (newEndDate.HasValue)
+        {
+            contract.EndDate = newEndDate.Value;
+        }
+
+        if (newValue.HasValue)
+        {
+            contract.Value = newValue.Value;
+        }
 
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);

@@ -76,8 +76,13 @@ public interface IContractService
 
     #region Renewal
 
-    /// <summary>Initiates contract renewal process.</summary>
-    Task<Contract> InitiateRenewalAsync(int contractId, CancellationToken cancellationToken = default);
+    /// <summary>Initiates contract renewal process, optionally applying new terms (dates/value) for the renewed period.</summary>
+    Task<Contract> InitiateRenewalAsync(
+        int contractId,
+        DateTime? newStartDate = null,
+        DateTime? newEndDate = null,
+        decimal? newValue = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>Completes contract renewal.</summary>
     Task<Contract> CompleteRenewalAsync(int contractId, int newContractId, CancellationToken cancellationToken = default);

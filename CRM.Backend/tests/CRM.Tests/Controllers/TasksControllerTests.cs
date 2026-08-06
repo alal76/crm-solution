@@ -26,7 +26,9 @@ namespace CRM.Tests.Controllers;
 
 /// <summary>
 /// Unit tests for TasksController (TCOV2-D05).
-/// TasksController uses CrmDbContext directly, so EF InMemory is used.
+/// TasksController delegates CRUD to ITaskService (a real TaskService instance backed by the
+/// same EF InMemory CrmDbContext, so seeding data directly into _dbContext is visible through
+/// the service layer); only GetMyQueue still queries CrmDbContext directly for its richer joins.
 /// NormalizationService (constructor-arg) is created with a mock ICrmDbContext.
 /// [Authorize] attribute present; not exercised here.
 /// </summary>
@@ -46,8 +48,10 @@ public class TasksControllerTests : IDisposable
         var mockCrmDb = new Mock<ICrmDbContext>();
         var normalization = new NormalizationService(mockCrmDb.Object);
         var logger = new Mock<ILogger<TasksController>>();
+        var taskServiceLogger = new Mock<ILogger<TaskService>>();
+        var taskService = new TaskService(_dbContext, taskServiceLogger.Object);
 
-        _controller = new TasksController(_dbContext, logger.Object, normalization);
+        _controller = new TasksController(taskService, _dbContext, logger.Object, normalization);
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
@@ -182,5 +186,43 @@ public class TasksControllerTests : IDisposable
         dto.EstimatedMinutes.Should().BeNull();
         dto.AccountId.Should().BeNull();
         dto.OpportunityId.Should().BeNull();
+    }
+
+    // ── DeleteTask — soft-delete regression (REM-BUG-010) ──────────────────────
+    // Prior to this fix, DeleteTask hard-removed the row via _context.CrmTasks.Remove(task),
+    // disagreeing with TaskService's soft-delete convention used everywhere else in the app.
+
+    [Fact]
+    public async Task DeleteTask_ShouldSoftDelete_NotHardDeleteRow()
+    {
+        // Arrange
+        var task = MakeTask();
+        _dbContext.CrmTasks.Add(task);
+        await _dbContext.SaveChangesAsync();
+        var taskId = task.Id;
+
+        // Act
+        var result = await _controller.DeleteTask(taskId);
+
+        // Assert
+        result.Should().BeOfType<NoContentResult>();
+
+        var rowStillExists = await _dbContext.CrmTasks
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(t => t.Id == taskId);
+        rowStillExists.Should().NotBeNull("delete must be a soft-delete, not a hard row removal");
+        rowStillExists!.IsDeleted.Should().BeTrue();
+
+        // And it should no longer be visible through the normal (non-deleted) query path.
+        var getResult = await _controller.GetTask(taskId);
+        getResult.Result.Should().BeOfType<NotFoundResult>();
+    }
+
+    [Fact]
+    public async Task DeleteTask_ShouldReturnNotFound_WhenTaskDoesNotExist()
+    {
+        var result = await _controller.DeleteTask(9999);
+
+        result.Should().BeOfType<NotFoundResult>();
     }
 }

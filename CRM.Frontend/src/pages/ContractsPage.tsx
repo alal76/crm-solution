@@ -7,14 +7,13 @@
 import { useState, useEffect } from 'react';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell,
-  TableHead, TableRow, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  TableHead, TableRow, TablePagination, Button, Dialog, DialogContent, DialogActions,
   MenuItem, Stack, Chip, IconButton, Tooltip, CircularProgress,
   Alert, FormControl, InputLabel, Select,
   SelectChangeEvent,
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
-  Download as DownloadIcon, Upload as UploadIcon,
   Refresh as RefreshIcon,
   Warning as WarningIcon,
   Print as PrintIcon, Link as LinkIcon, Note as NoteIcon,
@@ -28,62 +27,11 @@ import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
 import logo from '../assets/logo.png';
+import { Contract, ContractStatus, ContractType } from '../types/sales';
 
 // ==================== TYPES ====================
-
-enum ContractStatus {
-  Draft = 0,
-  PendingApproval = 1,
-  Approved = 2,
-  Active = 3,
-  Expired = 4,
-  Terminated = 5,
-  Renewed = 6,
-  OnHold = 7,
-}
-
-enum ContractType {
-  Service = 0,
-  License = 1,
-  Subscription = 2,
-  Support = 3,
-  Maintenance = 4,
-  NDA = 5,
-  Master = 6,
-  Amendment = 7,
-  Other = 8,
-}
-
-interface Contract {
-  id: number;
-  contractNumber: string;
-  name: string;
-  description?: string;
-  status: ContractStatus;
-  contractType: ContractType;
-  accountId: number;
-  accountName?: string;
-  contactId?: number;
-  contactName?: string;
-  ownerId?: number;
-  ownerName?: string;
-  startDate: string;
-  endDate: string;
-  signedDate?: string;
-  value: number;
-  billingFrequency?: string;
-  autoRenew: boolean;
-  renewalNoticeDays: number;
-  terms?: string;
-  specialConditions?: string;
-  contractFileUrl?: string;
-  contractFileName?: string;
-  parentContractId?: number;
-  opportunityId?: number;
-  quoteId?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
+// Contract, ContractStatus and ContractType are imported from types/sales.ts
+// (the single source of truth, matching backend CRM.Core.Dtos.ContractDto).
 
 interface ContractForm {
   name: string;
@@ -195,9 +143,6 @@ function ContractsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
   const [filterStatus, setFilterStatus] = useState<ContractStatus | 'all'>('all');
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [uploadContractId, setUploadContractId] = useState<number | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const emptyForm: ContractForm = {
     name: '',
@@ -281,11 +226,11 @@ function ContractsPage() {
         startDate: contract.startDate?.split('T')[0] || '',
         endDate: contract.endDate?.split('T')[0] || '',
         signedDate: contract.signedDate?.split('T')[0] || '',
-        value: contract.value,
+        value: contract.totalValue,
         billingFrequency: contract.billingFrequency || 'annual',
         autoRenew: contract.autoRenew,
-        renewalNoticeDays: contract.renewalNoticeDays,
-        terms: contract.terms || '',
+        renewalNoticeDays: contract.renewalNoticeDays ?? 30,
+        terms: contract.termsAndConditions || '',
         specialConditions: contract.specialConditions || '',
         parentContractId: contract.parentContractId || null,
         opportunityId: contract.opportunityId || null,
@@ -369,54 +314,13 @@ function ContractsPage() {
   };
 
   // ==================== FILE OPERATIONS ====================
-
-  const handleOpenUploadDialog = (contractId: number) => {
-    setUploadContractId(contractId);
-    setSelectedFile(null);
-    setUploadDialogOpen(true);
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
-
-  const handleUploadFile = async () => {
-    if (!selectedFile || !uploadContractId) return;
-
-    try {
-      const formDataUpload = new FormData();
-      formDataUpload.append('file', selectedFile);
-      await apiClient.post(`/contracts/${uploadContractId}/upload`, formDataUpload, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setSuccessMessage('Contract file uploaded successfully');
-      setUploadDialogOpen(false);
-      fetchContracts();
-      setTimeout(() => setSuccessMessage(null), 3000);
-    } catch (err: unknown) {
-      setError((err as any).response?.data?.message || 'Failed to upload file');
-    }
-  };
-
-  const handleDownloadFile = async (contract: Contract) => {
-    if (!contract.contractFileUrl) return;
-    try {
-      const response = await apiClient.get(`/contracts/${contract.id}/download`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = contract.contractFileName || `contract-${contract.contractNumber}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err: unknown) {
-      setError('Failed to download file');
-    }
-  };
+  // NOTE: Contract file upload/download UI was removed because the backend
+  // has no `/contracts/{id}/upload` or `/contracts/{id}/download` endpoints
+  // (only `/contracts/{id}/pdf` for generated PDFs and `/contracts/{id}/documents`
+  // for reading previously stored documents exist). There is no generic
+  // document/attachment upload endpoint elsewhere in the codebase to reuse.
+  // Re-add this UI once a backend endpoint for storing/retrieving an uploaded
+  // contract file exists.
 
   // ==================== PDF PRINT ====================
 
@@ -471,7 +375,7 @@ function ContractsPage() {
           <div class="field"><span class="label">Type:</span><span class="value">${getTypeLabel(contract.contractType)}</span></div>
           <div class="field"><span class="label">Account:</span><span class="value">${contract.accountName || '-'}</span></div>
           <div class="field"><span class="label">Contact:</span><span class="value">${contract.contactName || '-'}</span></div>
-          <div class="field"><span class="label">Value:</span><span class="value">${formatCurrency(contract.value)}</span></div>
+          <div class="field"><span class="label">Value:</span><span class="value">${formatCurrency(contract.totalValue)}</span></div>
           <div class="field"><span class="label">Billing:</span><span class="value">${contract.billingFrequency || '-'}</span></div>
         </div>
         
@@ -483,10 +387,10 @@ function ContractsPage() {
           <div class="field"><span class="label">Auto Renew:</span><span class="value">${contract.autoRenew ? 'Yes' : 'No'}</span></div>
         </div>
         
-        ${contract.terms ? `
+        ${contract.termsAndConditions ? `
         <div class="section">
           <div class="section-title">Terms & Conditions</div>
-          <div class="terms">${contract.terms}</div>
+          <div class="terms">${contract.termsAndConditions}</div>
         </div>
         ` : ''}
         
@@ -580,14 +484,13 @@ function ContractsPage() {
                   <TableCell>Status</TableCell>
                   <TableCell align="right">Value</TableCell>
                   <TableCell>End Date</TableCell>
-                  <TableCell align="center">File</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredContracts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} sx={{ border: 0 }}>
+                    <TableCell colSpan={8} sx={{ border: 0 }}>
                       <EnhancedEmptyState
                         illustration="contracts"
                         title="No contracts yet"
@@ -621,7 +524,7 @@ function ContractsPage() {
                             color={statusInfo.color}
                           />
                         </TableCell>
-                        <TableCell align="right">{formatCurrency(contract.value)}</TableCell>
+                        <TableCell align="right">{formatCurrency(contract.totalValue)}</TableCell>
                         <TableCell>
                           <Box>
                             {formatDate(contract.endDate)}
@@ -631,21 +534,6 @@ function ContractsPage() {
                               </Typography>
                             )}
                           </Box>
-                        </TableCell>
-                        <TableCell align="center">
-                          {contract.contractFileUrl ? (
-                            <Tooltip title="Download">
-                              <IconButton size="small" onClick={() => handleDownloadFile(contract)}>
-                                <DownloadIcon />
-                              </IconButton>
-                            </Tooltip>
-                          ) : (
-                            <Tooltip title="Upload File">
-                              <IconButton size="small" onClick={() => handleOpenUploadDialog(contract.id)}>
-                                <UploadIcon />
-                              </IconButton>
-                            </Tooltip>
-                          )}
                         </TableCell>
                         <TableCell align="right">
                           <Tooltip title="Edit">
@@ -754,32 +642,6 @@ function ContractsPage() {
           >
             {editingId ? 'Update Contract' : 'Create Contract'}
           </ActionButton>
-        </DialogActions>
-      </Dialog>
-
-      {/* Upload Dialog */}
-      <Dialog open={uploadDialogOpen} onClose={() => setUploadDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Upload Contract File</DialogTitle>
-        <DialogContent>
-          <Box py={2}>
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={handleFileSelect}
-              style={{ marginBottom: 16 }}
-            />
-            {selectedFile && (
-              <Typography variant="body2" color="text.secondary">
-                Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(1)} KB)
-              </Typography>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={handleUploadFile} disabled={!selectedFile}>
-            Upload
-          </Button>
         </DialogActions>
       </Dialog>
     </Container>

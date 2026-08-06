@@ -58,6 +58,12 @@ public interface IQuoteService
     Task<bool> SendAsync(int id);
 
     /// <summary>
+    /// Mark a quote as viewed by the account. No-op (but still returns the quote) if the
+    /// quote is not currently in the Shared status. Returns null if the quote is not found.
+    /// </summary>
+    Task<Quote?> MarkViewedAsync(int id);
+
+    /// <summary>
     /// Accept a quote
     /// </summary>
     Task<bool> AcceptAsync(int id);

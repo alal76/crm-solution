@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -18,7 +19,10 @@ using CRM.Api.Infrastructure;
 namespace CRM.Api.Controllers;
 
 /// <summary>
-/// API endpoints for managing quotes and quote line items
+/// API endpoints for managing quotes and quote line items.
+/// CRUD/lifecycle operations delegate to <see cref="IQuoteService"/>. Quote line item
+/// management still accesses <see cref="CrmDbContext"/> directly because no line-item
+/// service exists yet (REM-ORPHAN-004 covers only the quote-level CRUD/lifecycle wiring).
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -26,6 +30,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class QuotesController : CrmControllerBase
 {
+    private readonly IQuoteService _quoteService;
     private readonly CrmDbContext _context;
     private readonly ILogger<QuotesController> _logger;
     private readonly NormalizationService _normalization;
@@ -34,11 +39,13 @@ public class QuotesController : CrmControllerBase
     private const string QuoteEntityName = "Quote";
 
     public QuotesController(
+        IQuoteService quoteService,
         CrmDbContext context,
         ILogger<QuotesController> logger,
         NormalizationService normalization,
         IPdfGenerationService pdfService)
     {
+        _quoteService = quoteService;
         _context = context;
         _logger = logger;
         _normalization = normalization;
@@ -64,33 +71,7 @@ public class QuotesController : CrmControllerBase
         [FromQuery] QuoteStatus? status = null,
         [FromQuery] bool? expired = null)
     {
-        var query = _context.Quotes
-            .Include(q => q.Account)
-            .Include(q => q.Opportunity)
-            .Include(q => q.AssignedToUser)
-            .AsQueryable();
-
-        if (accountId.HasValue)
-        {
-            query = query.Where(q => q.AccountId == accountId);
-        }
-
-        if (opportunityId.HasValue)
-        {
-            query = query.Where(q => q.OpportunityId == opportunityId);
-        }
-
-        if (status.HasValue)
-        {
-            query = query.Where(q => q.Status == status);
-        }
-
-        if (expired == true)
-        {
-            query = query.Where(q => q.ExpirationDate < DateTime.UtcNow && q.Status == QuoteStatus.Shared);
-        }
-
-        var quotes = await query.OrderByDescending(q => q.CreatedAt).ToListAsync();
+        var quotes = (await _quoteService.GetQuotesAsync(accountId, opportunityId, status, expired)).ToList();
         foreach (var q in quotes)
         {
             var nt = await _normalization.GetTagsAsync(QuoteEntityName, q.Id);
@@ -121,15 +102,7 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<QuoteDto>> GetQuote(int id)
     {
-        var quote = await _context.Quotes
-            .Include(q => q.Account)
-            .Include(q => q.Opportunity)
-            .Include(q => q.AssignedToUser)
-            .Include(q => q.Revisions)
-            .Include(q => q.QuoteLineItems!.Where(li => !li.IsDeleted))
-                .ThenInclude(li => li.Product)
-            .FirstOrDefaultAsync(q => q.Id == id);
-
+        var quote = await _quoteService.GetByIdAsync(id);
         if (quote == null)
         {
             return NotFound();
@@ -163,11 +136,7 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<QuoteDto>> GetQuoteByNumber(string quoteNumber)
     {
-        var quote = await _context.Quotes
-            .Include(q => q.Account)
-            .Include(q => q.Opportunity)
-            .FirstOrDefaultAsync(q => q.QuoteNumber == quoteNumber);
-
+        var quote = await _quoteService.GetByQuoteNumberAsync(quoteNumber);
         if (quote == null)
         {
             return NotFound();
@@ -201,32 +170,17 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<QuoteDto>> CreateQuote(Quote quote)
     {
-        // Generate quote number if not provided
-        if (string.IsNullOrEmpty(quote.QuoteNumber))
-        {
-            var year = DateTime.UtcNow.Year;
-            var count = await _context.Quotes.CountAsync(q => q.CreatedAt.Year == year) + 1;
-            quote.QuoteNumber = $"Q-{year}-{count:D5}";
-        }
-
-        quote.CreatedAt = DateTime.UtcNow;
-        quote.UpdatedAt = DateTime.UtcNow;
+        // QuoteService.CreateAsync generates the quote number (when not supplied), sets
+        // CreatedAt/IsDeleted, default Status, and ExpirationDate from ValidityDays.
+        // QuoteDate and discount/tax total calculation are not handled by the service,
+        // so they are preserved here to keep parity with the previous direct-DbContext behavior.
         quote.QuoteDate = DateTime.UtcNow;
-
-        // Set expiration date if validity days is set
-        if (quote.ValidityDays.HasValue && !quote.ExpirationDate.HasValue)
-        {
-            quote.ExpirationDate = DateTime.UtcNow.AddDays(quote.ValidityDays.Value);
-        }
-
-        // Calculate totals
         CalculateTotals(quote);
 
-        _context.Quotes.Add(quote);
-        await _context.SaveChangesAsync();
+        var created = await _quoteService.CreateAsync(quote);
 
-        _logger.LogInformation("Quote {QuoteNumber} created for account {AccountId}", quote.QuoteNumber, quote.AccountId);
-        return CreatedAtAction(nameof(GetQuote), new { id = quote.Id }, MapToDto(quote));
+        _logger.LogInformation("Quote {QuoteNumber} created for account {AccountId}", created.QuoteNumber, created.AccountId);
+        return CreatedAtAction(nameof(GetQuote), new { id = created.Id }, MapToDto(created));
     }
 
     /// <summary>
@@ -251,13 +205,14 @@ public class QuotesController : CrmControllerBase
             return BadRequest();
         }
 
-        var existingQuote = await _context.Quotes.FindAsync(id);
+        var existingQuote = await _quoteService.GetByIdAsync(id);
         if (existingQuote == null)
         {
             return NotFound();
         }
 
-        // Prevent editing accepted/rejected quotes
+        // QuoteService.UpdateAsync does not enforce this guard, so it is preserved here to
+        // avoid silently dropping the "no edits after accept/reject" business rule.
         if (existingQuote.Status == QuoteStatus.Accepted || existingQuote.Status == QuoteStatus.Rejected)
         {
             return BadRequest("Cannot edit a quote that has been accepted or rejected. Create a revision instead.");
@@ -265,10 +220,12 @@ public class QuotesController : CrmControllerBase
 
         CalculateTotals(quote);
 
-        _context.Entry(existingQuote).CurrentValues.SetValues(quote);
-        existingQuote.UpdatedAt = DateTime.UtcNow;
+        var updated = await _quoteService.UpdateAsync(id, quote);
+        if (!updated)
+        {
+            return NotFound();
+        }
 
-        await _context.SaveChangesAsync();
         return NoContent();
     }
 
@@ -288,22 +245,26 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteQuote(int id)
     {
-        var quote = await _context.Quotes.FindAsync(id);
+        var quote = await _quoteService.GetByIdAsync(id);
         if (quote == null)
         {
             return NotFound();
         }
 
-        // Only allow deleting draft quotes
-        if (quote.Status != QuoteStatus.Draft)
+        // Matches QuoteService.DeleteAsync's own guard (Draft or New) so the controller's
+        // pre-check and the service's actual behavior can't drift apart.
+        if (quote.Status != QuoteStatus.Draft && quote.Status != QuoteStatus.New)
         {
             return BadRequest("Only draft quotes can be deleted.");
         }
 
-        _context.Quotes.Remove(quote);
-        await _context.SaveChangesAsync();
+        var deleted = await _quoteService.DeleteAsync(id);
+        if (!deleted)
+        {
+            return NotFound();
+        }
 
-        _logger.LogInformation("Quote {QuoteNumber} deleted", quote.QuoteNumber);
+        _logger.LogInformation("Quote {QuoteId} deleted", id);
         return NoContent();
     }
 
@@ -321,20 +282,15 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SendQuote(int id)
     {
-        var quote = await _context.Quotes.FindAsync(id);
-        if (quote == null)
+        var success = await _quoteService.SendAsync(id);
+        if (!success)
         {
             return NotFound();
         }
 
-        quote.Status = QuoteStatus.Shared;
-        quote.SentDate = DateTime.UtcNow;
-        quote.UpdatedAt = DateTime.UtcNow;
-
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Quote {QuoteNumber} sent", quote.QuoteNumber);
-        return Ok(MapToDto(quote));
+        var quote = await _quoteService.GetByIdAsync(id);
+        _logger.LogInformation("Quote {QuoteId} sent", id);
+        return Ok(MapToDto(quote!));
     }
 
     /// <summary>
@@ -351,18 +307,10 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> MarkViewed(int id)
     {
-        var quote = await _context.Quotes.FindAsync(id);
+        var quote = await _quoteService.MarkViewedAsync(id);
         if (quote == null)
         {
             return NotFound();
-        }
-
-        if (quote.Status == QuoteStatus.Shared)
-        {
-            quote.Status = QuoteStatus.Viewed;
-            quote.ViewedDate = DateTime.UtcNow;
-            quote.UpdatedAt = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
         }
 
         return Ok(MapToDto(quote));
@@ -383,26 +331,30 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AcceptQuote(int id, [FromBody] AcceptQuoteRequest? request = null)
     {
-        var quote = await _context.Quotes.FindAsync(id);
+        var success = await _quoteService.AcceptAsync(id);
+        if (!success)
+        {
+            return NotFound();
+        }
+
+        var quote = await _quoteService.GetByIdAsync(id);
         if (quote == null)
         {
             return NotFound();
         }
 
-        quote.Status = QuoteStatus.Accepted;
-        quote.AcceptedDate = DateTime.UtcNow;
-        quote.UpdatedAt = DateTime.UtcNow;
-
         if (request != null)
         {
+            // IQuoteService.AcceptAsync has no signature parameters, so signature capture
+            // follows the same fetch-mutate-UpdateAsync pattern already used by
+            // DocuSealWebhookController.UpdateEntityStatusAsync for the same fields.
             quote.IsSigned = request.IsSigned;
             quote.SignedBy = request.SignedBy;
             quote.SignedDate = request.IsSigned ? DateTime.UtcNow : null;
+            await _quoteService.UpdateAsync(id, quote);
         }
 
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Quote {QuoteNumber} accepted", quote.QuoteNumber);
+        _logger.LogInformation("Quote {QuoteId} accepted", id);
         return Ok(MapToDto(quote));
     }
 
@@ -421,25 +373,15 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RejectQuote(int id, [FromBody] RejectQuoteRequest? request = null)
     {
-        var quote = await _context.Quotes.FindAsync(id);
-        if (quote == null)
+        var success = await _quoteService.RejectAsync(id, request?.Reason);
+        if (!success)
         {
             return NotFound();
         }
 
-        quote.Status = QuoteStatus.Rejected;
-        quote.RejectedDate = DateTime.UtcNow;
-        quote.UpdatedAt = DateTime.UtcNow;
-
-        if (request != null && !string.IsNullOrEmpty(request.Reason))
-        {
-            quote.Notes = $"{quote.Notes}\n\nRejection Reason: {request.Reason}".Trim();
-        }
-
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Quote {QuoteNumber} rejected", quote.QuoteNumber);
-        return Ok(MapToDto(quote));
+        var quote = await _quoteService.GetByIdAsync(id);
+        _logger.LogInformation("Quote {QuoteId} rejected", id);
+        return Ok(MapToDto(quote!));
     }
 
     /// <summary>
@@ -456,68 +398,16 @@ public class QuotesController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<QuoteDto>> CreateRevision(int id)
     {
-        var originalQuote = await _context.Quotes.FindAsync(id);
-        if (originalQuote == null)
+        try
+        {
+            var revision = await _quoteService.CreateRevisionAsync(id);
+            _logger.LogInformation("Quote {QuoteId} revised to {NewQuoteId}", id, revision.Id);
+            return CreatedAtAction(nameof(GetQuote), new { id = revision.Id }, MapToDto(revision));
+        }
+        catch (InvalidOperationException)
         {
             return NotFound();
         }
-
-        // Create a new quote as revision
-        var revision = new Quote
-        {
-            QuoteNumber = $"{originalQuote.QuoteNumber}-R{originalQuote.Version + 1}",
-            Name = originalQuote.Name,
-            Description = originalQuote.Description,
-            Status = QuoteStatus.Draft,
-            Version = originalQuote.Version + 1,
-            ParentQuoteId = originalQuote.Id,
-            AccountId = originalQuote.AccountId,
-            ContactId = originalQuote.ContactId,
-            OpportunityId = originalQuote.OpportunityId,
-            AssignedToUserId = originalQuote.AssignedToUserId,
-            Subtotal = originalQuote.Subtotal,
-            Discount = originalQuote.Discount,
-            DiscountPercent = originalQuote.DiscountPercent,
-            Tax = originalQuote.Tax,
-            TaxRate = originalQuote.TaxRate,
-            ShippingCost = originalQuote.ShippingCost,
-            Total = originalQuote.Total,
-            LineItems = originalQuote.LineItems,
-            PaymentTerms = originalQuote.PaymentTerms,
-            DeliveryTerms = originalQuote.DeliveryTerms,
-            TermsAndConditions = originalQuote.TermsAndConditions,
-            ValidityDays = originalQuote.ValidityDays,
-            BillingName = originalQuote.BillingName,
-            BillingAddress = originalQuote.BillingAddress,
-            BillingCity = originalQuote.BillingCity,
-            BillingState = originalQuote.BillingState,
-            BillingZipCode = originalQuote.BillingZipCode,
-            BillingCountry = originalQuote.BillingCountry,
-            ShippingName = originalQuote.ShippingName,
-            ShippingAddress = originalQuote.ShippingAddress,
-            ShippingCity = originalQuote.ShippingCity,
-            ShippingState = originalQuote.ShippingState,
-            ShippingZipCode = originalQuote.ShippingZipCode,
-            ShippingCountry = originalQuote.ShippingCountry,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            QuoteDate = DateTime.UtcNow
-        };
-
-        if (revision.ValidityDays.HasValue)
-        {
-            revision.ExpirationDate = DateTime.UtcNow.AddDays(revision.ValidityDays.Value);
-        }
-
-        // Mark original as revised
-        originalQuote.Status = QuoteStatus.Revised;
-        originalQuote.UpdatedAt = DateTime.UtcNow;
-
-        _context.Quotes.Add(revision);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Quote {QuoteNumber} revised to {NewQuoteNumber}", originalQuote.QuoteNumber, revision.QuoteNumber);
-        return CreatedAtAction(nameof(GetQuote), new { id = revision.Id }, MapToDto(revision));
     }
 
     private static QuoteDto MapToDto(Quote quote)

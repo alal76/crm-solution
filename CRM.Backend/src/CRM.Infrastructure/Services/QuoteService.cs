@@ -37,7 +37,11 @@ public class QuoteService : IQuoteService
             "Getting quotes with filters: AccountId={AccountId}, OpportunityId={OpportunityId}, Status={Status}, Expired={Expired}",
             accountId, opportunityId, status, expired);
 
-        var query = _context.Quotes.AsNoTracking().Where(q => !q.IsDeleted);
+        var query = _context.Quotes.AsNoTracking()
+            .Include(q => q.Account)
+            .Include(q => q.Opportunity)
+            .Include(q => q.AssignedToUser)
+            .Where(q => !q.IsDeleted);
 
         if (accountId.HasValue)
         {
@@ -82,7 +86,11 @@ public class QuoteService : IQuoteService
 
         var quote = await _context.Quotes
             .AsNoTracking()
-            .Include(q => q.QuoteLineItems)
+            .Include(q => q.Account)
+            .Include(q => q.Contact)
+            .Include(q => q.Opportunity)
+            .Include(q => q.AssignedToUser)
+            .Include(q => q.QuoteLineItems!).ThenInclude(li => li.Product)
             .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted);
 
         if (quote == null)
@@ -102,6 +110,8 @@ public class QuoteService : IQuoteService
 
         var quote = await _context.Quotes
             .AsNoTracking()
+            .Include(q => q.Account)
+            .Include(q => q.Opportunity)
             .Include(q => q.QuoteLineItems)
             .FirstOrDefaultAsync(q => q.QuoteNumber == quoteNumber && !q.IsDeleted);
 
@@ -188,6 +198,17 @@ public class QuoteService : IQuoteService
         existingQuote.OpportunityId = quote.OpportunityId;
         existingQuote.AssignedToUserId = quote.AssignedToUserId;
 
+        // Signature/workflow-date fields: copied so that callers following the
+        // fetch-mutate-UpdateAsync pattern (e.g. DocuSealWebhookController persisting
+        // e-signature completion) actually get their changes saved.
+        existingQuote.IsSigned = quote.IsSigned;
+        existingQuote.SignedBy = quote.SignedBy;
+        existingQuote.SignedDate = quote.SignedDate;
+        existingQuote.SentDate = quote.SentDate;
+        existingQuote.ViewedDate = quote.ViewedDate;
+        existingQuote.AcceptedDate = quote.AcceptedDate;
+        existingQuote.RejectedDate = quote.RejectedDate;
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated quote: {QuoteId}", id);
@@ -266,6 +287,31 @@ public class QuoteService : IQuoteService
 
         _logger.LogInformation("Sent quote: {QuoteId}, Status changed to Shared", id);
         return true;
+    }
+
+    /// <inheritdoc />
+    public async Task<Quote?> MarkViewedAsync(int id)
+    {
+        _logger.LogDebug("Marking quote as viewed: {QuoteId}", id);
+
+        var quote = await _context.Quotes
+            .FirstOrDefaultAsync(q => q.Id == id && !q.IsDeleted);
+
+        if (quote == null)
+        {
+            _logger.LogWarning("Quote not found for marking viewed: {QuoteId}", id);
+            return null;
+        }
+
+        if (quote.Status == QuoteStatus.Shared)
+        {
+            quote.Status = QuoteStatus.Viewed;
+            quote.ViewedDate = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Marked quote as viewed: {QuoteId}", id);
+        }
+
+        return quote;
     }
 
     /// <inheritdoc />

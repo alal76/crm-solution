@@ -48,25 +48,11 @@ import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import { OrderStatus } from '../types/sales';
 
 // ==================== ENUMS ====================
-
-// Numeric values match backend CRM.Core.Entities.OrderStatus
-enum OrderStatus {
-  Draft = 0,
-  PendingApproval = 1,
-  Approved = 2,
-  Processing = 3,
-  PartiallyFulfilled = 4,
-  Fulfilled = 5,
-  Delivered = 6,
-  Completed = 7,
-  Cancelled = 8,
-  Returned = 9,
-  Refunded = 10,
-  OnHold = 11,
-  ActionRequired = 12,
-}
+// OrderStatus is imported from types/sales.ts (the single source of truth,
+// matching backend CRM.Core.Entities.OrderStatus).
 
 // ==================== INTERFACES ====================
 

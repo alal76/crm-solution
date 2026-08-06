@@ -11,6 +11,7 @@ using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,9 @@ using Xunit;
 
 namespace CRM.Tests.Controllers
 {
+    // NOTE: this is a duplicate of CRM.Backend/tests/CRM.Tests/Controllers/TasksControllerTests.cs
+    // (same namespace, same controller, weaker assertions) -- flagged for future consolidation,
+    // not removed here per this repo's do-not-delete-without-confirmation convention.
     public class CrmTasksControllerTests
     {
         private static CrmDbContext CreateInMemoryContext()
@@ -29,13 +33,19 @@ namespace CRM.Tests.Controllers
             return new CrmDbContext(options, null);
         }
 
+        private static ITaskService CreateTaskService(CrmDbContext dbContext)
+        {
+            var taskServiceLogger = new Mock<ILogger<TaskService>>();
+            return new TaskService(dbContext, taskServiceLogger.Object);
+        }
+
         // This is a simplified test; in real code, use a proper in-memory DbContext or mocking framework
         [Fact]
         public async Task CreateTask_ValidDto_ReturnsCreatedTask()
         {
             using var dbContext = CreateInMemoryContext();
             var mockLogger = new Mock<ILogger<TasksController>>();
-            var controller = new TasksController(dbContext, mockLogger.Object, null);
+            var controller = new TasksController(CreateTaskService(dbContext), dbContext, mockLogger.Object, null);
             var dto = new CreateCrmTaskDto
             {
                 Title = "Test Task",
@@ -52,7 +62,8 @@ namespace CRM.Tests.Controllers
         public async Task UpdateTask_ValidDto_UpdatesTask()
         {
             using var dbContext = CreateInMemoryContext();
-            var controller = new TasksController(dbContext, null, null);
+            var mockLogger = new Mock<ILogger<TasksController>>();
+            var controller = new TasksController(CreateTaskService(dbContext), dbContext, mockLogger.Object, null);
             var dto = new UpdateCrmTaskDto
             {
                 Title = "Updated Task",

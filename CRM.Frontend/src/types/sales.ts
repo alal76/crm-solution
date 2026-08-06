@@ -230,19 +230,20 @@ export interface UpdateQuoteDto {
 // ORDERS
 // ============================================================================
 
+// Numeric values match backend CRM.Core.Entities.OrderStatus
 export enum OrderStatus {
   Draft = 0,
-  Submitted = 1,
-  Pending = 2,
+  PendingApproval = 1,
+  Approved = 2,
   Processing = 3,
-  Approved = 4,
-  OnHold = 5,
-  Shipped = 6,
-  Delivered = 7,
-  Completed = 8,
-  Cancelled = 9,
+  PartiallyFulfilled = 4,
+  Fulfilled = 5,
+  Delivered = 6,
+  Completed = 7,
+  Cancelled = 8,
+  Returned = 9,
   Refunded = 10,
-  Returned = 11,
+  OnHold = 11,
   ActionRequired = 12
 }
 
@@ -647,98 +648,134 @@ export interface UpdatePaymentDto {
 // CONTRACTS
 // ============================================================================
 
+// Numeric values match backend CRM.Core.Entities.ContractStatus
 export enum ContractStatus {
-  Draft = 'draft',
-  Pending = 'pending',
-  Active = 'active',
-  Expired = 'expired',
-  Cancelled = 'cancelled',
-  Renewed = 'renewed'
+  Draft = 0,
+  PendingApproval = 1,
+  Approved = 2,
+  Active = 3,
+  Expired = 4,
+  Terminated = 5,
+  Renewed = 6,
+  OnHold = 7
 }
 
+// Numeric values match backend CRM.Core.Entities.ContractType
+export enum ContractType {
+  Service = 0,
+  License = 1,
+  Subscription = 2,
+  Support = 3,
+  Maintenance = 4,
+  NDA = 5,
+  Master = 6,
+  Amendment = 7,
+  Other = 8
+}
+
+// Field names match backend CRM.Core.Dtos.ContractDto
 export interface Contract extends BaseEntity {
-  number?: string;
+  contractNumber: string;
+  name: string;
+  description?: string;
+
   accountId: number;
   accountName?: string;
-  contractName: string;
-  startDate: string;
-  endDate: string;
-  status: ContractStatus;
-  value?: number;
-  description?: string;
-  terms?: string;
-  renewalDate?: string;
-  autoRenew?: boolean;
-  allowedDowntime?: number; // SLA uptime percentage
-  supportLevel?: string; // Premium, Standard, Basic
-  attachments?: string[];
-  currency?: string;
-
-  // Identity
-  contractNumber?: string;
-  contractType?: string;
-
-  // Relationships
+  contactId?: number;
+  contactName?: string;
   ownerId?: number;
   ownerName?: string;
-  parentContractId?: number;
-  quoteId?: number;
 
-  // Dates
+  status: ContractStatus;
+  contractType: ContractType;
+
+  startDate: string;
+  endDate: string;
+  totalValue: number;
+  annualValue?: number;
+  currencyCode?: string;
+  billingFrequency?: string;
+
+  activatedAt?: string;
+  terminatedAt?: string;
+  signedDate?: string;
   activatedDate?: string;
   terminatedDate?: string;
 
-  // Renewal
+  isSigned?: boolean;
+  autoRenew: boolean;
+  renewalTermMonths?: number;
   renewalNoticeDays?: number;
   renewalNoticeSent?: boolean;
   renewalNoticeSentDate?: string;
   renewalInitiatedAt?: string;
   renewalCompletedAt?: string;
-  renewalTermMonths?: number;
 
-  // Financial
-  billingFrequency?: string;
-
-  // Terms
+  paymentTerms?: string;
+  termsAndConditions?: string;
   specialConditions?: string;
   terminationClause?: string;
   terminationReason?: string;
 
-  // Documents
+  documentUrl?: string;
   contractFileUrl?: string;
   contractFileName?: string;
+  contractFileSize?: number;
+  contractFileMimeType?: string;
   signedContractFileUrl?: string;
   signedContractFileName?: string;
+  sentForSignatureAt?: string;
+  signedBy?: string;
 
-  // Approval
   approvedByUserId?: number;
+  approvedByName?: string;
   approvedDate?: string;
   rejectionReason?: string;
 
-  // Suspension
   suspensionReason?: string;
   suspendedDate?: string;
+
+  parentContractId?: number;
+  opportunityId?: number;
+  quoteId?: number;
+
+  isExpiringSoon?: boolean;
+  isExpired?: boolean;
+  daysUntilExpiry?: number;
+  daysUntilExpiration?: number;
 }
 
 export interface CreateContractDto {
+  name: string;
+  description?: string;
   accountId: number;
-  contractName: string;
+  contactId?: number;
+  ownerId?: number;
+  contractType?: ContractType;
   startDate: string;
   endDate: string;
-  value?: number;
-  description?: string;
-  terms?: string;
+  totalValue: number;
+  annualValue?: number;
   autoRenew?: boolean;
-  currency?: string;
+  renewalTermMonths?: number;
+  paymentTerms?: string;
+  termsAndConditions?: string;
+  opportunityId?: number;
 }
 
 export interface UpdateContractDto {
-  contractName?: string;
+  name?: string;
+  description?: string;
+  contactId?: number;
+  ownerId?: number;
+  contractType?: ContractType;
   endDate?: string;
-  status?: ContractStatus;
-  terms?: string;
-  renewalDate?: string;
+  totalValue?: number;
+  annualValue?: number;
   autoRenew?: boolean;
+  renewalTermMonths?: number;
+  paymentTerms?: string;
+  termsAndConditions?: string;
 }
 
 // ============================================================================

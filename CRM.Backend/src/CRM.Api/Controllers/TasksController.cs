@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -27,12 +28,18 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class TasksController : CrmControllerBase
 {
+    private readonly ITaskService _taskService;
+
+    // Retained only for the My Queue endpoint, which needs UserGroup/UserGroupMember
+    // joins and richer navigation-property projections that ITaskService does not
+    // (and should not) expose as a generic CRUD surface.
     private readonly CrmDbContext _context;
     private readonly ILogger<TasksController> _logger;
     private readonly NormalizationService _normalization;
 
-    public TasksController(CrmDbContext context, ILogger<TasksController> logger, NormalizationService normalization)
+    public TasksController(ITaskService taskService, CrmDbContext context, ILogger<TasksController> logger, NormalizationService normalization)
     {
+        _taskService = taskService;
         _context = context;
         _logger = logger;
         _normalization = normalization;
@@ -51,38 +58,7 @@ public class TasksController : CrmControllerBase
         [FromQuery] CrmTaskPriority? priority = null,
         [FromQuery] bool? overdue = null)
     {
-        var query = _context.CrmTasks
-            .Include(t => t.Account)
-            .Include(t => t.Opportunity)
-            .Include(t => t.AssignedToUser)
-            .AsQueryable();
-
-        if (accountId.HasValue)
-        {
-            query = query.Where(t => t.AccountId == accountId);
-        }
-        if (opportunityId.HasValue)
-        {
-            query = query.Where(t => t.OpportunityId == opportunityId);
-        }
-        if (assignedToUserId.HasValue)
-        {
-            query = query.Where(t => t.AssignedToUserId == assignedToUserId);
-        }
-        if (status.HasValue)
-        {
-            query = query.Where(t => t.Status == status);
-        }
-        if (priority.HasValue)
-        {
-            query = query.Where(t => t.Priority == priority);
-        }
-        if (overdue == true)
-        {
-            query = query.Where(t => t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed);
-        }
-
-        var tasks = await query.OrderByDescending(t => t.DueDate).ToListAsync();
+        var tasks = await _taskService.GetTasksAsync(accountId, opportunityId, assignedToUserId, status, priority, overdue);
         var dtos = tasks.Select(MapToDto).ToList();
         return Ok(dtos);
     }
@@ -101,12 +77,7 @@ public class TasksController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CrmTaskDto>> GetTask(int id)
     {
-        var task = await _context.CrmTasks
-            .Include(t => t.Account)
-            .Include(t => t.Opportunity)
-            .Include(t => t.AssignedToUser)
-            .Include(t => t.SubTasks)
-            .FirstOrDefaultAsync(t => t.Id == id);
+        var task = await _taskService.GetByIdAsync(id);
         if (task == null)
         {
             return NotFound();
@@ -132,12 +103,9 @@ public class TasksController : CrmControllerBase
             return BadRequest("Title is required.");
         }
         var task = MapFromCreateDto(dto);
-        task.CreatedAt = DateTime.UtcNow;
-        task.UpdatedAt = DateTime.UtcNow;
-        _context.CrmTasks.Add(task);
-        await _context.SaveChangesAsync();
-        _logger.LogInformation("Task {TaskId} created: {Subject}", task.Id, task.Subject);
-        return CreatedAtAction(nameof(GetTask), new { id = task.Id }, MapToDto(task));
+        var created = await _taskService.CreateAsync(task);
+        _logger.LogInformation("Task {TaskId} created: {Subject}", created.Id, created.Subject);
+        return CreatedAtAction(nameof(GetTask), new { id = created.Id }, MapToDto(created));
     }
 
     /// <summary>
@@ -155,14 +123,17 @@ public class TasksController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateCrmTaskDto dto)
     {
-        var task = await _context.CrmTasks.FindAsync(id);
+        var task = await _taskService.GetByIdAsync(id);
         if (task == null)
         {
             return NotFound();
         }
         MapFromUpdateDto(dto, task);
-        task.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        var updated = await _taskService.UpdateAsync(id, task);
+        if (!updated)
+        {
+            return NotFound();
+        }
         return NoContent();
     }
 
@@ -179,14 +150,12 @@ public class TasksController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> DeleteTask(int id)
     {
-        var task = await _context.CrmTasks.FindAsync(id);
-        if (task == null)
+        var deleted = await _taskService.DeleteAsync(id);
+        if (!deleted)
         {
             return NotFound();
         }
-        _context.CrmTasks.Remove(task);
-        await _context.SaveChangesAsync();
-        _logger.LogInformation("Task {TaskId} deleted", id);
+        _logger.LogInformation("Task {TaskId} deleted (soft delete)", id);
         return NoContent();
     }
 
@@ -203,16 +172,13 @@ public class TasksController : CrmControllerBase
     [ProducesResponseType(typeof(CrmTaskDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> CompleteTask(int id)
     {
-        var task = await _context.CrmTasks.FindAsync(id);
-        if (task == null)
+        var completed = await _taskService.CompleteAsync(id);
+        if (!completed)
         {
             return NotFound();
         }
-        task.Status = CrmTaskStatus.Completed;
-        task.CompletedDate = DateTime.UtcNow;
-        task.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-        return Ok(MapToDto(task));
+        var task = await _taskService.GetByIdAsync(id);
+        return Ok(MapToDto(task!));
     }
 
     /// <summary>
@@ -226,14 +192,7 @@ public class TasksController : CrmControllerBase
     [ProducesResponseType(typeof(IEnumerable<CrmTaskDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CrmTaskDto>>> GetTasksDueToday()
     {
-        var today = DateTime.UtcNow.Date;
-        var tomorrow = today.AddDays(1);
-        var tasks = await _context.CrmTasks
-            .Include(t => t.Account)
-            .Include(t => t.AssignedToUser)
-            .Where(t => t.DueDate >= today && t.DueDate < tomorrow && t.Status != CrmTaskStatus.Completed)
-            .OrderBy(t => t.DueDate)
-            .ToListAsync();
+        var tasks = await _taskService.GetTasksDueTodayAsync();
         return Ok(tasks.Select(MapToDto));
     }
 
@@ -248,12 +207,7 @@ public class TasksController : CrmControllerBase
     [ProducesResponseType(typeof(IEnumerable<CrmTaskDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<CrmTaskDto>>> GetOverdueTasks()
     {
-        var tasks = await _context.CrmTasks
-            .Include(t => t.Account)
-            .Include(t => t.AssignedToUser)
-            .Where(t => t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed && t.Status != CrmTaskStatus.Cancelled)
-            .OrderBy(t => t.DueDate)
-            .ToListAsync();
+        var tasks = await _taskService.GetOverdueTasksAsync();
         return Ok(tasks.Select(MapToDto));
     }
     // Mapping helpers
@@ -303,8 +257,10 @@ public class TasksController : CrmControllerBase
         {
             Subject = dto.Title,
             Description = dto.Description,
+            TaskType = (CrmTaskType)dto.TaskType,
             Priority = (CrmTaskPriority)dto.Priority,
             DueDate = string.IsNullOrWhiteSpace(dto.DueDate) ? null : DateTime.Parse(dto.DueDate),
+            StartDate = string.IsNullOrWhiteSpace(dto.StartDate) ? null : DateTime.Parse(dto.StartDate),
             CreatedByUserId = dto.OwnerUserId,
             AccountId = dto.AccountId,
             OpportunityId = dto.OpportunityId,
@@ -337,6 +293,10 @@ public class TasksController : CrmControllerBase
         {
             task.Description = dto.Description;
         }
+        if (dto.TaskType.HasValue)
+        {
+            task.TaskType = (CrmTaskType)dto.TaskType.Value;
+        }
         if (dto.Status.HasValue)
         {
             task.Status = (CrmTaskStatus)dto.Status.Value;
@@ -349,6 +309,10 @@ public class TasksController : CrmControllerBase
         {
             task.DueDate = DateTime.Parse(dto.DueDate);
         }
+        if (dto.StartDate != null)
+        {
+            task.StartDate = string.IsNullOrWhiteSpace(dto.StartDate) ? null : DateTime.Parse(dto.StartDate);
+        }
         if (dto.CompletedDate != null)
         {
             task.CompletedDate = DateTime.Parse(dto.CompletedDate);
@@ -356,6 +320,14 @@ public class TasksController : CrmControllerBase
         if (dto.AssignedToUserId.HasValue)
         {
             task.AssignedToUserId = dto.AssignedToUserId;
+        }
+        if (dto.AccountId.HasValue)
+        {
+            task.AccountId = dto.AccountId;
+        }
+        if (dto.OpportunityId.HasValue)
+        {
+            task.OpportunityId = dto.OpportunityId;
         }
         if (dto.ReminderDate != null)
         {
