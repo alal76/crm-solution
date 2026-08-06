@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 625,
-  "patch": 6,
+  "patch": 7,
   "lastUpdate": "2026-08-06",
-  "description": "fix(billing): wire SubscriptionBillingController dunning retry to real IDunningManager (REV-STUB-012/013 partial)",
+  "description": "chore(payments): mark PaymentTokenizationService [Obsolete] -- dead, PCI-risky, superseded by Stripe (REV-STUB-010)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

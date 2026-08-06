@@ -12,6 +12,12 @@ namespace CRM.Core.Interfaces;
 /// Service interface for PCI-compliant payment tokenization.
 /// Handles secure card data tokenization for payment processing.
 /// </summary>
+/// <remarks>
+/// DEPRECATED: This service is confirmed unused (no controller or other service injects it) and its
+/// implementation stores raw card numbers in an in-memory dictionary and fakes charge results, which is
+/// not PCI-compliant. Real payment processing goes through <c>StripeIntegrationService</c>.
+/// </remarks>
+[Obsolete("Superseded by StripeIntegrationService for real payment processing; this service used insecure in-memory raw card storage and is not PCI-compliant. Do not use in new code.")]
 public interface IPaymentTokenizationService
 {
     /// <summary>

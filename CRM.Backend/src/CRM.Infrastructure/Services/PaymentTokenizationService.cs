@@ -16,6 +16,14 @@ namespace CRM.Infrastructure.Services;
 /// This is a stub implementation that simulates tokenization.
 /// In production, integrate with a PCI-compliant payment gateway (Stripe, Braintree, etc.).
 /// </summary>
+/// <remarks>
+/// DEPRECATED: Confirmed dead code — no controller or other service injects this type (only the DI
+/// registration in Program.cs references it). It stores raw card numbers in an in-memory dictionary and
+/// always fakes a successful charge with a generated charge ID, which is not PCI-compliant. Real payment
+/// processing already goes through <see cref="CRM.Infrastructure.Services.StripeIntegrationService"/>.
+/// Kept as a working shim rather than deleted; do not wire this into any controller.
+/// </remarks>
+[Obsolete("Superseded by StripeIntegrationService for real payment processing; this service used insecure in-memory raw card storage and is not PCI-compliant. Do not use in new code.")]
 public class PaymentTokenizationService : IPaymentTokenizationService
 {
     private readonly ICrmDbContext _context;
