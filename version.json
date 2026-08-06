@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 626,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-08-06",
-  "description": "fix(sales): OrderService.CreateFromQuoteAsync Include() crash bug (REM-BUG-004)",
+  "description": "fix(crm): Contact.PreferredContactMethod dropped on create/update (REM-BUG-009)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

@@ -166,6 +166,9 @@ public class ContactsService : IContactsService, IContactInputPort
             InstagramHandle = request.InstagramHandle,
             BlogUrl = request.BlogUrl,
             DoNotContact = request.DoNotContact,
+            PreferredContactMethod = Enum.TryParse<PreferredContactMethod>(request.PreferredContactMethod, true, out var preferredContactMethod)
+                ? preferredContactMethod
+                : PreferredContactMethod.Email,
             PreferredContactTime = request.PreferredContactTime,
             Timezone = request.Timezone,
             PreferredLanguage = request.PreferredLanguage,
@@ -472,6 +475,16 @@ public class ContactsService : IContactsService, IContactInputPort
         if (request.BlogUrl != null)
         {
             contact.BlogUrl = request.BlogUrl;
+        }
+
+        if (request.DoNotContact.HasValue)
+        {
+            contact.DoNotContact = request.DoNotContact.Value;
+        }
+
+        if (request.PreferredContactMethod != null && Enum.TryParse<PreferredContactMethod>(request.PreferredContactMethod, true, out var updatedPreferredContactMethod))
+        {
+            contact.PreferredContactMethod = updatedPreferredContactMethod;
         }
 
         if (request.PreferredContactTime != null)

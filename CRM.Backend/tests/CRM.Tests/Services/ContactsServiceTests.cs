@@ -141,6 +141,42 @@ public class ContactsServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task CreateAsync_ShouldPersistPreferredContactMethod_WhenProvided()
+    {
+        // Regression: PreferredContactMethod was accepted on the request DTO but
+        // never written to the entity (REM-BUG-009).
+        var request = new CreateContactRequest
+        {
+            FirstName = "Jane",
+            LastName = "Smith",
+            PreferredContactMethod = "Phone"
+        };
+
+        await _service.CreateAsync(request, "test-user");
+
+        var saved = _context.Contacts.Single(c => c.FirstName == "Jane" && c.LastName == "Smith");
+        saved.PreferredContactMethod.Should().Be(CRM.Core.Models.PreferredContactMethod.Phone);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldUpdatePreferredContactMethod_WhenProvided()
+    {
+        var contact = new Contact
+        {
+            FirstName = "Alex",
+            LastName = "Green",
+            PreferredContactMethod = CRM.Core.Models.PreferredContactMethod.Email
+        };
+        _context.Contacts.Add(contact);
+        await _context.SaveChangesAsync();
+
+        await _service.UpdateAsync(contact.Id, new UpdateContactRequest { PreferredContactMethod = "SMS" }, "test-user");
+
+        var updated = await _context.Contacts.FindAsync(contact.Id);
+        updated!.PreferredContactMethod.Should().Be(CRM.Core.Models.PreferredContactMethod.SMS);
+    }
+
+    [Fact]
     public async Task CreateAsync_ShouldThrowArgumentException_WhenFirstNameIsEmpty()
     {
         var request = new CreateContactRequest { FirstName = "", LastName = "Doe" };
