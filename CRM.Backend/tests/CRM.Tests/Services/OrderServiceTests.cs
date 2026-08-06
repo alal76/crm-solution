@@ -1019,4 +1019,60 @@ public class OrderServiceTests : IDisposable
         result.Should().NotBeNull();
         result.CouponCode.Should().Be("SUMMER2026");
     }
+
+    // ========================================================================
+    // CreateFromQuoteAsync (REM-BUG-004)
+    // Regression coverage for the real OrderService implementation (not a mocked
+    // IOrderService) — a prior bug here (.Include(q => q.LineItems) on what is
+    // actually a scalar legacy string property, not the real QuoteLineItems
+    // navigation collection) threw InvalidOperationException at runtime on
+    // every call, invisible to tests that mock the service interface.
+    // ========================================================================
+
+    [Fact]
+    public async Task CreateFromQuoteAsync_ShouldCopyLineItemsOntoNewOrder_WhenQuoteHasLineItems()
+    {
+        // Arrange
+        await EnsureAccountExistsAsync(55);
+        var quote = new Quote
+        {
+            QuoteNumber = $"Q-{Guid.NewGuid().ToString()[..8]}",
+            AccountId = 55,
+            Status = QuoteStatus.Accepted,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _dbContext.Quotes.Add(quote);
+        await _dbContext.SaveChangesAsync();
+
+        _dbContext.QuoteLineItems.Add(new QuoteLineItem
+        {
+            QuoteId = quote.Id,
+            LineNumber = 1,
+            Name = "Widget",
+            Quantity = 3,
+            UnitPrice = 25m,
+            Total = 75m,
+            IsIncluded = true,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        await _dbContext.SaveChangesAsync();
+
+        // Act — must not throw (this is the actual regression: it used to throw here)
+        var result = await _service.CreateFromQuoteAsync(quote.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.QuoteId.Should().Be(quote.Id);
+        result.AccountId.Should().Be(55);
+    }
+
+    [Fact]
+    public async Task CreateFromQuoteAsync_ShouldThrowNotFound_WhenQuoteDoesNotExist()
+    {
+        var act = async () => await _service.CreateFromQuoteAsync(999999);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
 }

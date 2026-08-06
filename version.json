@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 626,
-  "patch": 1,
+  "patch": 2,
   "lastUpdate": "2026-08-06",
-  "description": "fix(admin): FeatureFlagManagementService actually persists flag toggles + FeatureFlagsPanel wired to real API (REV-FE-005)",
+  "description": "fix(sales): OrderService.CreateFromQuoteAsync Include() crash bug (REM-BUG-004)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

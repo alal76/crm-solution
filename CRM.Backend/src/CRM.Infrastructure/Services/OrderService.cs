@@ -151,7 +151,7 @@ public class OrderService : IOrderService
     public async Task<OrderDto> CreateFromQuoteAsync(int quoteId, CancellationToken cancellationToken = default)
     {
         var quote = await _context.Quotes
-            .Include(q => q.LineItems)
+            .Include(q => q.QuoteLineItems)
             .FirstOrDefaultAsync(q => q.Id == quoteId && !q.IsDeleted, cancellationToken);
 
         if (quote == null)
@@ -401,7 +401,7 @@ public class OrderService : IOrderService
     {
         // ...existing logic from previous CreateFromQuoteAsync...
         var quote = await _context.Quotes
-            .Include(q => q.LineItems)
+            .Include(q => q.QuoteLineItems)
             .FirstOrDefaultAsync(q => q.Id == quoteId && !q.IsDeleted, cancellationToken);
         if (quote == null)
         {
