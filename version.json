@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 626,
-  "patch": 4,
+  "patch": 5,
   "lastUpdate": "2026-08-06",
-  "description": "fix(crm): MergeService snapshot serialization cycle crash (REM-BUG-003)",
+  "description": "chore(di): register Slack/Teams/Twilio notification services in DI (REM-ORPHAN-005 partial)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;

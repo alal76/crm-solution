@@ -639,6 +639,9 @@ else
         CRM.Infrastructure.Services.Notifications.SmsNotificationService>();
     Log.Information("SMS notification service: SmsNotificationService (stub)");
 }
+// Slack/Teams Notification Services (TODO-SD005-010) — post to webhook when configured, else log-only
+builder.Services.AddScoped<CRM.Core.Interfaces.Notifications.ISlackNotificationService, CRM.Infrastructure.Services.Notifications.SlackNotificationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.Notifications.ITeamsNotificationService, CRM.Infrastructure.Services.Notifications.TeamsNotificationService>();
 // ITSM Phase 4 - Advanced Automation & Integration Services
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IWebhookNotificationService, CRM.Infrastructure.Services.ITSM.WebhookNotificationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEmailToTicketService, CRM.Infrastructure.Services.ITSM.EmailToTicketService>();
@@ -994,6 +997,8 @@ builder.Services.AddScoped<CRM.Core.Ports.Input.IAccountingSyncService, CRM.Infr
 builder.Services.AddScoped<CRM.Core.Ports.Input.IMarketingSyncService, CRM.Infrastructure.Services.Integrations.MarketingSyncService>();
 builder.Services.AddScoped<CRM.Core.Ports.Input.ILinkedInSalesNavService, CRM.Infrastructure.Services.Integrations.LinkedInSalesNavService>();
 builder.Services.AddScoped<CRM.Core.Ports.Input.ISchedulingIntegrationService, CRM.Infrastructure.Services.Integrations.SchedulingIntegrationService>();
+// TODO-INT-07: Twilio voice call logging
+builder.Services.AddScoped<CRM.Core.Ports.Input.ITwilioCallLoggingService, CRM.Infrastructure.Services.Integrations.TwilioCallLoggingService>();
 
 // INT-001: QuickBooks & Xero OAuth2 accounting integrations
 builder.Services.Configure<CRM.Core.Configuration.QuickBooksOptions>(
