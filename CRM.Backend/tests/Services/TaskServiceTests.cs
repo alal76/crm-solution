@@ -739,4 +739,73 @@ public class TaskServiceTests : IDisposable
     }
 
     #endregion
+
+    #region New Field Round-Trip Tests (OpportunityCrmTaskDto gap remediation)
+
+    [Fact]
+    public async Task CreateAsync_ShouldPersistNewFields_TaskTypeStartDateEstimatedMinutesAccountIdOpportunityId()
+    {
+        // Arrange
+        var task = new CrmTask
+        {
+            Subject = "New Field Task",
+            TaskType = CrmTaskType.Demo,
+            StartDate = new DateTime(2026, 3, 1, 9, 0, 0, DateTimeKind.Utc),
+            EstimatedMinutes = 90,
+            AccountId = 42,
+            OpportunityId = 77
+        };
+
+        // Act
+        var result = await _service.CreateAsync(task);
+
+        // Assert
+        result.TaskType.Should().Be(CrmTaskType.Demo);
+        result.StartDate.Should().Be(new DateTime(2026, 3, 1, 9, 0, 0, DateTimeKind.Utc));
+        result.EstimatedMinutes.Should().Be(90);
+        result.AccountId.Should().Be(42);
+        result.OpportunityId.Should().Be(77);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnNewFields_AfterRoundTripThroughDatabase()
+    {
+        // Arrange
+        var task = new CrmTask
+        {
+            Subject = "Round Trip Task",
+            TaskType = CrmTaskType.Proposal,
+            StartDate = new DateTime(2026, 4, 15, 0, 0, 0, DateTimeKind.Utc),
+            EstimatedMinutes = 240,
+            AccountId = 5,
+            OpportunityId = 9
+        };
+        await _service.CreateAsync(task);
+
+        // Act
+        var result = await _service.GetByIdAsync(task.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.TaskType.Should().Be(CrmTaskType.Proposal);
+        result.StartDate.Should().Be(new DateTime(2026, 4, 15, 0, 0, 0, DateTimeKind.Utc));
+        result.EstimatedMinutes.Should().Be(240);
+        result.AccountId.Should().Be(5);
+        result.OpportunityId.Should().Be(9);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldDefaultTaskTypeToOther_WhenNotSpecified()
+    {
+        // Arrange
+        var task = new CrmTask { Subject = "Default TaskType" };
+
+        // Act
+        var result = await _service.CreateAsync(task);
+
+        // Assert
+        result.TaskType.Should().Be(CrmTaskType.Other);
+    }
+
+    #endregion
 }

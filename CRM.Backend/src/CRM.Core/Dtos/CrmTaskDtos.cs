@@ -61,6 +61,21 @@ namespace CRM.Core.Dtos
         public string? Category { get; set; }
         public string? Attachments { get; set; }
         public string? CustomFields { get; set; }
+
+        /// <summary>Type of task (CrmTaskType enum, int)</summary>
+        public int TaskType { get; set; }
+
+        /// <summary>Planned start date (ISO 8601 string)</summary>
+        public string? StartDate { get; set; }
+
+        /// <summary>Estimated effort in minutes</summary>
+        public int? EstimatedMinutes { get; set; }
+
+        /// <summary>Associated account ID</summary>
+        public int? AccountId { get; set; }
+
+        /// <summary>Associated opportunity ID</summary>
+        public int? OpportunityId { get; set; }
     }
 
     /// <summary>

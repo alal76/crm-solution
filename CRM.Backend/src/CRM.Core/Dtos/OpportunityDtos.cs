@@ -78,6 +78,24 @@ namespace CRM.Core.Dtos
 
         public bool IsOpen { get; set; }
         public bool IsWon { get; set; }
+
+        /// <summary>Forecast category for pipeline management (ForecastCategory enum, int)</summary>
+        public int ForecastCategory { get; set; }
+
+        /// <summary>Reason category for lost deals (LossReasonCategory enum, int, nullable)</summary>
+        public int? LossReasonCategory { get; set; }
+
+        [MaxLength(2000)]
+        public string? LossReason { get; set; }
+
+        /// <summary>ID of competitor who won (if lost to competition)</summary>
+        public int? CompetitorWinnerId { get; set; }
+
+        [MaxLength(4000)]
+        public string? WinLossNotes { get; set; }
+
+        /// <summary>Date when deal was won or lost (ISO 8601 string)</summary>
+        public string? ClosedDate { get; set; }
     }
 #pragma warning restore SA1649
 

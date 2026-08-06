@@ -288,7 +288,12 @@ public class TasksController : CrmControllerBase
             Tags = t.Tags,
             Category = t.Category,
             Attachments = t.Attachments,
-            CustomFields = t.CustomFields
+            CustomFields = t.CustomFields,
+            TaskType = (int)t.TaskType,
+            StartDate = t.StartDate?.ToString("o"),
+            EstimatedMinutes = t.EstimatedMinutes,
+            AccountId = t.AccountId,
+            OpportunityId = t.OpportunityId
         };
     }
 

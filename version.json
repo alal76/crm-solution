@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 625,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-08-06",
-  "description": "fix(frontend): wrap NOSONAR comment in JSX braces so CI build no longer fails on ESLint react/jsx-no-comment-textnodes",
+  "description": "fix(crm,sales): add missing Opportunity/CrmTask DTO fields (REV-FGAP-001/002) plus a DTO-superset contract test",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

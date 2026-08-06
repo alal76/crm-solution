@@ -3,6 +3,7 @@
 // TCOV2-D05 — TasksController unit tests
 using System.Security.Claims;
 using CRM.Api.Controllers;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Core.Interfaces;
@@ -127,5 +128,54 @@ public class TasksControllerTests : IDisposable
         var result = await _controller.GetTasks(status: CrmTaskStatus.InProgress);
 
         result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    // ── MapToDto — new fields (CrmTaskDto gap remediation) ────────────────────
+
+    [Fact]
+    public async Task GetTask_ShouldMapNewFields_TaskTypeStartDateEstimatedMinutesAccountIdOpportunityId()
+    {
+        // Arrange
+        var task = MakeTask();
+        task.TaskType = CrmTaskType.Meeting;
+        task.StartDate = new DateTime(2026, 6, 10, 8, 30, 0, DateTimeKind.Utc);
+        task.EstimatedMinutes = 45;
+        task.AccountId = 21;
+        task.OpportunityId = 34;
+        _dbContext.CrmTasks.Add(task);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _controller.GetTask(task.Id);
+
+        // Assert
+        var ok = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = ok.Value.Should().BeOfType<CrmTaskDto>().Subject;
+        dto.TaskType.Should().Be((int)CrmTaskType.Meeting);
+        dto.StartDate.Should().Be(task.StartDate.Value.ToString("o"));
+        dto.EstimatedMinutes.Should().Be(45);
+        dto.AccountId.Should().Be(21);
+        dto.OpportunityId.Should().Be(34);
+    }
+
+    [Fact]
+    public async Task GetTask_ShouldMapNullNewFields_WhenNotSet()
+    {
+        // Arrange
+        var task = MakeTask();
+        _dbContext.CrmTasks.Add(task);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _controller.GetTask(task.Id);
+
+        // Assert
+        var ok = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = ok.Value.Should().BeOfType<CrmTaskDto>().Subject;
+        dto.TaskType.Should().Be((int)CrmTaskType.Other);
+        dto.StartDate.Should().BeNull();
+        dto.EstimatedMinutes.Should().BeNull();
+        dto.AccountId.Should().BeNull();
+        dto.OpportunityId.Should().BeNull();
     }
 }

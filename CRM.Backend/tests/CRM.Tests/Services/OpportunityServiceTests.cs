@@ -195,4 +195,49 @@ public class OpportunityServiceTests
 
         _mockRepo.Verify(r => r.DeleteAsync(It.IsAny<Opportunity>()), Times.Never);
     }
+
+    // ------------------------------------------------------------------
+    // New field flow-through (OpportunityDto gap remediation)
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public async Task GetOpportunityByIdAsync_ShouldReturnForecastAndWinLossFields_WhenSetOnEntity()
+    {
+        var opp = new Opportunity
+        {
+            Id = 21,
+            Name = "Closed Deal",
+            AccountId = 10,
+            ForecastCategory = ForecastCategory.ClosedWon,
+            LossReasonCategory = LossReasonCategory.Price,
+            LossReason = "Client chose a cheaper vendor.",
+            CompetitorWinnerId = 33,
+            WinLossNotes = "Reassess pricing tier for renewal.",
+            ClosedDate = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc)
+        };
+        _mockRepo.Setup(r => r.GetByIdAsync(21)).ReturnsAsync(opp);
+
+        var result = await _service.GetOpportunityByIdAsync(21);
+
+        result.Should().NotBeNull();
+        result!.ForecastCategory.Should().Be(ForecastCategory.ClosedWon);
+        result.LossReasonCategory.Should().Be(LossReasonCategory.Price);
+        result.LossReason.Should().Be("Client chose a cheaper vendor.");
+        result.CompetitorWinnerId.Should().Be(33);
+        result.WinLossNotes.Should().Be("Reassess pricing tier for renewal.");
+        result.ClosedDate.Should().Be(new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc));
+    }
+
+    [Fact]
+    public async Task CreateOpportunityAsync_ShouldPersistForecastCategory_WhenSet()
+    {
+        var opp = new Opportunity { Name = "New Forecast Deal", AccountId = 3, ForecastCategory = ForecastCategory.BestCase };
+        _mockRepo.Setup(r => r.AddAsync(opp)).Returns(Task.CompletedTask);
+        _mockRepo.Setup(r => r.SaveAsync()).Returns(Task.CompletedTask);
+
+        await _service.CreateOpportunityAsync(opp);
+
+        opp.ForecastCategory.Should().Be(ForecastCategory.BestCase);
+        _mockRepo.Verify(r => r.AddAsync(opp), Times.Once);
+    }
 }

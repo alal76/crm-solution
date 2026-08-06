@@ -252,6 +252,12 @@ export interface Opportunity extends BaseEntity {
   weightedValue?: number;      // Alias for weightedAmount
   isOpen?: boolean;            // True when stage is not ClosedWon or ClosedLost
   isWon?: boolean;             // True when stage is ClosedWon
+  forecastCategory?: number;   // ForecastCategory: 0=Pipeline, 1=BestCase, 2=Commit, 3=Closed/ClosedWon, 4=Omitted, 5=MostLikely
+  lossReasonCategory?: number; // LossReasonCategory: 0=None, 1=Price, 2=Features, 3=Competition, 4=NoDecision, 5=Budget, 6=Timing, 7=Relationship, 99=Other
+  lossReason?: string;         // Detailed loss reason description
+  competitorWinnerId?: number; // FK to Competitor who won (if lost to competition)
+  winLossNotes?: string;       // Win/Loss analysis notes
+  closedDate?: string;         // Date when deal was won or lost
 }
 
 export interface OpportunityProduct {

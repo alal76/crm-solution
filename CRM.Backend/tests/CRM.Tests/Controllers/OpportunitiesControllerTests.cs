@@ -4,6 +4,7 @@
 using System.Security.Claims;
 using CRM.Api.Controllers;
 using CRM.Api.Hubs;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
@@ -138,5 +139,56 @@ public class OpportunitiesControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         _mockOpportunityService.Verify(s => s.GetOpportunitiesByAccountAsync(10), Times.Once);
+    }
+
+    // ── MapToDto — Forecast / Win-Loss fields (OpportunityDto gap remediation) ────
+
+    [Fact]
+    public async Task GetById_ShouldMapForecastAndWinLossFields_OntoDto()
+    {
+        // Arrange
+        var opp = MakeOpportunity(11);
+        opp.ForecastCategory = ForecastCategory.Commit;
+        opp.LossReasonCategory = LossReasonCategory.Competition;
+        opp.LossReason = "Lost to Acme Corp on price and feature set.";
+        opp.CompetitorWinnerId = 55;
+        opp.WinLossNotes = "Competitor undercut pricing by 20%.";
+        opp.ClosedDate = new DateTime(2026, 5, 1, 12, 0, 0, DateTimeKind.Utc);
+        _mockOpportunityService.Setup(s => s.GetOpportunityByIdAsync(11)).ReturnsAsync(opp);
+
+        // Act
+        var result = await _controller.GetById(11);
+
+        // Assert
+        var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = ok.Value.Should().BeOfType<OpportunityDto>().Subject;
+        dto.ForecastCategory.Should().Be((int)ForecastCategory.Commit);
+        dto.LossReasonCategory.Should().Be((int)LossReasonCategory.Competition);
+        dto.LossReason.Should().Be("Lost to Acme Corp on price and feature set.");
+        dto.CompetitorWinnerId.Should().Be(55);
+        dto.WinLossNotes.Should().Be("Competitor undercut pricing by 20%.");
+        dto.ClosedDate.Should().Be(opp.ClosedDate.Value.ToString("o"));
+    }
+
+    [Fact]
+    public async Task GetById_ShouldMapDefaultForecastCategory_AndNullWinLossFields_WhenOpportunityIsOpen()
+    {
+        // Arrange — a fresh, still-open opportunity should carry the default ForecastCategory
+        // and no win/loss data, since Close() hasn't been called.
+        var opp = MakeOpportunity(12);
+        _mockOpportunityService.Setup(s => s.GetOpportunityByIdAsync(12)).ReturnsAsync(opp);
+
+        // Act
+        var result = await _controller.GetById(12);
+
+        // Assert
+        var ok = result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = ok.Value.Should().BeOfType<OpportunityDto>().Subject;
+        dto.ForecastCategory.Should().Be((int)ForecastCategory.Pipeline);
+        dto.LossReasonCategory.Should().BeNull();
+        dto.LossReason.Should().BeNull();
+        dto.CompetitorWinnerId.Should().BeNull();
+        dto.WinLossNotes.Should().BeNull();
+        dto.ClosedDate.Should().BeNull();
     }
 }

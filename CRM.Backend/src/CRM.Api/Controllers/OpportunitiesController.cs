@@ -428,7 +428,13 @@ public class OpportunitiesController : CrmControllerBase
             WeightedAmount = entity.WeightedAmount,
             WeightedValue = entity.WeightedAmount,
             IsOpen = entity.IsOpen,
-            IsWon = entity.IsWon
+            IsWon = entity.IsWon,
+            ForecastCategory = (int)entity.ForecastCategory,
+            LossReasonCategory = (int?)entity.LossReasonCategory,
+            LossReason = entity.LossReason,
+            CompetitorWinnerId = entity.CompetitorWinnerId,
+            WinLossNotes = entity.WinLossNotes,
+            ClosedDate = entity.ClosedDate?.ToString("o")
         };
     }
 
