@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 626,
-  "patch": 3,
+  "patch": 4,
   "lastUpdate": "2026-08-06",
-  "description": "fix(crm): Contact.PreferredContactMethod dropped on create/update (REM-BUG-009)",
+  "description": "fix(crm): MergeService snapshot serialization cycle crash (REM-BUG-003)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

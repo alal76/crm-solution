@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,11 @@ public class MergeService : IMergeService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<MergeService> _logger;
-    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
+    // ReferenceHandler.IgnoreCycles: GetRecordSnapshotAsync serializes the raw tracked entity,
+    // and EF's automatic navigation fixup can create circular references (e.g. Lead.Opportunities
+    // <-> Opportunity.Lead) within the same DbContext -- without this, snapshot serialization
+    // throws and the whole merge fails (REM-BUG-003).
+    private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false, ReferenceHandler = ReferenceHandler.IgnoreCycles };
 
     /// <summary>
     /// Context object for processing merged records to reduce parameter count (S107).

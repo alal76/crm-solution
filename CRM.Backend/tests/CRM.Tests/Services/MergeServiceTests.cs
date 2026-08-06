@@ -287,6 +287,40 @@ public class MergeServiceTests : ServiceTestFixtureBase<MergeService>
     }
 
     [Fact]
+    public async Task MergeRecordsAsync_ShouldNotThrow_WhenSnapshotEntityHasCircularNavigationReference(
+        )
+    {
+        // Regression for REM-BUG-003: GetRecordSnapshotAsync used to do a bare
+        // JsonSerializer.Serialize(record) with no cycle handling. Deliberately do NOT clear
+        // the change tracker here (unlike the sibling test above) so EF's automatic navigation
+        // fixup links Lead.Opportunities <-> Opportunity.Lead while both are tracked in the
+        // same context -- exactly the circular-reference scenario that used to throw.
+        await using var db = CreateInMemoryContext();
+        var service = new MergeService(db, MockLogger.Object);
+
+        var master = new Lead { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@example.com" };
+        var dup = new Lead { Id = 2, FirstName = "Jon", LastName = "Doe", Email = "jon@example.com" };
+        db.Leads.AddRange(master, dup);
+        db.Opportunities.Add(new Opportunity { Id = 1, Name = "Opp1", Currency = "USD", AccountId = 1, LeadId = 2 });
+        await db.SaveChangesAsync();
+
+        // Force fixup: re-read via a query that includes the navigation, without clearing the tracker.
+        _ = await db.Leads.Include(l => l.Opportunities).ToListAsync();
+
+        var request = new MergeRequest
+        {
+            EntityType = "Lead",
+            MasterRecordId = 1,
+            RecordsToMerge = new List<int> { 2 },
+            UserId = 1
+        };
+
+        var result = await service.MergeRecordsAsync(request);
+
+        result.Success.Should().BeTrue(result.ErrorMessage);
+    }
+
+    [Fact]
     public async Task MergeRecordsAsync_ShouldFail_WhenEntityTypeIsInvalid()
     {
         await using var db = CreateInMemoryContext();
