@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 626,
-  "patch": 6,
+  "patch": 7,
   "lastUpdate": "2026-08-06",
-  "description": "feat(admin): IntegrationsSettingsPage shows real provider health status (REV-FE-006)",
+  "description": "docs: complete FIELD_GAP_REMEDIATION_PLAN.md re-audit -- 9 of 16 entities had real gaps (REV-DOC-003 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

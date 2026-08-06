@@ -7,9 +7,18 @@
 > - **Opportunity is not fully aligned** despite the "✅ Fully aligned" claim below — `OpportunityDto` is missing 6 fields the entity and business logic actually use (`ForecastCategory`, `LossReasonCategory`, `LossReason`, `CompetitorWinnerId`, `WinLossNotes`, `ClosedDate`). See REV-FGAP-001 in [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md).
 > - **CrmTask still has a real gap**, just a smaller one than the 15 fields listed below — `TaskType`, `StartDate`, `EstimatedMinutes`, `AccountId`, `OpportunityId` are missing from `CrmTaskDto` even though the frontend type already expects them (they resolve `undefined` at runtime). See REV-FGAP-002 in MASTER_TODO_LIST.md.
 > - Account, Contact, and Campaign's DTO/FE-type gaps described below (37, 38, and ~90 fields respectively) **are** now closed, confirming those three "✅ Fully aligned" claims.
-> - The other 9 entities in this document (User, Lead, Quote, Order, Invoice, Payment, Contract, Activity, ServiceRequest) were **not** re-checked in the Aug 6 review — their "✅ Fully aligned" status below is unverified, not confirmed false. Treat it as unknown until a full re-audit runs.
 >
-> **Lesson:** a "no gaps remain" verdict in this file has gone stale before without anyone catching it. Don't take the Final Verdict section at face value — re-verify against code before relying on it.
+> **2026-08-06 remainder review:** the other 9 entities (User, Lead, Quote, Order, Invoice, Payment, Contract, Activity, ServiceRequest) have now also been re-verified against current code. **7 of the 9 had real, undocumented gaps**, following the same pattern as Opportunity/CrmTask above. New tracking IDs (REV-FGAP-003 through REV-FGAP-008) are introduced below for these; they are not yet logged in [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — that file needs a follow-up entry, mirroring REV-FGAP-001/002, to track the fixes:
+> - **User** — FE `User` type (`common.ts` and the local type in `UserManagementPage.tsx`) is missing ~20 preference/security fields `UserDto` already returns; DTO itself is missing 2 entity fields (`PasswordNeverSet`, `CommissionPlanId`). Tracked here as REV-FGAP-008.
+> - **Lead** — `LeadDto` is missing ~20 entity fields: the full BANT/MEDDIC qualification scoring block, UTM/attribution fields, and nurture/territory fields. Tracked here as REV-FGAP-003.
+> - **Quote** — FE `Quote` type declares 8 fields (`warrantyEndDate`, `termsAndConditions`, `expectedDeliveryDate`, `actualDeliveryDate`, `serviceStartDate`, `serviceEndDate`, `attachments`, `customFields`) that `QuoteDto` doesn't have — silently `undefined` at runtime. Tracked here as REV-FGAP-004.
+> - **Invoice** — DTO is actually complete now, but FE `Invoice` type is missing 7 fields (`isPaid`, `daysOverdue`, `lateFeeTotal`, `quoteId`, `voidedById`, `collectionsReference`, `paymentTermsDescription`) the DTO already returns.
+> - **Payment** — FE `Payment` type is missing 14 fields `PaymentDto` already returns, including `FraudFlagged`, `RiskScore`, `AmountApplied`/`AmountUnapplied`, `RefundedAmount`, `RetryCount`. Tracked here as REV-FGAP-005.
+> - **Contract** — `ContractDto` declares `AnnualValue` and `RenewalTermMonths`, but neither exists on the `Contract` entity and neither is mapped anywhere in the backend — they always serialize as 0 and any client-submitted value is silently discarded. Tracked here as REV-FGAP-006.
+> - **ServiceRequest** — `ServiceRequestDto` is missing 4 entity fields (`DueDate`, `StatusCode`, `LastModifiedByUserId`, `ConversationId`) that the FE type already declares — silently `undefined` at runtime. Tracked here as REV-FGAP-007.
+> - **Order** and **Activity** were re-checked and confirmed accurate (Order's separate route/enum fixes already landed elsewhere on this branch; Activity has only a trivial, unflagged `CustomFields` omission).
+>
+> **Lesson:** a "no gaps remain" verdict in this file has gone stale before without anyone catching it. Don't take the Final Verdict section at face value — re-verify against code before relying on it. As of 2026-08-06 all 16 entities in this document have now been re-verified; 9 of 16 had real, undocumented gaps (Opportunity, CrmTask, User, Lead, Quote, Invoice, Payment, Contract, ServiceRequest).
 
 ## Context
 
@@ -30,17 +39,17 @@ Sessions 1–9 completed a full remediation pass across all 16 entities. All pre
 |--------|-----|---------|-------|----------|------------------------|
 | Account | ✅ Complete | ⚠️ Partial (~37 fields, e.g. LifetimeValue/MRR/ARR/PartnerTier, not on FE type) | ❌ Major gaps | P2 | ✅ Re-verified — gap moved from DTO to FE type |
 | Contact | ✅ Complete | ✅ Complete | ✅ Complete | P1 | ✅ Re-verified — confirmed complete |
-| User | ⚠️ Partial | ⚠️ Partial | ⚠️ Partial | P3 | ❓ Unverified |
-| Lead | ✅ Complete | ✅ Complete | ⚠️ Minor | P3 | ❓ Unverified |
+| User | ⚠️ Partial (missing PasswordNeverSet, CommissionPlanId) | ❌ Major gaps (FE `User` type in `common.ts` and the local type in `UserManagementPage.tsx` both lack ~20 preference/security fields UserDto has) | ⚠️ Partial | P3 | ✅ Re-verified (remainder) — "Fully aligned" claim below is false |
+| Lead | ❌ Missing ~20 fields (BANT/MEDDIC scoring, UTM attribution, nurture/territory — see REV-FGAP-003) | ❌ Missing same ~20 fields | ⚠️ Minor | **P1** | ✅ Re-verified (remainder) — "Fully aligned" claim below is false |
 | Opportunity | ❌ Missing 6 fields (see REV-FGAP-001) | ❌ Missing same 6 fields | ⚠️ Minor | **P1** | ✅ Re-verified — "Fully aligned" claim below is false |
-| Quote | ✅ Complete | ✅ Complete | ⚠️ Minor | P2 | ❓ Unverified |
-| Order | ✅ Complete | ✅ Complete | ⚠️ Minor | P2 | ❓ Unverified |
-| Invoice | ⚠️ Missing computed | ⚠️ Partial | ⚠️ Partial | P2 | ❓ Unverified |
-| Payment | ⚠️ Missing fraud fields | ⚠️ Partial | ⚠️ Partial | P2 | ❓ Unverified |
-| Contract | ⚠️ Missing computed | ✅ Complete | ✅ Complete | P3 | ❓ Unverified |
-| Activity | ✅ Complete | ✅ Complete | ⚠️ Minor | P3 | ❓ Unverified |
+| Quote | ⚠️ Missing 8 fields present on FE type (see REV-FGAP-004) | ⚠️ Declares 8 fields DTO lacks — silently `undefined` at runtime | ⚠️ Minor | P2 | ✅ Re-verified (remainder) — "Fully aligned" claim below is false |
+| Order | ✅ Complete | ✅ Complete | ⚠️ Minor | P2 | ✅ Re-verified (remainder) — confirmed complete (separate route/enum fixes already landed this branch) |
+| Invoice | ✅ Complete (computed fields now present) | ⚠️ Missing isPaid/daysOverdue/lateFeeTotal/quoteId/voidedById/collectionsReference/paymentTermsDescription | ⚠️ Partial | P2 | ✅ Re-verified (remainder) — gap moved from DTO to FE type |
+| Payment | ⚠️ Partial | ❌ Missing ~14 fields incl. FraudFlagged, RiskScore, AmountApplied/Unapplied, RefundedAmount, RetryCount (see REV-FGAP-005) | ⚠️ Partial | P2 | ✅ Re-verified (remainder) — "Fully aligned" claim below is false |
+| Contract | ⚠️ `AnnualValue`/`RenewalTermMonths` declared but never mapped anywhere in backend — always 0, client writes silently discarded (see REV-FGAP-006) | ✅ Complete | ✅ Complete | P3 | ✅ Re-verified (remainder) — dead DTO fields found (separate from the route/field fixes already on this branch) |
+| Activity | ✅ Complete (CustomFields JSON not surfaced — minor) | ✅ Complete | ⚠️ Minor | P3 | ✅ Re-verified (remainder) — confirmed complete |
 | CrmTask | ⚠️ Missing 5 fields (see REV-FGAP-002 — smaller than the 15 listed below, most already fixed) | ✅ Complete (has fields DTO lacks) | ✅ Complete | **P1** | ✅ Re-verified — real gap remains, different shape than documented |
-| ServiceRequest | ✅ Complete | ✅ Complete | ✅ Complete | P1 | ❓ Unverified |
+| ServiceRequest | ⚠️ Missing DueDate/StatusCode/LastModifiedByUserId/ConversationId (see REV-FGAP-007) | ⚠️ Declares those 4 fields — silently `undefined` at runtime | ✅ Complete | P1 | ✅ Re-verified (remainder) — "Fully aligned" claim below is false |
 | Campaign | ✅ Complete | ✅ Complete | ⚠️ Partial | P1 | ✅ Re-verified — confirmed complete (DTO ~205 fields, FE type aligned) |
 
 ---
@@ -717,16 +726,16 @@ Performed a full-stack audit across all layers: Database schema, Backend Entity,
 - **Status:** ✅ Fully aligned
 
 ### User
-- Preference and security status fields now included in DTO and FE type.
-- Nullability and types match. UI form exposes all fields except intentionally excluded security fields.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- ~~Preference and security status fields now included in DTO and FE type.~~
+- ~~Nullability and types match. UI form exposes all fields except intentionally excluded security fields.~~
+- **2026-08-06 correction:** this "Fully aligned" claim was false. `UserDto` (`CRM.Backend/src/CRM.Core/Dtos/UserDto.cs`) does have the preference/security fields (ThemePreference, Language, Timezone, RowsPerPage, EmailNotifications, DesktopNotifications, CompactMode, TwoFactorEnabled, MustResetPassword, EmailVerified, etc.), but is still missing `PasswordNeverSet` and `CommissionPlanId` from the entity. More importantly, the frontend `User` type (`CRM.Frontend/src/types/common.ts:58`) is a minimal auth/session shape (firstName, lastName, email, phone, avatar, status, lastLogin, roles, groups) that has almost none of these fields, and the actual User Management page (`CRM.Frontend/src/pages/UserManagementPage.tsx:9`) defines its own local `User` interface that also omits all ~20 preference/security fields the DTO returns. Tracked as REV-FGAP-008.
+- **Status:** ❌ Not fully aligned — DTO has 2-field gap vs entity; FE has a much larger, pre-existing gap vs DTO
 
 ### Lead
-- Status and source enums now match backend numeric values.
-- All relationship and scoring fields present in DTO, FE type, and UI form.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- ~~Status and source enums now match backend numeric values.~~
+- ~~All relationship and scoring fields present in DTO, FE type, and UI form.~~
+- **2026-08-06 correction:** this "Fully aligned" claim was false. The `Lead` entity (`CRM.Backend/src/CRM.Core/Entities/Lead.cs`) has an extensive qualification/attribution subsystem that `LeadDto`/`LeadSummaryDto` (`CRM.Backend/src/CRM.Core/Dtos/LeadDtos.cs`) and the frontend `Lead` type (`CRM.Frontend/src/types/crm.ts:156`) never expose: the full BANT/MEDDIC scoring fields (`QualificationFrameworkType`, `BudgetScore`, `AuthorityScore`, `NeedScore`, `TimelineScore`, `MetricsScore`, `EconomicBuyerScore`, `DecisionCriteriaScore`, `DecisionProcessScore`, `IdentifyPainScore`, `ChampionScore`, `CustomQualificationJson`), UTM/attribution fields (`LeadSourceId`, `OriginalSource`, `FirstTouchDate`, `UtmSource`, `UtmMedium`, `UtmCampaign`), nurture/territory fields (`NurtureCampaignId`, `NurtureCampaignEnrolledAt`, `LastContactedAt`, `DaysSinceLastContact`, `TerritoryId`), and `LastScoreDecayDate`. `LeadsController` returns `LeadDto` as its primary projection, so all ~20 fields are dropped before reaching the frontend. Tracked as REV-FGAP-003.
+- **Status:** ❌ Not fully aligned — ~20-field DTO/FE-type gap open (BANT/MEDDIC + UTM attribution + nurture/territory)
 
 ### Opportunity
 - Computed fields (WeightedAmount, IsOpen, IsWon) and enum mapping confirmed correct.
@@ -734,36 +743,36 @@ Performed a full-stack audit across all layers: Database schema, Backend Entity,
 - **Status:** ❌ Not fully aligned — 6-field DTO/FE-type gap open
 
 ### Quote
-- All 13 backend statuses mapped to FE enum. Address, terms, and approval fields present in DTO, FE type, and UI form.
-- Naming mismatches resolved.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- ~~All 13 backend statuses mapped to FE enum. Address, terms, and approval fields present in DTO, FE type, and UI form.~~
+- **2026-08-06 correction:** this "Fully aligned" claim was false. The frontend `Quote` type (`CRM.Frontend/src/types/sales.ts:87`) declares `warrantyEndDate`, `termsAndConditions`, `expectedDeliveryDate`, `actualDeliveryDate`, `serviceStartDate`, `serviceEndDate`, `attachments`, and `customFields` — all real entity fields (`CRM.Backend/src/CRM.Core/Entities/Quote.cs`) — but `QuoteDto` (`CRM.Backend/src/CRM.Core/Dtos/QuoteDtos.cs`) has none of them. Same "FE type has fields DTO lacks, silently resolve to undefined" pattern as CrmTask (REV-FGAP-002). Tracked as REV-FGAP-004.
+- **Status:** ⚠️ Not fully aligned — 8-field DTO gap open
 
 ### Order
 - All 13 backend statuses mapped to FE enum. Billing/shipping, workflow, and financial fields present in DTO, FE type, and UI form.
 - Naming mismatches resolved.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- **2026-08-06 note:** re-verified. Route/field mismatches and the OrderStatus enum consolidation were fixed separately elsewhere on this branch. Beyond those, a fresh field-by-field pass (Entity → `OrderDto` → FE `Order` type in `sales.ts`) found no additional gaps — revenue-recognition fields (MRR/ARR/TCV/ACV/OneTimeRevenue/RecurringRevenue) and computed billing fields (BalanceDue/IsPaid) are present in both DTO and FE type.
+- **Status:** ✅ Fully aligned (re-confirmed 2026-08-06)
 
 ### Invoice
-- Computed and entity fields (IsPaid, DaysOverdue, etc.) now included in DTO and FE type. UI form exposes all fields.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- ~~Computed and entity fields (IsPaid, DaysOverdue, etc.) now included in DTO and FE type. UI form exposes all fields.~~
+- **2026-08-06 correction:** this "Fully aligned" claim was false, though the DTO half is now actually accurate — `InvoiceDto` (`CRM.Backend/src/CRM.Core/Dtos/InvoiceDto.cs`) does include `IsPaid`, `DaysOverdue`, `LateFeeTotal`, `QuoteId`, `VoidedById`, `CollectionsReference`, and `PaymentTermsDescription`. The gap moved to the frontend: `Invoice` (`CRM.Frontend/src/types/sales.ts:427`) is still missing all seven of those fields, so the computed fields the original remediation added to the DTO never reached the FE type. Same pattern as the Account correction above.
+- **Status:** ⚠️ Not fully aligned — 7-field FE type gap open (DTO is complete)
 
 ### Payment
-- Fraud and reconciliation fields (FraudFlagged, RiskScore, etc.) now included in DTO and FE type. UI form exposes all fields.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- ~~Fraud and reconciliation fields (FraudFlagged, RiskScore, etc.) now included in DTO and FE type. UI form exposes all fields.~~
+- **2026-08-06 correction:** this "Fully aligned" claim was false. `PaymentDto` (`CRM.Backend/src/CRM.Core/Dtos/PaymentDto.cs`) does include `FraudFlagged` and `RiskScore`, but the frontend `Payment` type (`CRM.Frontend/src/types/sales.ts:564`) is missing those plus `RefundedAmount`, `AmountApplied`, `AmountUnapplied`, `AuthorizationCode`, `RoutingNumberLast4`, `AvsResponseCode`, `CvvResponseCode`, `ProcessedById`, `RefundReason`, `RetryCount`, `OriginalPaymentId`, `IsRefund`, and `InvoiceNumber` — 14 DTO fields absent from the FE type. Tracked as REV-FGAP-005.
+- **Status:** ⚠️ Not fully aligned — 14-field FE type gap open
 
 ### Contract
-- Computed and entity fields (DaysUntilExpiration, IsExpiringSoon, etc.) now included in DTO and FE type. UI form exposes all fields except intentionally omitted display-only fields.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- ~~Computed and entity fields (DaysUntilExpiration, IsExpiringSoon, etc.) now included in DTO and FE type. UI form exposes all fields except intentionally omitted display-only fields.~~
+- **2026-08-06 correction:** this "Fully aligned" claim was false in a different way than the DTO/FE-type gaps found elsewhere. `ContractDto` (`CRM.Backend/src/CRM.Core/Dtos/ContractDto.cs`) declares `AnnualValue` and `RenewalTermMonths`, but neither field exists anywhere on the `Contract` entity (`CRM.Backend/src/CRM.Core/Entities/Contract.cs`) and neither name appears anywhere else in the backend outside the DTO file itself — there is no mapping code populating them on read, and no code applying them from `CreateContractDto`/`UpdateContractDto` on write. These two fields always serialize as `0` to the frontend, and any value a client submits for them is silently discarded. This is separate from the route/field-name fixes for Contract already landed on this branch. Tracked as REV-FGAP-006.
+- **Status:** ⚠️ Not fully aligned — 2 dead DTO fields (never populated, never persisted)
 
 ### Activity
 - All content, duration, secondary entity, and relationship fields present in DTO, FE type, and UI form.
 - Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- **2026-08-06 note:** re-verified. `ActivityDto` (`CRM.Backend/src/CRM.Core/Dtos/ActivityDto.cs`) matches the entity field-for-field except `CustomFields` (JSON blob, not surfaced) — a minor, low-impact gap, not counted as a real correction. `IpAddress`/`UserAgent` remain intentionally excluded. The FE `Activity` type (`CRM.Frontend/src/types/crm.ts:400`) covers everything the DTO returns.
+- **Status:** ✅ Fully aligned (re-confirmed 2026-08-06; trivial CustomFields omission noted, not tracked as a gap)
 
 ### CrmTask
 - Most of the original 15 missing fields are now present in DTO, FE type, and UI form. Subject/Title intentional rename documented.
@@ -771,9 +780,9 @@ Performed a full-stack audit across all layers: Database schema, Backend Entity,
 - **Status:** ⚠️ Not fully aligned — 5-field DTO gap open (smaller than, and different from, the original list)
 
 ### ServiceRequest
-- Expedite fields and 21 gap fields present in Entity, DTO, FE type, and UI form. Subject/title naming clarified.
-- Tests confirm coverage.
-- **Status:** ✅ Fully aligned
+- ~~Expedite fields and 21 gap fields present in Entity, DTO, FE type, and UI form. Subject/title naming clarified.~~
+- **2026-08-06 correction:** this "Fully aligned" claim was false. The expedite fields are indeed present (confirmed). But `ServiceRequestDto` (`CRM.Backend/src/CRM.Core/Dtos/ServiceRequestDto.cs`) is missing `DueDate`, `StatusCode`, `LastModifiedByUserId`, and `ConversationId` — all real entity fields (`CRM.Backend/src/CRM.Core/Entities/ServiceRequest.cs`). The frontend `ServiceRequest` type (`CRM.Frontend/src/types/itsm.ts:423`) already declares all four (`dueDate`, `statusCode`, `lastModifiedByUserId`, `conversationId`), so — same pattern as CrmTask/Quote — they silently resolve to `undefined` at runtime today. Tracked as REV-FGAP-007.
+- **Status:** ⚠️ Not fully aligned — 4-field DTO gap open
 
 ### Campaign
 - ~90 previously missing fields now present in FE type and UI form. DTO is complete. Enum and naming alignment verified.
@@ -804,7 +813,7 @@ Performed a full-stack audit across all layers: Database schema, Backend Entity,
 
 ~~All entities and fields are fully aligned across DB, backend, DTO, API, frontend types, UI forms, and tests. No gaps, mismatches, or serialization issues remain. Enum mapping, naming, and contract superset checks are complete. Documentation and feature specs are up to date.~~
 
-**2026-08-06: This verdict was false and should not be trusted going forward without re-verification.** An independent review re-checked 5 of these 16 entities against current code and found Opportunity and CrmTask both had real, undocumented DTO gaps (see the correction banner at the top of this file, and REV-FGAP-001/002 in [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md)). The other 11 entities' "fully aligned" status in this section is unverified, not disproven — but given this section was wrong for 2 of the 5 entities actually checked (40% miss rate on the sample), it should not be read as authoritative until a full 16-entity re-audit runs.
+**2026-08-06: This verdict was false and should not be trusted going forward without re-verification.** A two-part independent review has now re-checked all 16 entities against current code. Part 1 re-checked 5 entities (Account, Contact, Opportunity, CrmTask, Campaign) and found Opportunity and CrmTask had real, undocumented DTO gaps (REV-FGAP-001/002, logged in [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md)). Part 2 (same day) re-checked the remaining 9 (User, Lead, Quote, Order, Invoice, Payment, Contract, Activity, ServiceRequest) and found 7 more had real gaps — only Order and Activity held up — newly tracked here as REV-FGAP-003 through REV-FGAP-008 (not yet logged in MASTER_TODO_LIST.md; that file needs a follow-up entry). **Net result: 9 of the 16 entities in this document had a real, undocumented gap despite this section's "Fully aligned" claim** (Opportunity, CrmTask, User, Lead, Quote, Invoice, Payment, Contract, ServiceRequest). See the correction banner at the top of this file. Do not treat any "Fully aligned" claim in this document as current without checking the corresponding correction note above it.
 
 ---
 **Comprehensive audit completed: 2026-02-22. Superseded in part by the 2026-08-06 review above — see correction banner at the top of this document.**
