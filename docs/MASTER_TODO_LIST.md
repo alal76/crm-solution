@@ -1,10 +1,40 @@
 # CRM Solution — Master TODO List
 
-> **Last Updated:** March 11, 2026 (v0.625.0)
+> **Last Updated:** August 6, 2026
 > **Version:** 0.625.0
+> **Single Source of Truth:** This file is the canonical backlog, gap register, remediation plan, and execution tracker for the repository. All active TODOs, gaps, remediation work, and implementation priorities should be recorded here.
 > **Active Backlog:** 1 blocked (INT-003) + 1 deferred by architectural decision (XMOD-011)
 > **Build:** ✅ 0 errors, 0 SA warnings (backend + frontend) | **Tests:** ✅ 2,785 passing in CRM.Tests (0 failures) | **Coverage:** ~70% (TCOV-001–068 done), TCOV2 Waves A–E complete (v0.625.0) | **Next:** Measure actual % with reportgenerator
 > **Completed Work Archive:** See [docs/DONE_LOG.md](DONE_LOG.md)
+
+---
+
+## Section 0 — Consolidated Gap Summary and Plan
+
+This document replaces the need to cross-reference multiple backlog and remediation files. Use this file as the only place to review:
+- open gaps and TODOs
+- architecture and implementation debt
+- remediation phases and priorities
+- testing and coverage follow-up
+- engineering review findings and next actions
+
+### Consolidated priorities
+
+| Priority | Focus | Notes |
+|---|---|---|
+| P0 | Contract and architecture cleanup | Normalize DTOs, consolidate duplicate entities, archive superseded implementations, and reduce drift. |
+| P0 | Operational hardening | Strengthen health checks, retries, background worker resilience, and recovery guidance. |
+| P1 | High-value feature gap closure | Finish the most important partially implemented CRM and ITSM workflows before broadening scope. |
+| P1 | Test hardening | Add contract and resilience coverage for services, controllers, and background workers. |
+| P2 | Security and configuration | Continue hardening auth, secrets, and deployment-time configuration defaults. |
+| P2 | Documentation and traceability | Keep specs, implementation notes, and remediation tracking aligned with the codebase. |
+
+### Recommended execution order
+
+1. Contract and architecture cleanup
+2. Resilience and operations hardening
+3. Feature gap closure for high-value workflows
+4. Quality, regression prevention, and documentation maintenance
 
 ---
 

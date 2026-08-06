@@ -19,10 +19,12 @@ This repository is a full-stack CRM solution with a .NET backend, React frontend
 - Follow the existing .NET conventions under CRM.Backend/src.
 - Keep DTO/API contracts aligned with the documented schemas.
 - Use EF Core migrations for schema changes rather than ad hoc SQL.
+- Apply the contract alignment skill for any API, DTO, domain, database, frontend, or test-layer change.
 
 ## Frontend guidance
 - Keep React and TypeScript changes aligned with the existing component and service patterns.
 - Preserve route structure and shared state conventions.
+- Apply the contract alignment skill whenever a frontend model or service depends on a backend contract.
 
 ## Useful anchors
 - [.github/copilot-instructions.md](.github/copilot-instructions.md)
