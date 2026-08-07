@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 21,
-  "lastUpdate": "2026-08-07",
-  "description": "feat: AccountHierarchyTree + single-account merge entry point, reusing existing MergeDialog (REV-FE-001)",
+  "patch": 22,
+  "lastUpdate": "2026-08-08",
+  "description": "feat: real cloud provider connection tests for AWS/Azure/GCP/DigitalOcean (REV-STUB-006)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

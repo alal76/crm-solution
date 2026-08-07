@@ -7,9 +7,16 @@
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
+using Amazon;
+using Amazon.SecurityToken;
+using Amazon.SecurityToken.Model;
+using Azure.Core.Pipeline;
+using Azure.Identity;
+using Azure.ResourceManager;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using Google.Apis.Auth.OAuth2;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -285,132 +292,107 @@ public class CloudDeploymentService : ICloudDeploymentService
         }
     }
 
-    private Task<ProviderConnectionResult> TestAwsConnectionWithCredentials(CloudProvider provider)
+    // NOTE (REV-STUB-006): these "*WithCredentials" methods back the "test new credentials before
+    // saving a provider" flow (TestProviderConnectionAsync when no ProviderId is given yet). They
+    // now delegate to the same real, network-validating Test{Provider}Connection methods used for
+    // saved providers, so a bad Access Key / Secret / Service Account actually fails here too -
+    // previously these only checked that fields were non-empty and always reported success.
+    // The curated AvailableRegions/AvailableResources lists are intentionally kept on success: they
+    // drive the "choose a region / resource type" pickers in the create-provider UI, and populating
+    // them from live list-regions/list-resource-types API calls per provider is a separate, larger
+    // feature (each provider needs a different API/SDK call for this) that is out of scope here.
+
+    private async Task<ProviderConnectionResult> TestAwsConnectionWithCredentials(CloudProvider provider)
     {
-        // Validate AWS credentials
-        if (string.IsNullOrEmpty(provider.AccessKeyId) || string.IsNullOrEmpty(provider.SecretAccessKey))
+        var result = await TestAwsConnection(provider);
+        if (!result.Success)
         {
-            return Task.FromResult(new ProviderConnectionResult
-            {
-                Success = false,
-                Message = "AWS Access Key ID and Secret Access Key are required"
-            });
+            return result;
         }
 
-        // In production, this would make actual AWS API calls to validate credentials
-        // For now, return success with available regions
-        return Task.FromResult(new ProviderConnectionResult
+        result.AvailableRegions = new List<string>
         {
-            Success = true,
-            Message = "AWS credentials validated successfully",
-            AvailableRegions = new List<string>
-            {
-                "us-east-1", "us-east-2", "us-west-1", "us-west-2",
-                "eu-west-1", "eu-west-2", "eu-central-1",
-                "ap-southeast-1", "ap-southeast-2", "ap-northeast-1"
-            },
-            AvailableResources = new List<ResourceOption>
-            {
-                new() { Id = "ec2", Name = "EC2 Instances", Type = "compute" },
-                new() { Id = "rds", Name = "RDS Databases", Type = "database" },
-                new() { Id = "eks", Name = "EKS Clusters", Type = "kubernetes" },
-                new() { Id = "ecs", Name = "ECS Clusters", Type = "container" }
-            }
-        });
+            "us-east-1", "us-east-2", "us-west-1", "us-west-2",
+            "eu-west-1", "eu-west-2", "eu-central-1",
+            "ap-southeast-1", "ap-southeast-2", "ap-northeast-1"
+        };
+        result.AvailableResources = new List<ResourceOption>
+        {
+            new() { Id = "ec2", Name = "EC2 Instances", Type = "compute" },
+            new() { Id = "rds", Name = "RDS Databases", Type = "database" },
+            new() { Id = "eks", Name = "EKS Clusters", Type = "kubernetes" },
+            new() { Id = "ecs", Name = "ECS Clusters", Type = "container" }
+        };
+        return result;
     }
 
-    private Task<ProviderConnectionResult> TestAzureConnectionWithCredentials(CloudProvider provider)
+    private async Task<ProviderConnectionResult> TestAzureConnectionWithCredentials(CloudProvider provider)
     {
-        // Validate Azure credentials
-        if (string.IsNullOrEmpty(provider.SubscriptionId) || string.IsNullOrEmpty(provider.TenantId) ||
-            string.IsNullOrEmpty(provider.AccessKeyId) || string.IsNullOrEmpty(provider.SecretAccessKey))
+        var result = await TestAzureConnection(provider);
+        if (!result.Success)
         {
-            return Task.FromResult(new ProviderConnectionResult
-            {
-                Success = false,
-                Message = "Azure Subscription ID, Tenant ID, Client ID, and Client Secret are required"
-            });
+            return result;
         }
 
-        return Task.FromResult(new ProviderConnectionResult
+        result.AvailableRegions = new List<string>
         {
-            Success = true,
-            Message = "Azure credentials validated successfully",
-            AvailableRegions = new List<string>
-            {
-                "East US", "West US", "Central US", "West Europe",
-                "North Europe", "Southeast Asia", "UK South", "Australia East"
-            },
-            AvailableResources = new List<ResourceOption>
-            {
-                new() { Id = "aks", Name = "AKS Clusters", Type = "kubernetes" },
-                new() { Id = "acr", Name = "Container Registry", Type = "container" },
-                new() { Id = "sql", Name = "Azure SQL Databases", Type = "database" },
-                new() { Id = "mysql", Name = "Azure MySQL", Type = "database" }
-            }
-        });
+            "East US", "West US", "Central US", "West Europe",
+            "North Europe", "Southeast Asia", "UK South", "Australia East"
+        };
+        result.AvailableResources = new List<ResourceOption>
+        {
+            new() { Id = "aks", Name = "AKS Clusters", Type = "kubernetes" },
+            new() { Id = "acr", Name = "Container Registry", Type = "container" },
+            new() { Id = "sql", Name = "Azure SQL Databases", Type = "database" },
+            new() { Id = "mysql", Name = "Azure MySQL", Type = "database" }
+        };
+        return result;
     }
 
-    private Task<ProviderConnectionResult> TestGcpConnectionWithCredentials(CloudProvider provider)
+    private async Task<ProviderConnectionResult> TestGcpConnectionWithCredentials(CloudProvider provider)
     {
-        // Validate GCP credentials
-        if (string.IsNullOrEmpty(provider.ProjectId))
+        var result = await TestGcpConnection(provider);
+        if (!result.Success)
         {
-            return Task.FromResult(new ProviderConnectionResult
-            {
-                Success = false,
-                Message = "GCP Project ID is required"
-            });
+            return result;
         }
 
-        return Task.FromResult(new ProviderConnectionResult
+        result.AvailableRegions = new List<string>
         {
-            Success = true,
-            Message = "GCP credentials validated successfully",
-            AvailableRegions = new List<string>
-            {
-                "us-central1", "us-east1", "us-west1",
-                "europe-west1", "asia-east1", "australia-southeast1"
-            },
-            AvailableResources = new List<ResourceOption>
-            {
-                new() { Id = "gke", Name = "GKE Clusters", Type = "kubernetes" },
-                new() { Id = "gcr", Name = "Container Registry", Type = "container" },
-                new() { Id = "cloudsql", Name = "Cloud SQL", Type = "database" },
-                new() { Id = "cloudrun", Name = "Cloud Run", Type = "container" }
-            }
-        });
+            "us-central1", "us-east1", "us-west1",
+            "europe-west1", "asia-east1", "australia-southeast1"
+        };
+        result.AvailableResources = new List<ResourceOption>
+        {
+            new() { Id = "gke", Name = "GKE Clusters", Type = "kubernetes" },
+            new() { Id = "gcr", Name = "Container Registry", Type = "container" },
+            new() { Id = "cloudsql", Name = "Cloud SQL", Type = "database" },
+            new() { Id = "cloudrun", Name = "Cloud Run", Type = "container" }
+        };
+        return result;
     }
 
-    private Task<ProviderConnectionResult> TestDigitalOceanConnectionWithCredentials(CloudProvider provider)
+    private async Task<ProviderConnectionResult> TestDigitalOceanConnectionWithCredentials(CloudProvider provider)
     {
-        // Validate DigitalOcean credentials
-        if (string.IsNullOrEmpty(provider.AccessKeyId))
+        var result = await TestDigitalOceanConnection(provider);
+        if (!result.Success)
         {
-            return Task.FromResult(new ProviderConnectionResult
-            {
-                Success = false,
-                Message = "DigitalOcean API Token is required"
-            });
+            return result;
         }
 
-        return Task.FromResult(new ProviderConnectionResult
+        result.AvailableRegions = new List<string>
         {
-            Success = true,
-            Message = "DigitalOcean credentials validated successfully",
-            AvailableRegions = new List<string>
-            {
-                "nyc1", "nyc3", "sfo2", "sfo3", "ams3",
-                "sgp1", "lon1", "fra1", "tor1", "blr1"
-            },
-            AvailableResources = new List<ResourceOption>
-            {
-                new() { Id = "droplets", Name = "Droplets", Type = "compute" },
-                new() { Id = "doks", Name = "Kubernetes Clusters", Type = "kubernetes" },
-                new() { Id = "databases", Name = "Managed Databases", Type = "database" },
-                new() { Id = "app-platform", Name = "App Platform", Type = "paas" }
-            }
-        });
+            "nyc1", "nyc3", "sfo2", "sfo3", "ams3",
+            "sgp1", "lon1", "fra1", "tor1", "blr1"
+        };
+        result.AvailableResources = new List<ResourceOption>
+        {
+            new() { Id = "droplets", Name = "Droplets", Type = "compute" },
+            new() { Id = "doks", Name = "Kubernetes Clusters", Type = "kubernetes" },
+            new() { Id = "databases", Name = "Managed Databases", Type = "database" },
+            new() { Id = "app-platform", Name = "App Platform", Type = "paas" }
+        };
+        return result;
     }
 
     private Task<ProviderConnectionResult> TestOnPremiseConnectionWithCredentials(CloudProvider provider)
@@ -1221,47 +1203,401 @@ public class CloudDeploymentService : ICloudDeploymentService
         });
     }
 
-    private Task<ProviderConnectionResult> TestAwsConnection(CloudProvider provider)
+    /// <summary>
+    /// Name of the HttpClient requested from <see cref="_httpClientFactory"/> when making
+    /// cloud-provider connection-test calls. A dedicated name lets callers (and DI configuration)
+    /// tune this client (timeouts, handlers) independently of other named clients, and lets tests
+    /// target it precisely via a mocked <see cref="IHttpClientFactory"/>.
+    /// </summary>
+    private const string CloudConnectionHttpClientName = "CloudDeploymentConnectionTest";
+
+    private const string GcpCloudPlatformScope = "https://www.googleapis.com/auth/cloud-platform";
+
+    private async Task<ProviderConnectionResult> TestAwsConnection(CloudProvider provider)
     {
-        // AWS connection test would use AWS SDK
-        return Task.FromResult(new ProviderConnectionResult
+        if (string.IsNullOrWhiteSpace(provider.AccessKeyId) || string.IsNullOrWhiteSpace(provider.SecretAccessKey))
         {
-            Success = true,
-            Message = "AWS connection test not yet implemented",
-            AvailableRegions = new List<string> { "us-east-1", "us-west-2", "eu-west-1" }
-        });
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = "AWS Access Key ID and Secret Access Key are required"
+            };
+        }
+
+        try
+        {
+            var region = string.IsNullOrWhiteSpace(provider.Region)
+                ? RegionEndpoint.USEast1
+                : RegionEndpoint.GetBySystemName(provider.Region);
+
+            var config = new AmazonSecurityTokenServiceConfig
+            {
+                RegionEndpoint = region,
+                // Route all AWS SDK traffic through the shared IHttpClientFactory so it can be
+                // intercepted in tests (see AwsHttpClientFactoryAdapter) and share connection
+                // pooling/DNS refresh behavior with the rest of the app in production.
+                HttpClientFactory = new AwsHttpClientFactoryAdapter(_httpClientFactory)
+            };
+
+            var credentials = new Amazon.Runtime.BasicAWSCredentials(provider.AccessKeyId, provider.SecretAccessKey);
+            using var stsClient = new AmazonSecurityTokenServiceClient(credentials, config);
+
+            // GetCallerIdentity is AWS's documented "are these credentials valid" check: it makes
+            // no state changes and requires no IAM permissions beyond sts:GetCallerIdentity (which
+            // is implicitly allowed for any valid credentials).
+            var identity = await stsClient.GetCallerIdentityAsync(new GetCallerIdentityRequest());
+
+            return new ProviderConnectionResult
+            {
+                Success = true,
+                Message = $"AWS credentials validated successfully (Account: {identity.Account})",
+                AvailableRegions = new List<string> { region.SystemName }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "AWS connection test failed for provider {Name}", provider.Name);
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = $"AWS connection failed: {ex.Message}"
+            };
+        }
     }
 
-    private Task<ProviderConnectionResult> TestAzureConnection(CloudProvider provider)
+    private async Task<ProviderConnectionResult> TestAzureConnection(CloudProvider provider)
     {
-        // Azure connection test would use Azure SDK
-        return Task.FromResult(new ProviderConnectionResult
+        if (string.IsNullOrWhiteSpace(provider.TenantId) || string.IsNullOrWhiteSpace(provider.SubscriptionId) ||
+            string.IsNullOrWhiteSpace(provider.AccessKeyId) || string.IsNullOrWhiteSpace(provider.SecretAccessKey))
         {
-            Success = true,
-            Message = "Azure connection test not yet implemented",
-            AvailableRegions = new List<string> { "eastus", "westus", "northeurope" }
-        });
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = "Azure Tenant ID, Subscription ID, Client ID, and Client Secret are required"
+            };
+        }
+
+        try
+        {
+            // provider.AccessKeyId / provider.SecretAccessKey double as the Azure app registration's
+            // Client ID / Client Secret (see TestProviderConnectionRequest doc comments).
+            var transport = new HttpClientTransport(_httpClientFactory.CreateClient(CloudConnectionHttpClientName));
+
+            var credential = new ClientSecretCredential(
+                provider.TenantId,
+                provider.AccessKeyId,
+                provider.SecretAccessKey,
+                new TokenCredentialOptions { Transport = transport });
+
+            var armClient = new ArmClient(
+                credential,
+                provider.SubscriptionId,
+                new ArmClientOptions { Transport = transport });
+
+            // A single GET on the configured subscription proves the token was both issued AND
+            // accepted by ARM (unlike just acquiring a token, which can succeed even for a
+            // subscription the caller has no access to).
+            var subscriptionResource = armClient.GetSubscriptionResource(
+                new Azure.Core.ResourceIdentifier($"/subscriptions/{provider.SubscriptionId}"));
+            var subscription = await subscriptionResource.GetAsync();
+
+            return new ProviderConnectionResult
+            {
+                Success = true,
+                Message = $"Azure credentials validated successfully (Subscription: {subscription.Value.Data.DisplayName ?? provider.SubscriptionId})",
+                AvailableRegions = string.IsNullOrWhiteSpace(provider.Region)
+                    ? new List<string>()
+                    : new List<string> { provider.Region }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Azure connection test failed for provider {Name}", provider.Name);
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = $"Azure connection failed: {ex.Message}"
+            };
+        }
     }
 
-    private Task<ProviderConnectionResult> TestGcpConnection(CloudProvider provider)
+    private async Task<ProviderConnectionResult> TestGcpConnection(CloudProvider provider)
     {
-        // GCP connection test would use GCP SDK
-        return Task.FromResult(new ProviderConnectionResult
+        if (string.IsNullOrWhiteSpace(provider.ProjectId) || string.IsNullOrWhiteSpace(provider.SecretAccessKey))
         {
-            Success = true,
-            Message = "GCP connection test not yet implemented",
-            AvailableRegions = new List<string> { "us-central1", "us-east1", "europe-west1" }
-        });
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = "GCP Project ID and service account credentials are required"
+            };
+        }
+
+        var (clientEmail, privateKeyPem) = ParseGcpServiceAccountSecret(provider);
+        if (string.IsNullOrWhiteSpace(clientEmail) || string.IsNullOrWhiteSpace(privateKeyPem))
+        {
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = "GCP service account credentials are invalid or incomplete (expected a service-account JSON key)"
+            };
+        }
+
+        try
+        {
+            var initializer = new ServiceAccountCredential.Initializer(clientEmail)
+            {
+                Scopes = new[] { GcpCloudPlatformScope },
+                // Route the JWT-bearer token exchange (POST to oauth2.googleapis.com/token) through
+                // the shared IHttpClientFactory so it can be intercepted in tests.
+                HttpClientFactory = new GcpHttpClientFactoryAdapter(_httpClientFactory)
+            }.FromPrivateKey(privateKeyPem);
+
+            var credential = new ServiceAccountCredential(initializer);
+
+            // Exchanging the signed JWT for an access token proves the key is well-formed and not
+            // revoked. GetAccessTokenForRequestAsync throws TokenResponseException on failure.
+            var accessToken = await credential.GetAccessTokenForRequestAsync();
+
+            // Confirm the token is actually accepted by GCP (not just successfully issued) with a
+            // single lightweight "get project" call.
+            var httpClient = _httpClientFactory.CreateClient(CloudConnectionHttpClientName);
+            using var request = new HttpRequestMessage(
+                HttpMethod.Get,
+                $"https://cloudresourcemanager.googleapis.com/v1/projects/{Uri.EscapeDataString(provider.ProjectId)}");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
+
+            using var response = await httpClient.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ProviderConnectionResult
+                {
+                    Success = false,
+                    Message = $"GCP connection failed: {(int)response.StatusCode} {response.StatusCode} - {body}"
+                };
+            }
+
+            return new ProviderConnectionResult
+            {
+                Success = true,
+                Message = $"GCP credentials validated successfully (Project: {provider.ProjectId})",
+                AvailableRegions = string.IsNullOrWhiteSpace(provider.Region)
+                    ? new List<string>()
+                    : new List<string> { provider.Region }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "GCP connection test failed for provider {Name}", provider.Name);
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = $"GCP connection failed: {ex.Message}"
+            };
+        }
     }
 
-    private Task<ProviderConnectionResult> TestDigitalOceanConnection(CloudProvider provider)
+    /// <summary>
+    /// The CloudProvider entity has no dedicated "service account JSON" field, so this parses
+    /// provider.SecretAccessKey as either:
+    ///  (a) a full GCP service-account JSON key (the common real-world way to store this secret
+    ///      as a single opaque blob) - client_email/private_key are pulled from it, or
+    ///  (b) a raw PEM private key, with provider.AccessKeyId holding the service account email.
+    /// </summary>
+    private static (string? ClientEmail, string? PrivateKeyPem) ParseGcpServiceAccountSecret(CloudProvider provider)
     {
-        return Task.FromResult(new ProviderConnectionResult
+        var secret = provider.SecretAccessKey;
+        if (string.IsNullOrWhiteSpace(secret))
         {
-            Success = true,
-            Message = "DigitalOcean connection test not yet implemented",
-            AvailableRegions = new List<string> { "nyc1", "sfo1", "ams3" }
-        });
+            return (null, null);
+        }
+
+        if (secret.TrimStart().StartsWith('{'))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(secret);
+                var root = doc.RootElement;
+                var clientEmail = root.TryGetProperty("client_email", out var emailProp)
+                    ? emailProp.GetString()
+                    : provider.AccessKeyId;
+                var privateKey = root.TryGetProperty("private_key", out var keyProp)
+                    ? keyProp.GetString()
+                    : null;
+                return (clientEmail, privateKey);
+            }
+            catch (JsonException)
+            {
+                return (null, null);
+            }
+        }
+
+        return (provider.AccessKeyId, secret);
+    }
+
+    private async Task<ProviderConnectionResult> TestDigitalOceanConnection(CloudProvider provider)
+    {
+        if (string.IsNullOrWhiteSpace(provider.AccessKeyId))
+        {
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = "DigitalOcean API Token is required"
+            };
+        }
+
+        try
+        {
+            var httpClient = _httpClientFactory.CreateClient(CloudConnectionHttpClientName);
+
+            // DigitalOcean's documented connectivity-check endpoint: a bearer-authenticated GET
+            // that returns the token owner's account, with no side effects.
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.digitalocean.com/v2/account");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", provider.AccessKeyId);
+
+            using var response = await httpClient.SendAsync(request);
+            var body = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return new ProviderConnectionResult
+                {
+                    Success = false,
+                    Message = $"DigitalOcean connection failed: {(int)response.StatusCode} {response.StatusCode} - {body}"
+                };
+            }
+
+            string? email = null;
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("account", out var accountEl) &&
+                    accountEl.TryGetProperty("email", out var emailEl))
+                {
+                    email = emailEl.GetString();
+                }
+            }
+            catch (JsonException)
+            {
+                // Response wasn't the expected shape; the HTTP call still succeeded, so don't fail the test over it.
+            }
+
+            return new ProviderConnectionResult
+            {
+                Success = true,
+                Message = email != null
+                    ? $"DigitalOcean credentials validated successfully (Account: {email})"
+                    : "DigitalOcean credentials validated successfully",
+                AvailableRegions = string.IsNullOrWhiteSpace(provider.Region)
+                    ? new List<string>()
+                    : new List<string> { provider.Region }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "DigitalOcean connection test failed for provider {Name}", provider.Name);
+            return new ProviderConnectionResult
+            {
+                Success = false,
+                Message = $"DigitalOcean connection failed: {ex.Message}"
+            };
+        }
+    }
+
+    /// <summary>
+    /// Adapts the app's <see cref="IHttpClientFactory"/> to the AWS SDK's own HttpClientFactory
+    /// abstraction so STS calls share the app's HttpClient pooling in production and can be
+    /// redirected to a fake handler in tests.
+    /// </summary>
+    private sealed class AwsHttpClientFactoryAdapter : Amazon.Runtime.HttpClientFactory
+    {
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public AwsHttpClientFactoryAdapter(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
+
+        public override HttpClient CreateHttpClient(Amazon.Runtime.IClientConfig clientConfig)
+            => _httpClientFactory.CreateClient(CloudConnectionHttpClientName);
+    }
+
+    /// <summary>
+    /// Adapts the app's <see cref="IHttpClientFactory"/> to Google.Apis.Auth's HTTP client
+    /// abstraction so the OAuth2 token exchange can be redirected to a fake handler in tests.
+    /// </summary>
+    private sealed class GcpHttpClientFactoryAdapter : Google.Apis.Http.IHttpClientFactory
+    {
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public GcpHttpClientFactoryAdapter(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
+
+        public Google.Apis.Http.ConfigurableHttpClient CreateHttpClient(Google.Apis.Http.CreateHttpClientArgs args)
+        {
+            var handler = new HttpClientFactoryDelegatingHandler(_httpClientFactory);
+            var configurableHandler = new Google.Apis.Http.ConfigurableMessageHandler(handler);
+            var client = new Google.Apis.Http.ConfigurableHttpClient(configurableHandler);
+
+            foreach (var initializer in args.Initializers)
+            {
+                initializer.Initialize(client);
+            }
+
+            return client;
+        }
+
+        private sealed class HttpClientFactoryDelegatingHandler : HttpMessageHandler
+        {
+            private readonly IHttpClientFactory _httpClientFactory;
+
+            public HttpClientFactoryDelegatingHandler(IHttpClientFactory httpClientFactory)
+            {
+                _httpClientFactory = httpClientFactory;
+            }
+
+            protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                // Google.Apis.Http.ConfigurableMessageHandler may resend the same HttpRequestMessage
+                // instance on retry/redirect, but HttpClient.SendAsync throws InvalidOperationException
+                // ("already sent") the second time it sees a given message instance. Forward a clone
+                // each time so retries work.
+                using var clone = await CloneAsync(request).ConfigureAwait(false);
+                return await _httpClientFactory.CreateClient(CloudConnectionHttpClientName)
+                    .SendAsync(clone, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            private static async Task<HttpRequestMessage> CloneAsync(HttpRequestMessage request)
+            {
+                var clone = new HttpRequestMessage(request.Method, request.RequestUri)
+                {
+                    Version = request.Version
+                };
+
+                if (request.Content != null)
+                {
+                    var bytes = await request.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                    var content = new ByteArrayContent(bytes);
+                    foreach (var header in request.Content.Headers)
+                    {
+                        content.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                    }
+
+                    clone.Content = content;
+                }
+
+                foreach (var header in request.Headers)
+                {
+                    clone.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                }
+
+                return clone;
+            }
+        }
     }
 
     private Task<ProviderConnectionResult> TestOnPremiseConnection(CloudProvider provider)
