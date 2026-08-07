@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 627,
-  "patch": 0,
-  "lastUpdate": "2026-08-06",
-  "description": "docs: sync MASTER_TODO_LIST.md with round-2 tech-debt-cleanup-aug2026 results -- 13 more items fixed, REV-DOC-003 closed",
+  "patch": 1,
+  "lastUpdate": "2026-08-07",
+  "description": "fix(sales): remove dead territoryService Auto-Assign call, no matching backend route (REM-BUG-007 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

@@ -121,21 +121,6 @@ export interface TerritoryRule {
   isActive: boolean;
 }
 
-export interface AutoAssignResult {
-  totalProcessed: number;
-  assigned: number;
-  skipped: number;
-  errors: number;
-  assignments: TerritoryAssignment[];
-  errorDetails?: AssignmentError[];
-}
-
-export interface AssignmentError {
-  accountId: number;
-  accountName: string;
-  error: string;
-}
-
 export interface CreateTerritoryDto {
   name: string;
   code: string;
@@ -281,15 +266,9 @@ const territoryService = {
   getTerritoryForAccount: (accountId: number) =>
     apiClient.get<Territory | null>(`/territories/by-account/${accountId}`),
 
-  /**
-   * Auto-assign unassigned accounts based on rules
-   */
-  autoAssignAccounts: (territoryId?: number) => {
-    const url = territoryId
-      ? `/territories/${territoryId}/auto-assign`
-      : '/territories/auto-assign';
-    return apiClient.post<AutoAssignResult>(url);
-  },
+  // Note: no bulk/territory-wide auto-assign endpoint exists on the backend.
+  // The only auto-assign capability is per-account:
+  // POST /territories/accounts/{accountId}/auto-assign
 
   // === Territory Rules ===
 

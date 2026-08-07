@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell,
   TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, Stack, Chip, IconButton, Tooltip, CircularProgress,
+  TextField, Stack, Chip, IconButton, CircularProgress,
   Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, MenuItem,
   Paper, LinearProgress, Accordion, AccordionSummary, AccordionDetails,
   List, ListItem, ListItemText, ListItemIcon, FormControlLabel, Switch,
@@ -19,7 +19,7 @@ import {
   Map as MapIcon, Business as BusinessIcon, People as PeopleIcon,
   TrendingUp as TrendingUpIcon, ExpandMore, Refresh as RefreshIcon,
   AccountTree as HierarchyIcon, Rule as RuleIcon, Flag as QuotaIcon,
-  AutoFixHigh as AutoAssignIcon, LocationOn as LocationIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
 import { DialogError, ActionButton, TabPanel } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
@@ -223,19 +223,6 @@ const TerritoriesPage = () => {
     }
   };
 
-  const handleAutoAssign = async () => {
-    setLoading(true);
-    try {
-      const res = await territoryService.autoAssignAccounts();
-      setSuccessMessage(`Auto-assigned ${res.data.assigned} accounts (${res.data.skipped} skipped)`);
-      loadData();
-    } catch (err: unknown) {
-      setError((err as Error).message || 'Failed to auto-assign accounts');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Render hierarchy tree
   const renderHierarchyNode = (node: TerritoryHierarchy, depth: number = 0) => (
     <Box key={node.territory.id} sx={{ ml: depth * 3 }}>
@@ -291,17 +278,6 @@ const TerritoriesPage = () => {
               </Box>
             </Stack>
             <Stack direction="row" spacing={1}>
-              <Tooltip title="Auto-assign accounts">
-                <Button
-                  variant="outlined"
-                  startIcon={<AutoAssignIcon />}
-                  onClick={handleAutoAssign}
-                  disabled={loading}
-                  sx={{ color: 'white', borderColor: 'white' }}
-                >
-                  Auto-Assign
-                </Button>
-              </Tooltip>
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
