@@ -6,16 +6,20 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using CRM.Core.Ports.Output.Providers;
+using CRM.Infrastructure.Providers.Twilio;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using CRM.Api.Infrastructure;
 
 namespace CRM.Api.Controllers.Webhooks;
 
 /// <summary>
-/// Handles incoming Twilio webhook callbacks for SMS status and inbound messages.
+/// Handles incoming Twilio webhook callbacks for SMS status, inbound messages, and voice
+/// call status callbacks.
 /// </summary>
 [ApiController]
 [Route("api/webhooks/twilio")]
@@ -23,6 +27,8 @@ public class TwilioWebhookController : CrmControllerBase
 {
     private readonly INotificationPort _notificationProvider;
     private readonly IActivityService _activityService;
+    private readonly ITwilioCallLoggingService _callLoggingService;
+    private readonly TwilioConfiguration _twilioConfig;
     private readonly ILogger<TwilioWebhookController> _logger;
 
     /// <summary>
@@ -31,10 +37,14 @@ public class TwilioWebhookController : CrmControllerBase
     public TwilioWebhookController(
         INotificationPort notificationProvider,
         IActivityService activityService,
+        ITwilioCallLoggingService callLoggingService,
+        IOptions<TwilioConfiguration> twilioOptions,
         ILogger<TwilioWebhookController> logger)
     {
         _notificationProvider = notificationProvider;
         _activityService = activityService;
+        _callLoggingService = callLoggingService;
+        _twilioConfig = twilioOptions?.Value ?? throw new ArgumentNullException(nameof(twilioOptions));
         _logger = logger;
     }
 
@@ -136,6 +146,103 @@ public class TwilioWebhookController : CrmControllerBase
     [Consumes("application/x-www-form-urlencoded")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public Task<IActionResult> HandleWhatsAppStatus() => HandleStatusCallback();
+
+    /// <summary>
+    /// Handles Twilio's voice call status callback (fired for events such as
+    /// <c>queued</c>, <c>ringing</c>, <c>in-progress</c>, <c>completed</c>, <c>busy</c>,
+    /// <c>failed</c>, <c>no-answer</c> and <c>canceled</c>) and logs/updates the call via
+    /// <see cref="ITwilioCallLoggingService"/>.
+    /// Authenticity is verified via the <c>X-Twilio-Signature</c> HMAC-SHA1 header when a
+    /// Twilio <c>AuthToken</c> is configured, using the same algorithm as
+    /// <see cref="WhatsAppWebhookController.IsValidTwilioSignature"/>.
+    /// </summary>
+    [HttpPost("call-status")]
+    [Consumes("application/x-www-form-urlencoded")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> HandleCallStatusCallback()
+    {
+        try
+        {
+            var form = await Request.ReadFormAsync();
+
+            // Validate Twilio signature when AuthToken is configured.
+            // If AuthToken is absent (e.g. development), validation is skipped.
+            if (!string.IsNullOrWhiteSpace(_twilioConfig.AuthToken))
+            {
+                var twilioSignature = Request.Headers["X-Twilio-Signature"].ToString();
+                var webhookUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+                if (!WhatsAppWebhookController.IsValidTwilioSignature(twilioSignature, webhookUrl, form, _twilioConfig.AuthToken))
+                {
+                    _logger.LogWarning("Invalid Twilio signature on call-status webhook. Rejecting.");
+                    return StatusCode(StatusCodes.Status403Forbidden);
+                }
+            }
+
+            var callSid = form["CallSid"].ToString();
+            if (string.IsNullOrWhiteSpace(callSid))
+            {
+                _logger.LogWarning("Twilio call-status webhook received without a CallSid; ignoring");
+                return Ok();
+            }
+
+            var callStatus = form["CallStatus"].ToString();
+            var from = form["From"].ToString();
+            var to = form["To"].ToString();
+            var direction = form["Direction"].ToString();
+            var durationRaw = form["CallDuration"].ToString();
+            var duration = int.TryParse(durationRaw, out var parsedDuration) ? parsedDuration : (int?)null;
+
+            _logger.LogInformation(
+                "Twilio call-status: Sid={Sid}, Status={Status}, From={From}, To={To}, Direction={Direction}",
+                callSid, callStatus, from, to, direction);
+
+            try
+            {
+                // The first callback for a call is "queued" (outbound) or "ringing" (inbound);
+                // log a new call record then. Every subsequent status is an update to that record.
+                if (string.Equals(callStatus, "queued", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(callStatus, "ringing", StringComparison.OrdinalIgnoreCase))
+                {
+                    var callEvent = new TwilioCallEvent
+                    {
+                        CallSid = callSid,
+                        From = from,
+                        To = to,
+                        Direction = direction,
+                        Status = callStatus,
+                        Duration = duration,
+                        Timestamp = DateTime.UtcNow
+                    };
+
+                    if (direction.StartsWith("inbound", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await _callLoggingService.LogInboundCallAsync(callEvent);
+                    }
+                    else
+                    {
+                        await _callLoggingService.LogOutboundCallAsync(callEvent);
+                    }
+                }
+                else
+                {
+                    await _callLoggingService.UpdateCallStatusAsync(callSid, callStatus, duration);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to log/update Twilio call {CallSid}", callSid);
+            }
+
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing Twilio call-status webhook");
+            return Ok();
+        }
+    }
 
     private static string TruncateForLog(string? text, int maxLength = 50)
     {

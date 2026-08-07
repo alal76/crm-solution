@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 14,
+  "patch": 15,
   "lastUpdate": "2026-08-07",
-  "description": "test: add AccountService coverage for 21 previously-untested public methods (REV-DOC-005)",
+  "description": "feat: wire Twilio call-status webhook, giving TwilioCallLoggingService a caller (REM-ORPHAN-005 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
