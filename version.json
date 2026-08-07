@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 12,
+  "patch": 13,
   "lastUpdate": "2026-08-07",
-  "description": "feat: wire Invoice PDF download to existing backend endpoint (REV-FE-004)",
+  "description": "fix: ReportDesigner blocks Save/Run while an active filter has a validation error (REV-FE-007)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

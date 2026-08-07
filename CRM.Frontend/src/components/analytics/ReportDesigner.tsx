@@ -8,7 +8,7 @@
  * by selecting data sources, columns, filters, grouping, and formatting.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -337,6 +337,16 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
   // TODO-AI005-FE-006: per-filter inline validation errors
   const [filterErrors, setFilterErrors] = useState<Record<string, string>>({});
 
+  // REV-FE-007: block Save/Run while any *active* filter has a validation error.
+  // Inactive filters (isActive === false) are excluded because their value is not
+  // applied to the report — the summary footer and run logic already ignore them
+  // (see "Filters:" count below, which is filtered on f.isActive), so a stale/invalid
+  // value in a disabled filter should not block submission.
+  const hasFilterErrors = useMemo(
+    () => config.filters.some((f) => f.isActive && !!filterErrors[f.id]),
+    [config.filters, filterErrors],
+  );
+
   // Get available columns for current data source
   const availableColumns = DATA_SOURCE_COLUMNS[config.dataSource] || [];
 
@@ -535,6 +545,10 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
 
   // Save report
   const handleSave = useCallback(async () => {
+    if (hasFilterErrors) {
+      setSnackbar({ open: true, message: 'Fix invalid filter values before saving', severity: 'error' });
+      return;
+    }
     const normalizedName = config.name.trim();
     if (!normalizedName) {
       setSnackbar({ open: true, message: 'Report name is required', severity: 'error' });
@@ -563,10 +577,14 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
     } finally {
       setSaving(false);
     }
-  }, [config, existingReportNames, onSave]);
+  }, [config, existingReportNames, onSave, hasFilterErrors]);
 
   // Run report
   const handleRun = useCallback(async () => {
+    if (hasFilterErrors) {
+      setSnackbar({ open: true, message: 'Fix invalid filter values before running the report', severity: 'error' });
+      return;
+    }
     if (config.columns.length === 0) {
       setSnackbar({ open: true, message: 'At least one column is required to run the report', severity: 'error' });
       return;
@@ -582,7 +600,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
     } finally {
       setRunning(false);
     }
-  }, [config, onRun]);
+  }, [config, onRun, hasFilterErrors]);
 
   // Render columns tab
   const renderColumnsTab = () => (
@@ -911,7 +929,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
               variant="outlined"
               startIcon={<RunIcon />}
               onClick={handleRun}
-              disabled={running || config.columns.length === 0}
+              disabled={running || config.columns.length === 0 || hasFilterErrors}
             >
               {running ? 'Running...' : 'Run Report'}
             </Button>
@@ -919,7 +937,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
               variant="contained"
               startIcon={<SaveIcon />}
               onClick={handleSave}
-              disabled={saving}
+              disabled={saving || hasFilterErrors}
             >
               {saving ? 'Saving...' : 'Save Report'}
             </Button>
