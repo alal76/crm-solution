@@ -75,15 +75,19 @@ public class StripeWebhookController : CrmControllerBase
                 return BadRequest("Empty payload");
             }
 
-            // Validate signature if webhook secret is configured
-            if (!string.IsNullOrWhiteSpace(_config.WebhookSecret))
+            // Fail closed: an unconfigured webhook secret must reject the request, not silently
+            // skip signature verification and accept unauthenticated payment events (REM-BUG-006).
+            if (string.IsNullOrWhiteSpace(_config.WebhookSecret))
             {
-                var signatureHeader = Request.Headers["Stripe-Signature"].FirstOrDefault();
-                if (!ValidateSignature(body, signatureHeader))
-                {
-                    _logger.LogWarning("Stripe webhook signature validation failed");
-                    return Unauthorized("Invalid signature");
-                }
+                _logger.LogError("Stripe webhook secret is not configured; rejecting webhook request");
+                return Unauthorized("Webhook secret not configured");
+            }
+
+            var signatureHeader = Request.Headers["Stripe-Signature"].FirstOrDefault();
+            if (!ValidateSignature(body, signatureHeader))
+            {
+                _logger.LogWarning("Stripe webhook signature validation failed");
+                return Unauthorized("Invalid signature");
             }
 
             // Parse the event

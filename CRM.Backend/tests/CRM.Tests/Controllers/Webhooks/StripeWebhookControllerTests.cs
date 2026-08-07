@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.Security.Cryptography;
 using System.Text;
 using CRM.Api.Controllers.Webhooks;
 using CRM.Core.Interfaces;
@@ -39,7 +40,9 @@ public class StripeWebhookControllerTests
         _mockLogger = new Mock<ILogger<StripeWebhookController>>();
     }
 
-    private StripeWebhookController BuildControllerWithBody(string body, string webhookSecret = "")
+    private const string TestWebhookSecret = "whsec_test_secret";
+
+    private StripeWebhookController BuildControllerWithBody(string body, string webhookSecret = TestWebhookSecret, bool withValidSignature = true)
     {
         var config = new StripeConfiguration { WebhookSecret = webhookSecret };
         var options = Options.Create(config);
@@ -54,8 +57,22 @@ public class StripeWebhookControllerTests
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(body));
         httpContext.Request.ContentType = "application/json";
+        if (withValidSignature && !string.IsNullOrEmpty(webhookSecret))
+        {
+            httpContext.Request.Headers["Stripe-Signature"] = ComputeSignatureHeader(body, webhookSecret);
+        }
         controller.ControllerContext = new ControllerContext { HttpContext = httpContext };
         return controller;
+    }
+
+    private static string ComputeSignatureHeader(string payload, string secret)
+    {
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var signedPayload = $"{timestamp}.{payload}";
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(signedPayload));
+        var signature = Convert.ToHexString(hash).ToLowerInvariant();
+        return $"t={timestamp},v1={signature}";
     }
 
     [Fact]
@@ -72,8 +89,20 @@ public class StripeWebhookControllerTests
     public async Task HandleWebhook_ShouldReturnUnauthorized_WhenSignatureInvalid()
     {
         var body = @"{""id"":""evt_test"",""type"":""payment_intent.succeeded""}";
-        var controller = BuildControllerWithBody(body, webhookSecret: "whsec_test_secret");
+        var controller = BuildControllerWithBody(body, webhookSecret: "whsec_test_secret", withValidSignature: false);
         // No Stripe-Signature header -> validation fails
+
+        var result = await controller.HandleWebhook(default);
+
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    [Fact]
+    public async Task HandleWebhook_ShouldReturnUnauthorized_WhenWebhookSecretNotConfigured()
+    {
+        // REM-BUG-006: an unconfigured secret must fail closed, not silently skip verification.
+        var body = @"{""id"":""evt_test"",""type"":""payment_intent.succeeded""}";
+        var controller = BuildControllerWithBody(body, webhookSecret: "");
 
         var result = await controller.HandleWebhook(default);
 
@@ -91,10 +120,10 @@ public class StripeWebhookControllerTests
     }
 
     [Fact]
-    public async Task HandleWebhook_ShouldReturnOk_WhenValidPayloadAndNoSignatureRequired()
+    public async Task HandleWebhook_ShouldReturnOk_WhenValidPayloadAndValidSignature()
     {
         var body = @"{""id"":""evt_test_123"",""type"":""payment_intent.succeeded"",""data"":{""object"":{}}}";
-        var controller = BuildControllerWithBody(body, webhookSecret: "");
+        var controller = BuildControllerWithBody(body);
         _mockFeatureManager.Setup(f => f.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
 
         var result = await controller.HandleWebhook(default);
@@ -106,7 +135,7 @@ public class StripeWebhookControllerTests
     public async Task HandleWebhook_ShouldReturnOk_WhenChargeSucceededEvent()
     {
         var body = @"{""id"":""evt_charge_1"",""type"":""charge.succeeded"",""data"":{""object"":{""id"":""ch_test"",""amount"":1000,""currency"":""usd""}}}";
-        var controller = BuildControllerWithBody(body, webhookSecret: "");
+        var controller = BuildControllerWithBody(body);
         _mockFeatureManager.Setup(f => f.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
 
         var result = await controller.HandleWebhook(default);
@@ -118,7 +147,7 @@ public class StripeWebhookControllerTests
     public async Task HandleWebhook_ShouldReturnOk_WhenUnknownEventType()
     {
         var body = @"{""id"":""evt_unknown"",""type"":""customer.created"",""data"":{""object"":{}}}";
-        var controller = BuildControllerWithBody(body, webhookSecret: "");
+        var controller = BuildControllerWithBody(body);
 
         var result = await controller.HandleWebhook(default);
 

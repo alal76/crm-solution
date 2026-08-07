@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using CRM.Api.Controllers.Webhooks;
@@ -42,10 +43,11 @@ public class StripeWebhookControllerTests
         _mockFeatureManager = new Mock<IFeatureManager>();
         _mockLogger = new Mock<ILogger<StripeWebhookController>>();
 
-        // Default config: no webhook secret → signature validation skipped
+        // Default config: a configured webhook secret so signature validation is exercised
+        // (REM-BUG-006: an unconfigured secret must be rejected, not silently skipped).
         _mockOptions.Setup(o => o.Value).Returns(new StripeConfiguration
         {
-            WebhookSecret = string.Empty,
+            WebhookSecret = DefaultWebhookSecret,
             SecretKey = "sk_test_unit",
             PublishableKey = "pk_test_unit"
         });
@@ -95,11 +97,28 @@ public class StripeWebhookControllerTests
         return controller;
     }
 
+    private const string DefaultWebhookSecret = "whsec_default_unit_secret";
+
     private static void SetRequestBody(StripeWebhookController controller, string json)
     {
         var bytes = Encoding.UTF8.GetBytes(json);
         controller.HttpContext.Request.Body = new MemoryStream(bytes);
         controller.HttpContext.Request.ContentType = "application/json";
+    }
+
+    private static void SetValidSignature(StripeWebhookController controller, string json, string secret)
+    {
+        controller.HttpContext.Request.Headers["Stripe-Signature"] = ComputeSignatureHeader(json, secret);
+    }
+
+    private static string ComputeSignatureHeader(string payload, string secret)
+    {
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var signedPayload = $"{timestamp}.{payload}";
+        using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(signedPayload));
+        var signature = Convert.ToHexString(hash).ToLowerInvariant();
+        return $"t={timestamp},v1={signature}";
     }
 
     private static string BuildSubscriptionEvent(string eventType, string subscriptionId, string status = "active") =>
@@ -130,6 +149,7 @@ public class StripeWebhookControllerTests
         var stripeSubId = $"sub_{Guid.NewGuid():N}";
         var payload = BuildSubscriptionEvent("customer.subscription.created", stripeSubId, "active");
         SetRequestBody(controller, payload);
+        SetValidSignature(controller, payload, DefaultWebhookSecret);
 
         // Act
         var result = await controller.HandleWebhook(CancellationToken.None);
@@ -150,6 +170,7 @@ public class StripeWebhookControllerTests
         var stripeSubId = $"sub_{Guid.NewGuid():N}";
         var payload = BuildSubscriptionEvent("customer.subscription.updated", stripeSubId, "past_due");
         SetRequestBody(controller, payload);
+        SetValidSignature(controller, payload, DefaultWebhookSecret);
 
         // Act
         var result = await controller.HandleWebhook(CancellationToken.None);
@@ -184,5 +205,26 @@ public class StripeWebhookControllerTests
                 It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
             Times.Never,
             "SyncSubscriptionFromStripeAsync must NOT be called when signature validation fails");
+    }
+
+    [Fact]
+    public async Task StripeWebhookController_ShouldReturn401_WhenWebhookSecretNotConfigured()
+    {
+        // REM-BUG-006: an unconfigured webhook secret must fail closed (reject the request),
+        // not silently skip signature verification and accept unauthenticated payment events.
+        var controller = BuildController(webhookSecret: string.Empty);
+        var payload = BuildSubscriptionEvent("customer.subscription.created", "sub_test");
+        SetRequestBody(controller, payload);
+
+        var result = await controller.HandleWebhook(CancellationToken.None);
+
+        result.Should().BeOfType<UnauthorizedObjectResult>(
+            "an unconfigured webhook secret must reject the request instead of processing it unauthenticated");
+
+        _mockSubscriptionService.Verify(
+            s => s.SyncSubscriptionFromStripeAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never,
+            "SyncSubscriptionFromStripeAsync must NOT be called when the webhook secret is unconfigured");
     }
 }
