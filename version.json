@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 16,
+  "patch": 17,
   "lastUpdate": "2026-08-07",
-  "description": "test: add AllenAIService coverage for 12 previously-untested public methods (REV-DOC-005)",
+  "description": "test: add LeadsController coverage for 11 previously-untested endpoints (REV-DOC-005)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
