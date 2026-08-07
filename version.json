@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 7,
+  "patch": 8,
   "lastUpdate": "2026-08-07",
-  "description": "feat: migrate LeadsPage.tsx off Contacts-as-Leads onto /api/leads (REM-ORPHAN-003 frontend half)",
+  "description": "docs: sync MASTER_TODO_LIST.md with round-4 results -- all 5 decision-gated Section 2B items closed",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
