@@ -4,28 +4,50 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.Net.Http;
 using CRM.Core.Dtos;
-using CRM.Infrastructure.Providers.Stripe;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Stripe;
+using LocalStripeConfiguration = CRM.Infrastructure.Providers.Stripe.StripeConfiguration;
 
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Enhanced Stripe integration service with payment intent and charge methods.
-/// Extends webhook-only functionality to include payment processing.
+/// Extends webhook-only functionality to include real outbound payment processing via the
+/// official Stripe.net SDK (<see cref="global::Stripe.StripeClient"/>).
 /// </summary>
+/// <remarks>
+/// The underlying <see cref="global::Stripe.StripeClient"/> is built from an injected
+/// <see cref="HttpClient"/> (via <see cref="global::Stripe.SystemNetHttpClient"/>), which is the
+/// mechanism Stripe.net exposes for redirecting outbound requests through a custom
+/// <see cref="HttpMessageHandler"/>. This makes the service unit-testable with a fake handler
+/// instead of making real calls to api.stripe.com.
+/// Inbound webhook signature verification/handling is handled separately by
+/// <c>StripeWebhookController</c> and is not part of this service.
+/// </remarks>
 public class StripeIntegrationService
 {
-    private readonly StripeConfiguration _config;
+    private readonly LocalStripeConfiguration _config;
     private readonly ILogger<StripeIntegrationService> _logger;
+    private readonly IStripeClient _stripeClient;
 
     public StripeIntegrationService(
-        IOptions<StripeConfiguration> config,
+        IOptions<LocalStripeConfiguration> config,
+        HttpClient httpClient,
         ILogger<StripeIntegrationService> logger)
     {
         _config = config?.Value ?? throw new ArgumentNullException(nameof(config));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        if (httpClient is null)
+        {
+            throw new ArgumentNullException(nameof(httpClient));
+        }
+
+        _stripeClient = new StripeClient(
+            apiKey: _config.SecretKey,
+            httpClient: new SystemNetHttpClient(httpClient));
     }
 
     /// <summary>
@@ -59,21 +81,37 @@ public class StripeIntegrationService
                 };
             }
 
-            // TODO: Replace with Stripe.NET SDK PaymentIntentService when production-ready // NOSONAR
-            // Simulated response
-            var paymentIntentId = $"pi_{Guid.NewGuid():N}";
-            var clientSecret = $"{paymentIntentId}_secret_{Guid.NewGuid():N}";
+            var options = new PaymentIntentCreateOptions
+            {
+                Amount = amount,
+                Currency = currency,
+                Customer = customerId,
+                Description = description,
+                Metadata = metadata
+            };
 
-            _logger.LogInformation("PaymentIntent created: {PaymentIntentId}", paymentIntentId);
+            var service = new PaymentIntentService(_stripeClient);
+            var paymentIntent = await service.CreateAsync(options).ConfigureAwait(false);
+
+            _logger.LogInformation("PaymentIntent created: {PaymentIntentId}", paymentIntent.Id);
 
             return new PaymentIntentResultDto
             {
-                PaymentIntentId = paymentIntentId,
-                ClientSecret = clientSecret,
-                Status = "requires_payment_method",
-                Amount = amount,
-                Currency = currency,
+                PaymentIntentId = paymentIntent.Id,
+                ClientSecret = paymentIntent.ClientSecret,
+                Status = paymentIntent.Status,
+                Amount = paymentIntent.Amount,
+                Currency = paymentIntent.Currency,
                 Success = true
+            };
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Stripe error creating PaymentIntent: {ErrorCode}", ex.StripeError?.Code);
+            return new PaymentIntentResultDto
+            {
+                Success = false,
+                ErrorMessage = ex.StripeError?.Message ?? ex.Message
             };
         }
         catch (Exception ex)
@@ -131,21 +169,40 @@ public class StripeIntegrationService
                 };
             }
 
-            // TODO: Replace with Stripe.NET SDK ChargeService when production-ready // NOSONAR
-            // Simulated successful charge
-            var chargeId = $"ch_{Guid.NewGuid():N}";
+            var options = new ChargeCreateOptions
+            {
+                Amount = amount,
+                Currency = currency,
+                Source = token,
+                Description = description,
+                Metadata = metadata
+            };
 
-            _logger.LogInformation("Charge created: {ChargeId}", chargeId);
+            var service = new ChargeService(_stripeClient);
+            var charge = await service.CreateAsync(options).ConfigureAwait(false);
+
+            _logger.LogInformation("Charge created: {ChargeId}", charge.Id);
 
             return new ChargeResultDto
             {
-                ChargeId = chargeId,
+                ChargeId = charge.Id,
                 Success = true,
-                Status = "succeeded",
-                Amount = amount / 100m, // Convert from cents to dollars
-                Currency = currency,
-                ChargedAt = DateTime.UtcNow,
-                ReceiptUrl = $"https://pay.stripe.com/receipts/{chargeId}"
+                Status = charge.Status,
+                Amount = charge.Amount / 100m, // Convert from cents to dollars
+                Currency = charge.Currency,
+                ChargedAt = charge.Created,
+                ReceiptUrl = charge.ReceiptUrl
+            };
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Stripe error creating charge: {ErrorCode}", ex.StripeError?.Code);
+            return new ChargeResultDto
+            {
+                Success = false,
+                Status = "failed",
+                ErrorMessage = ex.StripeError?.Message ?? ex.Message,
+                ErrorCode = ex.StripeError?.Code ?? "stripe_error"
             };
         }
         catch (Exception ex)
@@ -175,12 +232,32 @@ public class StripeIntegrationService
         {
             _logger.LogInformation("Confirming PaymentIntent: {PaymentIntentId}", paymentIntentId);
 
-            // TODO: Replace with Stripe.NET SDK PaymentIntentService.ConfirmAsync when production-ready // NOSONAR
+            var options = new PaymentIntentConfirmOptions
+            {
+                PaymentMethod = paymentMethodId
+            };
+
+            var service = new PaymentIntentService(_stripeClient);
+            var paymentIntent = await service.ConfirmAsync(paymentIntentId, options).ConfigureAwait(false);
+
+            return new PaymentIntentResultDto
+            {
+                PaymentIntentId = paymentIntent.Id,
+                ClientSecret = paymentIntent.ClientSecret,
+                Status = paymentIntent.Status,
+                Amount = paymentIntent.Amount,
+                Currency = paymentIntent.Currency,
+                Success = true
+            };
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Stripe error confirming PaymentIntent: {ErrorCode}", ex.StripeError?.Code);
             return new PaymentIntentResultDto
             {
                 PaymentIntentId = paymentIntentId,
-                Status = "succeeded",
-                Success = true
+                Success = false,
+                ErrorMessage = ex.StripeError?.Message ?? ex.Message
             };
         }
         catch (Exception ex)
@@ -209,13 +286,33 @@ public class StripeIntegrationService
         {
             _logger.LogInformation("Capturing PaymentIntent: {PaymentIntentId}", paymentIntentId);
 
-            // TODO: Replace with Stripe.NET SDK PaymentIntentService.CaptureAsync when production-ready // NOSONAR
+            var options = new PaymentIntentCaptureOptions();
+            if (amountToCapture.HasValue)
+            {
+                options.AmountToCapture = amountToCapture.Value;
+            }
+
+            var service = new PaymentIntentService(_stripeClient);
+            var paymentIntent = await service.CaptureAsync(paymentIntentId, options).ConfigureAwait(false);
+
+            return new PaymentIntentResultDto
+            {
+                PaymentIntentId = paymentIntent.Id,
+                ClientSecret = paymentIntent.ClientSecret,
+                Status = paymentIntent.Status,
+                Amount = paymentIntent.AmountReceived > 0 ? paymentIntent.AmountReceived : paymentIntent.Amount,
+                Currency = paymentIntent.Currency,
+                Success = true
+            };
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Stripe error capturing PaymentIntent: {ErrorCode}", ex.StripeError?.Code);
             return new PaymentIntentResultDto
             {
                 PaymentIntentId = paymentIntentId,
-                Status = "captured",
-                Amount = amountToCapture ?? 0,
-                Success = true
+                Success = false,
+                ErrorMessage = ex.StripeError?.Message ?? ex.Message
             };
         }
         catch (Exception ex)
@@ -244,12 +341,32 @@ public class StripeIntegrationService
         {
             _logger.LogInformation("Canceling PaymentIntent: {PaymentIntentId}", paymentIntentId);
 
-            // TODO: Replace with Stripe.NET SDK PaymentIntentService.CancelAsync when production-ready // NOSONAR
+            var options = new PaymentIntentCancelOptions
+            {
+                CancellationReason = cancellationReason
+            };
+
+            var service = new PaymentIntentService(_stripeClient);
+            var paymentIntent = await service.CancelAsync(paymentIntentId, options).ConfigureAwait(false);
+
+            return new PaymentIntentResultDto
+            {
+                PaymentIntentId = paymentIntent.Id,
+                ClientSecret = paymentIntent.ClientSecret,
+                Status = paymentIntent.Status,
+                Amount = paymentIntent.Amount,
+                Currency = paymentIntent.Currency,
+                Success = true
+            };
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Stripe error canceling PaymentIntent: {ErrorCode}", ex.StripeError?.Code);
             return new PaymentIntentResultDto
             {
                 PaymentIntentId = paymentIntentId,
-                Status = "canceled",
-                Success = true
+                Success = false,
+                ErrorMessage = ex.StripeError?.Message ?? ex.Message
             };
         }
         catch (Exception ex)
@@ -280,16 +397,38 @@ public class StripeIntegrationService
         {
             _logger.LogInformation("Creating refund for: {PaymentIntentId}", paymentIntentId);
 
-            // TODO: Replace with Stripe.NET SDK RefundService when production-ready // NOSONAR
-            var refundId = $"re_{Guid.NewGuid():N}";
+            var options = new RefundCreateOptions
+            {
+                PaymentIntent = paymentIntentId,
+                Reason = reason
+            };
+            if (amount.HasValue)
+            {
+                options.Amount = amount.Value;
+            }
+
+            var service = new RefundService(_stripeClient);
+            var refund = await service.CreateAsync(options).ConfigureAwait(false);
 
             return new ChargeResultDto
             {
-                ChargeId = refundId,
+                ChargeId = refund.Id,
                 Success = true,
-                Status = "succeeded",
-                Amount = amount.HasValue ? amount.Value / 100m : 0,
-                ChargedAt = DateTime.UtcNow
+                Status = refund.Status,
+                Amount = refund.Amount / 100m,
+                Currency = refund.Currency,
+                ChargedAt = refund.Created
+            };
+        }
+        catch (StripeException ex)
+        {
+            _logger.LogError(ex, "Stripe error creating refund: {ErrorCode}", ex.StripeError?.Code);
+            return new ChargeResultDto
+            {
+                Success = false,
+                Status = "failed",
+                ErrorMessage = ex.StripeError?.Message ?? ex.Message,
+                ErrorCode = ex.StripeError?.Code ?? "refund_error"
             };
         }
         catch (Exception ex)
@@ -311,6 +450,12 @@ public class StripeIntegrationService
     /// <param name="payload">Raw webhook payload</param>
     /// <param name="signature">Stripe-Signature header value</param>
     /// <returns>True if signature is valid</returns>
+    /// <remarks>
+    /// This is a lightweight local convenience check retained for backward compatibility.
+    /// It is not invoked from any controller — real inbound webhook signature verification
+    /// (HMAC-SHA256 via Stripe.net's EventUtility) is implemented in
+    /// <c>StripeWebhookController</c>, which is out of scope for this change.
+    /// </remarks>
     public bool VerifyWebhookSignature(string payload, string signature)
     {
         if (string.IsNullOrEmpty(_config.WebhookSecret))
@@ -319,8 +464,7 @@ public class StripeIntegrationService
             return false;
         }
 
-        // TODO: Replace with Stripe.NET EventUtility.ConstructEvent when production-ready // NOSONAR
-        // Stub: Basic validation
+        // Basic shape validation only — see remarks above.
         return !string.IsNullOrEmpty(signature) && signature.Contains("t=") && signature.Contains("v1=");
     }
 }

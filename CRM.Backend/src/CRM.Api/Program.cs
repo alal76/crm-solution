@@ -860,7 +860,7 @@ builder.Services.AddScoped<ICommissionRulesEngine, CommissionRulesEngine>();
 builder.Services.AddScoped<IOrderReturnService, OrderReturnService>();
 builder.Services.AddScoped<IContractExportService, ContractExportService>();
 builder.Services.AddScoped<IPaymentTokenizationService, PaymentTokenizationService>();
-builder.Services.AddScoped<StripeIntegrationService>();
+builder.Services.AddHttpClient<StripeIntegrationService>();
 Log.Information("Commission & Contract Enhancement Services registered: CommissionRulesEngine, OrderReturn, ContractExport, PaymentTokenization, StripeIntegration");
 
 // Subscription Billing Services (SPEC-SALES-006)
