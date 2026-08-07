@@ -199,6 +199,9 @@ const invoiceService = {
   recalculate: (id: number) => apiClient.post<Invoice>(`/api/invoices/${id}/recalculate`, {}),
   applyDiscount: (id: number, discountAmount: number, reason?: string) =>
     apiClient.post<Invoice>(`/api/invoices/${id}/discount`, { discountAmount, reason }),
+
+  // Documents
+  generatePdf: (id: number) => apiClient.get(`/invoices/${id}/pdf`, { responseType: 'blob' }),
 };
 
 export default invoiceService;

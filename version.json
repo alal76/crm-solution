@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 11,
+  "patch": 12,
   "lastUpdate": "2026-08-07",
-  "description": "feat: Lead history continuity tool -- re-parent Activity/Comment records onto migrated Leads, dry-run by default",
+  "description": "feat: wire Invoice PDF download to existing backend endpoint (REV-FE-004)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
