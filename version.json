@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 627,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-08-07",
-  "description": "fix(crm): Contact test coverage + account-assignment route (REM-BUG-009 closed)",
+  "description": "feat(itsm): wire Slack/Teams chat alerts into escalation rule execution (REM-ORPHAN-005 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

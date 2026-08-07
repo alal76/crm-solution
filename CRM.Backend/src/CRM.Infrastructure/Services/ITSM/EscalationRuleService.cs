@@ -9,6 +9,7 @@ using CRM.Core.Entities.ITSM;
 using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
+using CRM.Core.Interfaces.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using EscalationRule = CRM.Core.Entities.ITSM.EscalationRule;
@@ -24,13 +25,19 @@ public class EscalationRuleService : IEscalationRulePolicyService
 {
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<EscalationRuleService> _logger;
+    private readonly ISlackNotificationService _slackNotificationService;
+    private readonly ITeamsNotificationService _teamsNotificationService;
 
     public EscalationRuleService(
         ICrmDbContext dbContext,
-        ILogger<EscalationRuleService> logger)
+        ILogger<EscalationRuleService> logger,
+        ISlackNotificationService slackNotificationService,
+        ITeamsNotificationService teamsNotificationService)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _slackNotificationService = slackNotificationService;
+        _teamsNotificationService = teamsNotificationService;
     }
 
     /// <inheritdoc />
@@ -631,6 +638,64 @@ public class EscalationRuleService : IEscalationRulePolicyService
             rule.ReassignToUserId, rule.ReassignToTeamId);
 
         await _dbContext.SaveChangesAsync();
+
+        // Best-effort chat notification (Slack/Teams) alongside whatever channel-specific
+        // action the rule performed above. Both services are internally safe/no-throw when
+        // not configured, but we still guard here so a chat integration issue can never
+        // interrupt the escalation flow that already completed and saved above.
+        await SendChatNotificationsAsync(rule, serviceRequest);
+    }
+
+    /// <summary>
+    /// Pings Slack/Teams (if configured) with a summary of an escalation rule execution.
+    /// No-ops silently when neither integration is configured. Never throws — a failure to
+    /// notify chat must not affect the escalation action that already succeeded.
+    /// </summary>
+    private async Task SendChatNotificationsAsync(EscalationRuleDto rule, ServiceRequest serviceRequest)
+    {
+        var assignedTo = rule.ReassignToUserName ?? rule.ReassignToTeamName;
+        var ticketNumber = string.IsNullOrWhiteSpace(serviceRequest.TicketNumber)
+            ? $"SR-{serviceRequest.Id}"
+            : serviceRequest.TicketNumber;
+
+        try
+        {
+            await _slackNotificationService.SendEscalationAlertAsync(
+                string.Empty,
+                new SlackEscalationInfo
+                {
+                    ServiceRequestNumber = ticketNumber,
+                    Title = serviceRequest.Subject ?? rule.Name,
+                    Priority = serviceRequest.Priority.ToString(),
+                    EscalationLevel = rule.ExecutionOrder,
+                    AssignedTo = assignedTo,
+                    SlaBreachTime = DateTime.UtcNow
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending Slack escalation notification for service request {ServiceRequestId}", serviceRequest.Id);
+        }
+
+        try
+        {
+            await _teamsNotificationService.SendEscalationAlertAsync(
+                string.Empty,
+                new TeamsEscalationInfo
+                {
+                    ServiceRequestNumber = ticketNumber,
+                    Title = serviceRequest.Subject ?? rule.Name,
+                    Priority = serviceRequest.Priority.ToString(),
+                    EscalationLevel = rule.ExecutionOrder,
+                    AssignedTo = assignedTo,
+                    SlaBreachTime = DateTime.UtcNow,
+                    Description = $"Escalation rule '{rule.Name}' triggered ({rule.EscalationType})"
+                });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending Teams escalation notification for service request {ServiceRequestId}", serviceRequest.Id);
+        }
     }
 
     #endregion
