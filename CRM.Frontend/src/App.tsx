@@ -79,6 +79,7 @@ const SubscriptionDetailPage = lazy(() => import('./pages/subscriptions/Subscrip
 const SubscriptionAnalyticsPage = lazy(() => import('./pages/subscriptions/SubscriptionAnalyticsPage'));
 const CommissionsPage = lazy(() => import('./pages/CommissionsPage'));
 const RevenueAnalyticsPage = lazy(() => import('./pages/RevenueAnalyticsPage'));
+const SalesForecastsPage = lazy(() => import('./pages/SalesForecastsPage'));
 const TerritoriesPage = lazy(() => import('./pages/TerritoriesPage'));
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'));
 
@@ -778,6 +779,16 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Reports">
                       <RevenueAnalyticsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/sales-forecasts"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Opportunities">
+                      <SalesForecastsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

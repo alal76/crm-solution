@@ -93,6 +93,7 @@ import {
   DashboardCustomize as DashboardAdminIcon,
   Podcasts as ChannelAdminIcon,
   FolderSpecial as SubcategoryIcon,
+  QueryStats as SalesForecastsIcon,
 } from '@mui/icons-material';
 
 interface AdminSubcategory {
@@ -157,6 +158,7 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   { id: 'campaigns', label: 'Campaigns', menuName: 'Campaigns', icon: 'MegaphoneIcon', order: 10, visible: true, isAdmin: false, category: 'sales' },
   { id: 'campaign-execution', label: 'Campaign Execution', menuName: 'CampaignExecution', icon: 'CampaignExecutionIcon', order: 11, visible: true, isAdmin: false, category: 'sales' },
   { id: 'quotes', label: 'Quotes', menuName: 'Quotes', icon: 'QuoteIcon', order: 12, visible: true, isAdmin: false, category: 'sales' },
+  { id: 'sales-forecasts', label: 'Sales Forecasts', menuName: 'Opportunities', icon: 'SalesForecastsIcon', order: 12.5, visible: true, isAdmin: false, category: 'sales' },
   { id: 'my-queue', label: 'My Queue', menuName: 'MyQueue', icon: 'TaskIcon', order: 13, visible: true, isAdmin: false, category: 'productivity' },
   { id: 'activities', label: 'Activities', menuName: 'Activities', icon: 'ActivityIcon', order: 14, visible: true, isAdmin: false, category: 'productivity' },
   { id: 'notes', label: 'Notes', menuName: 'Notes', icon: 'NoteIcon', order: 15, visible: true, isAdmin: false, category: 'productivity' },
@@ -254,6 +256,7 @@ const iconMap: Record<string, React.ReactNode> = {
   DashboardAdminIcon: <DashboardAdminIcon />,
   ChannelAdminIcon: <ChannelAdminIcon />,
   SubcategoryIcon: <SubcategoryIcon />,
+  SalesForecastsIcon: <SalesForecastsIcon />,
 };
 
 function NavigationSettingsTab() {

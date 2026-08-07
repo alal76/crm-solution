@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 3,
+  "patch": 4,
   "lastUpdate": "2026-08-07",
-  "description": "feat: Lead backfill migration tooling, dry-run by default, not yet run (REM-ORPHAN-003 groundwork)",
+  "description": "feat: Sales Forecasting frontend -- new page, service, route, nav entry (REM-BUG-011)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

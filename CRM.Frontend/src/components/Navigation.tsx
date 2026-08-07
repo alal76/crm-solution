@@ -126,6 +126,7 @@ import {
   Terminal as TerminalIcon,
   Brightness4 as DarkModeToggleIcon,
   Brightness7 as LightModeToggleIcon,
+  QueryStats as SalesForecastsIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -289,6 +290,7 @@ function NavigationContent() {
     'contacts': { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
     'leads': { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
     'opportunities': { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },
+    'sales-forecasts': { label: 'Sales Forecasts', icon: SalesForecastsIcon, path: '/sales-forecasts', menuName: 'Opportunities' },
     'products': { label: 'Products', icon: PackageIcon, path: '/products', menuName: 'Products' },
     'services': { label: 'Services', icon: SettingsIcon, path: '/services', menuName: 'Services' },
     'service-requests': { label: 'Service Requests', icon: SupportAgentIcon, path: '/service-requests', menuName: 'ServiceRequests' },
@@ -547,7 +549,7 @@ function NavigationContent() {
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'accounts', 'accounts-360', 'contacts', 'relationships', 'leads', 'opportunities',
     'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'forms', 'marketing-templates', 'campaign-analytics', 'quotes',
-    'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'teams',
+    'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'sales-forecasts', 'teams',
     'territories', 'lead-routing', 'approvals',
     'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics', 'itsm-escalation-rules', 'itsm-escalation-dashboard', 'itsm-escalation-policies', 'itsm-sla-policies', 'itsm-service-queues',
     'my-queue', 'activities', 'tasks', 'notes', 'communications', 'interactions'
@@ -656,6 +658,7 @@ function NavigationContent() {
     { id: 'payments', order: 10.7, visible: true, category: 'sales' },
     { id: 'orders', order: 10.8, visible: true, category: 'sales' },
     { id: 'subscriptions', order: 10.85, visible: true, category: 'sales' },
+    { id: 'sales-forecasts', order: 10.86, visible: true, category: 'sales' },
     { id: 'teams', order: 10.9, visible: true, category: 'sales' },
     { id: 'departments', order: 10.95, visible: true, category: 'main' },
     { id: 'my-queue', order: 11, visible: true, category: 'productivity' },

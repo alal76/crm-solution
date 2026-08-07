@@ -42,6 +42,7 @@ import {
   Description as ContractsIcon,
   DynamicForm as FormsIcon,
   MenuBook as KnowledgeBaseIcon,
+  QueryStats as SalesForecastsIcon,
 } from '@mui/icons-material';
 import { SvgIconComponent } from '@mui/icons-material';
 import React from 'react';
@@ -153,6 +154,15 @@ export const NAV_ITEMS_CONFIG: NavItemConfig[] = [
     order: 6,
     category: 'sales',
     description: 'Sales pipeline management',
+  },
+  {
+    id: 'sales-forecasts',
+    label: 'Sales Forecasts',
+    path: '/sales-forecasts',
+    icon: SalesForecastsIcon,
+    order: 15,
+    category: 'sales',
+    description: 'Quota attainment and pipeline forecasting',
   },
   {
     id: 'products',
