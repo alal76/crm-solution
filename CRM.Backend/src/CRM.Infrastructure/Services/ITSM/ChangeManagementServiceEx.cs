@@ -55,6 +55,8 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
             Impact = dto.Impact,
             ImplementationPlan = dto.ImplementationPlan,
             BackoutPlan = dto.BackoutPlan,
+            TestingPlan = dto.TestingPlan,
+            RiskAssessmentNotes = dto.RiskAssessmentNotes,
             PlannedStartDate = dto.PlannedStartDate,
             PlannedEndDate = dto.PlannedEndDate,
             State = ChangeState.New,
@@ -164,6 +166,8 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         change.PlannedEndDate = dto.PlannedEndDate;
         change.ImplementationPlan = dto.ImplementationPlan;
         change.BackoutPlan = dto.BackoutPlan;
+        change.TestingPlan = dto.TestingPlan;
+        change.RiskAssessmentNotes = dto.RiskAssessmentNotes;
         change.ModifiedAt = DateTime.UtcNow;
 
         await context.SaveChangesAsync(cancellationToken);
@@ -1241,6 +1245,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
             ChangeId = change.ChangeId,
             Number = change.Number,
             ShortDescription = change.ShortDescription,
+            Description = change.Description,
             Type = change.Type,
             State = change.State,
             ApprovalStatus = change.ApprovalStatus,
@@ -1248,9 +1253,19 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
             Impact = change.Impact,
             PlannedStartDate = change.PlannedStartDate,
             PlannedEndDate = change.PlannedEndDate,
+            ActualStartDate = change.ActualStartDate,
+            ActualEndDate = change.ActualEndDate,
+            ImplementationPlan = change.ImplementationPlan,
+            BackoutPlan = change.BackoutPlan,
+            TestingPlan = change.TestingPlan,
+            RiskAssessmentNotes = change.RiskAssessmentNotes,
+            ChangeSuccess = change.ChangeSuccess,
             RequestorId = change.RequestorId,
             RequestorName = change.Requestor?.Username,
-            CreatedAt = change.CreatedAt
+            AssignedToId = change.AssignedToId,
+            AssignedToName = change.AssignedTo?.Username,
+            CreatedAt = change.CreatedAt,
+            ModifiedAt = change.ModifiedAt
         };
     }
 

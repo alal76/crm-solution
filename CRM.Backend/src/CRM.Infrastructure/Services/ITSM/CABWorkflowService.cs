@@ -18,6 +18,16 @@ namespace CRM.Infrastructure.Services.ITSM;
 /// Interface for Change Advisory Board (CAB) workflow operations.
 /// Manages multi-level approval processes for change requests.
 /// </summary>
+/// <remarks>
+/// Superseded by the CAB support built into
+/// <see cref="CRM.Core.Interfaces.ITSM.IChangeManagementServiceEx"/> (<c>CreateCABAsync</c>,
+/// <c>ScheduleCABMeetingAsync</c>, <c>RecordCABDecisionAsync</c>, <c>FinalizeCABApprovalAsync</c>,
+/// <c>GetCABAsync</c>), which models CAB membership/votes via <c>ChangeApproval</c> records
+/// (roles <c>CABMember</c>/<c>CABChair</c>) and <c>Change.CABDate</c> against the same tables
+/// this service was designed for. Kept as a working shim rather than deleted; not wired into
+/// any controller.
+/// </remarks>
+[Obsolete("Superseded by the CAB workflow methods on IChangeManagementServiceEx (CreateCABAsync, ScheduleCABMeetingAsync, RecordCABDecisionAsync, FinalizeCABApprovalAsync, GetCABAsync). Do not use in new code.")]
 public interface ICABWorkflowService
 {
     /// <summary>
@@ -136,6 +146,12 @@ public class ApprovalLevel
 /// <summary>
 /// Service for managing Change Advisory Board workflows and approvals.
 /// </summary>
+/// <remarks>
+/// Superseded by the CAB support built into
+/// <see cref="CRM.Infrastructure.Services.ITSM.ChangeManagementServiceEx"/>. Kept as a working
+/// shim rather than deleted; not wired into any controller.
+/// </remarks>
+[Obsolete("Superseded by the CAB workflow methods on ChangeManagementServiceEx (CreateCABAsync, ScheduleCABMeetingAsync, RecordCABDecisionAsync, FinalizeCABApprovalAsync, GetCABAsync). Do not use in new code.")]
 public class CABWorkflowService : ICABWorkflowService
 {
     private readonly ICrmDbContext _dbContext;

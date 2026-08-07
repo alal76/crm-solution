@@ -17,6 +17,13 @@ namespace CRM.Infrastructure.Services;
 /// Service implementation for managing change requests.
 /// Bridges between the simplified CRM.Core.Dtos and the ITSM Change entity.
 /// </summary>
+/// <remarks>
+/// Superseded by <see cref="CRM.Infrastructure.Services.ITSM.ChangeManagementServiceEx"/>, which
+/// implements the full ITSM change lifecycle against the same <c>Changes</c> table.
+/// <c>ChangesController</c> now depends on the Ex service.
+/// Kept as a working shim rather than deleted; do not wire this into any controller.
+/// </remarks>
+[Obsolete("Superseded by ChangeManagementServiceEx, which implements the full ITSM change lifecycle. ChangesController now uses IChangeManagementServiceEx. Do not use in new code.")]
 public class ChangeService : IChangeService
 {
     private readonly CrmDbContext _context;

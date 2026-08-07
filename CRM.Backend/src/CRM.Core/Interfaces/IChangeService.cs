@@ -11,6 +11,14 @@ namespace CRM.Core.Interfaces;
 /// <summary>
 /// Service interface for managing change requests.
 /// </summary>
+/// <remarks>
+/// Superseded by <see cref="CRM.Core.Interfaces.ITSM.IChangeManagementServiceEx"/>, which
+/// implements the full ITSM change lifecycle (CAB, approvals, scheduling, implementation,
+/// rollback, conflicts, blackout periods, comments, metrics) against the same <c>Changes</c>
+/// table. <c>ChangesController</c> now depends on the Ex service.
+/// Kept as a working shim rather than deleted; do not wire this into any controller.
+/// </remarks>
+[Obsolete("Superseded by IChangeManagementServiceEx, which implements the full ITSM change lifecycle. ChangesController now uses IChangeManagementServiceEx. Do not use in new code.")]
 public interface IChangeService
 {
     /// <summary>

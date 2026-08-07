@@ -140,6 +140,7 @@ public class ChangeDto
     public int ChangeId { get; set; }
     public string Number { get; set; } = string.Empty;
     public string ShortDescription { get; set; } = string.Empty;
+    public string? Description { get; set; }
     public ChangeType Type { get; set; }
     public ChangeState State { get; set; }
     public ApprovalStatus ApprovalStatus { get; set; }
@@ -147,9 +148,19 @@ public class ChangeDto
     public ChangeImpact Impact { get; set; }
     public DateTime? PlannedStartDate { get; set; }
     public DateTime? PlannedEndDate { get; set; }
+    public DateTime? ActualStartDate { get; set; }
+    public DateTime? ActualEndDate { get; set; }
+    public string? ImplementationPlan { get; set; }
+    public string? BackoutPlan { get; set; }
+    public string? TestingPlan { get; set; }
+    public string? RiskAssessmentNotes { get; set; }
+    public bool? ChangeSuccess { get; set; }
     public int RequestorId { get; set; }
     public string? RequestorName { get; set; }
+    public int? AssignedToId { get; set; }
+    public string? AssignedToName { get; set; }
     public DateTime CreatedAt { get; set; }
+    public DateTime? ModifiedAt { get; set; }
 }
 
 public class CreateChangeDto
@@ -173,6 +184,12 @@ public class CreateChangeDto
     public DateTime? PlannedEndDate { get; set; }
     public string? ImplementationPlan { get; set; }
     public string? BackoutPlan { get; set; }
+
+    /// <summary>Testing plan for the change (persisted to <c>Change.TestingPlan</c>).</summary>
+    public string? TestingPlan { get; set; }
+
+    /// <summary>Impact/risk analysis notes (persisted to <c>Change.RiskAssessmentNotes</c>).</summary>
+    public string? RiskAssessmentNotes { get; set; }
 }
 
 // ============================================================================

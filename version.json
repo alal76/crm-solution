@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 5,
+  "patch": 6,
   "lastUpdate": "2026-08-07",
-  "description": "feat: wire CommissionRulesEngine into CommissionsController, obsolete flat-rate calc + TerritoryAssignmentService (REM-ORPHAN-002)",
+  "description": "feat: wire ChangeManagementServiceEx into ChangesController, closing frontend's 404ing routes (REM-ORPHAN-001)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

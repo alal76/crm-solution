@@ -13,6 +13,14 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services.ITSM;
 
+/// <summary>
+/// Superseded by <see cref="ChangeManagementServiceEx"/>, which implements the full ITSM change
+/// lifecycle (CAB, approvals, scheduling, implementation, rollback, conflicts, blackout periods,
+/// comments, metrics) against the same <c>Changes</c> table.
+/// <c>ChangesController</c> now depends on the Ex service.
+/// Kept as a working shim rather than deleted; do not wire this into any controller.
+/// </summary>
+[Obsolete("Superseded by ChangeManagementServiceEx, which implements the full ITSM change lifecycle. ChangesController now uses IChangeManagementServiceEx. Do not use in new code.")]
 public class ChangeManagementService : IChangeManagementService
 {
     private readonly ICrmDbContext _dbContext;
