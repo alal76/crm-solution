@@ -77,6 +77,8 @@ interface Payment {
   failureReason?: string;
   notes?: string;
   createdAt: string;
+  fraudFlagged?: boolean;
+  riskScore?: number;
 }
 
 interface PaymentForm {
@@ -446,6 +448,11 @@ function PaymentsPage() {
                         <TableCell>{getMethodLabel(payment.paymentMethod)}</TableCell>
                         <TableCell>
                           <Chip label={statusInfo.label} size="small" color={statusInfo.color} />
+                          {payment.fraudFlagged && (
+                            <Tooltip title={`Flagged as potential fraud${payment.riskScore != null ? ` (risk score ${payment.riskScore})` : ''}`}>
+                              <Chip label="Fraud" size="small" color="error" sx={{ ml: 0.5 }} />
+                            </Tooltip>
+                          )}
                         </TableCell>
                         <TableCell>{formatDate(payment.paymentDate)}</TableCell>
                         <TableCell align="right">

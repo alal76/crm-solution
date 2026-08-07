@@ -564,6 +564,7 @@ export enum PaymentStatus {
 export interface Payment extends BaseEntity {
   number?: string;
   invoiceId: number;
+  invoiceNumber?: string;
   accountId: number;
   accountName?: string;
   amount: number;
@@ -571,6 +572,7 @@ export interface Payment extends BaseEntity {
   paymentMethod: PaymentMethod;
   status: PaymentStatus;
   transactionId?: string;
+  authorizationCode?: string;
   reference?: string;
   notes?: string;
   recordedBy?: string;
@@ -580,6 +582,7 @@ export interface Payment extends BaseEntity {
   paymentNumber?: string;
   externalPaymentId?: string;
   gatewayTransactionId?: string;
+  gatewayReference?: string;
   checkNumber?: string;
   description?: string;
 
@@ -587,12 +590,17 @@ export interface Payment extends BaseEntity {
   paymentType?: string;
 
   // Amounts
+  refundedAmount?: number;
+  amountApplied?: number;
+  amountUnapplied?: number;
   processingFee?: number;
   netAmount?: number;
   exchangeRate?: number;
 
   // Dates
   processedDate?: string;
+  refundDate?: string;
+  scheduledDate?: string;
   settledDate?: string;
   depositDate?: string;
 
@@ -607,24 +615,38 @@ export interface Payment extends BaseEntity {
   bankName?: string;
   accountLast4?: string;
   accountType?: string;
+  routingNumberLast4?: string;
 
   // Gateway
   gateway?: string;
   gatewayResponseCode?: string;
   gatewayResponseMessage?: string;
+  avsResponseCode?: string;
+  cvvResponseCode?: string;
+
+  // Fraud & risk
+  fraudFlagged?: boolean;
+  riskScore?: number;
 
   // Relationships
   orderId?: number;
   subscriptionId?: number;
+  processedById?: number;
+  originalPaymentId?: number;
+  isRefund?: boolean;
 
   // Reconciliation
   isReconciled?: boolean;
   reconciledDate?: string;
   bankReference?: string;
 
+  // Retry
+  retryCount?: number;
+
   // Notes
   internalNotes?: string;
   failureReason?: string;
+  refundReason?: string;
 }
 
 export interface CreatePaymentDto {

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 627,
-  "patch": 4,
+  "patch": 5,
   "lastUpdate": "2026-08-07",
-  "description": "fix(sales): close 8-field QuoteDto gap (REM-FGAP-004 closed)",
+  "description": "feat(sales): close 14-field Payment frontend type gap (REM-FGAP-005 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
