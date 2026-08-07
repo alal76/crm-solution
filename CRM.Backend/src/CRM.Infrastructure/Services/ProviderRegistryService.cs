@@ -692,6 +692,121 @@ public class ProviderRegistryService : IProviderRegistryService
             }
         });
 
+        // ── Accounting (REV-STUB-002) ───────────────────────────────────────────
+        entries.Add(new ProviderRegistryEntry
+        {
+            Category = "Accounting",
+            ProviderType = ProviderTypes.Accounting.QuickBooks,
+            DisplayName = "QuickBooks Online",
+            Description = "Syncs CRM Accounts/Invoices to QuickBooks Online as Customers/Invoices via OAuth2.",
+            IsBuiltIn = false,
+            IsSaaS = true,
+            DocumentationUrl = "https://developer.intuit.com/app/developer/qbo/docs/get-started",
+            ConfigFields = new List<ProviderConfigField>
+            {
+                new() { Key = "ClientId", Label = "Client ID", Type = "text", Required = true, HelpText = "From your app's Keys & OAuth page in the Intuit Developer portal." },
+                new() { Key = "ClientSecret", Label = "Client Secret", Type = "password", Required = true }
+            }
+        });
+        entries.Add(new ProviderRegistryEntry
+        {
+            Category = "Accounting",
+            ProviderType = ProviderTypes.Accounting.Xero,
+            DisplayName = "Xero",
+            Description = "Syncs CRM Accounts/Invoices to Xero as Contacts/Invoices via OAuth2.",
+            IsBuiltIn = false,
+            IsSaaS = true,
+            DocumentationUrl = "https://developer.xero.com/documentation/getting-started-guide/",
+            ConfigFields = new List<ProviderConfigField>
+            {
+                new() { Key = "ClientId", Label = "Client ID", Type = "text", Required = true, HelpText = "From your app in the Xero Developer portal (My Apps)." },
+                new() { Key = "ClientSecret", Label = "Client Secret", Type = "password", Required = true }
+            }
+        });
+
+        // ── Marketing (REV-STUB-003) ────────────────────────────────────────────
+        entries.Add(new ProviderRegistryEntry
+        {
+            Category = "Marketing",
+            ProviderType = ProviderTypes.Marketing.Mailchimp,
+            DisplayName = "Mailchimp",
+            Description = "Syncs CRM contacts to a Mailchimp audience and reads campaign metrics/lists.",
+            IsBuiltIn = false,
+            IsSaaS = true,
+            DocumentationUrl = "https://mailchimp.com/developer/marketing/guides/quick-start/",
+            ConfigFields = new List<ProviderConfigField>
+            {
+                new() { Key = "ApiKey", Label = "API Key", Type = "password", Required = true, HelpText = "Mailchimp API keys embed the data-centre prefix as a suffix, e.g. abc123...-us21. Leave Server Prefix blank to auto-detect it from this key." },
+                new() { Key = "ServerPrefix", Label = "Server Prefix (data center)", Type = "text", Required = false, Placeholder = "us21", HelpText = "Optional — auto-parsed from the API Key suffix if left blank." },
+                new() { Key = "ListId", Label = "Audience/List ID", Type = "text", Required = false, HelpText = "Required for segment sync; found under Audience > Settings > Audience name and defaults." }
+            }
+        });
+        entries.Add(new ProviderRegistryEntry
+        {
+            Category = "Marketing",
+            ProviderType = ProviderTypes.Marketing.HubSpot,
+            DisplayName = "HubSpot",
+            Description = "Syncs CRM contacts/opportunities to HubSpot Contacts/Deals.",
+            IsBuiltIn = false,
+            IsSaaS = true,
+            DocumentationUrl = "https://developers.hubspot.com/docs/api/private-apps",
+            ConfigFields = new List<ProviderConfigField>
+            {
+                new() { Key = "AccessToken", Label = "Private App Access Token", Type = "password", Required = true, HelpText = "Create a Private App under Settings > Integrations > Private Apps and copy its access token (simpler and now the standard auth model vs. full OAuth2 for server-to-server use)." }
+            }
+        });
+
+        // ── Scheduling (REV-STUB-005) ───────────────────────────────────────────
+        entries.Add(new ProviderRegistryEntry
+        {
+            Category = "Scheduling",
+            ProviderType = ProviderTypes.Scheduling.Calendly,
+            DisplayName = "Calendly",
+            Description = "Reads Calendly event types/scheduled meetings and registers CRM webhooks.",
+            IsBuiltIn = false,
+            IsSaaS = true,
+            DocumentationUrl = "https://developer.calendly.com/getting-started",
+            ConfigFields = new List<ProviderConfigField>
+            {
+                new() { Key = "ApiKey", Label = "Personal Access Token", Type = "password", Required = true, HelpText = "Generate under Calendly > Integrations > API & Webhooks > Personal Access Tokens." }
+            }
+        });
+
+        // ── GeoIP (REV-STUB-007) ────────────────────────────────────────────────
+        entries.Add(new ProviderRegistryEntry
+        {
+            Category = "GeoIP",
+            ProviderType = ProviderTypes.GeoIP.MaxMind,
+            DisplayName = "MaxMind GeoIP2",
+            Description = "Live IP geolocation, VPN/Tor/hosting-provider detection via the GeoIP2 Precision Insights web service.",
+            IsBuiltIn = false,
+            IsSaaS = true,
+            DocumentationUrl = "https://dev.maxmind.com/geoip/docs/web-services",
+            ConfigFields = new List<ProviderConfigField>
+            {
+                new() { Key = "AccountId", Label = "Account ID", Type = "text", Required = true, HelpText = "Numeric account ID shown on your MaxMind account's Manage License Keys page." },
+                new() { Key = "LicenseKey", Label = "License Key", Type = "password", Required = true }
+            }
+        });
+
+        // ── LinkedIn (REV-STUB-004) ─────────────────────────────────────────────
+        entries.Add(new ProviderRegistryEntry
+        {
+            Category = "LinkedIn",
+            ProviderType = ProviderTypes.LinkedIn.SalesNavigator,
+            DisplayName = "LinkedIn Sales Navigator",
+            Description = "Sends InMail messages via LinkedIn's REST API. Requires LinkedIn Marketing/Sales Navigator Partner Program approval — see docs/INTEGRATION_SETUP.md.",
+            IsBuiltIn = false,
+            IsSaaS = true,
+            DocumentationUrl = "https://learn.microsoft.com/en-us/linkedin/",
+            ConfigFields = new List<ProviderConfigField>
+            {
+                new() { Key = "AccessToken", Label = "Access Token", Type = "password", Required = true, HelpText = "OAuth2 access token obtained after LinkedIn Partner Program approval; paste the long-lived token here (no self-service interactive OAuth flow is wired for LinkedIn)." },
+                new() { Key = "ClientId", Label = "Client ID", Type = "text", Required = false },
+                new() { Key = "ClientSecret", Label = "Client Secret", Type = "password", Required = false }
+            }
+        });
+
         return entries;
     }
 }

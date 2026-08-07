@@ -251,4 +251,60 @@ public static class ProviderTypes
         /// <summary>TrustArc - SaaS privacy management platform</summary>
         public const string TrustArc = "TrustArc";
     }
+
+    /// <summary>
+    /// Accounting sync provider types (REV-STUB-002).
+    /// Used with: Providers:Accounting:Type
+    /// </summary>
+    public static class Accounting
+    {
+        /// <summary>QuickBooks Online - SaaS accounting platform by Intuit</summary>
+        public const string QuickBooks = "QuickBooks";
+
+        /// <summary>Xero - SaaS accounting platform</summary>
+        public const string Xero = "Xero";
+    }
+
+    /// <summary>
+    /// Marketing sync provider types (REV-STUB-003).
+    /// Used with: Providers:Marketing:Type
+    /// </summary>
+    public static class Marketing
+    {
+        /// <summary>Mailchimp - SaaS email marketing and audience management platform</summary>
+        public const string Mailchimp = "Mailchimp";
+
+        /// <summary>HubSpot - SaaS marketing/CRM platform</summary>
+        public const string HubSpot = "HubSpot";
+    }
+
+    /// <summary>
+    /// Scheduling integration provider types (REV-STUB-005).
+    /// Used with: Providers:Scheduling:Type
+    /// </summary>
+    public static class Scheduling
+    {
+        /// <summary>Calendly - SaaS scheduling/booking platform</summary>
+        public const string Calendly = "Calendly";
+    }
+
+    /// <summary>
+    /// GeoIP lookup provider types (REV-STUB-007).
+    /// Used with: Providers:GeoIP:Type
+    /// </summary>
+    public static class GeoIP
+    {
+        /// <summary>MaxMind GeoIP2 Precision web service</summary>
+        public const string MaxMind = "MaxMind";
+    }
+
+    /// <summary>
+    /// LinkedIn Sales Navigator provider types (REV-STUB-004).
+    /// Used with: Providers:LinkedIn:Type
+    /// </summary>
+    public static class LinkedIn
+    {
+        /// <summary>LinkedIn Sales Navigator - messaging + prospecting API</summary>
+        public const string SalesNavigator = "SalesNavigator";
+    }
 }

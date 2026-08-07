@@ -62,6 +62,43 @@ public interface ILinkedInSalesNavService
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if the connection is valid.</returns>
     Task<bool> TestConnectionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends an InMail/direct message to a LinkedIn member via the Sales Navigator messaging API.
+    /// REV-STUB-004.
+    /// </summary>
+    /// <remarks>
+    /// LinkedIn gates outbound messaging (InMail) behind its Marketing/Talent/Sales Navigator
+    /// Partner Program — a formal partnership approval, not a self-service API key. This method
+    /// makes a real, correctly-authenticated REST call; without partner approval LinkedIn will
+    /// return an HTTP 403, which is the expected (not stubbed) behavior for an unapproved app.
+    /// </remarks>
+    /// <param name="linkedInProfileUrl">The recipient's LinkedIn profile URL.</param>
+    /// <param name="subject">Message subject line.</param>
+    /// <param name="body">Message body text.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Result of the send attempt.</returns>
+    Task<LinkedInMessageResult> SendInMailAsync(
+        string linkedInProfileUrl,
+        string subject,
+        string body,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Result of sending a LinkedIn InMail/message.
+/// </summary>
+public record LinkedInMessageResult
+{
+    public bool Success { get; init; }
+    public string? ExternalMessageId { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static LinkedInMessageResult Succeeded(string externalMessageId) =>
+        new() { Success = true, ExternalMessageId = externalMessageId };
+
+    public static LinkedInMessageResult Failed(string error) =>
+        new() { Success = false, ErrorMessage = error };
 }
 
 /// <summary>
