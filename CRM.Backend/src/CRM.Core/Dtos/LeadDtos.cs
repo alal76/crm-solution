@@ -30,6 +30,23 @@ public class LeadSummaryDto
     public int? OwnerId { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>Assigned territory ID (TODO-GAP-04)</summary>
+    public int? TerritoryId { get; set; }
+
+    /// <summary>Qualification framework being used (BANT, MEDDIC, etc.) (TODO-CRM002-08)</summary>
+    public string QualificationFrameworkType { get; set; } = string.Empty;
+
+    /// <summary>Active nurture campaign enrollment (TODO-CRM002-06)</summary>
+    public int? NurtureCampaignId { get; set; }
+
+    /// <summary>Last time lead was contacted by sales/marketing</summary>
+    public DateTime? LastContactedAt { get; set; }
+
+    /// <summary>Number of days since last contact (computed from LastContactedAt)</summary>
+    public int? DaysSinceLastContact => LastContactedAt.HasValue
+        ? (int)(DateTime.UtcNow - LastContactedAt.Value).TotalDays
+        : null;
 }
 
 /// <summary>
@@ -47,6 +64,67 @@ public class LeadDto : LeadSummaryDto
     public DateTime? MqlDate { get; set; }
     public DateTime? SqlDate { get; set; }
     public DateTime? LastActivityDate { get; set; }
+
+    // ── Source Attribution (TODO-CRM002-03) ─────────────────────────────────
+    /// <summary>Lead source entity ID for detailed attribution</summary>
+    public int? LeadSourceId { get; set; }
+
+    /// <summary>Original source description (free text for initial capture)</summary>
+    public string? OriginalSource { get; set; }
+
+    /// <summary>First touch date - when lead first interacted</summary>
+    public DateTime? FirstTouchDate { get; set; }
+
+    /// <summary>UTM source parameter</summary>
+    public string? UtmSource { get; set; }
+
+    /// <summary>UTM medium parameter</summary>
+    public string? UtmMedium { get; set; }
+
+    /// <summary>UTM campaign parameter</summary>
+    public string? UtmCampaign { get; set; }
+
+    // ── BANT Qualification Scoring (TODO-CRM002-08) ─────────────────────────
+    /// <summary>Budget score (0-100)</summary>
+    public int? BudgetScore { get; set; }
+
+    /// <summary>Authority score (0-100)</summary>
+    public int? AuthorityScore { get; set; }
+
+    /// <summary>Need score (0-100)</summary>
+    public int? NeedScore { get; set; }
+
+    /// <summary>Timeline score (0-100)</summary>
+    public int? TimelineScore { get; set; }
+
+    // ── MEDDIC Qualification Scoring (TODO-CRM002-08) ───────────────────────
+    /// <summary>Metrics score (quantified business impact)</summary>
+    public int? MetricsScore { get; set; }
+
+    /// <summary>Economic Buyer score</summary>
+    public int? EconomicBuyerScore { get; set; }
+
+    /// <summary>Decision Criteria score</summary>
+    public int? DecisionCriteriaScore { get; set; }
+
+    /// <summary>Decision Process score</summary>
+    public int? DecisionProcessScore { get; set; }
+
+    /// <summary>Identify Pain score</summary>
+    public int? IdentifyPainScore { get; set; }
+
+    /// <summary>Champion score</summary>
+    public int? ChampionScore { get; set; }
+
+    /// <summary>Custom qualification JSON for flexible frameworks</summary>
+    public string? CustomQualificationJson { get; set; }
+
+    // ── Nurturing (TODO-CRM002-06) ───────────────────────────────────────────
+    /// <summary>When enrolled in nurture campaign</summary>
+    public DateTime? NurtureCampaignEnrolledAt { get; set; }
+
+    /// <summary>Last time lead score was decayed due to inactivity</summary>
+    public DateTime? LastScoreDecayDate { get; set; }
 }
 
 /// <summary>

@@ -60,7 +60,11 @@ public class LeadService : ILeadService
                 EngagementScore = l.EngagementScore,
                 OwnerId = l.OwnerId,
                 CreatedAt = l.CreatedAt,
-                UpdatedAt = l.UpdatedAt
+                UpdatedAt = l.UpdatedAt,
+                TerritoryId = l.TerritoryId,
+                QualificationFrameworkType = l.QualificationFrameworkType.ToString(),
+                NurtureCampaignId = l.NurtureCampaignId,
+                LastContactedAt = l.LastContactedAt
             })
             .ToListAsync();
 
@@ -98,7 +102,30 @@ public class LeadService : ILeadService
                 SqlDate = l.SqlDate,
                 LastActivityDate = l.LastActivityDate,
                 CreatedAt = l.CreatedAt,
-                UpdatedAt = l.UpdatedAt
+                UpdatedAt = l.UpdatedAt,
+                TerritoryId = l.TerritoryId,
+                QualificationFrameworkType = l.QualificationFrameworkType.ToString(),
+                NurtureCampaignId = l.NurtureCampaignId,
+                LastContactedAt = l.LastContactedAt,
+                LeadSourceId = l.LeadSourceId,
+                OriginalSource = l.OriginalSource,
+                FirstTouchDate = l.FirstTouchDate,
+                UtmSource = l.UtmSource,
+                UtmMedium = l.UtmMedium,
+                UtmCampaign = l.UtmCampaign,
+                BudgetScore = l.BudgetScore,
+                AuthorityScore = l.AuthorityScore,
+                NeedScore = l.NeedScore,
+                TimelineScore = l.TimelineScore,
+                MetricsScore = l.MetricsScore,
+                EconomicBuyerScore = l.EconomicBuyerScore,
+                DecisionCriteriaScore = l.DecisionCriteriaScore,
+                DecisionProcessScore = l.DecisionProcessScore,
+                IdentifyPainScore = l.IdentifyPainScore,
+                ChampionScore = l.ChampionScore,
+                CustomQualificationJson = l.CustomQualificationJson,
+                NurtureCampaignEnrolledAt = l.NurtureCampaignEnrolledAt,
+                LastScoreDecayDate = l.LastScoreDecayDate
             })
             .FirstOrDefaultAsync();
 
@@ -260,7 +287,11 @@ public class LeadService : ILeadService
                 EngagementScore = l.EngagementScore,
                 OwnerId = l.OwnerId,
                 CreatedAt = l.CreatedAt,
-                UpdatedAt = l.UpdatedAt
+                UpdatedAt = l.UpdatedAt,
+                TerritoryId = l.TerritoryId,
+                QualificationFrameworkType = l.QualificationFrameworkType.ToString(),
+                NurtureCampaignId = l.NurtureCampaignId,
+                LastContactedAt = l.LastContactedAt
             })
             .ToListAsync();
 

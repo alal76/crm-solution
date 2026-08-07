@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 1,
+  "patch": 2,
   "lastUpdate": "2026-08-07",
-  "description": "fix: Stripe webhook fails closed when STRIPE_WEBHOOK_SECRET is unset (REM-BUG-006 partial)",
+  "description": "feat: close Lead DTO field gap -- attribution/BANT/MEDDIC/nurture/territory fields (REM-FGAP-003)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

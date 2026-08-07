@@ -136,6 +136,116 @@ public class LeadServiceTests : ServiceTestFixtureBase<LeadService>
     }
 
     // ========================================================================
+    // GetByIdAsync — DTO field gap remediation (REM-FGAP-003)
+    // ========================================================================
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnAttributionBantMeddicAndNurtureFields_WhenSetOnEntity()
+    {
+        // Arrange
+        var enrolledAt = new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc);
+        var lastContacted = DateTime.UtcNow.AddDays(-3);
+        var firstTouch = new DateTime(2025, 12, 1, 0, 0, 0, DateTimeKind.Utc);
+        var decayDate = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        _leads.Add(new Lead
+        {
+            Id = 1,
+            FirstName = "Gap",
+            LastName = "Fields",
+            Email = "gap.fields@example.com",
+            CreatedAt = DateTime.UtcNow,
+            // Attribution
+            LeadSourceId = 7,
+            OriginalSource = "Trade Show Badge Scan",
+            FirstTouchDate = firstTouch,
+            UtmSource = "google",
+            UtmMedium = "cpc",
+            UtmCampaign = "q1-launch",
+            // BANT
+            BudgetScore = 80,
+            AuthorityScore = 60,
+            NeedScore = 90,
+            TimelineScore = 70,
+            // MEDDIC
+            MetricsScore = 50,
+            EconomicBuyerScore = 40,
+            DecisionCriteriaScore = 30,
+            DecisionProcessScore = 20,
+            IdentifyPainScore = 10,
+            ChampionScore = 100,
+            QualificationFrameworkType = QualificationFramework.MEDDIC,
+            CustomQualificationJson = "{\"custom\":true}",
+            // Territory / nurture / contact recency
+            TerritoryId = 5,
+            NurtureCampaignId = 12,
+            NurtureCampaignEnrolledAt = enrolledAt,
+            LastContactedAt = lastContacted,
+            LastScoreDecayDate = decayDate
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var result = await _service.GetByIdAsync(1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.LeadSourceId.Should().Be(7);
+        result.OriginalSource.Should().Be("Trade Show Badge Scan");
+        result.FirstTouchDate.Should().Be(firstTouch);
+        result.UtmSource.Should().Be("google");
+        result.UtmMedium.Should().Be("cpc");
+        result.UtmCampaign.Should().Be("q1-launch");
+        result.BudgetScore.Should().Be(80);
+        result.AuthorityScore.Should().Be(60);
+        result.NeedScore.Should().Be(90);
+        result.TimelineScore.Should().Be(70);
+        result.MetricsScore.Should().Be(50);
+        result.EconomicBuyerScore.Should().Be(40);
+        result.DecisionCriteriaScore.Should().Be(30);
+        result.DecisionProcessScore.Should().Be(20);
+        result.IdentifyPainScore.Should().Be(10);
+        result.ChampionScore.Should().Be(100);
+        result.QualificationFrameworkType.Should().Be("MEDDIC");
+        result.CustomQualificationJson.Should().Be("{\"custom\":true}");
+        result.TerritoryId.Should().Be(5);
+        result.NurtureCampaignId.Should().Be(12);
+        result.NurtureCampaignEnrolledAt.Should().Be(enrolledAt);
+        result.LastContactedAt.Should().Be(lastContacted);
+        result.DaysSinceLastContact.Should().Be(3);
+        result.LastScoreDecayDate.Should().Be(decayDate);
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ShouldDefaultQualificationFrameworkTypeAndNullAttribution_WhenNotSetOnEntity()
+    {
+        // Arrange — a plain lead with none of the gap fields explicitly set
+        _leads.Add(new Lead
+        {
+            Id = 2,
+            FirstName = "Plain",
+            LastName = "Lead",
+            Email = "plain.lead@example.com",
+            CreatedAt = DateTime.UtcNow
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var result = await _service.GetByIdAsync(2);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.QualificationFrameworkType.Should().Be("None");
+        result.LeadSourceId.Should().BeNull();
+        result.UtmSource.Should().BeNull();
+        result.BudgetScore.Should().BeNull();
+        result.TerritoryId.Should().BeNull();
+        result.NurtureCampaignId.Should().BeNull();
+        result.LastContactedAt.Should().BeNull();
+        result.DaysSinceLastContact.Should().BeNull();
+    }
+
+    // ========================================================================
     // GetAllAsync Tests
     // ========================================================================
 
@@ -167,6 +277,37 @@ public class LeadServiceTests : ServiceTestFixtureBase<LeadService>
         page.Should().Be(1);
         totalPages.Should().Be(3);
         items.Should().HaveCount(10);
+    }
+
+    [Fact]
+    public async Task GetAllAsync_ShouldIncludeTerritoryNurtureAndFrameworkFields_OnSummaryDto()
+    {
+        // Arrange
+        var lastContacted = DateTime.UtcNow.AddDays(-1);
+        _leads.Add(new Lead
+        {
+            Id = 1,
+            FirstName = "Summary",
+            LastName = "Lead",
+            Email = "summary@example.com",
+            CreatedAt = DateTime.UtcNow,
+            TerritoryId = 9,
+            QualificationFrameworkType = QualificationFramework.BANT,
+            NurtureCampaignId = 3,
+            LastContactedAt = lastContacted
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var (items, _, _, _, _) = await _service.GetAllAsync(1, 25);
+
+        // Assert
+        var item = items.Single();
+        item.TerritoryId.Should().Be(9);
+        item.QualificationFrameworkType.Should().Be("BANT");
+        item.NurtureCampaignId.Should().Be(3);
+        item.LastContactedAt.Should().Be(lastContacted);
+        item.DaysSinceLastContact.Should().Be(1);
     }
 
     [Fact]
