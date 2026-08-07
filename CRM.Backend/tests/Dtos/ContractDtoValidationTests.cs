@@ -24,9 +24,9 @@ namespace CRM.Tests.Dtos
     /// These tests validate business logic constraints that SHOULD be enforced.
     ///
     /// TODO: Add DataAnnotation attributes to the source DTO classes:- [Required] for mandatory fields (Name, AccountId, StartDate, EndDate)
-    /// - [Range] for numeric fields (TotalValue, AnnualValue >= 0)
+    /// - [Range] for numeric fields (TotalValue >= 0)
     /// - [StringLength] for text fields
-    /// - Custom validation for business rules (EndDate > StartDate, RenewalTermMonths > 0)
+    /// - Custom validation for business rules (EndDate > StartDate)
     /// </summary>
     public class ContractDtoValidationTests : ValidatorTestFixtureBase<object>
     {
@@ -47,9 +47,7 @@ namespace CRM.Tests.Dtos
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddYears(1),
                 TotalValue = 120000.0m,
-                AnnualValue = 120000.0m,
                 AutoRenew = false,
-                RenewalTermMonths = 12,
                 PaymentTerms = "Net 30",
                 TermsAndConditions = "Standard terms apply",
                 OpportunityId = 100
@@ -239,84 +237,16 @@ namespace CRM.Tests.Dtos
             Assert.Empty(results);
         }
 
-        [Fact]
-        public void CreateContractDto_AnnualValue_Null_ShouldBeValidWhenAutoCalculated()
-        {
-            // Arrange
-            var contract = CreateValidContract();
-            contract.AnnualValue = null; // Should be calculated from TotalValue
-
-            // Act
-            var results = ValidateModel(contract);
-
-            // Assert
-            Assert.Empty(results);
-        }
-
-        [Fact]
-        public void CreateContractDto_AnnualValue_Negative_ShouldFailWhenValidationAdded()
-        {
-            // Arrange
-            var contract = CreateValidContract();
-            contract.AnnualValue = -50000.0m;
-
-            // Act
-            var results = ValidateModel(contract);
-
-            // Assert - Currently no validation
-            // TODO: Add [Range(0, double.MaxValue)] to AnnualValue
-            Assert.Empty(results);
-        }
-
         #endregion
 
         #region CreateContractDto - Renewal Validation
 
-        [Theory]
-        [InlineData(1)]    // 1 month
-        [InlineData(3)]    // Quarterly
-        [InlineData(6)]    // Semi-annual
-        [InlineData(12)]   // Annual (default)
-        [InlineData(24)]   // 2 years
-        [InlineData(36)]   // 3 years
-        public void CreateContractDto_RenewalTermMonths_ValidValues_ShouldBeValid(int months)
-        {
-            // Arrange
-            var contract = CreateValidContract();
-            contract.RenewalTermMonths = months;
-
-            // Act
-            var results = ValidateModel(contract);
-
-            // Assert
-            Assert.Empty(results);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        [InlineData(-12)]
-        public void CreateContractDto_RenewalTermMonths_Invalid_ShouldFailWhenValidationAdded(int months)
-        {
-            // Arrange
-            var contract = CreateValidContract();
-            contract.RenewalTermMonths = months;
-
-            // Act
-            var results = ValidateModel(contract);
-
-            // Assert - Currently no validation
-            // TODO: Add [Range(1, 120)] to RenewalTermMonths (max 10 years)
-            Assert.Empty(results);
-        }
-
         [Fact]
-        public void CreateContractDto_AutoRenew_True_RequiresRenewalTermMonths()
+        public void CreateContractDto_AutoRenew_True_ShouldBeValid()
         {
             // Arrange
             var contract = CreateValidContract();
             contract.AutoRenew = true;
-            contract.RenewalTermMonths = 12;
 
             // Act
             var results = ValidateModel(contract);
@@ -426,8 +356,7 @@ namespace CRM.Tests.Dtos
                 Name = "Updated Contract Name",
                 EndDate = DateTime.UtcNow.AddYears(2),
                 TotalValue = 150000.0m,
-                AutoRenew = true,
-                RenewalTermMonths = 24
+                AutoRenew = true
             };
 
             // Act
@@ -732,45 +661,6 @@ namespace CRM.Tests.Dtos
         #region Business Logic Validation Tests
 
         [Fact]
-        public void ContractDto_AnnualValue_ShouldMatchTotalValueForOneYearContract()
-        {
-            // Business rule: For 1-year contract, AnnualValue = TotalValue
-            // Arrange
-            var dto = new ContractDto
-            {
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddYears(1),
-                TotalValue = 120000.0m,
-                AnnualValue = 120000.0m
-            };
-
-            // Act & Assert
-            var duration = (dto.EndDate - dto.StartDate).Days;
-            Assert.InRange(duration, 365, 366); // Account for leap years
-            Assert.Equal(dto.TotalValue, dto.AnnualValue);
-        }
-
-        [Fact]
-        public void ContractDto_AnnualValue_ForMultiYearContract_ShouldBeProrated()
-        {
-            // Business rule: For 3-year contract, AnnualValue = TotalValue / 3
-            // Arrange
-            var dto = new ContractDto
-            {
-                StartDate = DateTime.UtcNow,
-                EndDate = DateTime.UtcNow.AddYears(3),
-                TotalValue = 300000.0m,
-                AnnualValue = 100000.0m
-            };
-
-            // Act
-            var expectedAnnualValue = dto.TotalValue / 3;
-
-            // Assert
-            Assert.Equal(expectedAnnualValue, dto.AnnualValue);
-        }
-
-        [Fact]
         public void ContractDto_RenewalNoticeDays_ShouldBeSetBeforeExpiry()
         {
             // Business rule: Renewal notice should be sent X days before expiry
@@ -885,12 +775,11 @@ namespace CRM.Tests.Dtos
         #region InitiateRenewalRequestDto Tests
 
         [Fact]
-        public void InitiateRenewalRequestDto_WithDefaultTermMonths_ShouldBeValid()
+        public void InitiateRenewalRequestDto_WithNotes_ShouldBeValid()
         {
             // Arrange
             var request = new InitiateRenewalRequestDto
             {
-                RenewalTermMonths = 12,
                 RenewalNotes = "Standard renewal"
             };
 
@@ -898,26 +787,6 @@ namespace CRM.Tests.Dtos
             var results = ValidateModel(request);
 
             // Assert
-            Assert.Empty(results);
-            Assert.Equal(12, request.RenewalTermMonths);
-        }
-
-        [Theory]
-        [InlineData(0)]
-        [InlineData(-1)]
-        public void InitiateRenewalRequestDto_RenewalTermMonths_Invalid_ShouldFailWhenValidationAdded(int months)
-        {
-            // Arrange
-            var request = new InitiateRenewalRequestDto
-            {
-                RenewalTermMonths = months
-            };
-
-            // Act
-            var results = ValidateModel(request);
-
-            // Assert - Currently no validation
-            // TODO: Add [Range(1, 120)] to RenewalTermMonths
             Assert.Empty(results);
         }
 
@@ -927,7 +796,6 @@ namespace CRM.Tests.Dtos
             // Arrange
             var request = new InitiateRenewalRequestDto
             {
-                RenewalTermMonths = 12,
                 RenewalNotes = null
             };
 
@@ -1008,8 +876,7 @@ namespace CRM.Tests.Dtos
                 ContractType = ContractType.Service,
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddDays(1), // 1-day contract
-                TotalValue = 0m, // Zero-value contract
-                RenewalTermMonths = 1 // Minimum renewal term
+                TotalValue = 0m // Zero-value contract
             };
 
             // Act
@@ -1034,8 +901,6 @@ namespace CRM.Tests.Dtos
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.MaxValue,
                 TotalValue = decimal.MaxValue,
-                AnnualValue = decimal.MaxValue,
-                RenewalTermMonths = 120, // 10 years
                 OpportunityId = int.MaxValue
             };
 
@@ -1061,9 +926,7 @@ namespace CRM.Tests.Dtos
                 StartDate = DateTime.UtcNow,
                 EndDate = DateTime.UtcNow.AddYears(1),
                 TotalValue = 100000.0m,
-                AnnualValue = 100000.0m,
                 AutoRenew = false,
-                RenewalTermMonths = 12,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 // All optional fields null
@@ -1124,16 +987,12 @@ namespace CRM.Tests.Dtos
             // StartDate: [Required]
             // EndDate: [Required]
             // TotalValue: [Required][Range(0, double.MaxValue)]
-            // AnnualValue: [Range(0, double.MaxValue)] (nullable, auto-calculated)
-            // RenewalTermMonths: [Range(1, 120)] (1-120 months = 10 years max)
             // PaymentTerms: [StringLength(200)]
             // TermsAndConditions: [StringLength(10000)]
             // OpportunityId: [Range(1, int.MaxValue)] (nullable)
             //
             // BUSINESS RULES (service-level or IValidatableObject):
             // - EndDate must be > StartDate
-            // - If AutoRenew = true, RenewalTermMonths must be > 0
-            // - If AnnualValue is provided, it should be consistent with TotalValue and duration
             // - Contract numbering should be sequential and unique
             // - Status transitions should follow valid workflow (Draft → Active → Renewed/Terminated/Expired)
 

@@ -31,7 +31,6 @@ public class ContractDto
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public decimal TotalValue { get; set; }
-    public decimal AnnualValue { get; set; }
 
     public DateTime? ActivatedAt { get; set; }
     public DateTime? TerminatedAt { get; set; }
@@ -39,7 +38,6 @@ public class ContractDto
 
     public bool IsSigned { get; set; }
     public bool AutoRenew { get; set; }
-    public int RenewalTermMonths { get; set; }
 
     public string? PaymentTerms { get; set; }
     public string? TermsAndConditions { get; set; }
@@ -120,10 +118,8 @@ public class CreateContractDto
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public decimal TotalValue { get; set; }
-    public decimal? AnnualValue { get; set; }
 
     public bool AutoRenew { get; set; }
-    public int RenewalTermMonths { get; set; } = 12;
 
     public string? PaymentTerms { get; set; }
     public string? TermsAndConditions { get; set; }
@@ -146,10 +142,8 @@ public class UpdateContractDto
 
     public DateTime? EndDate { get; set; }
     public decimal? TotalValue { get; set; }
-    public decimal? AnnualValue { get; set; }
 
     public bool? AutoRenew { get; set; }
-    public int? RenewalTermMonths { get; set; }
 
     public string? PaymentTerms { get; set; }
     public string? TermsAndConditions { get; set; }
@@ -281,6 +275,5 @@ public class TerminateContractRequestDto
 /// </summary>
 public class InitiateRenewalRequestDto
 {
-    public int RenewalTermMonths { get; set; } = 12;
     public string? RenewalNotes { get; set; }
 }

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 627,
-  "patch": 5,
+  "patch": 6,
   "lastUpdate": "2026-08-07",
-  "description": "feat(sales): close 14-field Payment frontend type gap (REM-FGAP-005 closed)",
+  "description": "fix(sales): remove dead ContractDto.AnnualValue/RenewalTermMonths fields (REM-FGAP-006 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
