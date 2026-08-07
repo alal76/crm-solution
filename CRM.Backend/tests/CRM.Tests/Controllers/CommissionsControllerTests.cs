@@ -24,13 +24,24 @@ namespace CRM.Tests.Controllers;
 public class CommissionsControllerTests
 {
     private readonly Mock<ICommissionService> _mockService;
+    private readonly Mock<ICommissionRulesEngine> _mockRulesEngine;
+    private readonly Mock<IOpportunityService> _mockOpportunityService;
+    private readonly Mock<IOrderService> _mockOrderService;
     private readonly CommissionsController _controller;
 
     public CommissionsControllerTests()
     {
         _mockService = new Mock<ICommissionService>();
+        _mockRulesEngine = new Mock<ICommissionRulesEngine>();
+        _mockOpportunityService = new Mock<IOpportunityService>();
+        _mockOrderService = new Mock<IOrderService>();
         var mockLogger = new Mock<ILogger<CommissionsController>>();
-        _controller = new CommissionsController(_mockService.Object, mockLogger.Object);
+        _controller = new CommissionsController(
+            _mockService.Object,
+            _mockRulesEngine.Object,
+            _mockOpportunityService.Object,
+            _mockOrderService.Object,
+            mockLogger.Object);
     }
 
     private static Commission MakeCommission(int id = 1) => new()

@@ -111,6 +111,15 @@ public class CommissionService : ICommissionService
 
     #region Commission Calculation
 
+    /// <remarks>
+    /// DEPRECATED: Flat-rate only — reads <c>plan?.BaseRate ?? 0.05m</c> and ignores this plan's own
+    /// <c>CommissionTier</c> CRUD data entirely. <see cref="CRM.Infrastructure.Services.CommissionRulesEngine"/>
+    /// is the live, wired-in replacement: it operates on <c>CommissionRule</c> entities and supports real
+    /// per-rule tiers, caps, team splits, and trigger-event gating. Kept as a working shim rather than
+    /// deleted; <c>CommissionsController</c> now calls
+    /// <see cref="CRM.Core.Interfaces.ICommissionRulesEngine.CalculateCommissionAsync"/> for calculation instead.
+    /// </remarks>
+    [Obsolete("Superseded by ICommissionRulesEngine.CalculateCommissionAsync, which supports tiered rates, caps, team splits, and trigger-event gating instead of a flat plan.BaseRate. Do not use in new code.")]
     public async Task<CommissionCalculation> CalculateForDealAsync(int opportunityId, CancellationToken cancellationToken = default)
     {
         var opportunity = await _context.Opportunities
@@ -152,6 +161,15 @@ public class CommissionService : ICommissionService
         };
     }
 
+    /// <remarks>
+    /// DEPRECATED: Flat-rate only — reads <c>plan?.BaseRate ?? 0.05m</c> and ignores this plan's own
+    /// <c>CommissionTier</c> CRUD data entirely. <see cref="CRM.Infrastructure.Services.CommissionRulesEngine"/>
+    /// is the live, wired-in replacement: it operates on <c>CommissionRule</c> entities and supports real
+    /// per-rule tiers, caps, team splits, and trigger-event gating. Kept as a working shim rather than
+    /// deleted; <c>CommissionsController</c> now calls
+    /// <see cref="CRM.Core.Interfaces.ICommissionRulesEngine.CalculateCommissionAsync"/> for calculation instead.
+    /// </remarks>
+    [Obsolete("Superseded by ICommissionRulesEngine.CalculateCommissionAsync, which supports tiered rates, caps, team splits, and trigger-event gating instead of a flat plan.BaseRate. Do not use in new code.")]
     public async Task<CommissionCalculation> CalculateForOrderAsync(int orderId, CancellationToken cancellationToken = default)
     {
         var order = await _context.Orders
@@ -224,12 +242,19 @@ public class CommissionService : ICommissionService
 
         if (commission.OpportunityId.HasValue)
         {
+            // NOTE: still calls the obsolete flat-rate calculator to keep existing recalculate-and-persist
+            // behavior intact. The live calculation entry points (CommissionsController's calculate endpoints)
+            // have been moved to ICommissionRulesEngine; this internal path is unchanged by that migration.
+#pragma warning disable CS0618 // Type or member is obsolete
             var calc = await CalculateForDealAsync(commission.OpportunityId.Value, cancellationToken);
+#pragma warning restore CS0618
             commission.Amount = calc.FinalAmount;
         }
         else if (commission.OrderId.HasValue)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             var calc = await CalculateForOrderAsync(commission.OrderId.Value, cancellationToken);
+#pragma warning restore CS0618
             commission.Amount = calc.FinalAmount;
         }
 

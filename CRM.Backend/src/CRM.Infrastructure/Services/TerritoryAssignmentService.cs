@@ -16,6 +16,14 @@ namespace CRM.Infrastructure.Services;
 /// Territory Assignment Service (TODO-GAP-04)
 /// Assigns leads to users based on territory rules.
 /// </summary>
+/// <remarks>
+/// DEPRECATED: Redundant with <see cref="CRM.Infrastructure.Services.TerritoryService"/>. This class's
+/// <c>MatchesTerritoryRules</c> is a stub that unconditionally returns <c>true</c>, while
+/// <c>TerritoryService.FindMatchingTerritoryForLeadAsync</c> / <c>LeadMatchesTerritory</c> already perform
+/// real region-based matching and are live behind <c>TerritoriesController</c>. Kept as a working shim
+/// rather than deleted; do not wire this into any controller.
+/// </remarks>
+[Obsolete("Superseded by TerritoryService.FindMatchingTerritoryForLeadAsync, which performs real territory matching; this service's MatchesTerritoryRules is a stub that always returns true. Do not use in new code.")]
 public class TerritoryAssignmentService : ITerritoryAssignmentService
 {
     private readonly ICrmDbContext _dbContext;

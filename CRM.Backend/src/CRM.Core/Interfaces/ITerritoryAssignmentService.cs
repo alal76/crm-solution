@@ -12,6 +12,14 @@ namespace CRM.Core.Interfaces;
 /// Territory Assignment Service Interface (TODO-GAP-04)
 /// Assigns leads to users based on territory rules.
 /// </summary>
+/// <remarks>
+/// DEPRECATED: Redundant with <see cref="ITerritoryService"/>. This interface's implementation
+/// (<c>TerritoryAssignmentService.MatchesTerritoryRules</c>) is a stub that unconditionally returns
+/// <c>true</c>, while <see cref="ITerritoryService.FindMatchingTerritoryForLeadAsync"/> already performs
+/// real region-based matching and is the live implementation behind <c>TerritoriesController</c>. Kept as
+/// a working shim rather than deleted; do not wire this into any controller.
+/// </remarks>
+[Obsolete("Superseded by ITerritoryService.FindMatchingTerritoryForLeadAsync, which performs real territory matching; this service's MatchesTerritoryRules is a stub that always returns true. Do not use in new code.")]
 public interface ITerritoryAssignmentService
 {
     /// <summary>

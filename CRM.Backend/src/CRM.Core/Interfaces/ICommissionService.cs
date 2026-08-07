@@ -39,9 +39,21 @@ public interface ICommissionService
     #region Commission Calculation
 
     /// <summary>Calculates commission for a deal/opportunity.</summary>
+    /// <remarks>
+    /// DEPRECATED: This flat-rate calculation only reads <c>CommissionPlan.BaseRate</c> and ignores the
+    /// plan's own <c>CommissionTier</c> data. Use <see cref="ICommissionRulesEngine.CalculateCommissionAsync"/>
+    /// instead, which supports tiered rates, caps, team splits, and trigger-event gating.
+    /// </remarks>
+    [Obsolete("Superseded by ICommissionRulesEngine.CalculateCommissionAsync, which supports tiered rates, caps, team splits, and trigger-event gating instead of a flat plan.BaseRate. Do not use in new code.")]
     Task<CommissionCalculation> CalculateForDealAsync(int opportunityId, CancellationToken cancellationToken = default);
 
     /// <summary>Calculates commission for an order.</summary>
+    /// <remarks>
+    /// DEPRECATED: This flat-rate calculation only reads <c>CommissionPlan.BaseRate</c> and ignores the
+    /// plan's own <c>CommissionTier</c> data. Use <see cref="ICommissionRulesEngine.CalculateCommissionAsync"/>
+    /// instead, which supports tiered rates, caps, team splits, and trigger-event gating.
+    /// </remarks>
+    [Obsolete("Superseded by ICommissionRulesEngine.CalculateCommissionAsync, which supports tiered rates, caps, team splits, and trigger-event gating instead of a flat plan.BaseRate. Do not use in new code.")]
     Task<CommissionCalculation> CalculateForOrderAsync(int orderId, CancellationToken cancellationToken = default);
 
     /// <summary>Calculates commission for a sales rep for a period.</summary>

@@ -26,13 +26,22 @@ public class CommissionsController : CrmControllerBase
     private const string CommissionPlanNotFoundMessage = "Commission plan {0} not found.";
     private const string CommissionNotFoundMessage = "Commission {0} not found.";
     private readonly ICommissionService _commissionService;
+    private readonly ICommissionRulesEngine _commissionRulesEngine;
+    private readonly IOpportunityService _opportunityService;
+    private readonly IOrderService _orderService;
     private readonly ILogger<CommissionsController> _logger;
 
     public CommissionsController(
         ICommissionService commissionService,
+        ICommissionRulesEngine commissionRulesEngine,
+        IOpportunityService opportunityService,
+        IOrderService orderService,
         ILogger<CommissionsController> logger)
     {
         _commissionService = commissionService;
+        _commissionRulesEngine = commissionRulesEngine;
+        _opportunityService = opportunityService;
+        _orderService = orderService;
         _logger = logger;
     }
 
@@ -410,18 +419,30 @@ public class CommissionsController : CrmControllerBase
     /// <summary>
     /// Calculate commission for a deal/opportunity.
     /// </summary>
+    /// <remarks>
+    /// Routed through <see cref="ICommissionRulesEngine"/> (REM-ORPHAN-002) instead of the flat-rate
+    /// <see cref="ICommissionService.CalculateForDealAsync"/>, so tiered rates, caps, and team splits
+    /// configured on <c>CommissionRule</c> records are honored.
+    /// </remarks>
     [HttpGet("calculate/deal/{opportunityId:int}")]
-    [ProducesResponseType(typeof(CommissionCalculation), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CommissionCalculationResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<CommissionCalculation>> CalculateForDeal(
+    public async Task<ActionResult<CommissionCalculationResultDto>> CalculateForDeal(
         int opportunityId,
         CancellationToken cancellationToken)
     {
         try
         {
-            var calculation = await _commissionService.CalculateForDealAsync(opportunityId, cancellationToken);
-            return Ok(calculation);
+            var opportunity = await _opportunityService.GetOpportunityByIdAsync(opportunityId);
+            if (opportunity == null)
+            {
+                return NotFound($"Opportunity {opportunityId} not found.");
+            }
+
+            var userId = opportunity.SalesOwnerId ?? 0;
+            var calculation = await _commissionRulesEngine.CalculateCommissionAsync(opportunityId, userId, cancellationToken);
+            return Ok(NormalizeCalculationResult(calculation));
         }
         catch (InvalidOperationException ex)
         {
@@ -437,18 +458,39 @@ public class CommissionsController : CrmControllerBase
     /// <summary>
     /// Calculate commission for an order.
     /// </summary>
+    /// <remarks>
+    /// Routed through <see cref="ICommissionRulesEngine"/> (REM-ORPHAN-002) instead of the flat-rate
+    /// <see cref="ICommissionService.CalculateForOrderAsync"/>. The rules engine is opportunity-centric,
+    /// so the order is resolved to its originating opportunity first.
+    /// </remarks>
     [HttpGet("calculate/order/{orderId:int}")]
-    [ProducesResponseType(typeof(CommissionCalculation), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CommissionCalculationResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<CommissionCalculation>> CalculateForOrder(
+    public async Task<ActionResult<CommissionCalculationResultDto>> CalculateForOrder(
         int orderId,
         CancellationToken cancellationToken)
     {
         try
         {
-            var calculation = await _commissionService.CalculateForOrderAsync(orderId, cancellationToken);
-            return Ok(calculation);
+            var order = await _orderService.GetByIdAsync(orderId, cancellationToken);
+            if (order == null)
+            {
+                return NotFound($"Order {orderId} not found.");
+            }
+
+            if (!order.OpportunityId.HasValue)
+            {
+                return BadRequest($"Order {orderId} is not linked to an opportunity; commission calculation requires an associated opportunity.");
+            }
+
+            var opportunity = await _opportunityService.GetOpportunityByIdAsync(order.OpportunityId.Value);
+            var userId = opportunity?.SalesOwnerId ?? 0;
+
+            var calculation = await _commissionRulesEngine.CalculateCommissionAsync(order.OpportunityId.Value, userId, cancellationToken);
+            calculation.OrderId = orderId;
+            return Ok(NormalizeCalculationResult(calculation));
         }
         catch (InvalidOperationException ex)
         {
@@ -1166,6 +1208,33 @@ public class CommissionsController : CrmControllerBase
         var words = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         var initials = string.Concat(words.Select(w => char.ToUpperInvariant(w[0])));
         return $"{initials}-{DateTime.UtcNow.Year}";
+    }
+
+    /// <summary>
+    /// Fills the legacy-shaped fields on <see cref="CommissionCalculationResultDto"/> (BaseAmount,
+    /// CommissionRate, FinalAmount, Breakdown) from the engine-native fields it actually populates
+    /// (BaseCommissionAmount, BaseCommissionRate, FinalCommissionAmount), preserving the response
+    /// contract that existed when this endpoint was backed by <c>CommissionService</c>.
+    /// </summary>
+    private static CommissionCalculationResultDto NormalizeCalculationResult(CommissionCalculationResultDto result)
+    {
+        result.BaseAmount = result.BaseCommissionAmount;
+        result.CommissionRate = result.BaseCommissionRate;
+        result.FinalAmount = result.FinalCommissionAmount;
+        result.Amount = result.FinalCommissionAmount;
+
+        if (result.Breakdown.Count == 0)
+        {
+            result.Breakdown.Add(new CommissionBreakdownDto
+            {
+                Description = "Rules Engine Commission",
+                Amount = result.DealAmount,
+                Rate = result.BaseCommissionRate,
+                Result = result.FinalCommissionAmount
+            });
+        }
+
+        return result;
     }
 
     private static ActionResult HandleServiceException(Exception ex)

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 4,
+  "patch": 5,
   "lastUpdate": "2026-08-07",
-  "description": "feat: Sales Forecasting frontend -- new page, service, route, nav entry (REM-BUG-011)",
+  "description": "feat: wire CommissionRulesEngine into CommissionsController, obsolete flat-rate calc + TerritoryAssignmentService (REM-ORPHAN-002)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

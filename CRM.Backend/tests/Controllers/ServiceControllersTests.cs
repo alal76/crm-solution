@@ -31,14 +31,25 @@ namespace CRM.Tests.Controllers;
 public class CommissionsControllerTests
 {
     private readonly Mock<ICommissionService> _mockCommissionService;
+    private readonly Mock<ICommissionRulesEngine> _mockRulesEngine;
+    private readonly Mock<IOpportunityService> _mockOpportunityService;
+    private readonly Mock<IOrderService> _mockOrderService;
     private readonly Mock<ILogger<CommissionsController>> _mockLogger;
     private readonly CommissionsController _controller;
 
     public CommissionsControllerTests()
     {
         _mockCommissionService = new Mock<ICommissionService>();
+        _mockRulesEngine = new Mock<ICommissionRulesEngine>();
+        _mockOpportunityService = new Mock<IOpportunityService>();
+        _mockOrderService = new Mock<IOrderService>();
         _mockLogger = new Mock<ILogger<CommissionsController>>();
-        _controller = new CommissionsController(_mockCommissionService.Object, _mockLogger.Object);
+        _controller = new CommissionsController(
+            _mockCommissionService.Object,
+            _mockRulesEngine.Object,
+            _mockOpportunityService.Object,
+            _mockOrderService.Object,
+            _mockLogger.Object);
     }
 
     #region Get Tests
@@ -201,21 +212,128 @@ public class CommissionsControllerTests
 
     #region Calculation Tests
 
+    // REM-ORPHAN-002: CalculateForDeal/CalculateForOrder are now routed through ICommissionRulesEngine
+    // instead of the flat-rate ICommissionService.CalculateForDealAsync/CalculateForOrderAsync.
+
     [Fact]
-    public async Task CalculateForDeal_ShouldReturnCalculation()
+    public async Task CalculateForDeal_ShouldReturnCalculation_FromRulesEngine()
     {
-        // Arrange
-        var calculation = new CommissionCalculation { CalculatedAmount = 500m };
-        _mockCommissionService
-            .Setup(x => x.CalculateForDealAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(calculation);
+        // Arrange — opportunity owned by user 7
+        var opportunity = new Opportunity { Id = 1, SalesOwnerId = 7, Amount = 10000m };
+        _mockOpportunityService
+            .Setup(x => x.GetOpportunityByIdAsync(1))
+            .ReturnsAsync(opportunity);
+
+        // Tiered/capped result: base commission of 1000 capped down to 750 by the rules engine
+        var engineResult = new CommissionCalculationResultDto
+        {
+            UserId = 7,
+            OpportunityId = 1,
+            DealAmount = 10000m,
+            BaseCommissionAmount = 1000m,
+            BaseCommissionRate = 10m,
+            FinalCommissionAmount = 750m
+        };
+        _mockRulesEngine
+            .Setup(x => x.CalculateCommissionAsync(1, 7, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(engineResult);
 
         // Act
         var result = await _controller.CalculateForDeal(1, CancellationToken.None);
 
+        // Assert — engine result flows through, and legacy-shaped fields are normalized from it
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = okResult.Value.Should().BeOfType<CommissionCalculationResultDto>().Subject;
+        dto.FinalCommissionAmount.Should().Be(750m);
+        dto.FinalAmount.Should().Be(750m);
+        dto.BaseAmount.Should().Be(1000m);
+        dto.CommissionRate.Should().Be(10m);
+
+        // Assert — the rules engine was called with the opportunity's sales owner, and the old
+        // flat-rate service calculation path was NOT used.
+        _mockRulesEngine.Verify(x => x.CalculateCommissionAsync(1, 7, It.IsAny<CancellationToken>()), Times.Once);
+#pragma warning disable CS0618 // verifying the obsolete method is NOT called
+        _mockCommissionService.Verify(
+            x => x.CalculateForDealAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public async Task CalculateForDeal_ShouldReturnNotFound_WhenOpportunityMissing()
+    {
+        // Arrange
+        _mockOpportunityService
+            .Setup(x => x.GetOpportunityByIdAsync(999))
+            .ReturnsAsync((Opportunity?)null);
+
+        // Act
+        var result = await _controller.CalculateForDeal(999, CancellationToken.None);
+
+        // Assert
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
+        _mockRulesEngine.Verify(
+            x => x.CalculateCommissionAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CalculateForOrder_ShouldReturnCalculation_FromRulesEngine_ViaLinkedOpportunity()
+    {
+        // Arrange — order 55 links back to opportunity 3, owned by user 9
+        var order = new OrderDto { Id = 55, OpportunityId = 3 };
+        _mockOrderService
+            .Setup(x => x.GetByIdAsync(55, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(order);
+
+        var opportunity = new Opportunity { Id = 3, SalesOwnerId = 9, Amount = 20000m };
+        _mockOpportunityService
+            .Setup(x => x.GetOpportunityByIdAsync(3))
+            .ReturnsAsync(opportunity);
+
+        var engineResult = new CommissionCalculationResultDto
+        {
+            UserId = 9,
+            OpportunityId = 3,
+            DealAmount = 20000m,
+            BaseCommissionAmount = 2000m,
+            BaseCommissionRate = 10m,
+            FinalCommissionAmount = 2000m
+        };
+        _mockRulesEngine
+            .Setup(x => x.CalculateCommissionAsync(3, 9, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(engineResult);
+
+        // Act
+        var result = await _controller.CalculateForOrder(55, CancellationToken.None);
+
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.As<CommissionCalculation>().CalculatedAmount.Should().Be(500m);
+        var dto = okResult.Value.Should().BeOfType<CommissionCalculationResultDto>().Subject;
+        dto.OrderId.Should().Be(55);
+        dto.FinalAmount.Should().Be(2000m);
+
+        _mockRulesEngine.Verify(x => x.CalculateCommissionAsync(3, 9, It.IsAny<CancellationToken>()), Times.Once);
+#pragma warning disable CS0618 // verifying the obsolete method is NOT called
+        _mockCommissionService.Verify(
+            x => x.CalculateForOrderAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+#pragma warning restore CS0618
+    }
+
+    [Fact]
+    public async Task CalculateForOrder_ShouldReturnBadRequest_WhenOrderHasNoLinkedOpportunity()
+    {
+        // Arrange
+        var order = new OrderDto { Id = 56, OpportunityId = null };
+        _mockOrderService
+            .Setup(x => x.GetByIdAsync(56, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(order);
+
+        // Act
+        var result = await _controller.CalculateForOrder(56, CancellationToken.None);
+
+        // Assert
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+        _mockRulesEngine.Verify(
+            x => x.CalculateCommissionAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     #endregion
