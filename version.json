@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 17,
+  "patch": 18,
   "lastUpdate": "2026-08-07",
-  "description": "test: add LeadsController coverage for 11 previously-untested endpoints (REV-DOC-005)",
+  "description": "test: add WorkflowController coverage for all 29 previously-untested actions (REV-DOC-005 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
