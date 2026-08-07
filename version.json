@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 627,
-  "patch": 3,
+  "patch": 4,
   "lastUpdate": "2026-08-07",
-  "description": "feat(itsm): wire Slack/Teams chat alerts into escalation rule execution (REM-ORPHAN-005 closed)",
+  "description": "fix(sales): close 8-field QuoteDto gap (REM-FGAP-004 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

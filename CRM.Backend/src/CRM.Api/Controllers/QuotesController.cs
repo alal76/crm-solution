@@ -434,6 +434,14 @@ public class QuotesController : CrmControllerBase
             DiscountTotal = quote.Discount,
             TaxTotal = quote.Tax,
             GrandTotal = quote.Total,
+            TermsAndConditions = quote.TermsAndConditions,
+            Attachments = quote.Attachments,
+            CustomFields = quote.CustomFields,
+            ExpectedDeliveryDate = quote.ExpectedDeliveryDate?.ToString("yyyy-MM-dd"),
+            ActualDeliveryDate = quote.ActualDeliveryDate?.ToString("yyyy-MM-dd"),
+            WarrantyEndDate = quote.WarrantyEndDate?.ToString("yyyy-MM-dd"),
+            ServiceStartDate = quote.ServiceStartDate?.ToString("yyyy-MM-dd"),
+            ServiceEndDate = quote.ServiceEndDate?.ToString("yyyy-MM-dd"),
             LineItems = quote.QuoteLineItems?
                 .Where(li => !li.IsDeleted)
                 .Select(li => new QuoteLineItemDto

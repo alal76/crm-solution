@@ -124,6 +124,40 @@ public class QuotesControllerTests : IDisposable
     }
 
     [Fact]
+    public async Task GetQuote_MapsServiceDeliveryAndDocumentationFields_ToDto()
+    {
+        // REM-FGAP-004: WarrantyEndDate, TermsAndConditions, ExpectedDeliveryDate,
+        // ActualDeliveryDate, ServiceStartDate, ServiceEndDate, Attachments, and CustomFields
+        // were declared on the frontend Quote type but never left the entity - QuotesController
+        // .MapToDto() silently dropped them. Confirm they now flow entity -> QuoteDto.
+        var quote = CreateQuote(1);
+        quote.TermsAndConditions = "Standard terms apply.";
+        quote.WarrantyEndDate = new DateTime(2026, 12, 31);
+        quote.ExpectedDeliveryDate = new DateTime(2026, 9, 1);
+        quote.ActualDeliveryDate = new DateTime(2026, 9, 3);
+        quote.ServiceStartDate = new DateTime(2026, 9, 5);
+        quote.ServiceEndDate = new DateTime(2027, 9, 5);
+        quote.Attachments = "[\"contract.pdf\"]";
+        quote.CustomFields = "{\"region\":\"EMEA\"}";
+        _mockQuoteService.Setup(s => s.GetByIdAsync(1)).ReturnsAsync(quote);
+
+        // Act
+        var result = await _controller.GetQuote(1);
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var dto = okResult.Value.Should().BeOfType<QuoteDto>().Subject;
+        dto.TermsAndConditions.Should().Be("Standard terms apply.");
+        dto.WarrantyEndDate.Should().Be("2026-12-31");
+        dto.ExpectedDeliveryDate.Should().Be("2026-09-01");
+        dto.ActualDeliveryDate.Should().Be("2026-09-03");
+        dto.ServiceStartDate.Should().Be("2026-09-05");
+        dto.ServiceEndDate.Should().Be("2027-09-05");
+        dto.Attachments.Should().Be("[\"contract.pdf\"]");
+        dto.CustomFields.Should().Be("{\"region\":\"EMEA\"}");
+    }
+
+    [Fact]
     public async Task GetQuote_WithNonExistentId_ReturnsNotFound()
     {
         // Arrange

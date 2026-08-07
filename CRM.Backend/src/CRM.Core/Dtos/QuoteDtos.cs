@@ -73,6 +73,7 @@ namespace CRM.Core.Dtos
         public string? PaymentTerms { get; set; }
         public string? DeliveryTerms { get; set; }
         public int? WarrantyMonths { get; set; }
+        public string? TermsAndConditions { get; set; }
 
         // Billing Address
         public string? BillingName { get; set; }
@@ -112,10 +113,21 @@ namespace CRM.Core.Dtos
         public string? Notes { get; set; }
         public string? InternalNotes { get; set; }
         public string? QuotePdfUrl { get; set; }
+        public string? Attachments { get; set; }
 
         // Classification
         public string? Tags { get; set; }
         public string? Category { get; set; }
+
+        // Service/Delivery Tracking (REM-FGAP-004)
+        public string? ExpectedDeliveryDate { get; set; }
+        public string? ActualDeliveryDate { get; set; }
+        public string? WarrantyEndDate { get; set; }
+        public string? ServiceStartDate { get; set; }
+        public string? ServiceEndDate { get; set; }
+
+        // Custom Fields (REM-FGAP-004)
+        public string? CustomFields { get; set; }
 
         public List<QuoteLineItemDto>? LineItems { get; set; }
         public string? CreatedAt { get; set; }
