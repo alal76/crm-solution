@@ -223,6 +223,8 @@ public class ServiceRequestDto
     public string StatusName { get; set; } = string.Empty;
     /// <summary>Configurable status FK (ENUM-MIG-009)</summary>
     public int? StatusId { get; set; }
+    /// <summary>Status code for integration purposes</summary>
+    public string? StatusCode { get; set; }
     public ServiceRequestPriority Priority { get; set; }
     public string PriorityName { get; set; } = string.Empty;
     /// <summary>Configurable priority FK (ENUM-MIG-013)</summary>
@@ -250,6 +252,8 @@ public class ServiceRequestDto
     public string? AssignedToGroupName { get; set; }
     public int? CreatedByUserId { get; set; }
     public string? CreatedByUserName { get; set; }
+    /// <summary>User who last modified the request</summary>
+    public int? LastModifiedByUserId { get; set; }
 
     // Workflow
     public int? WorkflowId { get; set; }
@@ -257,6 +261,8 @@ public class ServiceRequestDto
     public string? CurrentWorkflowStep { get; set; }
 
     // SLA
+    /// <summary>General due date for resolution (convenience property)</summary>
+    public DateTime? DueDate { get; set; }
     public DateTime? ResponseDueDate { get; set; }
     public DateTime? ResolutionDueDate { get; set; }
     public DateTime? FirstResponseDate { get; set; }
@@ -269,6 +275,8 @@ public class ServiceRequestDto
     public string? ExternalReferenceId { get; set; }
     public string? SourcePhoneNumber { get; set; }
     public string? SourceEmailAddress { get; set; }
+    /// <summary>Conversation/thread ID for tracking</summary>
+    public string? ConversationId { get; set; }
 
     // Resolution
     public string? ResolutionSummary { get; set; }

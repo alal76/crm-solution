@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 627,
-  "patch": 6,
+  "patch": 7,
   "lastUpdate": "2026-08-07",
-  "description": "fix(sales): remove dead ContractDto.AnnualValue/RenewalTermMonths fields (REM-FGAP-006 closed)",
+  "description": "fix(itsm): close 4-field ServiceRequestDto gap (REM-FGAP-007 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

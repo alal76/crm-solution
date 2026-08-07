@@ -54,6 +54,11 @@ public class ServiceRequestServiceTests
         _mockCtx.Setup(c => c.ServiceRequests).Returns(mockSrSet.Object);
         _mockCtx.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
+        // MapToDto -> GetCustomFieldValuesAsync queries this DbSet; without a mock, any test
+        // that exercises GetServiceRequestByIdAsync's full mapping path NREs on .Include().
+        var mockCustomFieldValues = MockDbSetFactory.CreateMockDbSet(new List<ServiceRequestCustomFieldValue>());
+        _mockCtx.Setup(c => c.ServiceRequestCustomFieldValues).Returns(mockCustomFieldValues.Object);
+
         _service = new ServiceRequestService(_mockCtx.Object, _logger.Object, _normalizationService);
     }
 
@@ -75,6 +80,33 @@ public class ServiceRequestServiceTests
 
         var result = await _service.GetServiceRequestByIdAsync(1);
         result.Should().BeNull();
+    }
+
+    // REM-FGAP-007: DueDate, StatusCode, LastModifiedByUserId, ConversationId should flow to the DTO
+    [Fact]
+    public async Task GetServiceRequestByIdAsync_ShouldMapDueDateStatusCodeLastModifiedByUserIdAndConversationId()
+    {
+        var dueDate = new DateTime(2026, 9, 1, 0, 0, 0, DateTimeKind.Utc);
+        _serviceRequests.Add(new ServiceRequest
+        {
+            Id = 2,
+            TicketNumber = "SR-002",
+            Subject = "Test request",
+            DueDate = dueDate,
+            StatusCode = "PENDING_CUSTOMER",
+            LastModifiedByUserId = 77,
+            ConversationId = "conv-12345"
+        });
+        var mockSrSet = MockDbSetFactory.CreateMockDbSet(_serviceRequests);
+        _mockCtx.Setup(c => c.ServiceRequests).Returns(mockSrSet.Object);
+
+        var result = await _service.GetServiceRequestByIdAsync(2);
+
+        result.Should().NotBeNull();
+        result!.DueDate.Should().Be(dueDate);
+        result.StatusCode.Should().Be("PENDING_CUSTOMER");
+        result.LastModifiedByUserId.Should().Be(77);
+        result.ConversationId.Should().Be("conv-12345");
     }
 
     // ── GetServiceRequestByTicketNumberAsync ────────────────────────────────
