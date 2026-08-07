@@ -3,6 +3,10 @@ import { TabPanel, ChatTimelineItem } from '../components/common';
 import { RecordComments } from '../components/common/RecordComments';
 import type { ChatMessageActivity } from '../components/common/ChatTimelineItem';
 import MergeHistoryPanel from '../components/duplicates/MergeHistoryPanel';
+import MergeDialog from '../components/duplicates/MergeDialog';
+import type { MergeResult } from '../services/duplicateService';
+import EntitySelect from '../components/EntitySelect';
+import { AccountHierarchyTree } from '../components/crm/accounts';
 import ConcurrencyConflictDialog from '../components/common/ConcurrencyConflictDialog';
 import type { ConflictData } from '../components/common/ConcurrencyConflictDialog';
 import { UserEditingIndicator } from '../components/common/UserEditingIndicator';
@@ -10,7 +14,8 @@ import {
   Box, Container, Typography, Card, CardContent, TextField, Button, Grid,
   CircularProgress, Alert, Tabs, Tab, Chip, Avatar, Divider, IconButton,
   Table, TableBody, TableCell, TableHead, TableRow, Paper, InputAdornment,
-  List, ListItem, ListItemAvatar, ListItemText, Tooltip, Link, Autocomplete
+  List, ListItem, ListItemAvatar, ListItemText, Tooltip, Link, Autocomplete,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import {
   LIFECYCLE_STAGE_OPTIONS,
@@ -27,7 +32,8 @@ import {
   AccountCircle as AccountManagerIcon, OpenInNew as OpenInNewIcon,
   Facebook as FacebookIcon,
   SmartToy as SmartToyIcon, AutoAwesome as AutoAwesomeIcon,
-  Email as DraftEmailIcon, TipsAndUpdates as InsightsIcon
+  Email as DraftEmailIcon, TipsAndUpdates as InsightsIcon,
+  MergeType as MergeIcon, AccountTree as AccountTreeIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import agentService from '../services/agentService';
@@ -100,6 +106,7 @@ function AccountOverviewPage() {
   const [primaryEmail, setPrimaryEmail] = useState<string | null>(null);
   const [primaryPhone, setPrimaryPhone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
 
   // Concurrency conflict state
@@ -109,6 +116,11 @@ function AccountOverviewPage() {
   const [apiStatus, setApiStatus] = useState<NewsSocialStatus | null>(null);
   const [activities, setActivities] = useState<ChatMessageActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+
+  // REV-FE-001: Merge-with-single-account state
+  const [mergePickerOpen, setMergePickerOpen] = useState(false);
+  const [mergeTargetId, setMergeTargetId] = useState<number | ''>('');
+  const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
 
   // AI Contextual Actions state
   const [aiLoading, setAiLoading] = useState<string | null>(null);
@@ -148,6 +160,33 @@ function AccountOverviewPage() {
   const handleAiChat = (customerId: number) => {
     // Navigate to orchestrator with account context pre-filled
     window.location.href = `/agents/1/chat?context=account&entityId=${customerId}`;
+  };
+
+  // REV-FE-001: "Merge with..." entry point for a single account's detail view.
+  // Reuses the existing MergeDialog wizard (components/duplicates/MergeDialog.tsx)
+  // exactly as AccountsPage.tsx does — this just supplies the two records (the
+  // currently-viewed account + one picked via EntitySelect) instead of a bulk selection.
+  const mergeTargetAccount = accounts.find((a) => a.id === mergeTargetId) || null;
+
+  const mergeRecords = (selectedCustomer && mergeTargetAccount)
+    ? [selectedCustomer, mergeTargetAccount].map((c) => ({
+        id: c.id,
+        displayName: c.company || `${c.firstName} ${c.lastName}`,
+        data: c as unknown as Record<string, any>,
+      }))
+    : [];
+
+  const handleOpenMergePicker = () => {
+    setMergeTargetId('');
+    setMergePickerOpen(true);
+  };
+
+  const handleMergeComplete = (result: MergeResult) => {
+    setMergeDialogOpen(false);
+    setMergeTargetId('');
+    setSuccessMessage(`Records merged successfully into master record #${result.masterRecordId}`);
+    setSelectedCustomer(null);
+    fetchAccounts();
   };
 
   useEffect(() => {
@@ -361,6 +400,11 @@ function AccountOverviewPage() {
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {successMessage && (
+          <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>
+            {successMessage}
+          </Alert>
+        )}
 
         <Grid container spacing={3}>
           {/* Left Panel - Search & Customer List */}
@@ -599,6 +643,19 @@ function AccountOverviewPage() {
                     </Button>
                   </Box>
 
+                  {/* Account Actions */}
+                  <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<MergeIcon />}
+                      onClick={handleOpenMergePicker}
+                      sx={{ borderRadius: 2, textTransform: 'none' }}
+                    >
+                      Merge with...
+                    </Button>
+                  </Box>
+
                   {/* AI Result Panel */}
                   {aiResult && (
                     <Alert
@@ -755,6 +812,28 @@ function AccountOverviewPage() {
                                   <Typography variant="body2">{contacts.length}</Typography>
                                 </Grid>
                               </Grid>
+                            </Paper>
+                          </Grid>
+
+                          {/* Account Hierarchy — REV-FE-001 */}
+                          <Grid item xs={12}>
+                            <Paper sx={{ p: 2, borderRadius: 2 }}>
+                              <Typography
+                                variant="subtitle1"
+                                sx={{ fontWeight: 600, mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}
+                              >
+                                <AccountTreeIcon fontSize="small" color="action" />
+                                Account Hierarchy
+                              </Typography>
+                              <AccountHierarchyTree
+                                accounts={accounts}
+                                rootAccountId={selectedCustomer.id}
+                                selectedAccountId={selectedCustomer.id}
+                                onSelectAccount={(accountId) => {
+                                  const acc = accounts.find((a) => a.id === accountId);
+                                  if (acc) selectCustomer(acc);
+                                }}
+                              />
                             </Paper>
                           </Grid>
                         </Grid>
@@ -1020,6 +1099,49 @@ function AccountOverviewPage() {
                     }}
                     conflictData={conflictData}
                     entityName={selectedCustomer?.company || 'Account'}
+                  />
+
+                  {/* Merge Target Picker — REV-FE-001 */}
+                  <Dialog open={mergePickerOpen} onClose={() => setMergePickerOpen(false)} maxWidth="sm" fullWidth>
+                    <DialogTitle>Merge with Another Account</DialogTitle>
+                    <DialogContent sx={{ pt: 2 }}>
+                      <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                        Select the account to merge with{' '}
+                        {selectedCustomer?.company || `${selectedCustomer?.firstName} ${selectedCustomer?.lastName}`}.
+                        You'll choose which record to keep as the master in the next step.
+                      </Typography>
+                      <EntitySelect
+                        entityType="account"
+                        name="mergeTargetId"
+                        label="Account to merge with"
+                        value={mergeTargetId}
+                        onChange={(e) => setMergeTargetId(Number(e.target.value))}
+                        excludeIds={selectedCustomer ? [selectedCustomer.id] : []}
+                        showAddNew={false}
+                      />
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={() => setMergePickerOpen(false)}>Cancel</Button>
+                      <Button
+                        variant="contained"
+                        disabled={!mergeTargetId}
+                        onClick={() => {
+                          setMergePickerOpen(false);
+                          setMergeDialogOpen(true);
+                        }}
+                      >
+                        Continue
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
+
+                  {/* Merge Dialog — reuses the existing merge wizard, same as AccountsPage.tsx */}
+                  <MergeDialog
+                    open={mergeDialogOpen}
+                    onClose={() => setMergeDialogOpen(false)}
+                    entityType="Account"
+                    records={mergeRecords}
+                    onMergeComplete={handleMergeComplete}
                   />
                 </CardContent>
               </Card>

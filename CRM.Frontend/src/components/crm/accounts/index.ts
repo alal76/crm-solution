@@ -3,17 +3,17 @@
  * Exports all account-related components for easy importing
  */
 
-// PRA-020: AccountMergeDialog — component file does not exist yet.
-// Merge API IS available: POST /api/duplicates/merge (DuplicatesController).
-// TODO: Create AccountMergeDialog.tsx and re-enable export once component is built.
-// export { AccountMergeDialog } from './AccountMergeDialog';
-// export type { AccountMergeDialogProps } from './AccountMergeDialog';
+// REV-FE-001: AccountMergeDialog was never built as a separate component — the merge
+// wizard need it was meant to cover is fully implemented by the generic
+// components/duplicates/MergeDialog.tsx (entityType="Account"), already wired into
+// AccountsPage.tsx and AccountOverviewPage.tsx. Nothing in the codebase references
+// `AccountMergeDialog` by name, so the dead placeholder export is removed rather than
+// aliased — a re-export would imply an `AccountMergeDialogProps` contract that was
+// never defined and doesn't match MergeDialog's actual props.
 
-// PRA-020: AccountHierarchyTree — component file does not exist yet.
-// @mui/x-tree-view v8.27.1 IS installed (package.json).
-// TODO: Create AccountHierarchyTree.tsx using SimpleTreeView/RichTreeView from @mui/x-tree-view.
-// export { AccountHierarchyTree } from './AccountHierarchyTree';
-// export type { AccountHierarchyTreeProps } from './AccountHierarchyTree';
+// REV-FE-001: AccountHierarchyTree implemented using SimpleTreeView from @mui/x-tree-view.
+export { AccountHierarchyTree } from './AccountHierarchyTree';
+export type { AccountHierarchyTreeProps } from './AccountHierarchyTree';
 
 export { TerritoryAssignmentPanel } from './TerritoryAssignmentPanel';
 export type { TerritoryAssignmentPanelProps } from './TerritoryAssignmentPanel';
