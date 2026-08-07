@@ -220,4 +220,148 @@ public class ContactsServiceTests : IDisposable
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*888*");
     }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldRemoveAssociatedSocialMediaLinks_WhenContactExists()
+    {
+        var contact = new Contact { Id = 21, FirstName = "Nina", LastName = "Blue" };
+        contact.SocialMediaLinks.Add(new SocialMediaLink
+        {
+            ContactId = 21,
+            Platform = SocialMediaPlatform.LinkedIn,
+            Url = "https://linkedin.com/in/nina",
+            DateAdded = DateTime.UtcNow
+        });
+        _context.Contacts.Add(contact);
+        await _context.SaveChangesAsync();
+
+        await _service.DeleteAsync(21);
+
+        _context.SocialMediaLinks.Should().BeEmpty();
+    }
+
+    // ------------------------------------------------------------------
+    // UpdateAsync
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public async Task UpdateAsync_ShouldPersistChanges_WhenMultipleFieldsProvided()
+    {
+        var contact = new Contact
+        {
+            FirstName = "Original",
+            LastName = "Name",
+            Company = "OldCo",
+            JobTitle = "Engineer",
+            EmailPrimary = "old@example.com"
+        };
+        _context.Contacts.Add(contact);
+        await _context.SaveChangesAsync();
+
+        var request = new UpdateContactRequest
+        {
+            FirstName = "Updated",
+            LastName = "Person",
+            Company = "NewCo",
+            JobTitle = "Manager",
+            EmailPrimary = "new@example.com",
+            City = "Springfield"
+        };
+
+        var result = await _service.UpdateAsync(contact.Id, request, "editor");
+
+        result.FirstName.Should().Be("Updated");
+        result.LastName.Should().Be("Person");
+        result.Company.Should().Be("NewCo");
+        result.JobTitle.Should().Be("Manager");
+        result.EmailPrimary.Should().Be("new@example.com");
+        result.City.Should().Be("Springfield");
+        result.ModifiedBy.Should().Be("editor");
+
+        var saved = await _context.Contacts.FindAsync(contact.Id);
+        saved!.FirstName.Should().Be("Updated");
+        saved.LastName.Should().Be("Person");
+        saved.Company.Should().Be("NewCo");
+        saved.JobTitle.Should().Be("Manager");
+        saved.EmailPrimary.Should().Be("new@example.com");
+        saved.City.Should().Be("Springfield");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldThrow_WhenContactNotFound()
+    {
+        Func<Task> act = () => _service.UpdateAsync(777, new UpdateContactRequest { FirstName = "X" }, "editor");
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*777*");
+    }
+
+    // ------------------------------------------------------------------
+    // AddSocialMediaLinkAsync / RemoveSocialMediaLinkAsync
+    // ------------------------------------------------------------------
+
+    [Fact]
+    public async Task AddSocialMediaLinkAsync_ShouldAddLink_WhenContactExists()
+    {
+        var contact = new Contact { Id = 30, FirstName = "Sam", LastName = "Fox" };
+        _context.Contacts.Add(contact);
+        await _context.SaveChangesAsync();
+
+        var request = new AddSocialMediaRequest
+        {
+            Platform = "LinkedIn",
+            Url = "https://linkedin.com/in/samfox",
+            Handle = "samfox"
+        };
+
+        var result = await _service.AddSocialMediaLinkAsync(30, request);
+
+        result.Should().NotBeNull();
+        result.Platform.Should().Be("LinkedIn");
+        result.Url.Should().Be("https://linkedin.com/in/samfox");
+        result.Handle.Should().Be("samfox");
+        _context.SocialMediaLinks.Should().ContainSingle(l => l.ContactId == 30 && l.Url == "https://linkedin.com/in/samfox");
+    }
+
+    [Fact]
+    public async Task AddSocialMediaLinkAsync_ShouldThrow_WhenContactNotFound()
+    {
+        var request = new AddSocialMediaRequest { Platform = "Twitter", Url = "https://twitter.com/nobody" };
+
+        Func<Task> act = () => _service.AddSocialMediaLinkAsync(999, request);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*999*");
+    }
+
+    [Fact]
+    public async Task RemoveSocialMediaLinkAsync_ShouldRemoveLink_WhenLinkExists()
+    {
+        var contact = new Contact { Id = 31, FirstName = "Gina", LastName = "Ray" };
+        var link = new SocialMediaLink
+        {
+            Id = 100,
+            ContactId = 31,
+            Platform = SocialMediaPlatform.Twitter,
+            Url = "https://twitter.com/gina",
+            DateAdded = DateTime.UtcNow
+        };
+        contact.SocialMediaLinks.Add(link);
+        _context.Contacts.Add(contact);
+        await _context.SaveChangesAsync();
+
+        var result = await _service.RemoveSocialMediaLinkAsync(100);
+
+        result.Should().BeTrue();
+        _context.SocialMediaLinks.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task RemoveSocialMediaLinkAsync_ShouldThrow_WhenLinkNotFound()
+    {
+        Func<Task> act = () => _service.RemoveSocialMediaLinkAsync(555);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*555*");
+    }
 }

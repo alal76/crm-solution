@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 627,
-  "patch": 1,
+  "patch": 2,
   "lastUpdate": "2026-08-07",
-  "description": "fix(sales): remove dead territoryService Auto-Assign call, no matching backend route (REM-BUG-007 closed)",
+  "description": "fix(crm): Contact test coverage + account-assignment route (REM-BUG-009 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

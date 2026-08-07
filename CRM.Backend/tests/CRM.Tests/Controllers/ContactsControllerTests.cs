@@ -182,4 +182,197 @@ public class ContactsControllerTests
         // Assert
         result.Result.Should().BeOfType<BadRequestObjectResult>();
     }
+
+    // ── UpdateContact ────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task UpdateContact_ShouldReturnOk_WhenContactExists()
+    {
+        // Arrange
+        var request = new CRM.Core.Dtos.UpdateContactRequest { FirstName = "Updated" };
+        var returned = MakeContactDto(3);
+        _mockContactsService
+            .Setup(s => s.UpdateAsync(3, It.IsAny<CRM.Core.Dtos.UpdateContactRequest>(), It.IsAny<string>()))
+            .ReturnsAsync(returned);
+        _mockNotificationService
+            .Setup(n => n.NotifyRecordUpdatedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<object>(), It.IsAny<string?>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.UpdateContact(3, request);
+
+        // Assert
+        var ok = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        ok.Value.Should().Be(returned);
+    }
+
+    [Fact]
+    public async Task UpdateContact_ShouldReturnNotFound_WhenServiceThrows()
+    {
+        // Arrange
+        var request = new CRM.Core.Dtos.UpdateContactRequest { FirstName = "Updated" };
+        _mockContactsService
+            .Setup(s => s.UpdateAsync(999, It.IsAny<CRM.Core.Dtos.UpdateContactRequest>(), It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("Contact with ID 999 not found"));
+
+        // Act
+        var result = await _controller.UpdateContact(999, request);
+
+        // Assert
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    // ── DeleteContact ────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task DeleteContact_ShouldReturnOk_WhenContactExists()
+    {
+        // Arrange
+        _mockContactsService.Setup(s => s.DeleteAsync(4)).ReturnsAsync(true);
+        _mockNotificationService
+            .Setup(n => n.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.DeleteContact(4);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task DeleteContact_ShouldReturnNotFound_WhenServiceThrows()
+    {
+        // Arrange
+        _mockContactsService.Setup(s => s.DeleteAsync(999))
+            .ThrowsAsync(new InvalidOperationException("Contact with ID 999 not found"));
+
+        // Act
+        var result = await _controller.DeleteContact(999);
+
+        // Assert
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    // ── AddSocialMediaLink ───────────────────────────────────────────────────
+
+    [Fact]
+    public async Task AddSocialMediaLink_ShouldReturnCreated_WhenContactExists()
+    {
+        // Arrange
+        var request = new CRM.Core.Dtos.AddSocialMediaRequest { Platform = "LinkedIn", Url = "https://linkedin.com/in/alice" };
+        var returned = new SocialMediaLinkDto { Id = 1, Platform = "LinkedIn", Url = request.Url };
+        _mockContactsService
+            .Setup(s => s.AddSocialMediaLinkAsync(1, It.IsAny<CRM.Core.Dtos.AddSocialMediaRequest>()))
+            .ReturnsAsync(returned);
+
+        // Act
+        var result = await _controller.AddSocialMediaLink(1, request);
+
+        // Assert
+        result.Result.Should().BeOfType<CreatedAtActionResult>();
+    }
+
+    [Fact]
+    public async Task AddSocialMediaLink_ShouldReturnNotFound_WhenServiceThrows()
+    {
+        // Arrange
+        var request = new CRM.Core.Dtos.AddSocialMediaRequest { Platform = "LinkedIn", Url = "https://linkedin.com/in/alice" };
+        _mockContactsService
+            .Setup(s => s.AddSocialMediaLinkAsync(999, It.IsAny<CRM.Core.Dtos.AddSocialMediaRequest>()))
+            .ThrowsAsync(new InvalidOperationException("Contact with ID 999 not found"));
+
+        // Act
+        var result = await _controller.AddSocialMediaLink(999, request);
+
+        // Assert
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    // ── RemoveSocialMediaLink ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task RemoveSocialMediaLink_ShouldReturnOk_WhenLinkExists()
+    {
+        // Arrange
+        _mockContactsService.Setup(s => s.RemoveSocialMediaLinkAsync(10)).ReturnsAsync(true);
+
+        // Act
+        var result = await _controller.RemoveSocialMediaLink(10);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task RemoveSocialMediaLink_ShouldReturnNotFound_WhenServiceThrows()
+    {
+        // Arrange
+        _mockContactsService.Setup(s => s.RemoveSocialMediaLinkAsync(999))
+            .ThrowsAsync(new InvalidOperationException("Social media link with ID 999 not found"));
+
+        // Act
+        var result = await _controller.RemoveSocialMediaLink(999);
+
+        // Assert
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    // ── AssignToAccount / UnassignFromAccount ───────────────────────────────
+
+    [Fact]
+    public async Task AssignToAccount_ShouldReturnOk_WhenContactExists()
+    {
+        // Arrange
+        _mockContactsService.Setup(s => s.AssignToAccountAsync(1, 2)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.AssignToAccount(1, 2);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+        _mockContactsService.Verify(s => s.AssignToAccountAsync(1, 2), Times.Once);
+    }
+
+    [Fact]
+    public async Task AssignToAccount_ShouldReturnNotFound_WhenServiceThrows()
+    {
+        // Arrange
+        _mockContactsService.Setup(s => s.AssignToAccountAsync(999, 2))
+            .ThrowsAsync(new InvalidOperationException("Contact with ID 999 not found"));
+
+        // Act
+        var result = await _controller.AssignToAccount(999, 2);
+
+        // Assert
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task UnassignFromAccount_ShouldReturnOk_WhenContactExists()
+    {
+        // Arrange
+        _mockContactsService.Setup(s => s.UnassignFromAccountAsync(1)).Returns(Task.CompletedTask);
+
+        // Act
+        var result = await _controller.UnassignFromAccount(1);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+        _mockContactsService.Verify(s => s.UnassignFromAccountAsync(1), Times.Once);
+    }
+
+    [Fact]
+    public async Task UnassignFromAccount_ShouldReturnNotFound_WhenServiceThrows()
+    {
+        // Arrange
+        _mockContactsService.Setup(s => s.UnassignFromAccountAsync(999))
+            .ThrowsAsync(new InvalidOperationException("Contact with ID 999 not found"));
+
+        // Act
+        var result = await _controller.UnassignFromAccount(999);
+
+        // Assert
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
 }

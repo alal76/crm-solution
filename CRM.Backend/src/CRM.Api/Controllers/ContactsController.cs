@@ -218,4 +218,46 @@ public class ContactsController : CrmControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Assign a contact to an account (sets the contact's AccountId)
+    /// </summary>
+    [HttpPost("{id}/account/{accountId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AssignToAccount(int id, int accountId)
+    {
+        try
+        {
+            await _contactsService.AssignToAccountAsync(id, accountId);
+            return Ok(new { message = $"Contact {id} assigned to account {accountId} successfully" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, $"Contact with ID {id} not found");
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Remove a contact's account assignment (clears the contact's AccountId)
+    /// </summary>
+    [HttpDelete("{id}/account")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UnassignFromAccount(int id)
+    {
+        try
+        {
+            await _contactsService.UnassignFromAccountAsync(id);
+            return Ok(new { message = $"Contact {id} unassigned from account successfully" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, $"Contact with ID {id} not found");
+            return NotFound(new { message = ex.Message });
+        }
+    }
 }
