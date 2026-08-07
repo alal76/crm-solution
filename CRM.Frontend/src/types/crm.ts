@@ -131,85 +131,148 @@ export interface UpdateContactDto {
 // ============================================================================
 // LEADS
 // ============================================================================
+// REM-ORPHAN-003: Aligned with the real `Lead` entity/DTOs (CRM.Core.Entities.Lead,
+// CRM.Core.Dtos.LeadDtos), not the legacy "Contacts-as-Leads" flow. Enum string
+// values below mirror the backend enum member names exactly (C# `Enum.ToString()`
+// on read, case-sensitive `Enum.TryParse<T>` on write) — see
+// CRM.Backend/src/CRM.Core/Entities/Lead.cs for the source of truth.
 
 export enum LeadStatus {
-  New = 'new',
-  Contacted = 'contacted',
-  Qualified = 'qualified',
-  Unqualified = 'unqualified',
-  Disqualified = 'disqualified',
-  Converted = 'converted'
+  New = 'New',
+  Working = 'Working',
+  Nurturing = 'Nurturing',
+  Qualified = 'Qualified',
+  Disqualified = 'Disqualified',
+  Converted = 'Converted'
 }
 
 export enum LeadSource {
-  Website = 'website',
-  DirectMail = 'direct_mail',
-  Email = 'email',
-  Phone = 'phone',
-  Referral = 'referral',
-  Trade = 'trade',
-  Social = 'social',
-  Advertisement = 'advertisement',
-  Other = 'other'
+  Web = 'Web',
+  Campaign = 'Campaign',
+  Referral = 'Referral',
+  Event = 'Event',
+  Partner = 'Partner',
+  Manual = 'Manual'
+}
+
+/** Qualification framework type (TODO-CRM002-08) — mirrors CRM.Core.Entities.QualificationFramework. */
+export enum QualificationFrameworkType {
+  None = 'None',
+  BANT = 'BANT',
+  MEDDIC = 'MEDDIC',
+  MEDDPICC = 'MEDDPICC',
+  CHAMP = 'CHAMP',
+  GPCTBA = 'GPCTBA',
+  Custom = 'Custom'
 }
 
 export interface Lead extends BaseEntity {
   firstName: string;
   lastName: string;
-  email?: string;
+  fullName?: string;
+  email: string;
   phone?: string;
-  companyName: string;
-  jobTitle?: string;
+  companyName?: string;
+  title?: string;              // Job title (backend field name is `Title`, not `jobTitle`)
   status: LeadStatus;
+  statusId?: number;           // Configurable status FK (ENUM-MIG-001)
   source?: LeadSource;
   website?: string;
-  leadScore?: number; // ML based lead scoring
+  score?: number;              // Combined lead score (fit + engagement)
+  fitScore?: number;
+  engagementScore?: number;
   ownerId?: number;
   ownerName?: string;
-  notes?: string;
-  fitScore?: number;          // ML fit score from backend
-  engagementScore?: number;   // ML engagement score from backend
-  qualificationNotes?: string; // SDR qualification notes
-  region?: string;            // Sales territory/region
-  campaignId?: number;        // Source campaign
-  accountId?: number;         // Matched account (after conversion)
-  contactId?: number;         // Matched contact (after conversion)
-  mqlDate?: string;           // Date qualified as Marketing Qualified Lead
-  sqlDate?: string;           // Date qualified as Sales Qualified Lead
-  lastActivityDate?: string;  // Last activity date
-  tags?: string;              // Comma-separated tags
+  qualificationNotes?: string; // SDR/Marketing qualification notes
+  region?: string;             // Sales territory/region
+  campaignId?: number;         // Source marketing campaign
+  accountId?: number;          // Matched account (after conversion)
+  contactId?: number;          // Matched contact (if applicable)
+  mqlDate?: string;            // Date qualified as Marketing Qualified Lead
+  sqlDate?: string;            // Date qualified as Sales Qualified Lead
+  lastActivityDate?: string;
+  tags?: string;               // Comma-separated tags (JSON array as string)
+  territoryId?: number;        // Assigned territory (TODO-GAP-04)
+  qualificationFrameworkType?: QualificationFrameworkType;
+  nurtureCampaignId?: number;  // Active nurture campaign enrollment (TODO-CRM002-06)
+  nurtureCampaignEnrolledAt?: string;
+  lastContactedAt?: string;
+  daysSinceLastContact?: number;
+
+  // Source attribution (TODO-CRM002-03)
+  leadSourceId?: number;
+  originalSource?: string;
+  firstTouchDate?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+
+  // BANT qualification scoring (TODO-CRM002-08)
+  budgetScore?: number;
+  authorityScore?: number;
+  needScore?: number;
+  timelineScore?: number;
+
+  // MEDDIC qualification scoring (TODO-CRM002-08)
+  metricsScore?: number;
+  economicBuyerScore?: number;
+  decisionCriteriaScore?: number;
+  decisionProcessScore?: number;
+  identifyPainScore?: number;
+  championScore?: number;
+  customQualificationJson?: string;
+  lastScoreDecayDate?: string;
 }
 
+/**
+ * POST /api/leads body. NOTE: the backend request DTO (declared inline in
+ * LeadsController.cs) does not currently accept tags/mqlDate/sqlDate/statusId
+ * for write — those are read-only via this endpoint today.
+ */
 export interface CreateLeadDto {
   firstName: string;
   lastName: string;
   email?: string;
   phone?: string;
-  companyName: string;
-  jobTitle?: string;
-  source?: LeadSource;
-  industry?: string;
+  company?: string;
+  companyName?: string;
+  title?: string;
+  source?: LeadSource | string;
   region?: string;
-  campaignId?: number;
-  qualificationNotes?: string;
-}
-
-export interface UpdateLeadDto {
-  status?: LeadStatus;
+  website?: string;
+  notes?: string;              // Maps to Lead.QualificationNotes server-side
+  description?: string;
   ownerId?: number;
-  notes?: string;
-  fitScore?: number;
-  engagementScore?: number;
-  qualificationNotes?: string;
-  region?: string;
   campaignId?: number;
 }
 
+/**
+ * PUT /api/leads/{id} body. Same write-path limitation as CreateLeadDto above —
+ * tags/mqlDate/sqlDate are not accepted.
+ */
+export interface UpdateLeadDto {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  companyName?: string;
+  title?: string;
+  status?: LeadStatus | string;
+  source?: LeadSource | string;
+  region?: string;
+  website?: string;
+  notes?: string;               // Maps to Lead.QualificationNotes server-side
+  score?: number;
+  ownerId?: number;
+  campaignId?: number;
+}
+
+/** Result of POST /api/leads/{id}/convert. The backend creates an Opportunity only
+ *  — it does NOT create a new Account, so callers must supply an existing accountId. */
 export interface LeadConversionResult {
-  accountId: number;
-  contactId: number;
-  opportunityId?: number;
-  conversionDate: string;
+  message: string;
+  opportunityId: number;
+  leadId: number;
 }
 
 // ============================================================================

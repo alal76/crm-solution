@@ -33,6 +33,8 @@ import {
   Collapse,
   Container,
   TableContainer,
+  Grid,
+  Divider,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -44,25 +46,22 @@ import {
   Note as NoteIcon,
   TrendingUp as TrendingUpIcon,
   Psychology as PsychologyIcon,
-  Refresh as RefreshIcon,
   Comment as CommentIcon,
   QueryStats as QueryStatsIcon,
+  Insights as InsightsIcon,
 } from '@mui/icons-material';
 import { RecordComments } from '../components/common/RecordComments';
-import {
-  Grid,
-} from '@mui/material';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
 import logo from '../assets/logo.png';
 
 import { ContactInfoPanel } from '../components/ContactInfo';
 import NotesTab from '../components/NotesTab';
-import { BaseEntity } from '../types';
+import EntitySelect from '../components/EntitySelect';
 import { useProfile } from '../contexts/ProfileContext';
-import { 
-  DialogError, 
-  DialogSuccess, 
+import {
+  DialogError,
+  DialogSuccess,
   ActionButton,
   DialogHeader,
   RelatedEntitiesPanel,
@@ -77,54 +76,42 @@ import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import LeadScoreExplanationDrawer from '../components/leads/LeadScoreExplanationDrawer';
 import enumCacheService from '../services/enumCacheService';
 import type { EnumValue } from '../types/enums';
+import leadService, {
+  LeadSummaryDto,
+  LeadDto,
+  CreateLeadDto,
+  UpdateLeadDto,
+  ConvertLeadDto,
+} from '../services/leadService';
 
-// Lead sources for the dropdown
-const LEAD_SOURCES = [
-  { value: 'website', label: 'Website', bg: '#E3F2FD', text: '#1565C0' },
-  { value: 'referral', label: 'Referral', bg: '#F3E5F5', text: '#6A1B9A' },
-  { value: 'event', label: 'Event', bg: '#E0F2F1', text: '#00695C' },
-  { value: 'cold_call', label: 'Cold Call', bg: '#FFF3E0', text: '#E65100' },
-  { value: 'social', label: 'Social Media', bg: '#FCE4EC', text: '#C2185B' },
-  { value: 'other', label: 'Other', bg: '#F0F4C3', text: '#558B2F' },
-];
+// REM-ORPHAN-003: LeadsPage now talks to the real `/api/leads` Lead API
+// (CRM.Api.Controllers.LeadsController) via leadService, instead of the legacy
+// "Contacts-as-Leads" flow (`/contacts/type/Lead` with source/status packed into
+// the Contact's `notes` field as JSON). See CRM.Backend/src/CRM.Core/Entities/Lead.cs
+// for the canonical enum values below.
 
-// Lead status options (stored in Notes field since Contact model doesn't have status)
+// Lead status options — value strings MUST match LeadLifecycleStatus enum member
+// names exactly (New|Working|Nurturing|Qualified|Disqualified|Converted), since the
+// backend parses them case-sensitively via Enum.TryParse<LeadLifecycleStatus>.
 const LEAD_STATUSES = [
-  { value: 'new', label: 'New', bg: '#E8DEF8', text: '#6750A4' },
-  { value: 'contacted', label: 'Contacted', bg: '#E1F5FE', text: '#0277BD' },
-  { value: 'qualified', label: 'Qualified', bg: '#E8F5E9', text: '#06A77D' },
-  { value: 'converted', label: 'Converted', bg: '#F1F8E9', text: '#558B2F' },
-  { value: 'lost', label: 'Lost', bg: '#FFEBEE', text: '#B3261E' },
+  { value: 'New', label: 'New', bg: '#E8DEF8', text: '#6750A4' },
+  { value: 'Working', label: 'Working', bg: '#E1F5FE', text: '#0277BD' },
+  { value: 'Nurturing', label: 'Nurturing', bg: '#FFF3E0', text: '#E65100' },
+  { value: 'Qualified', label: 'Qualified', bg: '#E8F5E9', text: '#06A77D' },
+  { value: 'Disqualified', label: 'Disqualified', bg: '#FFEBEE', text: '#B3261E' },
+  { value: 'Converted', label: 'Converted', bg: '#F1F8E9', text: '#558B2F' },
 ];
 
-interface Lead extends BaseEntity {
-  firstName: string;
-  lastName: string;
-  emailPrimary: string;
-  email?: string;
-  phonePrimary: string;
-  phone?: string;
-  company: string;
-  companyName?: string;
-  jobTitle: string;
-  title?: string;
-  source: string;
-  status: string;
-  notes: string;
-  dateAdded: string;
-  contactType: number;
-  // Secondary contact fields
-  website?: string;
-  linkedInUrl?: string;
-  twitterHandle?: string;
-  phoneSecondary?: string;
-  doNotContact?: boolean;
-  preferredContactMethod?: string;
-  // AI scoring fields
-  score?: number;
-  fitScore?: number;
-  engagementScore?: number;
-}
+// Lead source options — value strings MUST match LeadSource enum member names
+// exactly (Web|Campaign|Referral|Event|Partner|Manual).
+const LEAD_SOURCES = [
+  { value: 'Web', label: 'Web', bg: '#E3F2FD', text: '#1565C0' },
+  { value: 'Campaign', label: 'Campaign', bg: '#FCE4EC', text: '#C2185B' },
+  { value: 'Referral', label: 'Referral', bg: '#F3E5F5', text: '#6A1B9A' },
+  { value: 'Event', label: 'Event', bg: '#E0F2F1', text: '#00695C' },
+  { value: 'Partner', label: 'Partner', bg: '#FFF8E1', text: '#F9A825' },
+  { value: 'Manual', label: 'Manual', bg: '#F0F4C3', text: '#558B2F' },
+];
 
 // Helper to get score color based on value
 const getScoreColor = (score: number | undefined): string => {
@@ -148,41 +135,63 @@ const getScoreLabel = (score: number | undefined): string => {
 interface LeadFormData {
   firstName: string;
   lastName: string;
-  emailPrimary: string;
-  phonePrimary: string;
-  company: string;
-  jobTitle: string;
+  email: string;
+  phone: string;
+  companyName: string;
+  title: string;
   source: string;
   status: string;
   notes: string;
-  website: string;
-  linkedInUrl: string;
-  twitterHandle: string;
-  phoneSecondary: string;
-  doNotContact: boolean;
-  preferredContactMethod: string;
-  // Qualification & Scoring fields
-  region: string;
   qualificationNotes: string;
+  website: string;
+  region: string;
   campaignId: string;
-  mqlDate: string;
-  sqlDate: string;
-  tags: string;
 }
+
+const EMPTY_FORM_DATA: LeadFormData = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  companyName: '',
+  title: '',
+  source: 'Web',
+  status: 'New',
+  notes: '',
+  qualificationNotes: '',
+  website: '',
+  region: '',
+  campaignId: '',
+};
 
 // Search fields for leads
 const SEARCH_FIELDS: SearchField[] = [
   { name: 'firstName', label: 'First Name', type: 'text' },
   { name: 'lastName', label: 'Last Name', type: 'text' },
-  { name: 'company', label: 'Company', type: 'text' },
+  { name: 'companyName', label: 'Company', type: 'text' },
   { name: 'source', label: 'Source', type: 'select', options: LEAD_SOURCES.map(s => ({ value: s.value, label: s.label })) },
   { name: 'status', label: 'Status', type: 'select', options: LEAD_STATUSES.map(s => ({ value: s.value, label: s.label })) },
 ];
 
-const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'company', 'emailPrimary', 'jobTitle'];
+const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'companyName', 'email', 'title'];
+
+// Small label:value display row for the read-only Qualification & Attribution tab
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (value === undefined || value === null || value === '') return null;
+  return (
+    <Grid item xs={12} sm={6} md={4}>
+      <Typography variant="caption" color="textSecondary" display="block">
+        {label}
+      </Typography>
+      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+        {value}
+      </Typography>
+    </Grid>
+  );
+}
 
 function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const [leads, setLeads] = useState<LeadSummaryDto[]>([]);
   const [loading, setLoading] = useState(true);
   // ENUM-FE-015: Dynamic lead status options loaded from enum cache (falls back to LEAD_STATUSES)
   const [dynamicLeadStatuses, setDynamicLeadStatuses] = useState<EnumValue[]>([]);
@@ -191,96 +200,54 @@ function LeadsPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogTab, setDialogTab] = useState(0);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState<LeadFormData>({
-    firstName: '',
-    lastName: '',
-    emailPrimary: '',
-    phonePrimary: '',
-    company: '',
-    jobTitle: '',
-    source: 'website',
-    status: 'new',
-    notes: '',
-    website: '',
-    linkedInUrl: '',
-    twitterHandle: '',
-    phoneSecondary: '',
-    doNotContact: false,
-    preferredContactMethod: '',
-    region: '',
-    qualificationNotes: '',
-    campaignId: '',
-    mqlDate: '',
-    sqlDate: '',
-    tags: '',
-  });
-  
+  const [formData, setFormData] = useState<LeadFormData>(EMPTY_FORM_DATA);
+  // Full LeadDto for the record being edited — holds the read-only fields
+  // (BANT/MEDDIC scores, UTM attribution, mqlDate/sqlDate/tags, etc.) that the
+  // list endpoint (LeadSummaryDto) doesn't include.
+  const [leadDetail, setLeadDetail] = useState<LeadDto | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
   // Search and filter state
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
 
-  // Dynamic field configuration
-  // Field configuration now handled internally by DynamicEntityForm
   // Multi-select and bulk update state
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
   const [bulkFormData, setBulkFormData] = useState({
     source: '' as string,
     status: '' as string,
-    company: '' as string,
+    companyName: '' as string,
   });
-  
+
   // API state for dialog operations
   const dialogApi = useApiState({ successTimeout: 3000 });
   const bulkApi = useApiState({ successTimeout: 3000 });
   const convertApi = useApiState({ successTimeout: 3000 });
   const { hasPermission } = useProfile();
-  
+
   // Lead conversion dialog state
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
-  const [convertingLead, setConvertingLead] = useState<Lead | null>(null);
+  const [convertingLead, setConvertingLead] = useState<LeadSummaryDto | null>(null);
   // FEAT-AISCORING: Score analysis drawer state
   const [scoreDrawerLeadId, setScoreDrawerLeadId] = useState<number | null>(null);
   const [scoreDrawerOpen, setScoreDrawerOpen] = useState(false);
   const [convertFormData, setConvertFormData] = useState({
-    createOpportunity: false,
+    accountId: '' as number | string,
     opportunityName: '',
     estimatedValue: '',
     expectedCloseDate: '',
   });
-  
+
   // Fetch leads function (defined early for SignalR callbacks)
   const fetchLeads = useCallback(async () => {
     try {
       setLoading(true);
-      // Leads are Contacts with ContactType = Lead (value 2)
-      const response = await apiClient.get('/contacts/type/Lead');
-      // Parse source and status from notes field (stored as JSON)
-      const leadsWithMeta = response.data.map((contact: any) => {
-        let source = 'other';
-        let status = 'new';
-        let notes = contact.notes || '';
-        
-        // Try to parse metadata from notes
-        try {
-          if (notes.startsWith('{')) {
-            const meta = JSON.parse(notes);
-            source = meta.source || 'other';
-            status = meta.status || 'new';
-            notes = meta.notes || '';
-          }
-        } catch {
-          // Notes is plain text, keep defaults
-        }
-        
-        return {
-          ...contact,
-          source,
-          status,
-          notes,
-        };
-      });
-      setLeads(leadsWithMeta);
+      // Real Lead API — GET /api/leads?page=&pageSize=
+      // The page still filters/paginates client-side (usePagination below), so we
+      // request a large page to approximate "all leads" in one call.
+      const response = await leadService.getAll(1, 1000);
+      setLeads(response.data.data || []);
       setError(null);
     } catch (err: unknown) {
       setError((err as any).response?.data?.message || 'Failed to fetch leads');
@@ -290,22 +257,27 @@ function LeadsPage() {
     }
   }, []);
 
-  // SignalR subscription for real-time updates (Leads are stored as Contacts)
-  useEntityTypeSubscription('Contact', {
+  // SignalR subscription for real-time updates.
+  // NOTE: as of this migration, LeadsController does not yet call
+  // ICrmNotificationService.NotifyRecord{Created,Updated,Deleted}Async for the
+  // "Lead" entity type the way ContactsController/AccountsController do — so this
+  // subscription is wired correctly but the backend won't emit events for it yet.
+  // Flagged as a follow-up; the list still refreshes on manual create/update/delete.
+  useEntityTypeSubscription('Lead', {
     onCreated: useCallback(() => {
-      logger.debug('[SignalR] Contact/Lead created - refreshing list');
+      logger.debug('[SignalR] Lead created - refreshing list');
       fetchLeads();
     }, [fetchLeads]),
     onUpdated: useCallback(() => {
-      logger.debug('[SignalR] Contact/Lead updated - refreshing list');
+      logger.debug('[SignalR] Lead updated - refreshing list');
       fetchLeads();
     }, [fetchLeads]),
     onDeleted: useCallback(() => {
-      logger.debug('[SignalR] Contact/Lead deleted - refreshing list');
+      logger.debug('[SignalR] Lead deleted - refreshing list');
       fetchLeads();
     }, [fetchLeads]),
   });
-  
+
   // Filter leads based on search
   const filteredLeads = useMemo(() => {
     return filterData(leads, searchFilters, searchText, SEARCHABLE_FIELDS);
@@ -334,65 +306,64 @@ function LeadsPage() {
     fetchLeads();
   }, [fetchLeads]);
 
-  const handleOpenDialog = (lead?: Lead) => {
-    if (lead) {
-      setEditingId(lead.id);
-      setFormData({
-        firstName: lead.firstName,
-        lastName: lead.lastName,
-        emailPrimary: lead.emailPrimary || '',
-        phonePrimary: lead.phonePrimary || '',
-        company: lead.company || '',
-        jobTitle: lead.jobTitle || '',
-        source: lead.source || 'website',
-        status: lead.status || 'new',
-        notes: lead.notes || '',
-        website: lead.website || '',
-        linkedInUrl: lead.linkedInUrl || '',
-        twitterHandle: lead.twitterHandle || '',
-        phoneSecondary: lead.phoneSecondary || '',
-        doNotContact: lead.doNotContact || false,
-        preferredContactMethod: lead.preferredContactMethod || '',
-        region: '',
-        qualificationNotes: '',
-        campaignId: '',
-        mqlDate: '',
-        sqlDate: '',
-        tags: '',
-      });
-    } else {
-      setEditingId(null);
-      setFormData({
-        firstName: '',
-        lastName: '',
-        emailPrimary: '',
-        phonePrimary: '',
-        company: '',
-        jobTitle: '',
-        source: 'website',
-        status: 'new',
-        notes: '',
-        website: '',
-        linkedInUrl: '',
-        twitterHandle: '',
-        phoneSecondary: '',
-        doNotContact: false,
-        preferredContactMethod: '',
-        region: '',
-        qualificationNotes: '',
-        campaignId: '',
-        mqlDate: '',
-        sqlDate: '',
-        tags: '',
-      });
-    }
+  const handleOpenDialog = async (lead?: LeadSummaryDto) => {
     setDialogTab(0);
+    dialogApi.clearError();
+
+    if (!lead) {
+      setEditingId(null);
+      setLeadDetail(null);
+      setFormData(EMPTY_FORM_DATA);
+      setOpenDialog(true);
+      return;
+    }
+
+    setEditingId(lead.id);
     setOpenDialog(true);
+    setDetailLoading(true);
+    try {
+      const response = await leadService.getById(lead.id);
+      const detail = response.data;
+      setLeadDetail(detail);
+      setFormData({
+        firstName: detail.firstName || '',
+        lastName: detail.lastName || '',
+        email: detail.email || '',
+        phone: detail.phone || '',
+        companyName: detail.companyName || '',
+        title: detail.title || '',
+        source: detail.source || 'Web',
+        status: detail.status || 'New',
+        notes: detail.qualificationNotes || '',
+        qualificationNotes: detail.qualificationNotes || '',
+        website: detail.website || '',
+        region: detail.region || '',
+        campaignId: detail.campaignId != null ? String(detail.campaignId) : '',
+      });
+    } catch (err: unknown) {
+      // Fall back to the summary row so the dialog is still usable
+      setLeadDetail(null);
+      setFormData({
+        ...EMPTY_FORM_DATA,
+        firstName: lead.firstName || '',
+        lastName: lead.lastName || '',
+        email: lead.email || '',
+        phone: lead.phone || '',
+        companyName: lead.companyName || '',
+        title: lead.title || '',
+        source: lead.source || 'Web',
+        status: lead.status || 'New',
+      });
+      dialogApi.setError((err as any).response?.data?.message || 'Failed to load full lead details');
+    } finally {
+      setDetailLoading(false);
+    }
   };
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingId(null);
+    setLeadDetail(null);
     dialogApi.clearError();
   };
 
@@ -407,41 +378,49 @@ function LeadsPage() {
   };
 
   const handleSave = async () => {
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.emailPrimary.trim()) {
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
       dialogApi.setError('Please fill in required fields (First Name, Last Name, Email)');
       return;
     }
 
+    // The Lead entity only has a single `QualificationNotes` field server-side —
+    // prefer the dedicated qualification field, fall back to the general notes field.
+    const notes = formData.qualificationNotes.trim() || formData.notes.trim() || undefined;
+    const campaignId = formData.campaignId.trim() ? Number(formData.campaignId) : undefined;
+
     const result = await dialogApi.execute(async () => {
-      // Store source, status, and notes as JSON in notes field
-      const notesWithMeta = JSON.stringify({
-        source: formData.source,
-        status: formData.status,
-        notes: formData.notes,
-      });
-
-      const contactData = {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        emailPrimary: formData.emailPrimary,
-        phonePrimary: formData.phonePrimary,
-        company: formData.company,
-        jobTitle: formData.jobTitle,
-        contactType: 2, // Lead
-        notes: notesWithMeta,
-        website: formData.website,
-        linkedInUrl: formData.linkedInUrl,
-        twitterHandle: formData.twitterHandle,
-        phoneSecondary: formData.phoneSecondary,
-        doNotContact: formData.doNotContact,
-        preferredContactMethod: formData.preferredContactMethod,
-      };
-
       if (editingId) {
-        await apiClient.put(`/contacts/${editingId}`, contactData);
+        const payload: UpdateLeadDto = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          companyName: formData.companyName || undefined,
+          title: formData.title || undefined,
+          status: formData.status,
+          source: formData.source,
+          region: formData.region || undefined,
+          website: formData.website || undefined,
+          notes,
+          campaignId,
+        };
+        await leadService.update(editingId, payload);
         return 'updated';
       } else {
-        await apiClient.post('/contacts', contactData);
+        const payload: CreateLeadDto = {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone || undefined,
+          companyName: formData.companyName || undefined,
+          title: formData.title || undefined,
+          source: formData.source,
+          region: formData.region || undefined,
+          website: formData.website || undefined,
+          notes,
+          campaignId,
+        };
+        await leadService.create(payload);
         return 'created';
       }
     }, editingId ? 'Lead updated successfully' : 'Lead created successfully');
@@ -458,10 +437,10 @@ function LeadsPage() {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this lead?')) {
       const result = await dialogApi.execute(async () => {
-        await apiClient.delete(`/contacts/${id}`);
+        await leadService.delete(id);
         return true;
       }, 'Lead deleted successfully');
-      
+
       if (result) {
         setSelectedIds(prev => prev.filter(sid => sid !== id));
         fetchLeads();
@@ -483,8 +462,8 @@ function LeadsPage() {
   };
 
   const handleSelectOne = (id: number) => {
-    setSelectedIds(prev => 
-      prev.includes(id) 
+    setSelectedIds(prev =>
+      prev.includes(id)
         ? prev.filter(sid => sid !== id)
         : [...prev, id]
     );
@@ -494,7 +473,7 @@ function LeadsPage() {
     setBulkFormData({
       source: '',
       status: '',
-      company: '',
+      companyName: '',
     });
     bulkApi.clearError();
     setBulkDialogOpen(true);
@@ -507,25 +486,12 @@ function LeadsPage() {
     }
 
     const result = await bulkApi.execute(async () => {
-      // Get current leads data and update only non-empty fields
-      const updatePromises = selectedIds.map(async (id) => {
-        const lead = leads.find(l => l.id === id);
-        if (!lead) return;
+      const payload: UpdateLeadDto = {};
+      if (bulkFormData.source) payload.source = bulkFormData.source;
+      if (bulkFormData.status) payload.status = bulkFormData.status;
+      if (bulkFormData.companyName) payload.companyName = bulkFormData.companyName;
 
-        const currentMeta = { source: lead.source, status: lead.status, notes: lead.notes };
-        const newMeta = {
-          source: bulkFormData.source || currentMeta.source,
-          status: bulkFormData.status || currentMeta.status,
-          notes: currentMeta.notes,
-        };
-
-        const updatePayload: Record<string, any> = {
-          notes: JSON.stringify(newMeta),
-        };
-        if (bulkFormData.company) updatePayload.company = bulkFormData.company;
-
-        return apiClient.put(`/contacts/${id}`, updatePayload);
-      });
+      const updatePromises = selectedIds.map(id => leadService.update(id, payload));
       await Promise.all(updatePromises);
       return selectedIds.length;
     }, `Successfully updated ${selectedIds.length} lead(s)`);
@@ -541,13 +507,13 @@ function LeadsPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.length === 0) return;
-    
+
     if (!window.confirm(`Are you sure you want to delete ${selectedIds.length} lead(s)?`)) {
       return;
     }
 
     const result = await bulkApi.execute(async () => {
-      const deletePromises = selectedIds.map(id => apiClient.delete(`/contacts/${id}`));
+      const deletePromises = selectedIds.map(id => leadService.delete(id));
       await Promise.all(deletePromises);
       return selectedIds.length;
     }, `Successfully deleted ${selectedIds.length} lead(s)`);
@@ -563,11 +529,11 @@ function LeadsPage() {
   };
 
   // Open conversion dialog
-  const handleOpenConvertDialog = (lead: Lead) => {
+  const handleOpenConvertDialog = (lead: LeadSummaryDto) => {
     setConvertingLead(lead);
     setConvertFormData({
-      createOpportunity: false,
-      opportunityName: `${lead.company || lead.firstName} - Opportunity`,
+      accountId: '',
+      opportunityName: `${lead.companyName || lead.firstName} - Opportunity`,
       estimatedValue: '',
       expectedCloseDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 90 days out
     });
@@ -581,118 +547,42 @@ function LeadsPage() {
     convertApi.clearError();
   };
 
+  // POST /api/leads/{id}/convert — the backend creates the Opportunity and marks
+  // the lead Converted server-side. It does NOT create a new Account (unlike the
+  // legacy client-side flow this replaces), so the user must pick an existing one.
   const handleConvertLead = async () => {
     if (!convertingLead) return;
 
+    if (!convertFormData.accountId) {
+      convertApi.setError('Please select an Account to link the new Opportunity to.');
+      return;
+    }
+
     const result = await convertApi.execute(async () => {
-      // 1. Create account/customer from lead data
-      const accountResponse = await apiClient.post('/accounts', {
-        firstName: convertingLead.firstName,
-        lastName: convertingLead.lastName,
-        company: convertingLead.company || `${convertingLead.firstName}'s Company`,
-        legalName: convertingLead.company,
-        industry: 'Other',
-        lifecycleStage: 1, // Customer
-        notes: `Converted from lead. ${convertingLead.notes}`,
-      });
-
-      const accountId = accountResponse.data.id;
-      let opportunityId = null;
-
-      // 2. Optionally create opportunity
-      if (convertFormData.createOpportunity) {
-        const oppResponse = await apiClient.post('/opportunities', {
-          name: convertFormData.opportunityName,
-          accountId: accountId,
-          stage: 0, // Prospecting
-          probability: 20,
-          amount: Number.parseFloat(convertFormData.estimatedValue) || 0,
-          currency: 'USD',
-          expectedCloseDate: convertFormData.expectedCloseDate || null,
-          leadId: convertingLead.id,
-        });
-        opportunityId = oppResponse.data.id;
-      }
-
-      // 3. Update lead status to converted
-      const notesWithMeta = JSON.stringify({
-        source: convertingLead.source,
-        status: 'converted',
-        notes: convertingLead.notes,
-      });
-
-      await apiClient.put(`/contacts/${convertingLead.id}`, {
-        firstName: convertingLead.firstName,
-        lastName: convertingLead.lastName,
-        emailPrimary: convertingLead.emailPrimary,
-        phonePrimary: convertingLead.phonePrimary,
-        company: convertingLead.company,
-        jobTitle: convertingLead.jobTitle,
-        contactType: 2,
-        notes: notesWithMeta,
-      });
-
-      return { accountId, opportunityId };
-    }, convertFormData.createOpportunity 
-      ? 'Lead converted to account with opportunity!'
-      : 'Lead converted to account successfully!');
+      const dto: ConvertLeadDto = {
+        opportunityName: convertFormData.opportunityName || undefined,
+        accountId: Number(convertFormData.accountId),
+        estimatedValue: convertFormData.estimatedValue ? Number(convertFormData.estimatedValue) : undefined,
+        expectedCloseDate: convertFormData.expectedCloseDate || undefined,
+      };
+      const response = await leadService.convert(convertingLead.id, dto);
+      return response.data;
+    }, 'Lead converted successfully!');
 
     if (result) {
       handleCloseConvertDialog();
       fetchLeads();
-      setSuccessMessage(
-        convertFormData.createOpportunity
-          ? `Lead converted! Account #${result.accountId} and Opportunity #${result.opportunityId} created.`
-          : `Lead converted! Account #${result.accountId} created.`
-      );
+      setSuccessMessage(`Lead converted! Opportunity #${result.opportunityId} created.`);
       setTimeout(() => setSuccessMessage(null), 5000);
     }
   };
 
-  const handleConvertToCustomer = async (lead: Lead) => {
-    if (window.confirm(`Convert ${lead.firstName} ${lead.lastName} to a Customer?`)) {
-      try {
-        // Create customer from lead data
-        await apiClient.post('/accounts', {
-          name: `${lead.firstName} ${lead.lastName}`,
-          company: lead.company || `${lead.firstName}'s Company`,
-          email: lead.emailPrimary,
-          phone: lead.phonePrimary,
-          industry: 'Other',
-          lifecycleStage: 1, // Customer
-          notes: `Converted from lead. ${lead.notes}`,
-        });
-
-        // Update lead status to converted
-        const notesWithMeta = JSON.stringify({
-          source: lead.source,
-          status: 'converted',
-          notes: lead.notes,
-        });
-
-        await apiClient.put(`/contacts/${lead.id}`, {
-          firstName: lead.firstName,
-          lastName: lead.lastName,
-          emailPrimary: lead.emailPrimary,
-          phonePrimary: lead.phonePrimary,
-          company: lead.company,
-          jobTitle: lead.jobTitle,
-          contactType: 2,
-          notes: notesWithMeta,
-        });
-
-        setSuccessMessage('Lead converted to customer successfully!');
-        fetchLeads();
-        
-        setTimeout(() => setSuccessMessage(null), 3000);
-      } catch (err: unknown) {
-        setError((err as any).response?.data?.message || 'Failed to convert lead');
-        console.error('Error converting lead:', err);
-      }
-    }
-  };
-
   // AI Lead Scoring
+  // NOTE: /ai/leads/{id}/score and /ai/leads/batch-score (AILeadScoringController)
+  // already operate on the real Lead.Id (they query _context.Leads directly) —
+  // not a Contact ID. Previously `lead.id` here was a Contact ID, so these calls
+  // were silently mismatched against the Leads table; this migration fixes that
+  // as a side effect of leads now carrying their real Lead ID.
   const [scoringLeadId, setScoringLeadId] = useState<number | null>(null);
 
   const handleScoreLead = async (leadId: number) => {
@@ -701,8 +591,8 @@ function LeadsPage() {
       const response = await apiClient.post(`/ai/leads/${leadId}/score`);
       if (response.data.success && response.data.score) {
         // Update local lead with new score
-        setLeads(prev => prev.map(l => 
-          l.id === leadId 
+        setLeads(prev => prev.map(l =>
+          l.id === leadId
             ? { ...l, score: response.data.score.score }
             : l
         ));
@@ -720,7 +610,7 @@ function LeadsPage() {
 
   const handleBatchScoreLeads = async () => {
     if (selectedIds.length === 0) return;
-    
+
     try {
       setLoading(true);
       const response = await apiClient.post('/ai/leads/batch-score', { leadIds: selectedIds });
@@ -729,7 +619,7 @@ function LeadsPage() {
         const scoresMap = new Map<number, number>(
           response.data.scores?.map((s: { leadId: number; score: number }) => [s.leadId, s.score] as [number, number]) || []
         );
-        setLeads(prev => prev.map(l => 
+        setLeads(prev => prev.map(l =>
           scoresMap.has(l.id)
             ? { ...l, score: scoresMap.get(l.id) as number }
             : l
@@ -889,14 +779,14 @@ function LeadsPage() {
                       </TableCell>
                       <TableCell sx={{ fontWeight: 500 }}>
                         {lead.firstName} {lead.lastName}
-                        {lead.jobTitle && (
+                        {lead.title && (
                           <Typography variant="caption" display="block" color="textSecondary">
-                            {lead.jobTitle}
+                            {lead.title}
                           </Typography>
                         )}
                       </TableCell>
-                      <TableCell>{lead.emailPrimary}</TableCell>
-                      <TableCell>{lead.company || '—'}</TableCell>
+                      <TableCell>{lead.email}</TableCell>
+                      <TableCell>{lead.companyName || '—'}</TableCell>
                       <TableCell>
                         <Chip
                           label={LEAD_SOURCES.find(s => s.value === lead.source)?.label || lead.source}
@@ -959,10 +849,10 @@ function LeadsPage() {
                         </Box>
                       </TableCell>
                       <TableCell>
-                        {lead.dateAdded ? new Date(lead.dateAdded).toLocaleDateString() : '—'}
+                        {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : '—'}
                       </TableCell>
                       <TableCell align="center">
-                        {lead.status !== 'converted' && (
+                        {lead.status !== 'Converted' && (
                           <IconButton
                             size="small"
                             onClick={() => handleScoreLead(lead.id)}
@@ -986,12 +876,12 @@ function LeadsPage() {
                         >
                           <QueryStatsIcon fontSize="small" />
                         </IconButton>
-                        {lead.status !== 'converted' && (
+                        {lead.status !== 'Converted' && (
                           <IconButton
                             size="small"
                             onClick={() => handleOpenConvertDialog(lead)}
                             sx={{ color: '#06A77D' }}
-                            title="Convert to Account"
+                            title="Convert to Opportunity"
                           >
                             <TrendingUpIcon fontSize="small" />
                           </IconButton>
@@ -1063,14 +953,14 @@ function LeadsPage() {
           entityName={editingId ? `${formData.firstName} ${formData.lastName}` : undefined}
           entityId={editingId || undefined}
           onClose={handleCloseDialog}
-          subtitle={formData.company || formData.jobTitle}
+          subtitle={formData.companyName || formData.title}
           status={formData.status ? LEAD_STATUSES.find(s => s.value === formData.status)?.label : undefined}
           statusColor={formData.status ? LEAD_STATUSES.find(s => s.value === formData.status)?.text : undefined}
         />
         <DialogContent sx={{ pt: 0, minHeight: 350 }}>
           {/* Error Display */}
-          <DialogError 
-            error={dialogApi.error} 
+          <DialogError
+            error={dialogApi.error}
             onClose={dialogApi.clearError}
           />
 
@@ -1083,7 +973,11 @@ function LeadsPage() {
             activeTab={dialogTab}
             editingId={editingId}
             onTabChange={setDialogTab}
-            excludeFields={['tags', 'customFields']}
+            // tags/mqlDate/sqlDate are exposed for READ on LeadDto but the backend's
+            // Create/UpdateLeadDto request DTOs (LeadsController.cs) don't accept
+            // them yet, so there's no write path — hidden here and surfaced
+            // read-only in the "Qualification & Attribution" tab below instead.
+            excludeFields={['tags', 'customFields', 'mqlDate', 'sqlDate']}
             extraTabs={[
               {
                 index: 100,
@@ -1117,6 +1011,84 @@ function LeadsPage() {
               },
               {
                 index: 102,
+                name: 'Qualification & Attribution',
+                icon: <InsightsIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>Qualification &amp; Attribution</Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      Read-only — populated from lead scoring, attribution tracking, and the qualification workflow.
+                    </Typography>
+                    {detailLoading && (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                        <CircularProgress size={28} />
+                      </Box>
+                    )}
+                    {!detailLoading && !leadDetail && (
+                      <Typography variant="body2" color="text.secondary">
+                        Details unavailable.
+                      </Typography>
+                    )}
+                    {!detailLoading && leadDetail && (
+                      <Stack spacing={3}>
+                        <Grid container spacing={2}>
+                          <InfoRow label="Score" value={leadDetail.score} />
+                          <InfoRow label="Fit Score" value={leadDetail.fitScore} />
+                          <InfoRow label="Engagement Score" value={leadDetail.engagementScore} />
+                          <InfoRow label="Qualification Framework" value={leadDetail.qualificationFrameworkType} />
+                          <InfoRow label="Territory ID" value={leadDetail.territoryId} />
+                          <InfoRow label="Tags" value={leadDetail.tags} />
+                        </Grid>
+
+                        <Divider />
+                        <Typography variant="subtitle2" fontWeight={600}>BANT Scoring</Typography>
+                        <Grid container spacing={2}>
+                          <InfoRow label="Budget" value={leadDetail.budgetScore} />
+                          <InfoRow label="Authority" value={leadDetail.authorityScore} />
+                          <InfoRow label="Need" value={leadDetail.needScore} />
+                          <InfoRow label="Timeline" value={leadDetail.timelineScore} />
+                        </Grid>
+
+                        <Divider />
+                        <Typography variant="subtitle2" fontWeight={600}>MEDDIC Scoring</Typography>
+                        <Grid container spacing={2}>
+                          <InfoRow label="Metrics" value={leadDetail.metricsScore} />
+                          <InfoRow label="Economic Buyer" value={leadDetail.economicBuyerScore} />
+                          <InfoRow label="Decision Criteria" value={leadDetail.decisionCriteriaScore} />
+                          <InfoRow label="Decision Process" value={leadDetail.decisionProcessScore} />
+                          <InfoRow label="Identify Pain" value={leadDetail.identifyPainScore} />
+                          <InfoRow label="Champion" value={leadDetail.championScore} />
+                        </Grid>
+
+                        <Divider />
+                        <Typography variant="subtitle2" fontWeight={600}>Source Attribution</Typography>
+                        <Grid container spacing={2}>
+                          <InfoRow label="Original Source" value={leadDetail.originalSource} />
+                          <InfoRow label="UTM Source" value={leadDetail.utmSource} />
+                          <InfoRow label="UTM Medium" value={leadDetail.utmMedium} />
+                          <InfoRow label="UTM Campaign" value={leadDetail.utmCampaign} />
+                          <InfoRow label="First Touch Date" value={leadDetail.firstTouchDate ? new Date(leadDetail.firstTouchDate).toLocaleDateString() : undefined} />
+                        </Grid>
+
+                        <Divider />
+                        <Typography variant="subtitle2" fontWeight={600}>Nurturing &amp; Timeline</Typography>
+                        <Grid container spacing={2}>
+                          <InfoRow label="Nurture Campaign ID" value={leadDetail.nurtureCampaignId} />
+                          <InfoRow label="Enrolled At" value={leadDetail.nurtureCampaignEnrolledAt ? new Date(leadDetail.nurtureCampaignEnrolledAt).toLocaleDateString() : undefined} />
+                          <InfoRow label="Last Contacted" value={leadDetail.lastContactedAt ? new Date(leadDetail.lastContactedAt).toLocaleDateString() : undefined} />
+                          <InfoRow label="Days Since Last Contact" value={leadDetail.daysSinceLastContact} />
+                          <InfoRow label="MQL Date" value={leadDetail.mqlDate ? new Date(leadDetail.mqlDate).toLocaleDateString() : undefined} />
+                          <InfoRow label="SQL Date" value={leadDetail.sqlDate ? new Date(leadDetail.sqlDate).toLocaleDateString() : undefined} />
+                          <InfoRow label="Last Activity" value={leadDetail.lastActivityDate ? new Date(leadDetail.lastActivityDate).toLocaleDateString() : undefined} />
+                        </Grid>
+                      </Stack>
+                    )}
+                  </Box>
+                ),
+              },
+              {
+                index: 103,
                 name: 'Notes',
                 icon: <NoteIcon fontSize="small" />,
                 render: () => editingId ? (
@@ -1124,19 +1096,19 @@ function LeadsPage() {
                 ) : (
                   <TextField
                     fullWidth
-                    label="Initial Notes"
-                    name="notes"
-                    value={formData.notes}
+                    label="Qualification Notes"
+                    name="qualificationNotes"
+                    value={formData.qualificationNotes}
                     onChange={handleInputChange}
                     multiline
                     rows={4}
-                    placeholder="Add any initial notes about this lead..."
+                    placeholder="Add any initial qualification notes about this lead..."
                     sx={{ mt: 2 }}
                   />
                 ),
               },
               {
-                index: 103,
+                index: 104,
                 name: 'Comments',
                 icon: <CommentIcon fontSize="small" />,
                 render: () => editingId ? (
@@ -1167,8 +1139,8 @@ function LeadsPage() {
           Bulk Update {selectedIds.length} Lead(s)
         </DialogTitle>
         <DialogContent>
-          <DialogError 
-            error={bulkApi.error} 
+          <DialogError
+            error={bulkApi.error}
             onClose={bulkApi.clearError}
           />
           <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
@@ -1188,7 +1160,7 @@ function LeadsPage() {
                 ))}
               </Select>
             </FormControl>
-            
+
             <FormControl fullWidth size="small">
               <InputLabel>Status</InputLabel>
               <Select
@@ -1207,12 +1179,12 @@ function LeadsPage() {
                 }
               </Select>
             </FormControl>
-            
+
             <TextField
               label="Company"
               size="small"
-              value={bulkFormData.company}
-              onChange={(e) => setBulkFormData(prev => ({ ...prev, company: e.target.value }))}
+              value={bulkFormData.companyName}
+              onChange={(e) => setBulkFormData(prev => ({ ...prev, companyName: e.target.value }))}
               placeholder="Leave empty to keep current value"
               fullWidth
             />
@@ -1233,88 +1205,80 @@ function LeadsPage() {
       <Dialog open={convertDialogOpen} onClose={handleCloseConvertDialog} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <TrendingUpIcon sx={{ color: '#06A77D' }} />
-          Convert Lead to Account
+          Convert Lead to Opportunity
         </DialogTitle>
         <DialogContent>
-          <DialogError 
-            error={convertApi.error} 
+          <DialogError
+            error={convertApi.error}
             onClose={convertApi.clearError}
           />
           {convertingLead && (
             <Box sx={{ mb: 3 }}>
               <Alert severity="info" sx={{ mb: 2 }}>
                 Converting: <strong>{convertingLead.firstName} {convertingLead.lastName}</strong>
-                {convertingLead.company && ` (${convertingLead.company})`}
+                {convertingLead.companyName && ` (${convertingLead.companyName})`}
               </Alert>
-              
+
               <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
                 This will:
               </Typography>
               <Typography variant="body2" component="ul" sx={{ pl: 2, mb: 2 }}>
-                <li>Create a new Account from lead information</li>
-                <li>Mark the lead as "Converted"</li>
-                {convertFormData.createOpportunity && <li>Create a new Opportunity linked to the account</li>}
+                <li>Create a new Opportunity linked to the selected Account</li>
+                <li>Mark the lead as &quot;Converted&quot;</li>
               </Typography>
 
-              <Box sx={{ 
-                p: 2, 
-                border: '1px solid #E0E0E0', 
+              <Box sx={{
+                p: 2,
+                border: '1px solid #E0E0E0',
                 borderRadius: 2,
                 bgcolor: '#FAFAFA',
-                mb: 2 
+                mb: 2
               }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Checkbox
-                    checked={convertFormData.createOpportunity}
-                    onChange={(e) => setConvertFormData(prev => ({ 
-                      ...prev, 
-                      createOpportunity: e.target.checked 
-                    }))}
-                    sx={{ p: 0, mr: 1 }}
+                <Stack spacing={2}>
+                  <EntitySelect
+                    entityType="account"
+                    name="accountId"
+                    label="Account"
+                    required
+                    value={convertFormData.accountId}
+                    onChange={(e: any) => setConvertFormData(prev => ({ ...prev, accountId: e.target.value }))}
+                    helperText="The Opportunity created by conversion must be linked to an existing Account."
                   />
-                  <Typography variant="subtitle2">
-                    Also create an Opportunity
-                  </Typography>
-                </Box>
-
-                <Collapse in={convertFormData.createOpportunity}>
-                  <Stack spacing={2}>
-                    <TextField
-                      label="Opportunity Name"
-                      size="small"
-                      fullWidth
-                      value={convertFormData.opportunityName}
-                      onChange={(e) => setConvertFormData(prev => ({ 
-                        ...prev, 
-                        opportunityName: e.target.value 
-                      }))}
-                    />
-                    <TextField
-                      label="Estimated Value ($)"
-                      size="small"
-                      fullWidth
-                      type="number"
-                      value={convertFormData.estimatedValue}
-                      onChange={(e) => setConvertFormData(prev => ({ 
-                        ...prev, 
-                        estimatedValue: e.target.value 
-                      }))}
-                      InputProps={{ inputProps: { min: 0 } }}
-                    />
-                    <TextField
-                      label="Expected Close Date"
-                      size="small"
-                      fullWidth
-                      type="date"
-                      value={convertFormData.expectedCloseDate}
-                      onChange={(e) => setConvertFormData(prev => ({ 
-                        ...prev, 
-                        expectedCloseDate: e.target.value 
-                      }))}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Stack>
-                </Collapse>
+                  <TextField
+                    label="Opportunity Name"
+                    size="small"
+                    fullWidth
+                    value={convertFormData.opportunityName}
+                    onChange={(e) => setConvertFormData(prev => ({
+                      ...prev,
+                      opportunityName: e.target.value
+                    }))}
+                  />
+                  <TextField
+                    label="Estimated Value ($)"
+                    size="small"
+                    fullWidth
+                    type="number"
+                    value={convertFormData.estimatedValue}
+                    onChange={(e) => setConvertFormData(prev => ({
+                      ...prev,
+                      estimatedValue: e.target.value
+                    }))}
+                    InputProps={{ inputProps: { min: 0 } }}
+                  />
+                  <TextField
+                    label="Expected Close Date"
+                    size="small"
+                    fullWidth
+                    type="date"
+                    value={convertFormData.expectedCloseDate}
+                    onChange={(e) => setConvertFormData(prev => ({
+                      ...prev,
+                      expectedCloseDate: e.target.value
+                    }))}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Stack>
               </Box>
             </Box>
           )}

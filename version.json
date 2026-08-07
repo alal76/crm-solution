@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 6,
+  "patch": 7,
   "lastUpdate": "2026-08-07",
-  "description": "feat: wire ChangeManagementServiceEx into ChangesController, closing frontend's 404ing routes (REM-ORPHAN-001)",
+  "description": "feat: migrate LeadsPage.tsx off Contacts-as-Leads onto /api/leads (REM-ORPHAN-003 frontend half)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

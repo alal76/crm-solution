@@ -42,7 +42,7 @@ import {
   LocalFireDepartment,
   AcUnit,
 } from '@mui/icons-material';
-import { leadService, Lead } from '../../services/leadService';
+import { leadService, LeadSummaryDto } from '../../services/leadService';
 
 // ============================================================================
 // Types
@@ -261,7 +261,7 @@ export const LeadScoringWidget: React.FC<LeadScoringWidgetProps> = ({
       setLoading(true);
       
       const response = await leadService.getAll(1, 100);
-      const allLeads: Lead[] = response.items || [];
+      const allLeads: LeadSummaryDto[] = response.data.data || [];
       
       // Map to LeadScoreData
       const scoredLeads: LeadScoreData[] = allLeads
