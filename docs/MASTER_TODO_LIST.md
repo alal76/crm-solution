@@ -200,11 +200,11 @@ Found while re-verifying the 9 entities not covered by the original Aug 6 review
 | ID | Description | Status |
 |----|---|---|
 | REV-FGAP-003 | ✅ **Closed** (`tech-debt-cleanup-aug2026`, round 4). Added the ~24 missing fields (attribution, BANT, MEDDIC, `QualificationFrameworkType`, `NurtureCampaignId`, `TerritoryId`, etc.) to `LeadDto`/`LeadSummaryDto` and `LeadService`'s mapping. 3 new tests, 64/64 `LeadService` tests passing. Surfaced read-only in `LeadsPage.tsx`'s new "Qualification & Attribution" tab as part of REV-ORPHAN-003's frontend migration. |
-| REV-FGAP-004 | `Quote`: frontend `Quote` type declares 8 fields `QuoteDto` doesn't have (`warrantyEndDate`, `termsAndConditions`, `expectedDeliveryDate`, `actualDeliveryDate`, `serviceStartDate`, `serviceEndDate`, `attachments`, `customFields`) — silently `undefined` at runtime. | ❌ Open. |
-| REV-FGAP-005 | `Payment`: frontend `Payment` type missing 14 DTO fields, including `FraudFlagged`, `RiskScore`, `AmountApplied`/`AmountUnapplied`, `RefundedAmount`, `RetryCount`. | ❌ Open. |
-| REV-FGAP-006 | `Contract`: `ContractDto` declares `AnnualValue`/`RenewalTermMonths`, but neither exists on the entity nor is mapped anywhere in the backend — dead fields always serializing `0`, client writes silently discarded. | ❌ Open. |
-| REV-FGAP-007 | `ServiceRequest`: DTO missing `DueDate`, `StatusCode`, `LastModifiedByUserId`, `ConversationId` — all already declared on the frontend type. | ❌ Open. |
-| REV-FGAP-008 | `User`: DTO missing `PasswordNeverSet`/`CommissionPlanId`; frontend `User` type (in both `common.ts` and a local duplicate in `UserManagementPage.tsx`) missing ~20 preference/security fields the DTO already returns. | ❌ Open. |
+| REV-FGAP-004 | ✅ **Closed** (`tech-debt-cleanup-aug2026`, round 3; doc status corrected round 5). `Quote`: the 8 fields (`warrantyEndDate`, `termsAndConditions`, `expectedDeliveryDate`, `actualDeliveryDate`, `serviceStartDate`, `serviceEndDate`, `attachments`, `customFields`) added to `QuoteDto` and `QuotesController.MapToDto` — verified present in `QuoteDtos.cs`. See REM-FGAP-004. |
+| REV-FGAP-005 | ✅ **Closed** (`tech-debt-cleanup-aug2026`, round 3; doc status corrected round 5). `Payment`: the 14 missing fields (including `fraudFlagged`, `riskScore`, `retryCount`) added to the frontend `Payment` type — verified present in `types/sales.ts`. See REM-FGAP-005. |
+| REV-FGAP-006 | ✅ **Closed** (`tech-debt-cleanup-aug2026`, round 3; doc status corrected round 5). `Contract`: dead `AnnualValue`/`RenewalTermMonths` fields removed from `ContractDto` (confirmed zero frontend references, no live DB to migrate) — verified absent from `ContractDto.cs`. See REM-FGAP-006. |
+| REV-FGAP-007 | ✅ **Closed** (`tech-debt-cleanup-aug2026`, round 3; doc status corrected round 5). `ServiceRequest`: `DueDate`, `StatusCode`, `LastModifiedByUserId`, `ConversationId` added to `ServiceRequestDto` — verified present in `ServiceRequestDto.cs`. See REM-FGAP-007. |
+| REV-FGAP-008 | ✅ **Closed** (`tech-debt-cleanup-aug2026`, round 3; doc status corrected round 5). `User`: `PasswordNeverSet`/`CommissionPlanId` added to `UserDto`; frontend `User` type consolidated. See REM-FGAP-008. |
 
 ### Section 2B Remediation Plan
 

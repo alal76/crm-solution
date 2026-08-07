@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 8,
+  "patch": 9,
   "lastUpdate": "2026-08-07",
-  "description": "docs: sync MASTER_TODO_LIST.md with round-4 results -- all 5 decision-gated Section 2B items closed",
+  "description": "docs: correct stale REV-FGAP-004-008 status labels to match their already-fixed REM- rows",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
