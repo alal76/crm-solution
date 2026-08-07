@@ -735,6 +735,10 @@ builder.Services.AddScoped<ILeadRoutingService, LeadRoutingService>();
 // REM-ORPHAN-003 groundwork: legacy Contacts-as-Leads -> real Lead table backfill tool.
 // Never auto-invoked; triggered only via the admin-only lead-backfill endpoint (dry-run by default).
 builder.Services.AddScoped<ILeadBackfillService, LeadBackfillService>();
+// REM-LEAD-HISTORY-CONTINUITY: re-parents Activity/RecordComment history from the old
+// Contact-typed records onto their migrated Lead records. Never auto-invoked; triggered
+// only via the admin-only lead-history-continuity endpoint (dry-run by default).
+builder.Services.AddScoped<ILeadHistoryContinuityService, LeadHistoryContinuityService>();
 builder.Services.AddScoped<IFormBuilderService, FormBuilderService>();
 builder.Services.AddScoped<ITerritoryService, TerritoryService>();
 builder.Services.AddScoped<IApprovalWorkflowService, ApprovalWorkflowService>();

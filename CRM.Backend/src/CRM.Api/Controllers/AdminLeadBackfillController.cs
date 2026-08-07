@@ -22,11 +22,16 @@ namespace CRM.Api.Controllers;
 public class AdminLeadBackfillController : CrmControllerBase
 {
     private readonly ILeadBackfillService _backfillService;
+    private readonly ILeadHistoryContinuityService _historyContinuityService;
     private readonly ILogger<AdminLeadBackfillController> _logger;
 
-    public AdminLeadBackfillController(ILeadBackfillService backfillService, ILogger<AdminLeadBackfillController> logger)
+    public AdminLeadBackfillController(
+        ILeadBackfillService backfillService,
+        ILeadHistoryContinuityService historyContinuityService,
+        ILogger<AdminLeadBackfillController> logger)
     {
         _backfillService = backfillService ?? throw new ArgumentNullException(nameof(backfillService));
+        _historyContinuityService = historyContinuityService ?? throw new ArgumentNullException(nameof(historyContinuityService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -45,6 +50,28 @@ public class AdminLeadBackfillController : CrmControllerBase
         _logger.LogInformation("Lead backfill triggered by admin. DryRun={DryRun}", dryRun);
 
         var result = await _backfillService.RunAsync(dryRun, cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// REM-LEAD-HISTORY-CONTINUITY: re-parents Activity/RecordComment history that was created
+    /// against the OLD Contact record (EntityType == "Contact") onto its migrated Lead record
+    /// (EntityType == "Lead"), so history shows up on the new Lead's timeline instead of the
+    /// legacy Contact's. Only applies to Leads created via the backfill tool (Lead.ContactId
+    /// is set). Safe by default: <paramref name="dryRun"/> defaults to true, so omitting the
+    /// query parameter performs no database writes and only reports what would happen.
+    /// Pass <c>?dryRun=false</c> to actually re-parent the history.
+    /// </summary>
+    /// <param name="dryRun">Defaults to true (no writes). Set to false to persist changes.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    [HttpPost("history-continuity")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> RunHistoryContinuity([FromQuery] bool dryRun = true, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Lead history continuity triggered by admin. DryRun={DryRun}", dryRun);
+
+        var result = await _historyContinuityService.RunAsync(dryRun, cancellationToken);
 
         return Ok(result);
     }

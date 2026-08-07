@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 10,
+  "patch": 11,
   "lastUpdate": "2026-08-07",
-  "description": "fix: resolve remaining 12 StyleCop SA warnings, 0 SA warnings across the solution (REV-BUILD-001 closed)",
+  "description": "feat: Lead history continuity tool -- re-parent Activity/Comment records onto migrated Leads, dry-run by default",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
