@@ -732,6 +732,9 @@ builder.Services.AddSingleton<IWebhookCircuitBreaker, WebhookCircuitBreaker>();
 // Phase 2B services - Lead Management, Form Builder, Territory Management, Approval Workflows
 builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<ILeadRoutingService, LeadRoutingService>();
+// REM-ORPHAN-003 groundwork: legacy Contacts-as-Leads -> real Lead table backfill tool.
+// Never auto-invoked; triggered only via the admin-only lead-backfill endpoint (dry-run by default).
+builder.Services.AddScoped<ILeadBackfillService, LeadBackfillService>();
 builder.Services.AddScoped<IFormBuilderService, FormBuilderService>();
 builder.Services.AddScoped<ITerritoryService, TerritoryService>();
 builder.Services.AddScoped<IApprovalWorkflowService, ApprovalWorkflowService>();

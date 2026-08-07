@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-08-07",
-  "description": "feat: close Lead DTO field gap -- attribution/BANT/MEDDIC/nurture/territory fields (REM-FGAP-003)",
+  "description": "feat: Lead backfill migration tooling, dry-run by default, not yet run (REM-ORPHAN-003 groundwork)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
