@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 15,
+  "patch": 16,
   "lastUpdate": "2026-08-07",
-  "description": "feat: wire Twilio call-status webhook, giving TwilioCallLoggingService a caller (REM-ORPHAN-005 closed)",
+  "description": "test: add AllenAIService coverage for 12 previously-untested public methods (REV-DOC-005)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
