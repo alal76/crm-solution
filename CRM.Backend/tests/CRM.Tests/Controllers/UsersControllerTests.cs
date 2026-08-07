@@ -176,4 +176,46 @@ public class UsersControllerTests
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
     }
+
+    // ── GetUserById — DTO field mapping (REM-FGAP-008) ─────────────────────────
+
+    [Fact]
+    public async Task GetUserById_ShouldMapPasswordNeverSetAndCommissionPlanId_FromEntity()
+    {
+        // Arrange
+        var user = MakeUser(5);
+        user.PasswordNeverSet = true;
+        user.CommissionPlanId = 42;
+
+        _mockUserRepository.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(user);
+
+        // Act
+        var result = await _controller.GetUserById(5);
+
+        // Assert
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var dto = (UserDto)((OkObjectResult)result.Result!).Value!;
+        dto.PasswordNeverSet.Should().BeTrue();
+        dto.CommissionPlanId.Should().Be(42);
+    }
+
+    [Fact]
+    public async Task GetUserById_ShouldMapPasswordNeverSetFalseAndNullCommissionPlanId_WhenUnset()
+    {
+        // Arrange
+        var user = MakeUser(6);
+        user.PasswordNeverSet = false;
+        user.CommissionPlanId = null;
+
+        _mockUserRepository.Setup(r => r.GetByIdAsync(6)).ReturnsAsync(user);
+
+        // Act
+        var result = await _controller.GetUserById(6);
+
+        // Assert
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var dto = (UserDto)((OkObjectResult)result.Result!).Value!;
+        dto.PasswordNeverSet.Should().BeFalse();
+        dto.CommissionPlanId.Should().BeNull();
+    }
 }

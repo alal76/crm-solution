@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 627,
-  "patch": 8,
+  "patch": 9,
   "lastUpdate": "2026-08-07",
-  "description": "fix(admin): close UserDto gap + consolidate duplicate frontend User type (REM-FGAP-008 closed)",
+  "description": "test(admin): add UsersController test coverage for PasswordNeverSet/CommissionPlanId mapping",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
