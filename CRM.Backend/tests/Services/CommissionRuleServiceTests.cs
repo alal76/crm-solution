@@ -127,7 +127,7 @@ public class DiscountRuleServiceTests
     private readonly Mock<IRepository<DiscountRule>> _mockRuleRepository;
     private readonly Mock<IRepository<DiscountHistory>> _mockHistoryRepository;
     private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<DiscountRuleService>> MockLogger;
+    private readonly Mock<ILogger<DiscountRuleService>> _mockLogger;
     private readonly DiscountRuleService _service;
 
     public DiscountRuleServiceTests()
@@ -135,8 +135,8 @@ public class DiscountRuleServiceTests
         _mockRuleRepository = new Mock<IRepository<DiscountRule>>();
         _mockHistoryRepository = new Mock<IRepository<DiscountHistory>>();
         _mockDbContext = new Mock<ICrmDbContext>();
-        MockLogger = new Mock<ILogger<DiscountRuleService>>();
-        _service = new DiscountRuleService(_mockRuleRepository.Object, _mockHistoryRepository.Object, _mockDbContext.Object, MockLogger.Object);
+        _mockLogger = new Mock<ILogger<DiscountRuleService>>();
+        _service = new DiscountRuleService(_mockRuleRepository.Object, _mockHistoryRepository.Object, _mockDbContext.Object, _mockLogger.Object);
     }
 
     [Fact]

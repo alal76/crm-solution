@@ -287,8 +287,7 @@ public class MergeServiceTests : ServiceTestFixtureBase<MergeService>
     }
 
     [Fact]
-    public async Task MergeRecordsAsync_ShouldNotThrow_WhenSnapshotEntityHasCircularNavigationReference(
-        )
+    public async Task MergeRecordsAsync_ShouldNotThrow_WhenSnapshotEntityHasCircularNavigationReference()
     {
         // Regression for REM-BUG-003: GetRecordSnapshotAsync used to do a bare
         // JsonSerializer.Serialize(record) with no cycle handling. Deliberately do NOT clear

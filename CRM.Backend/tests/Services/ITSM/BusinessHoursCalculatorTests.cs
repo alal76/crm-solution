@@ -674,7 +674,6 @@ public class BusinessHoursCalculatorTests
     ///   - Fall:   November 2 at 2:00 AM ET
     /// </summary>
     // ── UTC timezone: no DST, simple path ──────────────────────────────────────
-
     [Fact]
     public void SafeConvertLocalToUtc_UtcTimezone_ReturnsSameInstant()
     {

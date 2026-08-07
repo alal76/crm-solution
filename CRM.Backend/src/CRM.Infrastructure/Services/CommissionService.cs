@@ -111,6 +111,7 @@ public class CommissionService : ICommissionService
 
     #region Commission Calculation
 
+    /// <summary>Calculates commission for a deal/opportunity using a flat plan rate.</summary>
     /// <remarks>
     /// DEPRECATED: Flat-rate only — reads <c>plan?.BaseRate ?? 0.05m</c> and ignores this plan's own
     /// <c>CommissionTier</c> CRUD data entirely. <see cref="CRM.Infrastructure.Services.CommissionRulesEngine"/>
@@ -161,6 +162,7 @@ public class CommissionService : ICommissionService
         };
     }
 
+    /// <summary>Calculates commission for an order using a flat plan rate.</summary>
     /// <remarks>
     /// DEPRECATED: Flat-rate only — reads <c>plan?.BaseRate ?? 0.05m</c> and ignores this plan's own
     /// <c>CommissionTier</c> CRUD data entirely. <see cref="CRM.Infrastructure.Services.CommissionRulesEngine"/>

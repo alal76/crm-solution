@@ -231,15 +231,15 @@ public class FeatureFlagManagementServiceTests : ServiceTestFixtureBase<FeatureF
 public class UserInterfaceServiceTests
 {
     private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<UserInterfaceService>> MockLogger;
+    private readonly Mock<ILogger<UserInterfaceService>> _mockLogger;
     private readonly UserInterfaceService _service;
 
     public UserInterfaceServiceTests()
     {
         _mockDbContext = new Mock<ICrmDbContext>();
-        MockLogger = new Mock<ILogger<UserInterfaceService>>();
+        _mockLogger = new Mock<ILogger<UserInterfaceService>>();
 
-        _service = new UserInterfaceService(_mockDbContext.Object, MockLogger.Object);
+        _service = new UserInterfaceService(_mockDbContext.Object, _mockLogger.Object);
     }
 
     [Fact]
@@ -350,19 +350,19 @@ public class UserInterfaceServiceTests
 public class PerformanceOptimizationServiceTests
 {
     private readonly Mock<ICrmDbContext> _mockDbContext;
-    private readonly Mock<ILogger<PerformanceOptimizationService>> MockLogger;
+    private readonly Mock<ILogger<PerformanceOptimizationService>> _mockLogger;
     private readonly Mock<IDistributedCache> _mockCache;
     private readonly PerformanceOptimizationService _service;
 
     public PerformanceOptimizationServiceTests()
     {
         _mockDbContext = new Mock<ICrmDbContext>();
-        MockLogger = new Mock<ILogger<PerformanceOptimizationService>>();
+        _mockLogger = new Mock<ILogger<PerformanceOptimizationService>>();
         _mockCache = new Mock<IDistributedCache>();
 
         _service = new PerformanceOptimizationService(
             _mockDbContext.Object,
-            MockLogger.Object,
+            _mockLogger.Object,
             _mockCache.Object);
     }
 

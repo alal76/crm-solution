@@ -100,7 +100,7 @@ public class OllamaProviderTests
 }
 
 /// <summary>Minimal fake HttpMessageHandler for unit tests.</summary>
-file sealed class FakeHttpMessageHandler : HttpMessageHandler
+internal sealed class FakeHttpMessageHandler : HttpMessageHandler
 {
     private readonly HttpStatusCode _statusCode;
     private readonly string _content;

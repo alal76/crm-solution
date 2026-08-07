@@ -194,5 +194,4 @@ public class CurrencyServiceTests
 
         result.Should().NotBeNullOrEmpty();
     }
-
 }

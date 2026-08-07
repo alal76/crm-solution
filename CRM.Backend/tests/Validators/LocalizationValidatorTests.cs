@@ -655,7 +655,8 @@ namespace CRM.Tests.Validators
             var timezones = LocalizationValidator.GetSupportedTimezones();
 
             // Assert - all should validate successfully
-            foreach (var timezone in timezones.Take(10)) // Test first 10 for performance
+            // Test first 10 for performance
+            foreach (var timezone in timezones.Take(10))
             {
                 var exception = Record.Exception(() =>
                     LocalizationValidator.ValidateTimezone(timezone));

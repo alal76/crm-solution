@@ -227,5 +227,4 @@ public class GdprServiceTests : ServiceTestFixtureBase<GdprService>
 
         result.Should().ContainSingle(l => l.SubjectId == 7);
     }
-
 }
