@@ -5,24 +5,15 @@ import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
 import { usePagination } from '../hooks/usePagination';
+import type { User as SharedUser } from '../types/common';
 
-interface User {
-  id: number;
+// Extends the shared User type (types/common.ts, which mirrors UserDto) rather than
+// duplicating its fields. `username` and `role` are narrowed to required/number here
+// because this page's forms treat them as mandatory (role is a numeric role ID for the
+// create/update API), unlike the shared type's generic optional shape.
+interface User extends Omit<SharedUser, 'username' | 'role'> {
   username: string;
-  email: string;
-  firstName: string;
-  lastName: string;
   role: number;
-  isActive: boolean;
-  isLocked: boolean;
-  lastLoginDate?: string;
-  departmentId?: number;
-  userProfileId?: number;
-  contactId?: number;
-  contactName?: string;
-  contactEmail?: string;
-  headerColor?: string;
-  photoUrl?: string;
 }
 
 interface Contact {

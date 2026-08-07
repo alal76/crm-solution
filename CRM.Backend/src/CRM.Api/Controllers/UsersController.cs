@@ -679,6 +679,8 @@ public class UsersController : CrmControllerBase
             PasswordLastChangedAt = user.PasswordLastChangedAt,
             MustResetPassword = user.MustResetPassword,
             EmailVerified = user.EmailVerified,
+            PasswordNeverSet = user.PasswordNeverSet,
+            CommissionPlanId = user.CommissionPlanId,
 
             // Preferences
             ThemePreference = user.ThemePreference,

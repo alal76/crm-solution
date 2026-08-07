@@ -65,6 +65,49 @@ export interface User extends BaseEntity {
   lastLogin?: string;
   roles?: string[];
   groups?: string[];
+
+  // Fields mirroring UserDto (CRM.Backend/src/CRM.Core/Dtos/UserDto.cs)
+  username?: string;
+  role?: string;
+  isActive?: boolean;
+  isLocked?: boolean;
+  isApiUser?: boolean;
+  apiKeyPrefix?: string;
+  apiKeyCreatedAt?: string;
+  apiKeyLastUsedAt?: string;
+  apiKeyExpiresAt?: string;
+  apiUserDescription?: string;
+  departmentId?: number;
+  departmentName?: string;
+  userProfileId?: number;
+  userProfileName?: string;
+  primaryGroupId?: number;
+  primaryGroupName?: string;
+  contactId?: number;
+  contactName?: string;
+  contactEmail?: string;
+  lastLoginDate?: string;
+  headerColor?: string;
+  photoUrl?: string;
+
+  // Security / account status
+  twoFactorEnabled?: boolean;
+  passwordLastChangedAt?: string;
+  mustResetPassword?: boolean;
+  emailVerified?: boolean;
+  passwordNeverSet?: boolean;
+  commissionPlanId?: number;
+
+  // Preferences
+  themePreference?: string;
+  language?: string;
+  timezone?: string;
+  dateFormat?: string;
+  timeFormat?: string;
+  rowsPerPage?: number;
+  emailNotifications?: boolean;
+  desktopNotifications?: boolean;
+  compactMode?: boolean;
 }
 
 /**

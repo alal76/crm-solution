@@ -62,6 +62,12 @@ public class UserDto
     /// <summary>Whether the user's email address has been verified</summary>
     public bool EmailVerified { get; set; }
 
+    /// <summary>Whether the user's password has never been set (created without a password, e.g., by an admin) — user must set up a password on first login</summary>
+    public bool PasswordNeverSet { get; set; }
+
+    /// <summary>Commission plan assigned to this user (if applicable for sales users)</summary>
+    public int? CommissionPlanId { get; set; }
+
     // Preferences
     /// <summary>User's theme preference (system, light, dark, high-contrast)</summary>
     public string? ThemePreference { get; set; }
