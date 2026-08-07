@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 627,
-  "patch": 9,
+  "minor": 628,
+  "patch": 0,
   "lastUpdate": "2026-08-07",
-  "description": "test(admin): add UsersController test coverage for PasswordNeverSet/CommissionPlanId mapping",
+  "description": "docs: sync MASTER_TODO_LIST.md with round-3 remediation results -- all no-decision-needed Section 2B items closed",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
