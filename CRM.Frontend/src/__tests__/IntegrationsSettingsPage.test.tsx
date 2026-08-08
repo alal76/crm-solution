@@ -110,4 +110,35 @@ describe('IntegrationsSettingsPage', () => {
     // Page title and static content still render around the fallback status
     expect(screen.getByText('Integrations')).toBeInTheDocument();
   });
+
+  describe('Business Connectors section', () => {
+    beforeEach(() => {
+      mockApiClient.get = jest.fn().mockResolvedValue({ data: buildReport() });
+    });
+
+    it('renders real connector cards for QuickBooks, Xero, Mailchimp, HubSpot, Calendly, and LinkedIn instead of "Coming Soon" stubs', () => {
+      render(<IntegrationsSettingsPage />);
+
+      expect(screen.getByText('Business Connectors')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /QuickBooks Online/ })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Xero/ })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Mailchimp/ })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /HubSpot/ })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /Calendly/ })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /LinkedIn Sales Navigator/ })).toBeInTheDocument();
+
+      // The stale disabled stub is gone.
+      expect(screen.queryByText('Coming Soon')).not.toBeInTheDocument();
+    });
+
+    it('links each connector card to Admin > Providers for configuration', () => {
+      render(<IntegrationsSettingsPage />);
+
+      const configureLinks = screen.getAllByRole('link', { name: 'Configure in Providers' });
+      expect(configureLinks).toHaveLength(6);
+      configureLinks.forEach((link) => {
+        expect(link).toHaveAttribute('href', '/admin/providers');
+      });
+    });
+  });
 });

@@ -23,12 +23,19 @@ import { providerHealthService, ProviderHealthReport, HealthProviderCategory } f
  *
  * UX-CONF-007: Expanded with:
  *   - Business Apps: Meilisearch, Ollama, Chatwoot, Novu, DocuSeal, Apache Superset
- *   - Stubbed cards: QuickBooks, Mailchimp, Calendly, LinkedIn
  *
  * REV-FE-006: Status chips reflect real provider health from GET /api/health/providers
  * instead of static placeholder labels.
  * Provider connection status is managed in Admin > Providers (ProvidersPage).
  * This page provides quick-access launch links and status summaries.
+ *
+ * TODO-UX-CONF-014 (resolved): QuickBooks, Xero, Mailchimp, HubSpot, Calendly,
+ * and LinkedIn Sales Navigator are now real, credential-backed connectors
+ * (ProviderRegistryService: Accounting/Marketing/Scheduling/LinkedIn categories),
+ * but GET /api/health/providers does not yet report on those categories
+ * (ProviderHealthController only checks Search/Chat/Notifications/Analytics/
+ * Signatures/AI/Integrations), so these cards link out to Admin > Providers
+ * for configuration and connection testing instead of showing a live health chip.
  */
 const IntegrationsSettingsPage: React.FC = () => {
   const [healthReport, setHealthReport] = useState<ProviderHealthReport | null>(null);
@@ -285,22 +292,38 @@ const IntegrationsSettingsPage: React.FC = () => {
 
       <Divider sx={{ mb: 3 }} />
 
-      {/* ── Stubbed: Coming Soon ────────────────────────────────────────────── */}
-      {/* UX-CONF-007: Stubbed cards — TODO-UX-CONF-014: implement when connectors are built */}
-      <Typography variant="h6" sx={{ mb: 2 }}>Coming Soon</Typography>
+      {/* ── Business Connectors (Accounting / Marketing / Scheduling / Social) ─ */}
+      {/* REV-FE-006 / TODO-UX-CONF-014: these are now real, credential-backed
+          connectors configured in Admin > Providers. GET /api/health/providers
+          doesn't report on their categories yet, so we link out to the
+          configuration screen instead of showing a live health chip. */}
+      <Typography variant="h6" sx={{ mb: 2 }}>Business Connectors</Typography>
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {[
-          { name: 'QuickBooks', icon: '💼', desc: 'Sync invoices and payments with QuickBooks accounting.' },
-          { name: 'Mailchimp', icon: '📧', desc: 'Sync contacts and campaign lists with Mailchimp.' },
-          { name: 'Calendly', icon: '📅', desc: 'Embed scheduling links and sync meetings from Calendly.' },
-          { name: 'LinkedIn', icon: '🔗', desc: 'Enrich contact profiles with LinkedIn data.' },
-        ].map(({ name, icon, desc }) => (
-          <Grid item xs={12} sm={6} md={3} key={name}>
-            <Card sx={{ opacity: 0.7, border: '1px dashed', borderColor: 'divider' }}>
+          { name: 'QuickBooks Online', icon: '💼', category: 'Accounting', desc: 'Sync invoices and payments with QuickBooks accounting.' },
+          { name: 'Xero', icon: '📗', category: 'Accounting', desc: 'Sync invoices and contacts with Xero accounting.' },
+          { name: 'Mailchimp', icon: '📧', category: 'Marketing', desc: 'Sync contacts and campaign lists with Mailchimp.' },
+          { name: 'HubSpot', icon: '🧲', category: 'Marketing', desc: 'Sync contacts and deals with HubSpot marketing/CRM.' },
+          { name: 'Calendly', icon: '📅', category: 'Scheduling', desc: 'Embed scheduling links and sync meetings from Calendly.' },
+          { name: 'LinkedIn Sales Navigator', icon: '🔗', category: 'Social Selling', desc: 'Send InMail and enrich contact profiles via LinkedIn Sales Navigator.' },
+        ].map(({ name, icon, category, desc }) => (
+          <Grid item xs={12} sm={6} md={4} key={name}>
+            <Card>
               <CardContent>
                 <Typography variant="subtitle1" fontWeight={600} gutterBottom>{icon} {name}</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{desc}</Typography>
-                <Chip label="Coming Soon" size="small" variant="outlined" />
+                <Box sx={{ mb: 2 }}>
+                  <Chip label={category} size="small" variant="outlined" />
+                </Box>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<ConfigIcon />}
+                  href="/admin/providers"
+                  component={Link}
+                >
+                  Configure in Providers
+                </Button>
               </CardContent>
             </Card>
           </Grid>
