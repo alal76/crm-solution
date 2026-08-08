@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 25,
+  "patch": 26,
   "lastUpdate": "2026-08-08",
-  "description": "feat: EmailDigestPage backend -- config CRUD, content aggregation, Hangfire digest job (REV-FE-002)",
+  "description": "feat: restricted Python script engine via subprocess-isolated sidecar (REV-STUB-008 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

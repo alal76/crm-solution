@@ -1,0 +1,46 @@
+# REV-STUB-008: crm-python-script-runner sidecar service definition.
+# Mirrors docker-compose.script-runner.yml's shape (the Node/TypeScript
+# sidecar) as closely as possible for consistency. Kept as a separate file
+# rather than folded into docker-compose.script-runner.yml because this
+# repo's established convention is one compose file per optional sidecar
+# service (see docker-compose.ollama.yml, docker-compose.n8n.yml,
+# docker-compose.superset.yml) — this lets operators enable/disable the
+# Python scripting sidecar independently of the TypeScript one.
+#
+# Include alongside other compose files:
+#   docker-compose -f docker/docker-compose.yml -f docker/docker-compose.python-script-runner.yml up -d
+
+version: '3.8'
+
+services:
+  crm-python-script-runner:
+    build:
+      context: ../python-script-runner
+      dockerfile: Dockerfile
+    container_name: crm-python-script-runner
+    ports:
+      - "4001:4001"
+    environment:
+      - PORT=4001
+    networks:
+      - crm-core-network
+    restart: unless-stopped
+    mem_limit: 512m
+    # Defense in depth on top of the in-process resource.setrlimit() calls
+    # each sandboxed script subprocess applies to itself: even if a script
+    # somehow escaped its own per-process memory ceiling, the container
+    # itself is capped.
+    pids_limit: 64
+    security_opt:
+      - no-new-privileges:true
+    read_only: false # sandbox_runner.py needs a writable /tmp for CPython's own bookkeeping; no application data is persisted
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:4001/health', timeout=5).status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  crm-core-network:
+    external: true

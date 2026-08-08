@@ -5,7 +5,11 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CRM.Core.Enums;
@@ -13,152 +17,222 @@ using CRM.Core.Interfaces.Scripting;
 using CRM.Infrastructure.Scripting;
 using FluentAssertions;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
+using Moq;
 using Xunit;
 
 namespace CRM.Tests.Unit.Services.Scripting;
 
 /// <summary>
-/// Unit tests for <see cref="PythonScriptEngine"/> stub behaviour (SCRIPT-006).
+/// Unit tests for <see cref="PythonScriptEngine"/> (REV-STUB-008).
 ///
-/// The engine is registered via <c>AddScriptingEngines()</c> but <c>IsAvailable</c>
-/// returns <c>false</c> until pythonnet is integrated. These tests verify that the
-/// stub behaves gracefully rather than throwing unhandled exceptions.
-///
-/// When Python.NET support is wired in, update <c>IsAvailable</c> to return <c>true</c>
-/// when the runtime is present and enable the corresponding tests in
-/// <see cref="CRM.Tests.Unit.Scripting.PythonScriptEngineFeatureTests"/>.
+/// Historical note: prior to REV-STUB-008, this engine was an always-unavailable stub
+/// (<c>IsAvailable</c> hard-coded to <c>false</c>, constructed with only an
+/// <see cref="Microsoft.Extensions.Logging.ILogger{TCategoryName}"/>). It now delegates
+/// execution to the crm-python-script-runner sidecar over HTTP (see
+/// <c>python-script-runner/</c> at the repository root), mirroring
+/// <c>TypeScriptScriptEngine</c>'s HTTP-delegation shape. These tests were rewritten to
+/// construct the engine with a mocked <see cref="IHttpClientFactory"/> so they never
+/// require the real sidecar process or network access — see
+/// <c>CRM.Tests.Services.PythonScriptEngineTests</c> (tests/CRM.Tests project) for the
+/// full mocked-sidecar coverage; this file keeps a smaller, focused set of scenarios in
+/// the historical location so the project continues to build.
 /// </summary>
 public class PythonScriptEngineTests
 {
-    private readonly PythonScriptEngine _engine;
-
     private static Dictionary<string, object?> Empty() => new();
 
-    public PythonScriptEngineTests()
+    private static PythonScriptEngine CreateEngine(HttpStatusCode statusCode, string body)
     {
-        _engine = new PythonScriptEngine(NullLogger<PythonScriptEngine>.Instance);
+        var handler = new FakeHandler(statusCode, body);
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:4001") };
+
+        var factoryMock = new Mock<IHttpClientFactory>();
+        factoryMock.Setup(f => f.CreateClient("crm-python-script-runner")).Returns(httpClient);
+
+        var options = Options.Create(new PythonScriptEngineOptions
+        {
+            BaseUrl = "http://localhost:4001",
+            HttpTimeout = TimeSpan.FromSeconds(5),
+            HealthCheckTimeout = TimeSpan.FromMilliseconds(500),
+        });
+
+        return new PythonScriptEngine(factoryMock.Object, options, NullLogger<PythonScriptEngine>.Instance);
+    }
+
+    private static PythonScriptEngine CreateUnreachableEngine()
+    {
+        var handler = new ThrowingHandler();
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://localhost:4001") };
+
+        var factoryMock = new Mock<IHttpClientFactory>();
+        factoryMock.Setup(f => f.CreateClient("crm-python-script-runner")).Returns(httpClient);
+
+        var options = Options.Create(new PythonScriptEngineOptions
+        {
+            BaseUrl = "http://localhost:4001",
+            HttpTimeout = TimeSpan.FromSeconds(5),
+            HealthCheckTimeout = TimeSpan.FromMilliseconds(500),
+        });
+
+        return new PythonScriptEngine(factoryMock.Object, options, NullLogger<PythonScriptEngine>.Instance);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
     // Language / availability
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Scenario 1 — Language property returns Python.</summary>
     [Fact]
     public void Language_ShouldReturnPython()
     {
-        _engine.Language.Should().Be(ScriptLanguage.Python);
+        var engine = CreateEngine(HttpStatusCode.OK, """{"status":"ok"}""");
+        engine.Language.Should().Be(ScriptLanguage.Python);
     }
 
-    /// <summary>Scenario 2 — IsAvailable is false (Python.NET not wired).</summary>
     [Fact]
-    public void IsAvailable_ShouldReturnFalse_WhenPythonNetNotIntegrated()
+    public void IsAvailable_ShouldReturnFalse_WhenSidecarIsUnreachable()
     {
-        _engine.IsAvailable.Should().BeFalse(
-            "pythonnet is not yet integrated; EnablePythonScripting must remain false");
+        var engine = CreateUnreachableEngine();
+        engine.IsAvailable.Should().BeFalse("no sidecar is listening in the unit test environment");
     }
 
-    /// <summary>Scenario 3 — Engine implements IScriptEngine interface.</summary>
+    [Fact]
+    public void IsAvailable_ShouldReturnTrue_WhenSidecarHealthCheckSucceeds()
+    {
+        var engine = CreateEngine(HttpStatusCode.OK, """{"status":"ok"}""");
+        engine.IsAvailable.Should().BeTrue();
+    }
+
     [Fact]
     public void PythonScriptEngine_Should_ImplementIScriptEngine()
     {
-        _engine.Should().BeAssignableTo<IScriptEngine>();
+        var engine = CreateEngine(HttpStatusCode.OK, """{"status":"ok"}""");
+        engine.Should().BeAssignableTo<IScriptEngine>();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ExecuteAsync — graceful failure when unavailable
+    // ExecuteAsync — graceful failure when sidecar unavailable
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Scenario 4 — ExecuteAsync returns failure result, not an exception.</summary>
     [Fact]
-    public async Task ExecuteAsync_ShouldReturnFailure_WhenEngineIsUnavailable()
+    public async Task ExecuteAsync_ShouldReturnFailure_WhenSidecarIsUnavailable()
     {
-        var result = await _engine.ExecuteAsync("print('hello')", Empty(), Empty());
+        var engine = CreateUnreachableEngine();
+
+        var result = await engine.ExecuteAsync("print('hello')", Empty(), Empty());
 
         result.Success.Should().BeFalse();
-        result.ReturnValue.Should().BeNull();
         result.ErrorMessage.Should().NotBeNullOrWhiteSpace();
     }
 
-    /// <summary>Scenario 5 — ExecuteAsync error message mentions the feature flag.</summary>
     [Fact]
-    public async Task ExecuteAsync_ErrorMessage_ShouldMentionFeatureFlag()
+    public async Task ExecuteAsync_ErrorMessage_ShouldMentionSidecar_WhenUnavailable()
     {
-        var result = await _engine.ExecuteAsync("x = 1", Empty(), Empty());
+        var engine = CreateUnreachableEngine();
 
-        result.ErrorMessage.Should().ContainEquivalentOf("EnablePythonScripting",
-            because: "users need to know which flag to enable");
+        var result = await engine.ExecuteAsync("x = 1", Empty(), Empty());
+
+        result.ErrorMessage.Should().ContainEquivalentOf("sidecar",
+            because: "users need to know the Python sidecar is what's unavailable");
     }
 
-    /// <summary>Scenario 6 — ExecuteAsync with empty code string returns failure (not null-ref).</summary>
-    [Fact]
-    public async Task ExecuteAsync_ShouldReturnFailure_WithEmptyCode()
-    {
-        var result = await _engine.ExecuteAsync(string.Empty, Empty(), Empty());
-
-        result.Success.Should().BeFalse();
-    }
-
-    /// <summary>Scenario 7 — ExecuteAsync with null code throws ArgumentNullException.</summary>
     [Fact]
     public async Task ExecuteAsync_ShouldThrow_WhenCodeIsNull()
     {
-        var act = () => _engine.ExecuteAsync(null!, Empty(), Empty());
+        var engine = CreateUnreachableEngine();
+
+        var act = () => engine.ExecuteAsync(null!, Empty(), Empty());
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
 
-    /// <summary>Scenario 8 — Cancellation token does not cause a throw (already unavailable fast-path).</summary>
     [Fact]
     public async Task ExecuteAsync_ShouldCompleteGracefully_WhenCancellationTokenIsAlreadyCancelled()
     {
+        var engine = CreateUnreachableEngine();
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        // The stub does synchronous work — it should still return a failure result
-        // rather than throw OperationCanceledException.
-        var result = await _engine.ExecuteAsync("pass", Empty(), Empty(), cancellationToken: cts.Token);
+        var result = await engine.ExecuteAsync("pass", Empty(), Empty(), cancellationToken: cts.Token);
 
         result.Success.Should().BeFalse();
     }
 
-    /// <summary>Scenario 9 — ExecutionTime is zero for the unavailable stub.</summary>
     [Fact]
-    public async Task ExecuteAsync_ExecutionTime_ShouldBeZero_WhenEngineIsUnavailable()
+    public async Task ExecuteAsync_ShouldSucceed_WhenSidecarRespondsOk()
     {
-        var result = await _engine.ExecuteAsync("y = 2", Empty(), Empty());
+        var engine = CreateEngine(HttpStatusCode.OK, """{"success":true,"result":5,"logs":[],"error":null,"durationMs":10}""");
 
-        result.ExecutionTime.Should().Be(TimeSpan.Zero);
+        var result = await engine.ExecuteAsync("result = 2 + 3", Empty(), Empty());
+
+        result.Success.Should().BeTrue();
+        result.ReturnValue.Should().Be(5L);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ValidateSyntaxAsync — returns diagnostic instead of exception
+    // ValidateSyntaxAsync
     // ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Scenario 10 — ValidateSyntaxAsync returns at least one diagnostic.</summary>
     [Fact]
-    public async Task ValidateSyntaxAsync_ShouldReturnDiagnostic_WhenEngineIsUnavailable()
+    public async Task ValidateSyntaxAsync_ShouldReturnDiagnostic_WhenSidecarIsUnavailable()
     {
-        var diagnostics = await _engine.ValidateSyntaxAsync("def foo(): pass");
+        var engine = CreateUnreachableEngine();
+
+        var diagnostics = await engine.ValidateSyntaxAsync("def foo(): pass");
 
         diagnostics.Should().NotBeEmpty();
     }
 
-    /// <summary>Scenario 11 — Diagnostic severity is Error (not Warning).</summary>
     [Fact]
-    public async Task ValidateSyntaxAsync_Diagnostic_ShouldHaveErrorSeverity()
+    public async Task ValidateSyntaxAsync_Diagnostic_ShouldHaveErrorSeverity_WhenSidecarIsUnavailable()
     {
-        var diagnostics = await _engine.ValidateSyntaxAsync("def foo(): pass");
+        var engine = CreateUnreachableEngine();
+
+        var diagnostics = await engine.ValidateSyntaxAsync("def foo(): pass");
 
         diagnostics.Should().ContainSingle(d => d.Severity == DiagnosticSeverity.Error);
     }
 
-    /// <summary>Scenario 12 — Null code in ValidateSyntaxAsync throws ArgumentNullException.</summary>
     [Fact]
     public async Task ValidateSyntaxAsync_ShouldThrow_WhenCodeIsNull()
     {
-        var act = () => _engine.ValidateSyntaxAsync(null!);
+        var engine = CreateUnreachableEngine();
+
+        var act = () => engine.ValidateSyntaxAsync(null!);
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
+
+    [Fact]
+    public async Task ValidateSyntaxAsync_ShouldReturnEmpty_WhenSidecarReportsValid()
+    {
+        var engine = CreateEngine(HttpStatusCode.OK, """{"valid":true,"diagnostics":[]}""");
+
+        var diagnostics = await engine.ValidateSyntaxAsync("result = 1");
+
+        diagnostics.Should().BeEmpty();
+    }
+}
+
+// ── Test helpers ──────────────────────────────────────────────────────────────
+
+internal sealed class FakeHandler : HttpMessageHandler
+{
+    private readonly HttpStatusCode _statusCode;
+    private readonly string _body;
+
+    public FakeHandler(HttpStatusCode statusCode, string body)
+    {
+        _statusCode = statusCode;
+        _body = body;
+    }
+
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        => Task.FromResult(new HttpResponseMessage(_statusCode) { Content = new StringContent(_body, Encoding.UTF8, "application/json") });
+}
+
+internal sealed class ThrowingHandler : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        => throw new HttpRequestException("connection refused (no sidecar listening in test environment)");
 }

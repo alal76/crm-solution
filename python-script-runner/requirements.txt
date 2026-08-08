@@ -1,0 +1,7 @@
+# crm-python-script-runner has no third-party runtime dependencies.
+# server.py and sandbox_runner.py use only the Python standard library
+# (http.server, subprocess, resource, ast, json) — this keeps the
+# dependency/supply-chain surface minimal for a code-execution component.
+#
+# pytest is only needed to run tests/test_denylist.py; it is NOT installed
+# in the production image (see Dockerfile).

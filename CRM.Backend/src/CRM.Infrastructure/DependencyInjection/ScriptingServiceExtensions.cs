@@ -25,7 +25,19 @@ public static class ScriptingServiceExtensions
         IConfiguration configuration)
     {
         services.AddSingleton<IScriptEngine, JintScriptEngine>();
-        services.AddSingleton<IScriptEngine, PythonScriptEngine>(); // Stub: EnablePythonScripting=false until pythonnet is integrated
+
+        // REV-STUB-008: PythonScriptEngine delegates execution to the crm-python-script-runner
+        // sidecar (python-script-runner/ at the repo root) over HTTP. IsAvailable performs a
+        // live health check against the sidecar, so no feature flag gate is required here —
+        // the engine reports itself unavailable automatically when the sidecar isn't reachable.
+        services.Configure<PythonScriptEngineOptions>(configuration.GetSection("Scripting:Python"));
+        services.AddHttpClient("crm-python-script-runner", (sp, client) =>
+        {
+            var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<PythonScriptEngineOptions>>().Value;
+            client.Timeout = options.HttpTimeout + TimeSpan.FromSeconds(5); // slack beyond the per-call CancellationTokenSource
+        });
+        services.AddSingleton<IScriptEngine, PythonScriptEngine>();
+
         services.AddSingleton<ScriptEngineFactory>();
         services.AddScoped<IScriptPluginService, ScriptPluginService>();
         services.AddScoped<ScriptPluginLoader>();
