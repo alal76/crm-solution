@@ -749,6 +749,9 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 // PRA-011: Register ContractExpirationJob so Hangfire's DI activator can instantiate it.
 builder.Services.AddTransient<CRM.Infrastructure.Jobs.ContractExpirationJob>();
+// REV-FE-002: Email digest config/aggregation/send service, and the Hangfire job that uses it.
+builder.Services.AddScoped<IEmailDigestService, CRM.Infrastructure.Services.EmailDigestService>();
+builder.Services.AddTransient<CRM.Infrastructure.Jobs.EmailDigestJob>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 // AP-022: SubscriptionUsageService — extracted from SubscriptionUsageController fat-controller
 builder.Services.AddScoped<CRM.Core.Interfaces.ISubscriptionUsageService, CRM.Infrastructure.Services.SubscriptionUsageService>();
@@ -1173,6 +1176,16 @@ if (hangfireEnabled)
         CRM.Infrastructure.Jobs.ContractExpirationJob.CronExpression,
         new Hangfire.RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
     app.Services.RegisterContractExpirationJob();
+
+    // REV-FE-002: Wire EmailDigestJob to Hangfire — runs hourly, matches due configs against
+    // each user's own Frequency/DayOfWeek/DayOfMonth/TimeOfDay/Timezone internally.
+    // EmailDigestJob.JobId = "email-digest-job"
+    RecurringJob.AddOrUpdate<CRM.Infrastructure.Jobs.EmailDigestJob>(
+        CRM.Infrastructure.Jobs.EmailDigestJob.JobId,
+        job => job.ExecuteAsync(CancellationToken.None),
+        CRM.Infrastructure.Jobs.EmailDigestJob.CronExpression,
+        new Hangfire.RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+    app.Services.RegisterEmailDigestJob();
 }
 
 // AP-019: Schema management and startup seeding extracted to Infrastructure/DatabaseStartupExtensions.cs.

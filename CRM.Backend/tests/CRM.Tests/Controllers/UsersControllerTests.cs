@@ -38,6 +38,7 @@ public class UsersControllerTests
     private readonly Mock<IContactsService> _mockContactsService;
     private readonly Mock<IUserService> _mockUserService;
     private readonly Mock<ICrmDbContext> _mockDbContext;
+    private readonly Mock<IEmailDigestService> _mockEmailDigestService;
     private readonly Mock<ILogger<UsersController>> _mockLogger;
     private readonly UsersController _controller;
 
@@ -49,6 +50,7 @@ public class UsersControllerTests
         _mockContactsService = new Mock<IContactsService>();
         _mockUserService = new Mock<IUserService>();
         _mockDbContext = new Mock<ICrmDbContext>();
+        _mockEmailDigestService = new Mock<IEmailDigestService>();
         _mockLogger = new Mock<ILogger<UsersController>>();
 
         _controller = new UsersController(
@@ -58,6 +60,7 @@ public class UsersControllerTests
             _mockContactsService.Object,
             _mockUserService.Object,
             _mockDbContext.Object,
+            _mockEmailDigestService.Object,
             _mockLogger.Object);
 
         _controller.ControllerContext = new ControllerContext
@@ -217,5 +220,96 @@ public class UsersControllerTests
         var dto = (UserDto)((OkObjectResult)result.Result!).Value!;
         dto.PasswordNeverSet.Should().BeFalse();
         dto.CommissionPlanId.Should().BeNull();
+    }
+
+    // ── Email Digest (REV-FE-002) ───────────────────────────────────────────
+
+    [Fact]
+    public async Task GetMyEmailDigest_ShouldReturnConfig_FromService()
+    {
+        var expected = new EmailDigestConfigDto { Enabled = true, Frequency = "weekly", DayOfWeek = 1, TimeOfDay = "09:00", Timezone = "UTC" };
+        _mockEmailDigestService
+            .Setup(s => s.GetConfigAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(expected);
+
+        var result = await _controller.GetMyEmailDigest(CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var dto = (EmailDigestConfigDto)((OkObjectResult)result.Result!).Value!;
+        dto.Frequency.Should().Be("weekly");
+        dto.DayOfWeek.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetMyEmailDigest_ShouldReturnUnauthorized_WhenNoUserClaim()
+    {
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity()) }
+        };
+
+        var result = await _controller.GetMyEmailDigest(CancellationToken.None);
+
+        result.Result.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    [Fact]
+    public async Task UpdateMyEmailDigest_ShouldSaveViaService_AndReturnResult()
+    {
+        var request = new EmailDigestConfigDto { Enabled = true, Frequency = "daily", TimeOfDay = "08:00", Timezone = "UTC" };
+        var saved = new EmailDigestConfigDto { Enabled = true, Frequency = "daily", TimeOfDay = "08:00", Timezone = "UTC" };
+        _mockEmailDigestService
+            .Setup(s => s.UpdateConfigAsync(1, request, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(saved);
+
+        var result = await _controller.UpdateMyEmailDigest(request, CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+        _mockEmailDigestService.Verify(s => s.UpdateConfigAsync(1, request, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SendMyEmailDigestPreview_ShouldReturnOk_WhenSendSucceeds()
+    {
+        var user = MakeUser(1);
+        _mockUserRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+        _mockEmailDigestService
+            .Setup(s => s.GetConfigAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new EmailDigestConfigDto { Enabled = true, Frequency = "daily", TimeOfDay = "08:00", Timezone = "UTC" });
+        _mockEmailDigestService
+            .Setup(s => s.SendDigestAsync(user, It.IsAny<EmailDigestConfig>(), true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        var result = await _controller.SendMyEmailDigestPreview(CancellationToken.None);
+
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task SendMyEmailDigestPreview_ShouldReturnBadGateway_WhenSendFails()
+    {
+        var user = MakeUser(1);
+        _mockUserRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
+        _mockEmailDigestService
+            .Setup(s => s.GetConfigAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new EmailDigestConfigDto { Enabled = true, Frequency = "daily", TimeOfDay = "08:00", Timezone = "UTC" });
+        _mockEmailDigestService
+            .Setup(s => s.SendDigestAsync(user, It.IsAny<EmailDigestConfig>(), true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
+        var result = await _controller.SendMyEmailDigestPreview(CancellationToken.None);
+
+        var objectResult = result.Should().BeOfType<ObjectResult>().Subject;
+        objectResult.StatusCode.Should().Be(StatusCodes.Status502BadGateway);
+    }
+
+    [Fact]
+    public async Task SendMyEmailDigestPreview_ShouldReturnNotFound_WhenUserMissing()
+    {
+        _mockUserRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync((User?)null);
+
+        var result = await _controller.SendMyEmailDigestPreview(CancellationToken.None);
+
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 }

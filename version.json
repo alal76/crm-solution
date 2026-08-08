@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 24,
+  "patch": 25,
   "lastUpdate": "2026-08-08",
-  "description": "feat: real CampaignExecutionService.ExecuteAsync -- actual recipient sends via INotificationPort (REV-STUB-011)",
+  "description": "feat: EmailDigestPage backend -- config CRUD, content aggregation, Hangfire digest job (REV-FE-002)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

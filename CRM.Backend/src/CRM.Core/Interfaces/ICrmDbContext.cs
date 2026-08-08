@@ -446,6 +446,9 @@ public interface ICrmDbContext
     DbSet<WorkflowAction> WorkflowActions { get; }
     DbSet<FeaturePlan> FeaturePlans { get; }
 
+    // Email Digest (REV-FE-002)
+    DbSet<EmailDigestConfig> EmailDigestConfigs { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

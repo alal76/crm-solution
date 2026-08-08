@@ -35,6 +35,7 @@ public class UsersController : CrmControllerBase
     private readonly IContactsService _contactsService;
     private readonly IUserService _userService;
     private readonly ICrmDbContext _dbContext;
+    private readonly IEmailDigestService _emailDigestService;
     private readonly ILogger<UsersController> _logger;
 
     public UsersController( // NOSONAR
@@ -44,6 +45,7 @@ public class UsersController : CrmControllerBase
         IContactsService contactsService,
         IUserService userService,
         ICrmDbContext dbContext,
+        IEmailDigestService emailDigestService,
         ILogger<UsersController> logger)
     {
         _userRepository = userRepository;
@@ -52,6 +54,7 @@ public class UsersController : CrmControllerBase
         _contactsService = contactsService;
         _userService = userService;
         _dbContext = dbContext;
+        _emailDigestService = emailDigestService;
         _logger = logger;
     }
 
@@ -646,6 +649,112 @@ public class UsersController : CrmControllerBase
             DesktopNotifications = user.DesktopNotifications,
             CompactMode = user.CompactMode
         });
+    }
+
+    /// <summary>
+    /// Get the current user's email digest configuration (REV-FE-002).
+    /// </summary>
+    /// <returns>The user's email digest settings, or defaults if never configured.</returns>
+    /// <response code="200">Returns the email digest configuration</response>
+    /// <response code="401">If the user is not authenticated</response>
+    [HttpGet("me/email-digest")]
+    [ProducesResponseType(typeof(EmailDigestConfigDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<EmailDigestConfigDto>> GetMyEmailDigest(CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new { message = "User not authenticated" });
+        }
+
+        var dto = await _emailDigestService.GetConfigAsync(userId, cancellationToken);
+        return Ok(dto);
+    }
+
+    /// <summary>
+    /// Create or update the current user's email digest configuration (REV-FE-002).
+    /// </summary>
+    /// <param name="dto">The email digest configuration to save</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The saved email digest configuration</returns>
+    /// <response code="200">Returns the saved email digest configuration</response>
+    /// <response code="401">If the user is not authenticated</response>
+    [HttpPut("me/email-digest")]
+    [ProducesResponseType(typeof(EmailDigestConfigDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<EmailDigestConfigDto>> UpdateMyEmailDigest(
+        [FromBody] EmailDigestConfigDto dto,
+        CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new { message = "User not authenticated" });
+        }
+
+        var saved = await _emailDigestService.UpdateConfigAsync(userId, dto, cancellationToken);
+        return Ok(saved);
+    }
+
+    /// <summary>
+    /// Sends a one-off preview of the current user's email digest immediately (REV-FE-002).
+    /// Uses the currently-saved section selections (or sensible defaults if never saved).
+    /// Does not affect the digest's scheduled send tracking.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <response code="200">Preview email was sent</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="404">If the user is not found</response>
+    /// <response code="502">If the preview email failed to send</response>
+    [HttpPost("me/email-digest/preview")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status502BadGateway)]
+    public async Task<IActionResult> SendMyEmailDigestPreview(CancellationToken cancellationToken)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new { message = "User not authenticated" });
+        }
+
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null || user.IsDeleted)
+        {
+            return NotFound(new { message = UserNotFoundMessage });
+        }
+
+        var configDto = await _emailDigestService.GetConfigAsync(userId, cancellationToken);
+        var config = new EmailDigestConfig
+        {
+            UserId = userId,
+            IsEnabled = true,
+            Frequency = configDto.Frequency.Equals("weekly", StringComparison.OrdinalIgnoreCase)
+                ? EmailDigestFrequency.Weekly
+                : configDto.Frequency.Equals("monthly", StringComparison.OrdinalIgnoreCase)
+                    ? EmailDigestFrequency.Monthly
+                    : EmailDigestFrequency.Daily,
+            DayOfWeek = configDto.DayOfWeek,
+            DayOfMonth = configDto.DayOfMonth,
+            Timezone = configDto.Timezone,
+            IncludeNewLeads = configDto.Sections.NewLeads,
+            IncludeOpenOpportunities = configDto.Sections.OpenOpportunities,
+            IncludeRecentActivities = configDto.Sections.RecentActivities,
+            IncludeUpcomingTasks = configDto.Sections.UpcomingTasks,
+            IncludeOverdueTasks = configDto.Sections.OverdueTasks,
+            IncludeTeamPerformance = configDto.Sections.TeamPerformance,
+            IncludeKpiSummary = configDto.Sections.KpiSummary
+        };
+
+        var sent = await _emailDigestService.SendDigestAsync(user, config, isPreview: true, cancellationToken);
+        if (!sent)
+        {
+            return StatusCode(StatusCodes.Status502BadGateway, new { message = "Failed to send preview email digest" });
+        }
+
+        return Ok(new { message = "Preview email digest sent" });
     }
 
     private static UserDto MapToDto(User user, ContactDto? contact)

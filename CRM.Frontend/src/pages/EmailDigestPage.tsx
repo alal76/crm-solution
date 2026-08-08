@@ -27,24 +27,9 @@ import {
   Preview as PreviewIcon,
 } from '@mui/icons-material';
 import logger from '../services/logger';
+import emailDigestService, { EmailDigestConfigDto } from '../services/emailDigestService';
 
-interface EmailDigestConfig {
-  enabled: boolean;
-  frequency: 'daily' | 'weekly' | 'monthly';
-  dayOfWeek?: number; // 0-6 for weekly
-  dayOfMonth?: number; // 1-31 for monthly
-  timeOfDay: string; // HH:MM format
-  timezone: string;
-  sections: {
-    newLeads: boolean;
-    openOpportunities: boolean;
-    recentActivities: boolean;
-    upcomingTasks: boolean;
-    overdueTasks: boolean;
-    teamPerformance: boolean;
-    kpiSummary: boolean;
-  };
-}
+type EmailDigestConfig = EmailDigestConfigDto;
 
 const defaultConfig: EmailDigestConfig = {
   enabled: false,
@@ -73,14 +58,9 @@ const EmailDigestPage: React.FC = () => {
 
   const loadConfig = async () => {
     try {
-      // PRA-019: TODO — needs backend endpoint before this can be wired.
-      // Proposed: GET /api/users/me/email-digest  → returns EmailDigestConfig
-      //           PUT /api/users/me/email-digest  → saves EmailDigestConfig
-      // Currently no email-digest endpoint exists on UsersController.
-      // Replace these TODOs once the endpoint is added:
-      // const data = await userService.getEmailDigestConfig();
-      // setConfig(data);
       logger.info('Loading email digest configuration');
+      const data = await emailDigestService.getConfig();
+      setConfig(data);
     } catch (error) {
       logger.error('Failed to load email digest config:', error);
     }
@@ -90,11 +70,11 @@ const EmailDigestPage: React.FC = () => {
     try {
       setSaving(true);
       setSuccess(false);
-      
-      // PRA-019: TODO — wire to PUT /api/users/me/email-digest once endpoint is implemented.
-      // await userService.updateEmailDigestConfig(config);
-      
-      logger.info('Email digest configuration saved', config);
+
+      const saved = await emailDigestService.updateConfig(config);
+      setConfig(saved);
+
+      logger.info('Email digest configuration saved', saved);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
@@ -104,9 +84,13 @@ const EmailDigestPage: React.FC = () => {
     }
   };
 
-  const handlePreview = () => {
-    logger.info('Sending preview email digest');
-    // TODO: Implement preview email
+  const handlePreview = async () => {
+    try {
+      logger.info('Sending preview email digest');
+      await emailDigestService.sendPreview();
+    } catch (error) {
+      logger.error('Failed to send preview email digest:', error);
+    }
   };
 
   const getDayName = (day: number) => {

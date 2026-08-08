@@ -303,6 +303,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Event> Events { get; set; }
     public DbSet<WorkflowAction> WorkflowActions { get; set; }
     public DbSet<FeaturePlan> FeaturePlans { get; set; }
+
+    // Email Digest (REV-FE-002)
+    public DbSet<EmailDigestConfig> EmailDigestConfigs { get; set; }
     public DbSet<CreditMemo> CreditMemos { get; set; }
     public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }
     public DbSet<CreditApplication> CreditApplications { get; set; }
