@@ -930,6 +930,14 @@ if (hangfireEnabled)
         options.SchedulePollingInterval = TimeSpan.FromSeconds(30); // Check for scheduled jobs every 30s
     });
 
+    // REV-STUB-011: Register the Hangfire-backed campaign execution job scheduler so
+    // CampaignExecutionService.StartCampaignAsync can enqueue real recipient sends
+    // (BackgroundJob.Enqueue<CampaignExecutionJob>) without CRM.Infrastructure referencing
+    // Hangfire.Core directly. Only registered when Hangfire itself is enabled; otherwise
+    // CampaignExecutionService's optional ICampaignExecutionJobScheduler stays null and it
+    // logs a warning instead of scheduling a send.
+    builder.Services.AddScoped<ICampaignExecutionJobScheduler, HangfireCampaignExecutionJobScheduler>();
+
     Log.Information("Hangfire server registered with {Workers} worker(s)", Environment.ProcessorCount);
 }
 else
@@ -956,6 +964,9 @@ builder.Services.AddScoped<IMergeService, MergeService>();
 
 // Campaign execution services
 builder.Services.AddScoped<CampaignExecutionService>();
+// REV-STUB-011: Register CampaignExecutionJob so Hangfire's DI activator can instantiate it
+// (mirrors ContractExpirationJob's AddTransient registration above).
+builder.Services.AddTransient<CRM.Infrastructure.Jobs.CampaignExecutionJob>();
 
 // LLM and Resilience services
 builder.Services.Configure<LLMProviderOptions>(builder.Configuration.GetSection("LLMProviders"));

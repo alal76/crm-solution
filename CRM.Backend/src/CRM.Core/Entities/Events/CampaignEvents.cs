@@ -29,3 +29,10 @@ public sealed record CampaignPausedEvent(
 public sealed record CampaignCompletedEvent(
     int CampaignId,
     DateTime CompletedAt) : DomainEventBase;
+
+/// <summary>
+/// REV-STUB-011: Raised when a paused campaign is resumed.
+/// </summary>
+public sealed record CampaignResumedEvent(
+    int CampaignId,
+    DateTime ResumedAt) : DomainEventBase;

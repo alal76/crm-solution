@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 23,
+  "patch": 24,
   "lastUpdate": "2026-08-08",
-  "description": "feat: wire 5 stub integrations (QuickBooks/Xero, Mailchimp/HubSpot, LinkedIn InMail, Calendly, MaxMind GeoIP) to real APIs (REV-STUB-002/003/004/005/007)",
+  "description": "feat: real CampaignExecutionService.ExecuteAsync -- actual recipient sends via INotificationPort (REV-STUB-011)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

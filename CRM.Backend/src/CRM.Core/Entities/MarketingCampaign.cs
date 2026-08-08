@@ -1468,6 +1468,22 @@ public class MarketingCampaign : BaseEntity, IHasDomainEvents
     }
 
     /// <summary>
+    /// Resumes a paused campaign back to active. Throws if not paused.
+    /// REV-STUB-011: Note this only flips status — actually resuming mid-flight
+    /// sends (if a batch was interrupted) requires re-triggering execution
+    /// (see ICampaignExecutionJobScheduler / CampaignExecutionJob).
+    /// </summary>
+    public void Resume()
+    {
+        if (Status != CampaignStatus.Paused)
+            throw new BusinessRuleException("Campaign.Resume", "Only paused campaigns can be resumed.");
+
+        Status = CampaignStatus.Active;
+        UpdatedAt = DateTime.UtcNow;
+        AddDomainEvent(new CampaignResumedEvent(Id, DateTime.UtcNow));
+    }
+
+    /// <summary>
     /// Completes the campaign. Throws if already completed, cancelled, or still in draft.
     /// </summary>
     public void Complete()

@@ -8,7 +8,9 @@ using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
+using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,6 +26,8 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     private readonly WorkflowService _workflowService;
     private readonly WorkflowInstanceService _workflowInstanceService;
     private readonly ILogger<CampaignExecutionService> _logger;
+    private readonly INotificationPort? _notificationPort;
+    private readonly ICampaignExecutionJobScheduler? _jobScheduler;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CampaignExecutionService"/> class.
@@ -32,16 +36,32 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     /// <param name="workflowService">The workflow service.</param>
     /// <param name="workflowInstanceService">The workflow instance service.</param>
     /// <param name="logger">The logger instance.</param>
+    /// <param name="notificationPort">
+    /// REV-STUB-011: Pluggable send provider used by <see cref="ExecuteAsync"/> to actually
+    /// dispatch campaign emails/SMS. Optional (nullable) so existing callers/tests that
+    /// construct this service without a provider keep compiling; when null, ExecuteAsync
+    /// reports every recipient as failed rather than throwing.
+    /// </param>
+    /// <param name="jobScheduler">
+    /// REV-STUB-011: Enqueues the fire-and-forget background job that performs the actual
+    /// send when a campaign is started. Optional — when null (e.g. Hangfire disabled),
+    /// <see cref="StartCampaignAsync(int, CancellationToken)"/> still transitions the
+    /// campaign to Active but logs that no send was scheduled.
+    /// </param>
     public CampaignExecutionService(
         CrmDbContext context,
         WorkflowService workflowService,
         WorkflowInstanceService workflowInstanceService,
-        ILogger<CampaignExecutionService> logger)
+        ILogger<CampaignExecutionService> logger,
+        INotificationPort? notificationPort = null,
+        ICampaignExecutionJobScheduler? jobScheduler = null)
     {
         _context = context;
         _workflowService = workflowService;
         _workflowInstanceService = workflowInstanceService;
         _logger = logger;
+        _notificationPort = notificationPort;
+        _jobScheduler = jobScheduler;
     }
 
     #region Campaign Workflow Configuration
@@ -860,10 +880,15 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     }
 
     /// <summary>
-    /// Executes/launches a campaign to recipients.
+    /// Executes/launches a campaign to recipients. Loads the campaign's already-populated
+    /// <see cref="CampaignRecipient"/> rows (added via <c>ICampaignRecipientService.AddRecipientsAsync</c> —
+    /// audience-segment resolution from <c>CustomerSegment.CriteriaJson</c> is a separate, unimplemented
+    /// effort and out of scope here) and dispatches a real send through <see cref="INotificationPort"/>,
+    /// persisting a <see cref="CampaignEmailTracking"/> row per send result.
     /// </summary>
     public async Task<CampaignExecutionResultDto> ExecuteAsync(int campaignId, CancellationToken cancellationToken = default)
     {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         _logger.LogInformation("Executing campaign: campaignId={CampaignId}", campaignId);
 
         var campaign = await _context.MarketingCampaigns
@@ -874,23 +899,225 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             throw new InvalidOperationException($"Campaign {campaignId} not found");
         }
 
-        // Stub implementation - returns basic success result
-        return new CampaignExecutionResultDto
+        var recipients = await _context.CampaignRecipients
+            .Include(r => r.Contact)
+            .Where(r => r.CampaignId == campaignId && !r.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        var result = new CampaignExecutionResultDto
         {
             CampaignId = campaignId,
             CampaignName = campaign.Name,
-            RecipientsCount = 0,
-            SuccessCount = 0,
-            FailureCount = 0,
+            RecipientsCount = recipients.Count,
             ExecutedAt = DateTime.UtcNow,
-            Status = "Executed",
-            Duration = TimeSpan.Zero,
             Errors = new()
         };
+
+        if (recipients.Count == 0)
+        {
+            stopwatch.Stop();
+            result.Status = "Completed";
+            result.Duration = stopwatch.Elapsed;
+            _logger.LogInformation("Campaign {CampaignId} has no recipients to send to", campaignId);
+            return result;
+        }
+
+        if (_notificationPort == null)
+        {
+            stopwatch.Stop();
+            result.FailureCount = recipients.Count;
+            result.Status = "Failed";
+            result.Duration = stopwatch.Elapsed;
+            result.Errors.Add("No notification provider is configured; campaign could not be sent.");
+            _logger.LogWarning("Campaign {CampaignId} execution aborted — no INotificationPort available", campaignId);
+            return result;
+        }
+
+        var (successCount, failureCount) = campaign.CampaignType == CampaignType.SMS
+            ? await ExecuteSmsSendAsync(campaign, recipients, cancellationToken)
+            : await ExecuteEmailSendAsync(campaign, recipients, cancellationToken);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        stopwatch.Stop();
+        result.SuccessCount = successCount;
+        result.FailureCount = failureCount;
+        result.Status = failureCount == 0 ? "Completed" : (successCount == 0 ? "Failed" : "CompletedWithErrors");
+        result.Duration = stopwatch.Elapsed;
+
+        _logger.LogInformation(
+            "Campaign {CampaignId} execution finished: {Success} succeeded, {Failure} failed of {Total} recipients",
+            campaignId, successCount, failureCount, recipients.Count);
+
+        return result;
     }
 
     /// <summary>
-    /// Pauses an active campaign.
+    /// Sends the campaign's email content to each recipient with an email address via
+    /// <see cref="INotificationPort.SendBulkEmailAsync"/>, updates recipient status, and
+    /// records a <see cref="CampaignEmailTracking"/> row per send result.
+    /// </summary>
+    private async Task<(int SuccessCount, int FailureCount)> ExecuteEmailSendAsync(
+        MarketingCampaign campaign,
+        List<CampaignRecipient> recipients,
+        CancellationToken cancellationToken)
+    {
+        var successCount = 0;
+        var failureCount = 0;
+
+        var targets = new List<(CampaignRecipient Recipient, string Email)>();
+        foreach (var recipient in recipients)
+        {
+            if (string.IsNullOrWhiteSpace(recipient.Email))
+            {
+                failureCount++;
+                recipient.Status = CampaignRecipientStatus.Failed.ToString();
+                recipient.ErrorMessage = "No email address available for send";
+                continue;
+            }
+
+            targets.Add((recipient, recipient.Email));
+        }
+
+        if (targets.Count == 0)
+        {
+            return (successCount, failureCount);
+        }
+
+        var requests = targets.Select(t => new EmailNotificationRequest
+        {
+            To = t.Email,
+            ToName = $"{t.Recipient.FirstName} {t.Recipient.LastName}".Trim(),
+            Subject = campaign.MessageSubject ?? campaign.Name,
+            Body = campaign.MessageBody ?? string.Empty,
+            IsHtml = true,
+            From = campaign.FromEmail,
+            FromName = campaign.FromName,
+            ReplyTo = campaign.ReplyToEmail
+        }).ToList();
+
+        var bulkResult = await _notificationPort!.SendBulkEmailAsync(requests, cancellationToken);
+
+        for (var i = 0; i < targets.Count; i++)
+        {
+            var (recipient, email) = targets[i];
+            var sendResult = i < bulkResult.Results.Count ? bulkResult.Results[i] : null;
+            RecordSendResult(campaign, recipient, email, sendResult);
+
+            if (sendResult?.Success == true)
+            {
+                successCount++;
+            }
+            else
+            {
+                failureCount++;
+            }
+        }
+
+        campaign.EmailsSent += successCount;
+        return (successCount, failureCount);
+    }
+
+    /// <summary>
+    /// Sends the campaign's SMS content to each recipient with a resolvable phone number
+    /// (via the linked <see cref="CRM.Core.Models.Contact"/>) through <see cref="INotificationPort.SendBulkSmsAsync"/>.
+    /// </summary>
+    private async Task<(int SuccessCount, int FailureCount)> ExecuteSmsSendAsync(
+        MarketingCampaign campaign,
+        List<CampaignRecipient> recipients,
+        CancellationToken cancellationToken)
+    {
+        var successCount = 0;
+        var failureCount = 0;
+
+        var targets = new List<(CampaignRecipient Recipient, string Phone)>();
+        foreach (var recipient in recipients)
+        {
+            var phone = recipient.Contact?.PhoneMobile ?? recipient.Contact?.PhonePrimary;
+            if (string.IsNullOrWhiteSpace(phone))
+            {
+                failureCount++;
+                recipient.Status = CampaignRecipientStatus.Failed.ToString();
+                recipient.ErrorMessage = "No phone number available for SMS send";
+                continue;
+            }
+
+            targets.Add((recipient, phone));
+        }
+
+        if (targets.Count == 0)
+        {
+            return (successCount, failureCount);
+        }
+
+        var requests = targets.Select(t => new SmsNotificationRequest
+        {
+            To = t.Phone,
+            Message = campaign.MessageBody ?? campaign.Name
+        }).ToList();
+
+        var bulkResult = await _notificationPort!.SendBulkSmsAsync(requests, cancellationToken);
+
+        for (var i = 0; i < targets.Count; i++)
+        {
+            var (recipient, phone) = targets[i];
+            var sendResult = i < bulkResult.Results.Count ? bulkResult.Results[i] : null;
+            RecordSendResult(campaign, recipient, phone, sendResult);
+
+            if (sendResult?.Success == true)
+            {
+                successCount++;
+            }
+            else
+            {
+                failureCount++;
+            }
+        }
+
+        return (successCount, failureCount);
+    }
+
+    /// <summary>
+    /// Updates a recipient's status/error fields after a send attempt and appends a
+    /// <see cref="CampaignEmailTracking"/> row. Failed sends are recorded with the
+    /// <see cref="EmailTrackingEvent.Bounced"/> event (closest available tracking event
+    /// for a synchronous provider-level rejection) and <c>BounceType = "Technical"</c>.
+    /// </summary>
+    private void RecordSendResult(MarketingCampaign campaign, CampaignRecipient recipient, string destination, NotificationResult? sendResult)
+    {
+        recipient.SendActualTime = DateTime.UtcNow;
+
+        if (sendResult?.Success == true)
+        {
+            recipient.Status = CampaignRecipientStatus.Sent.ToString();
+            recipient.ErrorMessage = null;
+        }
+        else
+        {
+            recipient.Status = CampaignRecipientStatus.Failed.ToString();
+            recipient.BounceType = "Technical";
+            recipient.BounceReason = sendResult?.Error;
+            recipient.ErrorMessage = sendResult?.Error ?? "Send failed — no result returned by provider";
+        }
+
+        _context.CampaignEmailTrackings.Add(new CampaignEmailTracking
+        {
+            CampaignId = campaign.Id,
+            RecipientEmail = destination,
+            Event = sendResult?.Success == true ? EmailTrackingEvent.Sent : EmailTrackingEvent.Bounced,
+            MessageId = sendResult?.MessageId,
+            EventAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+    }
+
+    /// <summary>
+    /// Pauses an active campaign. Guards against pausing a campaign that isn't active.
+    /// Note: this only flips status — it does not cancel any Hangfire job that may
+    /// already be mid-flight sending recipients (true "stop sending" would require
+    /// cooperative cancellation inside <see cref="CRM.Infrastructure.Jobs.CampaignExecutionJob"/>, which is out
+    /// of scope for a status-level pause/resume).
     /// </summary>
     public async Task<bool> PauseAsync(int campaignId, CancellationToken cancellationToken = default)
     {
@@ -904,14 +1131,23 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             return false;
         }
 
-        _context.MarketingCampaigns.Update(campaign);
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            campaign.Pause();
+        }
+        catch (BusinessRuleException ex)
+        {
+            _logger.LogWarning("Cannot pause campaign {CampaignId}: {Reason}", campaignId, ex.Message);
+            return false;
+        }
 
+        await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
 
     /// <summary>
-    /// Resumes a paused campaign.
+    /// Resumes a paused campaign back to Active. Guards against resuming a campaign
+    /// that isn't currently paused.
     /// </summary>
     public async Task<bool> ResumeAsync(int campaignId, CancellationToken cancellationToken = default)
     {
@@ -925,9 +1161,17 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             return false;
         }
 
-        _context.MarketingCampaigns.Update(campaign);
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            campaign.Resume();
+        }
+        catch (BusinessRuleException ex)
+        {
+            _logger.LogWarning("Cannot resume campaign {CampaignId}: {Reason}", campaignId, ex.Message);
+            return false;
+        }
 
+        await _context.SaveChangesAsync(cancellationToken);
         return true;
     }
 
@@ -999,7 +1243,13 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     }
 
     /// <summary>
-    /// Starts a campaign immediately (Draft → Active).
+    /// Starts a campaign immediately (Draft/Scheduled → Active) and enqueues the actual
+    /// recipient sends as a fire-and-forget background job via
+    /// <see cref="ICampaignExecutionJobScheduler"/> (backed by Hangfire's
+    /// <c>BackgroundJob.Enqueue&lt;CampaignExecutionJob&gt;</c> in CRM.Api — CRM.Infrastructure
+    /// does not reference Hangfire.Core directly, mirroring ContractExpirationJob's
+    /// existing project-boundary pattern). Sends never run synchronously inline here,
+    /// so starting a campaign with a large recipient list does not block the caller.
     /// </summary>
     public async Task<CampaignExecutionStatusDto> StartCampaignAsync(int campaignId, CancellationToken cancellationToken = default)
     {
@@ -1022,7 +1272,18 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Campaign {CampaignId} started", campaignId);
+        if (_jobScheduler != null)
+        {
+            var jobId = _jobScheduler.EnqueueExecution(campaignId);
+            _logger.LogInformation("Campaign {CampaignId} started — execution job enqueued (JobId: {JobId})", campaignId, jobId);
+        }
+        else
+        {
+            _logger.LogWarning(
+                "Campaign {CampaignId} started but no ICampaignExecutionJobScheduler is registered — recipient sends were NOT scheduled",
+                campaignId);
+        }
+
         return await GetExecutionStatusAsync(campaignId, cancellationToken);
     }
 
