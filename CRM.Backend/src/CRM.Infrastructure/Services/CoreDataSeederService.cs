@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
+using CRM.Core.Entities.Reports;
 using CRM.Core.Entities.Workflow;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,14 @@ public interface ICoreDataSeederService
 
     /// <summary>Seeds workflow trigger configurations for key workflow definitions if they don't already exist.</summary>
     Task SeedWorkflowTriggersAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Seeds the initial catalog of Report Templates Marketplace entries (REV-FE-003)
+    /// if none exist. These are global reference/catalog rows (not per-tenant demo
+    /// business records), so — like module field configurations — they are safe to
+    /// seed automatically at startup.
+    /// </summary>
+    Task SeedReportTemplatesAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -197,6 +206,94 @@ public class CoreDataSeederService : ICoreDataSeederService
         _context.Products.AddRange(products);
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Seeded {Count} sample products", products.Count);
+    }
+
+    // ──────────────────────────────────────────────
+    // Report Templates Marketplace (REV-FE-003)
+    // ──────────────────────────────────────────────
+
+    public async Task SeedReportTemplatesAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Seeding report templates...");
+
+        if (_context.ReportTemplates.Any())
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        var templates = new List<ReportTemplate>
+        {
+            new()
+            {
+                Name = "Sales Pipeline Report",
+                Description = "Comprehensive view of your sales pipeline with stage-by-stage analysis, conversion rates, and forecasted revenue.",
+                Category = "Sales",
+                AuthorDisplayName = "CRM Solution Team",
+                Rating = 4.8m,
+                Downloads = 1523,
+                TagsJson = "[\"sales\",\"pipeline\",\"forecasting\"]",
+                ReportConfigJson = "{\"type\":\"pipeline\",\"groupBy\":\"stage\",\"metrics\":[\"count\",\"value\",\"conversionRate\"]}",
+                CreatedAt = now.AddDays(-45),
+                UpdatedAt = now.AddDays(-45)
+            },
+            new()
+            {
+                Name = "Campaign ROI Dashboard",
+                Description = "Track marketing campaign performance, cost per lead, conversion rates, and overall ROI across all channels.",
+                Category = "Marketing",
+                AuthorDisplayName = "Marketing Ops",
+                Rating = 4.6m,
+                Downloads = 982,
+                TagsJson = "[\"marketing\",\"roi\",\"campaigns\"]",
+                ReportConfigJson = "{\"type\":\"campaign\",\"metrics\":[\"spend\",\"leads\",\"conversions\",\"roi\"]}",
+                CreatedAt = now.AddDays(-38),
+                UpdatedAt = now.AddDays(-38)
+            },
+            new()
+            {
+                Name = "Customer Churn Analysis",
+                Description = "Identify at-risk customers, analyze churn patterns by segment, and track retention metrics over time.",
+                Category = "Customer Success",
+                AuthorDisplayName = "CS Analytics",
+                Rating = 4.9m,
+                Downloads = 756,
+                TagsJson = "[\"churn\",\"retention\",\"customer-success\"]",
+                ReportConfigJson = "{\"type\":\"churn\",\"groupBy\":\"segment\",\"timeRange\":\"last12months\"}",
+                CreatedAt = now.AddDays(-30),
+                UpdatedAt = now.AddDays(-30)
+            },
+            new()
+            {
+                Name = "Territory Performance",
+                Description = "Compare sales performance across territories, regions, and individual reps with quota attainment tracking.",
+                Category = "Sales",
+                AuthorDisplayName = "Sales Ops",
+                Rating = 4.7m,
+                Downloads = 1102,
+                TagsJson = "[\"territory\",\"quota\",\"performance\"]",
+                ReportConfigJson = "{\"type\":\"territory\",\"groupBy\":\"region\",\"metrics\":[\"revenue\",\"quota\",\"attainment\"]}",
+                CreatedAt = now.AddDays(-23),
+                UpdatedAt = now.AddDays(-23)
+            },
+            new()
+            {
+                Name = "Lead Source Attribution",
+                Description = "Understand which lead sources drive the most revenue with multi-touch attribution modeling.",
+                Category = "Marketing",
+                AuthorDisplayName = "Demand Gen",
+                Rating = 4.5m,
+                Downloads = 634,
+                TagsJson = "[\"attribution\",\"lead-source\",\"marketing\"]",
+                ReportConfigJson = "{\"type\":\"attribution\",\"model\":\"multi-touch\",\"groupBy\":\"source\"}",
+                CreatedAt = now.AddDays(-15),
+                UpdatedAt = now.AddDays(-15)
+            }
+        };
+
+        _context.ReportTemplates.AddRange(templates);
+        await _context.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Seeded {Count} report templates", templates.Count);
     }
 
     // ──────────────────────────────────────────────

@@ -530,3 +530,71 @@ public class CustomerSegmentDto
     /// <summary>Retention rate for the segment (0–100).</summary>
     public decimal RetentionRate { get; set; }
 }
+
+// ───────────────────────────────────────────────────────────────────────────
+// Report Templates Marketplace (REV-FE-003)
+// ───────────────────────────────────────────────────────────────────────────
+
+/// <summary>
+/// DTO representing a report template in the Report Templates Marketplace.
+/// Field shape matches the frontend `ReportTemplate` interface in
+/// CRM.Frontend/src/pages/ReportTemplatesPage.tsx exactly (camelCase over the wire).
+/// </summary>
+public class ReportTemplateDto
+{
+    /// <summary>Gets or sets the template ID.</summary>
+    public int Id { get; set; }
+
+    /// <summary>Gets or sets the template name.</summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the template description.</summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the marketplace category.</summary>
+    public string Category { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the author display name — the linked user's full name when the
+    /// template has an <c>AuthorUserId</c>, otherwise the stored <c>AuthorDisplayName</c>.
+    /// </summary>
+    public string Author { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the average rating (0-5).</summary>
+    public decimal Rating { get; set; }
+
+    /// <summary>Gets or sets the number of times this template has been applied.</summary>
+    public int Downloads { get; set; }
+
+    /// <summary>Gets or sets the search/filter tags.</summary>
+    public List<string> Tags { get; set; } = new();
+
+    /// <summary>Gets or sets the optional preview image URL.</summary>
+    public string? PreviewImage { get; set; }
+
+    /// <summary>Gets or sets the saved report configuration, deserialized from JSON storage.</summary>
+    public Dictionary<string, object> ReportConfig { get; set; } = new();
+
+    /// <summary>Gets or sets when the template was created.</summary>
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>
+/// DTO returned by POST /api/reports/templates/{id}/apply. Carries the report
+/// configuration for the frontend to hand off to the report designer, along with
+/// the updated download count.
+/// </summary>
+public class ApplyReportTemplateResultDto
+{
+    /// <summary>Gets or sets the template ID that was applied.</summary>
+    public int TemplateId { get; set; }
+
+    /// <summary>Gets or sets the template name (used as the default report name in the designer).</summary>
+    public string TemplateName { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the report configuration to seed the designer with.</summary>
+    public Dictionary<string, object> ReportConfig { get; set; } = new();
+
+    /// <summary>Gets or sets the updated (post-increment) download count.</summary>
+    public int Downloads { get; set; }
+}

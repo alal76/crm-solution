@@ -448,6 +448,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ReportExecution> ReportExecutions { get; set; }
     public DbSet<ReportWidgetConfig> ReportWidgetConfigs { get; set; }
     public DbSet<ReportShare> ReportShares { get; set; }
+    public DbSet<ReportTemplate> ReportTemplates { get; set; }
 
     // =============================================================================
     // Knowledge Base Entities (Articles, SLA)
@@ -3548,6 +3549,28 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(r => r.WidgetConfigs)
                 .HasForeignKey(e => e.ReportDefinitionId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ReportTemplate configuration (REV-FE-003 — Report Templates Marketplace)
+        modelBuilder.Entity<ReportTemplate>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.Category).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.AuthorDisplayName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Rating).HasPrecision(3, 2);
+            entity.Property(e => e.TagsJson).HasColumnType(longTextType);
+            entity.Property(e => e.PreviewImageUrl).HasMaxLength(500);
+            entity.Property(e => e.ReportConfigJson).HasColumnType(longTextType);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => e.Name);
+            entity.HasIndex(e => e.AuthorUserId);
+
+            entity.HasOne(e => e.AuthorUser)
+                .WithMany()
+                .HasForeignKey(e => e.AuthorUserId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // =============================================================================

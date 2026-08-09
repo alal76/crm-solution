@@ -993,6 +993,7 @@ builder.Services.AddScoped<IDashboardBuilderService, DashboardBuilderService>();
 builder.Services.AddScoped<IReportBuilderService, ReportBuilderService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<CRM.Infrastructure.Services.IReportSharingService, CRM.Infrastructure.Services.ReportSharingService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.IReportTemplateService, CRM.Infrastructure.Services.ReportTemplateService>();
 builder.Services.AddScoped<CRM.Api.Hubs.IDashboardHubService, CRM.Api.Hubs.DashboardHubService>();
 builder.Services.AddScoped<IAIPredictiveAnalyticsService, AIPredictiveAnalyticsService>();
 

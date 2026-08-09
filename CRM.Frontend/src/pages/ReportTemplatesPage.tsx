@@ -34,97 +34,44 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import logger from '../services/logger';
+import reportTemplateService, { ReportTemplateDto } from '../services/reportTemplateService';
 
-interface ReportTemplate {
-  id: number;
-  name: string;
-  description: string;
-  category: string;
-  author: string;
-  rating: number;
-  downloads: number;
-  tags: string[];
-  previewImage?: string;
-  reportConfig: object;
-  createdAt: string;
-}
-
-const mockTemplates: ReportTemplate[] = [
-  {
-    id: 1,
-    name: 'Sales Pipeline Report',
-    description: 'Comprehensive view of your sales pipeline with stage-by-stage analysis, conversion rates, and forecasted revenue.',
-    category: 'Sales',
-    author: 'CRM Solution Team',
-    rating: 4.8,
-    downloads: 1523,
-    tags: ['sales', 'pipeline', 'forecasting'],
-    createdAt: '2026-01-15',
-    reportConfig: { type: 'pipeline', groupBy: 'stage', metrics: ['count', 'value', 'conversionRate'] },
-  },
-  {
-    id: 2,
-    name: 'Campaign ROI Dashboard',
-    description: 'Track marketing campaign performance, cost per lead, conversion rates, and overall ROI across all channels.',
-    category: 'Marketing',
-    author: 'Marketing Ops',
-    rating: 4.6,
-    downloads: 982,
-    tags: ['marketing', 'roi', 'campaigns'],
-    createdAt: '2026-01-22',
-    reportConfig: { type: 'campaign', metrics: ['spend', 'leads', 'conversions', 'roi'] },
-  },
-  {
-    id: 3,
-    name: 'Customer Churn Analysis',
-    description: 'Identify at-risk customers, analyze churn patterns by segment, and track retention metrics over time.',
-    category: 'Customer Success',
-    author: 'CS Analytics',
-    rating: 4.9,
-    downloads: 756,
-    tags: ['churn', 'retention', 'customer-success'],
-    createdAt: '2026-02-03',
-    reportConfig: { type: 'churn', groupBy: 'segment', timeRange: 'last12months' },
-  },
-  {
-    id: 4,
-    name: 'Territory Performance',
-    description: 'Compare sales performance across territories, regions, and individual reps with quota attainment tracking.',
-    category: 'Sales',
-    author: 'Sales Ops',
-    rating: 4.7,
-    downloads: 1102,
-    tags: ['territory', 'quota', 'performance'],
-    createdAt: '2026-02-10',
-    reportConfig: { type: 'territory', groupBy: 'region', metrics: ['revenue', 'quota', 'attainment'] },
-  },
-  {
-    id: 5,
-    name: 'Lead Source Attribution',
-    description: 'Understand which lead sources drive the most revenue with multi-touch attribution modeling.',
-    category: 'Marketing',
-    author: 'Demand Gen',
-    rating: 4.5,
-    downloads: 634,
-    tags: ['attribution', 'lead-source', 'marketing'],
-    createdAt: '2026-02-18',
-    reportConfig: { type: 'attribution', model: 'multi-touch', groupBy: 'source' },
-  },
-];
+type ReportTemplate = ReportTemplateDto;
 
 const categories = ['All', 'Sales', 'Marketing', 'Customer Success', 'Finance', 'Service Desk'];
 
 const ReportTemplatesPage: React.FC = () => {
   const navigate = useNavigate();
-  const [templates, setTemplates] = useState<ReportTemplate[]>(mockTemplates);
-  const [filteredTemplates, setFilteredTemplates] = useState<ReportTemplate[]>(mockTemplates);
+  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
+  const [filteredTemplates, setFilteredTemplates] = useState<ReportTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [previewTemplate, setPreviewTemplate] = useState<ReportTemplate | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await reportTemplateService.getTemplates();
+        setTemplates(response.data || []);
+      } catch (err) {
+        logger.error('Failed to load report templates:', err);
+        setError('Failed to load report templates.');
+        setTemplates([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
 
   useEffect(() => {
     filterTemplates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedCategory, templates]);
 
   const filterTemplates = () => {
@@ -152,22 +99,22 @@ const ReportTemplatesPage: React.FC = () => {
       setLoading(true);
       logger.info(`Downloading template: ${template.name}`);
 
-      // PRA-019: TODO — wire to report templates API once backend endpoint is implemented.
-      // Proposed: GET /api/reports/templates   → returns ReportTemplate[]
-      //           POST /api/reports/templates/{id}/apply  → applies template config to a new report
-      // No /api/reports/templates endpoint exists on ReportsController yet.
-      // await reportService.importTemplate(template.reportConfig);
+      // PRA-019 / REV-FE-003: wired to the real report templates API.
+      // POST /api/reports/templates/{id}/apply increments the download counter
+      // server-side and returns the saved reportConfig for the designer.
+      const response = await reportTemplateService.applyTemplate(template.id);
+      const { reportConfig, templateName, downloads } = response.data;
 
-      // For now, redirect to report designer with pre-loaded config
       navigate('/reports/designer', {
-        state: { templateConfig: template.reportConfig, templateName: template.name },
+        state: { templateConfig: reportConfig, templateName },
       });
 
       setTemplates((prev) =>
-        prev.map((t) => (t.id === template.id ? { ...t, downloads: t.downloads + 1 } : t))
+        prev.map((t) => (t.id === template.id ? { ...t, downloads } : t))
       );
     } catch (error) {
       logger.error('Failed to download template:', error);
+      setError('Failed to apply report template.');
     } finally {
       setLoading(false);
     }
@@ -191,6 +138,12 @@ const ReportTemplatesPage: React.FC = () => {
           Browse and download pre-built report templates to jumpstart your analytics
         </Typography>
       </Box>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
       {/* Filters */}
       <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>

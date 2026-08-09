@@ -329,6 +329,7 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.Reports.ReportExecution> ReportExecutions { get; }
     DbSet<CRM.Core.Entities.Reports.ReportWidgetConfig> ReportWidgetConfigs { get; }
     DbSet<ReportShare> ReportShares { get; }
+    DbSet<CRM.Core.Entities.Reports.ReportTemplate> ReportTemplates { get; }
 
     // AI Agent Entities (ADR-004 — Semantic Kernel Integration)
     DbSet<CRM.Core.Entities.AI.AIAgent> AIAgents { get; }

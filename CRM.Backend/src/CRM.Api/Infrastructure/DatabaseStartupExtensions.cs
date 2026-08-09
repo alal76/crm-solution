@@ -196,6 +196,24 @@ internal static class DatabaseStartupExtensions
                 Log.Warning(fieldConfigEx, "Failed to seed module field configurations (non-fatal)");
             }
 
+            // Seed Report Templates Marketplace catalog (REV-FE-003, optional, non-blocking).
+            // These are global reference/catalog rows (not per-tenant demo business
+            // records), so — like module field configs above — they are seeded
+            // automatically rather than requiring an admin-triggered sample data load.
+            try
+            {
+                var coreDataSeeder = scope.ServiceProvider.GetService<ICoreDataSeederService>();
+                if (coreDataSeeder != null)
+                {
+                    await coreDataSeeder.SeedReportTemplatesAsync();
+                    Log.Information("Report templates seeded successfully");
+                }
+            }
+            catch (Exception reportTemplateEx)
+            {
+                Log.Warning(reportTemplateEx, "Failed to seed report templates (non-fatal)");
+            }
+
             // NOTE: Sample data seeding is NOT run at startup.
             // Use the Python test_data_loader.py script or POST /api/admin/seed to populate sample data.
         }

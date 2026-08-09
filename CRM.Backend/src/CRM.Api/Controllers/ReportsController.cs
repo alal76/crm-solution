@@ -29,6 +29,7 @@ public class ReportsController : CrmControllerBase
     private readonly IWinLossAnalysisService _winLossService;
     private readonly IOpportunityService _opportunityService;
     private readonly IReportSharingService _sharingService;
+    private readonly IReportTemplateService _templateService;
     private readonly ILogger<ReportsController> _logger;
 
     /// <summary>
@@ -39,12 +40,14 @@ public class ReportsController : CrmControllerBase
         IWinLossAnalysisService winLossService,
         IOpportunityService opportunityService,
         IReportSharingService sharingService,
+        IReportTemplateService templateService,
         ILogger<ReportsController> logger)
     {
         _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
         _winLossService = winLossService ?? throw new ArgumentNullException(nameof(winLossService));
         _opportunityService = opportunityService ?? throw new ArgumentNullException(nameof(opportunityService));
         _sharingService = sharingService ?? throw new ArgumentNullException(nameof(sharingService));
+        _templateService = templateService ?? throw new ArgumentNullException(nameof(templateService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -758,6 +761,44 @@ public class ReportsController : CrmControllerBase
         CancellationToken ct = default)
     {
                 var result = await _reportService.GetCustomerSegmentsAsync(dto, ct);
+        return Ok(result);
+    }
+
+    #endregion
+
+    #region Report Templates Marketplace (REV-FE-003)
+
+    /// <summary>
+    /// Gets all report templates available in the Report Templates Marketplace.
+    /// Search and category filtering are performed client-side against this full
+    /// list (mirrors the existing ReportTemplatesPage.filterTemplates() behavior).
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpGet("templates")]
+    [ProducesResponseType(typeof(IEnumerable<ReportTemplateDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetReportTemplates(CancellationToken ct = default)
+    {
+        var templates = await _templateService.GetAllAsync(ct);
+        return Ok(templates);
+    }
+
+    /// <summary>
+    /// Applies a report template: increments its download counter and returns the
+    /// saved report configuration for the frontend to hand off to the report designer.
+    /// </summary>
+    /// <param name="id">The report template ID.</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpPost("templates/{id:int}/apply")]
+    [ProducesResponseType(typeof(ApplyReportTemplateResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ApplyReportTemplate(int id, CancellationToken ct = default)
+    {
+        var result = await _templateService.ApplyAsync(id, ct);
+        if (result == null)
+        {
+            return NotFound();
+        }
+
         return Ok(result);
     }
 

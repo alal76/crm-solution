@@ -32,12 +32,14 @@ namespace CRM.Tests.Controllers;
 public class ReportsControllerTests
 {
     private readonly Mock<IReportService> _mockReportService;
+    private readonly Mock<IReportTemplateService> _mockTemplateService;
     private readonly Mock<ILogger<ReportsController>> _mockLogger;
     private readonly ReportsController _controller;
 
     public ReportsControllerTests()
     {
         _mockReportService = new Mock<IReportService>();
+        _mockTemplateService = new Mock<IReportTemplateService>();
         _mockLogger = new Mock<ILogger<ReportsController>>();
 
         _controller = new ReportsController(
@@ -45,6 +47,7 @@ public class ReportsControllerTests
             Mock.Of<IWinLossAnalysisService>(),
             Mock.Of<IOpportunityService>(),
             Mock.Of<IReportSharingService>(),
+            _mockTemplateService.Object,
             _mockLogger.Object);
 
         var httpContext = new DefaultHttpContext();
@@ -859,6 +862,67 @@ public class ReportsControllerTests
 
         // Assert
         result.Should().BeOfType<ForbidResult>();
+    }
+
+    #endregion
+
+    #region Report Templates Marketplace (REV-FE-003)
+
+    [Fact]
+    public async Task GetReportTemplates_ShouldReturnOk_WithTemplates()
+    {
+        // Arrange
+        var templates = new List<ReportTemplateDto>
+        {
+            new() { Id = 1, Name = "Sales Pipeline Report", Category = "Sales", Downloads = 1523 },
+            new() { Id = 2, Name = "Campaign ROI Dashboard", Category = "Marketing", Downloads = 982 }
+        };
+        _mockTemplateService.Setup(s => s.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(templates);
+
+        // Act
+        var result = await _controller.GetReportTemplates();
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+        ((OkObjectResult)result).Value.Should().BeEquivalentTo(templates);
+    }
+
+    [Fact]
+    public async Task ApplyReportTemplate_ShouldReturnOk_AndIncrementDownloads()
+    {
+        // Arrange
+        var applyResult = new ApplyReportTemplateResultDto
+        {
+            TemplateId = 1,
+            TemplateName = "Sales Pipeline Report",
+            ReportConfig = new Dictionary<string, object> { ["type"] = "pipeline" },
+            Downloads = 1524
+        };
+        _mockTemplateService.Setup(s => s.ApplyAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(applyResult);
+
+        // Act
+        var result = await _controller.ApplyReportTemplate(1);
+
+        // Assert
+        result.Should().BeOfType<OkObjectResult>();
+        ((OkObjectResult)result).Value.Should().BeEquivalentTo(applyResult);
+        _mockTemplateService.Verify(s => s.ApplyAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ApplyReportTemplate_ShouldReturnNotFound_WhenTemplateMissing()
+    {
+        // Arrange
+        _mockTemplateService.Setup(s => s.ApplyAsync(999, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((ApplyReportTemplateResultDto?)null);
+
+        // Act
+        var result = await _controller.ApplyReportTemplate(999);
+
+        // Assert
+        result.Should().BeOfType<NotFoundResult>();
     }
 
     #endregion
