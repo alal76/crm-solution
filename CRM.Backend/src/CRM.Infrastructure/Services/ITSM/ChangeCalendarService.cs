@@ -6,6 +6,8 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
+using CRM.Core.Interfaces.ITSM;
+using CRM.Core.Dtos.ITSM;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -19,26 +21,31 @@ public interface IChangeCalendarService
     /// <summary>
     /// Get scheduled changes within a date range.
     /// </summary>
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     Task<List<ScheduledChange>> GetScheduledChangesAsync(DateTime startDate, DateTime endDate);
 
     /// <summary>
     /// Check for scheduling conflicts with a proposed change window.
     /// </summary>
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     Task<List<ChangeConflict>> CheckConflictsAsync(int changeRequestId, DateTime proposedStart, DateTime proposedEnd);
 
     /// <summary>
     /// Get blackout periods that would prevent scheduling.
     /// </summary>
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     Task<List<BlackoutPeriod>> GetBlackoutPeriodsAsync(DateTime startDate, DateTime endDate);
 
     /// <summary>
     /// Check if a proposed window falls within a blackout period.
     /// </summary>
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     Task<BlackoutPeriod?> GetConflictingBlackoutAsync(DateTime proposedStart, DateTime proposedEnd);
 
     /// <summary>
     /// Create a blackout period (e.g., holiday freeze, maintenance window).
     /// </summary>
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     Task<BlackoutPeriod> CreateBlackoutPeriodAsync(BlackoutPeriod blackout, int createdById);
 
     /// <summary>
@@ -172,6 +179,7 @@ public class ChangeCalendarService : IChangeCalendarService
 {
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<ChangeCalendarService> _logger;
+    private readonly IChangeManagementServiceEx _changeManagementServiceEx;
 
     // Default maintenance windows
     private static readonly List<MaintenanceWindow> DefaultMaintenanceWindows = new()
@@ -210,12 +218,15 @@ public class ChangeCalendarService : IChangeCalendarService
 
     public ChangeCalendarService(
         ICrmDbContext dbContext,
-        ILogger<ChangeCalendarService> logger)
+        ILogger<ChangeCalendarService> logger,
+        IChangeManagementServiceEx changeManagementServiceEx)
     {
         _dbContext = dbContext;
         _logger = logger;
+        _changeManagementServiceEx = changeManagementServiceEx;
     }
 
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     public async Task<List<ScheduledChange>> GetScheduledChangesAsync(DateTime startDate, DateTime endDate)
     {
         var context = _dbContext;
@@ -246,6 +257,7 @@ public class ChangeCalendarService : IChangeCalendarService
         }).ToList();
     }
 
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     public async Task<List<ChangeConflict>> CheckConflictsAsync(
         int changeRequestId,
         DateTime proposedStart,
@@ -363,6 +375,7 @@ public class ChangeCalendarService : IChangeCalendarService
         return conflicts;
     }
 
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     public async Task<List<BlackoutPeriod>> GetBlackoutPeriodsAsync(DateTime startDate, DateTime endDate)
     {
         // In a full implementation, these would come from the database
@@ -401,6 +414,7 @@ public class ChangeCalendarService : IChangeCalendarService
             .ToList());
     }
 
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     public async Task<BlackoutPeriod?> GetConflictingBlackoutAsync(DateTime proposedStart, DateTime proposedEnd)
     {
         var blackouts = await GetBlackoutPeriodsAsync(proposedStart, proposedEnd);
@@ -409,6 +423,7 @@ public class ChangeCalendarService : IChangeCalendarService
             b.StartDate <= proposedEnd && b.EndDate >= proposedStart);
     }
 
+    [Obsolete("Superseded by IChangeManagementServiceEx's equivalent methods, which are backed by real ChangeBlackout/Changes data instead of an in-memory placeholder. Do not use in new code.")]
     public async Task<BlackoutPeriod> CreateBlackoutPeriodAsync(BlackoutPeriod blackout, int createdById)
     {
         // In a full implementation, this would persist to database
@@ -432,11 +447,23 @@ public class ChangeCalendarService : IChangeCalendarService
         var startDate = DateTime.UtcNow;
         var endDate = startDate.AddDays(daysAhead);
 
-        // Get existing scheduled changes
-        var scheduledChanges = await GetScheduledChangesAsync(startDate, endDate);
+        // Get existing scheduled changes via IChangeManagementServiceEx (real DB-backed data),
+        // mirroring the filter shape used by ChangesController.GetCalendarEvents.
+        var changeFilter = new ChangeFilterDto
+        {
+            PlannedStartFrom = startDate,
+            PlannedStartTo = endDate,
+            PageNumber = 1,
+            PageSize = 500
+        };
+        var (changeItems, _) = await _changeManagementServiceEx.ListChangesAsync(changeFilter, CancellationToken.None);
+        var scheduledChanges = changeItems
+            .Where(c => c.State != ChangeState.Cancelled && c.State != ChangeState.Failed)
+            .Where(c => c.PlannedStartDate.HasValue)
+            .ToList();
 
-        // Get blackout periods
-        var blackouts = await GetBlackoutPeriodsAsync(startDate, endDate);
+        // Get blackout periods via IChangeManagementServiceEx (real ChangeBlackout data).
+        var blackouts = (await _changeManagementServiceEx.GetBlackoutPeriodsAsync(startDate, endDate, CancellationToken.None)).ToList();
 
         // Get maintenance windows
         var maintenanceWindows = await GetMaintenanceWindowsAsync();
@@ -462,7 +489,8 @@ public class ChangeCalendarService : IChangeCalendarService
                         b.StartDate <= windowEnd && b.EndDate >= windowStart);
 
                     var hasConflict = scheduledChanges.Any(c =>
-                        c.ScheduledStart <= windowEnd && c.ScheduledEnd >= windowStart);
+                        c.PlannedStartDate!.Value <= windowEnd &&
+                        (c.PlannedEndDate ?? c.PlannedStartDate.Value.AddHours(2)) >= windowStart);
 
                     if (!isBlocked && !hasConflict && windowStart > DateTime.UtcNow)
                     {
@@ -501,7 +529,8 @@ public class ChangeCalendarService : IChangeCalendarService
                 b.StartDate <= eveningEnd && b.EndDate >= eveningStart);
 
             var hasConflict = scheduledChanges.Any(c =>
-                c.ScheduledStart <= eveningEnd && c.ScheduledEnd >= eveningStart);
+                c.PlannedStartDate!.Value <= eveningEnd &&
+                (c.PlannedEndDate ?? c.PlannedStartDate.Value.AddHours(2)) >= eveningStart);
 
             if (!isBlocked && !hasConflict && eveningStart > DateTime.UtcNow)
             {

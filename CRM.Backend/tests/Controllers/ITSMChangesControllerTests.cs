@@ -9,6 +9,7 @@ using CRM.Api.Controllers;
 using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
+using CRM.Infrastructure.Services.ITSM;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,19 +22,25 @@ namespace CRM.Tests.Controllers;
 /// <summary>
 /// Tests for <see cref="ChangesController"/>, which is backed by
 /// <see cref="IChangeManagementServiceEx"/> and shaped to match
-/// <c>CRM.Frontend/src/services/changeService.ts</c>.
+/// <c>CRM.Frontend/src/services/changeService.ts</c>. Also covers the
+/// <see cref="IChangeCalendarService"/> scheduling-assistant endpoints and the
+/// <see cref="IChangeImpactService"/> impact-analysis endpoints.
 /// </summary>
 public class ITSMChangesControllerTests
 {
     private readonly Mock<IChangeManagementServiceEx> _mockService;
+    private readonly Mock<IChangeCalendarService> _mockCalendarService;
+    private readonly Mock<IChangeImpactService> _mockImpactService;
     private readonly Mock<ILogger<ChangesController>> _mockLogger;
     private readonly ChangesController _controller;
 
     public ITSMChangesControllerTests()
     {
         _mockService = new Mock<IChangeManagementServiceEx>();
+        _mockCalendarService = new Mock<IChangeCalendarService>();
+        _mockImpactService = new Mock<IChangeImpactService>();
         _mockLogger = new Mock<ILogger<ChangesController>>();
-        _controller = new ChangesController(_mockService.Object, _mockLogger.Object);
+        _controller = new ChangesController(_mockService.Object, _mockCalendarService.Object, _mockImpactService.Object, _mockLogger.Object);
 
         var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "1") };
         var identity = new ClaimsIdentity(claims, "TestAuth");
@@ -605,5 +612,220 @@ public class ITSMChangesControllerTests
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.Value.Should().BeAssignableTo<IEnumerable<object>>().Which.Should().BeEmpty();
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // GET /available-slots, GET /maintenance-windows (IChangeCalendarService)
+    // ────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetAvailableSlots_ShouldReturnOk_WithSlots()
+    {
+        var slots = new List<AvailableSlot>
+        {
+            new() { StartTime = DateTime.UtcNow.AddDays(1), EndTime = DateTime.UtcNow.AddDays(1).AddHours(2), DurationMinutes = 120, Quality = SlotQuality.Optimal, IsMaintenanceWindow = true, MaintenanceWindowName = "Weekend Maintenance" }
+        };
+        _mockCalendarService
+            .Setup(s => s.FindAvailableSlotsAsync(5, 120, 14))
+            .ReturnsAsync(slots);
+
+        var result = await _controller.GetAvailableSlots(5, 120, 14);
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var body = okResult.Value.Should().BeAssignableTo<IEnumerable<AvailableSlot>>().Subject.ToList();
+        body.Should().ContainSingle().Which.MaintenanceWindowName.Should().Be("Weekend Maintenance");
+    }
+
+    [Fact]
+    public async Task GetAvailableSlots_ShouldReturnBadRequest_WhenServiceThrowsInvalidOperationException()
+    {
+        _mockCalendarService
+            .Setup(s => s.FindAvailableSlotsAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+            .ThrowsAsync(new InvalidOperationException("Invalid duration"));
+
+        var result = await _controller.GetAvailableSlots(5, -1, 14);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetMaintenanceWindows_ShouldReturnOk_WithWindows()
+    {
+        var windows = new List<MaintenanceWindow>
+        {
+            new() { WindowId = 1, Name = "Weekend Maintenance (Saturday)", DayOfWeek = DayOfWeek.Saturday, IsActive = true }
+        };
+        _mockCalendarService.Setup(s => s.GetMaintenanceWindowsAsync()).ReturnsAsync(windows);
+
+        var result = await _controller.GetMaintenanceWindows();
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var body = okResult.Value.Should().BeAssignableTo<IEnumerable<MaintenanceWindow>>().Subject.ToList();
+        body.Should().ContainSingle().Which.Name.Should().Be("Weekend Maintenance (Saturday)");
+    }
+
+    [Fact]
+    public async Task GetMaintenanceWindows_ShouldReturnBadRequest_WhenServiceThrowsInvalidOperationException()
+    {
+        _mockCalendarService
+            .Setup(s => s.GetMaintenanceWindowsAsync())
+            .ThrowsAsync(new InvalidOperationException("boom"));
+
+        var result = await _controller.GetMaintenanceWindows();
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // GET /{id}/impact-analysis-full, POST /impact-analysis/impacted-cis,
+    // GET /{id}/impacted-services, GET /{id}/risk-score, GET /{id}/impact-notifications
+    // (IChangeImpactService)
+    // ────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetImpactAnalysisFull_ShouldReturnOk_WhenChangeExists()
+    {
+        var analysis = new ChangeImpactAnalysis
+        {
+            ChangeRequestId = 1,
+            ChangeNumber = "CHG0000001",
+            ImpactSummary = "2 configuration items affected"
+        };
+        _mockImpactService.Setup(s => s.AnalyzeChangeImpactAsync(1)).ReturnsAsync(analysis);
+
+        var result = await _controller.GetImpactAnalysisFull(1);
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var body = okResult.Value.Should().BeOfType<ChangeImpactAnalysis>().Subject;
+        body.ChangeNumber.Should().Be("CHG0000001");
+    }
+
+    [Fact]
+    public async Task GetImpactAnalysisFull_ShouldReturnNotFound_WhenServiceThrowsArgumentException()
+    {
+        _mockImpactService
+            .Setup(s => s.AnalyzeChangeImpactAsync(999))
+            .ThrowsAsync(new ArgumentException("Change request 999 not found"));
+
+        var result = await _controller.GetImpactAnalysisFull(999);
+
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetImpactedCIs_ShouldReturnOk_WithCIs()
+    {
+        var cis = new List<ImpactedCI>
+        {
+            new() { ConfigurationItemId = 5, Name = "Server-01", ImpactLevel = ImpactLevel.Direct }
+        };
+        _mockImpactService
+            .Setup(s => s.GetImpactedCIsAsync(It.Is<List<int>>(l => l.Contains(5)), 2))
+            .ReturnsAsync(cis);
+
+        var request = new GetImpactedCIsApiRequest { PrimaryCIIds = new List<int> { 5 }, MaxDepth = 2 };
+        var result = await _controller.GetImpactedCIs(request);
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var body = okResult.Value.Should().BeAssignableTo<IEnumerable<ImpactedCI>>().Subject.ToList();
+        body.Should().ContainSingle().Which.Name.Should().Be("Server-01");
+    }
+
+    [Fact]
+    public async Task GetImpactedCIs_ShouldReturnBadRequest_WhenServiceThrowsInvalidOperationException()
+    {
+        _mockImpactService
+            .Setup(s => s.GetImpactedCIsAsync(It.IsAny<List<int>>(), It.IsAny<int>()))
+            .ThrowsAsync(new InvalidOperationException("boom"));
+
+        var request = new GetImpactedCIsApiRequest { PrimaryCIIds = new List<int> { 5 } };
+        var result = await _controller.GetImpactedCIs(request);
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetImpactedServices_ShouldReturnOk_WithServices()
+    {
+        var services = new List<ImpactedService>
+        {
+            new() { ServiceId = 1, ServiceName = "Billing Service" }
+        };
+        _mockImpactService.Setup(s => s.GetImpactedServicesAsync(1)).ReturnsAsync(services);
+
+        var result = await _controller.GetImpactedServices(1);
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var body = okResult.Value.Should().BeAssignableTo<IEnumerable<ImpactedService>>().Subject.ToList();
+        body.Should().ContainSingle().Which.ServiceName.Should().Be("Billing Service");
+    }
+
+    [Fact]
+    public async Task GetImpactedServices_ShouldReturnNotFound_WhenServiceThrowsKeyNotFoundException()
+    {
+        _mockImpactService
+            .Setup(s => s.GetImpactedServicesAsync(999))
+            .ThrowsAsync(new KeyNotFoundException("Change 999 not found"));
+
+        var result = await _controller.GetImpactedServices(999);
+
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetRiskScore_ShouldReturnOk_WithRiskAssessment()
+    {
+        var risk = new RiskAssessmentResult
+        {
+            OverallRiskScore = 42,
+            RiskLevel = CRM.Infrastructure.Services.ITSM.RiskLevel.Medium
+        };
+        _mockImpactService.Setup(s => s.CalculateRiskScoreAsync(1)).ReturnsAsync(risk);
+
+        var result = await _controller.GetRiskScore(1);
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var body = okResult.Value.Should().BeOfType<RiskAssessmentResult>().Subject;
+        body.OverallRiskScore.Should().Be(42);
+    }
+
+    [Fact]
+    public async Task GetRiskScore_ShouldReturnNotFound_WhenServiceThrowsKeyNotFoundException()
+    {
+        _mockImpactService
+            .Setup(s => s.CalculateRiskScoreAsync(999))
+            .ThrowsAsync(new KeyNotFoundException("Change 999 not found"));
+
+        var result = await _controller.GetRiskScore(999);
+
+        result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetImpactNotifications_ShouldReturnOk_WithNotifications()
+    {
+        var notifications = new List<ImpactNotification>
+        {
+            new() { RecipientType = "Requestor", RecipientName = "Jane Doe", Priority = NotificationPriority.Normal }
+        };
+        _mockImpactService.Setup(s => s.GetImpactNotificationsAsync(1)).ReturnsAsync(notifications);
+
+        var result = await _controller.GetImpactNotifications(1);
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var body = okResult.Value.Should().BeAssignableTo<IEnumerable<ImpactNotification>>().Subject.ToList();
+        body.Should().ContainSingle().Which.RecipientName.Should().Be("Jane Doe");
+    }
+
+    [Fact]
+    public async Task GetImpactNotifications_ShouldReturnNotFound_WhenServiceThrowsKeyNotFoundException()
+    {
+        _mockImpactService
+            .Setup(s => s.GetImpactNotificationsAsync(999))
+            .ThrowsAsync(new KeyNotFoundException("Change 999 not found"));
+
+        var result = await _controller.GetImpactNotifications(999);
+
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 }

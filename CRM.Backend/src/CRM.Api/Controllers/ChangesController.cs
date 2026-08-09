@@ -8,6 +8,7 @@ using System.Security.Claims;
 using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
+using CRM.Infrastructure.Services.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,8 @@ namespace CRM.Api.Controllers;
 /// blackout periods, comments and metrics). Response/request shapes on this controller are
 /// intentionally aligned with <c>CRM.Frontend/src/services/changeService.ts</c> so the
 /// frontend does not need any changes.
+/// Also exposes the maintenance-window-aware scheduling assistant (<see cref="IChangeCalendarService"/>)
+/// and the deep change-triggered impact analysis service (<see cref="IChangeImpactService"/>).
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -30,6 +33,8 @@ namespace CRM.Api.Controllers;
 public class ChangesController : CrmControllerBase
 {
     private readonly IChangeManagementServiceEx _service;
+    private readonly IChangeCalendarService _changeCalendarService;
+    private readonly IChangeImpactService _changeImpactService;
     private readonly ILogger<ChangesController> _logger;
 
     /// <summary>
@@ -37,9 +42,13 @@ public class ChangesController : CrmControllerBase
     /// </summary>
     public ChangesController(
         IChangeManagementServiceEx service,
+        IChangeCalendarService changeCalendarService,
+        IChangeImpactService changeImpactService,
         ILogger<ChangesController> logger)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
+        _changeCalendarService = changeCalendarService ?? throw new ArgumentNullException(nameof(changeCalendarService));
+        _changeImpactService = changeImpactService ?? throw new ArgumentNullException(nameof(changeImpactService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -503,6 +512,121 @@ public class ChangesController : CrmControllerBase
     });
 
     // ────────────────────────────────────────────────────────────────
+    // Scheduling assistant (IChangeCalendarService) / impact analysis (IChangeImpactService)
+    // ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Finds available scheduling slots for a change, ranked by quality (maintenance-window
+    /// slots first), taking into account real blackout periods and other scheduled changes.
+    /// Wraps <see cref="IChangeCalendarService.FindAvailableSlotsAsync"/>.
+    /// </summary>
+    [HttpGet("available-slots")]
+    [ProducesResponseType(typeof(IEnumerable<AvailableSlot>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public Task<IActionResult> GetAvailableSlots(
+        [FromQuery] int changeRequestId,
+        [FromQuery] int durationMinutes,
+        [FromQuery] int daysAhead = 14) => ExecuteAsync(async () =>
+    {
+        _logger.LogInformation(
+            "Finding available slots for change {ChangeRequestId}: duration={DurationMinutes}m, daysAhead={DaysAhead}",
+            changeRequestId, durationMinutes, daysAhead);
+
+        var slots = await _changeCalendarService.FindAvailableSlotsAsync(changeRequestId, durationMinutes, daysAhead);
+        return Ok(slots);
+    });
+
+    /// <summary>
+    /// Gets the recurring maintenance windows suitable for scheduling changes.
+    /// Wraps <see cref="IChangeCalendarService.GetMaintenanceWindowsAsync"/>.
+    /// </summary>
+    [HttpGet("maintenance-windows")]
+    [ProducesResponseType(typeof(IEnumerable<MaintenanceWindow>), StatusCodes.Status200OK)]
+    public Task<IActionResult> GetMaintenanceWindows() => ExecuteAsync(async () =>
+    {
+        var windows = await _changeCalendarService.GetMaintenanceWindowsAsync();
+        return Ok(windows);
+    });
+
+    /// <summary>
+    /// Runs a full change-triggered impact analysis (risk scoring, impacted CIs/services,
+    /// notifications) via <see cref="IChangeImpactService.AnalyzeChangeImpactAsync"/>. Named
+    /// "-full" to distinguish it from the shallower CI-centric impact analysis exposed by
+    /// <c>CMDBController</c> (a different route, a different domain — CI-triggered rather than
+    /// change-triggered).
+    /// </summary>
+    [HttpGet("{id:int}/impact-analysis-full")]
+    [ProducesResponseType(typeof(ChangeImpactAnalysis), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public Task<IActionResult> GetImpactAnalysisFull(int id) => ExecuteAsync(async () =>
+    {
+        _logger.LogInformation("Running full impact analysis for change {Id}", id);
+        try
+        {
+            var analysis = await _changeImpactService.AnalyzeChangeImpactAsync(id);
+            return Ok(analysis);
+        }
+        catch (ArgumentException ex)
+        {
+            // ChangeImpactService throws ArgumentException (not KeyNotFoundException) when the
+            // change does not exist.
+            return NotFound(new { message = ex.Message });
+        }
+    });
+
+    /// <summary>
+    /// Gets all CIs directly or indirectly affected by changing a set of primary CIs, traversing
+    /// CMDB relationships up to <c>MaxDepth</c> hops. Wraps
+    /// <see cref="IChangeImpactService.GetImpactedCIsAsync"/>.
+    /// </summary>
+    [HttpPost("impact-analysis/impacted-cis")]
+    [ProducesResponseType(typeof(IEnumerable<ImpactedCI>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public Task<IActionResult> GetImpactedCIs([FromBody] GetImpactedCIsApiRequest request) => ExecuteAsync(async () =>
+    {
+        var cis = await _changeImpactService.GetImpactedCIsAsync(request.PrimaryCIIds, request.MaxDepth);
+        return Ok(cis);
+    });
+
+    /// <summary>
+    /// Gets all services affected by a change. Wraps <see cref="IChangeImpactService.GetImpactedServicesAsync"/>.
+    /// </summary>
+    [HttpGet("{id:int}/impacted-services")]
+    [ProducesResponseType(typeof(IEnumerable<ImpactedService>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public Task<IActionResult> GetImpactedServices(int id) => ExecuteAsync(async () =>
+    {
+        var services = await _changeImpactService.GetImpactedServicesAsync(id);
+        return Ok(services);
+    });
+
+    /// <summary>
+    /// Calculates the overall risk score for a change based on impact analysis. Wraps
+    /// <see cref="IChangeImpactService.CalculateRiskScoreAsync"/>.
+    /// </summary>
+    [HttpGet("{id:int}/risk-score")]
+    [ProducesResponseType(typeof(RiskAssessmentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public Task<IActionResult> GetRiskScore(int id) => ExecuteAsync(async () =>
+    {
+        var risk = await _changeImpactService.CalculateRiskScoreAsync(id);
+        return Ok(risk);
+    });
+
+    /// <summary>
+    /// Gets the list of stakeholders who should be notified of a change's impact. Wraps
+    /// <see cref="IChangeImpactService.GetImpactNotificationsAsync"/>.
+    /// </summary>
+    [HttpGet("{id:int}/impact-notifications")]
+    [ProducesResponseType(typeof(IEnumerable<ImpactNotification>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public Task<IActionResult> GetImpactNotifications(int id) => ExecuteAsync(async () =>
+    {
+        var notifications = await _changeImpactService.GetImpactNotificationsAsync(id);
+        return Ok(notifications);
+    });
+
+    // ────────────────────────────────────────────────────────────────
     // Helpers
     // ────────────────────────────────────────────────────────────────
 
@@ -814,6 +938,13 @@ public class RollbackChangeApiRequest
 public class AddChangeCommentApiRequest
 {
     public string Content { get; set; } = string.Empty;
+}
+
+/// <summary>Request body for <c>POST /changes/impact-analysis/impacted-cis</c>.</summary>
+public class GetImpactedCIsApiRequest
+{
+    public List<int> PrimaryCIIds { get; set; } = new();
+    public int MaxDepth { get; set; } = 3;
 }
 
 /// <summary>
