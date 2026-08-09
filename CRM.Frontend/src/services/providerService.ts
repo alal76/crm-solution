@@ -64,12 +64,22 @@ export const PROVIDER_CATEGORIES = [
   'Signatures',
   'AI',
   'Integrations',
+  'Accounting',
+  'Marketing',
+  'Scheduling',
+  'GeoIP',
+  'LinkedIn',
 ] as const;
 
 export type ProviderCategory = typeof PROVIDER_CATEGORIES[number];
 
-// Map a category to its feature flag key (mirrors FeatureFlags.cs)
-export const CATEGORY_FEATURE_FLAG: Record<ProviderCategory, keyof ProviderFeatureFlagsDto> = {
+// Map a category to its feature flag key (mirrors FeatureFlags.cs). The 5 business
+// connector categories (Accounting/Marketing/Scheduling/GeoIP/LinkedIn) have no
+// corresponding global on/off feature flag on the backend -- they're always-available
+// connector categories gated per-provider by configuration, not a subsystem toggle like
+// Search/Chat -- so they're intentionally absent from this map rather than given a
+// fabricated key.
+export const CATEGORY_FEATURE_FLAG: Partial<Record<ProviderCategory, keyof ProviderFeatureFlagsDto>> = {
   Search: 'useExternalSearch',
   Chat: 'useExternalChat',
   Notifications: 'useExternalNotifications',

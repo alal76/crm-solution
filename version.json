@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 31,
+  "patch": 32,
   "lastUpdate": "2026-08-09",
-  "description": "feat: real backend for Report Templates Marketplace (REV-FE-003 closed)",
+  "description": "fix: /admin/providers now shows tabs for the 5 provider categories wired in round 7",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
