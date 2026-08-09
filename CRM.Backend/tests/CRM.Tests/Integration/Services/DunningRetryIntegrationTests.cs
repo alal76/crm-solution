@@ -4,15 +4,20 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Providers.Stripe;
 using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -21,11 +26,16 @@ namespace CRM.Tests.Integration.Services;
 /// <summary>
 /// Integration tests for dunning retry and cancellation flow.
 /// TODO-SALES006-046: Test dunning retry logic with escalation and eventual cancellation.
+/// REV-STUB-012/013: Also covers the real Stripe charge attempt path (success + decline) and
+/// the "no payment method on file" fallback path, using a fake HttpMessageHandler
+/// (<see cref="CRM.Tests.Services.StripeMockHandler"/>) so StripeIntegrationService never
+/// makes a real network call — mirrors the pattern in StripeIntegrationServiceTests.
 /// </summary>
 public class DunningRetryIntegrationTests : IDisposable
 {
     private readonly CrmDbContext _context;
     private readonly DunningManager _dunningManager;
+    private readonly CRM.Tests.Services.StripeMockHandler _defaultStripeHandler;
 
     public DunningRetryIntegrationTests()
     {
@@ -36,9 +46,48 @@ public class DunningRetryIntegrationTests : IDisposable
         _context = new CrmDbContext(options, new Mock<IConfiguration>().Object);
 
         var logger = new Mock<ILogger<DunningManager>>();
-        _dunningManager = new DunningManager(_context, logger.Object);
+        // Default: Stripe is never actually reached in most tests below because seeded
+        // subscriptions have no StripeCustomerId/StripePaymentMethodId. The response body here
+        // is unused unless a test opts in via CreateManagerWithStripeResponse.
+        var stripeService = CreateStripeService(HttpStatusCode.OK, "{}", out _defaultStripeHandler);
+        _dunningManager = new DunningManager(_context, logger.Object, stripeService);
 
         SeedTestData();
+    }
+
+    // ── Stripe test helpers (mirrors StripeIntegrationServiceTests' StripeMockHandler pattern) ──
+
+    private static StripeConfiguration ValidStripeConfig() => new()
+    {
+        SecretKey = "sk_test_fake",
+        PublishableKey = "pk_test_fake",
+        WebhookSecret = "whsec_test_fake",
+        WebhookToleranceSeconds = 300,
+        ApiVersion = "2024-06-20"
+    };
+
+    private static StripeIntegrationService CreateStripeService(
+        HttpStatusCode responseStatus,
+        string responseBody,
+        out CRM.Tests.Services.StripeMockHandler handler)
+    {
+        handler = new CRM.Tests.Services.StripeMockHandler(responseStatus, responseBody);
+        var httpClient = new HttpClient(handler);
+        var options = Options.Create(ValidStripeConfig());
+        var logger = new Mock<ILogger<StripeIntegrationService>>();
+        return new StripeIntegrationService(options, httpClient, logger.Object);
+    }
+
+    /// <summary>
+    /// Builds a DunningManager wired to a StripeIntegrationService whose HTTP layer is faked to
+    /// return the given canned response — used by tests that need a real (successful or
+    /// declined) charge attempt.
+    /// </summary>
+    private DunningManager CreateManagerWithStripeResponse(HttpStatusCode status, string body)
+    {
+        var stripeService = CreateStripeService(status, body, out _);
+        var logger = new Mock<ILogger<DunningManager>>();
+        return new DunningManager(_context, logger.Object, stripeService);
     }
 
     private void SeedTestData()
@@ -382,5 +431,159 @@ public class DunningRetryIntegrationTests : IDisposable
         subscription!.LastDunningDate.Should().NotBeNull();
         subscription.LastDunningDate!.Value.Date.Should().Be(DateTime.UtcNow.Date);
         subscription.DunningAttemptCount.Should().Be(1);
+    }
+
+    // ========================================================================
+    // REV-STUB-012/013: Real Stripe charge attempt on dunning retry
+    // ========================================================================
+
+    [Fact]
+    public async Task RetryFailedPayment_ShouldAttemptRealCharge_AndSucceed_WhenStripePaymentMethodOnFile()
+    {
+        // Arrange — subscription has a saved Stripe customer + payment method on file, so the
+        // retry should attempt a real off-session PaymentIntent charge instead of just scheduling.
+        var subscription = await _context.Subscriptions.FindAsync(1);
+        subscription!.StripeCustomerId = "cus_test_123";
+        subscription.StripePaymentMethodId = "pm_test_visa";
+        await _context.SaveChangesAsync();
+
+        var failedPayment = new Payment
+        {
+            InvoiceId = 1,
+            SubscriptionId = 1,
+            AccountId = 1,
+            Amount = 100m,
+            CurrencyCode = "USD",
+            Status = PaymentStatus.Failed,
+            ScheduledDate = DateTime.UtcNow.AddDays(-1),
+            RetryCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Payments.Add(failedPayment);
+        await _context.SaveChangesAsync();
+
+        const string succeededJson = """
+        {
+          "id": "pi_dunning_success_1",
+          "object": "payment_intent",
+          "amount": 10000,
+          "currency": "usd",
+          "status": "succeeded",
+          "client_secret": "pi_dunning_success_1_secret"
+        }
+        """;
+        var manager = CreateManagerWithStripeResponse(HttpStatusCode.OK, succeededJson);
+
+        // Act
+        var result = await manager.RetryFailedPaymentAsync(failedPayment.Id, CancellationToken.None);
+
+        // Assert — a real charge was attempted and succeeded
+        result.PaymentSucceeded.Should().BeTrue();
+        result.Status.Should().Be("Succeeded");
+        result.Message.Should().Contain("pi_dunning_success_1");
+        result.NextRetryDate.Should().BeNull();
+        result.IsExhausted.Should().BeFalse();
+
+        var updatedPayment = await _context.Payments.FindAsync(failedPayment.Id);
+        updatedPayment!.Status.Should().Be(PaymentStatus.Completed);
+        updatedPayment.GatewayTransactionId.Should().Be("pi_dunning_success_1");
+        updatedPayment.Gateway.Should().Be("Stripe");
+        updatedPayment.ScheduledDate.Should().BeNull();
+        updatedPayment.ProcessedDate.Should().NotBeNull();
+
+        var updatedSubscription = await _context.Subscriptions.FindAsync(1);
+        updatedSubscription!.DunningAttemptCount.Should().Be(1);
+        updatedSubscription.LastDunningDate.Should().NotBeNull();
+        // A successful real charge must not pause/cancel the subscription.
+        updatedSubscription.SubscriptionStatus.Should().Be(SubscriptionStatus.Active);
+    }
+
+    [Fact]
+    public async Task RetryFailedPayment_ShouldAttemptRealCharge_AndReportDecline_WhenStripePaymentMethodOnFile()
+    {
+        // Arrange — saved payment method on file, but Stripe declines the charge.
+        var subscription = await _context.Subscriptions.FindAsync(1);
+        subscription!.StripeCustomerId = "cus_test_456";
+        subscription.StripePaymentMethodId = "pm_test_declined";
+        await _context.SaveChangesAsync();
+
+        var failedPayment = new Payment
+        {
+            InvoiceId = 1,
+            SubscriptionId = 1,
+            AccountId = 1,
+            Amount = 75m,
+            CurrencyCode = "USD",
+            Status = PaymentStatus.Failed,
+            ScheduledDate = DateTime.UtcNow.AddDays(-1),
+            RetryCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Payments.Add(failedPayment);
+        await _context.SaveChangesAsync();
+
+        const string declinedJson = """
+        {
+          "error": {
+            "type": "card_error",
+            "code": "card_declined",
+            "decline_code": "generic_decline",
+            "message": "Your card was declined."
+          }
+        }
+        """;
+        var manager = CreateManagerWithStripeResponse(HttpStatusCode.PaymentRequired, declinedJson);
+
+        // Act
+        var result = await manager.RetryFailedPaymentAsync(failedPayment.Id, CancellationToken.None);
+
+        // Assert — this is "we tried and Stripe declined it", distinct from "no payment method"
+        result.PaymentSucceeded.Should().BeFalse();
+        result.Status.Should().Be("Declined");
+        result.Status.Should().NotBe("NoPaymentMethodOnFile");
+        result.Message.Should().Contain("declined");
+        result.NextRetryDate.Should().NotBeNull();
+        result.EscalationLevel.Should().Be(DunningEscalationLevel.Soft);
+
+        var updatedPayment = await _context.Payments.FindAsync(failedPayment.Id);
+        updatedPayment!.Status.Should().Be(PaymentStatus.Failed);
+        updatedPayment.RetryCount.Should().Be(1);
+        updatedPayment.ScheduledDate.Should().NotBeNull();
+        updatedPayment.FailureReason.Should().Contain("declined");
+    }
+
+    [Fact]
+    public async Task RetryFailedPayment_ShouldReportNoPaymentMethodOnFile_WhenSubscriptionHasNoStripeReference()
+    {
+        // Arrange — subscription (seeded in SeedTestData) has no StripeCustomerId/StripePaymentMethodId.
+        var failedPayment = new Payment
+        {
+            InvoiceId = 1,
+            SubscriptionId = 1,
+            AccountId = 1,
+            Amount = 50m,
+            CurrencyCode = "USD",
+            Status = PaymentStatus.Failed,
+            ScheduledDate = DateTime.UtcNow.AddDays(-1),
+            RetryCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Payments.Add(failedPayment);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _dunningManager.RetryFailedPaymentAsync(failedPayment.Id, CancellationToken.None);
+
+        // Assert — distinguishable from the "Declined" case above via Status/Message
+        result.PaymentSucceeded.Should().BeFalse();
+        result.Status.Should().Be("NoPaymentMethodOnFile");
+        result.Message.Should().Contain("No payment method on file");
+        result.NextRetryDate.Should().NotBeNull();
+
+        // Confirm Stripe was never actually called — the branch is skipped locally, not attempted and failed.
+        _defaultStripeHandler.Requests.Should().BeEmpty();
     }
 }

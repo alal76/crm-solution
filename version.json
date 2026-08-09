@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 29,
+  "patch": 30,
   "lastUpdate": "2026-08-09",
-  "description": "feat: replace stale Coming Soon cards on IntegrationsSettingsPage with real connector links",
+  "description": "feat: wire DunningManager to real off-session Stripe charges (REV-STUB-012/013 closed)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {

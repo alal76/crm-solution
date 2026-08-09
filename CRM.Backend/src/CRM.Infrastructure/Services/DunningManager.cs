@@ -23,6 +23,13 @@ namespace CRM.Infrastructure.Services;
 ///
 /// Runs twice daily via background job processor.
 ///
+/// Payment retries (REV-STUB-012/013): when the subscription has a Stripe customer + saved
+/// payment method on file (<see cref="Subscription.StripeCustomerId"/> /
+/// <see cref="Subscription.StripePaymentMethodId"/>), a real off-session PaymentIntent charge
+/// is attempted via <see cref="StripeIntegrationService"/>. Subscriptions without a saved
+/// payment method on file (e.g. created before checkout captured one) fall back to the
+/// original "schedule next retry, no charge attempted" behavior.
+///
 /// PHASE 6: Subscription Billing Services (25 hours)
 /// SPEC: SPEC-SALES-006
 /// </summary>
@@ -30,13 +37,16 @@ public class DunningManager : IDunningManager
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<DunningManager> _logger;
+    private readonly StripeIntegrationService _stripeService;
 
     public DunningManager(
         ICrmDbContext context,
-        ILogger<DunningManager> logger)
+        ILogger<DunningManager> logger,
+        StripeIntegrationService stripeService)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _stripeService = stripeService ?? throw new ArgumentNullException(nameof(stripeService));
     }
 
     public async Task<DunningCycleResultDto> ProcessDunningAsync(CancellationToken cancellationToken)
@@ -64,9 +74,11 @@ public class DunningManager : IDunningManager
                     var retryResult = await RetryFailedPaymentAsync(payment.Id, cancellationToken);
                     result.ProcessedCount++;
 
-                    // TODO: Track successful retries when payment gateway is integrated // NOSONAR
-                    // (retryResult.PaymentSucceeded is always false until then)
-                    if (retryResult.EscalationLevel == DunningEscalationLevel.Escalated)
+                    if (retryResult.PaymentSucceeded)
+                    {
+                        result.SuccessfulRetries++;
+                    }
+                    else if (retryResult.EscalationLevel == DunningEscalationLevel.Escalated)
                     {
                         result.EscalatedCount++;
                     }
@@ -161,10 +173,41 @@ public class DunningManager : IDunningManager
             _ => DunningEscalationLevel.Exhausted
         };
 
-        // TODO: Integrate real payment gateway — paymentSucceeded is currently always false // NOSONAR
-        // When payment gateway is integrated, replace 'false' literals below with actual result
+        // --- REV-STUB-012/013: Attempt a real Stripe charge when a payment method is on file ---
+        // A real off-session retry charge is only possible when the subscription has a saved
+        // Stripe customer + payment method (captured at checkout). Subscriptions created before
+        // that capture flow existed — i.e. all subscriptions today — will not have these
+        // populated, so this falls through to the original "schedule next retry" behavior below.
+        linkedSubscription ??= await ResolveSubscriptionFromPaymentAsync(payment, cancellationToken);
+        var hasStripePaymentMethodOnFile = !string.IsNullOrWhiteSpace(linkedSubscription?.StripeCustomerId)
+            && !string.IsNullOrWhiteSpace(linkedSubscription?.StripePaymentMethodId);
+        string? declineMessage = null;
 
-        // Schedule next retry (payment gateway integration pending)
+        if (hasStripePaymentMethodOnFile)
+        {
+            var chargeResult = await AttemptStripeChargeAsync(payment, linkedSubscription!);
+
+            if (chargeResult.Success)
+            {
+                return await RecordSuccessfulRetryAsync(
+                    payment, linkedSubscription!, attemptNumber, escalationLevel, chargeResult, cancellationToken);
+            }
+
+            declineMessage = chargeResult.ErrorMessage ?? "Stripe declined the payment.";
+            payment.FailureReason = declineMessage;
+            _logger.LogWarning(
+                "Dunning retry charge declined by Stripe for payment {PaymentId}, attempt {Attempt}: {Reason} (code: {Code})",
+                paymentId, attemptNumber, declineMessage, chargeResult.ErrorCode);
+        }
+        else
+        {
+            _logger.LogInformation(
+                "Dunning retry for payment {PaymentId}, attempt {Attempt}: no Stripe payment method on file for the subscription — scheduling next retry without attempting a charge.",
+                paymentId, attemptNumber);
+        }
+
+        // Schedule next retry — reached when there is no Stripe payment method on file, or the
+        // real charge attempt above was declined/failed.
         {
             var nextDays = attemptNumber switch
             {
@@ -215,7 +258,8 @@ public class DunningManager : IDunningManager
         await _context.SaveChangesAsync(cancellationToken);
 
         // --- TODO-SALES006-025: Send dunning escalation email after each failed retry ---
-        // Payment retry always fails until payment gateway is integrated
+        // Reached only for the failure paths above (no payment method on file, or Stripe
+        // declined the charge) — a successful charge returns early in RecordSuccessfulRetryAsync.
         if (linkedSubscription?.SendDunningEscalationEmails == true)
         {
             try
@@ -238,16 +282,117 @@ public class DunningManager : IDunningManager
             nextRetryDate = null;
         }
 
+        // Distinguish "we tried and Stripe declined it" from "no payment method on file" so an
+        // operator reading DunningRetryResultDto/logs can tell the two failure modes apart.
+        var status = hasStripePaymentMethodOnFile ? "Declined" : "NoPaymentMethodOnFile";
+        var message = hasStripePaymentMethodOnFile
+            ? $"Stripe declined the payment ({declineMessage}). Retry scheduled for {nextRetryDate:yyyy-MM-dd}"
+            : $"No payment method on file. Retry scheduled for {nextRetryDate:yyyy-MM-dd}";
+
         return new DunningRetryResultDto
         {
             PaymentId = paymentId,
             AttemptNumber = attemptNumber,
-            PaymentSucceeded = false, // Payment gateway integration required — not available without external payment provider
-            Status = "Scheduled",
-            Message = $"Retry scheduled for {nextRetryDate:yyyy-MM-dd}",
+            PaymentSucceeded = false,
+            Status = status,
+            Message = message,
             NextRetryDate = nextRetryDate,
             EscalationLevel = escalationLevel,
             IsExhausted = attemptNumber > 3
+        };
+    }
+
+    /// <summary>
+    /// Result of a real Stripe charge attempt for a dunning retry.
+    /// </summary>
+    private sealed record StripeChargeAttemptResult(
+        bool Success,
+        string? PaymentIntentId,
+        string? Status,
+        string? ErrorMessage,
+        string? ErrorCode);
+
+    /// <summary>
+    /// Attempts a real off-session Stripe PaymentIntent charge against the saved customer +
+    /// payment method on the subscription. Uses <see cref="StripeIntegrationService.CreatePaymentIntentAsync"/>
+    /// with a payment method + off_session=true, which creates and confirms the PaymentIntent
+    /// in a single call — Stripe's documented flow for merchant-initiated (no customer present)
+    /// charges against a payment method saved from an earlier checkout.
+    /// </summary>
+    private async Task<StripeChargeAttemptResult> AttemptStripeChargeAsync(Payment payment, Subscription subscription)
+    {
+        var amountInCents = (long)Math.Round(payment.Amount * 100m, MidpointRounding.AwayFromZero);
+        var currency = string.IsNullOrWhiteSpace(payment.CurrencyCode) ? "usd" : payment.CurrencyCode.ToLowerInvariant();
+
+        var result = await _stripeService.CreatePaymentIntentAsync(
+            amount: amountInCents,
+            currency: currency,
+            customerId: subscription.StripeCustomerId,
+            description: $"Dunning retry for payment {payment.PaymentNumber} (subscription {subscription.SubscriptionNumber})",
+            metadata: new Dictionary<string, string>
+            {
+                ["paymentId"] = payment.Id.ToString(),
+                ["subscriptionId"] = subscription.Id.ToString(),
+                ["dunningRetry"] = "true"
+            },
+            paymentMethodId: subscription.StripePaymentMethodId,
+            offSession: true);
+
+        var succeeded = result.Success && string.Equals(result.Status, "succeeded", StringComparison.OrdinalIgnoreCase);
+        if (succeeded)
+        {
+            return new StripeChargeAttemptResult(true, result.PaymentIntentId, result.Status, null, null);
+        }
+
+        var errorMessage = result.ErrorMessage
+            ?? $"Payment intent status '{result.Status}' did not settle immediately.";
+
+        return new StripeChargeAttemptResult(false, result.PaymentIntentId, result.Status, errorMessage, result.ErrorCode);
+    }
+
+    /// <summary>
+    /// Records a successful real-charge dunning retry: marks the payment completed, updates
+    /// subscription dunning tracking, and returns a result with PaymentSucceeded = true.
+    /// No further retry is scheduled and no escalation email is sent.
+    /// </summary>
+    private async Task<DunningRetryResultDto> RecordSuccessfulRetryAsync(
+        Payment payment,
+        Subscription subscription,
+        int attemptNumber,
+        DunningEscalationLevel escalationLevel,
+        StripeChargeAttemptResult chargeResult,
+        CancellationToken cancellationToken)
+    {
+        payment.Status = PaymentStatus.Completed;
+        payment.ProcessedDate = DateTime.UtcNow;
+        payment.RetryCount = attemptNumber;
+        payment.ScheduledDate = null;
+        payment.Gateway = "Stripe";
+        payment.GatewayTransactionId = chargeResult.PaymentIntentId;
+        payment.GatewayResponseCode = chargeResult.Status;
+        payment.FailureReason = null;
+        _context.Payments.Update(payment);
+
+        subscription.LastDunningDate = DateTime.UtcNow;
+        subscription.DunningAttemptCount = attemptNumber;
+        _context.Subscriptions.Update(subscription);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Dunning retry succeeded via Stripe for payment {PaymentId}, attempt {Attempt}, PaymentIntent {PaymentIntentId}",
+            payment.Id, attemptNumber, chargeResult.PaymentIntentId);
+
+        return new DunningRetryResultDto
+        {
+            PaymentId = payment.Id,
+            AttemptNumber = attemptNumber,
+            PaymentSucceeded = true,
+            Status = "Succeeded",
+            Message = $"Payment succeeded via Stripe (PaymentIntent {chargeResult.PaymentIntentId}).",
+            NextRetryDate = null,
+            EscalationLevel = escalationLevel,
+            IsExhausted = false
         };
     }
 

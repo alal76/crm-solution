@@ -190,4 +190,7 @@ public class PaymentIntentResultDto
 
     /// <summary>Error message if failed</summary>
     public string? ErrorMessage { get; set; }
+
+    /// <summary>Stripe error code if failed (e.g. "card_declined", "insufficient_funds")</summary>
+    public string? ErrorCode { get; set; }
 }

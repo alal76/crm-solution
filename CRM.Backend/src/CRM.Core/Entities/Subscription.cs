@@ -294,6 +294,28 @@ public class Subscription : BaseEntity, IHasDomainEvents
 
     #endregion
 
+    #region Payment Gateway (REV-STUB-012/013)
+
+    /// <summary>
+    /// Stripe Customer ID (cus_xxx) for this subscription's billing account.
+    /// Populated when the customer completes checkout with a saved payment method.
+    /// Null for subscriptions created before Stripe checkout capture was wired up, or for
+    /// subscriptions billed via a non-Stripe payment method — dunning retries gracefully skip
+    /// the real charge attempt (see DunningManager.RetryFailedPaymentAsync) when this is null.
+    /// </summary>
+    [MaxLength(255)]
+    public string? StripeCustomerId { get; set; }
+
+    /// <summary>
+    /// Stripe PaymentMethod ID (pm_xxx) saved on file for off-session/dunning retry charges.
+    /// Null until the subscription checkout flow captures and saves a payment method
+    /// (that capture flow is a separate, not-yet-implemented change).
+    /// </summary>
+    [MaxLength(255)]
+    public string? StripePaymentMethodId { get; set; }
+
+    #endregion
+
     #region Dunning Configuration (TODO-SALES006-025)
 
     /// <summary>Grace period in days before full suspension (default 3 days)</summary>

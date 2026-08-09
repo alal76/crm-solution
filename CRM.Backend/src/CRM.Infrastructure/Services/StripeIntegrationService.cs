@@ -59,13 +59,27 @@ public class StripeIntegrationService
     /// <param name="customerId">Optional Stripe customer ID</param>
     /// <param name="description">Payment description</param>
     /// <param name="metadata">Additional metadata</param>
+    /// <param name="paymentMethodId">
+    /// Optional saved Stripe PaymentMethod ID (pm_xxx) to charge immediately. When supplied,
+    /// the PaymentIntent is created and confirmed in the same call — used for off-session
+    /// charges against a payment method saved on a previous checkout (e.g. dunning retries).
+    /// Additive parameter; existing callers that only create a client-confirmed intent are
+    /// unaffected because it defaults to null.
+    /// </param>
+    /// <param name="offSession">
+    /// When true (and <paramref name="paymentMethodId"/> is supplied), tells Stripe this is an
+    /// off-session/merchant-initiated charge (no customer present), matching Stripe's documented
+    /// saved-card/dunning-retry semantics for <c>PaymentIntentCreateOptions.OffSession</c>.
+    /// </param>
     /// <returns>PaymentIntent result with client_secret</returns>
     public async Task<PaymentIntentResultDto> CreatePaymentIntentAsync(
         long amount,
         string currency = "usd",
         string? customerId = null,
         string? description = null,
-        Dictionary<string, string>? metadata = null)
+        Dictionary<string, string>? metadata = null,
+        string? paymentMethodId = null,
+        bool offSession = false)
     {
         try
         {
@@ -90,6 +104,17 @@ public class StripeIntegrationService
                 Metadata = metadata
             };
 
+            if (!string.IsNullOrEmpty(paymentMethodId))
+            {
+                // Saved-card / off-session charge (e.g. dunning retry): confirm in the same call.
+                options.PaymentMethod = paymentMethodId;
+                options.Confirm = true;
+                if (offSession)
+                {
+                    options.OffSession = true;
+                }
+            }
+
             var service = new PaymentIntentService(_stripeClient);
             var paymentIntent = await service.CreateAsync(options).ConfigureAwait(false);
 
@@ -111,7 +136,8 @@ public class StripeIntegrationService
             return new PaymentIntentResultDto
             {
                 Success = false,
-                ErrorMessage = ex.StripeError?.Message ?? ex.Message
+                ErrorMessage = ex.StripeError?.Message ?? ex.Message,
+                ErrorCode = ex.StripeError?.Code ?? "stripe_error"
             };
         }
         catch (Exception ex)
@@ -120,7 +146,8 @@ public class StripeIntegrationService
             return new PaymentIntentResultDto
             {
                 Success = false,
-                ErrorMessage = ex.Message
+                ErrorMessage = ex.Message,
+                ErrorCode = "payment_intent_error"
             };
         }
     }
