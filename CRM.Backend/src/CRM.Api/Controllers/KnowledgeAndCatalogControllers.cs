@@ -9,6 +9,7 @@ using System.Security.Claims;
 using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces.ITSM;
+using CRM.Infrastructure.Services.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Api.Infrastructure;
@@ -294,14 +295,23 @@ public class KnowledgeController : CrmControllerBase
 public class CatalogController : CrmControllerBase
 {
     private readonly IServiceCatalogService _catalogService;
+    private readonly ICatalogApprovalService _approvalService;
+    private readonly ICatalogFulfillmentService _fulfillmentService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CatalogController"/> class.
     /// </summary>
     /// <param name="catalogService">The service catalog service.</param>
-    public CatalogController(IServiceCatalogService catalogService)
+    /// <param name="approvalService">The catalog request approval workflow service.</param>
+    /// <param name="fulfillmentService">The catalog request fulfillment automation service.</param>
+    public CatalogController(
+        IServiceCatalogService catalogService,
+        ICatalogApprovalService approvalService,
+        ICatalogFulfillmentService fulfillmentService)
     {
         _catalogService = catalogService;
+        _approvalService = approvalService;
+        _fulfillmentService = fulfillmentService;
     }
 
     /// <summary>
@@ -448,6 +458,289 @@ public class CatalogController : CrmControllerBase
         return result ? Ok() : BadRequest("Unable to cancel request");
     }
 
+    // ────────────────────────────────────────────────────────────────
+    // Catalog request approval workflow
+    // ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Submit a catalog request for approval.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID</param>
+    /// <returns>The created (or auto-approved) approval workflow</returns>
+    [HttpPost("requests/{requestId}/approval/submit")]
+    [ProducesResponseType(typeof(ApprovalWorkflow), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApprovalWorkflow>> SubmitForApproval(int requestId)
+    {
+        try
+        {
+            var workflow = await _approvalService.SubmitForApprovalAsync(requestId, GetCurrentUserId());
+            return Ok(workflow);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Get the current approval status for a catalog request.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID</param>
+    /// <returns>The approval workflow, if one exists</returns>
+    [HttpGet("requests/{requestId}/approval/status")]
+    [ProducesResponseType(typeof(ApprovalWorkflow), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApprovalWorkflow>> GetApprovalStatus(int requestId)
+    {
+        var workflow = await _approvalService.GetApprovalStatusAsync(requestId);
+        return workflow == null ? NotFound() : Ok(workflow);
+    }
+
+    /// <summary>
+    /// Get the approval action history for a catalog request.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID</param>
+    /// <returns>List of approval actions taken</returns>
+    [HttpGet("requests/{requestId}/approval/history")]
+    [ProducesResponseType(typeof(IEnumerable<ApprovalAction>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ApprovalAction>>> GetApprovalHistory(int requestId)
+    {
+        var history = await _approvalService.GetApprovalHistoryAsync(requestId);
+        return Ok(history);
+    }
+
+    /// <summary>
+    /// Withdraw a pending approval request.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID</param>
+    /// <param name="dto">Withdrawal reason</param>
+    /// <returns>Success or failure</returns>
+    [HttpPost("requests/{requestId}/approval/withdraw")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> WithdrawApproval(int requestId, [FromBody] ReasonRequest dto)
+    {
+        var result = await _approvalService.WithdrawApprovalAsync(requestId, GetCurrentUserId(), dto.Reason);
+        return result ? Ok() : BadRequest("Unable to withdraw approval");
+    }
+
+    /// <summary>
+    /// Process an approval decision (approve/reject/etc.) for a workflow stage.
+    /// </summary>
+    /// <param name="workflowId">The approval workflow ID</param>
+    /// <param name="dto">The decision and optional comments</param>
+    /// <returns>The recorded approval action</returns>
+    [HttpPost("approval/workflows/{workflowId}/process")]
+    [ProducesResponseType(typeof(ApprovalAction), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApprovalAction>> ProcessApproval(int workflowId, [FromBody] ProcessApprovalRequest dto)
+    {
+        try
+        {
+            var action = await _approvalService.ProcessApprovalAsync(workflowId, GetCurrentUserId(), dto.Decision, dto.Comments);
+            return Ok(action);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Escalate an overdue approval workflow.
+    /// </summary>
+    /// <param name="workflowId">The approval workflow ID</param>
+    /// <param name="dto">Escalation reason</param>
+    /// <returns>Success or failure</returns>
+    [HttpPost("approval/workflows/{workflowId}/escalate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> EscalateApproval(int workflowId, [FromBody] ReasonRequest dto)
+    {
+        var result = await _approvalService.EscalateApprovalAsync(workflowId, dto.Reason);
+        return result ? Ok() : NotFound();
+    }
+
+    /// <summary>
+    /// Get pending approvals assigned to the current user.
+    /// </summary>
+    /// <returns>List of pending approval items</returns>
+    [HttpGet("approval/pending")]
+    [ProducesResponseType(typeof(IEnumerable<PendingServiceRequestApproval>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<PendingServiceRequestApproval>>> GetPendingApprovals()
+    {
+        var pending = await _approvalService.GetPendingApprovalsAsync(GetCurrentUserId());
+        return Ok(pending);
+    }
+
+    /// <summary>
+    /// Get the approval rule configuration for a catalog item.
+    /// </summary>
+    /// <param name="catalogItemId">The catalog item ID</param>
+    /// <returns>The approval rule</returns>
+    [HttpGet("items/{catalogItemId}/approval-rule")]
+    [ProducesResponseType(typeof(CatalogApprovalRule), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CatalogApprovalRule>> GetApprovalRule(int catalogItemId)
+    {
+        var rule = await _approvalService.GetApprovalRuleAsync(catalogItemId);
+        return Ok(rule);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // Catalog request fulfillment automation
+    // ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Start fulfillment of an approved catalog request.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID</param>
+    /// <returns>The fulfillment workflow</returns>
+    [HttpPost("requests/{requestId}/fulfillment/start")]
+    [ProducesResponseType(typeof(FulfillmentWorkflow), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FulfillmentWorkflow>> StartFulfillment(int requestId)
+    {
+        try
+        {
+            var workflow = await _fulfillmentService.StartFulfillmentAsync(requestId);
+            return Ok(workflow);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Get the current fulfillment status for a catalog request.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID</param>
+    /// <returns>The fulfillment workflow, if one exists</returns>
+    [HttpGet("requests/{requestId}/fulfillment")]
+    [ProducesResponseType(typeof(FulfillmentWorkflow), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FulfillmentWorkflow>> GetFulfillmentStatus(int requestId)
+    {
+        var workflow = await _fulfillmentService.GetFulfillmentStatusAsync(requestId);
+        return workflow == null ? NotFound() : Ok(workflow);
+    }
+
+    /// <summary>
+    /// Cancel fulfillment of a catalog request.
+    /// </summary>
+    /// <param name="requestId">The catalog request ID</param>
+    /// <param name="dto">Cancellation reason</param>
+    /// <returns>Success or failure</returns>
+    [HttpPost("requests/{requestId}/fulfillment/cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> CancelFulfillment(int requestId, [FromBody] ReasonRequest dto)
+    {
+        var result = await _fulfillmentService.CancelFulfillmentAsync(requestId, dto.Reason, GetCurrentUserId());
+        return result ? Ok() : BadRequest("Unable to cancel fulfillment");
+    }
+
+    /// <summary>
+    /// Complete a fulfillment task.
+    /// </summary>
+    /// <param name="taskId">The fulfillment task ID</param>
+    /// <param name="dto">Optional completion notes</param>
+    /// <returns>The completed task</returns>
+    [HttpPost("fulfillment/tasks/{taskId}/complete")]
+    [ProducesResponseType(typeof(FulfillmentTask), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<FulfillmentTask>> CompleteFulfillmentTask(int taskId, [FromBody] CompleteFulfillmentTaskRequest dto)
+    {
+        try
+        {
+            var task = await _fulfillmentService.CompleteTaskAsync(taskId, GetCurrentUserId(), dto.Notes);
+            return Ok(task);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Execute an automated fulfillment task.
+    /// </summary>
+    /// <param name="taskId">The fulfillment task ID</param>
+    /// <returns>The automation execution result</returns>
+    [HttpPost("fulfillment/tasks/{taskId}/automate")]
+    [ProducesResponseType(typeof(AutomationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AutomationResult>> ExecuteFulfillmentAutomation(int taskId)
+    {
+        try
+        {
+            var result = await _fulfillmentService.ExecuteAutomationAsync(taskId);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Get the fulfillment template for a catalog item.
+    /// </summary>
+    /// <param name="catalogItemId">The catalog item ID</param>
+    /// <returns>The fulfillment template</returns>
+    [HttpGet("items/{catalogItemId}/fulfillment-template")]
+    [ProducesResponseType(typeof(FulfillmentTemplate), StatusCodes.Status200OK)]
+    public async Task<ActionResult<FulfillmentTemplate>> GetFulfillmentTemplate(int catalogItemId)
+    {
+        var template = await _fulfillmentService.GetFulfillmentTemplateAsync(catalogItemId);
+        return Ok(template);
+    }
+
+    /// <summary>
+    /// Create or update the fulfillment template for a catalog item.
+    /// </summary>
+    /// <param name="catalogItemId">The catalog item ID</param>
+    /// <param name="template">The template definition</param>
+    /// <returns>The saved template</returns>
+    [HttpPut("items/{catalogItemId}/fulfillment-template")]
+    [ProducesResponseType(typeof(FulfillmentTemplate), StatusCodes.Status200OK)]
+    public async Task<ActionResult<FulfillmentTemplate>> SaveFulfillmentTemplate(int catalogItemId, [FromBody] FulfillmentTemplate template)
+    {
+        template.CatalogItemId = catalogItemId;
+        var saved = await _fulfillmentService.SaveFulfillmentTemplateAsync(template);
+        return Ok(saved);
+    }
+
+    /// <summary>
+    /// Get fulfillment metrics for a date range.
+    /// </summary>
+    /// <param name="fromDate">Start date</param>
+    /// <param name="toDate">End date</param>
+    /// <returns>Fulfillment metrics</returns>
+    [HttpGet("fulfillment/metrics")]
+    [ProducesResponseType(typeof(FulfillmentMetrics), StatusCodes.Status200OK)]
+    public async Task<ActionResult<FulfillmentMetrics>> GetFulfillmentMetrics([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
+    {
+        var metrics = await _fulfillmentService.GetMetricsAsync(fromDate, toDate);
+        return Ok(metrics);
+    }
+
     private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1"); // NOSONAR
 }
 
@@ -466,6 +759,32 @@ public class CatalogCategoryDto
     public string? Description { get; set; }
     public string? Icon { get; set; }
     public int ItemCount { get; set; }
+}
+
+/// <summary>
+/// Generic reason payload used by catalog approval/fulfillment actions
+/// (withdraw approval, escalate approval, cancel fulfillment).
+/// </summary>
+public class ReasonRequest
+{
+    public string Reason { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request body for processing an approval decision on a workflow stage.
+/// </summary>
+public class ProcessApprovalRequest
+{
+    public ApprovalDecision Decision { get; set; }
+    public string? Comments { get; set; }
+}
+
+/// <summary>
+/// Request body for completing a fulfillment task.
+/// </summary>
+public class CompleteFulfillmentTaskRequest
+{
+    public string? Notes { get; set; }
 }
 
 /// <summary>
