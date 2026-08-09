@@ -27,6 +27,7 @@ public class CommissionsController : CrmControllerBase
     private const string CommissionNotFoundMessage = "Commission {0} not found.";
     private readonly ICommissionService _commissionService;
     private readonly ICommissionRulesEngine _commissionRulesEngine;
+    private readonly ICommissionRuleService _commissionRuleService;
     private readonly IOpportunityService _opportunityService;
     private readonly IOrderService _orderService;
     private readonly ILogger<CommissionsController> _logger;
@@ -34,12 +35,14 @@ public class CommissionsController : CrmControllerBase
     public CommissionsController(
         ICommissionService commissionService,
         ICommissionRulesEngine commissionRulesEngine,
+        ICommissionRuleService commissionRuleService,
         IOpportunityService opportunityService,
         IOrderService orderService,
         ILogger<CommissionsController> logger)
     {
         _commissionService = commissionService;
         _commissionRulesEngine = commissionRulesEngine;
+        _commissionRuleService = commissionRuleService;
         _opportunityService = opportunityService;
         _orderService = orderService;
         _logger = logger;
@@ -527,6 +530,113 @@ public class CommissionsController : CrmControllerBase
         {
             _logger.LogError(ex, "Error recalculating commission {CommissionId}", id);
             return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Commission Rules
+
+    /// <summary>
+    /// Get all commission rules.
+    /// </summary>
+    [HttpGet("rules")]
+    [ProducesResponseType(typeof(IEnumerable<CommissionRuleDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<CommissionRuleDto>>> GetRules(CancellationToken cancellationToken)
+    {
+        var rules = await _commissionRuleService.GetAllAsync(cancellationToken);
+        return Ok(rules);
+    }
+
+    /// <summary>
+    /// Get a commission rule by ID.
+    /// </summary>
+    [HttpGet("rules/{id:int}")]
+    [ProducesResponseType(typeof(CommissionRuleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CommissionRuleDto>> GetRuleById(int id, CancellationToken cancellationToken)
+    {
+        var rule = await _commissionRuleService.GetByIdAsync(id, cancellationToken);
+        if (rule == null)
+        {
+            return NotFound($"Commission rule {id} not found.");
+        }
+
+        return Ok(rule);
+    }
+
+    /// <summary>
+    /// Get commission rules applicable to a sale type.
+    /// </summary>
+    [HttpGet("rules/applicable/{saleType}")]
+    [ProducesResponseType(typeof(IEnumerable<CommissionRuleDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<CommissionRuleDto>>> GetApplicableRules(
+        string saleType,
+        CancellationToken cancellationToken)
+    {
+        var rules = await _commissionRuleService.GetApplicableRulesAsync(saleType, cancellationToken);
+        return Ok(rules);
+    }
+
+    /// <summary>
+    /// Create a commission rule.
+    /// </summary>
+    [HttpPost("rules")]
+    [ProducesResponseType(typeof(CommissionRuleDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<CommissionRuleDto>> CreateRule(
+        [FromBody] CreateCommissionRuleDto dto,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var created = await _commissionRuleService.CreateAsync(dto, cancellationToken);
+            return CreatedAtAction(nameof(GetRuleById), new { id = created.Id }, created);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Update a commission rule.
+    /// </summary>
+    [HttpPut("rules/{id:int}")]
+    [ProducesResponseType(typeof(CommissionRuleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CommissionRuleDto>> UpdateRule(
+        int id,
+        [FromBody] UpdateCommissionRuleDto dto,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var updated = await _commissionRuleService.UpdateAsync(id, dto, cancellationToken);
+            return Ok(updated);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Delete a commission rule (soft delete).
+    /// </summary>
+    [HttpDelete("rules/{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteRule(int id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _commissionRuleService.DeleteAsync(id, cancellationToken);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
         }
     }
 

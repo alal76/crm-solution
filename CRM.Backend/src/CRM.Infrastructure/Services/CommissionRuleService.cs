@@ -159,6 +159,7 @@ public class CommissionRuleService : ICommissionRuleService
         return applicable.Select(MapToDto).ToList();
     }
 
+    [Obsolete("Superseded by ICommissionRulesEngine.CalculateCommissionAsync, which supports tiered rates, caps, team splits, and trigger-event gating instead of a flat rate/tier lookup by sale type. Do not use in new code.")]
     public async Task<CommissionCalculationDto> CalculateCommissionAsync(
         decimal saleAmount,
         string saleType,

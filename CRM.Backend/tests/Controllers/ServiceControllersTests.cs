@@ -32,6 +32,7 @@ public class CommissionsControllerTests
 {
     private readonly Mock<ICommissionService> _mockCommissionService;
     private readonly Mock<ICommissionRulesEngine> _mockRulesEngine;
+    private readonly Mock<ICommissionRuleService> _mockRuleService;
     private readonly Mock<IOpportunityService> _mockOpportunityService;
     private readonly Mock<IOrderService> _mockOrderService;
     private readonly Mock<ILogger<CommissionsController>> _mockLogger;
@@ -41,12 +42,14 @@ public class CommissionsControllerTests
     {
         _mockCommissionService = new Mock<ICommissionService>();
         _mockRulesEngine = new Mock<ICommissionRulesEngine>();
+        _mockRuleService = new Mock<ICommissionRuleService>();
         _mockOpportunityService = new Mock<IOpportunityService>();
         _mockOrderService = new Mock<IOrderService>();
         _mockLogger = new Mock<ILogger<CommissionsController>>();
         _controller = new CommissionsController(
             _mockCommissionService.Object,
             _mockRulesEngine.Object,
+            _mockRuleService.Object,
             _mockOpportunityService.Object,
             _mockOrderService.Object,
             _mockLogger.Object);
@@ -334,6 +337,124 @@ public class CommissionsControllerTests
         result.Result.Should().BeOfType<BadRequestObjectResult>();
         _mockRulesEngine.Verify(
             x => x.CalculateCommissionAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    #endregion
+
+    #region Commission Rules
+
+    [Fact]
+    public async Task GetRules_ShouldReturnOk()
+    {
+        _mockRuleService.Setup(s => s.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CommissionRuleDto> { new() { Id = 1, Name = "Standard" } });
+
+        var result = await _controller.GetRules(CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetRuleById_ShouldReturnOk_WhenFound()
+    {
+        _mockRuleService.Setup(s => s.GetByIdAsync(7, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CommissionRuleDto { Id = 7, Name = "Enterprise" });
+
+        var result = await _controller.GetRuleById(7, CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetRuleById_ShouldReturnNotFound_WhenMissing()
+    {
+        _mockRuleService.Setup(s => s.GetByIdAsync(99, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((CommissionRuleDto?)null);
+
+        var result = await _controller.GetRuleById(99, CancellationToken.None);
+
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task GetApplicableRules_ShouldReturnOk()
+    {
+        _mockRuleService.Setup(s => s.GetApplicableRulesAsync("Standard", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<CommissionRuleDto>());
+
+        var result = await _controller.GetApplicableRules("Standard", CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task CreateRule_ShouldReturnCreated_WhenValid()
+    {
+        var dto = new CreateCommissionRuleDto { Name = "New Rule", SaleType = "Standard", Rate = 5m };
+        _mockRuleService.Setup(s => s.CreateAsync(dto, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CommissionRuleDto { Id = 10, Name = dto.Name });
+
+        var result = await _controller.CreateRule(dto, CancellationToken.None);
+
+        result.Result.Should().BeOfType<CreatedAtActionResult>();
+    }
+
+    [Fact]
+    public async Task CreateRule_ShouldReturnBadRequest_WhenServiceThrowsArgumentException()
+    {
+        var dto = new CreateCommissionRuleDto { Name = string.Empty, SaleType = "Standard", Rate = 5m };
+        _mockRuleService.Setup(s => s.CreateAsync(dto, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new ArgumentException("Commission rule name is required"));
+
+        var result = await _controller.CreateRule(dto, CancellationToken.None);
+
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    [Fact]
+    public async Task UpdateRule_ShouldReturnOk_WhenFound()
+    {
+        var dto = new UpdateCommissionRuleDto { Name = "Updated" };
+        _mockRuleService.Setup(s => s.UpdateAsync(3, dto, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new CommissionRuleDto { Id = 3, Name = "Updated" });
+
+        var result = await _controller.UpdateRule(3, dto, CancellationToken.None);
+
+        result.Result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task UpdateRule_ShouldReturnNotFound_WhenMissing()
+    {
+        var dto = new UpdateCommissionRuleDto { Name = "Updated" };
+        _mockRuleService.Setup(s => s.UpdateAsync(404, dto, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new KeyNotFoundException("Commission rule with ID 404 not found"));
+
+        var result = await _controller.UpdateRule(404, dto, CancellationToken.None);
+
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    [Fact]
+    public async Task DeleteRule_ShouldReturnNoContent_WhenFound()
+    {
+        _mockRuleService.Setup(s => s.DeleteAsync(8, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        var result = await _controller.DeleteRule(8, CancellationToken.None);
+
+        result.Should().BeOfType<NoContentResult>();
+    }
+
+    [Fact]
+    public async Task DeleteRule_ShouldReturnNotFound_WhenMissing()
+    {
+        _mockRuleService.Setup(s => s.DeleteAsync(123, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new KeyNotFoundException("Commission rule with ID 123 not found"));
+
+        var result = await _controller.DeleteRule(123, CancellationToken.None);
+
+        result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     #endregion

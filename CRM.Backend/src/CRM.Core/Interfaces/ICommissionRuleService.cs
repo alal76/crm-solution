@@ -32,6 +32,7 @@ public interface ICommissionRuleService
     Task<List<CommissionRuleDto>> GetApplicableRulesAsync(string saleType, CancellationToken ct = default);
 
     /// <summary>Calculates commission for a given sale amount and type</summary>
+    [Obsolete("Superseded by ICommissionRulesEngine.CalculateCommissionAsync, which supports tiered rates, caps, team splits, and trigger-event gating instead of a flat rate/tier lookup by sale type. Do not use in new code.")]
     Task<CommissionCalculationDto> CalculateCommissionAsync(
         decimal saleAmount,
         string saleType,
