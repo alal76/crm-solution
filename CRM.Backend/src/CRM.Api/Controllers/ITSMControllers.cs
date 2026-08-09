@@ -11,6 +11,7 @@ using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Api.Infrastructure;
+using CRM.Infrastructure.Services.ITSM;
 
 namespace CRM.Api.Controllers;
 
@@ -208,13 +209,20 @@ public class UpdateRCADto
 public class CMDBController : CrmControllerBase
 {
     private readonly ICMDBService _cmdbService;
+    private readonly IAssetLifecycleService _assetLifecycleService;
+    private readonly IDiscoveryService _discoveryService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CMDBController"/> class.
     /// </summary>
-    public CMDBController(ICMDBService cmdbService)
+    public CMDBController(
+        ICMDBService cmdbService,
+        IAssetLifecycleService assetLifecycleService,
+        IDiscoveryService discoveryService)
     {
         _cmdbService = cmdbService;
+        _assetLifecycleService = assetLifecycleService;
+        _discoveryService = discoveryService;
     }
 
     /// <summary>
@@ -369,7 +377,329 @@ public class CMDBController : CrmControllerBase
         return Ok(types);
     }
 
+    // ────────────────────────────────────────────────────────────────
+    // Asset Lifecycle Management
+    // ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Get the current lifecycle state of a Configuration Item.
+    /// </summary>
+    /// <param name="id">The CI ID</param>
+    /// <returns>The current lifecycle state</returns>
+    [HttpGet("{id:int}/lifecycle")]
+    [HttpGet("cis/{id:int}/lifecycle")]
+    [ProducesResponseType(typeof(AssetLifecycleState), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AssetLifecycleState>> GetLifecycleState(int id)
+    {
+        try
+        {
+            var state = await _assetLifecycleService.GetLifecycleStateAsync(id);
+            return Ok(state);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Transition a Configuration Item to a new lifecycle stage.
+    /// </summary>
+    /// <param name="id">The CI ID</param>
+    /// <param name="request">Target stage and optional notes</param>
+    /// <returns>The recorded lifecycle transition</returns>
+    [HttpPost("{id:int}/lifecycle/transition")]
+    [HttpPost("cis/{id:int}/lifecycle/transition")]
+    [ProducesResponseType(typeof(AssetLifecycleTransition), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AssetLifecycleTransition>> TransitionLifecycle(int id, [FromBody] TransitionLifecycleRequest request)
+    {
+        try
+        {
+            var transition = await _assetLifecycleService.TransitionAsync(id, request.TargetStage, GetCurrentUserId(), request.Notes);
+            return Ok(transition);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get lifecycle transition history for a Configuration Item.
+    /// </summary>
+    /// <param name="id">The CI ID</param>
+    /// <returns>List of lifecycle transitions, most recent first</returns>
+    [HttpGet("{id:int}/lifecycle/history")]
+    [HttpGet("cis/{id:int}/lifecycle/history")]
+    [ProducesResponseType(typeof(IEnumerable<AssetLifecycleTransition>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<AssetLifecycleTransition>>> GetLifecycleHistory(int id)
+    {
+        var history = await _assetLifecycleService.GetLifecycleHistoryAsync(id);
+        return Ok(history);
+    }
+
+    /// <summary>
+    /// Schedule the retirement of a Configuration Item.
+    /// </summary>
+    /// <param name="id">The CI ID</param>
+    /// <param name="request">Retirement date and reason</param>
+    /// <returns>The created retirement schedule</returns>
+    [HttpPost("{id:int}/lifecycle/retire")]
+    [HttpPost("cis/{id:int}/lifecycle/retire")]
+    [ProducesResponseType(typeof(AssetRetirementSchedule), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AssetRetirementSchedule>> ScheduleRetirement(int id, [FromBody] ScheduleRetirementRequest request)
+    {
+        try
+        {
+            var schedule = await _assetLifecycleService.ScheduleRetirementAsync(id, request.RetirementDate, GetCurrentUserId(), request.Reason);
+            return Ok(schedule);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get utilization metrics for a Configuration Item.
+    /// </summary>
+    /// <param name="id">The CI ID</param>
+    /// <returns>Utilization metrics including MTBF/MTTR and incident counts</returns>
+    [HttpGet("{id:int}/lifecycle/utilization")]
+    [HttpGet("cis/{id:int}/lifecycle/utilization")]
+    [ProducesResponseType(typeof(AssetUtilizationMetrics), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AssetUtilizationMetrics>> GetUtilizationMetrics(int id)
+    {
+        try
+        {
+            var metrics = await _assetLifecycleService.GetUtilizationMetricsAsync(id);
+            return Ok(metrics);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get lifecycle cost analysis for a Configuration Item.
+    /// </summary>
+    /// <param name="id">The CI ID</param>
+    /// <returns>Cost analysis including total cost of ownership</returns>
+    [HttpGet("{id:int}/lifecycle/cost-analysis")]
+    [HttpGet("cis/{id:int}/lifecycle/cost-analysis")]
+    [ProducesResponseType(typeof(LifecycleCostAnalysis), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<LifecycleCostAnalysis>> GetCostAnalysis(int id)
+    {
+        try
+        {
+            var analysis = await _assetLifecycleService.GetCostAnalysisAsync(id);
+            return Ok(analysis);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get assets approaching end-of-life, end-of-support, or warranty expiration.
+    /// </summary>
+    /// <param name="daysAhead">Look-ahead window in days (default: 90)</param>
+    /// <returns>List of end-of-life alerts</returns>
+    [HttpGet("lifecycle/end-of-life-alerts")]
+    [ProducesResponseType(typeof(IEnumerable<AssetEndOfLifeAlert>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<AssetEndOfLifeAlert>>> GetEndOfLifeAlerts([FromQuery] int daysAhead = 90)
+    {
+        var alerts = await _assetLifecycleService.GetEndOfLifeAlertsAsync(daysAhead);
+        return Ok(alerts);
+    }
+
+    /// <summary>
+    /// Get assets that are candidates for refresh/replacement.
+    /// </summary>
+    /// <returns>List of refresh candidates ordered by urgency</returns>
+    [HttpGet("lifecycle/refresh-candidates")]
+    [ProducesResponseType(typeof(IEnumerable<AssetRefreshCandidate>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<AssetRefreshCandidate>>> GetRefreshCandidates()
+    {
+        var candidates = await _assetLifecycleService.GetRefreshCandidatesAsync();
+        return Ok(candidates);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // CMDB Auto-Discovery
+    // ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Run a discovery scan for a network range, cloud provider, or domain.
+    /// </summary>
+    /// <param name="request">Scan configuration</param>
+    /// <returns>The discovery scan result</returns>
+    [HttpPost("discovery/scan")]
+    [ProducesResponseType(typeof(DiscoveryScanResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<DiscoveryScanResult>> RunDiscoveryScan([FromBody] DiscoveryScanRequest request)
+    {
+        var result = await _discoveryService.RunDiscoveryScanAsync(request);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get the status of a discovery scan.
+    /// </summary>
+    /// <param name="scanId">The scan ID</param>
+    /// <returns>The scan status</returns>
+    [HttpGet("discovery/scan/{scanId:int}/status")]
+    [ProducesResponseType(typeof(DiscoveryScanStatus), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<DiscoveryScanStatus>> GetScanStatus(int scanId)
+    {
+        try
+        {
+            var status = await _discoveryService.GetScanStatusAsync(scanId);
+            return Ok(status);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get discovered assets pending approval for CMDB import.
+    /// </summary>
+    /// <returns>List of pending discovered assets</returns>
+    [HttpGet("discovery/pending-assets")]
+    [ProducesResponseType(typeof(IEnumerable<DiscoveredAsset>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<DiscoveredAsset>>> GetPendingDiscoveredAssets()
+    {
+        var assets = await _discoveryService.GetPendingAssetsAsync();
+        return Ok(assets);
+    }
+
+    /// <summary>
+    /// Approve and import discovered assets into the CMDB.
+    /// </summary>
+    /// <param name="request">The discovered asset IDs to import</param>
+    /// <returns>The import result</returns>
+    [HttpPost("discovery/import")]
+    [ProducesResponseType(typeof(CmdbImportResult), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CmdbImportResult>> ImportDiscoveredAssets([FromBody] ImportDiscoveredAssetsRequest request)
+    {
+        var result = await _discoveryService.ImportAssetsAsync(request.AssetIds, GetCurrentUserId());
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Reconcile discovered assets from a scan against existing CMDB entries.
+    /// </summary>
+    /// <param name="scanId">The scan ID</param>
+    /// <returns>The reconciliation result</returns>
+    [HttpPost("discovery/scan/{scanId:int}/reconcile")]
+    [ProducesResponseType(typeof(ReconciliationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ReconciliationResult>> ReconcileDiscoveredAssets(int scanId)
+    {
+        try
+        {
+            var result = await _discoveryService.ReconcileAssetsAsync(scanId);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get configured discovery schedules.
+    /// </summary>
+    /// <returns>List of discovery schedules</returns>
+    [HttpGet("discovery/schedules")]
+    [ProducesResponseType(typeof(IEnumerable<DiscoverySchedule>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<DiscoverySchedule>>> GetDiscoverySchedules()
+    {
+        var schedules = await _discoveryService.GetSchedulesAsync();
+        return Ok(schedules);
+    }
+
+    /// <summary>
+    /// Create or update a discovery schedule.
+    /// </summary>
+    /// <param name="request">The schedule details</param>
+    /// <returns>The saved discovery schedule</returns>
+    [HttpPost("discovery/schedules")]
+    [ProducesResponseType(typeof(DiscoverySchedule), StatusCodes.Status200OK)]
+    public async Task<ActionResult<DiscoverySchedule>> SaveDiscoverySchedule([FromBody] SaveDiscoveryScheduleRequest request)
+    {
+        var schedule = new DiscoverySchedule
+        {
+            ScheduleId = request.ScheduleId,
+            Name = request.Name,
+            Type = request.Type,
+            Target = request.Target,
+            CronExpression = request.CronExpression,
+            IsActive = request.IsActive,
+            AutoImportMatches = request.AutoImportMatches
+        };
+
+        var saved = await _discoveryService.SaveScheduleAsync(schedule);
+        return Ok(saved);
+    }
+
     private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1"); // NOSONAR
+}
+
+/// <summary>
+/// Request to transition a Configuration Item's lifecycle stage.
+/// </summary>
+public class TransitionLifecycleRequest
+{
+    public LifecycleStage TargetStage { get; set; }
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// Request to schedule a Configuration Item's retirement.
+/// </summary>
+public class ScheduleRetirementRequest
+{
+    public DateTime RetirementDate { get; set; }
+    public string Reason { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request to import a set of discovered assets into the CMDB.
+/// </summary>
+public class ImportDiscoveredAssetsRequest
+{
+    public List<int> AssetIds { get; set; } = new();
+}
+
+/// <summary>
+/// Client-settable fields for creating/updating a discovery schedule.
+/// LastRun/NextRun are server-computed and intentionally excluded.
+/// </summary>
+public class SaveDiscoveryScheduleRequest
+{
+    public int ScheduleId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public DiscoveryType Type { get; set; }
+    public string Target { get; set; } = string.Empty;
+    public string CronExpression { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public bool AutoImportMatches { get; set; }
 }
 
 public class ServiceMapDto
