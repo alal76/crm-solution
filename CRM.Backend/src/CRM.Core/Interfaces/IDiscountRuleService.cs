@@ -11,6 +11,7 @@ namespace CRM.Core.Interfaces;
 /// <summary>
 /// Service interface for managing discount rules and calculations
 /// </summary>
+[Obsolete("Superseded by IPricingRulesService/IDynamicPricingEngine, which already cover discount-type pricing (PricingRule.DiscountMethod/DiscountValue/MinOrderAmount/MinQuantity/MaxDiscountAmount/ProductIds/CustomerSegments/Conditions/CombineWithOtherRules is a strict superset of DiscountRule's fields) alongside volume/promo/customer/tiered pricing. Do not use in new code.")]
 public interface IDiscountRuleService
 {
     /// <summary>Creates a new discount rule</summary>
