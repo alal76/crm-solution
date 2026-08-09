@@ -51,7 +51,10 @@ public class ITSMCrossModuleWorkflowTests
     public async Task Lifecycle_Step1_CreateIncident_ShouldReturnNewIncident()
     {
         // Arrange
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = CreateTestContext();
 
         var createDto = new CreateIncidentDto
@@ -188,7 +191,10 @@ public class ITSMCrossModuleWorkflowTests
     public async Task Lifecycle_Step6_ResolveIncident_ShouldSucceed()
     {
         // Arrange
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = CreateTestContext();
 
         var resolveDto = new ResolveIncidentDto
@@ -220,7 +226,10 @@ public class ITSMCrossModuleWorkflowTests
     public async Task Lifecycle_Step7_CloseIncident_ShouldSucceed()
     {
         // Arrange
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = CreateTestContext();
 
         _mockIncidentService.Setup(s => s.CloseIncidentAsync(1, 1)).ReturnsAsync(true);

@@ -51,7 +51,10 @@ public class ITSMRBACTests
     public async Task CreateIncident_ShouldSucceed_WhenCalledByAdmin()
     {
         // Arrange
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = CreateControllerContext("1", "Admin");
 
         var dto = new CreateIncidentDto
@@ -76,7 +79,10 @@ public class ITSMRBACTests
     public async Task GetIncident_ShouldSucceed_WhenCalledByAgent()
     {
         // Arrange
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = CreateControllerContext("5", "Agent");
 
         _mockIncidentService.Setup(s => s.GetIncidentByIdAsync(1))
@@ -93,7 +99,10 @@ public class ITSMRBACTests
     public async Task GetIncident_ShouldReturn404_WhenCalledByUser_AndNotFound()
     {
         // Arrange
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = CreateControllerContext("10", "User");
 
         _mockIncidentService.Setup(s => s.GetIncidentByIdAsync(999))
@@ -112,7 +121,10 @@ public class ITSMRBACTests
     public async Task CreateIncident_ShouldExtractUserIdFromClaims()
     {
         // Arrange
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = CreateControllerContext("42", "Admin");
 
         var dto = new CreateIncidentDto
@@ -137,7 +149,10 @@ public class ITSMRBACTests
     public async Task AssignIncident_ShouldExtractUserIdFromClaims()
     {
         // Arrange
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = CreateControllerContext("7", "Agent");
 
         _mockIncidentService.Setup(s => s.AssignIncidentAsync(1, 5, null, 7))
@@ -158,7 +173,10 @@ public class ITSMRBACTests
     public async Task CreateIncident_ShouldUseDefaultUserId_WhenClaimMissing()
     {
         // Arrange — no NameIdentifier claim
-        var controller = new CRM.Api.Controllers.IncidentsController(_mockIncidentService.Object);
+        var controller = new CRM.Api.Controllers.IncidentsController(
+            _mockIncidentService.Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IAssignmentRulesEngine>().Object,
+            new Mock<CRM.Infrastructure.Services.ITSM.IImpactAnalysisService>().Object);
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
