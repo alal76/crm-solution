@@ -32,10 +32,17 @@ namespace CRM.Api.Controllers;
 public class KnowledgeController : CrmControllerBase
 {
     private readonly IKnowledgeManagementService _knowledgeService;
+    private readonly IArticleRecommendationService _recommendationService;
+    private readonly IKCSWorkflowService _kcsService;
 
-    public KnowledgeController(IKnowledgeManagementService knowledgeService)
+    public KnowledgeController(
+        IKnowledgeManagementService knowledgeService,
+        IArticleRecommendationService recommendationService,
+        IKCSWorkflowService kcsService)
     {
         _knowledgeService = knowledgeService;
+        _recommendationService = recommendationService;
+        _kcsService = kcsService;
     }
 
     /// <summary>
@@ -274,6 +281,190 @@ public class KnowledgeController : CrmControllerBase
     {
         var article = await _knowledgeService.RestoreArticleVersionAsync(id, versionId, GetCurrentUserId());
         return article == null ? NotFound() : Ok(article);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // Article recommendations (IArticleRecommendationService)
+    // ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Get article recommendations for an incident based on category and popularity/helpfulness ranking.
+    /// </summary>
+    /// <param name="incidentId">The incident ID</param>
+    /// <returns>List of recommended articles with relevance scores</returns>
+    [HttpGet("incidents/{incidentId:int}/article-recommendations")]
+    [AllowAnonymous] // NOSONAR - S4834: Recommendations surface only public article metadata, consistent with the existing /suggestions endpoint
+    [ProducesResponseType(typeof(IEnumerable<ArticleRecommendation>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ArticleRecommendation>>> GetArticleRecommendations(int incidentId)
+    {
+        var recommendations = await _recommendationService.GetRecommendationsAsync(incidentId);
+        return Ok(recommendations);
+    }
+
+    /// <summary>
+    /// Get trending knowledge articles based on view count and recent activity.
+    /// </summary>
+    /// <param name="count">Number of trending articles to return (default: 10)</param>
+    /// <returns>List of trending articles with trend direction</returns>
+    [HttpGet("articles/trending")]
+    [AllowAnonymous] // NOSONAR - S4834: Public trending article list, consistent with the existing /popular and /recent endpoints
+    [ProducesResponseType(typeof(IEnumerable<TrendingArticle>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TrendingArticle>>> GetTrendingArticles([FromQuery] int count = 10)
+    {
+        var articles = await _recommendationService.GetTrendingArticlesAsync(count);
+        return Ok(articles);
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // KCS (Knowledge-Centered Service) workflow (IKCSWorkflowService)
+    // ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Start a KCS capture session for an incident.
+    /// </summary>
+    /// <param name="incidentId">The incident ID</param>
+    /// <returns>The started capture session</returns>
+    [HttpPost("incidents/{incidentId:int}/kcs/capture-session")]
+    [ProducesResponseType(typeof(KCSSession), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<KCSSession>> StartKCSCaptureSession(int incidentId)
+    {
+        try
+        {
+            var session = await _kcsService.StartCaptureSessionAsync(incidentId, GetCurrentUserId());
+            return Ok(session);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Create a KCS draft article from a resolved incident.
+    /// </summary>
+    /// <param name="incidentId">The incident ID</param>
+    /// <returns>The generated draft article</returns>
+    [HttpPost("incidents/{incidentId:int}/kcs/draft")]
+    [ProducesResponseType(typeof(KCSDraftArticle), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<KCSDraftArticle>> CreateKCSDraft(int incidentId)
+    {
+        try
+        {
+            var draft = await _kcsService.CreateDraftFromIncidentAsync(incidentId, GetCurrentUserId());
+            return Ok(draft);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Submit a knowledge article for KCS review.
+    /// </summary>
+    /// <param name="id">The article ID</param>
+    /// <returns>The created review request</returns>
+    [HttpPost("{id:int}/kcs/submit-review")]
+    [ProducesResponseType(typeof(KCSReviewRequest), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<KCSReviewRequest>> SubmitKCSReview(int id)
+    {
+        try
+        {
+            var reviewRequest = await _kcsService.SubmitForReviewAsync(id, GetCurrentUserId());
+            return Ok(reviewRequest);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Record a review decision (approve/reject/etc.) for a KCS review request.
+    /// </summary>
+    /// <param name="reviewRequestId">The review request ID</param>
+    /// <param name="dto">The review decision and optional feedback</param>
+    /// <returns>The review result</returns>
+    [HttpPost("kcs/reviews/{reviewRequestId:int}/decide")]
+    [ProducesResponseType(typeof(KCSReviewResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<KCSReviewResult>> DecideKCSReview(int reviewRequestId, [FromBody] KCSReviewDecisionRequest dto)
+    {
+        try
+        {
+            var result = await _kcsService.ReviewArticleAsync(reviewRequestId, GetCurrentUserId(), dto.Decision, dto.Feedback);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Get KCS metrics for an agent over a date range.
+    /// </summary>
+    /// <param name="agentId">The agent (user) ID</param>
+    /// <param name="fromDate">Start date</param>
+    /// <param name="toDate">End date</param>
+    /// <returns>Agent KCS metrics</returns>
+    [HttpGet("kcs/agents/{agentId:int}/metrics")]
+    [ProducesResponseType(typeof(KCSAgentMetrics), StatusCodes.Status200OK)]
+    public async Task<ActionResult<KCSAgentMetrics>> GetKCSAgentMetrics(int agentId, [FromQuery] DateTime fromDate, [FromQuery] DateTime toDate)
+    {
+        var metrics = await _kcsService.GetAgentMetricsAsync(agentId, fromDate, toDate);
+        return Ok(metrics);
+    }
+
+    /// <summary>
+    /// Get the KCS lifecycle status for a knowledge article.
+    /// </summary>
+    /// <param name="id">The article ID</param>
+    /// <returns>The article's lifecycle information</returns>
+    [HttpGet("{id:int}/kcs/lifecycle")]
+    [ProducesResponseType(typeof(KCSArticleLifecycle), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<KCSArticleLifecycle>> GetKCSArticleLifecycle(int id)
+    {
+        try
+        {
+            var lifecycle = await _kcsService.GetArticleLifecycleAsync(id);
+            return Ok(lifecycle);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// Flag a knowledge article for KCS review or retirement.
+    /// </summary>
+    /// <param name="id">The article ID</param>
+    /// <param name="dto">The flag type and reason</param>
+    /// <returns>Success status</returns>
+    [HttpPost("{id:int}/kcs/flag")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult> FlagKCSArticle(int id, [FromBody] KCSFlagRequest dto)
+    {
+        var result = await _kcsService.FlagArticleAsync(id, dto.Flag, GetCurrentUserId(), dto.Reason);
+        return result ? Ok() : NotFound();
+    }
+
+    /// <summary>
+    /// Get the KCS coaching queue for the current reviewer.
+    /// </summary>
+    /// <returns>List of coaching queue items</returns>
+    [HttpGet("kcs/coaching-queue")]
+    [ProducesResponseType(typeof(List<KCSCoachingItem>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<KCSCoachingItem>>> GetKCSCoachingQueue()
+    {
+        var queue = await _kcsService.GetCoachingQueueAsync(GetCurrentUserId());
+        return Ok(queue);
     }
 
     private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1"); // NOSONAR
@@ -993,6 +1184,24 @@ public class AddFeedbackDto
 {
     public bool Helpful { get; set; }
     public string? Comments { get; set; }
+}
+
+/// <summary>
+/// Request body for recording a KCS review decision.
+/// </summary>
+public class KCSReviewDecisionRequest
+{
+    public KCSReviewDecision Decision { get; set; }
+    public string? Feedback { get; set; }
+}
+
+/// <summary>
+/// Request body for flagging a knowledge article via the KCS workflow.
+/// </summary>
+public class KCSFlagRequest
+{
+    public KCSFlag Flag { get; set; }
+    public string Reason { get; set; } = string.Empty;
 }
 
 public class PauseSLADto

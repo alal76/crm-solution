@@ -39,6 +39,7 @@ public interface IKCSWorkflowService
     /// <summary>
     /// Publish an approved article.
     /// </summary>
+    [Obsolete("Duplicates KnowledgeController's existing PATCH {id}/publish (IKnowledgeManagementService.PublishArticleAsync) with no KCS-specific behavior differences today. Do not use in new code.")]
     Task<KCSPublishResult> PublishArticleAsync(int articleId, int publishedById, PublishAudience audience);
 
     /// <summary>
@@ -566,6 +567,7 @@ public class KCSWorkflowService : IKCSWorkflowService
         return result;
     }
 
+    [Obsolete("Duplicates KnowledgeController's existing PATCH {id}/publish (IKnowledgeManagementService.PublishArticleAsync) with no KCS-specific behavior differences today. Do not use in new code.")]
     public async Task<KCSPublishResult> PublishArticleAsync(
         int articleId,
         int publishedById,
