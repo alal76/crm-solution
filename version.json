@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 628,
-  "patch": 32,
+  "patch": 33,
   "lastUpdate": "2026-08-09",
-  "description": "fix: /admin/providers now shows tabs for the 5 provider categories wired in round 7",
+  "description": "docs: sync MASTER_TODO_LIST.md with round-8 results -- Section 2A fully closed",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "components": {
