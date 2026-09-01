@@ -1,6 +1,7 @@
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
 import LeadsPage from '../../pages/LeadsPage';
+import leadService from '../../services/leadService';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
 
 // REM-ORPHAN-003: LeadsPage now calls the real `/api/leads` Lead API via
@@ -35,21 +36,6 @@ const mockLeadsResponse = {
     totalPages: 1,
   },
 };
-
-jest.mock('../../services/apiClient', () => ({
-  __esModule: true,
-  default: {
-    get: jest.fn((url: string) => {
-      if (typeof url === 'string' && url.startsWith('/leads')) {
-        return Promise.resolve(mockLeadsResponse);
-      }
-      return Promise.resolve({ data: [] });
-    }),
-    post: jest.fn().mockResolvedValue({ data: [] }),
-    put: jest.fn().mockResolvedValue({ data: [] }),
-    delete: jest.fn().mockResolvedValue({ data: [] }),
-  },
-}));
 
 jest.mock('../../hooks/usePagination', () => ({
   usePagination: (data: unknown[]) => ({
@@ -132,7 +118,13 @@ jest.mock('../../services/logger', () => ({
 
 describe('LeadsPage', () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     mockUseEntityTypeSubscription.mockClear();
+    jest.spyOn(leadService, 'getAll').mockResolvedValue(mockLeadsResponse as any);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders the leads header', async () => {
