@@ -51,6 +51,51 @@ jest.mock('../../services/apiClient', () => ({
   },
 }));
 
+jest.mock('../../services/leadService', () => ({
+  __esModule: true,
+  default: {
+    getAll: jest.fn().mockResolvedValue({
+      data: {
+        data: [
+          {
+            id: 42,
+            firstName: 'Ada',
+            lastName: 'Lovelace',
+            fullName: 'Ada Lovelace',
+            email: 'ada@example.com',
+            phone: '555-0100',
+            companyName: 'Analytical Engines Inc',
+            title: 'Chief Mathematician',
+            status: 'New',
+            source: 'Web',
+            score: 72,
+            fitScore: 60,
+            engagementScore: 80,
+            createdAt: '2026-01-01T00:00:00Z',
+            qualificationFrameworkType: 'None',
+          },
+        ],
+        totalCount: 1,
+        page: 1,
+        pageSize: 1000,
+        totalPages: 1,
+      },
+    }),
+    getById: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    convert: jest.fn(),
+    checkDuplicate: jest.fn(),
+    getAnalytics: jest.fn(),
+    getAttribution: jest.fn(),
+    getAgingAlerts: jest.fn(),
+    assessQualification: jest.fn(),
+    scoreLead: jest.fn(),
+    batchScoreLeads: jest.fn(),
+  },
+}));
+
 jest.mock('../../hooks/usePagination', () => ({
   usePagination: (data: unknown[]) => ({
     page: 0,

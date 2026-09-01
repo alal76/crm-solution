@@ -247,7 +247,9 @@ function LeadsPage() {
       // The page still filters/paginates client-side (usePagination below), so we
       // request a large page to approximate "all leads" in one call.
       const response = await leadService.getAll(1, 1000);
-      setLeads(response.data.data || []);
+      const payload = response?.data ?? response;
+      const rows = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+      setLeads(rows);
       setError(null);
     } catch (err: unknown) {
       setError((err as any).response?.data?.message || 'Failed to fetch leads');
